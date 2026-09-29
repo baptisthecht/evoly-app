@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { expect, type Page } from "@playwright/test";
 import { firstLink, lastEmail } from "./outbox";
@@ -76,4 +77,19 @@ export async function buyFree(page: Page, eventPageUrl: string, ticketName: stri
   await box.getByLabel("Adresse e-mail").fill(email);
   await box.getByRole("button", { name: "Confirmer ma réservation" }).click();
   await page.waitForURL(/\/billets\/[A-Za-z0-9_-]{43}$/);
+}
+
+/** Valeur de configuration : variable d'environnement (CI), sinon fichier apps/app/.env.local (développement). */
+export function envValue(name: string): string | undefined {
+  if (process.env[name]) return process.env[name];
+  const file = new URL("../.env.local", import.meta.url);
+  if (!existsSync(file)) return undefined;
+  return new RegExp(`^${name}="?([^"\\n]+)"?`, "m").exec(readFileSync(file, "utf8"))?.[1];
+}
+
+/** Secret des tâches planifiées, partagé avec le serveur de test. */
+export function cronSecret(): string {
+  const v = envValue("CRON_SECRET");
+  if (!v) throw new Error("CRON_SECRET introuvable (variable d'environnement ou apps/app/.env.local)");
+  return v;
 }

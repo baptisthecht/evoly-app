@@ -1,9 +1,7 @@
-import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { lastEmail } from "./outbox";
-import { appUrl, buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
+import { appUrl, buyFree, cronSecret, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
-const cronSecret = () => /^CRON_SECRET="?([^"\n]+)"?/m.exec(readFileSync(new URL("../.env.local", import.meta.url), "utf8"))![1]!;
 
 test("campagne : modèle, destinataires, aperçu, test, envoi et statistiques (US-MKT-03)", async ({ page }) => {
   const { id, slug } = await organizer(page);

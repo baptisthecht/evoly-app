@@ -8,7 +8,7 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:16
@@ -24,6 +24,19 @@ jobs:
       BETTER_AUTH_SECRET: ci-secret-ci-secret-ci-secret-0123456789
       BETTER_AUTH_URL: http://localhost:3001
       NEXT_PUBLIC_APP_URL: http://localhost:3001
+      # billetteries en sous-domaines de localhost (org.localhost:3001), comme en développement
+      NEXT_PUBLIC_BASE_DOMAIN: localhost:3001
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      ORDER_TOKEN_SECRET: ci-order-token-secret-0123456789abcdef
+      CRON_SECRET: ci-cron-secret-0123456789abcdef
+      # connexion Google : identifiants factices (le test vérifie seulement la redirection vers Google)
+      AUTH_GOOGLE_ID: evoly-test.apps.googleusercontent.com
+      AUTH_GOOGLE_SECRET: secret-de-test
+      # Wallet : type de pass et équipe factices ; certificats générés à chaque exécution (étape ci-dessous)
+      APPLE_PASS_TYPE_ID: pass.me.evoly.test
+      APPLE_TEAM_ID: TEAM123456
+      GOOGLE_WALLET_ISSUER_ID: "3388000000012345678"
+      GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL: wallet@evoly-test.iam.gserviceaccount.com
       EMAIL_OUTBOX_DIR: /tmp/evoly-outbox
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
@@ -34,6 +47,18 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Outils des tests (lecture des PDF) et identifiants Wallet de test
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
+          d=$(mktemp -d)
+          openssl req -x509 -newkey rsa:2048 -nodes -keyout "$d/key.pem" -out "$d/cert.pem" -days 2 -subj "/CN=Pass Type ID: pass.me.evoly.test" 2>/dev/null
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$d/google.pem" 2>/dev/null
+          {
+            echo "APPLE_PASS_CERT_PEM=$(base64 -w0 "$d/cert.pem")"
+            echo "APPLE_PASS_KEY_PEM=$(base64 -w0 "$d/key.pem")"
+            echo "APPLE_WWDR_PEM=$(base64 -w0 "$d/cert.pem")"
+            echo "GOOGLE_WALLET_PRIVATE_KEY=$(base64 -w0 "$d/google.pem")"
+          } >> "$GITHUB_ENV"
       - name: Base de données
         run: |
           pnpm db:generate

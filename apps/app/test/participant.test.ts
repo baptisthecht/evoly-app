@@ -9,13 +9,13 @@ const { reserveOrder, submitBuyer } = await import("@/server/checkout");
 const { openParticipantSession, participantEmail, participantOverview, requestParticipantLink, setMarketingPreference } = await import("@/server/participant");
 
 const rid = () => Math.random().toString(36).slice(2, 10);
+// e-mail retrouvé par le journal des envois, puis son fichier ouvert directement (pas de lecture de tout le dossier)
 const outbox = async (to: string, template: string) => {
+  const msg = await db.emailMessage.findFirst({ where: { toEmail: to, template }, orderBy: { queuedAt: "desc" }, select: { id: true } });
+  if (!msg) return null;
   const dir = process.env.EMAIL_OUTBOX_DIR!;
-  for (const f of (await readdir(dir)).filter((x) => x.endsWith(".json")).sort().reverse()) {
-    const m = JSON.parse(await readFile(`${dir}/${f}`, "utf8"));
-    if (m.to === to && m.template === template) return m as { text: string };
-  }
-  return null;
+  const file = (await readdir(dir)).find((f) => f.includes(msg.id) && f.endsWith(".json"));
+  return file ? (JSON.parse(await readFile(`${dir}/${file}`, "utf8")) as { text: string }) : null;
 };
 
 describe("espace participant (section 9.23)", () => {

@@ -1,12 +1,10 @@
 import { createHmac } from "node:crypto";
-import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
-import { appUrl, buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
+import { appUrl, buyFree, envValue, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 /** Lien de désinscription signé comme le serveur (même secret que l'app de test). */
 function unsubscribeLink(email: string, organizationId: string) {
-  const env = readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-  const secret = /^ORDER_TOKEN_SECRET="?([^"\n]+)"?/m.exec(env)?.[1] ?? /^BETTER_AUTH_SECRET="?([^"\n]+)"?/m.exec(env)![1]!;
+  const secret = envValue("ORDER_TOKEN_SECRET") ?? envValue("BETTER_AUTH_SECRET")!;
   const payload = Buffer.from(JSON.stringify({ e: email, o: organizationId })).toString("base64url");
   return appUrl(`/desinscription/${payload}.${createHmac("sha256", `unsubscribe:${secret}`).update(payload).digest("base64url").slice(0, 32)}`);
 }
