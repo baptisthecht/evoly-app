@@ -1,0 +1,18 @@
+{
+  "name": "@evoly/email",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/templates/*.tsx"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.0.36",
+    "react": "^19.0.0",
+    "resend": "^6.9.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,43 @@
+# Caddy : seul service ouvert sur Internet (ports 80 et 443).
+{
+	email {$ACME_EMAIL}
+	# RG-DOM-03 : un certificat n'est délivré que si l'app reconnaît le domaine
+	# (evoly.me, app., www., scanner., sous-domaines d'organisation et d'événement, domaines personnalisés actifs)
+	on_demand_tls {
+		ask http://app:3000/api/domains/allowed
+	}
+}
+
+# Site vitrine et documents légaux (apps/web/dist) ; liens courts d'événement (/e/…) et de revente (/r/…) servis par l'app
+{$SITE_DOMAIN} {
+	encode zstd gzip
+	@app path /e/* /r/*
+	handle @app {
+		reverse_proxy app:3000
+	}
+	handle {
+		root * /srv/web
+		rewrite / /evoly-billetterie.html
+		file_server
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+	}
+}
+
+www.{$SITE_DOMAIN} {
+	redir https://{$SITE_DOMAIN}{uri} permanent
+}
+
+# L'app : app., scanner., billetteries des organisations et des événements, domaines personnalisés
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	# Caddy transmet l'adresse réelle du visiteur (il ignore l'en-tête X-Forwarded-For envoyé par le client)
+	reverse_proxy app:3000
+}

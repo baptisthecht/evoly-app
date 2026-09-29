@@ -1,0 +1,215 @@
+"use client";
+
+import type { CampaignBlock, CampaignSegment } from "@evoly/core";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Field, Input, Select } from "@/components/ui/Field";
+import { audienceAction, deleteCampaignAction, previewAction, saveCampaignAction, saveTemplateAction, scheduleAction, testAction, unscheduleAction } from "./actions";
+import { uploadFile } from "@/app/o/[orgSlug]/brand/BrandClient";
+
+type EventOption = { id: string; title: string };
+type Values = { name: string; subject: string; previewText: string; blocks: CampaignBlock[]; segment: CampaignSegment };
+
+const textarea = "block w-full rounded-md bg-surface-raised px-4 py-3 text-[0.95rem] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]";
+
+/** US-MKT-03 : éditeur par blocs, destinataires, aperçu, test, envoi immédiat ou programmé. */
+export function CampaignEditor({ orgSlug, id, status, scheduledAt, initial, events, ticketTypes = [], userEmail }: { orgSlug: string; id: string | null; status: string; scheduledAt: string | null; initial: Values; events: EventOption[]; ticketTypes?: Array<{ id: string; name: string; eventId: string }>; userEmail: string }) {
+  const t = useTranslations("campaigns");
+  const tf = useTranslations("formErrors");
+  const router = useRouter();
+  const [v, setV] = useState<Values>(initial);
+  const [count, setCount] = useState<number | null>(null);
+  const [preview, setPreview] = useState<{ html: string; width: number } | null>(null);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [at, setAt] = useState("");
+  const [pending, start] = useTransition();
+  const set = (patch: Partial<Values>) => setV((x) => ({ ...x, ...patch }));
+  const setBlock = (i: number, b: CampaignBlock) => set({ blocks: v.blocks.map((x, k) => (k === i ? b : x)) });
+  const move = (i: number, d: -1 | 1) => {
+    const next = [...v.blocks];
+    const j = i + d;
+    if (j < 0 || j >= next.length) return;
+    [next[i], next[j]] = [next[j]!, next[i]!];
+    set({ blocks: next });
+  };
+  useEffect(() => {
+    const h = setTimeout(async () => setCount(await audienceAction(orgSlug, v.segment)), 300);
+    return () => clearTimeout(h);
+  }, [orgSlug, v.segment]);
+  const fail = (err?: string, fields?: Record<string, string>) => setMessage({ ok: false, text: fields && Object.keys(fields).length ? t("fixFields") : err && tf.has(err) ? tf(err) : t("error") });
+  const save = async (): Promise<string | null> => {
+    const r = await saveCampaignAction(orgSlug, id, v);
+    if (!r?.ok) {
+      fail(r?.error, r && !r.ok ? r.fields : undefined);
+      return null;
+    }
+    if (!id) router.replace(`/o/${orgSlug}/marketing/campaigns/${r.data.id}`);
+    return r.data.id;
+  };
+  const run = (fn: () => Promise<void>) => start(async () => { setMessage(null); await fn(); });
+  const addBlock = (type: CampaignBlock["type"]) => {
+    const b: CampaignBlock = type === "heading" ? { type, text: "" } : type === "text" ? { type, text: "" } : type === "image" ? { type, url: "https://" } : type === "button" ? { type, label: "", url: "https://" } : type === "event" ? { type, eventId: events[0]?.id ?? "" } : { type: "divider" };
+    set({ blocks: [...v.blocks, b] });
+  };
+  const locked = ["SENDING", "SENT", "CANCELLED", "FAILED"].includes(status);
+  if (locked) return null;
+  return (
+    <div className="grid gap-6">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
+      <div className="grid content-start gap-5">
+        <Card className="grid gap-4">
+          <Field label={t("name")} htmlFor="c-name" hint={t("nameHint")}>
+            <Input id="c-name" value={v.name} onChange={(e) => set({ name: e.target.value })} maxLength={120} />
+          </Field>
+          <Field label={t("subject")} htmlFor="c-subject" hint={t("mergeHint")}>
+            <Input id="c-subject" value={v.subject} onChange={(e) => set({ subject: e.target.value })} maxLength={150} />
+          </Field>
+          <Field label={t("previewText")} htmlFor="c-preview" hint={t("previewTextHint")}>
+            <Input id="c-preview" value={v.previewText} onChange={(e) => set({ previewText: e.target.value })} maxLength={200} />
+          </Field>
+        </Card>
+        <section className="grid gap-3" aria-label={t("content")}>
+          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("content")}</h2>
+          {v.blocks.map((b, i) => (
+            <Card key={i} className="grid gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-label text-[0.8rem] font-bold text-ink-muted">{t(`block_${b.type}`)}</span>
+                <span className="flex gap-1">
+                  <Button type="button" size="sm" variant="ghost" onClick={() => move(i, -1)} aria-label={t("up")} disabled={i === 0}>↑</Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => move(i, 1)} aria-label={t("down")} disabled={i === v.blocks.length - 1}>↓</Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => set({ blocks: v.blocks.filter((_, k) => k !== i) })}>{t("remove")}</Button>
+                </span>
+              </div>
+              {b.type === "heading" ? <Input aria-label={t("block_heading")} value={b.text} onChange={(e) => setBlock(i, { ...b, text: e.target.value })} maxLength={140} /> : null}
+              {b.type === "text" ? <textarea aria-label={t("block_text")} value={b.text} onChange={(e) => setBlock(i, { ...b, text: e.target.value })} rows={4} maxLength={4000} className={textarea} /> : null}
+              {b.type === "image" ? (
+                <div className="grid gap-2">
+                  {b.url.startsWith("http") && b.url.length > 8 ? <img src={b.url} alt="" className="max-h-40 w-auto justify-self-start rounded-md" /> : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
+                      {t("uploadImage")}
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" data-testid={`image-input-${i}`} onChange={async (e) => { const file = e.target.files?.[0]; if (!file) return; const r = await uploadFile(orgSlug, file, "campaign"); if (r.url) setBlock(i, { ...b, url: r.url }); else fail(r.error); }} />
+                    </label>
+                    <Input aria-label={t("imageUrl")} value={b.url} onChange={(e) => setBlock(i, { ...b, url: e.target.value })} inputMode="url" className="min-w-0 flex-1" />
+                  </div>
+                </div>
+              ) : null}
+              {b.type === "button" ? (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Input aria-label={t("buttonLabel")} placeholder={t("buttonLabel")} value={b.label} onChange={(e) => setBlock(i, { ...b, label: e.target.value })} maxLength={60} />
+                  <Input aria-label={t("buttonUrl")} placeholder="https://" value={b.url} onChange={(e) => setBlock(i, { ...b, url: e.target.value })} inputMode="url" />
+                </div>
+              ) : null}
+              {b.type === "event" ? (
+                <Select aria-label={t("block_event")} value={b.eventId} onChange={(e) => setBlock(i, { type: "event", eventId: e.target.value })}>
+                  {events.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.title}
+                    </option>
+                  ))}
+                </Select>
+              ) : null}
+            </Card>
+          ))}
+          <div className="flex flex-wrap gap-2">
+            {(["heading", "text", "event", "button", "image", "divider"] as const).map((type) => (
+              <Button key={type} type="button" size="sm" variant="secondary" onClick={() => addBlock(type)} disabled={type === "event" && events.length === 0}>
+                + {t(`block_${type}`)}
+              </Button>
+            ))}
+          </div>
+        </section>
+      </div>
+      <aside className="grid content-start gap-4 lg:sticky lg:top-6">
+        <Card className="grid gap-3">
+          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("audience")}</h2>
+          <Select aria-label={t("audience")} value={v.segment.kind} onChange={(e) => set({ segment: e.target.value === "EVENTS" ? { kind: "EVENTS", eventIds: events[0] ? [events[0].id] : [], attendance: "ANY", locale: v.segment.locale ?? null } : { kind: "ALL_CONSENTING", locale: v.segment.locale ?? null } })}>
+            <option value="ALL_CONSENTING">{t("audience_ALL")}</option>
+            <option value="EVENTS" disabled={events.length === 0}>{t("audience_EVENTS")}</option>
+          </Select>
+          {v.segment.kind === "EVENTS" ? (
+            <>
+              <fieldset className="grid max-h-48 gap-2 overflow-y-auto">
+                <legend className="sr-only">{t("events")}</legend>
+                {events.map((e) => {
+                  const seg = v.segment as Extract<CampaignSegment, { kind: "EVENTS" }>;
+                  return (
+                    <label key={e.id} className="flex items-center gap-3 text-sm">
+                      <input type="checkbox" className="size-5 accent-[var(--ink)]" checked={seg.eventIds.includes(e.id)} onChange={(x) => set({ segment: { ...seg, eventIds: x.target.checked ? [...seg.eventIds, e.id] : seg.eventIds.filter((k) => k !== e.id) } })} />
+                      {e.title}
+                    </label>
+                  );
+                })}
+              </fieldset>
+              {ticketTypes.some((tt) => (v.segment as Extract<CampaignSegment, { kind: "EVENTS" }>).eventIds.includes(tt.eventId)) ? (
+                <fieldset className="grid gap-2">
+                  <legend className="mb-1 text-sm font-semibold">{t("ticketTypes")}</legend>
+                  {ticketTypes.filter((tt) => (v.segment as Extract<CampaignSegment, { kind: "EVENTS" }>).eventIds.includes(tt.eventId)).map((tt) => {
+                    const seg = v.segment as Extract<CampaignSegment, { kind: "EVENTS" }>;
+                    const ids = seg.ticketTypeIds ?? [];
+                    return (
+                      <label key={tt.id} className="flex items-center gap-3 text-sm">
+                        <input type="checkbox" className="size-5 accent-[var(--ink)]" checked={ids.includes(tt.id)} onChange={(x) => { const next = x.target.checked ? [...ids, tt.id] : ids.filter((k) => k !== tt.id); set({ segment: { ...seg, ticketTypeIds: next.length ? next : undefined } }); }} />
+                        {tt.name}
+                      </label>
+                    );
+                  })}
+                  <p className="text-xs text-ink-muted">{t("ticketTypesHint")}</p>
+                </fieldset>
+              ) : null}
+              <Select aria-label={t("attendance")} value={(v.segment as Extract<CampaignSegment, { kind: "EVENTS" }>).attendance ?? "ANY"} onChange={(e) => set({ segment: { ...(v.segment as Extract<CampaignSegment, { kind: "EVENTS" }>), attendance: e.target.value as "ANY" } })}>
+                <option value="ANY">{t("attendance_ANY")}</option>
+                <option value="PRESENT">{t("attendance_PRESENT")}</option>
+                <option value="ABSENT">{t("attendance_ABSENT")}</option>
+              </Select>
+            </>
+          ) : null}
+          <Select aria-label={t("language")} value={v.segment.locale ?? ""} onChange={(e) => set({ segment: { ...v.segment, locale: (e.target.value || null) as "fr" | null } })}>
+            <option value="">{t("language_ALL")}</option>
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </Select>
+          <p className="text-sm font-semibold" data-testid="audience-count">{count == null ? "…" : t("recipients", { count })}</p>
+          <p className="text-xs text-ink-muted">{t("audienceHint")}</p>
+        </Card>
+        <Card className="grid gap-2">
+          <Button type="button" onClick={() => run(async () => { if (await save()) setMessage({ ok: true, text: t("saved") }); })} disabled={pending}>{t("save")}</Button>
+          <Button type="button" variant="ghost" disabled={pending} onClick={() => run(async () => { const r = await saveTemplateAction(orgSlug, { name: v.name, subject: v.subject, previewText: v.previewText, blocks: v.blocks }); if (r?.ok) setMessage({ ok: true, text: t("templateSaved") }); else fail(r?.error, r && !r.ok ? r.fields : undefined); })}>{t("saveAsTemplate")}</Button>
+          <Button type="button" variant="secondary" disabled={pending || !id} onClick={() => run(async () => { const saved = await save(); if (!saved) return; const r = await previewAction(orgSlug, saved); if (r?.ok) setPreview({ html: r.data.html, width: 600 }); else fail(r?.error); })}>{t("preview")}</Button>
+          <Button type="button" variant="secondary" disabled={pending || !id} onClick={() => run(async () => { const saved = await save(); if (!saved) return; const r = await testAction(orgSlug, saved); if (r?.ok) setMessage({ ok: true, text: t("testSent", { email: r.data.to }) }); else fail(r?.error); })}>{t("sendTest", { email: userEmail })}</Button>
+          {status === "SCHEDULED" ? (
+            <>
+              <p className="text-sm">{t("scheduledFor", { date: scheduledAt ? new Date(scheduledAt).toLocaleString() : "" })}</p>
+              <Button type="button" variant="ghost" disabled={pending} onClick={() => run(async () => { const r = await unscheduleAction(orgSlug, id!); if (r?.ok) router.refresh(); else fail(r?.error); })}>{t("unschedule")}</Button>
+            </>
+          ) : (
+            <>
+              <Field label={t("scheduleAt")} htmlFor="c-at">
+                <Input id="c-at" type="datetime-local" value={at} onChange={(e) => setAt(e.target.value)} />
+              </Field>
+              <Button type="button" variant="dark" disabled={pending || !id || !count} onClick={() => run(async () => { const saved = await save(); if (!saved) return; const when = at ? new Date(at).toISOString() : null; if (!when && !window.confirm(t("confirmSendNow", { count: count ?? 0 }))) return; const r = await scheduleAction(orgSlug, saved, when); if (r?.ok) router.refresh(); else fail(r?.error); })}>{at ? t("schedule") : t("sendNow")}</Button>
+              {id ? <Button type="button" variant="ghost" disabled={pending} onClick={() => run(async () => { if (!window.confirm(t("confirmDelete"))) return; const r = await deleteCampaignAction(orgSlug, id); if (r?.ok) router.push(`/o/${orgSlug}/marketing?tab=campaigns`); else fail(r?.error); })}>{t("delete")}</Button> : null}
+            </>
+          )}
+          {!id ? <p className="text-xs text-ink-muted">{t("saveFirst")}</p> : null}
+          {message ? <p role={message.ok ? "status" : "alert"} className={`text-sm ${message.ok ? "text-success" : "text-danger"}`}>{message.text}</p> : null}
+        </Card>
+      </aside>
+    </div>
+        {preview ? (
+          <Card className="grid gap-2">
+            <div className="flex gap-2">
+              <Button type="button" size="sm" variant={preview.width === 600 ? "dark" : "ghost"} onClick={() => setPreview({ ...preview, width: 600 })}>{t("desktop")}</Button>
+              <Button type="button" size="sm" variant={preview.width === 375 ? "dark" : "ghost"} onClick={() => setPreview({ ...preview, width: 375 })}>{t("mobile")}</Button>
+            </div>
+            <div className="overflow-x-auto rounded-md bg-surface-sunken p-4">
+              <iframe title={t("preview")} srcDoc={preview.html} sandbox="" style={{ width: preview.width, height: 640 }} className="mx-auto block rounded-md bg-blanc ring-1 ring-line" />
+            </div>
+          </Card>
+        ) : null}
+    </div>
+  );
+}

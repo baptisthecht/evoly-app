@@ -1,0 +1,54 @@
+/* Pont entre les jetons Evoly et Tailwind CSS 4.
+   Dans une app : @import "tailwindcss"; @import "@evoly/ui/tokens.css"; @import "@evoly/ui/theme.css"; */
+@theme inline {
+  --color-charbon: var(--evoly-charbon);
+  --color-creme: var(--evoly-creme);
+  --color-blanc: var(--evoly-blanc);
+  --color-noir: var(--evoly-noir);
+  --color-lilas: var(--evoly-lilas);
+  --color-rose: var(--evoly-rose);
+  --color-graphite: var(--evoly-graphite);
+  --color-bulle: var(--evoly-bulle);
+
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-accent: var(--surface-accent);
+  --color-surface-accent-2: var(--surface-accent-2);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-ink-inverse: var(--ink-inverse);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-success: var(--evoly-success);
+  --color-success-soft: var(--evoly-success-soft);
+  --color-warning: var(--evoly-warning);
+  --color-warning-soft: var(--evoly-warning-soft);
+  --color-danger: var(--evoly-danger);
+  --color-danger-soft: var(--evoly-danger-soft);
+  --color-info: var(--evoly-info);
+  --color-info-soft: var(--evoly-info-soft);
+
+  --font-display: var(--type-display);
+  --font-label: var(--type-label);
+  --font-script: var(--type-script);
+  --font-sans: var(--type-body);
+  --font-mono: var(--type-mono);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-panel: var(--r-panel);
+
+  --shadow-sm: var(--elev-sm);
+  --shadow-md: var(--elev-md);
+  --shadow-lg: var(--elev-lg);
+
+  --ease-out: var(--motion-ease-out);
+  --ease-spring: var(--motion-ease-spring);
+}

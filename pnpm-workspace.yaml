@@ -1,0 +1,4 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+# legacy/ contient la v1, gardée comme référence : hors workspace.

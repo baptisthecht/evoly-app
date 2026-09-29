@@ -1,0 +1,18 @@
+# Evoly Cron Jobs
+# All times are Europe/Paris
+# APP_URL and CRON_SECRET are injected as env vars by Coolify
+
+# Reset monthly quota — 1st of each month at 00:05
+5 0 1 * * curl -sf -H "x-cron-secret: $CRON_SECRET" "$APP_URL/api/cron/reset-quota" >> /var/log/cron.log 2>&1
+
+# Release 30-day reserves — every day at 02:00
+0 2 * * * curl -sf -H "x-cron-secret: $CRON_SECRET" "$APP_URL/api/cron/release-reserves" >> /var/log/cron.log 2>&1
+
+# Downgrade unpaid Pro orgs — every day at 03:00
+0 3 * * * curl -sf -H "x-cron-secret: $CRON_SECRET" "$APP_URL/api/cron/downgrade-unpaid" >> /var/log/cron.log 2>&1
+
+# Email automations (J-7, J-1, J-0, post-event) + scheduled campaigns — every 5 minutes
+*/5 * * * * curl -sf -H "x-cron-secret: $CRON_SECRET" "$APP_URL/api/cron/email-automations" >> /var/log/cron.log 2>&1
+
+# Expire overdue resale links — every 5 minutes
+*/5 * * * * curl -sf -H "x-cron-secret: $CRON_SECRET" "$APP_URL/api/cron/expire-resales" >> /var/log/cron.log 2>&1

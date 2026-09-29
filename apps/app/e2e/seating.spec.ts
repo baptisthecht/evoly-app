@@ -1,0 +1,42 @@
+import { expect, test } from "@playwright/test";
+import { appUrl, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
+
+test("plan de salle : l'organisateur crée le plan, l'acheteur choisit ses places, le billet indique la place (section 9.9)", async ({ page, browser }) => {
+  const { id, slug } = await organizer(page);
+  const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
+  sql(`insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`);
+  const eventUrl = await publishedFreeEvent(page, slug, `Opéra ${id}`, 20);
+  await page.goto(`${eventUrl}/tickets`);
+  const plan = page.getByRole("heading", { name: "Plan de salle" }).locator("xpath=../..");
+  await plan.getByLabel("Nom de la catégorie").fill("Parterre");
+  await plan.getByLabel("Tarif relié").selectOption({ label: "Fosse" });
+  await plan.getByRole("button", { name: "Ajouter une catégorie" }).click();
+  await expect(plan.getByText("Parterre", { exact: true }).first()).toBeVisible();
+  await plan.getByLabel("Rang").fill("A");
+  await plan.getByLabel("Places").fill("6");
+  await plan.getByRole("button", { name: "Ajouter un rang" }).click();
+  await expect(plan.getByRole("button", { name: "Rang A, place 6 : libre" })).toBeVisible();
+  await plan.getByLabel("Placement numéroté").check();
+  await expect(plan.getByLabel(/Laisser l’acheteur choisir sa place/)).toBeVisible();
+  await plan.getByLabel(/Laisser l’acheteur choisir sa place/).check();
+  await expect.poll(() => sql(`select "allowSeatChoice" from "Event" where slug = 'opera-${id}'`)).toBe("t");
+
+  const guest = await (await browser.newContext({ locale: "fr-BE" })).newPage();
+  await guest.goto(siteUrl(slug, `/opera-${id}`));
+  const box = guest.locator("#billets");
+  await box.getByRole("button", { name: "Un billet Fosse de plus" }).click();
+  await box.getByRole("button", { name: "Un billet Fosse de plus" }).click();
+  await box.getByRole("button", { name: "Continuer" }).click();
+  await expect(box.getByText("Choisissez vos places")).toBeVisible();
+  await box.getByRole("button", { name: "Rang A, place 3 : libre" }).click();
+  await box.getByRole("button", { name: "Rang A, place 4 : libre" }).click();
+  await box.getByRole("button", { name: "Réserver ces places" }).click();
+  await box.getByLabel("Prénom").first().fill("Léa");
+  await box.getByLabel("Nom", { exact: true }).fill("Martin");
+  await box.getByLabel("Adresse e-mail").fill(`lea.${id}@exemple.be`);
+  await box.getByRole("button", { name: "Confirmer ma réservation" }).click();
+  await guest.waitForURL(/\/billets\//);
+  await expect(guest.getByTestId("seat")).toHaveText(["Rang A · Place 3", "Rang A · Place 4"]);
+  await page.goto(`${eventUrl}/tickets`);
+  await expect(page.getByRole("button", { name: "Rang A, place 3 : vendu" })).toBeDisabled();
+});

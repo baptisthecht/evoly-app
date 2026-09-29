@@ -1,0 +1,10 @@
+# Evoly : tâches planifiées (installer avec « crontab ops/crontab » en tant qu'evoly).
+# Heures en UTC. Sortie envoyée au journal système : journalctl -t evoly-cron
+* * * * *    /opt/evoly/ops/cron.sh holds 2>&1 | logger -t evoly-cron
+*/5 * * * *  /opt/evoly/ops/cron.sh campaigns 2>&1 | logger -t evoly-cron
+*/5 * * * *  /opt/evoly/ops/cron.sh emails 2>&1 | logger -t evoly-cron
+*/10 * * * * /opt/evoly/ops/cron.sh domains 2>&1 | logger -t evoly-cron
+*/15 * * * * /opt/evoly/ops/cron.sh automations 2>&1 | logger -t evoly-cron
+30 5 * * *   /opt/evoly/ops/cron.sh certificates 2>&1 | logger -t evoly-cron
+0 6 1 * *    /opt/evoly/ops/cron.sh statements 2>&1 | logger -t evoly-cron
+15 3 * * *   /opt/evoly/ops/backup.sh 2>&1 | logger -t evoly-backup

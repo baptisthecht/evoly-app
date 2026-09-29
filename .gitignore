@@ -1,0 +1,21 @@
+node_modules
+.turbo
+.next
+dist-types
+coverage
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+packages/db/src/generated
+test-results
+playwright-report
+.outbox
+*.tsbuildinfo
+next-env.d.ts
+# site vitrine généré (reconstruit par ops/first-start.sh et ops/deploy.sh sur le serveur)
+apps/web/dist
+__pycache__/
+# marqueur créé sur le serveur au premier démarrage
+.constraints-applied

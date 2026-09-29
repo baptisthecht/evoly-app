@@ -1,0 +1,10 @@
+{
+  "name": "@evoly/web",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Site vitrine evoly.me : une page HTML autonome générée par build.py (voir README.md).",
+  "scripts": {
+    "build": "python3 build.py && python3 legal.py",
+    "build:test": "python3 build.py --test"
+  }
+}

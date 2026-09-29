@@ -1,0 +1,176 @@
+/* =============================================================================
+   Evoly — jetons du design system (CDC section 7.2)
+   Source unique des couleurs, typographies, espacements, rayons, ombres et
+   animations de l'app, de la billetterie publique et du scanner.
+   ============================================================================= */
+
+:root {
+  /* Palette de la charte */
+  --evoly-charbon: #222222;
+  --evoly-creme: #fff6f0;
+  --evoly-lilas: #f3d9f0;
+  --evoly-rose: #ffb8e8;
+  --evoly-graphite: #3d3d3d;
+  --evoly-bulle: #fbe3f5;
+  --evoly-blanc: #ffffff;
+  --evoly-noir: #000000; /* boutons Apple, Google et Wallet, fond de la caméra */
+  /* signaux pleine page du scanner : identiques en thème clair et sombre (texte blanc) */
+  --evoly-signal-ok: #19774e;
+  --evoly-signal-warn: #a35700;
+  --evoly-signal-ko: #bd3333;
+
+  /* Couleurs fonctionnelles (statuts, scanner, validations) */
+  --evoly-success: #19774e;
+  --evoly-success-soft: #dff3e8;
+  --evoly-warning: #a35700;
+  --evoly-warning-soft: #fdecd6;
+  --evoly-danger: #bd3333;
+  --evoly-danger-soft: #fbe1e1;
+  --evoly-info: #3b5bdb;
+  --evoly-info-soft: #e3e8fc;
+
+  /* Rôles sémantiques, mode clair */
+  --surface: var(--evoly-creme); /* fond de page */
+  --surface-raised: var(--evoly-blanc); /* cartes, panneaux */
+  --surface-sunken: #f7ece5; /* champs, zones en retrait */
+  --surface-inverse: var(--evoly-charbon);
+  --surface-accent: var(--evoly-lilas);
+  --surface-accent-2: var(--evoly-bulle);
+  --ink: var(--evoly-charbon);
+  --ink-muted: rgba(34, 34, 34, 0.72);
+  --ink-subtle: rgba(34, 34, 34, 0.55);
+  --ink-inverse: var(--evoly-creme);
+  --line: rgba(34, 34, 34, 0.14);
+  --line-strong: rgba(34, 34, 34, 0.28);
+  --accent: var(--evoly-rose); /* action principale */
+  --accent-ink: var(--evoly-charbon); /* texte sur l'accent */
+  --focus-ring: var(--evoly-charbon);
+  --focus-halo: var(--evoly-rose);
+
+  /* Typographies */
+  --type-display: "Archivo Black", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --type-label: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --type-script: "Yellowtail", "Brush Script MT", "Segoe Script", cursive;
+  --type-body: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --type-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Échelle typographique (titres en minuscules serrées : letter-spacing négatif) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: clamp(2rem, 4vw, 2.75rem);
+  --text-display: clamp(2.6rem, 8vw, 5rem);
+  --tracking-display: -0.058em;
+  --tracking-title: -0.03em;
+
+  /* Espacements (base 4 px) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Rayons */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+  --r-panel: clamp(22px, 3vw, 36px);
+  --r-pill: 999px;
+
+  /* Ombres */
+  --elev-sm: 0 1px 2px rgba(34, 34, 34, 0.08);
+  --elev-md: 0 10px 24px -14px rgba(34, 34, 34, 0.35);
+  --elev-lg: 0 30px 60px -32px rgba(34, 34, 34, 0.5);
+  --elev-outline: 0 0 0 1.5px var(--evoly-charbon);
+
+  /* Animations */
+  --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.5, 1);
+  --motion-fast: 150ms;
+  --motion-base: 250ms;
+  --motion-slow: 450ms;
+
+  /* Mise en page */
+  --content-max: 1280px;
+  --sidebar-width: 280px;
+  --topbar-height: 64px;
+  --tap-target: 44px;
+
+  color-scheme: light;
+}
+
+/* Mode sombre : suit le système, sauf choix explicite (data-theme) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface: #1c1c1c;
+    --surface-raised: #262626;
+    --surface-sunken: #2d2d2d;
+    --surface-inverse: var(--evoly-creme);
+    --surface-accent: var(--evoly-graphite);
+    --surface-accent-2: #303030;
+    --ink: var(--evoly-creme);
+    --ink-muted: rgba(255, 246, 240, 0.74);
+    --ink-subtle: rgba(255, 246, 240, 0.56);
+    --ink-inverse: var(--evoly-charbon);
+    --line: rgba(255, 246, 240, 0.14);
+    --line-strong: rgba(255, 246, 240, 0.28);
+    --focus-ring: var(--evoly-creme);
+    --evoly-success: #5fdda6;
+    --evoly-success-soft: #173a2a;
+    --evoly-warning: #ffa53d;
+    --evoly-warning-soft: #3d2a10;
+    --evoly-danger: #d97272;
+    --evoly-danger-soft: #3f1d1d;
+    --evoly-info: #758ce6;
+    --evoly-info-soft: #1f2748;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --surface: #1c1c1c;
+  --surface-raised: #262626;
+  --surface-sunken: #2d2d2d;
+  --surface-inverse: var(--evoly-creme);
+  --surface-accent: var(--evoly-graphite);
+  --surface-accent-2: #303030;
+  --ink: var(--evoly-creme);
+  --ink-muted: rgba(255, 246, 240, 0.74);
+  --ink-subtle: rgba(255, 246, 240, 0.56);
+  --ink-inverse: var(--evoly-charbon);
+  --line: rgba(255, 246, 240, 0.14);
+  --line-strong: rgba(255, 246, 240, 0.28);
+  --focus-ring: var(--evoly-creme);
+  --evoly-success: #5fdda6;
+  --evoly-success-soft: #173a2a;
+  --evoly-warning: #ffa53d;
+  --evoly-warning-soft: #3d2a10;
+  --evoly-danger: #d97272;
+  --evoly-danger-soft: #3f1d1d;
+  --evoly-info: #758ce6;
+  --evoly-info-soft: #1f2748;
+  color-scheme: dark;
+}
+
+/* Marque d'un organisateur Pro (RG-UI-01), injectée sur les pages publiques */
+[data-brand] {
+  --accent: var(--brand-primary, var(--evoly-rose));
+  --accent-ink: var(--brand-primary-ink, var(--evoly-charbon));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+    --motion-slow: 0ms;
+  }
+}

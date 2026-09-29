@@ -1,0 +1,13 @@
+# jamais dans l'image : dépendances et constructions locales, secrets, résultats de tests
+**/node_modules
+**/.next
+**/.turbo
+**/.outbox
+**/__pycache__
+**/test-results
+**/playwright-report
+**/.env
+**/.env.*
+!**/.env.example
+.git
+packages/db/src/generated

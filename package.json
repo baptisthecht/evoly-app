@@ -1,0 +1,36 @@
+{
+  "name": "evoly",
+  "version": "2.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "db:generate": "pnpm --filter @evoly/db generate",
+    "db:migrate": "pnpm --filter @evoly/db migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @evoly/db migrate:deploy",
+    "db:seed": "pnpm --filter @evoly/db seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.8",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "prisma",
+      "@prisma/engines",
+      "esbuild"
+    ],
+    "overrides": {
+      "deepmerge-ts@<8.0.0": ">=8.0.0",
+      "mysql2@<=3.23.0": ">=3.23.1"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@evoly/core",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Logique métier pure d'Evoly : calculs d'argent, règles, états. Aucune dépendance à Next.js, React ou Prisma.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

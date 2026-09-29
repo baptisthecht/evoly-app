@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@import "@evoly/ui/tokens.css";
+@import "@evoly/ui/theme.css";
+
+html {
+  background: var(--surface);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--type-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Sur téléphone, l'en-tête reste collé en haut : le défilement automatique (navigation, ancres) en tient compte. */
+@media (max-width: 1023.98px) {
+  html {
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 5.5rem);
+  }
+}
+
+.page-title {
+  font-family: var(--type-display);
+  font-size: var(--text-3xl);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.script {
+  font-family: var(--type-script);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

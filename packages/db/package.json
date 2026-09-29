@@ -1,0 +1,30 @@
+{
+  "name": "@evoly/db",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Schéma Prisma 7, migrations, client et données de départ.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
+    "seed": "tsx prisma/seed.ts",
+    "studio": "prisma studio",
+    "validate": "prisma validate",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.3",
+    "prisma": "^7.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "@types/node": "^22.18.0"
+  }
+}

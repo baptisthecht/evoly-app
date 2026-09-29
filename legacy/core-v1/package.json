@@ -1,0 +1,29 @@
+{
+  "name": "@evoly/core",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./events": "./src/events/index.ts",
+    "./tickets": "./src/tickets/index.ts",
+    "./billing": "./src/billing/index.ts",
+    "./organizers": "./src/organizers/index.ts",
+    "./auth": "./src/auth/index.ts"
+  },
+  "dependencies": {
+    "@evoly/db": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  }
+}
