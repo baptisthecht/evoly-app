@@ -12,7 +12,7 @@ export DEBIAN_FRONTEND=noninteractive
 echo "==> Mises à jour et outils"
 apt-get update
 apt-get -y upgrade
-apt-get install -y ca-certificates curl gnupg git ufw rclone python3 unattended-upgrades cron
+apt-get install -y ca-certificates curl gnupg git ufw python3 unattended-upgrades cron
 systemctl enable --now cron
 
 echo "==> Mises à jour de sécurité automatiques"

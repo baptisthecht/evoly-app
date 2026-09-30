@@ -72,7 +72,8 @@ Les domaines Apple Pay et Google Pay sont déclarés automatiquement sur le comp
 ## 5. Fichiers et sauvegardes (Cloudflare R2)
 
 - **Images** : bucket public (par exemple `evoly-uploads`), accessible par `files.evoly.me`, avec un jeton limité à ce bucket (`R2_*`). Sans R2, les images restent sur le serveur (volume `uploads`) et sont incluses dans la sauvegarde.
-- **Sauvegardes** : un **second bucket, privé** (par exemple `evoly-backups`), avec son propre jeton limité à ce bucket (`BACKUP_R2_*`). Il ne doit jamais être public : les sauvegardes contiennent des données personnelles.
+- **Sauvegardes** : un **second bucket, privé** (par exemple `evoly-backups`), avec son propre jeton *Object Read & Write* limité à ce bucket (`BACKUP_R2_*`, R2 → *Account Details* → *Manage* à côté d'*API Tokens*). Il ne doit jamais être public : les sauvegardes contiennent des données personnelles.
+- **Rétention** : dans ce bucket, *Settings* → *Object lifecycle rules* → ajouter une règle qui supprime les objets **30 jours** après leur envoi. Les scripts envoient et téléchargent avec `curl` (signature S3), sans autre outil.
 
 ## 6. Apple Wallet et Google Wallet (facultatif)
 
@@ -128,7 +129,7 @@ Récupère le code, reconstruit l'image, applique les migrations, redémarre l'a
 
 ## 10. Sauvegardes et restauration
 
-- Chaque nuit à 3 h 15 (UTC), `ops/backup.sh` envoie une sauvegarde complète de la base (et des images si elles sont sur le serveur) vers le bucket privé : 30 jours dans R2, 3 jours sur le serveur.
+- Chaque nuit à 3 h 15 (UTC), `ops/backup.sh` envoie une sauvegarde complète de la base (et des images si elles sont sur le serveur) vers le bucket privé : 30 jours dans R2 (règle de cycle de vie du bucket), 3 jours sur le serveur.
 - Restaurer : `ops/restore.sh evoly-AAAAMMJJ-HHMMSS.dump` (fichier du serveur, sinon téléchargé depuis R2 ; confirmation demandée).
 - **Tester une restauration** au moins une fois par trimestre, sur une copie : une sauvegarde jamais restaurée n'est pas une sauvegarde.
 

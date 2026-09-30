@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# Sauvegarde quotidienne de la base (et des fichiers si R2 n'est pas utilisé) vers un bucket R2 PRIVÉ.
-# Rétention : 30 jours dans R2, 3 jours sur le serveur.
+# Sauvegarde quotidienne de la base (et des fichiers si R2 n'est pas utilisé pour les images) vers un bucket R2 PRIVÉ.
+# Rétention : 30 jours dans R2 (règle de cycle de vie du bucket), 3 jours sur le serveur.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+# shellcheck source=ops/r2.sh
+. ops/r2.sh
 
-val() { grep -E "^$1=" .env | head -1 | cut -d= -f2- | tr -d '"'; }
+if [ -z "$(r2_env BACKUP_R2_BUCKET)" ]; then echo "BACKUP_R2_BUCKET manque dans .env"; exit 1; fi
 stamp="$(date -u +%Y%m%d-%H%M%S)"
 dir=/var/backups/evoly
 mkdir -p "$dir"
@@ -12,26 +14,13 @@ file="$dir/evoly-$stamp.dump"
 
 docker compose exec -T db pg_dump -U evoly -d evoly --format=custom > "$file"
 if [ ! -s "$file" ]; then echo "Sauvegarde vide : échec"; exit 1; fi
+r2_put "$file" "base/$(basename "$file")"
 
-export RCLONE_CONFIG_R2_TYPE=s3
-export RCLONE_CONFIG_R2_PROVIDER=Cloudflare
-RCLONE_CONFIG_R2_ACCESS_KEY_ID="$(val BACKUP_R2_ACCESS_KEY_ID)"
-RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$(val BACKUP_R2_SECRET_ACCESS_KEY)"
-RCLONE_CONFIG_R2_ENDPOINT="https://$(val R2_ACCOUNT_ID).r2.cloudflarestorage.com"
-export RCLONE_CONFIG_R2_ACCESS_KEY_ID RCLONE_CONFIG_R2_SECRET_ACCESS_KEY RCLONE_CONFIG_R2_ENDPOINT
-export RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true
-bucket="$(val BACKUP_R2_BUCKET)"
-if [ -z "$bucket" ]; then echo "BACKUP_R2_BUCKET manque dans .env"; exit 1; fi
-
-rclone copyto "$file" "r2:$bucket/base/$(basename "$file")"
-rclone delete --min-age 30d "r2:$bucket/base/"
-
-# fichiers envoyés par les organisateurs : seulement s'ils sont sur le serveur (sans R2 pour les images)
-if [ -z "$(val R2_BUCKET)" ]; then
+# fichiers envoyés par les organisateurs : seulement s'ils sont sur le serveur (sans bucket R2 pour les images)
+if [ -z "$(r2_env R2_BUCKET)" ]; then
   up="$dir/uploads-$stamp.tgz"
   docker run --rm -v evoly_uploads:/data:ro -v "$dir":/backup debian:trixie-slim tar czf "/backup/$(basename "$up")" -C /data .
-  rclone copyto "$up" "r2:$bucket/fichiers/$(basename "$up")"
-  rclone delete --min-age 30d "r2:$bucket/fichiers/"
+  r2_put "$up" "fichiers/$(basename "$up")"
 fi
 
 find "$dir" -name 'evoly-*.dump' -mtime +3 -delete
