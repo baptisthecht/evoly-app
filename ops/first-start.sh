@@ -20,7 +20,10 @@ prisma() { docker compose run --rm --no-deps -v "$PWD/packages/db/prisma:/app/pa
 
 if [ ! -d packages/db/prisma/migrations ]; then
   echo "==> Migration initiale (créée une seule fois)"
-  prisma migrate dev --create-only --name init
+  # créée en administrateur dans le conteneur (l'utilisateur de l'image n'a pas le même numéro que celui du serveur),
+  # puis rendue à l'utilisateur du serveur
+  docker compose run --rm --no-deps --user 0 -e HOME=/tmp -v "$PWD/packages/db/prisma:/app/packages/db/prisma" app \
+    sh -c "cd /app/packages/db && node_modules/.bin/prisma migrate dev --create-only --name init && chown -R $(id -u):$(id -g) prisma/migrations"
   echo ">>> Migration créée dans packages/db/prisma/migrations : versionnez-la (git add, commit, push)."
 fi
 prisma migrate deploy
