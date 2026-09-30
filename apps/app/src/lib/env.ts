@@ -54,6 +54,7 @@ export type Env = z.infer<typeof schema>;
 let cached: Env | undefined;
 
 export function env(): Env {
-  if (!cached) cached = schema.parse(process.env);
+  // une valeur laissée vide (VAR="") compte comme absente : service non configuré, jamais une erreur de format
+  if (!cached) cached = schema.parse(Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== "")));
   return cached;
 }
