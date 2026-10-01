@@ -19,13 +19,14 @@ async function setup() {
     include: { ticketTypes: true },
   });
   const fee = async () => (await db.order.findUniqueOrThrow({ where: { id: (await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" })).orderId } })).applicationFeeMinor;
-  const stripeSub = (status: string, extra: Partial<{ periodEnd: number; cancelAtPeriodEnd: boolean }> = {}) => ({
+  const stripeSub = (status: string, extra: Partial<{ periodEnd: number; cancelAtPeriodEnd: boolean; cancelAt: number }> = {}) => ({
     id: `sub_${id}`,
     status: status as "trialing",
     metadata: { organizationId: org.id },
     customer: `cus_${id}`,
     trial_end: Math.floor((Date.now() + 14 * DAY) / 1000),
     cancel_at_period_end: extra.cancelAtPeriodEnd ?? false,
+    cancel_at: extra.cancelAt ?? null,
     canceled_at: null,
     items: { data: [{ current_period_start: Math.floor(Date.now() / 1000), current_period_end: extra.periodEnd ?? Math.floor((Date.now() + 14 * DAY) / 1000), price: { recurring: { interval: "year" } } }] },
   });
@@ -43,6 +44,19 @@ describe("abonnement Pro (RG-SUB-01 à 08)", () => {
     expect(await s.fee()).toBe(70); // RG-SUB-07 : plafond Pro à 0,70 €
     expect(trialEligible(sub)).toBe(false);
     expect(await db.emailMessage.count({ where: { organizationId: s.org.id, template: "subscription.started", toEmail: s.owner.email } })).toBe(1);
+  });
+
+  it("résiliation par date de fin (cancel_at, portail Stripe récent) : reconnue comme programmée, accès jusqu'à cette date", async () => {
+    const s = await setup();
+    const trialEnd = Math.floor((Date.now() + 14 * DAY) / 1000);
+    await syncSubscription(s.stripeSub("trialing", { cancelAt: trialEnd }));
+    const sub = await db.subscription.findUniqueOrThrow({ where: { organizationId: s.org.id } });
+    expect(sub).toMatchObject({ status: "TRIALING", cancelAtPeriodEnd: true });
+    expect(sub.currentPeriodEnd?.getTime()).toBe(trialEnd * 1000);
+    // date de fin antérieure à la fin de période : c'est elle qui compte
+    const earlier = Math.floor((Date.now() + 3 * DAY) / 1000);
+    await syncSubscription(s.stripeSub("trialing", { cancelAt: earlier }));
+    expect((await db.subscription.findUniqueOrThrow({ where: { organizationId: s.org.id } })).currentPeriodEnd?.getTime()).toBe(earlier * 1000);
   });
 
   it("retour en Free : membres suspendus sans rien supprimer, rétablis au retour en Pro (RG-SUB-08)", async () => {

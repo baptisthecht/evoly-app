@@ -106,6 +106,7 @@ async function notifyOwner(organizationId: string, kind: "STARTED" | "TRIAL_ENDI
 }
 
 type StripeSubscriptionLike = Pick<Stripe.Subscription, "id" | "status" | "metadata" | "trial_end" | "cancel_at_period_end" | "canceled_at"> & {
+  cancel_at?: number | null;
   customer: string | { id: string };
   items: { data: Array<{ current_period_start?: number; current_period_end?: number; price?: { recurring?: { interval?: string } | null } | null }> };
 };
@@ -131,8 +132,10 @@ export async function syncSubscription(sub: StripeSubscriptionLike, now = new Da
     stripeSubscriptionId: sub.id,
     trialEndsAt: toDate(sub.trial_end) ?? existing?.trialEndsAt ?? null,
     currentPeriodStart: toDate(item?.current_period_start),
-    currentPeriodEnd: toDate(item?.current_period_end),
-    cancelAtPeriodEnd: sub.cancel_at_period_end,
+    // résiliation programmée : indicateur de fin de période, ou date de fin (cancel_at), selon la version de l'API et le portail ;
+    // l'accès Pro s'arrête à la première des deux dates
+    currentPeriodEnd: toDate(sub.cancel_at && item?.current_period_end ? Math.min(sub.cancel_at, item.current_period_end) : (item?.current_period_end ?? sub.cancel_at)),
+    cancelAtPeriodEnd: sub.cancel_at_period_end || !!sub.cancel_at,
     canceledAt: toDate(sub.canceled_at),
     pastDueSince: status === "PAST_DUE" || status === "UNPAID" ? (existing?.pastDueSince ?? now) : null,
   };
