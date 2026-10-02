@@ -113,17 +113,50 @@ let pdfCacheBytes = 0;
 /** Tests : réussites et échecs du cache des PDF. */
 export const pdfCacheStats = { hits: 0, misses: 0 };
 
-/** Frais Stripe réels et net de l'organisateur, relevés sur la transaction du compte connecté (RG-BUY-07). */
-async function recordStripeFees(orderId: string, chargeId: string): Promise<void> {
+/**
+ * Frais Stripe réels, net de l'organisateur et moyen de paiement réellement utilisé, relevés sur le paiement du compte
+ * connecté (RG-BUY-07). La transaction peut être créée par Stripe un peu après le paiement : rien n'est enregistré
+ * tant qu'elle manque, et le relevé est repris à l'événement charge.updated ou par le rattrapage planifié.
+ * Renvoie true quand les frais sont enregistrés.
+ */
+export async function recordStripeFees(orderId: string, chargeId: string): Promise<boolean> {
   const s = stripe();
   const order = await db.order.findUnique({ where: { id: orderId }, select: { organizationId: true, currency: true } });
   const account = order ? await db.stripeAccount.findUnique({ where: { organizationId: order.organizationId }, select: { stripeAccountId: true } }) : null;
-  if (!s || !order || !account) return;
+  if (!s || !order || !account) return false;
   const charge = await s.charges.retrieve(chargeId, { expand: ["balance_transaction"] }, { stripeAccount: account.stripeAccountId });
+  const method = charge.payment_method_details?.type ?? null;
+  if (method) await db.order.update({ where: { id: orderId }, data: { paymentMethodType: method } });
   const bt = charge.balance_transaction as Stripe.BalanceTransaction | string | null;
-  if (!bt || typeof bt === "string" || bt.currency.toUpperCase() !== order.currency) return; // devise de règlement différente : relevé dans les finances
+  if (!bt || typeof bt === "string") return false; // pas encore créée par Stripe : reprise plus tard
+  if (bt.currency.toUpperCase() !== order.currency) return true; // devise de règlement différente : relevé dans les finances
   const stripeFee = bt.fee_details.filter((f) => f.type === "stripe_fee").reduce((n, f) => n + f.amount, 0);
   await db.order.update({ where: { id: orderId }, data: { paymentFeeMinor: stripeFee, netMinor: bt.net } });
+  return true;
+}
+
+/** Événement charge.updated : frais enregistrés dès que Stripe a créé la transaction du paiement. */
+export async function stripeFeesForCharge(chargeId: string): Promise<boolean> {
+  const order = await db.order.findUnique({ where: { stripeChargeId: chargeId }, select: { id: true, paymentFeeMinor: true } });
+  if (!order || order.paymentFeeMinor !== null) return false;
+  return recordStripeFees(order.id, chargeId);
+}
+
+/**
+ * Rattrapage planifié (chaque minute) : frais encore manquants des commandes payées des 3 derniers jours, les plus
+ * récentes d'abord, 10 par passage. charge.updated règle presque tous les cas en quelques secondes ; une commande
+ * réglée dans une autre devise (sans frais à enregistrer) n'est ainsi pas retentée indéfiniment.
+ */
+export async function fillMissingStripeFees(now = new Date()): Promise<number> {
+  const orders = await db.order.findMany({
+    where: { status: { in: ["PAID", "PARTIALLY_REFUNDED"] }, stripeChargeId: { not: null }, paymentFeeMinor: null, paidAt: { gte: new Date(now.getTime() - 3 * 86_400_000) } },
+    select: { id: true, stripeChargeId: true },
+    orderBy: { paidAt: "desc" },
+    take: 10,
+  });
+  let filled = 0;
+  for (const o of orders) if (await recordStripeFees(o.id, o.stripeChargeId!).catch(() => false)) filled += 1;
+  return filled;
 }
 
 /** RG-POST-02 : nouveaux liens pour les commandes à venir d'une adresse, chez une organisation. Rien si aucune. */

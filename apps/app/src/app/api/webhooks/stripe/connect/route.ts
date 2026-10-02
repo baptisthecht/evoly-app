@@ -4,7 +4,7 @@ import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { audit } from "@/server/audit";
 import { syncStripeAccount } from "@/server/stripeConnect";
-import { completeOrder } from "@/server/orders";
+import { completeOrder, stripeFeesForCharge } from "@/server/orders";
 import { syncStripeRefund } from "@/server/refunds";
 import { upsertDispute } from "@/server/finances";
 import { processStripeEvent } from "@/server/webhooks";
@@ -40,6 +40,11 @@ export async function POST(req: Request) {
         await db.stripeAccount.update({ where: { stripeAccountId: e.account }, data: { status: "DISABLED", chargesEnabled: false, payoutsEnabled: false } });
         await audit({ action: "stripe.account_deauthorized", organizationId: known.organizationId, actorType: "STRIPE", targetType: "StripeAccount", targetId: e.account });
         return "PROCESSED";
+      }
+      case "charge.updated": {
+        // la transaction du paiement (frais Stripe) est créée : frais et net enregistrés sur la commande
+        const ch = e.data.object as Stripe.Charge;
+        return ch.balance_transaction && (await stripeFeesForCharge(ch.id)) ? "PROCESSED" : "IGNORED";
       }
       case "payment_intent.succeeded": {
         // RG-BUY-07 : validation unique de la commande (le paiement peut arriver avant ou après le retour de l'acheteur)

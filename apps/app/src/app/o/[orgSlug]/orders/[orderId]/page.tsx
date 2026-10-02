@@ -93,7 +93,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
             {order.paymentMethodType ? (
               <>
                 <dt className="text-ink-muted">{t("method")}</dt>
-                <dd className="text-right">{order.paymentMethodType}</dd>
+                <dd className="text-right">{t.has(`method_${order.paymentMethodType}`) ? t(`method_${order.paymentMethodType}`) : order.paymentMethodType}</dd>
               </>
             ) : null}
           </dl>

@@ -1255,7 +1255,21 @@
     "complimentary": "Complimentary",
     "fromComplimentary": "complimentary tickets",
     "ticketTypeFilter": "Ticket type",
-    "allTicketTypes": "All ticket types"
+    "allTicketTypes": "All ticket types",
+    "method_card": "Card",
+    "method_bancontact": "Bancontact",
+    "method_ideal": "iDEAL",
+    "method_sepa_debit": "SEPA Direct Debit",
+    "method_link": "Link",
+    "method_paypal": "PayPal",
+    "method_klarna": "Klarna",
+    "method_eps": "EPS",
+    "method_p24": "Przelewy24",
+    "method_giropay": "Giropay",
+    "method_revolut_pay": "Revolut Pay",
+    "method_amazon_pay": "Amazon Pay",
+    "method_twint": "TWINT",
+    "method_mobilepay": "MobilePay"
   },
   "finances": {
     "title": "Finances",

@@ -50,7 +50,7 @@ Aucun certificat wildcard n'est nécessaire : Caddy obtient chaque certificat à
 - Clés : `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
 
 **Webhook des comptes connectés** → `https://app.evoly.me/api/webhooks/stripe/connect` (`STRIPE_WEBHOOK_SECRET_CONNECT`), événements :
-`account.updated`, `account.application.deauthorized`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refund.updated`, `refund.updated`, `refund.failed`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`.
+`account.updated`, `account.application.deauthorized`, `charge.updated` (frais Stripe réels, dès que Stripe a créé la transaction du paiement), `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refund.updated`, `refund.updated`, `refund.failed`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`.
 
 **Webhook de la plateforme** → `https://app.evoly.me/api/webhooks/stripe/platform` (`STRIPE_WEBHOOK_SECRET_PLATFORM`), événements :
 `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.trial_will_end`, `invoice.paid`, `invoice.payment_failed`.
