@@ -50,7 +50,7 @@ Aucun certificat wildcard n'est nécessaire : Caddy obtient chaque certificat à
 - Clés : `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
 
 **Webhook des comptes connectés** → `https://app.evoly.me/api/webhooks/stripe/connect` (`STRIPE_WEBHOOK_SECRET_CONNECT`), événements :
-`account.updated`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refund.updated`, `refund.updated`, `refund.failed`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`.
+`account.updated`, `account.application.deauthorized`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refund.updated`, `refund.updated`, `refund.failed`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`.
 
 **Webhook de la plateforme** → `https://app.evoly.me/api/webhooks/stripe/platform` (`STRIPE_WEBHOOK_SECRET_PLATFORM`), événements :
 `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.trial_will_end`, `invoice.paid`, `invoice.payment_failed`.
@@ -61,6 +61,8 @@ Aucun certificat wildcard n'est nécessaire : Caddy obtient chaque certificat à
 - TVA de l'abonnement : décider avec l'expert-comptable, puis `STRIPE_TAX_ENABLED`.
 
 Les domaines Apple Pay et Google Pay sont déclarés automatiquement sur le compte de chaque organisateur (sous-domaine, sous-domaines d'événement, domaines personnalisés actifs).
+
+**Comptes des organisateurs (Accounts v2).** Evoly crée les comptes connectés avec l'API Accounts v2, recommandée par Stripe pour les nouvelles plateformes : tableau de bord Stripe complet, frais facturés et pertes assumées par Stripe, cartes et Bancontact. L'ancien réglage « prise en charge d'Accounts v1 » n'est pas nécessaire. Le statut des comptes arrive par l'événement v1 `account.updated`, que Stripe envoie aussi pour les comptes v2, sur la destination « comptes connectés ». Choisir la même version d'API que la bibliothèque Stripe du projet pour les deux destinations (`2026-08-26.dahlia` actuellement).
 
 ## 4. E-mails (Resend)
 

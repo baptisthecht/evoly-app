@@ -37,7 +37,7 @@ async function syncStripeAccountRecord(account: Stripe.Account): Promise<void> {
 
 /**
  * Démarre ou reprend l'onboarding Stripe de l'organisation (RG-PAY-01) :
- * compte où Stripe facture ses frais à l'organisateur, tableau de bord Stripe complet.
+ * compte où Stripe facture ses frais à l'organisateur, tableau de bord Stripe complet (créé avec Accounts v2).
  */
 export async function stripeOnboardingUrl(ctx: OrgContext): Promise<string> {
   const s = stripe();
@@ -45,27 +45,42 @@ export async function stripeOnboardingUrl(ctx: OrgContext): Promise<string> {
   const existing = await db.stripeAccount.findUnique({ where: { organizationId: ctx.organization.id } });
   let accountId = existing?.stripeAccountId;
   if (!accountId) {
-    const account = await s.accounts.create({
-      country: ctx.organization.country,
-      email: ctx.organization.contactEmail ?? ctx.user.email,
-      business_profile: { name: ctx.organization.name },
-      controller: {
-        fees: { payer: "account" },
-        losses: { payments: "stripe" },
-        requirement_collection: "stripe",
-        stripe_dashboard: { type: "full" },
+    // Accounts v2, recommandé par Stripe pour les nouvelles plateformes (la création v1 est refusée par défaut).
+    // Mêmes choix qu'avant : tableau de bord Stripe complet, frais facturés et pertes assumées par Stripe.
+    // C'est le même compte logique qu'en v1 : statut (accounts.retrieve), paiements, remboursements et
+    // webhooks v1 (account.updated, envoyé aussi pour les comptes v2) restent inchangés.
+    const account = await s.v2.core.accounts.create({
+      contact_email: ctx.organization.contactEmail ?? ctx.user.email,
+      display_name: ctx.organization.name,
+      dashboard: "full",
+      identity: { country: ctx.organization.country.toLowerCase() },
+      defaults: {
+        currency: ctx.organization.currency.toLowerCase(),
+        locales: [ctx.organization.locale === "en" ? "en" : "fr"],
+        responsibilities: { fees_collector: "stripe", losses_collector: "stripe" },
       },
+      configuration: { merchant: { capabilities: { card_payments: { requested: true }, bancontact_payments: { requested: true } } } },
       metadata: { organizationId: ctx.organization.id },
     });
     accountId = account.id;
     await db.stripeAccount.create({
       data: { organizationId: ctx.organization.id, stripeAccountId: account.id, country: ctx.organization.country, defaultCurrency: ctx.organization.currency, status: "PENDING" },
     });
-    await audit({ action: "stripe.account_created", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "StripeAccount", targetId: account.id });
+    await audit({ action: "stripe.account_created", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "StripeAccount", targetId: account.id, metadata: { api: "v2" } });
   }
   const base = `${env().NEXT_PUBLIC_APP_URL}/o/${ctx.organization.slug}/settings/payments`;
-  const link = await s.accountLinks.create({ account: accountId, refresh_url: `${base}?stripe=refresh`, return_url: `${base}?stripe=return`, type: "account_onboarding" });
-  return link.url;
+  try {
+    const link = await s.v2.core.accountLinks.create({
+      account: accountId,
+      use_case: { type: "account_onboarding", account_onboarding: { configurations: ["merchant"], refresh_url: `${base}?stripe=refresh`, return_url: `${base}?stripe=return` } },
+    });
+    return link.url;
+  } catch (err) {
+    // compte créé avant le passage à Accounts v2 : lien d'inscription v1 (seule la création v1 est restreinte)
+    console.warn("lien d'inscription v2 indisponible, repli v1", err instanceof Error ? err.message.slice(0, 200) : "");
+    const link = await s.accountLinks.create({ account: accountId, refresh_url: `${base}?stripe=refresh`, return_url: `${base}?stripe=return`, type: "account_onboarding" });
+    return link.url;
+  }
 }
 
 /** Au retour de l'onboarding : relit le compte chez Stripe et met à jour son statut. */
