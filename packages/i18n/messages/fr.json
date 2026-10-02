@@ -1118,7 +1118,15 @@
     "refunded": "{amount} remboursés au vendeur",
     "failedHint": "Le remboursement du vendeur a échoué : le support Evoly traite le cas. L’acheteur garde son billet.",
     "cancelListing": "Retirer",
-    "confirmCancel": "Retirer cette annonce ? Le vendeur sera prévenu et gardera son billet."
+    "confirmCancel": "Retirer cette annonce ? Le vendeur sera prévenu et gardera son billet.",
+    "byEvent": "Par événement",
+    "noEventsTitle": "Aucun événement à venir",
+    "noEventsBody": "Les événements publiés à venir et ceux qui ont des annonces apparaîtront ici.",
+    "on": "Revente activée",
+    "off": "Revente désactivée",
+    "eventCounts": "{open, plural, =0 {aucune annonce en vente} one {# annonce en vente} other {# annonces en vente}} · {sold, plural, =0 {aucune vendue} one {# vendue} other {# vendues}}",
+    "manage": "Gérer",
+    "recent": "Dernières annonces"
   },
   "ordersAdmin": {
     "title": "Commandes",

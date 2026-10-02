@@ -261,3 +261,36 @@ export async function listingsForOrganizer(eventId: string) {
 }
 
 export const resaleEventUrl = (org: { subdomain: string | null; slug: string }, linkCode: string) => `${organizationPublicUrl(org.subdomain ?? org.slug)}/revente/${linkCode}`;
+
+/**
+ * US-RSL-05 : vue d'ensemble des reventes de l'organisation. Chiffres de toutes ses annonces, événements à venir ou
+ * avec annonces (état de la revente, compteurs), et dernières annonces tous événements confondus.
+ */
+export async function organizationResaleOverview(organizationId: string, now = new Date()) {
+  const [grouped, recent, events] = await Promise.all([
+    db.resaleListing.groupBy({ by: ["eventId", "status"], where: { event: { organizationId } }, _count: { _all: true }, _sum: { priceMinor: true } }),
+    db.resaleListing.findMany({
+      where: { event: { organizationId } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: { event: { select: { id: true, title: true, timezone: true } }, ticket: { select: { shortCode: true, ticketType: { select: { name: true } } } } },
+    }),
+    db.event.findMany({
+      where: { organizationId, OR: [{ resaleListings: { some: {} } }, { status: "PUBLISHED", startsAt: { gte: now } }] },
+      select: { id: true, title: true, startsAt: true, timezone: true, status: true, resaleEnabled: true, resaleCutoffMinutes: true },
+      orderBy: { startsAt: "desc" },
+      take: 30,
+    }),
+  ]);
+  const totals = { open: 0, sold: 0, amountMinor: 0, failed: 0 };
+  const perEvent = new Map<string, { open: number; sold: number }>();
+  for (const g of grouped) {
+    const n = g._count._all;
+    const row = perEvent.get(g.eventId) ?? { open: 0, sold: 0 };
+    if (g.status === "ACTIVE" || g.status === "RESERVED") { totals.open += n; row.open += n; }
+    if (g.status === "SOLD") { totals.sold += n; row.sold += n; totals.amountMinor += g._sum.priceMinor ?? 0; }
+    if (g.status === "FAILED") totals.failed += n;
+    perEvent.set(g.eventId, row);
+  }
+  return { totals, recent, events: events.map((e) => ({ ...e, ...(perEvent.get(e.id) ?? { open: 0, sold: 0 }) })) };
+}

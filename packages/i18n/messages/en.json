@@ -1118,7 +1118,15 @@
     "refunded": "{amount} refunded to the seller",
     "failedHint": "The seller’s refund failed: Evoly support is handling it. The buyer keeps their ticket.",
     "cancelListing": "Withdraw",
-    "confirmCancel": "Withdraw this listing? The seller will be told and will keep their ticket."
+    "confirmCancel": "Withdraw this listing? The seller will be told and will keep their ticket.",
+    "byEvent": "By event",
+    "noEventsTitle": "No upcoming events",
+    "noEventsBody": "Upcoming published events and those with listings will appear here.",
+    "on": "Resale on",
+    "off": "Resale off",
+    "eventCounts": "{open, plural, =0 {no listing on sale} one {# listing on sale} other {# listings on sale}} · {sold, plural, =0 {none sold} one {# sold} other {# sold}}",
+    "manage": "Manage",
+    "recent": "Latest listings"
   },
   "ordersAdmin": {
     "title": "Orders",

@@ -794,6 +794,7 @@ page = f'''<!doctype html>
 <title>Evoly — Ton prochain souvenir t’attend</title>
 <meta name="description" content="Créez votre événement en 60 secondes. Achat en un tap avec Apple Pay, Google Pay et les moyens de paiement locaux, revente en un lien, statistiques en direct et une commission plafonnée à 1 € par billet.">
 <meta name="theme-color" content="#222222">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 {fonts}
 <style>{TOKENS}
 {css}</style>
@@ -811,3 +812,9 @@ out = os.path.join(HERE, 'test.html') if TEST else os.path.join(HERE, 'dist', 'e
 os.makedirs(os.path.dirname(out), exist_ok=True)
 open(out, 'w', encoding='utf-8').write(page)
 print(out, len(page))
+
+# icônes du site (favicon, écran d'accueil) copiées à la racine du site généré
+if not TEST:
+    import shutil
+    for name in os.listdir(os.path.join(HERE, 'static')):
+        shutil.copy(os.path.join(HERE, 'static', name), os.path.join(HERE, 'dist', name))
