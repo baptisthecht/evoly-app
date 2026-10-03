@@ -54,7 +54,7 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await tickets.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   // « Continuer » réserve directement les meilleures places ; l'acheteur peut les voir et les changer
   await tickets.getByRole("button", { name: "Continuer" }).click();
-  await expect(tickets.getByText(/^Vos places : rang/)).toBeVisible();
+  await expect(tickets.getByText(/^Nous vous avons réservé les meilleures places disponibles : rang/)).toBeVisible();
   await tickets.getByRole("button", { name: "Voir ou changer mes places" }).click();
   await tickets.getByRole("button", { name: "Effacer ma sélection" }).click();
   await tickets.getByRole("button", { name: "Rang A, place 2 : libre" }).click();
@@ -81,7 +81,7 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box2.getByRole("button", { name: "Continuer" }).click();
-  await expect(box2.getByText(/^Vos places : rang [AB], places \d+ et \d+\./)).toBeVisible();
+  await expect(box2.getByText(/^Nous vous avons réservé les places libres les plus proches de Léa : rang [AB], places \d+ et \d+\./)).toBeVisible();
   if (process.env.SEAT_SHOT) await guest2.screenshot({ path: process.env.SEAT_SHOT });
   await box2.getByLabel("Prénom").first().fill("Hugo");
   await box2.getByLabel("Nom", { exact: true }).fill("Leroy");

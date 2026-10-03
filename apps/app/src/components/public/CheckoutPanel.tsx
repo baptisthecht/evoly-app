@@ -36,7 +36,7 @@ interface Buyer {
   marketingOptIn: boolean;
 }
 
-export function CheckoutPanel({ reservation, seatMap = null, organizationName, requirePhone, publishableKey, onCancel }: { reservation: ReservationView; seatMap?: PublicSeatMap | null; organizationName: string; requirePhone: boolean; publishableKey: string | null; onCancel: () => void }) {
+export function CheckoutPanel({ reservation, seatMap = null, friendName = null, organizationName, requirePhone, publishableKey, onCancel }: { reservation: ReservationView; seatMap?: PublicSeatMap | null; friendName?: string | null; organizationName: string; requirePhone: boolean; publishableKey: string | null; onCancel: () => void }) {
   const t = useTranslations("checkout");
   const tp = useTranslations("public");
   const locale = useLocale() as Locale;
@@ -255,7 +255,7 @@ export function CheckoutPanel({ reservation, seatMap = null, organizationName, r
           {minutes}:{String(seconds).padStart(2, "0")}
         </span>
       </div>
-      {reservation.seats?.length ? <ReservedSeats token={reservation.token} lines={reservation.lines} initial={reservation.seats} seatMap={seatMap} /> : null}
+      {reservation.seats?.length ? <ReservedSeats token={reservation.token} lines={reservation.lines} initial={reservation.seats} seatMap={seatMap} friendName={friendName} /> : null}
       <ul className="grid gap-2">
         {reservation.lines.map((l, i) => (
           <li key={`${l.ticketTypeId}-${i}`} className="flex items-baseline justify-between gap-3 text-sm">
@@ -302,9 +302,11 @@ export function CheckoutPanel({ reservation, seatMap = null, organizationName, r
  * Section 9.9 : les meilleures places sont choisies automatiquement ; l'acheteur les voit en une ligne et peut, s'il
  * le souhaite, les voir sur le plan ou les changer (même réservation, même temps restant).
  */
-function ReservedSeats({ token, lines, initial, seatMap }: { token: string; lines: ReservationView["lines"]; initial: NonNullable<ReservationView["seats"]>; seatMap: PublicSeatMap | null }) {
+function ReservedSeats({ token, lines, initial, seatMap, friendName }: { token: string; lines: ReservationView["lines"]; initial: NonNullable<ReservationView["seats"]>; seatMap: PublicSeatMap | null; friendName: string | null }) {
   const t = useTranslations("checkout");
   const [seats, setSeats] = useState(initial);
+  // attribuées automatiquement (meilleures places, ou au plus près de l'ami), puis choisies par l'acheteur s'il les change
+  const [changed, setChanged] = useState(false);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<string[]>(initial.map((s) => s.id));
   const [valid, setValid] = useState(true);
@@ -320,7 +322,7 @@ function ReservedSeats({ token, lines, initial, seatMap }: { token: string; line
   const complete = Object.values(needed).reduce((a, b) => a + b, 0) === draft.length;
   return (
     <div className="grid gap-2 rounded-md bg-surface-sunken px-4 py-3 text-sm">
-      <p role="status"><strong>{t("seatsYours", { seats: summary })}</strong> {t("seatsAuto")}</p>
+      <p role="status">{t.rich(changed ? "seatsChosen" : friendName ? "seatsNearFriend" : "seatsBest", { seats: summary, name: friendName ?? "", b: (chunks) => <strong>{chunks}</strong> })}</p>
       {seatMap && !open ? (
         <button type="button" onClick={() => { setDraft(seats.map((s) => s.id)); setOpen(true); }} className="min-h-11 justify-self-start rounded-full px-4 font-semibold ring-1 ring-line-strong">{canChange ? t("seatsChange") : t("seatsView")}</button>
       ) : null}
@@ -337,6 +339,7 @@ function ReservedSeats({ token, lines, initial, seatMap }: { token: string; line
                 setBusy(false);
                 if (!r.ok) return setError(r.error);
                 setSeats(r.data);
+                setChanged(true);
                 setOpen(false);
               }} className="min-h-11 rounded-full bg-surface-inverse px-5 font-semibold text-ink-inverse disabled:opacity-50">{busy ? t("processing") : t("seatsSave")}</button>
             ) : null}

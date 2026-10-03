@@ -369,16 +369,17 @@
     "error_NOT_ENOUGH_SEATS": "Not enough seats left.",
     "error_BUYER_LIMIT_REACHED": "This address has reached the maximum number of tickets for this event.",
     "error_SEAT_ORPHAN": "This choice would leave a single seat stranded next to yours: pick neighbouring seats, or take the stranded seat too.",
-    "seatsYours": "Your seats: {seats}.",
     "seatsRow": "row {row}, {count, plural, one {seat} other {seats}} {seats}",
-    "seatsAuto": "The best available, chosen for you.",
     "seatsChange": "See or change my seats",
     "seatsView": "See my seats",
     "seatsSave": "Confirm these seats",
     "seatsCancel": "Keep my seats",
     "seatsClose": "Close the plan",
     "error_SEAT_CHOICE_DISABLED": "The organiser assigns seats: they can’t be changed.",
-    "error_RESERVATION_EXPIRED": "Your reservation has expired: please start your order again."
+    "error_RESERVATION_EXPIRED": "Your reservation has expired: please start your order again.",
+    "seatsBest": "We’ve reserved the best seats available for you: <b>{seats}</b>.",
+    "seatsNearFriend": "We’ve reserved the free seats closest to {name} for you: <b>{seats}</b>.",
+    "seatsChosen": "Your seats: <b>{seats}</b>."
   },
   "orders": {
     "confirmationTitle": "You’re in!",

@@ -89,7 +89,7 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
   };
   if (reservation && checkout) {
-    return <CheckoutPanel reservation={reservation} seatMap={seatMap} organizationName={checkout.organizationName} requirePhone={checkout.requirePhone} publishableKey={checkout.publishableKey} onCancel={() => { setReservation(null); setQty({}); }} />;
+    return <CheckoutPanel reservation={reservation} seatMap={seatMap} friendName={friend?.firstName ?? null} organizationName={checkout.organizationName} requirePhone={checkout.requirePhone} publishableKey={checkout.publishableKey} onCancel={() => { setReservation(null); setQty({}); }} />;
   }
   return (
     <div className="grid gap-4">
