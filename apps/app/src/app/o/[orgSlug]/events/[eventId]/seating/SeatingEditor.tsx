@@ -7,8 +7,9 @@ import { useEffect, useMemo, useRef, useState, useTransition, type PointerEvent 
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Field";
 import type { SeatingEditorState } from "@/server/seatingEditor";
+import type { SeatingLayoutItem } from "@/server/seatingLayouts";
 import { P, RowLabels, S, ShapeView, StandingView, Tables, blockBounds } from "@/components/seating/PlanParts";
-import { seatingBlockAction, seatingBlockDeleteAction, seatingCategoryAddAction, seatingCategoryUpdateAction, seatingCommandAction, seatingSeatAction, seatingTemplateAction } from "../../actions";
+import { seatingBlockAction, seatingBlockDeleteAction, seatingCategoryAddAction, seatingCategoryUpdateAction, seatingCommandAction, seatingLayoutApplyAction, seatingLayoutDeleteAction, seatingLayoutSaveAction, seatingLayoutSearchAction, seatingMoveAction, seatingSeatAction, seatingTemplateAction } from "../../actions";
 
 type Block = SeatingEditorState["blocks"][number];
 type Seat = SeatingEditorState["seats"][number];
@@ -49,7 +50,7 @@ function newBlock(kind: Block["kind"], variant: string, at: { x: number; y: numb
   }
 }
 
-export function SeatingEditor({ orgSlug, eventId, state, readOnly }: { orgSlug: string; eventId: string; state: SeatingEditorState; readOnly: boolean }) {
+export function SeatingEditor({ orgSlug, eventId, state, layouts, readOnly }: { orgSlug: string; eventId: string; state: SeatingEditorState; layouts: SeatingLayoutItem[]; readOnly: boolean }) {
   const t = useTranslations("seatingEditor");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -58,6 +59,9 @@ export function SeatingEditor({ orgSlug, eventId, state, readOnly }: { orgSlug: 
   const [picking, setPicking] = useState(state.blocks.length === 0 && state.seats.length === 0);
   const [undo, setUndo] = useState<Array<{ before: BlockInput; after: BlockInput }>>([]);
   const [redo, setRedo] = useState<Array<{ before: BlockInput; after: BlockInput }>>([]);
+  // changement de place d'un acheteur : place vendue de départ, puis place libre choisie sur le plan
+  const [moving, setMoving] = useState<string | null>(null);
+  const [moveTarget, setMoveTarget] = useState<string | null>(null);
 
   const run = (fn: () => Promise<Result>, after?: (r: Result) => void) =>
     startTransition(async () => {
@@ -97,7 +101,20 @@ export function SeatingEditor({ orgSlug, eventId, state, readOnly }: { orgSlug: 
   const firstCategory = state.categories[0]?.id ?? "";
 
   if (picking && !readOnly)
-    return <TemplatePicker pending={pending} error={error} canCancel={state.blocks.length > 0 || state.seats.length > 0} hasSales={state.hasSales} onCancel={() => setPicking(false)} onApply={(template, options) => run(() => seatingTemplateAction(orgSlug, eventId, { template, options }), () => { setPicking(false); setSelection(null); setUndo([]); setRedo([]); })} />;
+    return (
+      <TemplatePicker
+        pending={pending}
+        error={error}
+        canCancel={state.blocks.length > 0 || state.seats.length > 0}
+        hasSales={state.hasSales}
+        layouts={layouts}
+        onSearch={async (q) => { const r = await seatingLayoutSearchAction(orgSlug, q); return r?.ok ? (r.data ?? []) : null; }}
+        onCancel={() => setPicking(false)}
+        onApply={(template, options) => run(() => seatingTemplateAction(orgSlug, eventId, { template, options }), () => { setPicking(false); setSelection(null); setUndo([]); setRedo([]); })}
+        onApplyLayout={(id) => run(() => seatingLayoutApplyAction(orgSlug, eventId, id), () => { setPicking(false); setSelection(null); setUndo([]); setRedo([]); })}
+        onDeleteLayout={(id) => act(() => seatingLayoutDeleteAction(orgSlug, id))}
+      />
+    );
 
   const stats = {
     total: state.seats.length,
@@ -122,16 +139,44 @@ export function SeatingEditor({ orgSlug, eventId, state, readOnly }: { orgSlug: 
               </div>
             ) : null}
           </div>
-          <PlanCanvas state={state} selection={selection} readOnly={readOnly} onSelect={setSelection} onMove={(b, dx, dy) => saveBlock({ ...b, x: Math.round(b.x + dx), y: Math.round(b.y + dy) })} />
+          {moving ? (() => {
+            const from = state.seats.find((s) => s.id === moving);
+            const target = moveTarget ? state.seats.find((s) => s.id === moveTarget) : null;
+            return (
+              <div role="status" className="grid gap-2 rounded-[var(--r-card)] bg-lilas/40 p-4 text-sm">
+                <p>{target ? t("moveConfirm", { name: from?.holder?.name ?? "", from: t("seatShort", { row: from?.row ?? "", seat: from?.label ?? "" }), to: t("seatShort", { row: target.row, seat: target.label }) }) : t("moveChoose", { name: from?.holder?.name ?? "" })}</p>
+                <div className="flex flex-wrap gap-2">
+                  {target ? <Button type="button" size="sm" disabled={pending} onClick={() => run(() => seatingMoveAction(orgSlug, eventId, moving, target.id), () => { setMoving(null); setMoveTarget(null); setSelection({ type: "seat", id: target.id }); })}>{t("moveDo")}</Button> : null}
+                  <Button type="button" size="sm" variant="secondary" onClick={() => { setMoving(null); setMoveTarget(null); }}>{t("cancel")}</Button>
+                </div>
+              </div>
+            );
+          })() : null}
+          <PlanCanvas
+            state={state}
+            selection={selection}
+            readOnly={readOnly}
+            onSelect={(sel) => {
+              if (moving && sel?.type === "seat") {
+                const from = state.seats.find((s) => s.id === moving);
+                const to = state.seats.find((s) => s.id === sel.id);
+                if (from && to && to.status === "AVAILABLE" && to.categoryId === from.categoryId) return setMoveTarget(to.id);
+                return;
+              }
+              setSelection(sel);
+            }}
+            onMove={(b, dx, dy) => saveBlock({ ...b, x: Math.round(b.x + dx), y: Math.round(b.y + dy) })}
+          />
           <p className="text-sm text-ink-muted">{t("stats", { total: stats.total, blocked: stats.blocked, accessible: stats.accessible, sold: stats.sold + stats.held })}</p>
           {!readOnly ? <AddBlocks pending={pending} onAdd={(variant, kind) => saveBlock(newBlock(kind, variant, { x: 0, y: maxY(state) + 120 }, firstCategory))} /> : null}
         </section>
         <aside className="grid min-w-0 flex-[1_1_300px] gap-4">
           <BlockList blocks={state.blocks} selectedId={selectedBlock?.id} onSelect={(id) => setSelection({ type: "block", id })} />
-          {selectedSeat ? <SeatPanel key={selectedSeat.id} seat={selectedSeat} readOnly={readOnly} pending={pending} onSave={(patch) => run(() => seatingSeatAction(orgSlug, eventId, selectedSeat.id, patch))} /> : null}
+          {selectedSeat ? <SeatPanel key={selectedSeat.id + selectedSeat.status} seat={selectedSeat} readOnly={readOnly} pending={pending} onSave={(patch) => run(() => seatingSeatAction(orgSlug, eventId, selectedSeat.id, patch))} onMove={() => { setMoving(selectedSeat.id); setMoveTarget(null); }} /> : null}
           {selectedBlock ? <BlockPanel key={`${selectedBlock.id}-${JSON.stringify(selectedBlock.params)}-${selectedBlock.rotation}`} block={selectedBlock} categories={state.categories} rowNames={state.rows.filter((r) => r.blockId === selectedBlock.id).map((r) => r.name)} readOnly={readOnly} pending={pending} onSave={(b) => saveBlock(b)} onDelete={() => run(() => seatingBlockDeleteAction(orgSlug, eventId, selectedBlock.id), () => setSelection(null))} /> : null}
           <SeatFinder seats={state.seats} onFound={(id) => setSelection({ type: "seat", id })} />
           <Categories state={state} readOnly={readOnly} pending={pending} onSave={(id, input) => run(() => seatingCategoryUpdateAction(orgSlug, eventId, id, input))} onAdd={(input) => run(() => seatingCategoryAddAction(orgSlug, eventId, input))} />
+          {!readOnly && state.blocks.length ? <SaveLayout pending={pending} onSave={(input) => act(() => seatingLayoutSaveAction(orgSlug, eventId, input))} /> : null}
           <Modes state={state} readOnly={readOnly} onMode={(assigned) => act(() => seatingCommandAction(orgSlug, eventId, { kind: "mode", assigned }))} onChoice={(allow) => act(() => seatingCommandAction(orgSlug, eventId, { kind: "choice", allow }))} />
         </aside>
       </div>
@@ -446,7 +491,7 @@ function BlockPanel({ block, categories, rowNames, readOnly, pending, onSave, on
   );
 }
 
-function SeatPanel({ seat, readOnly, pending, onSave }: { seat: Seat; readOnly: boolean; pending: boolean; onSave: (patch: { label?: string; blocked?: boolean; accessible?: boolean; note?: string | null }) => void }) {
+function SeatPanel({ seat, readOnly, pending, onSave, onMove }: { seat: Seat; readOnly: boolean; pending: boolean; onSave: (patch: { label?: string; blocked?: boolean; accessible?: boolean; note?: string | null }) => void; onMove: () => void }) {
   const t = useTranslations("seatingEditor");
   const [label, setLabel] = useState(seat.label);
   const [blocked, setBlocked] = useState(seat.status === "BLOCKED");
@@ -456,6 +501,12 @@ function SeatPanel({ seat, readOnly, pending, onSave }: { seat: Seat; readOnly: 
   return (
     <Panel title={t("seatTitle", { row: seat.row, seat: seat.label })}>
       <p className="-mt-1 text-sm text-ink-muted">{t(`status_${seat.status}`)}</p>
+      {seat.status === "SOLD" && seat.holder ? (
+        <div className="grid gap-2 rounded-md bg-surface-sunken p-3 text-sm">
+          <p><strong>{seat.holder.name}</strong> · {seat.holder.reference}{seat.holder.entered ? ` · ${t("entered")}` : ""}</p>
+          {!readOnly ? <Button type="button" size="sm" variant="secondary" onClick={onMove}>{t("moveStart")}</Button> : null}
+        </div>
+      ) : null}
       <div className="grid gap-1">
         <label htmlFor="seat-label" className="font-label text-sm font-bold">{t("seatLabel")}</label>
         <Input id="seat-label" value={label} maxLength={12} disabled={readOnly || taken} onChange={(e) => setLabel(e.target.value)} />
@@ -469,6 +520,26 @@ function SeatPanel({ seat, readOnly, pending, onSave }: { seat: Seat; readOnly: 
       {!readOnly ? (
         <Button type="button" disabled={pending} onClick={() => onSave({ ...(label.trim() !== seat.label && !taken ? { label: label.trim() } : {}), ...(!taken && blocked !== (seat.status === "BLOCKED") ? { blocked } : {}), accessible, note: note.trim() || null })}>{t("saveSeat")}</Button>
       ) : null}
+    </Panel>
+  );
+}
+
+function SaveLayout({ pending, onSave }: { pending: boolean; onSave: (input: { name: string; city: string | null; shared: boolean }) => Promise<boolean> }) {
+  const t = useTranslations("seatingEditor");
+  const [name, setName] = useState("");
+  const [city, setCity] = useState("");
+  const [shared, setShared] = useState(false);
+  const [saved, setSaved] = useState(false);
+  return (
+    <Panel title={t("saveLayout")}>
+      <p className="-mt-1 text-sm text-ink-muted">{t("saveLayoutHint")}</p>
+      <form className="grid gap-2" onSubmit={(e) => { e.preventDefault(); if (!name.trim()) return; void onSave({ name: name.trim(), city: city.trim() || null, shared }).then((ok) => { setSaved(ok); if (ok) setName(""); }); }}>
+        <div className="grid gap-1"><label htmlFor="lay-name" className="font-label text-sm font-bold">{t("layoutName")}</label><Input id="lay-name" value={name} maxLength={60} onChange={(e) => { setName(e.target.value); setSaved(false); }} /></div>
+        <div className="grid gap-1"><label htmlFor="lay-city" className="font-label text-sm font-bold">{t("layoutCity")}</label><Input id="lay-city" value={city} maxLength={60} onChange={(e) => setCity(e.target.value)} /></div>
+        <label className="flex min-h-11 items-start gap-2 text-sm"><input type="checkbox" checked={shared} onChange={(e) => setShared(e.target.checked)} className="mt-0.5 size-5 accent-[var(--ink)]" /><span>{t("layoutShare")}</span></label>
+        <Button type="submit" variant="secondary" disabled={pending || !name.trim()}>{t("saveLayoutDo")}</Button>
+        {saved ? <p role="status" className="text-sm font-semibold text-success">{t("layoutSaved")}</p> : null}
+      </form>
     </Panel>
   );
 }
@@ -549,8 +620,10 @@ function Modes({ state, readOnly, onMode, onChoice }: { state: SeatingEditorStat
 
 // —— modèles ——
 
-function TemplatePicker({ pending, error, canCancel, hasSales, onCancel, onApply }: { pending: boolean; error: string | null; canCancel: boolean; hasSales: boolean; onCancel: () => void; onApply: (t: SeatingTemplate, o: TemplateOptions) => void }) {
+function TemplatePicker({ pending, error, canCancel, hasSales, layouts: initialLayouts, onSearch, onCancel, onApply, onApplyLayout, onDeleteLayout }: { pending: boolean; error: string | null; canCancel: boolean; hasSales: boolean; layouts: SeatingLayoutItem[]; onSearch: (q: string) => Promise<SeatingLayoutItem[] | null>; onCancel: () => void; onApply: (t: SeatingTemplate, o: TemplateOptions) => void; onApplyLayout: (id: string) => void; onDeleteLayout: (id: string) => Promise<boolean> }) {
   const t = useTranslations("seatingEditor");
+  const [layouts, setLayouts] = useState(initialLayouts);
+  const [query, setQuery] = useState("");
   const [template, setTemplate] = useState<SeatingTemplate>("theatre");
   const [o, setO] = useState<TemplateOptions>(TEMPLATE_DEFAULTS.theatre);
   const choose = (tpl: SeatingTemplate) => { setTemplate(tpl); setO(TEMPLATE_DEFAULTS[tpl]); };
@@ -615,6 +688,26 @@ function TemplatePicker({ pending, error, canCancel, hasSales, onCancel, onApply
           <p className="text-sm text-ink-muted">{t("adjustLater")}</p>
         </section>
       </div>
+      <section aria-labelledby="lay-title" className="grid gap-3 rounded-[var(--r-card)] border border-line bg-surface-raised p-4">
+        <h2 id="lay-title" className="font-display text-lg">{t("layoutsTitle")}</h2>
+        <p className="-mt-1 text-sm text-ink-muted">{t("layoutsHint")}</p>
+        <form className="flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); void onSearch(query).then((r) => { if (r) setLayouts(r); }); }}>
+          <div className="grid min-w-0 flex-1 gap-1"><label htmlFor="lay-q" className="font-label text-sm font-bold">{t("layoutsSearch")}</label><Input id="lay-q" type="search" value={query} maxLength={60} onChange={(e) => setQuery(e.target.value)} /></div>
+          <Button type="submit" variant="secondary">{t("find")}</Button>
+        </form>
+        {layouts.length === 0 ? <p className="text-sm text-ink-muted">{t("layoutsEmpty")}</p> : null}
+        <ul className="grid gap-2">
+          {layouts.map((l) => (
+            <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-line p-3">
+              <span className="text-sm"><strong>{l.name}</strong>{l.city ? ` · ${l.city}` : ""} · {t("layoutSeats", { count: l.seatCount })} · {l.mine ? (l.shared ? t("layoutMineShared") : t("layoutMine")) : t("layoutShared")}</span>
+              <span className="flex gap-2">
+                <Button type="button" size="sm" disabled={pending || hasSales} onClick={() => onApplyLayout(l.id)}>{t("layoutUse")}</Button>
+                {l.mine ? <Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => void onDeleteLayout(l.id).then((ok) => { if (ok) setLayouts((x) => x.filter((y) => y.id !== l.id)); })}>{t("layoutDelete")}</Button> : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

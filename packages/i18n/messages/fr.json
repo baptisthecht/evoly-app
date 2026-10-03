@@ -458,7 +458,12 @@
     "addToAppleWallet": "Ajouter à Apple Wallet",
     "addToGoogleWallet": "Ajouter à Google Wallet",
     "allMyTickets": "Tous mes billets Evoly",
-    "seat": "Rang {row} · Place {seat}"
+    "seat": "Rang {row} · Place {seat}",
+    "friendsTitle": "Venez à plusieurs ?",
+    "friendsBody": "Partagez ce lien : vos amis verront vos places et se verront proposer les places libres les plus proches des vôtres.",
+    "friendsLink": "Lien à partager",
+    "friendsShare": "Partager le lien",
+    "friendsCopied": "Lien copié."
   },
   "resale": {
     "sell": "Revendre ma place",
@@ -1939,7 +1944,10 @@
     "legendSelected": "Vos places",
     "legendTaken": "Déjà prises",
     "legendAccessible": "Mobilité réduite",
-    "orphan": "Ce choix laisserait une place seule entre vos places et une autre : choisissez des places voisines, ou prenez aussi la place isolée."
+    "orphan": "Ce choix laisserait une place seule entre vos places et une autre : choisissez des places voisines, ou prenez aussi la place isolée.",
+    "friendBanner": "{name} a réservé ses places : nous vous proposerons les places libres les plus proches des siennes.",
+    "nearFriend": "Les places libres les plus proches de {name} :",
+    "legendFriend": "Places de {name}"
   },
   "proLocked": {
     "badge": "Pro",
@@ -2097,6 +2105,49 @@
     "error_PRO_REQUIRED": "Le plan de salle est disponible en Pro.",
     "error_FORBIDDEN": "Vous n’avez pas le droit de modifier le plan.",
     "error_READ_ONLY": "L’organisation est en lecture seule.",
-    "error_NOT_FOUND": "Élément introuvable : rechargez la page."
+    "error_NOT_FOUND": "Élément introuvable : rechargez la page.",
+    "entered": "déjà entré",
+    "moveStart": "Changer de place",
+    "moveChoose": "Choisissez sur le plan la nouvelle place de {name} : une place libre de la même catégorie.",
+    "moveConfirm": "Déplacer {name} de {from} vers {to} ? Un e-mail lui sera envoyé avec son billet mis à jour.",
+    "moveDo": "Confirmer le changement de place",
+    "saveLayout": "Enregistrer comme salle",
+    "saveLayoutHint": "Réutilisez ce plan pour vos prochains événements dans cette salle.",
+    "layoutName": "Nom de la salle",
+    "layoutCity": "Ville",
+    "layoutShare": "Partager cette salle avec les autres organisateurs Evoly qui y jouent (le plan seulement, jamais vos ventes).",
+    "saveLayoutDo": "Enregistrer la salle",
+    "layoutSaved": "Salle enregistrée : retrouvez-la dans le choix du modèle.",
+    "layoutsTitle": "Vos salles et salles partagées",
+    "layoutsHint": "Repartez d’une salle déjà dessinée, par vous ou par un autre organisateur.",
+    "layoutsSearch": "Nom de la salle ou ville",
+    "layoutsEmpty": "Aucune salle pour l’instant.",
+    "layoutSeats": "{count, plural, one {# place} other {# places}}",
+    "layoutMine": "à vous",
+    "layoutMineShared": "à vous, partagée",
+    "layoutShared": "partagée",
+    "layoutUse": "Utiliser cette salle",
+    "layoutDelete": "Supprimer",
+    "error_SEAT_NOT_SOLD": "Cette place n’est pas vendue : il n’y a personne à déplacer.",
+    "error_SEAT_CATEGORY_MISMATCH": "La nouvelle place doit être de la même catégorie.",
+    "error_SEATING_LAYOUT_EMPTY": "Ajoutez des blocs au plan avant de l’enregistrer comme salle.",
+    "seatShort": "rang {row}, place {seat}"
+  },
+  "occupancy": {
+    "title": "Plan d’occupation",
+    "print": "Imprimer",
+    "counts": "{entered, plural, =0 {Personne n’est encore entré} one {# personne entrée} other {# personnes entrées}} sur {sold, plural, one {# place vendue} other {# places vendues}} · {free, plural, =0 {aucune libre} one {# libre} other {# libres}} · {blocked, plural, =0 {aucune bloquée} one {# bloquée} other {# bloquées}}",
+    "planLabel": "Plan d’occupation : {entered} entrées sur {sold} places vendues",
+    "legend": "Légende",
+    "state_IN": "Entré",
+    "state_SOLD": "Vendue, pas encore entré",
+    "state_HELD": "En cours de réservation",
+    "state_FREE": "Libre",
+    "state_BLOCKED": "Bloquée",
+    "list": "Liste des places occupées ({count})",
+    "row": "Rang",
+    "seat": "Place",
+    "holder": "Titulaire",
+    "status": "État"
   }
 }

@@ -247,3 +247,22 @@ export function reminderEmail(o: { brand?: EmailBrand | null; locale: Locale; ty
   const text = [o.organizationName, "", c.hello(o.firstName), c.body(o.tickets), "", `${c.when} : ${o.when}`, o.where ? `${c.where} : ${o.where}` : "", "", `${c.cta} : ${o.ticketsUrl}`, "", "—", c.reason(o.organizationName, o.eventTitle), `${c.unsubscribe} : ${o.unsubscribeEventUrl}`].filter((l) => l !== undefined).join("\n");
   return { subject, html, text };
 }
+
+const SEAT_COPY = {
+  fr: { subject: (e: string) => `Votre place a changé : ${e}`, hello: (n: string) => `Bonjour ${n},`, body: (from: string, to: string) => `L’organisateur vous a attribué une nouvelle place : ${to}, au lieu de ${from}. Votre billet est mis à jour : utilisez la nouvelle version.`, cta: "Voir mes billets" },
+  en: { subject: (e: string) => `Your seat has changed: ${e}`, hello: (n: string) => `Hi ${n},`, body: (from: string, to: string) => `The organiser gave you a new seat: ${to}, instead of ${from}. Your ticket has been updated: please use the new version.`, cta: "View my tickets" },
+} as const;
+
+/** Section 9.9 : l'organisateur a changé l'acheteur de place ; lien vers les billets mis à jour. */
+export function seatChangedEmail(o: { brand?: EmailBrand | null; locale: Locale; organizationName: string; eventTitle: string; firstName: string; from: string; to: string; url: string }): RenderedEmail {
+  const c = SEAT_COPY[o.locale];
+  const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
+<tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
+<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(c.subject(o.eventTitle))}</td></tr>
+<tr><td style="font-size:15px;line-height:1.6;padding-bottom:20px">${escapeHtml(c.hello(o.firstName))}<br>${escapeHtml(c.body(o.from, o.to))}</td></tr>
+<tr><td><a href="${escapeHtml(o.url)}" style="display:inline-block;background:${palette.charbon};color:${palette.creme};text-decoration:none;font-weight:700;border-radius:999px;padding:14px 24px">${escapeHtml(c.cta)}</a></td></tr>
+</table></td></tr></table></body></html>`;
+  return { subject: c.subject(o.eventTitle), html, text: [o.organizationName, "", c.hello(o.firstName), c.body(o.from, o.to), "", `${c.cta} : ${o.url}`].join("\n") };
+}

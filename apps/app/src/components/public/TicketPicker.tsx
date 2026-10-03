@@ -6,8 +6,8 @@ import { SeatMapPicker } from "./SeatMapPicker";
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { availabilityDisplay, unitDiscount } from "@evoly/core";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
-import { previewPromoAction, reserveAction, type PromoPreview, type ReservationView } from "@/app/site/[sub]/[eventSlug]/actions";
+import { useEffect, useMemo, useState } from "react";
+import { friendSeatsAction, previewPromoAction, reserveAction, type PromoPreview, type ReservationView } from "@/app/site/[sub]/[eventSlug]/actions";
 import { Input } from "../ui/Field";
 import { Button } from "../ui/Button";
 import { CheckoutPanel } from "./CheckoutPanel";
@@ -71,6 +71,13 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
   const [seatStep, setSeatStep] = useState(false);
   const [chosen, setChosen] = useState<string[]>([]);
   const [seatValid, setSeatValid] = useState(true);
+  // « à côté de mes amis » : lien partagé (?amis=…), places de l'ami et meilleures places proches des siennes
+  const [friend, setFriend] = useState<{ code: string; firstName: string; seatIds: string[]; center: { x: number; y: number } } | null>(null);
+  useEffect(() => {
+    if (!checkout) return;
+    const code = new URLSearchParams(window.location.search).get("amis");
+    if (code) void friendSeatsAction(checkout.eventId, code).then((f) => f && setFriend({ code, ...f }));
+  }, [checkout]);
   const needed: Record<string, number> = {};
   // fosse, zone debout : billets sans place, pas de choix sur le plan
   if (seatMap) for (const [ticketTypeId, n] of Object.entries(qty)) { const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(ticketTypeId)); if (c && !c.standing && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n; }
@@ -85,7 +92,7 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
     setPending(true);
     setError(null);
     const lines = Object.entries(qty).filter(([, n]) => n > 0).map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
-    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, seatMap && needsSeats ? chosen : null);
+    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, seatMap && needsSeats ? chosen : null, friend?.code ?? null);
     setPending(false);
     if (res.ok) return setReservation(res.data);
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
@@ -94,7 +101,7 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
     return (
       <div className="grid gap-4">
         <p className="font-semibold">{tseat("title")}</p>
-        <SeatMapPicker map={seatMap} needed={needed} chosen={chosen} onChange={(ids, valid) => { setChosen(ids); setSeatValid(valid); }} />
+        <SeatMapPicker map={seatMap} needed={needed} chosen={chosen} friend={friend} onChange={(ids, valid) => { setChosen(ids); setSeatValid(valid); }} />
         {error ? <p role="alert" className="text-sm text-danger">{error}</p> : null}
         <div className="flex flex-wrap gap-2">
           <button type="button" className="h-12 rounded-full px-5 font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]" onClick={() => setSeatStep(false)}>
@@ -111,6 +118,7 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
   }
   return (
     <div className="grid gap-4">
+      {friend ? <p role="status" className="rounded-md bg-lilas/50 px-4 py-3 text-sm">{tseat("friendBanner", { name: friend.firstName })}</p> : null}
       <ul className="grid gap-3">
         {tickets.map((tt) => {
           const availability = availabilityDisplay(tt.remaining, tt.quantity);

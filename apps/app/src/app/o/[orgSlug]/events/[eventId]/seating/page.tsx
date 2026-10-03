@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { ProLocked, SeatingPreview } from "@/components/ProLocked";
 import { requireOrgContext } from "@/server/context";
 import { seatingEditor } from "@/server/seatingEditor";
+import { listSeatingLayouts } from "@/server/seatingLayouts";
 import { SeatingEditor } from "./SeatingEditor";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,11 +23,11 @@ export default async function SeatingPage({ params }: { params: Promise<{ orgSlu
         <ProLocked orgSlug={orgSlug} feature="SEATING_MAPS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} preview={<SeatingPreview />} />
       </div>
     );
-  const state = await seatingEditor(ctx, eventId);
+  const [state, layouts] = await Promise.all([seatingEditor(ctx, eventId), listSeatingLayouts(ctx)]);
   return (
     <div className="grid gap-4">
       <p className="max-w-3xl text-ink-muted">{t("intro")}</p>
-      <SeatingEditor orgSlug={orgSlug} eventId={eventId} state={state} readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly} />
+      <SeatingEditor orgSlug={orgSlug} eventId={eventId} state={state} layouts={layouts} readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly} />
     </div>
   );
 }

@@ -1,5 +1,8 @@
 import { formatDate, formatMoney, formatTime, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
+import { ShareFriendLink } from "@/components/public/ShareFriendLink";
+import { friendCodeFor } from "@/server/seating";
+import { organizationPublicUrl } from "@/server/urls";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -52,6 +55,10 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
   const badges = { apple: badge("add-to-apple-wallet"), google: badge("add-to-google-wallet") };
   const locale = (await getLocale()) as Locale;
   const e = order.event;
+  // « venez à plusieurs » : lien vers l'événement, qui propose aux amis les places libres les plus proches
+  const seated = e.startsAt > new Date() && order.tickets.some((tk) => tk.seat && tk.status === "VALID");
+  const friendCode = seated ? await friendCodeFor(order.id) : null;
+  const friendUrl = friendCode ? `${organizationPublicUrl(org.subdomain ?? org.slug)}/${e.slug}?amis=${friendCode}` : null;
   const eventHref = `/${e.slug}`;
   const place = e.locationType === "ONLINE" ? null : [e.locationName, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
   const qrs = order.status === "PAID" || order.status === "PARTIALLY_REFUNDED" ? await Promise.all(order.tickets.map((tk) => QRCode.toString(tk.code, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: palette.charbon, light: palette.blanc } }))) : [];
@@ -171,6 +178,7 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
                 policyText={t(refundCheck.reason === "EVENT_CHANGED" ? "policy_EVENT_CHANGED" : `policy_${e.refundPolicy}`)}
               />
             ) : null}
+            {friendUrl ? <ShareFriendLink url={friendUrl} eventTitle={e.title} /> : null}
             <p className="text-center text-sm text-ink-muted">{t("paidTotal", { total: order.totalMinor === 0 ? t("free") : formatMoney(order.totalMinor, order.currency, locale) })}</p>
           </>
         ) : (

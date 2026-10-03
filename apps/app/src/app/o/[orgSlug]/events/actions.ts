@@ -12,7 +12,8 @@ import { saveMarketingAutomation, setReminderEnabled } from "@/server/automation
 import { moveQuestion, removeQuestion, saveQuestion } from "@/server/questions";
 import { sendComplimentaryTickets, type ComplimentaryResult } from "@/server/complimentary";
 import { applySeatingTemplate, deleteRow, saveCategory, setSeatChoice, setSeatingMode, toggleSeatBlocked } from "@/server/seating";
-import { deleteSeatingBlock, saveSeatingBlock, updateSeat, updateSeatingCategory } from "@/server/seatingEditor";
+import { deleteSeatingBlock, moveTicketSeat, saveSeatingBlock, updateSeat, updateSeatingCategory } from "@/server/seatingEditor";
+import { applySeatingLayout, deleteSeatingLayout, listSeatingLayouts, saveSeatingLayout, type SeatingLayoutItem } from "@/server/seatingLayouts";
 import { SEATING_TEMPLATES } from "@evoly/core";
 import { parseRecipients } from "@evoly/core";
 import { createScannerLink, personalScannerLink, revokeScannerLink, scannerUrl } from "@/server/scanner";
@@ -377,4 +378,39 @@ export async function seatingCategoryAddAction(orgSlug: string, eventId: string,
   });
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
+}
+
+export async function seatingMoveAction(orgSlug: string, eventId: string, fromSeatId: string, toSeatId: string): Promise<ActionState> {
+  const schema = z.object({ fromSeatId: z.string().min(1).max(40), toSeatId: z.string().min(1).max(40) });
+  const r = await runOrgAction(orgSlug, { fromSeatId, toSeatId }, { schema, ...SEATING }, async (d, ctx) => {
+    await moveTicketSeat(ctx, eventId, d.fromSeatId, d.toSeatId);
+    return null;
+  });
+  if (r?.ok) seatingDone(orgSlug, eventId);
+  return r;
+}
+
+export async function seatingLayoutSaveAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<{ id: string }>> {
+  const schema = z.object({ name: text(60).min(1, { message: "validation.textLength" }), city: z.string().trim().max(60).nullable(), shared: z.boolean() });
+  return runOrgAction(orgSlug, input, { schema, ...SEATING }, async (d, ctx) => ({ id: await saveSeatingLayout(ctx, eventId, d) }));
+}
+
+export async function seatingLayoutApplyAction(orgSlug: string, eventId: string, layoutId: string): Promise<ActionState> {
+  const r = await runOrgAction(orgSlug, { layoutId }, { schema: z.object({ layoutId: z.string().min(1).max(40) }), ...SEATING }, async (d, ctx) => {
+    await applySeatingLayout(ctx, eventId, d.layoutId);
+    return null;
+  });
+  if (r?.ok) seatingDone(orgSlug, eventId);
+  return r;
+}
+
+export async function seatingLayoutDeleteAction(orgSlug: string, layoutId: string): Promise<ActionState> {
+  return runOrgAction(orgSlug, { layoutId }, { schema: z.object({ layoutId: z.string().min(1).max(40) }), ...SEATING }, async (d, ctx) => {
+    await deleteSeatingLayout(ctx, d.layoutId);
+    return null;
+  });
+}
+
+export async function seatingLayoutSearchAction(orgSlug: string, query: string): Promise<ActionState<SeatingLayoutItem[]>> {
+  return runOrgAction(orgSlug, { query }, { schema: z.object({ query: z.string().max(60) }), ...SEATING, write: false }, async (d, ctx) => listSeatingLayouts(ctx, d.query));
 }

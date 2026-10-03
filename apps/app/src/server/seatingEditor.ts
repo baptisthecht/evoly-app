@@ -5,6 +5,10 @@ import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { findEvent } from "./events";
 import { seatingMapFor } from "./seating";
+import { emailBrandFor } from "./email/brand";
+import { sendEmail } from "./email/send";
+import { seatChangedEmail } from "./email/templates";
+import { ticketsUrl } from "./orders";
 
 /** Section 9.9 : éditeur visuel du plan de salle (blocs, places, catégories). */
 
@@ -32,12 +36,12 @@ export async function seatingEditor(ctx: OrgContext, eventId: string) {
       include: {
         categories: { orderBy: { sortOrder: "asc" } },
         blocks: { orderBy: { sortOrder: "asc" } },
-        rows: { orderBy: { sortOrder: "asc" }, include: { seats: { orderBy: { sortOrder: "asc" } } } },
+        rows: { orderBy: { sortOrder: "asc" }, include: { seats: { orderBy: { sortOrder: "asc" }, include: { ticket: { select: { holderFirstName: true, holderLastName: true, checkedInAt: true, order: { select: { reference: true, buyerFirstName: true, buyerLastName: true } } } } } } } },
       },
     }),
     db.ticketType.findMany({ where: { eventId: event.id }, orderBy: { sortOrder: "asc" }, select: { id: true, name: true, seatingCategoryId: true } }),
   ]);
-  const seats = full.rows.flatMap((r) => r.seats.map((s) => ({ id: s.id, rowId: r.id, row: r.name, blockId: r.blockId, label: s.label, x: s.x ?? 0, y: s.y ?? 0, angle: s.angle, status: s.status, accessible: s.accessible, note: s.note, categoryId: s.categoryId })));
+  const seats = full.rows.flatMap((r) => r.seats.map((s) => ({ id: s.id, rowId: r.id, row: r.name, blockId: r.blockId, label: s.label, x: s.x ?? 0, y: s.y ?? 0, angle: s.angle, status: s.status, accessible: s.accessible, note: s.note, categoryId: s.categoryId, holder: holderOf(s.ticket) })));
   return {
     mode: event.seatingMode,
     allowChoice: event.allowSeatChoice,
@@ -160,3 +164,68 @@ export async function updateSeatingCategory(ctx: OrgContext, eventId: string, ca
     db.ticketType.updateMany({ where: { eventId: map.eventId, id: { in: input.ticketTypeIds } }, data: { seatingCategoryId: cat.id } }),
   ]);
 }
+
+type TicketHolder = { holderFirstName: string | null; holderLastName: string | null; checkedInAt: Date | null; order: { reference: string; buyerFirstName: string; buyerLastName: string } } | null;
+/** Titulaire d'une place vendue : nom complet pour l'organisateur, référence de commande, entrée déjà scannée. */
+function holderOf(t: TicketHolder) {
+  if (!t) return null;
+  return { name: `${t.holderFirstName ?? t.order.buyerFirstName} ${t.holderLastName ?? t.order.buyerLastName}`.trim(), reference: t.order.reference, entered: t.checkedInAt !== null };
+}
+const seatName = (row: string, label: string, locale: "fr" | "en") => (locale === "en" ? `row ${row}, seat ${label}` : `rang ${row}, place ${label}`);
+
+/**
+ * Change un billet de place : place libre de la même catégorie, prise en une transaction (refusée si elle vient
+ * d'être prise), ancienne place libérée. Le titulaire reçoit un e-mail avec le lien vers son billet mis à jour.
+ */
+export async function moveTicketSeat(ctx: OrgContext, eventId: string, fromSeatId: string, toSeatId: string) {
+  const map = await seatingMapFor(ctx, eventId);
+  const [from, to] = await Promise.all([
+    db.seat.findFirst({ where: { id: fromSeatId, row: { seatingMapId: map.id } }, include: { row: true, ticket: { include: { order: { include: { organization: true, event: true } } } } } }),
+    db.seat.findFirst({ where: { id: toSeatId, row: { seatingMapId: map.id } }, include: { row: true } }),
+  ]);
+  if (!from || !to) throw new CoreError("NOT_FOUND");
+  if (from.status !== "SOLD" || !from.ticket) throw new CoreError("SEAT_NOT_SOLD");
+  if (to.categoryId !== from.categoryId) throw new CoreError("SEAT_CATEGORY_MISMATCH");
+  const ticket = from.ticket;
+  await db.$transaction(async (tx) => {
+    const took = await tx.seat.updateMany({ where: { id: to.id, status: "AVAILABLE" }, data: { status: "SOLD" } });
+    if (took.count !== 1) throw new CoreError("SEAT_TAKEN");
+    await tx.ticket.update({ where: { id: ticket.id }, data: { seatId: to.id } });
+    await tx.seat.update({ where: { id: from.id }, data: { status: "AVAILABLE", holdOrderId: null, holdExpiresAt: null } });
+  });
+  const order = ticket.order;
+  const locale = (order.buyerLocale === "en" ? "en" : "fr") as "fr" | "en";
+  const brand = await emailBrandFor(order.organizationId);
+  const mail = seatChangedEmail({ brand, locale, organizationName: order.organization.name, eventTitle: order.event.title, firstName: ticket.holderFirstName ?? order.buyerFirstName, from: seatName(from.row.name, from.label, locale), to: seatName(to.row.name, to.label, locale), url: ticketsUrl(order.organization, order.id, order.accessTokenVersion) });
+  await sendEmail({ ...mail, to: ticket.holderEmail ?? order.buyerEmail, template: "seating.seat_changed", category: "TRANSACTIONAL", organizationId: order.organizationId, fromName: brand.fromName, replyTo: brand.replyTo }).catch((err) => console.error("e-mail changement de place", err instanceof Error ? err.message : err));
+  await audit({ action: "seating.ticket_moved", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Ticket", targetId: ticket.id, metadata: { from: `${from.row.name}${from.label}`, to: `${to.row.name}${to.label}` } });
+}
+
+/** Plan d'occupation pour l'accueil : état de chaque place (libre, bloquée, vendue, entrée) et titulaire abrégé. */
+export async function seatOccupancy(ctx: OrgContext, eventId: string) {
+  const event = await findEvent(ctx, eventId);
+  const map = await db.seatingMap.findUnique({
+    where: { eventId: event.id },
+    include: {
+      categories: { orderBy: { sortOrder: "asc" } },
+      blocks: { orderBy: { sortOrder: "asc" } },
+      rows: { orderBy: { sortOrder: "asc" }, include: { seats: { orderBy: { sortOrder: "asc" }, include: { ticket: { select: { holderFirstName: true, holderLastName: true, checkedInAt: true, order: { select: { buyerFirstName: true, buyerLastName: true } } } } } } } },
+    },
+  });
+  if (!map || !map.rows.some((r) => r.seats.length)) return null;
+  const short = (first: string, last: string) => `${first} ${last ? `${last.charAt(0)}.` : ""}`.trim();
+  const seats = map.rows.flatMap((r, i) => r.seats.map((s, k) => ({
+    id: s.id, rowId: r.id, row: r.name, blockId: r.blockId, label: s.label, x: s.x ?? (k - (r.seats.length - 1) / 2) * 30, y: s.y ?? i * 34, angle: s.angle, categoryId: s.categoryId, accessible: s.accessible,
+    state: (s.ticket?.checkedInAt ? "IN" : s.status === "SOLD" ? "SOLD" : s.status === "HELD" ? "HELD" : s.status === "BLOCKED" ? "BLOCKED" : "FREE") as "IN" | "SOLD" | "HELD" | "BLOCKED" | "FREE",
+    holder: s.ticket ? short(s.ticket.holderFirstName ?? s.ticket.order.buyerFirstName, s.ticket.holderLastName ?? s.ticket.order.buyerLastName) : null,
+  })));
+  const count = (st: string) => seats.filter((s) => s.state === st).length;
+  return {
+    categories: map.categories.map((c) => ({ id: c.id, name: c.name, color: c.color })),
+    blocks: map.blocks.map((b) => ({ id: b.id, kind: b.kind, name: b.name, x: b.x, y: b.y, rotation: b.rotation, params: b.params as Record<string, unknown> })),
+    rows: map.rows.map((r) => ({ id: r.id, name: r.name, blockId: r.blockId })),
+    seats,
+    counts: { total: seats.length, entered: count("IN"), sold: count("SOLD") + count("IN"), free: count("FREE"), blocked: count("BLOCKED") },
+  };
+}
+export type SeatOccupancy = NonNullable<Awaited<ReturnType<typeof seatOccupancy>>>;

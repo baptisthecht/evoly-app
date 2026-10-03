@@ -458,7 +458,12 @@
     "addToAppleWallet": "Add to Apple Wallet",
     "addToGoogleWallet": "Add to Google Wallet",
     "allMyTickets": "All my Evoly tickets",
-    "seat": "Row {row} · Seat {seat}"
+    "seat": "Row {row} · Seat {seat}",
+    "friendsTitle": "Coming with friends?",
+    "friendsBody": "Share this link: your friends will see your seats and be offered the free seats closest to yours.",
+    "friendsLink": "Link to share",
+    "friendsShare": "Share the link",
+    "friendsCopied": "Link copied."
   },
   "resale": {
     "sell": "Resell my ticket",
@@ -1939,7 +1944,10 @@
     "legendSelected": "Your seats",
     "legendTaken": "Already taken",
     "legendAccessible": "Wheelchair",
-    "orphan": "This choice would leave a single seat stranded next to yours: pick neighbouring seats, or take the stranded seat too."
+    "orphan": "This choice would leave a single seat stranded next to yours: pick neighbouring seats, or take the stranded seat too.",
+    "friendBanner": "{name} has booked their seats: we’ll offer you the free seats closest to theirs.",
+    "nearFriend": "The free seats closest to {name}:",
+    "legendFriend": "{name}’s seats"
   },
   "proLocked": {
     "badge": "Pro",
@@ -2097,6 +2105,49 @@
     "error_PRO_REQUIRED": "Seating plans are available in Pro.",
     "error_FORBIDDEN": "You are not allowed to edit the plan.",
     "error_READ_ONLY": "The organisation is read-only.",
-    "error_NOT_FOUND": "Item not found: reload the page."
+    "error_NOT_FOUND": "Item not found: reload the page.",
+    "entered": "already in",
+    "moveStart": "Change seat",
+    "moveChoose": "Pick {name}’s new seat on the plan: a free seat in the same category.",
+    "moveConfirm": "Move {name} from {from} to {to}? They’ll get an email with their updated ticket.",
+    "moveDo": "Confirm the seat change",
+    "saveLayout": "Save as a venue",
+    "saveLayoutHint": "Reuse this plan for your next events in this venue.",
+    "layoutName": "Venue name",
+    "layoutCity": "City",
+    "layoutShare": "Share this venue with other Evoly organisers who play there (the plan only, never your sales).",
+    "saveLayoutDo": "Save venue",
+    "layoutSaved": "Venue saved: you’ll find it when choosing a template.",
+    "layoutsTitle": "Your venues and shared venues",
+    "layoutsHint": "Start from a venue already drawn, by you or another organiser.",
+    "layoutsSearch": "Venue name or city",
+    "layoutsEmpty": "No venue yet.",
+    "layoutSeats": "{count, plural, one {# seat} other {# seats}}",
+    "layoutMine": "yours",
+    "layoutMineShared": "yours, shared",
+    "layoutShared": "shared",
+    "layoutUse": "Use this venue",
+    "layoutDelete": "Delete",
+    "error_SEAT_NOT_SOLD": "This seat isn’t sold: there’s nobody to move.",
+    "error_SEAT_CATEGORY_MISMATCH": "The new seat must be in the same category.",
+    "error_SEATING_LAYOUT_EMPTY": "Add blocks to the plan before saving it as a venue.",
+    "seatShort": "row {row}, seat {seat}"
+  },
+  "occupancy": {
+    "title": "Occupancy plan",
+    "print": "Print",
+    "counts": "{entered, plural, =0 {Nobody in yet} one {# person in} other {# people in}} out of {sold, plural, one {# seat sold} other {# seats sold}} · {free, plural, =0 {none free} other {# free}} · {blocked, plural, =0 {none blocked} other {# blocked}}",
+    "planLabel": "Occupancy plan: {entered} in out of {sold} seats sold",
+    "legend": "Legend",
+    "state_IN": "In",
+    "state_SOLD": "Sold, not in yet",
+    "state_HELD": "Being booked",
+    "state_FREE": "Free",
+    "state_BLOCKED": "Blocked",
+    "list": "Occupied seats ({count})",
+    "row": "Row",
+    "seat": "Seat",
+    "holder": "Holder",
+    "status": "Status"
   }
 }

@@ -12,7 +12,7 @@ type Mode = "best" | "map";
  * Section 9.9 : places de l'acheteur sur le plan. Par défaut, les meilleures places (côte à côte, au plus près de la
  * scène, sans siège isolé) ; sinon, choix sur le plan, limité aux catégories des billets choisis.
  */
-export function SeatMapPicker({ map, needed, chosen, onChange }: { map: PublicSeatMap; needed: Record<string, number>; chosen: string[]; onChange: (ids: string[], valid: boolean) => void }) {
+export function SeatMapPicker({ map, needed, chosen, friend = null, onChange }: { map: PublicSeatMap; needed: Record<string, number>; chosen: string[]; friend?: { firstName: string; seatIds: string[]; center: { x: number; y: number } } | null; onChange: (ids: string[], valid: boolean) => void }) {
   const t = useTranslations("seatPicker");
   const [mode, setMode] = useState<Mode>("best");
   const seats = useMemo(() => map.rows.flatMap((r) => r.seats.map((s) => ({ ...s, rowId: r.id, row: r.name, blockId: r.blockId }))), [map]);
@@ -24,13 +24,14 @@ export function SeatMapPicker({ map, needed, chosen, onChange }: { map: PublicSe
   const suggestion = useMemo(() => {
     const ids: string[] = [];
     for (const [cat, n] of Object.entries(needed)) {
-      const pick = bestSeats(planFor((s) => s.categoryId === cat), n, map.focus);
+      // « à côté de mes amis » : au plus près des places de l'ami plutôt que de la scène
+      const pick = bestSeats(planFor((s) => s.categoryId === cat), n, friend?.center ?? map.focus);
       if (!pick || pick.length < n) return null;
       ids.push(...pick);
     }
     return ids;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [neededKey, seats, map.focus]);
+  }, [neededKey, seats, map.focus, friend]);
 
   /** Même règle que le serveur : une place laissée seule est refusée si un autre choix l'évite. */
   const orphanFor = (ids: string[]) => {
@@ -125,7 +126,7 @@ export function SeatMapPicker({ map, needed, chosen, onChange }: { map: PublicSe
         ))}
       </div>
       {mode === "best" ? (
-        <p className="text-sm" role="status">{suggestion ? <>{t("bestHint")} <strong>{describe(suggestion)}</strong></> : t("bestNone")}</p>
+        <p className="text-sm" role="status">{suggestion ? <>{friend ? t("nearFriend", { name: friend.firstName }) : t("bestHint")} <strong>{describe(suggestion)}</strong></> : t("bestNone")}</p>
       ) : (
         <ul className="flex flex-wrap gap-2 text-sm" aria-live="polite">
           {neededCats.map(([cid, n]) => (
@@ -163,18 +164,20 @@ export function SeatMapPicker({ map, needed, chosen, onChange }: { map: PublicSe
           const mine = chosen.includes(s.id);
           const can = selectable(s);
           const ours = (needed[s.categoryId] ?? 0) > 0;
-          const fill = mine ? "#222222" : !s.available ? "#D3CCC7" : colors.get(s.categoryId) ?? "#D9B8F0";
+          const friendSeat = friend?.seatIds.includes(s.id) ?? false;
+          const fill = mine ? "#222222" : friendSeat ? "#FFB8E8" : !s.available ? "#D3CCC7" : colors.get(s.categoryId) ?? "#D9B8F0";
           return (
             <g
               key={s.id}
               data-seat={s.id}
               transform={`translate(${s.x} ${s.y}) rotate(${s.angle})`}
               {...(can ? { role: "button", tabIndex: 0, "aria-pressed": mine, "aria-label": t("seat", { row: s.row, seat: s.label, state: mine ? t("selected") : t("free") }), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(s.id); } } } : { "aria-hidden": true })}
-              opacity={mine || !s.available || ours ? 1 : 0.35}
+              opacity={mine || friendSeat || !s.available || ours ? 1 : 0.35}
               style={{ cursor: can ? "pointer" : "default", outline: "none" }}
               className="focus-visible:[&>rect]:stroke-[#3B5BDB] focus-visible:[&>rect]:[stroke-width:3px]"
             >
-              <rect x={-11} y={-9.5} width={22} height={19} rx={5} fill={fill} stroke={mine ? "#FFB8E8" : "none"} strokeWidth={2} />
+              <rect x={-11} y={-9.5} width={22} height={19} rx={5} fill={fill} stroke={mine ? "#FFB8E8" : friendSeat ? "#222222" : "none"} strokeWidth={2} />
+              {friendSeat ? <text y={3.5} textAnchor="middle" fontSize={10} fontWeight={800} fill="#222222" style={{ pointerEvents: "none" }}>{friend!.firstName.charAt(0).toUpperCase()}</text> : null}
               {mine ? <path d="M-5 0 l3.5 3.5 l6 -7" fill="none" stroke="#FFF6F0" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" /> : s.accessible ? <circle r={4.5} fill="#FFFFFF" stroke="#222222" strokeWidth={1.5} /> : null}
             </g>
           );
@@ -182,6 +185,7 @@ export function SeatMapPicker({ map, needed, chosen, onChange }: { map: PublicSe
       </svg>
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted" aria-label={t("legend")}>
         <li className="flex items-center gap-1.5"><span className="size-3 rounded-sm bg-[#222222]" aria-hidden="true" />{t("legendSelected")}</li>
+        {friend ? <li className="flex items-center gap-1.5"><span className="size-3 rounded-sm border-[1.5px] border-[#222222] bg-[#FFB8E8]" aria-hidden="true" />{t("legendFriend", { name: friend.firstName })}</li> : null}
         <li className="flex items-center gap-1.5"><span className="size-3 rounded-sm bg-[#D3CCC7]" aria-hidden="true" />{t("legendTaken")}</li>
         <li className="flex items-center gap-1.5"><span className="size-3 rounded-full border-[1.5px] border-[#222222] bg-white" aria-hidden="true" />{t("legendAccessible")}</li>
       </ul>

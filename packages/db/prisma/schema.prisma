@@ -294,6 +294,7 @@ model Organization {
   featureFlags     FeatureFlag[]
   referralsSent    Referral[]            @relation("ReferralsSent")
   referralReceived Referral?             @relation("ReferralReceived")
+  seatingLayouts       SeatingLayout[]
 }
 
 enum StripeAccountStatus {
@@ -911,6 +912,7 @@ enum OrderSource {
 }
 
 model Order {
+  friendCode          String?            @unique // « Réserver à côté de mes amis » : lien partagé par l'acheteur
   id                    String      @id @default(cuid())
   reference             String      @unique // lisible : EVO-7KQ2-4821
   organizationId        String
@@ -1726,4 +1728,22 @@ model FeatureFlag {
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([key, organizationId])
+}
+
+// Bibliothèque de salles : plan réutilisable (blocs, catégories, places particulières), partageable avec les autres organisateurs
+model SeatingLayout {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  city           String?
+  plan           Json
+  seatCount      Int      @default(0)
+  shared         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([shared])
 }

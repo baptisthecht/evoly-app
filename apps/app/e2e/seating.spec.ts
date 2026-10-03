@@ -67,14 +67,20 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await guest.waitForURL(/\/billets\//);
   await expect(guest.getByTestId("seat")).toHaveText(["Rang A · Place 2", "Rang A · Place 3"]);
 
-  // second acheteur : il garde les meilleures places proposées, deux places voisines dans un même rang
+  // « venez à plusieurs » : le lien partagé depuis la page des billets
+  await expect(guest.getByRole("heading", { name: "Venez à plusieurs ?" })).toBeVisible();
+  const friendLink = await guest.getByLabel("Lien à partager").inputValue();
+  expect(friendLink).toContain("?amis=");
+
+  // second acheteur, venu par le lien de Léa : il garde les places proposées, les plus proches des siennes
   const guest2 = await (await browser.newContext({ locale: "fr-BE" })).newPage();
-  await guest2.goto(siteUrl(slug, `/opera-${id}`));
+  await guest2.goto(siteUrl(slug, `/opera-${id}?amis=${new URL(friendLink).searchParams.get("amis")}`));
+  await expect(guest2.getByText(/Léa a réservé ses places/)).toBeVisible();
   const box2 = guest2.locator("#billets");
   await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box2.getByRole("button", { name: "Continuer" }).click();
-  await expect(box2.getByRole("status")).toContainText(/rang [AB] :/);
+  await expect(box2.getByRole("status").filter({ hasText: "Les places libres les plus proches de Léa" })).toContainText(/rang [AB] :/);
   if (process.env.SEAT_SHOT) await guest2.screenshot({ path: process.env.SEAT_SHOT });
   await box2.getByRole("button", { name: "Réserver ces places" }).click();
   await box2.getByLabel("Prénom").first().fill("Hugo");
@@ -86,11 +92,37 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   expect(places).toHaveLength(2);
   expect(new Set(places.map((p) => p.split(" · ")[0])).size).toBe(1);
 
+  // l'organisateur change Léa de place (même catégorie), avec l'e-mail du billet mis à jour
+  await page.reload();
+  await page.getByLabel("Rang", { exact: true }).fill("A");
+  await page.getByLabel("Place", { exact: true }).fill("3");
+  await page.getByRole("button", { name: "Trouver" }).click();
+  await expect(page.getByText(/Léa Martin/)).toBeVisible();
+  await page.getByRole("button", { name: "Changer de place" }).click();
+  const target = sql(`select s.id from "Seat" s join "SeatingRow" r on r.id = s."rowId" join "SeatingMap" m on m.id = r."seatingMapId" where m."eventId" = '${eventId}' and r.name = 'B' and s.label = '6' and s.status = 'AVAILABLE'`);
+  expect(target).not.toBe("");
+  await page.locator(`[data-seat="${target}"]`).click();
+  await page.getByRole("button", { name: "Confirmer le changement de place" }).click();
+  await expect.poll(() => sql(`select count(*) from "Ticket" where "seatId" = '${target}'`)).toBe("1");
+
+  // plan d'occupation pour l'accueil
+  await page.goto(`${eventUrl}/entries`);
+  await expect(page.getByRole("heading", { name: "Plan d’occupation" })).toBeVisible();
+  await expect(page.getByText(/Personne n’est encore entré sur 4 places vendues/)).toBeVisible();
+
+  // bibliothèque : la salle enregistrée se retrouve dans le choix du modèle
+  await page.goto(`${eventUrl}/seating`);
+  await page.getByLabel("Nom de la salle").fill(`Salle des fêtes ${id}`);
+  await page.getByLabel("Ville").fill("Mouscron");
+  await page.getByRole("button", { name: "Enregistrer la salle" }).click();
+  await expect(page.getByText("Salle enregistrée")).toBeVisible();
+
   // la place vendue est verrouillée dans l'éditeur
   await page.reload();
   await page.getByLabel("Rang", { exact: true }).fill("A");
   await page.getByLabel("Place", { exact: true }).fill("2");
   await page.getByRole("button", { name: "Trouver" }).click();
   await expect(page.getByText("Vendue", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Changer de modèle" }).isDisabled();
   await expect(page.getByLabel("Numéro de la place")).toBeDisabled();
 });

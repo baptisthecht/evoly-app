@@ -1,6 +1,6 @@
 import "server-only";
 import { publicQuestions } from "./questions";
-import { holdSeats, markSeatsSold, releaseSeats, seatsForTickets } from "./seating";
+import { friendSeats, holdSeats, markSeatsSold, releaseSeats, seatsForTickets } from "./seating";
 import { createHmac } from "node:crypto";
 import {
   checkCart,
@@ -130,7 +130,7 @@ export interface Reservation {
  * RG-BUY-01 : réservation atomique. La ligne de l'événement est verrouillée (jauge commune),
  * puis chaque incrément est conditionnel : la survente est impossible, même sous forte concurrence.
  */
-export async function reserveOrder(input: { eventId: string; lines: CartRequestLine[]; locale: string; promoCode?: string | null; seatIds?: string[] | null }, now = new Date()): Promise<Reservation> {
+export async function reserveOrder(input: { eventId: string; lines: CartRequestLine[]; locale: string; promoCode?: string | null; seatIds?: string[] | null; nearCode?: string | null }, now = new Date()): Promise<Reservation> {
   const orderId = `c${humanCode(24, ID_ALPHABET)}`;
   const token = orderAccessToken(orderId, 1);
   const accessTokenHash = await sha256Hex(token);
@@ -184,7 +184,9 @@ export async function reserveOrder(input: { eventId: string; lines: CartRequestL
       if (ok !== 1) throw new CartRejected([{ code: "NOT_ENOUGH_STOCK", ticketTypeId: l.ticketTypeId, available: 0 }]);
     }
     // RG-SEAT-01 : placement numéroté, meilleures places retenues avec le panier
-    if (event.seatingMode === "ASSIGNED") await holdSeats(tx, orderId, priced.lines, event.ticketTypes, new Date(now.getTime() + event.checkoutHoldMinutes * 60_000), event.allowSeatChoice ? input.seatIds : null);
+    // « à côté de mes amis » : meilleures places cherchées près des places de l'ami
+    const near = event.seatingMode === "ASSIGNED" && input.nearCode ? (await friendSeats(event.id, input.nearCode))?.center ?? null : null;
+    if (event.seatingMode === "ASSIGNED") await holdSeats(tx, orderId, priced.lines, event.ticketTypes, new Date(now.getTime() + event.checkoutHoldMinutes * 60_000), event.allowSeatChoice ? input.seatIds : null, near);
     const order = await tx.order.create({
       data: {
         id: orderId,

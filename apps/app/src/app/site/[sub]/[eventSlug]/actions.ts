@@ -1,6 +1,7 @@
 "use server";
 
 import { CoreError, normalizePromoCode, validatePromo } from "@evoly/core";
+import { friendSeats } from "@/server/seating";
 import { db } from "@/lib/db";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
@@ -53,7 +54,7 @@ function failure(err: unknown): { ok: false; error: string; ticketTypeId?: strin
 }
 
 /** « Continuer » : réservation des places (RG-BUY-01), limitée par adresse IP (RG-BUY-10). */
-export async function reserveAction(eventId: string, lines: unknown, promoCode?: string | null, seatIds?: unknown): Promise<Result<ReservationView>> {
+export async function reserveAction(eventId: string, lines: unknown, promoCode?: string | null, seatIds?: unknown, nearCode?: string | null): Promise<Result<ReservationView>> {
   const parsed = linesSchema.safeParse(lines);
   if (!parsed.success) return { ok: false, error: "CART_EMPTY_CART" };
   if ((await hit(`checkout:reserve:${await clientIp()}`, 600)) > 30) return { ok: false, error: "RATE_LIMITED" };
@@ -62,7 +63,7 @@ export async function reserveAction(eventId: string, lines: unknown, promoCode?:
     const target = await db.event.findUnique({ where: { id: eventId }, select: { id: true, visibility: true, accessCodeHash: true } });
     if (!target || !(await hasEventAccess(target))) return { ok: false, error: "ACCESS_REQUIRED" };
     const seats = Array.isArray(seatIds) && seatIds.length <= 50 && seatIds.every((x) => typeof x === "string" && x.length <= 40) ? (seatIds as string[]) : null;
-    const r = await reserveOrder({ eventId, lines: parsed.data, locale: await getLocale(), promoCode: promoCode?.slice(0, 40) || null, seatIds: seats });
+    const r = await reserveOrder({ eventId, lines: parsed.data, locale: await getLocale(), promoCode: promoCode?.slice(0, 40) || null, seatIds: seats, nearCode: typeof nearCode === "string" ? nearCode.slice(0, 16) : null });
     return { ok: true, data: { token: r.token, reference: r.reference, expiresAt: r.expiresAt.toISOString(), currency: r.currency, totalMinor: r.totalMinor, isFree: r.isFree, discountMinor: r.discountMinor, promoCode: r.promoCode, lines: r.lines, questions: r.questions, stripeAccountId: r.stripeAccountId } };
   } catch (err) {
     return failure(err);
@@ -183,3 +184,11 @@ export async function unlockEventAction(eventId: string, code: unknown): Promise
   if ((await hit(`access:${eventId.slice(0, 30)}`, 900)) > 30) return { ok: false, error: "RATE_LIMITED" };
   return (await unlockEvent(eventId, code)) ? { ok: true, data: null } : { ok: false, error: "ACCESS_CODE_WRONG" };
 }
+
+/** Section 9.9 : places de l'ami qui a partagé son lien (prénom seulement), pour proposer les places les plus proches. */
+export async function friendSeatsAction(eventId: string, code: string): Promise<{ firstName: string; seatIds: string[]; center: { x: number; y: number } } | null> {
+  if (typeof eventId !== "string" || typeof code !== "string" || code.length > 16) return null;
+  if ((await hit(`friends:${await clientIp()}`, 600)) > 60) return null;
+  return friendSeats(eventId, code);
+}
+

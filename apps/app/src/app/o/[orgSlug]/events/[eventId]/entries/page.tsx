@@ -1,4 +1,4 @@
-import { can } from "@evoly/core";
+import { can, hasFeature } from "@evoly/core";
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -10,6 +10,8 @@ import { requireOrgContext } from "@/server/context";
 import { findEvent } from "@/server/events";
 import { attendanceStats, listScannerLinks } from "@/server/scanner";
 import { LinkActions, NewScannerLink, OpenScanner } from "./EntriesClient";
+import { OccupancyPlan } from "@/components/seating/OccupancyPlan";
+import { seatOccupancy } from "@/server/seatingEditor";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -23,6 +25,7 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
   const canManage = can(ctx.membership, "CHECKIN_MANAGE");
   const canScan = can(ctx.membership, "CHECKIN_SCAN");
   if (!canManage && !canScan && !can(ctx.membership, "STATS_VIEW")) notFound();
+  const occupancy = hasFeature(ctx.features, "SEATING_MAPS") ? await seatOccupancy(ctx, eventId) : null;
   const event = await findEvent(ctx, eventId);
   const [stats, links] = await Promise.all([attendanceStats(eventId), canManage ? listScannerLinks(ctx, eventId) : Promise.resolve([])]);
   const t = await getTranslations("entries");
@@ -33,6 +36,7 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
   const pct = (n: number, total: number) => (total ? Math.round((n * 100) / total) : 0);
   return (
     <div className="grid max-w-5xl gap-6">
+      {occupancy ? <OccupancyPlan data={occupancy} /> : null}
       <AutoRefresh everyMs={10_000} maxTimes={2_000} />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Card className="grid content-start gap-4">

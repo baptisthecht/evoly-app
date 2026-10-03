@@ -1,5 +1,5 @@
 import "server-only";
-import { CoreError, bestSeats, createsOrphan, generateBlock, hasFeature, hasOrphanFreeChoice, pickSeats, seatLabels, seatingTemplate, type PlanSeat, type SeatingTemplate, type TemplateOptions } from "@evoly/core";
+import { CoreError, bestSeats, humanCode, createsOrphan, generateBlock, hasFeature, hasOrphanFreeChoice, pickSeats, seatLabels, seatingTemplate, type BlockSpec, type PlanSeat, type SeatingTemplate, type TemplateOptions } from "@evoly/core";
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
@@ -115,7 +115,7 @@ export type PublicSeatMap = NonNullable<Awaited<ReturnType<typeof publicSeatMap>
  * par catégorie, chacune libre et dans la bonne catégorie (revérifié ici, sous le verrou de l'événement) ;
  * sinon, meilleures places attribuées automatiquement.
  */
-export async function holdSeats(tx: Tx, orderId: string, lines: ReadonlyArray<{ ticketTypeId: string; quantity: number }>, types: ReadonlyArray<{ id: string; seatingCategoryId: string | null }>, until: Date, chosen?: readonly string[] | null) {
+export async function holdSeats(tx: Tx, orderId: string, lines: ReadonlyArray<{ ticketTypeId: string; quantity: number }>, types: ReadonlyArray<{ id: string; seatingCategoryId: string | null }>, until: Date, chosen?: readonly string[] | null, near?: { x: number; y: number } | null) {
   const perCategory = new Map<string, number>();
   for (const l of lines) {
     const cat = types.find((t) => t.id === l.ticketTypeId)?.seatingCategoryId;
@@ -141,7 +141,7 @@ export async function holdSeats(tx: Tx, orderId: string, lines: ReadonlyArray<{ 
     const focus = (await tx.seatingCategory.findUnique({ where: { id: categoryId }, select: { seatingMap: { select: { focusX: true, focusY: true } } } }))?.seatingMap;
     const placed = seats.every((s) => s.x !== null && s.y !== null) && focus?.focusX != null && focus.focusY != null;
     const ids = placed
-      ? bestSeats(seats.map((s) => ({ id: s.id, rowId: s.rowId, order: s.sortOrder, x: s.x!, y: s.y!, available: s.status === "AVAILABLE" })), n, { x: focus!.focusX!, y: focus!.focusY! })
+      ? bestSeats(seats.map((s) => ({ id: s.id, rowId: s.rowId, order: s.sortOrder, x: s.x!, y: s.y!, available: s.status === "AVAILABLE" })), n, near ?? { x: focus!.focusX!, y: focus!.focusY! })
       : pickSeats(seats.map((s) => ({ id: s.id, rowOrder: s.row.sortOrder, seatOrder: s.sortOrder, available: s.status === "AVAILABLE" })), n);
     if (!ids) throw new CoreError("NOT_ENOUGH_SEATS");
     const held = await tx.seat.updateMany({ where: { id: { in: ids }, status: "AVAILABLE" }, data: { status: "HELD", holdOrderId: orderId, holdExpiresAt: until } });
@@ -179,14 +179,18 @@ async function refuseOrphans(tx: Tx, chosen: string[], perCategory: Map<string, 
   throw new CoreError("SEAT_ORPHAN");
 }
 
+/** Place particulière d'un plan enregistré, repérée par sa position dans le bloc (rang, ordre). */
+export interface SeatOverride { block: number; row: number; order: number; label?: string; accessible?: boolean; blocked?: boolean; note?: string | null }
+export interface StoredPlan { categories: Array<{ key: string; name: string; color: string }>; blocks: BlockSpec[]; focus: { x: number; y: number }; overrides?: SeatOverride[] }
+
 /**
- * Plan de départ d'après un modèle (théâtre, stade…) : catégories, blocs, rangs et places avec leurs coordonnées.
+ * Remplace le plan de l'événement (modèle ou salle enregistrée) : catégories, blocs, rangs et places placées.
  * Refusé dès qu'une place est vendue ou retenue. Les tarifs sont reliés aux nouvelles catégories dans l'ordre.
  */
-export async function applySeatingTemplate(ctx: OrgContext, eventId: string, template: SeatingTemplate, options: TemplateOptions = {}) {
+export async function applyPlan(ctx: OrgContext, eventId: string, plan: StoredPlan, source: string) {
   const map = await mapFor(ctx, eventId);
   if (await db.seat.count({ where: { row: { seatingMapId: map.id }, status: { in: ["SOLD", "HELD"] } } })) throw new CoreError("SEATING_HAS_SALES");
-  const plan = seatingTemplate(template, options);
+  const overrides = new Map((plan.overrides ?? []).map((o) => [`${o.block}|${o.row}|${o.order}`, o]));
   await db.$transaction(async (tx) => {
     await tx.seatingBlock.deleteMany({ where: { seatingMapId: map.id } });
     await tx.seatingRow.deleteMany({ where: { seatingMapId: map.id } });
@@ -199,16 +203,26 @@ export async function applySeatingTemplate(ctx: OrgContext, eventId: string, tem
     let rowOrder = 0;
     for (const [i, b] of plan.blocks.entries()) {
       const block = await tx.seatingBlock.create({ data: { seatingMapId: map.id, kind: b.kind, name: b.name, x: b.x, y: b.y, rotation: b.rotation, params: withCategoryIds(b, cats) as object, sortOrder: i } });
-      for (const r of generateBlock(b)) {
+      for (const [ri, r] of generateBlock(b).entries()) {
         const categoryId = cats.get(r.category) ?? ordered[0]!;
         const row = await tx.seatingRow.create({ data: { seatingMapId: map.id, blockId: block.id, categoryId, name: r.label, sortOrder: rowOrder++ } });
-        await tx.seat.createMany({ data: r.seats.map((st) => ({ rowId: row.id, categoryId, label: st.label, sortOrder: st.order, x: st.x, y: st.y, angle: st.angle, accessible: st.accessible })) });
+        await tx.seat.createMany({
+          data: r.seats.map((st) => {
+            const o = overrides.get(`${i}|${ri}|${st.order}`);
+            return { rowId: row.id, categoryId, label: o?.label ?? st.label, sortOrder: st.order, x: st.x, y: st.y, angle: st.angle, accessible: o?.accessible ?? st.accessible, note: o?.note ?? null, status: o?.blocked ? "BLOCKED" : "AVAILABLE" };
+          }),
+        });
       }
     }
-    await tx.seatingMap.update({ where: { id: map.id }, data: { template, focusX: plan.focus.x, focusY: plan.focus.y } });
+    await tx.seatingMap.update({ where: { id: map.id }, data: { template: source.slice(0, 60), focusX: plan.focus.x, focusY: plan.focus.y } });
   }, { timeout: 60_000 });
-  await audit({ action: "seating.template_applied", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "SeatingMap", targetId: map.id, metadata: { template } });
+  await audit({ action: "seating.plan_applied", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "SeatingMap", targetId: map.id, metadata: { source } });
   return { blocks: plan.blocks.length, seats: await db.seat.count({ where: { row: { seatingMapId: map.id } } }) };
+}
+
+/** Plan de départ d'après un modèle (théâtre, stade…), à ajuster ensuite bloc par bloc. */
+export async function applySeatingTemplate(ctx: OrgContext, eventId: string, template: SeatingTemplate, options: TemplateOptions = {}) {
+  return applyPlan(ctx, eventId, seatingTemplate(template, options), template);
 }
 
 /** Paramètres d'un bloc avec les identifiants réels des catégories (les modèles utilisent des clés provisoires). */
@@ -219,3 +233,33 @@ function withCategoryIds(b: { kind: string; params: object }, cats: Map<string, 
   return p;
 }
 export { mapFor as seatingMapFor };
+
+// —— « Réserver à côté de mes amis » ——
+
+/** Code d'invitation d'une commande avec places, créé à la demande (lien partagé par l'acheteur). */
+export async function friendCodeFor(orderId: string): Promise<string | null> {
+  const order = await db.order.findUnique({ where: { id: orderId }, select: { friendCode: true, tickets: { where: { seatId: { not: null } }, select: { id: true }, take: 1 } } });
+  if (!order || !order.tickets.length) return null;
+  if (order.friendCode) return order.friendCode;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = humanCode(10, FRIEND_ALPHABET);
+    const done = await db.order.updateMany({ where: { id: orderId, friendCode: null }, data: { friendCode: code } }).catch(() => ({ count: 0 }));
+    if (done.count) return code;
+    const again = await db.order.findUnique({ where: { id: orderId }, select: { friendCode: true } });
+    if (again?.friendCode) return again.friendCode;
+  }
+  return null;
+}
+const FRIEND_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
+
+/** Places de l'ami d'après son code : prénom seulement, places valides de l'événement, et leur centre. */
+export async function friendSeats(eventId: string, code: string | null | undefined) {
+  if (!code || !/^[a-z0-9]{6,16}$/.test(code)) return null;
+  const order = await db.order.findFirst({
+    where: { friendCode: code, eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
+    select: { buyerFirstName: true, tickets: { where: { status: "VALID", seatId: { not: null } }, select: { seat: { select: { id: true, x: true, y: true } } } } },
+  });
+  const seats = (order?.tickets ?? []).map((t) => t.seat!).filter((s) => s.x !== null && s.y !== null);
+  if (!order || !seats.length) return null;
+  return { firstName: order.buyerFirstName, seatIds: seats.map((s) => s.id), center: { x: seats.reduce((a, s) => a + s.x!, 0) / seats.length, y: seats.reduce((a, s) => a + s.y!, 0) / seats.length } };
+}
