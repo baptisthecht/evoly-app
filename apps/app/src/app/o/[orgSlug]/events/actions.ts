@@ -11,7 +11,9 @@ import { cancelEvent } from "@/server/refunds";
 import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
 import { moveQuestion, removeQuestion, saveQuestion } from "@/server/questions";
 import { sendComplimentaryTickets, type ComplimentaryResult } from "@/server/complimentary";
-import { addRow, deleteRow, saveCategory, setSeatChoice, setSeatingMode, toggleSeatBlocked } from "@/server/seating";
+import { applySeatingTemplate, deleteRow, saveCategory, setSeatChoice, setSeatingMode, toggleSeatBlocked } from "@/server/seating";
+import { deleteSeatingBlock, saveSeatingBlock, updateSeat, updateSeatingCategory } from "@/server/seatingEditor";
+import { SEATING_TEMPLATES } from "@evoly/core";
 import { parseRecipients } from "@evoly/core";
 import { createScannerLink, personalScannerLink, revokeScannerLink, scannerUrl } from "@/server/scanner";
 import { createTicketType, deleteTicketType, moveTicketType, saveTiers, setTicketTypeStatus, updateTicketType } from "@/server/tickets";
@@ -285,27 +287,12 @@ export async function complimentaryAction(orgSlug: string, eventId: string, _: A
 
 // —— plan de salle (section 9.9, Pro) ——
 const SEATING = { permission: "TICKETS_MANAGE", feature: "SEATING_MAPS" } as const;
-const seatingDone = (orgSlug: string, eventId: string) => revalidatePath(`${eventPath(orgSlug, eventId)}/tickets`);
+const seatingDone = (orgSlug: string, eventId: string) => {
+  revalidatePath(`${eventPath(orgSlug, eventId)}/seating`);
+  revalidatePath(`${eventPath(orgSlug, eventId)}/tickets`);
+};
 
-export async function seatingCategoryAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const schema = z.object({ name: text(40).min(1, { message: "validation.textLength" }), color: z.string().regex(/^#[0-9a-fA-F]{6}$/), ticketTypeId: z.preprocess((v) => (v === "" ? null : v), z.string().max(40).nullable()) });
-  const r = await runOrgAction(orgSlug, formToObject(form), { schema, ...SEATING }, async (d, ctx) => {
-    await saveCategory(ctx, eventId, d);
-    return null;
-  });
-  if (r?.ok) seatingDone(orgSlug, eventId);
-  return r;
-}
 
-export async function seatingRowAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const schema = z.object({ categoryId: z.string().min(1).max(40), name: text(20).min(1, { message: "validation.textLength" }), seats: text(800).min(1, { message: "validation.textLength" }) });
-  const r = await runOrgAction(orgSlug, formToObject(form), { schema, ...SEATING }, async (d, ctx) => {
-    await addRow(ctx, eventId, d);
-    return null;
-  });
-  if (r?.ok) seatingDone(orgSlug, eventId);
-  return r;
-}
 
 export async function seatingCommandAction(orgSlug: string, eventId: string, command: { kind: "seat"; id: string } | { kind: "row"; id: string } | { kind: "mode"; assigned: boolean } | { kind: "choice"; allow: boolean }): Promise<ActionState> {
   const r = await runOrgAction(orgSlug, {}, { schema: z.object({}), ...SEATING }, async (_d, ctx) => {
@@ -313,6 +300,79 @@ export async function seatingCommandAction(orgSlug: string, eventId: string, com
     else if (command.kind === "row") await deleteRow(ctx, eventId, command.id);
     else if (command.kind === "choice") await setSeatChoice(ctx, eventId, command.allow);
     else await setSeatingMode(ctx, eventId, command.assigned);
+    return null;
+  });
+  if (r?.ok) seatingDone(orgSlug, eventId);
+  return r;
+}
+
+// —— éditeur visuel du plan de salle ——
+const sInt = (min: number, max: number) => z.coerce.number().int().min(min).max(max);
+const num = (min: number, max: number) => z.coerce.number().min(min).max(max);
+const NUMBERING = z.enum(["ltr", "rtl", "odd-left", "odd-right"]);
+const rowLabels = z.object({ style: z.enum(["letters", "numbers"]), start: z.string().trim().min(1).max(3), skip: z.array(z.string().trim().length(1)).max(10) });
+const catRef = z.string().max(40);
+const blockBase = { id: z.string().max(40).nullish(), name: z.string().trim().min(1).max(40), x: num(-20000, 20000), y: num(-20000, 20000), rotation: num(-360, 360) };
+const blockSchema = z.discriminatedUnion("kind", [
+  z.object({ ...blockBase, kind: z.literal("ROWS"), params: z.object({ rows: sInt(1, 100), seatsFirst: sInt(1, 200), seatsLast: sInt(1, 200), seatGap: num(16, 80), rowGap: num(16, 120), curve: num(0, 1), centerAisle: z.boolean(), aisleGap: num(0, 200), rowLabels, seatNumbering: NUMBERING, seatStart: sInt(0, 9999), categories: z.array(catRef).min(1).max(100), accessible: z.array(z.object({ row: sInt(0, 99), ends: sInt(0, 10) })).max(100) }).refine((p) => p.rows * Math.max(p.seatsFirst, p.seatsLast) <= 10000, { message: "validation.tooManySeats" }) }),
+  z.object({ ...blockBase, kind: z.literal("TABLE_ROUND"), params: z.object({ tables: sInt(1, 200), seats: sInt(1, 30), perRow: sInt(1, 30), tableGap: num(0, 300), labelStart: sInt(0, 9999), category: catRef }) }),
+  z.object({ ...blockBase, kind: z.literal("TABLE_RECT"), params: z.object({ tables: sInt(1, 200), seatsPerSide: sInt(1, 30), endSeats: z.union([z.literal(0), z.literal(1), z.literal(2)]), perRow: sInt(1, 30), tableGap: num(0, 300), labelStart: sInt(0, 9999), category: catRef }) }),
+  z.object({ ...blockBase, kind: z.literal("STANDING"), params: z.object({ width: num(40, 5000), height: num(40, 5000), capacity: sInt(1, 100000), label: z.string().trim().max(40), category: catRef }) }),
+  z.object({ ...blockBase, kind: z.literal("SHAPE"), params: z.object({ shape: z.enum(["stage", "screen", "pitch", "altar", "bar", "entrance", "label"]), width: num(10, 5000), height: num(10, 5000), label: z.string().trim().max(40) }) }),
+]);
+
+export async function seatingTemplateAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState> {
+  const schema = z.object({
+    template: z.enum(SEATING_TEMPLATES),
+    options: z.object({ rows: sInt(1, 100), seatsFirst: sInt(1, 200), seatsLast: sInt(1, 200), balconyRows: sInt(0, 30), centerAisle: z.boolean(), numbering: NUMBERING, rowLabels, categories: z.union([z.literal(1), z.literal(2), z.literal(3)]), tables: sInt(1, 200), seatsPerTable: sInt(1, 30) }).partial(),
+  });
+  const r = await runOrgAction(orgSlug, input, { schema, ...SEATING }, async (d, ctx) => {
+    await applySeatingTemplate(ctx, eventId, d.template, d.options);
+    return null;
+  });
+  if (r?.ok) seatingDone(orgSlug, eventId);
+  return r;
+}
+
+export async function seatingBlockAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<{ id: string }>> {
+  const r = await runOrgAction(orgSlug, input, { schema: blockSchema, ...SEATING }, async (d, ctx) => ({ id: await saveSeatingBlock(ctx, eventId, d) }));
+  if (r?.ok) seatingDone(orgSlug, eventId);
+  return r;
+}
+
+export async function seatingBlockDeleteAction(orgSlug: string, eventId: string, blockId: string): Promise<ActionState> {
+  const r = await runOrgAction(orgSlug, { blockId }, { schema: z.object({ blockId: z.string().min(1).max(40) }), ...SEATING }, async (d, ctx) => {
+    await deleteSeatingBlock(ctx, eventId, d.blockId);
+    return null;
+  });
+  if (r?.ok) seatingDone(orgSlug, eventId);
+  return r;
+}
+
+export async function seatingSeatAction(orgSlug: string, eventId: string, seatId: string, patch: unknown): Promise<ActionState> {
+  const schema = z.object({ seatId: z.string().min(1).max(40), patch: z.object({ label: z.string().trim().min(1).max(12), blocked: z.boolean(), accessible: z.boolean(), note: z.string().trim().max(80).nullable() }).partial() });
+  const r = await runOrgAction(orgSlug, { seatId, patch }, { schema, ...SEATING }, async (d, ctx) => {
+    await updateSeat(ctx, eventId, d.seatId, d.patch);
+    return null;
+  });
+  if (r?.ok) seatingDone(orgSlug, eventId);
+  return r;
+}
+
+export async function seatingCategoryUpdateAction(orgSlug: string, eventId: string, categoryId: string, input: unknown): Promise<ActionState> {
+  const schema = z.object({ categoryId: z.string().min(1).max(40), input: z.object({ name: text(40).min(1, { message: "validation.textLength" }), color: z.string().regex(/^#[0-9a-fA-F]{6}$/), ticketTypeIds: z.array(z.string().max(40)).max(50) }) });
+  const r = await runOrgAction(orgSlug, { categoryId, input }, { schema, ...SEATING }, async (d, ctx) => {
+    await updateSeatingCategory(ctx, eventId, d.categoryId, d.input);
+    return null;
+  });
+  if (r?.ok) seatingDone(orgSlug, eventId);
+  return r;
+}
+
+export async function seatingCategoryAddAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState> {
+  const schema = z.object({ name: text(40).min(1, { message: "validation.textLength" }), color: z.string().regex(/^#[0-9a-fA-F]{6}$/) });
+  const r = await runOrgAction(orgSlug, input, { schema, ...SEATING }, async (d, ctx) => {
+    await saveCategory(ctx, eventId, { ...d, ticketTypeId: null });
     return null;
   });
   if (r?.ok) seatingDone(orgSlug, eventId);

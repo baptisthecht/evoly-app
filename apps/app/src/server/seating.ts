@@ -179,7 +179,7 @@ export async function applySeatingTemplate(ctx: OrgContext, eventId: string, tem
     for (const [i, t] of types.entries()) await tx.ticketType.update({ where: { id: t.id }, data: { seatingCategoryId: ordered[Math.min(i, ordered.length - 1)] ?? null } });
     let rowOrder = 0;
     for (const [i, b] of plan.blocks.entries()) {
-      const block = await tx.seatingBlock.create({ data: { seatingMapId: map.id, kind: b.kind, name: b.name, x: b.x, y: b.y, rotation: b.rotation, params: b.params as object, sortOrder: i } });
+      const block = await tx.seatingBlock.create({ data: { seatingMapId: map.id, kind: b.kind, name: b.name, x: b.x, y: b.y, rotation: b.rotation, params: withCategoryIds(b, cats) as object, sortOrder: i } });
       for (const r of generateBlock(b)) {
         const categoryId = cats.get(r.category) ?? ordered[0]!;
         const row = await tx.seatingRow.create({ data: { seatingMapId: map.id, blockId: block.id, categoryId, name: r.label, sortOrder: rowOrder++ } });
@@ -191,3 +191,12 @@ export async function applySeatingTemplate(ctx: OrgContext, eventId: string, tem
   await audit({ action: "seating.template_applied", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "SeatingMap", targetId: map.id, metadata: { template } });
   return { blocks: plan.blocks.length, seats: await db.seat.count({ where: { row: { seatingMapId: map.id } } }) };
 }
+
+/** Paramètres d'un bloc avec les identifiants réels des catégories (les modèles utilisent des clés provisoires). */
+function withCategoryIds(b: { kind: string; params: object }, cats: Map<string, string>): object {
+  const p = { ...(b.params as Record<string, unknown>) };
+  if (Array.isArray(p.categories)) p.categories = (p.categories as string[]).map((k) => cats.get(k) ?? k);
+  if (typeof p.category === "string") p.category = cats.get(p.category) ?? p.category;
+  return p;
+}
+export { mapFor as seatingMapFor };

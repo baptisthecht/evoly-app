@@ -1,13 +1,11 @@
 import { can, hasFeature, minorToInput, utcToZonedLocal } from "@evoly/core";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { listQuestions } from "@/server/questions";
 import { QuestionsManager } from "./QuestionsManager";
-import { SeatingManager } from "./SeatingManager";
-import { ProLocked, SeatingPreview } from "@/components/ProLocked";
-import { seatingOverview } from "@/server/seating";
 import { ComplimentaryForm } from "./ComplimentaryForm";
 import { getEventWithTickets } from "@/server/events";
 import { getPlans } from "@/server/plans";
@@ -59,25 +57,10 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
       ))}
       {manage ? <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} /> : null}
       {can(ctx.membership, "ORDERS_MANAGE") && !ctx.readOnly && event.ticketTypes.length > 0 ? <ComplimentaryForm orgSlug={orgSlug} eventId={eventId} ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name }))} /> : null}
-      {hasFeature(ctx.features, "SEATING_MAPS") ? (
-        await (async () => {
-          const seating = await seatingOverview(ctx, eventId);
-          return (
-            <SeatingManager
-              orgSlug={orgSlug}
-              eventId={eventId}
-              assigned={seating.mode === "ASSIGNED"}
-              allowChoice={seating.allowChoice}
-              readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly}
-              ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name }))}
-              categories={(seating.map?.categories ?? []).map((c) => ({ id: c.id, name: c.name, color: c.color, ticketTypes: c.ticketTypes }))}
-              rows={(seating.map?.rows ?? []).map((r) => ({ id: r.id, name: r.name, categoryId: r.categoryId, seats: r.seats }))}
-            />
-          );
-        })()
-      ) : (
-        <ProLocked orgSlug={orgSlug} feature="SEATING_MAPS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} preview={<SeatingPreview />} />
-      )}
+      <p className="text-sm text-ink-muted">
+        {t("seatingMoved")}{" "}
+        <Link href={`/o/${orgSlug}/events/${eventId}/seating`} className="font-semibold underline">{t("seatingLink")}</Link>
+      </p>
       <QuestionsManager
         orgSlug={orgSlug}
         eventId={eventId}
