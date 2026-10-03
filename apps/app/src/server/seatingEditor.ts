@@ -5,6 +5,8 @@ import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { findEvent } from "./events";
 import { seatingMapFor } from "./seating";
+import { uploadImage } from "./brand";
+import { deletePublicFile } from "./storage";
 import { emailBrandFor } from "./email/brand";
 import { sendEmail } from "./email/send";
 import { seatChangedEmail } from "./email/templates";
@@ -66,7 +68,11 @@ async function defaultCategory(mapId: string) {
   return (await db.seatingCategory.findFirst({ where: { seatingMapId: mapId }, orderBy: { sortOrder: "asc" } })) ?? (await db.seatingCategory.create({ data: { seatingMapId: mapId, name: "Catégorie 1", color: "#FFB8E8", sortOrder: 0 } }));
 }
 
-const geometryKey = (b: { kind: string; params: unknown }) => JSON.stringify([b.kind, b.params]);
+/** Structure d'un bloc : tout sauf la photo de vue, qui peut changer même quand des places sont vendues. */
+const geometryKey = (b: { kind: string; params: unknown }) => {
+  const { viewUrl: _view, ...rest } = (b.params ?? {}) as Record<string, unknown>;
+  return JSON.stringify([b.kind, rest]);
+};
 
 /**
  * Crée ou modifie un bloc. Déplacement, rotation ou nom : positions recalculées, chaque place conservée (même vendue).
@@ -84,7 +90,7 @@ export async function saveSeatingBlock(ctx: OrgContext, eventId: string, input: 
   if (input.id && !existing) throw new CoreError("NOT_FOUND");
   const blockId = await db.$transaction(async (tx) => {
     if (existing && geometryKey(existing) === geometryKey(spec)) {
-      await tx.seatingBlock.update({ where: { id: existing.id }, data: { name: spec.name, x: spec.x, y: spec.y, rotation: spec.rotation } });
+      await tx.seatingBlock.update({ where: { id: existing.id }, data: { name: spec.name, x: spec.x, y: spec.y, rotation: spec.rotation, params: spec.params as object } });
       for (const [i, row] of existing.rows.entries())
         for (const [k, seat] of row.seats.entries()) {
           const g = generated[i]?.seats[k];
@@ -229,3 +235,61 @@ export async function seatOccupancy(ctx: OrgContext, eventId: string) {
   };
 }
 export type SeatOccupancy = NonNullable<Awaited<ReturnType<typeof seatOccupancy>>>;
+
+/** Vue depuis la place : photo d'un bloc (envoi, remplacement, suppression), possible même avec des places vendues. */
+export async function setBlockView(ctx: OrgContext, eventId: string, blockId: string, bytes: Uint8Array | null) {
+  const map = await seatingMapFor(ctx, eventId);
+  const block = await db.seatingBlock.findFirst({ where: { id: blockId, seatingMapId: map.id } });
+  if (!block || block.kind === "SHAPE") throw new CoreError("NOT_FOUND");
+  const params = { ...(block.params as Record<string, unknown>) };
+  const previous = typeof params.viewUrl === "string" ? params.viewUrl : null;
+  if (bytes) params.viewUrl = await uploadImage(ctx, "seatview", bytes, map.eventId);
+  else delete params.viewUrl;
+  await db.seatingBlock.update({ where: { id: block.id }, data: { params: params as object } });
+  if (previous) await deletePublicFile(previous).catch(() => undefined);
+  return (params.viewUrl as string | undefined) ?? null;
+}
+
+/**
+ * Carte de chaleur des ventes : moment de la vente de chaque place, de 0 (vendue la première) à 1 (la dernière),
+ * et constats par rang pour ajuster les prix de l'événement suivant (au moins 10 places vendues).
+ */
+export async function seatSalesHeat(ctx: OrgContext, eventId: string) {
+  const event = await findEvent(ctx, eventId);
+  const map = await db.seatingMap.findUnique({
+    where: { eventId: event.id },
+    include: {
+      categories: { orderBy: { sortOrder: "asc" } },
+      blocks: { orderBy: { sortOrder: "asc" } },
+      rows: { orderBy: { sortOrder: "asc" }, include: { seats: { orderBy: { sortOrder: "asc" }, include: { ticket: { select: { order: { select: { paidAt: true, createdAt: true } } } } } } } },
+    },
+  });
+  if (!map) return null;
+  const soldAt = (s: (typeof map.rows)[number]["seats"][number]) => (s.status === "SOLD" && s.ticket ? (s.ticket.order.paidAt ?? s.ticket.order.createdAt).getTime() : null);
+  const times = map.rows.flatMap((r) => r.seats.map(soldAt)).filter((t): t is number => t !== null);
+  const t0 = times.length ? Math.min(...times) : 0, t1 = times.length ? Math.max(...times) : 0;
+  const seats = map.rows.flatMap((r, i) => r.seats.map((s, k) => {
+    const t = soldAt(s);
+    return { id: s.id, rowId: r.id, row: r.name, blockId: r.blockId, label: s.label, x: s.x ?? (k - (r.seats.length - 1) / 2) * 30, y: s.y ?? i * 34, angle: s.angle, categoryId: s.categoryId, blocked: s.status === "BLOCKED", heat: t === null ? null : t1 > t0 ? (t - t0) / (t1 - t0) : 0 };
+  }));
+  const rowStats = map.rows.map((r) => {
+    const own = seats.filter((s) => s.rowId === r.id && !s.blocked);
+    const heats = own.map((s) => s.heat).filter((h): h is number => h !== null).sort((a, b) => a - b);
+    return { row: r.name, ratio: own.length ? heats.length / own.length : 0, median: heats.length ? heats[Math.floor(heats.length / 2)]! : 1 };
+  });
+  const enough = times.length >= 10;
+  return {
+    categories: map.categories.map((c) => ({ id: c.id, name: c.name, color: c.color })),
+    blocks: map.blocks.map((b) => ({ id: b.id, kind: b.kind, name: b.name, x: b.x, y: b.y, rotation: b.rotation, params: b.params as Record<string, unknown> })),
+    rows: map.rows.map((r) => ({ id: r.id, name: r.name, blockId: r.blockId })),
+    seats,
+    sold: times.length,
+    total: seats.filter((s) => !s.blocked).length,
+    firstSaleAt: times.length ? new Date(t0) : null,
+    lastSaleAt: times.length ? new Date(t1) : null,
+    fastRows: enough ? rowStats.filter((r) => r.ratio >= 0.9 && r.median <= 0.34).map((r) => r.row) : [],
+    slowRows: enough ? rowStats.filter((r) => r.ratio <= 0.4).map((r) => r.row) : [],
+  };
+}
+export type SeatSalesHeat = NonNullable<Awaited<ReturnType<typeof seatSalesHeat>>>;
+

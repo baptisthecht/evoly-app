@@ -7,7 +7,7 @@ import type { OrgContext } from "./context";
 import { deletePublicFile, putPublicFile } from "./storage";
 import { ensurePaymentDomains } from "./stripeConnect";
 
-const MAX_BYTES = { logo: 2_000_000, favicon: 500_000, cover: 5_000_000, campaign: 5_000_000 } as const;
+const MAX_BYTES = { logo: 2_000_000, favicon: 500_000, cover: 5_000_000, campaign: 5_000_000, seatview: 8_000_000 } as const;
 export type UploadKind = keyof typeof MAX_BYTES;
 
 /** Import d'une image : type réel vérifié, taille limitée, clé aléatoire (le nom du fichier d'origine n'est jamais repris). */
@@ -28,6 +28,18 @@ export async function uploadImage(ctx: OrgContext, kind: UploadKind, bytes: Uint
   }
   if (!type) throw new CoreError("UPLOAD_TYPE");
   const ext = type === "image/png" ? "png" : type === "image/jpeg" ? "jpg" : "webp";
+  if (kind === "seatview") {
+    // vue depuis la place : photo réduite à 1 600 px de large, légère sur un téléphone
+    const event = await db.event.findFirst({ where: { id: eventId ?? "", organizationId: ctx.organization.id }, select: { id: true } });
+    if (!event) throw new CoreError("NOT_FOUND");
+    const sharp = (await import("sharp")).default;
+    try {
+      bytes = new Uint8Array(await sharp(Buffer.from(bytes), { limitInputPixels: 60_000_000 }).rotate().resize({ width: 1600, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer());
+    } catch {
+      throw new CoreError("UPLOAD_TYPE");
+    }
+    return putPublicFile(`events/${event.id}/view-${secretToken(9).toLowerCase().replace(/[^a-z0-9]/g, "")}.jpg`, bytes, "image/jpeg");
+  }
   if (kind === "cover") {
     const event = await db.event.findFirst({ where: { id: eventId ?? "", organizationId: ctx.organization.id }, select: { id: true } });
     if (!event) throw new CoreError("NOT_FOUND");

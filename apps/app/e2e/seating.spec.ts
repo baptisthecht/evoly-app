@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import sharp from "sharp";
 import { organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de l'acheteur, billet avec sa place (section 9.9)", async ({ page, browser }) => {
@@ -116,6 +117,25 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await page.getByLabel("Ville").fill("Mouscron");
   await page.getByRole("button", { name: "Enregistrer la salle" }).click();
   await expect(page.getByText("Salle enregistrée")).toBeVisible();
+
+  // carte de chaleur des ventes
+  await page.getByRole("button", { name: "Carte de chaleur des ventes" }).click();
+  await expect(page.getByText(/places vendues sur/)).toBeVisible();
+
+  // vue depuis la place : photo du bloc, visible par l'acheteur
+  await page.getByRole("button", { name: "Salle", exact: true }).click();
+  const photo = await sharp({ create: { width: 120, height: 80, channels: 3, background: "#A9C4F2" } }).jpeg().toBuffer();
+  await page.getByLabel("Photo de la vue").setInputFiles({ name: "vue.jpg", mimeType: "image/jpeg", buffer: photo });
+  await page.getByRole("button", { name: "Ajouter la photo" }).click();
+  await expect(page.getByRole("img", { name: "Vue depuis Salle" })).toBeVisible();
+  const guest3 = await (await browser.newContext({ locale: "fr-BE" })).newPage();
+  await guest3.goto(siteUrl(slug, `/opera-${id}`));
+  await guest3.locator("#billets").getByRole("button", { name: "Un billet Fosse de plus" }).click();
+  await guest3.locator("#billets").getByRole("button", { name: "Continuer" }).click();
+  await guest3.getByRole("button", { name: "Voir la vue depuis ces places" }).click();
+  await expect(guest3.getByRole("dialog")).toBeVisible();
+  await guest3.getByRole("button", { name: "Fermer" }).click();
+  await expect(guest3.getByRole("dialog")).toBeHidden();
 
   // la place vendue est verrouillée dans l'éditeur
   await page.reload();

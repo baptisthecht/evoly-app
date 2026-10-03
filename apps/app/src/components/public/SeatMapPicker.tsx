@@ -116,6 +116,9 @@ export function SeatMapPicker({ map, needed, chosen, friend = null, onChange }: 
   };
 
   const neededCats = Object.entries(needed);
+  // vue depuis la place : photo du bloc des places proposées ou choisies
+  const viewBlock = map.blocks.find((b) => typeof b.params.viewUrl === "string" && chosen.some((id) => byId.get(id)?.blockId === b.id));
+  const dialogRef = useRef<HTMLDialogElement>(null);
   return (
     <div className="grid gap-3">
       <div role="radiogroup" aria-label={t("modeLabel")} className="grid grid-cols-2 gap-1 rounded-full bg-surface-raised p-1 ring-1 ring-line">
@@ -190,6 +193,16 @@ export function SeatMapPicker({ map, needed, chosen, friend = null, onChange }: 
         <li className="flex items-center gap-1.5"><span className="size-3 rounded-full border-[1.5px] border-[#222222] bg-white" aria-hidden="true" />{t("legendAccessible")}</li>
       </ul>
       {mode === "map" && orphan ? <p role="alert" className="text-sm font-semibold text-danger">{t("orphan")}</p> : null}
+      {viewBlock ? (
+        <>
+          <button type="button" onClick={() => dialogRef.current?.showModal()} className="min-h-11 justify-self-start rounded-full px-4 text-sm font-semibold ring-1 ring-line-strong">{t("viewOpen")}</button>
+          <dialog ref={dialogRef} aria-label={t("viewTitle", { name: viewBlock.name })} className="w-[min(100%-2rem,48rem)] rounded-[var(--r-card)] p-0 backdrop:bg-black/60" onClick={(e) => { if (e.target === e.currentTarget) dialogRef.current?.close(); }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={viewBlock.params.viewUrl as string} alt={t("viewTitle", { name: viewBlock.name })} className="block h-auto w-full" />
+            <form method="dialog" className="flex justify-end p-3"><button className="min-h-11 rounded-full bg-surface-inverse px-5 text-sm font-semibold text-ink-inverse">{t("viewClose")}</button></form>
+          </dialog>
+        </>
+      ) : null}
     </div>
   );
 }

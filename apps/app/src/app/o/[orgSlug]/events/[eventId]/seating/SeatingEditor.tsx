@@ -1,15 +1,16 @@
 "use client";
 
-import { SEATING_TEMPLATES, type SeatingTemplate, type TemplateOptions } from "@evoly/core";
+import { SEATING_TEMPLATES, generateBlock, type BlockSpec, type SeatingTemplate, type TemplateOptions } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type PointerEvent as ReactPointerEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Field";
-import type { SeatingEditorState } from "@/server/seatingEditor";
+import type { SeatSalesHeat, SeatingEditorState } from "@/server/seatingEditor";
+import type { StoredPlan } from "@/server/seating";
 import type { SeatingLayoutItem } from "@/server/seatingLayouts";
 import { P, RowLabels, S, ShapeView, StandingView, Tables, blockBounds } from "@/components/seating/PlanParts";
-import { seatingBlockAction, seatingBlockDeleteAction, seatingCategoryAddAction, seatingCategoryUpdateAction, seatingCommandAction, seatingLayoutApplyAction, seatingLayoutDeleteAction, seatingLayoutSaveAction, seatingLayoutSearchAction, seatingMoveAction, seatingSeatAction, seatingTemplateAction } from "../../actions";
+import { seatingBlockAction, seatingBlockDeleteAction, seatingCategoryAddAction, seatingCategoryUpdateAction, seatingCommandAction, seatingLayoutApplyAction, seatingLayoutDeleteAction, seatingLayoutSaveAction, seatingLayoutSearchAction, seatingMoveAction, seatingPhotoAction, seatingPhotoApplyAction, seatingSeatAction, seatingTemplateAction, seatingViewAction } from "../../actions";
 
 type Block = SeatingEditorState["blocks"][number];
 type Seat = SeatingEditorState["seats"][number];
@@ -50,7 +51,7 @@ function newBlock(kind: Block["kind"], variant: string, at: { x: number; y: numb
   }
 }
 
-export function SeatingEditor({ orgSlug, eventId, state, layouts, readOnly }: { orgSlug: string; eventId: string; state: SeatingEditorState; layouts: SeatingLayoutItem[]; readOnly: boolean }) {
+export function SeatingEditor({ orgSlug, eventId, state, layouts, heat, photoEnabled, readOnly }: { orgSlug: string; eventId: string; state: SeatingEditorState; layouts: SeatingLayoutItem[]; heat: SeatSalesHeat | null; photoEnabled: boolean; readOnly: boolean }) {
   const t = useTranslations("seatingEditor");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -62,6 +63,7 @@ export function SeatingEditor({ orgSlug, eventId, state, layouts, readOnly }: { 
   // changement de place d'un acheteur : place vendue de départ, puis place libre choisie sur le plan
   const [moving, setMoving] = useState<string | null>(null);
   const [moveTarget, setMoveTarget] = useState<string | null>(null);
+  const [showHeat, setShowHeat] = useState(false);
 
   const run = (fn: () => Promise<Result>, after?: (r: Result) => void) =>
     startTransition(async () => {
@@ -113,6 +115,7 @@ export function SeatingEditor({ orgSlug, eventId, state, layouts, readOnly }: { 
         onApply={(template, options) => run(() => seatingTemplateAction(orgSlug, eventId, { template, options }), () => { setPicking(false); setSelection(null); setUndo([]); setRedo([]); })}
         onApplyLayout={(id) => run(() => seatingLayoutApplyAction(orgSlug, eventId, id), () => { setPicking(false); setSelection(null); setUndo([]); setRedo([]); })}
         onDeleteLayout={(id) => act(() => seatingLayoutDeleteAction(orgSlug, id))}
+        photo={photoEnabled ? { analyse: (form) => seatingPhotoAction(orgSlug, eventId, form), apply: (plan) => run(() => seatingPhotoApplyAction(orgSlug, eventId, plan), () => { setPicking(false); setSelection(null); setUndo([]); setRedo([]); }) } : null}
       />
     );
 
@@ -136,6 +139,7 @@ export function SeatingEditor({ orgSlug, eventId, state, layouts, readOnly }: { 
                 <Button type="button" size="sm" variant="secondary" disabled={!undo.length || pending} onClick={() => { const last = undo[undo.length - 1]!; setUndo((u) => u.slice(0, -1)); setRedo((r) => [...r, last]); saveBlock(last.before, false); }}>{t("undo")}</Button>
                 <Button type="button" size="sm" variant="secondary" disabled={!redo.length || pending} onClick={() => { const last = redo[redo.length - 1]!; setRedo((r) => r.slice(0, -1)); setUndo((u) => [...u, last]); saveBlock(last.after, false); }}>{t("redo")}</Button>
                 <Button type="button" size="sm" variant="secondary" disabled={state.hasSales || pending} title={state.hasSales ? t("templateLocked") : undefined} onClick={() => setPicking(true)}>{t("changeTemplate")}</Button>
+                {heat ? <Button type="button" size="sm" variant={showHeat ? "dark" : "secondary"} aria-pressed={showHeat} onClick={() => setShowHeat((v) => !v)}>{t("heatToggle")}</Button> : null}
               </div>
             ) : null}
           </div>
@@ -152,6 +156,7 @@ export function SeatingEditor({ orgSlug, eventId, state, layouts, readOnly }: { 
               </div>
             );
           })() : null}
+          {showHeat && heat ? <SalesHeatmap heat={heat} /> : null}
           <PlanCanvas
             state={state}
             selection={selection}
@@ -173,7 +178,7 @@ export function SeatingEditor({ orgSlug, eventId, state, layouts, readOnly }: { 
         <aside className="grid min-w-0 flex-[1_1_300px] gap-4">
           <BlockList blocks={state.blocks} selectedId={selectedBlock?.id} onSelect={(id) => setSelection({ type: "block", id })} />
           {selectedSeat ? <SeatPanel key={selectedSeat.id + selectedSeat.status} seat={selectedSeat} readOnly={readOnly} pending={pending} onSave={(patch) => run(() => seatingSeatAction(orgSlug, eventId, selectedSeat.id, patch))} onMove={() => { setMoving(selectedSeat.id); setMoveTarget(null); }} /> : null}
-          {selectedBlock ? <BlockPanel key={`${selectedBlock.id}-${JSON.stringify(selectedBlock.params)}-${selectedBlock.rotation}`} block={selectedBlock} categories={state.categories} rowNames={state.rows.filter((r) => r.blockId === selectedBlock.id).map((r) => r.name)} readOnly={readOnly} pending={pending} onSave={(b) => saveBlock(b)} onDelete={() => run(() => seatingBlockDeleteAction(orgSlug, eventId, selectedBlock.id), () => setSelection(null))} /> : null}
+          {selectedBlock ? <BlockPanel key={`${selectedBlock.id}-${JSON.stringify(selectedBlock.params)}-${selectedBlock.rotation}`} block={selectedBlock} categories={state.categories} rowNames={state.rows.filter((r) => r.blockId === selectedBlock.id).map((r) => r.name)} readOnly={readOnly} pending={pending} onSave={(b) => saveBlock(b)} onDelete={() => run(() => seatingBlockDeleteAction(orgSlug, eventId, selectedBlock.id), () => setSelection(null))} onView={(form) => run(() => seatingViewAction(orgSlug, eventId, selectedBlock.id, form))} /> : null}
           <SeatFinder seats={state.seats} onFound={(id) => setSelection({ type: "seat", id })} />
           <Categories state={state} readOnly={readOnly} pending={pending} onSave={(id, input) => run(() => seatingCategoryUpdateAction(orgSlug, eventId, id, input))} onAdd={(input) => run(() => seatingCategoryAddAction(orgSlug, eventId, input))} />
           {!readOnly && state.blocks.length ? <SaveLayout pending={pending} onSave={(input) => act(() => seatingLayoutSaveAction(orgSlug, eventId, input))} /> : null}
@@ -362,7 +367,7 @@ function BlockList({ blocks, selectedId, onSelect }: { blocks: Block[]; selected
   );
 }
 
-function BlockPanel({ block, categories, rowNames, readOnly, pending, onSave, onDelete }: { block: Block; categories: SeatingEditorState["categories"]; rowNames: string[]; readOnly: boolean; pending: boolean; onSave: (b: BlockInput) => void; onDelete: () => void }) {
+function BlockPanel({ block, categories, rowNames, readOnly, pending, onSave, onDelete, onView }: { block: Block; categories: SeatingEditorState["categories"]; rowNames: string[]; readOnly: boolean; pending: boolean; onSave: (b: BlockInput) => void; onDelete: () => void; onView: (form: FormData | null) => void }) {
   const t = useTranslations("seatingEditor");
   const [b, setB] = useState<BlockInput>({ ...block, params: { ...block.params } });
   const set = (key: string, value: unknown) => setB((x) => ({ ...x, params: { ...x.params, [key]: value } }));
@@ -478,6 +483,23 @@ function BlockPanel({ block, categories, rowNames, readOnly, pending, onSave, on
               <NumberField id="blk-cap" label={t("capacity")} value={num("capacity", 100)} min={1} max={100000} disabled={readOnly} onChange={(v) => set("capacity", v)} />
               <div>{catSelect("blk-scat", S(b, "category", categories[0]?.id ?? ""), (v) => set("category", v), t("category"))}</div>
             </>
+          ) : null}
+        </div>
+      ) : null}
+      {block.kind !== "SHAPE" ? (
+        <div className="grid gap-2 rounded-md bg-surface-sunken p-3">
+          <p className="font-label text-sm font-bold">{t("viewTitle")}</p>
+          {typeof block.params.viewUrl === "string" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={block.params.viewUrl} alt={t("viewAlt", { name: block.name })} className="max-h-40 w-full rounded-md object-cover" />
+          ) : <p className="text-sm text-ink-muted">{t("viewHint")}</p>}
+          {!readOnly ? (
+            <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => { e.preventDefault(); onView(new FormData(e.currentTarget)); }}>
+              <label htmlFor="blk-view" className="sr-only">{t("viewFile")}</label>
+              <input id="blk-view" name="photo" type="file" accept="image/jpeg,image/png,image/webp" required className="min-w-0 flex-1 text-sm" />
+              <Button type="submit" size="sm" variant="secondary" disabled={pending}>{typeof block.params.viewUrl === "string" ? t("viewReplace") : t("viewAdd")}</Button>
+              {typeof block.params.viewUrl === "string" ? <Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => onView(null)}>{t("viewRemove")}</Button> : null}
+            </form>
           ) : null}
         </div>
       ) : null}
@@ -620,7 +642,7 @@ function Modes({ state, readOnly, onMode, onChoice }: { state: SeatingEditorStat
 
 // —— modèles ——
 
-function TemplatePicker({ pending, error, canCancel, hasSales, layouts: initialLayouts, onSearch, onCancel, onApply, onApplyLayout, onDeleteLayout }: { pending: boolean; error: string | null; canCancel: boolean; hasSales: boolean; layouts: SeatingLayoutItem[]; onSearch: (q: string) => Promise<SeatingLayoutItem[] | null>; onCancel: () => void; onApply: (t: SeatingTemplate, o: TemplateOptions) => void; onApplyLayout: (id: string) => void; onDeleteLayout: (id: string) => Promise<boolean> }) {
+function TemplatePicker({ pending, error, canCancel, hasSales, layouts: initialLayouts, onSearch, onCancel, onApply, onApplyLayout, onDeleteLayout, photo }: { pending: boolean; error: string | null; canCancel: boolean; hasSales: boolean; layouts: SeatingLayoutItem[]; onSearch: (q: string) => Promise<SeatingLayoutItem[] | null>; onCancel: () => void; onApply: (t: SeatingTemplate, o: TemplateOptions) => void; onApplyLayout: (id: string) => void; onDeleteLayout: (id: string) => Promise<boolean>; photo: { analyse: (form: FormData) => Promise<Result>; apply: (plan: StoredPlan) => void } | null }) {
   const t = useTranslations("seatingEditor");
   const [layouts, setLayouts] = useState(initialLayouts);
   const [query, setQuery] = useState("");
@@ -688,6 +710,7 @@ function TemplatePicker({ pending, error, canCancel, hasSales, layouts: initialL
           <p className="text-sm text-ink-muted">{t("adjustLater")}</p>
         </section>
       </div>
+      <PhotoPlan photo={photo} pending={pending} hasSales={hasSales} />
       <section aria-labelledby="lay-title" className="grid gap-3 rounded-[var(--r-card)] border border-line bg-surface-raised p-4">
         <h2 id="lay-title" className="font-display text-lg">{t("layoutsTitle")}</h2>
         <p className="-mt-1 text-sm text-ink-muted">{t("layoutsHint")}</p>
@@ -711,3 +734,104 @@ function TemplatePicker({ pending, error, canCancel, hasSales, layouts: initialL
     </div>
   );
 }
+
+// —— plan d'après une photo ——
+
+function PhotoPlan({ photo, pending, hasSales }: { photo: { analyse: (form: FormData) => Promise<Result>; apply: (plan: StoredPlan) => void } | null; pending: boolean; hasSales: boolean }) {
+  const t = useTranslations("seatingEditor");
+  const [busy, setBusy] = useState(false);
+  const [plan, setPlan] = useState<StoredPlan | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const preview = useMemo(() => {
+    if (!plan) return null;
+    const rows = plan.blocks.flatMap((b) => generateBlock(b as BlockSpec));
+    const seats = rows.flatMap((r) => r.seats.map((s) => ({ ...s, color: plan.categories.find((c) => c.key === r.category)?.color ?? "#D9B8F0" })));
+    const xs = [...seats.map((s) => s.x), ...plan.blocks.map((b) => b.x)], ys = [...seats.map((s) => s.y), ...plan.blocks.map((b) => b.y)];
+    const x1 = Math.min(...xs) - 60, y1 = Math.min(...ys) - 60;
+    return { seats, viewBox: `${x1} ${y1} ${Math.max(...xs) + 60 - x1} ${Math.max(...ys) + 60 - y1}` };
+  }, [plan]);
+  return (
+    <section aria-labelledby="photo-title" className="grid gap-3 rounded-[var(--r-card)] border border-line bg-surface-raised p-4">
+      <h2 id="photo-title" className="font-display text-lg">{t("photoTitle")}</h2>
+      {!photo ? <p className="text-sm text-ink-muted">{t("photoUnavailable")}</p> : (
+        <>
+          <p className="-mt-1 text-sm text-ink-muted">{t("photoHint")}</p>
+          {!plan ? (
+            <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => {
+              e.preventDefault();
+              const form = new FormData(e.currentTarget);
+              setBusy(true);
+              setError(null);
+              void photo.analyse(form).then((r) => { setBusy(false); if (r?.ok) setPlan(r.data as StoredPlan); else setError(r?.error ?? "UNKNOWN"); });
+            }}>
+              <label htmlFor="photo-file" className="sr-only">{t("photoFile")}</label>
+              <input id="photo-file" name="photo" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required className="min-w-0 flex-1 text-sm" />
+              <Button type="submit" disabled={busy || pending}>{busy ? t("photoBusy") : t("photoAnalyse")}</Button>
+            </form>
+          ) : (
+            <div className="grid gap-2">
+              <p className="text-sm" role="status">{t("photoProposal", { blocks: plan.blocks.length, seats: preview?.seats.length ?? 0 })}</p>
+              {preview ? (
+                <svg viewBox={preview.viewBox} role="img" aria-label={t("photoPreview")} className="h-auto max-h-80 w-full rounded-md bg-surface-sunken">
+                  {plan.blocks.filter((b) => b.kind === "SHAPE" || b.kind === "STANDING").map((b, i) => <ShapeView key={i} block={{ id: String(i), ...b, params: b.params as unknown as Record<string, unknown> }} />)}
+                  {preview.seats.map((s, i) => <rect key={i} x={s.x - 10} y={s.y - 9} width={20} height={18} rx={4} fill={s.color} transform={`rotate(${s.angle} ${s.x} ${s.y})`} />)}
+                </svg>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" disabled={pending || hasSales} onClick={() => photo.apply(plan)}>{t("photoApply")}</Button>
+                <Button type="button" variant="secondary" onClick={() => setPlan(null)}>{t("photoRetry")}</Button>
+              </div>
+              <p className="text-sm text-ink-muted">{t("adjustLater")}</p>
+            </div>
+          )}
+          {error ? <p role="alert" className="text-sm font-semibold text-danger">{t.has(`error_${error}`) ? t(`error_${error}`) : t("errorGeneric")}</p> : null}
+          <p className="text-xs text-ink-muted">{t("photoPrivacy")}</p>
+        </>
+      )}
+    </section>
+  );
+}
+
+// —— carte de chaleur des ventes ——
+
+/** Couleur d'une place vendue : charbon (vendue la première) → rose → crème (la dernière). */
+function heatColor(h: number) {
+  const stops = [[34, 34, 34], [255, 184, 232], [255, 240, 230]] as const;
+  const [a, b, k] = h < 0.5 ? [stops[0], stops[1], h / 0.5] : [stops[1], stops[2], (h - 0.5) / 0.5];
+  return `rgb(${a.map((v, i) => Math.round(v + (b[i]! - v) * k)).join(",")})`;
+}
+
+function SalesHeatmap({ heat }: { heat: SeatSalesHeat }) {
+  const t = useTranslations("seatingEditor");
+  const box = useMemo(() => {
+    const b = [...heat.blocks.map((x) => blockBounds(x, heat.seats)), ...heat.seats.filter((s) => !s.blockId).map((s) => ({ x1: s.x - 16, y1: s.y - 16, x2: s.x + 16, y2: s.y + 16 }))];
+    const x1 = Math.min(...b.map((v) => v.x1)) - 30, y1 = Math.min(...b.map((v) => v.y1)) - 30;
+    return `${x1} ${y1} ${Math.max(...b.map((v) => v.x2)) + 30 - x1} ${Math.max(...b.map((v) => v.y2)) + 30 - y1}`;
+  }, [heat]);
+  return (
+    <section aria-labelledby="heat-title" className="grid gap-3 rounded-[var(--r-card)] border border-line bg-surface-raised p-4">
+      <h3 id="heat-title" className="font-display text-lg">{t("heatTitle")}</h3>
+      <p className="text-sm" role="status">{t("heatSold", { sold: heat.sold, total: heat.total })}</p>
+      <svg viewBox={box} role="img" aria-label={t("heatLabel", { sold: heat.sold })} className="h-auto max-h-[60vh] w-full rounded-md bg-surface-sunken">
+        {heat.blocks.map((b) => (b.kind === "SHAPE" ? <ShapeView key={b.id} block={b} /> : b.kind === "ROWS" ? <RowLabels key={b.id} seats={heat.seats.filter((s) => s.blockId === b.id)} rows={heat.rows.filter((r) => r.blockId === b.id)} /> : null))}
+        {heat.seats.map((s) => (
+          <rect key={s.id} x={-11} y={-9.5} width={22} height={19} rx={5} transform={`translate(${s.x} ${s.y}) rotate(${s.angle})`} fill={s.blocked ? "#D3CCC7" : s.heat === null ? "#FFFFFF" : heatColor(s.heat)} stroke={s.heat === null && !s.blocked ? "#B9AFA9" : "none"} strokeWidth={1.5} />
+        ))}
+      </svg>
+      <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+        <span>{t("heatFirst")}</span>
+        <span aria-hidden="true" className="h-3 w-32 rounded-full" style={{ background: `linear-gradient(90deg, ${heatColor(0)}, ${heatColor(0.5)}, ${heatColor(1)})` }} />
+        <span>{t("heatLast")}</span>
+        <span className="ms-3 inline-flex items-center gap-1"><span aria-hidden="true" className="size-3 rounded-sm border border-[#B9AFA9] bg-white" />{t("heatUnsold")}</span>
+      </div>
+      {heat.sold < 10 ? <p className="text-sm text-ink-muted">{t("heatNotEnough")}</p> : (
+        <ul className="grid gap-1 text-sm">
+          {heat.fastRows.length ? <li>{t("heatFast", { rows: heat.fastRows.join(", ") })}</li> : null}
+          {heat.slowRows.length ? <li>{t("heatSlow", { rows: heat.slowRows.join(", ") })}</li> : null}
+          {!heat.fastRows.length && !heat.slowRows.length ? <li>{t("heatBalanced")}</li> : null}
+        </ul>
+      )}
+    </section>
+  );
+}
+

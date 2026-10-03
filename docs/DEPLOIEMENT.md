@@ -165,3 +165,9 @@ Récupère le code, reconstruit l'image, applique les migrations, redémarre l'a
 - **BIMI** : logo SVG Tiny PS publié par le site vitrine (`https://evoly.me/bimi-evoly.svg`, fichier `apps/web/static/bimi-evoly.svg`) et enregistrement `default._bimi.evoly.me` TXT `v=BIMI1; l=https://evoly.me/bimi-evoly.svg; a=;`. Sans certificat, seuls certains services (Yahoo, AOL) peuvent l'afficher, pour les gros expéditeurs.
 - **Apple Mail et iCloud** : Branded Mail d'Apple Business Connect, gratuit, sans marque déposée : entreprise vérifiée par Apple, domaine vérifié par un enregistrement TXT (sous 14 jours), logo carré (PNG 1024 × 1024), DMARC en mode strict.
 - **Gmail** : certificat obligatoire, CMC (logo utilisé depuis 12 mois, sans marque déposée) ou VMC (marque déposée, coche bleue), à ajouter dans `a=` de l'enregistrement BIMI.
+
+## 15. Plan de salle d’après une photo (facultatif)
+
+- Créer une clé sur console.anthropic.com, avec une limite de dépense mensuelle (une analyse coûte quelques centimes ; 20 au plus par organisation et par jour).
+- Ajouter `ANTHROPIC_API_KEY="…"` au `.env` du serveur, puis `ops/deploy.sh`. Sans clé, la carte « D’après une photo » indique que la fonction n’est pas activée.
+- L’image est envoyée à Anthropic pour l’analyse puis oubliée ; Anthropic figure parmi les sous-traitants de la politique de confidentialité. Si des organisateurs utilisent déjà Evoly, les prévenir 30 jours avant d’activer la fonction (accord de sous-traitance, article 4).

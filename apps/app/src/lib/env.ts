@@ -23,6 +23,8 @@ const schema = z.object({
   R2_BUCKET: z.string().default("evoly-uploads"),
   R2_PUBLIC_URL: z.url().optional(), // domaine public du bucket, ex. https://files.evoly.me
   UPLOADS_DIR: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(), // plan de salle d'après une photo (facultatif)
+  ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
   CUSTOM_DOMAIN_TARGET: z.string().optional(), // cible CNAME des domaines personnalisés ; à défaut domains.<NEXT_PUBLIC_BASE_DOMAIN>
   STRIPE_PRICE_PRO_MONTH: z.string().optional(), // abonnement Pro (compte Stripe d’Evoly) ; à défaut, prix de la base
   STRIPE_PRICE_PRO_YEAR: z.string().optional(),

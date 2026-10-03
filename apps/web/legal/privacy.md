@@ -34,6 +34,7 @@ Les e-mails marketing des organisateurs (campagnes, e-mails automatiques) contie
 |---|---|---|
 | Stripe | Paiements, prévention de la fraude | Union européenne, États-Unis (clauses contractuelles types) |
 | Resend | Envoi des e-mails | États-Unis (clauses contractuelles types) |
+| Anthropic | Lecture d’une photo de plan de salle envoyée par un organisateur (fonction facultative), sans conservation de l’image | États-Unis (clauses contractuelles types) |
 | Cloudflare | Réseau, certificats, stockage des images (R2) | Union européenne, États-Unis (clauses contractuelles types) |
 | [Hébergeur de l'application et de la base de données] | Hébergement | Union européenne |
 | Sentry | Suivi des erreurs, sans données personnelles | Union européenne |
