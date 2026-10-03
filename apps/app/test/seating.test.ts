@@ -59,9 +59,11 @@ describe("plan de salle (section 9.9, RG-SEAT-01 et 02)", () => {
     await setSeatChoice(ctx, event.id, true);
     const seat = async (label: string) => (await db.seat.findFirstOrThrow({ where: { rowId: row.id, label } })).id;
     const line = [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 2 }];
-    const r = await reserveOrder({ eventId: event.id, lines: line, locale: "fr", seatIds: [await seat("2"), await seat("5")] });
-    expect((await db.seat.findMany({ where: { holdOrderId: r.orderId }, orderBy: { label: "asc" } })).map((x) => x.label)).toEqual(["2", "5"]);
-    await expect(reserveOrder({ eventId: event.id, lines: line, locale: "fr", seatIds: [await seat("5"), await seat("1")] })).rejects.toThrow("SEAT_TAKEN");
+    // 2 et 5 laisseraient la place 1 seule en bout de rang : refusé (un autre choix l'évite)
+    await expect(reserveOrder({ eventId: event.id, lines: line, locale: "fr", seatIds: [await seat("2"), await seat("5")] })).rejects.toThrow("SEAT_ORPHAN");
+    const r = await reserveOrder({ eventId: event.id, lines: line, locale: "fr", seatIds: [await seat("1"), await seat("5")] });
+    expect((await db.seat.findMany({ where: { holdOrderId: r.orderId }, orderBy: { label: "asc" } })).map((x) => x.label)).toEqual(["1", "5"]);
+    await expect(reserveOrder({ eventId: event.id, lines: line, locale: "fr", seatIds: [await seat("5"), await seat("2")] })).rejects.toThrow("SEAT_TAKEN");
     await expect(reserveOrder({ eventId: event.id, lines: line, locale: "fr", seatIds: [await seat("1")] })).rejects.toThrow("SEATS_MISMATCH");
     expect(await db.seat.count({ where: { rowId: row.id, status: "HELD" } })).toBe(2); // les refus ne retiennent rien
   });

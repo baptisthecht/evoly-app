@@ -364,7 +364,8 @@
     "error_SEAT_TAKEN": "One of the seats you chose was just taken: pick another one.",
     "error_SEATS_MISMATCH": "Pick as many seats as tickets, in the right categories.",
     "error_NOT_ENOUGH_SEATS": "Not enough seats left.",
-    "error_BUYER_LIMIT_REACHED": "This address has reached the maximum number of tickets for this event."
+    "error_BUYER_LIMIT_REACHED": "This address has reached the maximum number of tickets for this event.",
+    "error_SEAT_ORPHAN": "This choice would leave a single seat stranded next to yours: pick neighbouring seats, or take the stranded seat too."
   },
   "orders": {
     "confirmationTitle": "You’re in!",

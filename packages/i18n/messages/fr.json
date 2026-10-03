@@ -364,7 +364,8 @@
     "error_SEAT_TAKEN": "Une des places choisies vient d’être prise : choisissez-en une autre.",
     "error_SEATS_MISMATCH": "Choisissez autant de places que de billets, dans les bonnes catégories.",
     "error_NOT_ENOUGH_SEATS": "Plus assez de places disponibles.",
-    "error_BUYER_LIMIT_REACHED": "Cette adresse a atteint le nombre maximum de billets pour cet événement."
+    "error_BUYER_LIMIT_REACHED": "Cette adresse a atteint le nombre maximum de billets pour cet événement.",
+    "error_SEAT_ORPHAN": "Ce choix laisserait une place seule entre vos places et une autre : choisissez des places voisines, ou prenez aussi la place isolée."
   },
   "orders": {
     "confirmationTitle": "C’est réservé !",

@@ -26,3 +26,4 @@ export * from "./questions";
 export * from "./risk";
 export * from "./recipients";
 export * from "./seating";
+export * from "./seatmap";

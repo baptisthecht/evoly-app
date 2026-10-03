@@ -1,5 +1,5 @@
 import "server-only";
-import { CoreError, hasFeature, pickSeats, seatLabels } from "@evoly/core";
+import { CoreError, bestSeats, createsOrphan, generateBlock, hasFeature, hasOrphanFreeChoice, pickSeats, seatLabels, seatingTemplate, type PlanSeat, type SeatingTemplate, type TemplateOptions } from "@evoly/core";
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
@@ -112,13 +112,18 @@ export async function holdSeats(tx: Tx, orderId: string, lines: ReadonlyArray<{ 
     for (const s of picked) byCat.set(s.categoryId, (byCat.get(s.categoryId) ?? 0) + 1);
     const matches = picked.length === chosen.length && [...perCategory].every(([c, n]) => byCat.get(c) === n) && byCat.size === perCategory.size;
     if (!matches) throw new CoreError("SEATS_MISMATCH");
+    await refuseOrphans(tx, picked.map((s) => s.id), perCategory);
     const held = await tx.seat.updateMany({ where: { id: { in: picked.map((s) => s.id) }, status: "AVAILABLE" }, data: { status: "HELD", holdOrderId: orderId, holdExpiresAt: until } });
     if (held.count !== picked.length) throw new CoreError("SEAT_TAKEN");
     return;
   }
   for (const [categoryId, n] of perCategory) {
-    const seats = await tx.seat.findMany({ where: { categoryId }, select: { id: true, sortOrder: true, status: true, row: { select: { sortOrder: true } } } });
-    const ids = pickSeats(seats.map((s) => ({ id: s.id, rowOrder: s.row.sortOrder, seatOrder: s.sortOrder, available: s.status === "AVAILABLE" })), n);
+    const seats = await tx.seat.findMany({ where: { categoryId }, select: { id: true, rowId: true, sortOrder: true, status: true, x: true, y: true, row: { select: { sortOrder: true } } } });
+    const focus = (await tx.seatingCategory.findUnique({ where: { id: categoryId }, select: { seatingMap: { select: { focusX: true, focusY: true } } } }))?.seatingMap;
+    const placed = seats.every((s) => s.x !== null && s.y !== null) && focus?.focusX != null && focus.focusY != null;
+    const ids = placed
+      ? bestSeats(seats.map((s) => ({ id: s.id, rowId: s.rowId, order: s.sortOrder, x: s.x!, y: s.y!, available: s.status === "AVAILABLE" })), n, { x: focus!.focusX!, y: focus!.focusY! })
+      : pickSeats(seats.map((s) => ({ id: s.id, rowOrder: s.row.sortOrder, seatOrder: s.sortOrder, available: s.status === "AVAILABLE" })), n);
     if (!ids) throw new CoreError("NOT_ENOUGH_SEATS");
     const held = await tx.seat.updateMany({ where: { id: { in: ids }, status: "AVAILABLE" }, data: { status: "HELD", holdOrderId: orderId, holdExpiresAt: until } });
     if (held.count !== ids.length) throw new CoreError("NOT_ENOUGH_SEATS");
@@ -139,4 +144,50 @@ export async function seatsForTickets(tx: Tx, orderId: string) {
 
 export async function markSeatsSold(tx: Tx, orderId: string) {
   await tx.seat.updateMany({ where: { holdOrderId: orderId, status: "HELD" }, data: { status: "SOLD", holdExpiresAt: null } });
+}
+
+/** Places d'un ensemble de rangs pour la règle des sièges isolés (coordonnées, ou position dans le rang à défaut). */
+async function planSeats(tx: Tx, where: { rowId?: { in: string[] }; categoryId?: string }): Promise<PlanSeat[]> {
+  const seats = await tx.seat.findMany({ where, select: { id: true, rowId: true, sortOrder: true, status: true, x: true, y: true, row: { select: { sortOrder: true } } } });
+  return seats.map((s) => ({ id: s.id, rowId: s.rowId, order: s.sortOrder, x: s.x ?? s.sortOrder * 30, y: s.y ?? s.row.sortOrder * 34, available: s.status === "AVAILABLE" }));
+}
+
+/** Refuse un choix qui laisse une place seule, si un choix côte à côte sans place isolée existe pour chaque catégorie. */
+async function refuseOrphans(tx: Tx, chosen: string[], perCategory: Map<string, number>) {
+  const rows = await tx.seat.findMany({ where: { id: { in: chosen } }, select: { rowId: true } });
+  if (!createsOrphan(await planSeats(tx, { rowId: { in: [...new Set(rows.map((r) => r.rowId))] } }), chosen)) return;
+  for (const [categoryId, n] of perCategory) if (!hasOrphanFreeChoice(await planSeats(tx, { categoryId }), n)) return;
+  throw new CoreError("SEAT_ORPHAN");
+}
+
+/**
+ * Plan de départ d'après un modèle (théâtre, stade…) : catégories, blocs, rangs et places avec leurs coordonnées.
+ * Refusé dès qu'une place est vendue ou retenue. Les tarifs sont reliés aux nouvelles catégories dans l'ordre.
+ */
+export async function applySeatingTemplate(ctx: OrgContext, eventId: string, template: SeatingTemplate, options: TemplateOptions = {}) {
+  const map = await mapFor(ctx, eventId);
+  if (await db.seat.count({ where: { row: { seatingMapId: map.id }, status: { in: ["SOLD", "HELD"] } } })) throw new CoreError("SEATING_HAS_SALES");
+  const plan = seatingTemplate(template, options);
+  await db.$transaction(async (tx) => {
+    await tx.seatingBlock.deleteMany({ where: { seatingMapId: map.id } });
+    await tx.seatingRow.deleteMany({ where: { seatingMapId: map.id } });
+    await tx.seatingCategory.deleteMany({ where: { seatingMapId: map.id } });
+    const cats = new Map<string, string>();
+    for (const [i, c] of plan.categories.entries()) cats.set(c.key, (await tx.seatingCategory.create({ data: { seatingMapId: map.id, name: c.name, color: c.color, sortOrder: i } })).id);
+    const types = await tx.ticketType.findMany({ where: { eventId: map.eventId }, orderBy: { sortOrder: "asc" }, select: { id: true } });
+    const ordered = [...cats.values()];
+    for (const [i, t] of types.entries()) await tx.ticketType.update({ where: { id: t.id }, data: { seatingCategoryId: ordered[Math.min(i, ordered.length - 1)] ?? null } });
+    let rowOrder = 0;
+    for (const [i, b] of plan.blocks.entries()) {
+      const block = await tx.seatingBlock.create({ data: { seatingMapId: map.id, kind: b.kind, name: b.name, x: b.x, y: b.y, rotation: b.rotation, params: b.params as object, sortOrder: i } });
+      for (const r of generateBlock(b)) {
+        const categoryId = cats.get(r.category) ?? ordered[0]!;
+        const row = await tx.seatingRow.create({ data: { seatingMapId: map.id, blockId: block.id, categoryId, name: r.label, sortOrder: rowOrder++ } });
+        await tx.seat.createMany({ data: r.seats.map((st) => ({ rowId: row.id, categoryId, label: st.label, sortOrder: st.order, x: st.x, y: st.y, angle: st.angle, accessible: st.accessible })) });
+      }
+    }
+    await tx.seatingMap.update({ where: { id: map.id }, data: { template, focusX: plan.focus.x, focusY: plan.focus.y } });
+  }, { timeout: 60_000 });
+  await audit({ action: "seating.template_applied", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "SeatingMap", targetId: map.id, metadata: { template } });
+  return { blocks: plan.blocks.length, seats: await db.seat.count({ where: { row: { seatingMapId: map.id } } }) };
 }

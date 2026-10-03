@@ -790,12 +790,44 @@ model SeatingMap {
   id        String   @id @default(cuid())
   eventId   String   @unique
   layout    Json? // positions pour l'affichage
+  template  String? // modèle de départ (theatre, stade…)
+  focusX    Float? // point focal (scène, centre du terrain) pour les meilleures places
+  focusY    Float?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   event      Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
   categories SeatingCategory[]
   rows       SeatingRow[]
+  blocks     SeatingBlock[]
+}
+
+// Bloc du plan : rangs (droits ou en arc), table, zone debout ou forme (scène, écran, terrain, bar…)
+model SeatingBlock {
+  id           String           @id @default(cuid())
+  seatingMapId String
+  kind         SeatingBlockKind
+  name         String
+  x            Float            @default(0)
+  y            Float            @default(0)
+  rotation     Float            @default(0)
+  params       Json // réglages propres au type (rangs, places, numérotation, catégories…)
+  sortOrder    Int              @default(0)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  seatingMap SeatingMap   @relation(fields: [seatingMapId], references: [id], onDelete: Cascade)
+  rows       SeatingRow[]
+
+  @@index([seatingMapId])
+}
+
+enum SeatingBlockKind {
+  ROWS
+  TABLE_ROUND
+  TABLE_RECT
+  STANDING
+  SHAPE
 }
 
 model SeatingCategory {
@@ -812,15 +844,19 @@ model SeatingCategory {
 }
 
 model SeatingRow {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   seatingMapId String
   categoryId   String
+  blockId      String? // rang ou table d'un bloc du plan (absent pour les plans d'avant les blocs)
   name         String
-  sortOrder    Int    @default(0)
+  sortOrder    Int     @default(0)
 
   seatingMap SeatingMap      @relation(fields: [seatingMapId], references: [id], onDelete: Cascade)
   category   SeatingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  block      SeatingBlock?   @relation(fields: [blockId], references: [id], onDelete: Cascade)
   seats      Seat[]
+
+  @@index([blockId])
 }
 
 enum SeatStatus {
@@ -839,6 +875,11 @@ model Seat {
   status        SeatStatus @default(AVAILABLE)
   holdOrderId   String?
   holdExpiresAt DateTime?
+  x             Float? // position sur le plan
+  y             Float?
+  angle         Float      @default(0)
+  accessible    Boolean    @default(false) // place pour personne à mobilité réduite
+  note          String? // note interne (régie, presse…)
 
   row      SeatingRow      @relation(fields: [rowId], references: [id], onDelete: Cascade)
   category SeatingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
