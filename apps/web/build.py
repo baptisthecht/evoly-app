@@ -626,7 +626,7 @@ BODY = f'''
         <div class="dash__head"><div><b>Nuit Électrique</b><span>sam. 14 nov., Hall 7</span></div><span class="live"><i></i>en direct</span></div>
         <div class="dash__big"><b class="js-sold">842</b><span>billets vendus<br>sur 900</span></div>
         <div class="meter"><i></i></div>
-        <div class="chart"><p>Ventes des 7 derniers jours</p><div class="bars">{BARS}</div><div class="days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div></div>
+        <div class="chart"><p>Ventes des 7 derniers jours</p><div class="bars">{BARS}</div><div class="days"><span>Lu</span><span>Ma</span><span>Me</span><span>Je</span><span>Ve</span><span>Sa</span><span>Di</span></div></div>
         <div class="dash__stats"><div><span>Recette</span><b class="js-rev">20 208 €</b></div><div><span>Remplissage</span><b class="js-fill">94 %</b></div><div><span>Revendus</span><b>23</b></div></div>
         <ul class="feed" aria-hidden="true"><li><b>Fosse</b><span>2 billets</span><em>il y a 1 min</em></li><li><b>Balcon VIP</b><span>1 billet</span><em>il y a 3 min</em></li></ul>
       </div>
@@ -846,3 +846,9 @@ if not TEST:
     import shutil
     for name in os.listdir(os.path.join(HERE, 'static')):
         shutil.copy(os.path.join(HERE, 'static', name), os.path.join(HERE, 'dist', name))
+
+# langues : une page par langue (traduction texte par texte), en-têtes hreflang, sélecteur et sitemap
+if not TEST:
+    import i18n
+    total, done = i18n.build_all(open(os.path.join(HERE, 'dist', 'evoly-billetterie.html'), encoding='utf-8').read(), os.path.join(HERE, 'dist'))
+    print('langues :', ', '.join(f'{c} {n}/{total}' for c, n in done.items()))

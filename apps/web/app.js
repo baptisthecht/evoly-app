@@ -10,10 +10,15 @@
   const anim = hasG && !reduce;
   if (hasG) G.registerPlugin(ST); else root.classList.add('no-gsap');
 
-  const nf0 = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
-  const nf2 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const eur0 = (v) => nf0.format(Math.round(v)) + '\u202f€';
-  const eur = (v) => (Math.abs(v - Math.round(v)) < 0.005 ? nf0.format(Math.round(v)) : nf2.format(v)) + '\u202f€';
+  // langue de la page (site multilingue) : textes du script et montants au format du pays
+  const I18N = window.EVOLY_I18N || { locale: 'fr-FR', t: {} };
+  const T = (k, v = {}, fr = '') => (I18N.t[k] || fr).replace(/\{(\w+)\}/g, (_, x) => v[x]);
+  const nf0 = new Intl.NumberFormat(I18N.locale, { maximumFractionDigits: 0 });
+  const nf2 = new Intl.NumberFormat(I18N.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const cur0 = new Intl.NumberFormat(I18N.locale, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+  const cur2 = new Intl.NumberFormat(I18N.locale, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const eur0 = (v) => cur0.format(Math.round(v));
+  const eur = (v) => (Math.abs(v - Math.round(v)) < 0.005 ? cur0.format(Math.round(v)) : cur2.format(v));
 
   /* ---------- défilement doux (souris uniquement) ---------- */
   let lenis = null;
@@ -167,7 +172,7 @@
     const hintText = $('#buy-hint span'), replay = $('.hero__replay');
     const hintIdle = hintText.textContent;
     const UNIT = 24;
-    const money = (v) => nf2.format(v) + '\u202f€';
+    const money = (v) => cur2.format(v);
     let qty = 1, state = 'idle';
     if (!anim) buy.classList.add('is-static');
     const render = () => {
@@ -214,7 +219,7 @@
         buy.classList.remove('is-loading');
         buy.classList.add('is-done');
         pay.removeAttribute('aria-busy');
-        hintText.textContent = qty > 1 ? `Payé en un tap : vos ${qty} billets partent par e-mail.` : 'Payé en un tap : le billet part par e-mail.';
+        hintText.textContent = qty > 1 ? T('paidMany', { n: qty }, 'Payé en un tap : vos {n} billets partent par e-mail.') : T('paidOne', {}, 'Payé en un tap : le billet part par e-mail.');
         replay.hidden = false;
         if (kb) replay.focus({ preventScroll: true });
         if (anim) {
@@ -325,7 +330,7 @@
     };
     const announce = () => {
       const r = compute();
-      live.textContent = `Pour ${nf0.format(r.n)} billets à ${eur0(r.p)} : ${eur0(r.free)} de frais avec Evoly Free, ${eur0(r.pro)} avec Evoly Pro, contre ${eur0(r.avgR)} en moyenne ailleurs.`;
+      live.textContent = T('calcLive', { n: nf0.format(r.n), p: eur0(r.p), free: eur0(r.free), pro: eur0(r.pro), avg: eur0(r.avgR) }, 'Pour {n} billets à {p} : {free} de frais avec Evoly Free, {pro} avec Evoly Pro, contre {avg} en moyenne ailleurs.');
     };
     [cN, cP].forEach((i) => { i.addEventListener('input', () => render(false)); i.addEventListener('change', announce); });
     render(true);
@@ -378,7 +383,7 @@
       if (anim) G.fromTo(newIn, { y: -46, rotation: 10, scale: .9, opacity: 0 }, { y: 0, rotation: 3, scale: 1, opacity: 1, duration: 1, ease: 'back.out(1.6)', delay: .45 });
       rsReplay.hidden = false;
       if (kb) rsReplay.focus({ preventScroll: true });
-      toast('Achat simulé\u00a0: le billet de Thomas est désactivé, celui de Léa est parti par e-mail.');
+      toast(T('resaleToast', {}, 'Achat simulé\u00a0: le billet de Thomas est désactivé, celui de Léa est parti par e-mail.'));
     });
     rsReplay.addEventListener('click', () => {
       sold = false;
@@ -396,7 +401,7 @@
   /* ---------- prix dynamiques ---------- */
   const day = $('#dyn-day');
   if (day) {
-    const tiers = [{ name: 'Prévente', price: 18 }, { name: 'Normal', price: 24 }, { name: 'Jour J', price: 29 }];
+    const tiers = [{ name: T('tierPresale', {}, 'Prévente'), price: 18 }, { name: T('tierNormal', {}, 'Normal'), price: 24 }, { name: T('tierDay', {}, 'Jour J'), price: 29 }];
     const pos = $$('.dyn .stack__pos'), priceEl = $('.dyn__price'), tierEl = $('.dyn__tier'), whenEl = $('.dyn__when');
     const shownP = { v: tiers[0].price };
     let curT = -1, auto = null;
@@ -405,7 +410,7 @@
       const v = +day.value, left = 30 - v, t = tierOf(v);
       fill(day);
       whenEl.innerHTML = left === 0 ? 'pour un achat le jour J' : `pour un achat à <span class="nw">J-${left}</span>`;
-      day.setAttribute('aria-valuetext', `${left === 0 ? 'Jour J' : 'J-' + left}\u00a0: ${tiers[t].name.toLowerCase()}, ${tiers[t].price}\u202f€`);
+      day.setAttribute('aria-valuetext', `${left === 0 ? T('dayJ', {}, 'Jour J') : T('dayMinus', { n: left }, 'J-{n}')}\u00a0: ${tiers[t].name.toLowerCase()}, ${eur0(tiers[t].price)}`);
       if (t === curT) return;
       curT = t;
       tierEl.textContent = tiers[t].name;
@@ -449,7 +454,7 @@
       const year = b.dataset.bill === 'year';
       if (b.getAttribute('aria-pressed') === 'true') return;
       bills.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-      pb.textContent = year ? 'Soit 295,80\u202f€ facturés une fois par an' : 'Facturé chaque mois';
+      pb.textContent = year ? T('yearly', {}, 'Soit 295,80\u202f€ facturés une fois par an') : T('monthly', {}, 'Facturé chaque mois');
       const to = year ? 24.65 : 29;
       if (anim) G.to(sp, { v: to, duration: .6, ease: 'power3.out', overwrite: true, onUpdate: () => { pp.textContent = eur(sp.v); }, onComplete: () => { pp.textContent = eur(to); } });
       else pp.textContent = eur(to);
