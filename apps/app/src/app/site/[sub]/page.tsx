@@ -1,5 +1,6 @@
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
+import { orgOgImageUrl } from "@/server/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -20,7 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ sub: stri
     return data ? eventMetadata(site.org, data) : {};
   }
   if (site?.kind !== "ORG") return {};
-  return { title: { absolute: site.org.brand?.displayName ?? site.org.name }, alternates: { canonical: await canonicalOrgUrl(site.org) }, robots: { index: true, follow: true }, icons: site.org.brand?.faviconUrl ? { icon: site.org.brand.faviconUrl } : undefined };
+  const name = site.org.brand?.displayName ?? site.org.name;
+  const tp = await getTranslations("public");
+  const description = tp("seoOrgDescription", { org: name });
+  const image = { url: orgOgImageUrl(site.org.id), width: 1200, height: 630, alt: name };
+  return { title: { absolute: tp("seoOrgTitle", { org: name }) }, description, openGraph: { type: "website", siteName: name, title: name, description, images: [image] }, twitter: { card: "summary_large_image", title: name, description, images: [image] }, alternates: { canonical: await canonicalOrgUrl(site.org) }, robots: { index: true, follow: true }, icons: site.org.brand?.faviconUrl ? { icon: site.org.brand.faviconUrl } : undefined };
 }
 
 /** RG-PUB-07 : la page de l'organisation liste ses événements publics à venir, puis passés. */

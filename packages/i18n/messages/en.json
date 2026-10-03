@@ -1032,7 +1032,13 @@
     "privateCode": "Access code",
     "privateSubmit": "Access the event",
     "privateWrong": "Wrong code.",
-    "privateTooMany": "Too many attempts. Try again in a few minutes."
+    "privateTooMany": "Too many attempts. Try again in a few minutes.",
+    "seoTitle": "{title} · {date}{city, select, other {, {city}}} — Tickets | {org}",
+    "seoDescription": "Tickets for {title}: {date}, {place}. {price}Secure online booking, e-ticket on your phone. Official ticketing of {org}.",
+    "seoFrom": "From {price}. ",
+    "seoFree": "Free entry. ",
+    "seoOrgTitle": "{org} — Official tickets and events",
+    "seoOrgDescription": "All events by {org}: online tickets, secure payment, e-tickets on your phone and fan-to-fan resale."
   },
   "promo": {
     "new": "New code",
