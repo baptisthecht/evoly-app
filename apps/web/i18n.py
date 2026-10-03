@@ -79,7 +79,11 @@ def translate(page, table):
         else:
             lead, trail = re.match(r'^\s*', part).group(0), re.search(r'\s*$', part).group(0)
             t = norm(part)
-            parts.append(lead + html.escape(table.get(key(t), t), quote=False) + trail if translatable(t) else part)
+            if not translatable(t): parts.append(part); continue
+            out = table.get(key(t), t)
+            # traduction qui commence par une ponctuation (« , que… », « -Marketing ») : pas d'espace devant
+            if out[:1] in ',.;:!?)-»”': lead = ''
+            parts.append(lead + html.escape(out, quote=False) + trail)
     return ''.join(parts)
 
 def url_of(code): return f'{SITE}/' if code == 'fr' else f'{SITE}/{code}/'

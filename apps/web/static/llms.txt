@@ -10,7 +10,7 @@ Evoly — billetterie en ligne : créez votre événement en 60 secondes, commis
 - Assigned seating (Pro): visual seating plan editor with templates (theatre, hall, gala, church, cabaret, conference, arena, football stadium), best seats chosen automatically, "book next to my friends" link.
 - E-tickets with QR codes, Apple Wallet and Google Wallet passes, free scanner app for volunteers (works offline).
 - Live sales statistics, promo codes, dynamic pricing tiers (Pro), email campaigns (Pro), custom domains and branding (Pro), team roles (Pro).
-- Available in French and English; organisers sell in their own currency; GDPR-compliant, data hosted in the European Union.
+- Website in French, English, Spanish, German, Italian, Portuguese and Dutch (https://evoly.me/en/, /es/, /de/, /it/, /pt/, /nl/); organiser app and ticket pages in French and English. GDPR-compliant, data hosted in the European Union.
 
 ## Links
 - Website: https://evoly.me/
