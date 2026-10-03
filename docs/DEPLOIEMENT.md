@@ -158,3 +158,10 @@ Récupère le code, reconstruit l'image, applique les migrations, redémarre l'a
 - Domaine personnalisé de test : CNAME, vérification, certificat émis, page servie.
 - Campagne de test à soi-même, puis statistiques de délivrabilité remontées par Resend.
 - Tâches planifiées : chaque adresse répond 200 avec le secret, 401 sans.
+
+## 14. Logo dans les boîtes de réception (BIMI, Apple)
+
+- **Prérequis : DMARC en mode strict.** Un seul enregistrement `_dmarc.evoly.me` : d'abord `v=DMARC1; p=none; rua=mailto:dmarc@evoly.me; pct=100` pendant une à deux semaines (rapports : tous les envois légitimes, Resend et la messagerie OVH, doivent passer), puis `v=DMARC1; p=quarantine; rua=mailto:dmarc@evoly.me; pct=100`.
+- **BIMI** : logo SVG Tiny PS publié par le site vitrine (`https://evoly.me/bimi-evoly.svg`, fichier `apps/web/static/bimi-evoly.svg`) et enregistrement `default._bimi.evoly.me` TXT `v=BIMI1; l=https://evoly.me/bimi-evoly.svg; a=;`. Sans certificat, seuls certains services (Yahoo, AOL) peuvent l'afficher, pour les gros expéditeurs.
+- **Apple Mail et iCloud** : Branded Mail d'Apple Business Connect, gratuit, sans marque déposée : entreprise vérifiée par Apple, domaine vérifié par un enregistrement TXT (sous 14 jours), logo carré (PNG 1024 × 1024), DMARC en mode strict.
+- **Gmail** : certificat obligatoire, CMC (logo utilisé depuis 12 mois, sans marque déposée) ou VMC (marque déposée, coche bleue), à ajouter dans `a=` de l'enregistrement BIMI.
