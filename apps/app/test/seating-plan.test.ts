@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { cancelReservation, reserveOrder } from "@/server/checkout";
 import type { OrgContext } from "@/server/context";
 import { getPlans } from "@/server/plans";
-import { applySeatingTemplate, setSeatChoice, setSeatingMode } from "@/server/seating";
+import { applySeatingTemplate, publicSeatMap, setSeatChoice, setSeatingMode } from "@/server/seating";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 async function setup(pro = true) {
@@ -56,5 +56,18 @@ describe("plan de salle par modèle (section 9.9)", () => {
     expect(await applySeatingTemplate(ctx, event.id, "stadium")).toEqual({ blocks: 5, seats: 4000 });
     const free = await setup(false);
     await expect(applySeatingTemplate(free.ctx, free.event.id, "theatre")).rejects.toThrow("PRO_REQUIRED");
+  });
+
+  it("gradins et fosse : la fosse se vend sans place, les gradins avec leurs places", async () => {
+    const { event, ctx, types } = await setup();
+    await applySeatingTemplate(ctx, event.id, "pit", { rows: 2, seatsFirst: 10, seatsLast: 10, categories: 2 });
+    const pub = (await publicSeatMap(event.id))!;
+    expect(pub.categories.map((c) => c.standing)).toEqual([true, false]);
+    expect(pub.blocks.map((b) => b.kind)).toEqual(["SHAPE", "STANDING", "ROWS"]);
+    await setSeatingMode(ctx, event.id, true);
+    const pit = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }], locale: "fr" });
+    expect(await db.seat.count({ where: { holdOrderId: pit.orderId } })).toBe(0);
+    const stands = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[1]!.id, quantity: 2 }, { ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr" });
+    expect(await db.seat.count({ where: { holdOrderId: stands.orderId, status: "HELD" } })).toBe(2);
   });
 });

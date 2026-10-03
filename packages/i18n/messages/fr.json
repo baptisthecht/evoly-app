@@ -1924,7 +1924,22 @@
     "free": "libre",
     "taken": "indisponible",
     "back": "Retour",
-    "reserve": "Réserver ces places"
+    "reserve": "Réserver ces places",
+    "modeLabel": "Choix des places",
+    "modeBest": "Meilleures places",
+    "modeMap": "Choisir sur le plan",
+    "bestHint": "Les meilleures places disponibles, côte à côte et au plus près de la scène :",
+    "bestNone": "Pas assez de places côte à côte : choisissez-les sur le plan.",
+    "rowSeats": "rang {row} : {seats}",
+    "pinch": "Pincez ou utilisez + et − pour zoomer.",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "fit": "Tout voir",
+    "legend": "Légende du plan",
+    "legendSelected": "Vos places",
+    "legendTaken": "Déjà prises",
+    "legendAccessible": "Mobilité réduite",
+    "orphan": "Ce choix laisserait une place seule entre vos places et une autre : choisissez des places voisines, ou prenez aussi la place isolée."
   },
   "proLocked": {
     "badge": "Pro",

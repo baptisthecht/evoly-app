@@ -84,4 +84,14 @@ describe("plan de salle : meilleures places et sièges isolés", () => {
     expect(hasOrphanFreeChoice(line(5, [2]), 1)).toBe(false);
     expect(hasOrphanFreeChoice(line(5, [2]), 2)).toBe(true);
   });
+  it("rapide à grande échelle : meilleures places d'un stade de 4 000 places en moins de 200 ms", () => {
+    const plan = seatingTemplate("stadium");
+    const seats: PlanSeat[] = [];
+    plan.blocks.forEach((b, bi) => generateBlock(b).forEach((r, ri) => r.seats.forEach((s, k) => seats.push({ id: `${bi}-${ri}-${s.label}`, rowId: `${bi}-${ri}`, order: s.order, x: s.x, y: s.y, available: (bi + ri + k) % 3 !== 0 }))));
+    const t0 = performance.now();
+    expect(bestSeats(seats, 2, plan.focus)).toHaveLength(2);
+    expect(hasOrphanFreeChoice(seats, 2)).toBe(true); // une place sur trois prise : suites libres de 2
+    expect(performance.now() - t0).toBeLessThan(200);
+  });
 });
+

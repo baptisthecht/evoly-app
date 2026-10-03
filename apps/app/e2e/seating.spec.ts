@@ -53,6 +53,10 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await tickets.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await tickets.getByRole("button", { name: "Continuer" }).click();
   await expect(tickets.getByText("Choisissez vos places")).toBeVisible();
+  // par défaut, les meilleures places sont proposées ; ici, l'acheteur préfère choisir sur le plan
+  await expect(tickets.getByRole("radio", { name: "Meilleures places" })).toHaveAttribute("aria-checked", "true");
+  await expect(tickets.getByRole("status")).toContainText("rang A :");
+  await tickets.getByRole("radio", { name: "Choisir sur le plan" }).click();
   await tickets.getByRole("button", { name: "Rang A, place 2 : libre" }).click();
   await tickets.getByRole("button", { name: "Rang A, place 3 : libre" }).click();
   await tickets.getByRole("button", { name: "Réserver ces places" }).click();
@@ -62,6 +66,25 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await tickets.getByRole("button", { name: "Confirmer ma réservation" }).click();
   await guest.waitForURL(/\/billets\//);
   await expect(guest.getByTestId("seat")).toHaveText(["Rang A · Place 2", "Rang A · Place 3"]);
+
+  // second acheteur : il garde les meilleures places proposées, deux places voisines dans un même rang
+  const guest2 = await (await browser.newContext({ locale: "fr-BE" })).newPage();
+  await guest2.goto(siteUrl(slug, `/opera-${id}`));
+  const box2 = guest2.locator("#billets");
+  await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
+  await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
+  await box2.getByRole("button", { name: "Continuer" }).click();
+  await expect(box2.getByRole("status")).toContainText(/rang [AB] :/);
+  if (process.env.SEAT_SHOT) await guest2.screenshot({ path: process.env.SEAT_SHOT });
+  await box2.getByRole("button", { name: "Réserver ces places" }).click();
+  await box2.getByLabel("Prénom").first().fill("Hugo");
+  await box2.getByLabel("Nom", { exact: true }).fill("Leroy");
+  await box2.getByLabel("Adresse e-mail").fill(`hugo.${id}@exemple.be`);
+  await box2.getByRole("button", { name: "Confirmer ma réservation" }).click();
+  await guest2.waitForURL(/\/billets\//);
+  const places = await guest2.getByTestId("seat").allTextContents();
+  expect(places).toHaveLength(2);
+  expect(new Set(places.map((p) => p.split(" · ")[0])).size).toBe(1);
 
   // la place vendue est verrouillée dans l'éditeur
   await page.reload();

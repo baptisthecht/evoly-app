@@ -83,11 +83,27 @@ export async function setSeatChoice(ctx: OrgContext, eventId: string, allow: boo
 
 /** Plan public : disponibilités lues en direct (jamais mises en cache), catégories et leurs tarifs. */
 export async function publicSeatMap(eventId: string) {
-  const map = await db.seatingMap.findUnique({ where: { eventId }, include: { categories: { orderBy: { sortOrder: "asc" }, include: { ticketTypes: { select: { id: true } } } }, rows: { orderBy: { sortOrder: "asc" }, include: { seats: { orderBy: { sortOrder: "asc" }, select: { id: true, label: true, status: true, categoryId: true } } } } } });
+  const map = await db.seatingMap.findUnique({
+    where: { eventId },
+    include: {
+      categories: { orderBy: { sortOrder: "asc" }, include: { ticketTypes: { select: { id: true } }, _count: { select: { seats: true } } } },
+      blocks: { orderBy: { sortOrder: "asc" }, select: { id: true, kind: true, name: true, x: true, y: true, rotation: true, params: true } },
+      rows: { orderBy: { sortOrder: "asc" }, include: { seats: { orderBy: { sortOrder: "asc" }, select: { id: true, label: true, status: true, categoryId: true, sortOrder: true, x: true, y: true, angle: true, accessible: true } } } },
+    },
+  });
   if (!map) return null;
   return {
-    categories: map.categories.map((c) => ({ id: c.id, name: c.name, color: c.color, ticketTypeIds: c.ticketTypes.map((t) => t.id) })),
-    rows: map.rows.map((r) => ({ id: r.id, name: r.name, seats: r.seats.map((s) => ({ id: s.id, label: s.label, categoryId: s.categoryId, available: s.status === "AVAILABLE" })) })),
+    // une catégorie sans places numérotées (fosse, zone debout) se vend sans place attribuée
+    categories: map.categories.map((c) => ({ id: c.id, name: c.name, color: c.color, ticketTypeIds: c.ticketTypes.map((t) => t.id), standing: c._count.seats === 0 })),
+    blocks: map.blocks.map((b) => ({ ...b, params: b.params as Record<string, unknown> })),
+    focus: map.focusX !== null && map.focusY !== null ? { x: map.focusX, y: map.focusY } : { x: 0, y: -60 },
+    rows: map.rows.map((r, i) => ({
+      id: r.id,
+      name: r.name,
+      blockId: r.blockId,
+      // plans d'avant les blocs : grille, comme dans l'éditeur
+      seats: r.seats.map((s, k) => ({ id: s.id, label: s.label, categoryId: s.categoryId, order: s.sortOrder, available: s.status === "AVAILABLE", accessible: s.accessible, x: s.x ?? (k - (r.seats.length - 1) / 2) * 30, y: s.y ?? i * 34, angle: s.angle })),
+    })),
   };
 }
 export type PublicSeatMap = NonNullable<Awaited<ReturnType<typeof publicSeatMap>>>;
@@ -106,6 +122,9 @@ export async function holdSeats(tx: Tx, orderId: string, lines: ReadonlyArray<{ 
     if (!cat) throw new CoreError("SEATING_TYPES_UNMAPPED");
     perCategory.set(cat, (perCategory.get(cat) ?? 0) + l.quantity);
   }
+  // fosse, zone debout : catégorie sans places numérotées, billets sans place (la jauge est celle du tarif)
+  for (const cat of [...perCategory.keys()]) if ((await tx.seat.count({ where: { categoryId: cat } })) === 0) perCategory.delete(cat);
+  if (perCategory.size === 0) return;
   if (chosen && chosen.length) {
     const picked = await tx.seat.findMany({ where: { id: { in: [...new Set(chosen)] } }, select: { id: true, categoryId: true, status: true } });
     const byCat = new Map<string, number>();

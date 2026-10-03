@@ -1,7 +1,7 @@
 "use client";
 
 import type { PublicSeatMap } from "@/server/seating";
-import { SeatPicker } from "./SeatPicker";
+import { SeatMapPicker } from "./SeatMapPicker";
 
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { availabilityDisplay, unitDiscount } from "@evoly/core";
@@ -70,34 +70,37 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
   // section 9.9 : places à choisir par catégorie, d'après les billets sélectionnés
   const [seatStep, setSeatStep] = useState(false);
   const [chosen, setChosen] = useState<string[]>([]);
+  const [seatValid, setSeatValid] = useState(true);
   const needed: Record<string, number> = {};
-  if (seatMap) for (const [ticketTypeId, n] of Object.entries(qty)) { const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(ticketTypeId)); if (c && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n; }
+  // fosse, zone debout : billets sans place, pas de choix sur le plan
+  if (seatMap) for (const [ticketTypeId, n] of Object.entries(qty)) { const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(ticketTypeId)); if (c && !c.standing && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n; }
+  const needsSeats = Object.keys(needed).length > 0;
   const seatsComplete = Object.values(needed).reduce((a, b) => a + b, 0) === chosen.length;
   const reserve = async () => {
     if (!checkout || count === 0) return;
-    if (seatMap && !seatStep) {
+    if (seatMap && needsSeats && !seatStep) {
       setChosen([]);
       return setSeatStep(true);
     }
     setPending(true);
     setError(null);
     const lines = Object.entries(qty).filter(([, n]) => n > 0).map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
-    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, seatMap ? chosen : null);
+    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, seatMap && needsSeats ? chosen : null);
     setPending(false);
     if (res.ok) return setReservation(res.data);
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
   };
-  if (seatStep && seatMap && checkout && !reservation)
+  if (seatStep && seatMap && needsSeats && checkout && !reservation)
     return (
       <div className="grid gap-4">
         <p className="font-semibold">{tseat("title")}</p>
-        <SeatPicker map={seatMap} needed={needed} chosen={chosen} onToggle={(id) => setChosen((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]))} />
+        <SeatMapPicker map={seatMap} needed={needed} chosen={chosen} onChange={(ids, valid) => { setChosen(ids); setSeatValid(valid); }} />
         {error ? <p role="alert" className="text-sm text-danger">{error}</p> : null}
         <div className="flex flex-wrap gap-2">
           <button type="button" className="h-12 rounded-full px-5 font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]" onClick={() => setSeatStep(false)}>
             {tseat("back")}
           </button>
-          <button type="button" disabled={!seatsComplete || pending} className="h-12 flex-1 rounded-full bg-surface-inverse px-5 font-semibold text-ink-inverse disabled:opacity-50" onClick={reserve}>
+          <button type="button" disabled={!seatsComplete || !seatValid || pending} className="h-12 flex-1 rounded-full bg-surface-inverse px-5 font-semibold text-ink-inverse disabled:opacity-50" onClick={reserve}>
             {pending ? tc("processing") : tseat("reserve")}
           </button>
         </div>

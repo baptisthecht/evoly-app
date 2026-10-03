@@ -1924,7 +1924,22 @@
     "free": "free",
     "taken": "unavailable",
     "back": "Back",
-    "reserve": "Book these seats"
+    "reserve": "Book these seats",
+    "modeLabel": "Seat selection",
+    "modeBest": "Best seats",
+    "modeMap": "Pick on the plan",
+    "bestHint": "The best seats available, side by side and closest to the stage:",
+    "bestNone": "Not enough seats side by side: pick them on the plan.",
+    "rowSeats": "row {row}: {seats}",
+    "pinch": "Pinch or use + and − to zoom.",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit",
+    "legend": "Plan legend",
+    "legendSelected": "Your seats",
+    "legendTaken": "Already taken",
+    "legendAccessible": "Wheelchair",
+    "orphan": "This choice would leave a single seat stranded next to yours: pick neighbouring seats, or take the stranded seat too."
   },
   "proLocked": {
     "badge": "Pro",

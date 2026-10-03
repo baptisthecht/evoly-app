@@ -265,7 +265,11 @@ export interface PlanSeat { id: string; rowId: string; order: number; x: number;
 /** Segments d'un rang : places consécutives qu'aucune allée ne sépare (écart > 1,6 × l'espacement habituel). */
 export function seatSegments(seats: readonly PlanSeat[]): PlanSeat[][] {
   const byRow = new Map<string, PlanSeat[]>();
-  for (const s of seats) byRow.set(s.rowId, [...(byRow.get(s.rowId) ?? []), s]);
+  for (const s of seats) {
+    const row = byRow.get(s.rowId);
+    if (row) row.push(s);
+    else byRow.set(s.rowId, [s]);
+  }
   const out: PlanSeat[][] = [];
   for (const row of byRow.values()) {
     row.sort((a, b) => a.order - b.order);
@@ -281,18 +285,38 @@ export function seatSegments(seats: readonly PlanSeat[]): PlanSeat[][] {
   return out;
 }
 
+/** Longueur de la suite de places libres qui finit (left) et qui commence (right) à chaque position d'un segment. */
+function freeRuns(seg: readonly PlanSeat[]) {
+  const n = seg.length;
+  const left = new Array<number>(n).fill(0);
+  const right = new Array<number>(n).fill(0);
+  for (let i = 0; i < n; i++) left[i] = seg[i]!.available ? (i > 0 ? left[i - 1]! : 0) + 1 : 0;
+  for (let i = n - 1; i >= 0; i--) right[i] = seg[i]!.available ? (i < n - 1 ? right[i + 1]! : 0) + 1 : 0;
+  return { left, right };
+}
+
+/** Fenêtres de n places libres côte à côte, avec l'indication « laisse une place seule » (temps linéaire). */
+function* windows(seats: readonly PlanSeat[], n: number) {
+  for (const seg of seatSegments(seats)) {
+    const { left, right } = freeRuns(seg);
+    for (let i = 0; i + n <= seg.length; i++) {
+      if (right[i]! < n) continue;
+      const orphan = (i > 0 && left[i - 1] === 1) || (i + n < seg.length && right[i + n] === 1);
+      yield { seats: seg.slice(i, i + n), orphan };
+    }
+  }
+}
+
 /** Une place libre se retrouve seule, coincée contre une place choisie (règle des sièges isolés). */
 export function createsOrphan(seats: readonly PlanSeat[], chosenIds: readonly string[]): boolean {
   const chosen = new Set(chosenIds);
-  for (const seg of seatSegments(seats)) {
+  const rows = new Set(seats.filter((s) => chosen.has(s.id)).map((s) => s.rowId));
+  for (const seg of seatSegments(seats.filter((s) => rows.has(s.rowId)))) {
     const free = seg.map((s) => s.available && !chosen.has(s.id));
     for (let i = 0; i < seg.length; i++) {
       if (!free[i]) continue;
-      const leftFree = i > 0 && free[i - 1];
-      const rightFree = i < seg.length - 1 && free[i + 1];
-      if (leftFree || rightFree) continue; // pas isolée
-      const touchesChoice = (i > 0 && chosen.has(seg[i - 1]!.id)) || (i < seg.length - 1 && chosen.has(seg[i + 1]!.id));
-      if (touchesChoice) return true;
+      if ((i > 0 && free[i - 1]) || (i < seg.length - 1 && free[i + 1])) continue; // pas isolée
+      if ((i > 0 && chosen.has(seg[i - 1]!.id)) || (i < seg.length - 1 && chosen.has(seg[i + 1]!.id))) return true;
     }
   }
   return false;
@@ -309,15 +333,10 @@ export function bestSeats(seats: readonly PlanSeat[], n: number, focus: { x: num
   const dist = (s: PlanSeat) => Math.hypot(s.x - focus.x, s.y - focus.y);
   let best: { ids: string[]; score: number } | null = null;
   let bestWithOrphan: { ids: string[]; score: number } | null = null;
-  for (const seg of seatSegments(seats)) {
-    for (let i = 0; i + n <= seg.length; i++) {
-      const win = seg.slice(i, i + n);
-      if (!win.every((s) => s.available)) continue;
-      const ids = win.map((s) => s.id);
-      const score = win.reduce((sum, s) => sum + dist(s), 0) / n;
-      if (!createsOrphan(seats, ids)) { if (!best || score < best.score) best = { ids, score }; }
-      else if (!bestWithOrphan || score < bestWithOrphan.score) bestWithOrphan = { ids, score };
-    }
+  for (const w of windows(seats, n)) {
+    const score = w.seats.reduce((sum, s) => sum + dist(s), 0) / n;
+    if (!w.orphan) { if (!best || score < best.score) best = { ids: w.seats.map((s) => s.id), score }; }
+    else if (!bestWithOrphan || score < bestWithOrphan.score) bestWithOrphan = { ids: w.seats.map((s) => s.id), score };
   }
   if (best) return best.ids;
   if (bestWithOrphan) return bestWithOrphan.ids;
@@ -326,10 +345,6 @@ export function bestSeats(seats: readonly PlanSeat[], n: number, focus: { x: num
 
 /** Il existe n places côte à côte qui ne laissent aucun siège isolé (sinon, la règle ne peut pas être imposée). */
 export function hasOrphanFreeChoice(seats: readonly PlanSeat[], n: number): boolean {
-  for (const seg of seatSegments(seats))
-    for (let i = 0; i + n <= seg.length; i++) {
-      const win = seg.slice(i, i + n);
-      if (win.every((s) => s.available) && !createsOrphan(seats, win.map((s) => s.id))) return true;
-    }
+  for (const w of windows(seats, n)) if (!w.orphan) return true;
   return false;
 }
