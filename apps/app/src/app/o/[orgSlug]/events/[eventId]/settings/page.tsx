@@ -1,5 +1,6 @@
 import { can, utcToZonedLocal } from "@evoly/core";
 import type { Metadata } from "next";
+import { ProLocked } from "@/components/ProLocked";
 import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
@@ -56,7 +57,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
         }}
       />
       {!readOnly && can(ctx.membership, "MARKETING_MANAGE") ? <EventReminders orgSlug={orgSlug} eventId={eventId} pro={hasFeature(ctx.features, "EMAIL_MARKETING")} reminders={hasFeature(ctx.features, "EMAIL_MARKETING") ? (await eventReminders(eventId)).map((r) => ({ type: r.type as "REMINDER_J7", enabled: r.enabled, lastRunAt: r.lastRunAt?.toISOString() ?? null })) : []} /> : null}
-      {!readOnly && can(ctx.membership, "MARKETING_MANAGE") && hasFeature(ctx.features, "EMAIL_MARKETING") ? <EventMarketingEmails orgSlug={orgSlug} eventId={eventId} automations={(await eventMarketingAutomations(eventId)).map((a) => ({ type: a.type as "POST_EVENT", enabled: a.enabled, subject: a.subject, message: String((a.content as { message?: string })?.message ?? ""), sent: !!a.lastRunAt }))} /> : null}
+      {!readOnly && can(ctx.membership, "MARKETING_MANAGE") ? (hasFeature(ctx.features, "EMAIL_MARKETING") ? <EventMarketingEmails orgSlug={orgSlug} eventId={eventId} automations={(await eventMarketingAutomations(eventId)).map((a) => ({ type: a.type as "POST_EVENT", enabled: a.enabled, subject: a.subject, message: String((a.content as { message?: string })?.message ?? ""), sent: !!a.lastRunAt }))} /> : <ProLocked orgSlug={orgSlug} feature="EMAIL_MARKETING" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />) : null}
       {!readOnly ? <EventAppearance orgSlug={orgSlug} eventId={eventId} cover={e.coverImageUrl} subdomain={e.subdomain} baseDomain={env().NEXT_PUBLIC_BASE_DOMAIN} canSubdomain={hasFeature(ctx.features, "EVENT_SUBDOMAINS")} protocol={new URL(env().NEXT_PUBLIC_APP_URL).protocol} /> : null}
     </div>
   );

@@ -86,7 +86,13 @@ export function EventAppearance({ orgSlug, eventId, cover, subdomain, baseDomain
             </SubmitButton>
           </form>
         ) : (
-          <p className="text-sm text-ink-muted">{t("eventSubdomainUpsell")}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-lilas px-2 py-0.5 font-label text-xs font-bold text-charbon">Pro</span>
+            <p className="text-sm text-ink-muted">{t("eventSubdomainUpsell")}</p>
+            <a href={`/o/${orgSlug}/billing`} className="inline-flex min-h-11 items-center rounded-full bg-surface-inverse px-5 font-label text-sm font-bold text-ink-inverse">
+              {t("upgradePro")}
+            </a>
+          </div>
         )}
       </Card>
     </div>

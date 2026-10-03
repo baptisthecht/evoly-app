@@ -698,7 +698,8 @@
     "eventSubdomainSave": "Enregistrer le sous-domaine",
     "eventSubdomainRemove": "Retirer le sous-domaine",
     "eventSubdomainUpsell": "En Pro, donnez une adresse dédiée à cet événement, par exemple nuit-electrique.evoly.me.",
-    "upload_UPLOAD_SVG_UNSAFE": "Ce SVG contient des éléments refusés (script, lien externe…) : exportez-le en PNG, ou utilisez un SVG simple."
+    "upload_UPLOAD_SVG_UNSAFE": "Ce SVG contient des éléments refusés (script, lien externe…) : exportez-le en PNG, ou utilisez un SVG simple.",
+    "upgradePro": "Passer en Pro"
   },
   "formErrors": {
     "generic": "Une erreur est survenue. Réessayez dans un instant.",
@@ -1920,5 +1921,19 @@
     "taken": "indisponible",
     "back": "Retour",
     "reserve": "Réserver ces places"
+  },
+  "proLocked": {
+    "badge": "Pro",
+    "cta": "Passer en Pro",
+    "trial": "14 jours d’essai gratuit à la première souscription",
+    "askOwner": "Disponible en Pro : demandez au propriétaire de l’organisation de passer en Pro.",
+    "SEATING_MAPS": {
+      "title": "Plan de salle",
+      "body": "Dessinez votre salle, numérotez les places et laissez vos spectateurs choisir la leur, ou recevoir automatiquement les meilleures."
+    },
+    "EMAIL_MARKETING": {
+      "title": "E-mails marketing automatiques",
+      "body": "Remerciement après l’événement avec la prochaine date, relance « dernières places » : envoyés tout seuls à vos contacts consentants."
+    }
   }
 }

@@ -6,6 +6,7 @@ import { requireOrgContext } from "@/server/context";
 import { listQuestions } from "@/server/questions";
 import { QuestionsManager } from "./QuestionsManager";
 import { SeatingManager } from "./SeatingManager";
+import { ProLocked, SeatingPreview } from "@/components/ProLocked";
 import { seatingOverview } from "@/server/seating";
 import { ComplimentaryForm } from "./ComplimentaryForm";
 import { getEventWithTickets } from "@/server/events";
@@ -74,7 +75,9 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
             />
           );
         })()
-      ) : null}
+      ) : (
+        <ProLocked orgSlug={orgSlug} feature="SEATING_MAPS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} preview={<SeatingPreview />} />
+      )}
       <QuestionsManager
         orgSlug={orgSlug}
         eventId={eventId}

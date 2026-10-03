@@ -698,7 +698,8 @@
     "eventSubdomainSave": "Save the subdomain",
     "eventSubdomainRemove": "Remove the subdomain",
     "eventSubdomainUpsell": "On Pro, give this event its own address, for example electric-night.evoly.me.",
-    "upload_UPLOAD_SVG_UNSAFE": "This SVG contains blocked elements (script, external link…): export it as PNG, or use a plain SVG."
+    "upload_UPLOAD_SVG_UNSAFE": "This SVG contains blocked elements (script, external link…): export it as PNG, or use a plain SVG.",
+    "upgradePro": "Upgrade to Pro"
   },
   "formErrors": {
     "generic": "Something went wrong. Please try again in a moment.",
@@ -1920,5 +1921,19 @@
     "taken": "unavailable",
     "back": "Back",
     "reserve": "Book these seats"
+  },
+  "proLocked": {
+    "badge": "Pro",
+    "cta": "Upgrade to Pro",
+    "trial": "14-day free trial on your first subscription",
+    "askOwner": "Available in Pro: ask the organisation owner to upgrade to Pro.",
+    "SEATING_MAPS": {
+      "title": "Seating plan",
+      "body": "Draw your venue, number the seats and let attendees pick theirs, or get the best ones automatically."
+    },
+    "EMAIL_MARKETING": {
+      "title": "Automated marketing emails",
+      "body": "Thank-you email after the event with the next date, “last seats” reminder: sent automatically to your consenting contacts."
+    }
   }
 }
