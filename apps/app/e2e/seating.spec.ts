@@ -52,15 +52,15 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   const tickets = guest.locator("#billets");
   await tickets.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await tickets.getByRole("button", { name: "Un billet Fosse de plus" }).click();
+  // « Continuer » réserve directement les meilleures places ; l'acheteur peut les voir et les changer
   await tickets.getByRole("button", { name: "Continuer" }).click();
-  await expect(tickets.getByText("Choisissez vos places")).toBeVisible();
-  // par défaut, les meilleures places sont proposées ; ici, l'acheteur préfère choisir sur le plan
-  await expect(tickets.getByRole("radio", { name: "Meilleures places" })).toHaveAttribute("aria-checked", "true");
-  await expect(tickets.getByRole("status")).toContainText("rang A :");
-  await tickets.getByRole("radio", { name: "Choisir sur le plan" }).click();
+  await expect(tickets.getByText(/^Vos places : rang/)).toBeVisible();
+  await tickets.getByRole("button", { name: "Voir ou changer mes places" }).click();
+  await tickets.getByRole("button", { name: "Effacer ma sélection" }).click();
   await tickets.getByRole("button", { name: "Rang A, place 2 : libre" }).click();
   await tickets.getByRole("button", { name: "Rang A, place 3 : libre" }).click();
-  await tickets.getByRole("button", { name: "Réserver ces places" }).click();
+  await tickets.getByRole("button", { name: "Valider ces places" }).click();
+  await expect(tickets.getByText("Vos places : rang A, places 2 et 3.")).toBeVisible();
   await tickets.getByLabel("Prénom").first().fill("Léa");
   await tickets.getByLabel("Nom", { exact: true }).fill("Martin");
   await tickets.getByLabel("Adresse e-mail").fill(`lea.${id}@exemple.be`);
@@ -81,9 +81,8 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box2.getByRole("button", { name: "Continuer" }).click();
-  await expect(box2.getByRole("status").filter({ hasText: "Les places libres les plus proches de Léa" })).toContainText(/rang [AB] :/);
+  await expect(box2.getByText(/^Vos places : rang [AB], places \d+ et \d+\./)).toBeVisible();
   if (process.env.SEAT_SHOT) await guest2.screenshot({ path: process.env.SEAT_SHOT });
-  await box2.getByRole("button", { name: "Réserver ces places" }).click();
   await box2.getByLabel("Prénom").first().fill("Hugo");
   await box2.getByLabel("Nom", { exact: true }).fill("Leroy");
   await box2.getByLabel("Adresse e-mail").fill(`hugo.${id}@exemple.be`);
@@ -132,6 +131,7 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await guest3.goto(siteUrl(slug, `/opera-${id}`));
   await guest3.locator("#billets").getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await guest3.locator("#billets").getByRole("button", { name: "Continuer" }).click();
+  await guest3.getByRole("button", { name: "Voir ou changer mes places" }).click();
   await guest3.getByRole("button", { name: "Voir la vue depuis ces places" }).click();
   await expect(guest3.getByRole("dialog")).toBeVisible();
   await guest3.getByRole("button", { name: "Fermer" }).click();

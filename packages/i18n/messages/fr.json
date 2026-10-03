@@ -368,7 +368,17 @@
     "error_SEATS_MISMATCH": "Choisissez autant de places que de billets, dans les bonnes catégories.",
     "error_NOT_ENOUGH_SEATS": "Plus assez de places disponibles.",
     "error_BUYER_LIMIT_REACHED": "Cette adresse a atteint le nombre maximum de billets pour cet événement.",
-    "error_SEAT_ORPHAN": "Ce choix laisserait une place seule entre vos places et une autre : choisissez des places voisines, ou prenez aussi la place isolée."
+    "error_SEAT_ORPHAN": "Ce choix laisserait une place seule entre vos places et une autre : choisissez des places voisines, ou prenez aussi la place isolée.",
+    "seatsYours": "Vos places : {seats}.",
+    "seatsRow": "rang {row}, {count, plural, one {place} other {places}} {seats}",
+    "seatsAuto": "Les meilleures disponibles, choisies pour vous.",
+    "seatsChange": "Voir ou changer mes places",
+    "seatsView": "Voir mes places",
+    "seatsSave": "Valider ces places",
+    "seatsCancel": "Garder mes places",
+    "seatsClose": "Fermer le plan",
+    "error_SEAT_CHOICE_DISABLED": "L’organisateur attribue lui-même les places : elles ne peuvent pas être changées.",
+    "error_RESERVATION_EXPIRED": "Votre réservation a expiré : recommencez votre commande."
   },
   "orders": {
     "confirmationTitle": "C’est réservé !",
@@ -1950,7 +1960,8 @@
     "legendFriend": "Places de {name}",
     "viewOpen": "Voir la vue depuis ces places",
     "viewTitle": "Vue depuis {name}",
-    "viewClose": "Fermer"
+    "viewClose": "Fermer",
+    "clear": "Effacer ma sélection"
   },
   "proLocked": {
     "badge": "Pro",

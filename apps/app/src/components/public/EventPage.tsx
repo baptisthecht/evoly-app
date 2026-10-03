@@ -14,7 +14,8 @@ import { publicSeatMap } from "@/server/seating";
 /** Section 9.9 : plan des places à choisir, si l'organisateur le permet (disponibilités lues en direct). */
 function seatMapFor(event: { id: string; seatingMode: string; allowSeatChoice: boolean }) {
   // le mode vient de l'événement déjà chargé : pas de requête de plus
-  return event.seatingMode === "ASSIGNED" && event.allowSeatChoice ? publicSeatMap(event.id) : null;
+  // placement numéroté : le plan sert à voir ses places, et à les changer si l'organisateur le permet
+  return event.seatingMode === "ASSIGNED" ? publicSeatMap(event.id, event.allowSeatChoice) : null;
 }
 
 const eventUnlocked = cache(async (eventId: string) => {

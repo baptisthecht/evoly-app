@@ -7,7 +7,9 @@ import { formatMoney, type Locale } from "@evoly/i18n";
 import type { Stripe, StripeElements } from "@stripe/stripe-js";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { cancelReservationAction, submitBuyerAction, type ReservationView } from "@/app/site/[sub]/[eventSlug]/actions";
+import { cancelReservationAction, changeSeatsAction, submitBuyerAction, type ReservationView } from "@/app/site/[sub]/[eventSlug]/actions";
+import type { PublicSeatMap } from "@/server/seating";
+import { SeatMapPicker } from "./SeatMapPicker";
 import { Button } from "../ui/Button";
 import { Field, Input } from "../ui/Field";
 import { PayButton, PaymentFields, StripePayment } from "./StripePayment";
@@ -34,7 +36,7 @@ interface Buyer {
   marketingOptIn: boolean;
 }
 
-export function CheckoutPanel({ reservation, organizationName, requirePhone, publishableKey, onCancel }: { reservation: ReservationView; organizationName: string; requirePhone: boolean; publishableKey: string | null; onCancel: () => void }) {
+export function CheckoutPanel({ reservation, seatMap = null, organizationName, requirePhone, publishableKey, onCancel }: { reservation: ReservationView; seatMap?: PublicSeatMap | null; organizationName: string; requirePhone: boolean; publishableKey: string | null; onCancel: () => void }) {
   const t = useTranslations("checkout");
   const tp = useTranslations("public");
   const locale = useLocale() as Locale;
@@ -253,6 +255,7 @@ export function CheckoutPanel({ reservation, organizationName, requirePhone, pub
           {minutes}:{String(seconds).padStart(2, "0")}
         </span>
       </div>
+      {reservation.seats?.length ? <ReservedSeats token={reservation.token} lines={reservation.lines} initial={reservation.seats} seatMap={seatMap} /> : null}
       <ul className="grid gap-2">
         {reservation.lines.map((l, i) => (
           <li key={`${l.ticketTypeId}-${i}`} className="flex items-baseline justify-between gap-3 text-sm">
@@ -294,3 +297,54 @@ export function CheckoutPanel({ reservation, organizationName, requirePhone, pub
     </div>
   );
 }
+
+/**
+ * Section 9.9 : les meilleures places sont choisies automatiquement ; l'acheteur les voit en une ligne et peut, s'il
+ * le souhaite, les voir sur le plan ou les changer (même réservation, même temps restant).
+ */
+function ReservedSeats({ token, lines, initial, seatMap }: { token: string; lines: ReservationView["lines"]; initial: NonNullable<ReservationView["seats"]>; seatMap: PublicSeatMap | null }) {
+  const t = useTranslations("checkout");
+  const [seats, setSeats] = useState(initial);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<string[]>(initial.map((s) => s.id));
+  const [valid, setValid] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const groups = new Map<string, string[]>();
+  for (const s of seats) groups.set(s.row, [...(groups.get(s.row) ?? []), s.label]);
+  const list = new Intl.ListFormat(useLocale(), { type: "conjunction" });
+  const summary = [...groups].map(([row, labels]) => t("seatsRow", { row, count: labels.length, seats: list.format(labels) })).join(" · ");
+  const needed: Record<string, number> = {};
+  if (seatMap) for (const l of lines) { const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(l.ticketTypeId)); if (c && !c.standing) needed[c.id] = (needed[c.id] ?? 0) + l.quantity; }
+  const canChange = seatMap?.allowChoice ?? false;
+  const complete = Object.values(needed).reduce((a, b) => a + b, 0) === draft.length;
+  return (
+    <div className="grid gap-2 rounded-md bg-surface-sunken px-4 py-3 text-sm">
+      <p role="status"><strong>{t("seatsYours", { seats: summary })}</strong> {t("seatsAuto")}</p>
+      {seatMap && !open ? (
+        <button type="button" onClick={() => { setDraft(seats.map((s) => s.id)); setOpen(true); }} className="min-h-11 justify-self-start rounded-full px-4 font-semibold ring-1 ring-line-strong">{canChange ? t("seatsChange") : t("seatsView")}</button>
+      ) : null}
+      {seatMap && open ? (
+        <div className="grid gap-3">
+          <SeatMapPicker map={seatMap} needed={needed} chosen={draft} ownSeatIds={seats.map((s) => s.id)} fixedMode={canChange ? "map" : "view"} onChange={(ids, ok) => { setDraft(ids); setValid(ok); }} />
+          {error ? <p role="alert" className="text-sm text-danger">{t.has(`error_${error}`) ? t(`error_${error}`) : t("error_UNKNOWN")}</p> : null}
+          <div className="flex flex-wrap gap-2">
+            {canChange ? (
+              <button type="button" disabled={!complete || !valid || busy} onClick={async () => {
+                setBusy(true);
+                setError(null);
+                const r = await changeSeatsAction(token, draft);
+                setBusy(false);
+                if (!r.ok) return setError(r.error);
+                setSeats(r.data);
+                setOpen(false);
+              }} className="min-h-11 rounded-full bg-surface-inverse px-5 font-semibold text-ink-inverse disabled:opacity-50">{busy ? t("processing") : t("seatsSave")}</button>
+            ) : null}
+            <button type="button" onClick={() => { setOpen(false); setError(null); }} className="min-h-11 rounded-full px-5 font-semibold ring-1 ring-line-strong">{canChange ? t("seatsCancel") : t("seatsClose")}</button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+

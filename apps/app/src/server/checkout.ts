@@ -510,3 +510,32 @@ async function saveAnswers(orderId: string, eventId: string, items: ReadonlyArra
   }
   await db.$transaction([db.questionAnswer.deleteMany({ where: { orderId } }), ...(rows.length ? [db.questionAnswer.createMany({ data: rows })] : [])]);
 }
+
+/** Places retenues par une réservation (affichées à l'acheteur : « vos places »). */
+export async function reservationSeats(orderId: string) {
+  const seats = await db.seat.findMany({ where: { holdOrderId: orderId, status: "HELD" }, select: { id: true, label: true, sortOrder: true, row: { select: { name: true, sortOrder: true } } } });
+  return seats.sort((a, b) => a.row.sortOrder - b.row.sortOrder || a.sortOrder - b.sortOrder).map((s) => ({ id: s.id, row: s.row.name, label: s.label }));
+}
+
+/**
+ * Section 9.9 : l'acheteur change ses places pendant sa réservation (même commande, même temps restant). Places
+ * libérées puis reprises sous le verrou de l'événement, avec les contrôles de la réservation (nombre par catégorie,
+ * disponibilité, sièges isolés) : en cas d'échec, la transaction est annulée et il garde ses places d'origine.
+ */
+export async function changeReservationSeats(token: string, seatIds: string[], now = new Date()) {
+  const orderId = await findOrderIdByToken(token);
+  if (!orderId) throw new CoreError("NOT_FOUND");
+  const head = await db.order.findUnique({ where: { id: orderId }, select: { eventId: true } });
+  if (!head) throw new CoreError("NOT_FOUND");
+  await db.$transaction(async (tx) => {
+    await lockEvent(tx, head.eventId);
+    const order = await tx.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true, event: { select: { seatingMode: true, allowSeatChoice: true, ticketTypes: { select: { id: true, seatingCategoryId: true } } } } } });
+    if (order.status !== "PENDING" || !order.holdExpiresAt || order.holdExpiresAt < now) throw new CoreError("RESERVATION_EXPIRED");
+    if (order.event.seatingMode !== "ASSIGNED" || !order.event.allowSeatChoice) throw new CoreError("SEAT_CHOICE_DISABLED");
+    await tx.seat.updateMany({ where: { holdOrderId: order.id, status: "HELD" }, data: { status: "AVAILABLE", holdOrderId: null, holdExpiresAt: null } });
+    const lines = order.items.map((i) => ({ ticketTypeId: i.ticketTypeId, quantity: i.quantity }));
+    await holdSeats(tx, order.id, lines, order.event.ticketTypes, order.holdExpiresAt, seatIds);
+  }, TX_OPTIONS);
+  return reservationSeats(orderId);
+}
+

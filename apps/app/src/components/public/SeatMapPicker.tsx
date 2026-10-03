@@ -12,10 +12,14 @@ type Mode = "best" | "map";
  * Section 9.9 : places de l'acheteur sur le plan. Par défaut, les meilleures places (côte à côte, au plus près de la
  * scène, sans siège isolé) ; sinon, choix sur le plan, limité aux catégories des billets choisis.
  */
-export function SeatMapPicker({ map, needed, chosen, friend = null, onChange }: { map: PublicSeatMap; needed: Record<string, number>; chosen: string[]; friend?: { firstName: string; seatIds: string[]; center: { x: number; y: number } } | null; onChange: (ids: string[], valid: boolean) => void }) {
+export function SeatMapPicker({ map, needed, chosen, friend = null, ownSeatIds = [], fixedMode, onChange }: { map: PublicSeatMap; needed: Record<string, number>; chosen: string[]; friend?: { firstName: string; seatIds: string[]; center: { x: number; y: number } } | null; ownSeatIds?: string[]; fixedMode?: "map" | "view"; onChange: (ids: string[], valid: boolean) => void }) {
   const t = useTranslations("seatPicker");
-  const [mode, setMode] = useState<Mode>("best");
-  const seats = useMemo(() => map.rows.flatMap((r) => r.seats.map((s) => ({ ...s, rowId: r.id, row: r.name, blockId: r.blockId }))), [map]);
+  const [mode, setMode] = useState<Mode>(fixedMode === "map" ? "map" : "best");
+  const viewOnly = fixedMode === "view";
+  const ownKey = ownSeatIds.join();
+  // places déjà retenues par l'acheteur : disponibles pour lui (il peut les garder ou les échanger)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const seats = useMemo(() => map.rows.flatMap((r) => r.seats.map((s) => ({ ...s, available: s.available || ownSeatIds.includes(s.id), rowId: r.id, row: r.name, blockId: r.blockId }))), [map, ownKey]);
   const byId = useMemo(() => new Map(seats.map((s) => [s.id, s])), [seats]);
   const colors = useMemo(() => new Map(map.categories.map((c) => [c.id, c.color])), [map.categories]);
   const planFor = (pred: (s: (typeof seats)[number]) => boolean): PlanSeat[] => seats.filter(pred).map((s) => ({ id: s.id, rowId: s.rowId, order: s.order, x: s.x, y: s.y, available: s.available }));
@@ -44,16 +48,21 @@ export function SeatMapPicker({ map, needed, chosen, friend = null, onChange }: 
 
   // la sélection suit le mode : suggestion en « meilleures places », vierge à l'entrée dans le choix sur le plan
   useEffect(() => {
-    if (mode === "best") onChange(suggestion ?? [], !!suggestion);
+    if (mode === "best" && !fixedMode) onChange(suggestion ?? [], !!suggestion);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, suggestion]);
 
   const picked = (cat: string) => chosen.filter((id) => byId.get(id)?.categoryId === cat).length;
-  const selectable = (s: (typeof seats)[number]) => mode === "map" && s.available && (chosen.includes(s.id) || (needed[s.categoryId] ?? 0) - picked(s.categoryId) > 0);
+  // une place libre de ses catégories ; quand le compte est atteint, toucher une autre place remplace la plus ancienne
+  const selectable = (s: (typeof seats)[number]) => mode === "map" && !viewOnly && s.available && (needed[s.categoryId] ?? 0) > 0;
   const toggle = (id: string) => {
     const s = byId.get(id);
     if (!s || !selectable(s)) return;
-    const next = chosen.includes(id) ? chosen.filter((x) => x !== id) : [...chosen, id];
+    let next = chosen.includes(id) ? chosen.filter((x) => x !== id) : [...chosen, id];
+    if (!chosen.includes(id) && picked(s.categoryId) >= (needed[s.categoryId] ?? 0)) {
+      const oldest = chosen.find((x) => byId.get(x)?.categoryId === s.categoryId);
+      next = next.filter((x) => x !== oldest);
+    }
     onChange(next, !orphanFor(next));
   };
   const describe = (ids: string[]) => {
@@ -121,14 +130,14 @@ export function SeatMapPicker({ map, needed, chosen, friend = null, onChange }: 
   const dialogRef = useRef<HTMLDialogElement>(null);
   return (
     <div className="grid gap-3">
-      <div role="radiogroup" aria-label={t("modeLabel")} className="grid grid-cols-2 gap-1 rounded-full bg-surface-raised p-1 ring-1 ring-line">
+      {fixedMode ? null : <div role="radiogroup" aria-label={t("modeLabel")} className="grid grid-cols-2 gap-1 rounded-full bg-surface-raised p-1 ring-1 ring-line">
         {(["best", "map"] as const).map((m) => (
           <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => { setMode(m); if (m === "map") onChange([], true); }} className={`min-h-11 rounded-full px-3 font-label text-sm font-bold ${mode === m ? "bg-surface-inverse text-ink-inverse" : ""}`}>
             {t(m === "best" ? "modeBest" : "modeMap")}
           </button>
         ))}
-      </div>
-      {mode === "best" ? (
+      </div>}
+      {viewOnly ? null : mode === "best" ? (
         <p className="text-sm" role="status">{suggestion ? <>{friend ? t("nearFriend", { name: friend.firstName }) : t("bestHint")} <strong>{describe(suggestion)}</strong></> : t("bestNone")}</p>
       ) : (
         <ul className="flex flex-wrap gap-2 text-sm" aria-live="polite">
@@ -192,6 +201,7 @@ export function SeatMapPicker({ map, needed, chosen, friend = null, onChange }: 
         <li className="flex items-center gap-1.5"><span className="size-3 rounded-sm bg-[#D3CCC7]" aria-hidden="true" />{t("legendTaken")}</li>
         <li className="flex items-center gap-1.5"><span className="size-3 rounded-full border-[1.5px] border-[#222222] bg-white" aria-hidden="true" />{t("legendAccessible")}</li>
       </ul>
+      {mode === "map" && !viewOnly && chosen.length ? <button type="button" onClick={() => onChange([], true)} className="min-h-11 justify-self-start rounded-full px-4 text-sm font-semibold">{t("clear")}</button> : null}
       {mode === "map" && orphan ? <p role="alert" className="text-sm font-semibold text-danger">{t("orphan")}</p> : null}
       {viewBlock ? (
         <>

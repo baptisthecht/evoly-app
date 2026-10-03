@@ -5,7 +5,7 @@ import { friendSeats } from "@/server/seating";
 import { db } from "@/lib/db";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
-import { CartRejected, PromoRejected, cancelReservation, reserveOrder, submitBuyer, updateTicketHolder, type PublicQuestion, type SubmitResult } from "@/server/checkout";
+import { CartRejected, PromoRejected, cancelReservation, reserveOrder, submitBuyer, updateTicketHolder, type PublicQuestion, type SubmitResult, changeReservationSeats, reservationSeats } from "@/server/checkout";
 import { sendTicketsLookup } from "@/server/orders";
 import { createListing, reserveResale, withdrawListing } from "@/server/resale";
 import { requestRefund } from "@/server/refunds";
@@ -27,6 +27,7 @@ export interface ReservationView {
   stripeAccountId: string | null;
   /** US-QST-01 : questions de la commande et de chaque ligne. */
   questions: { order: Array<PublicQuestion>; perLine: Record<string, Array<PublicQuestion>> };
+  seats?: Array<{ id: string; row: string; label: string }>;
 }
 
 type Result<T> = { ok: true; data: T } | { ok: false; error: string; ticketTypeId?: string };
@@ -64,7 +65,8 @@ export async function reserveAction(eventId: string, lines: unknown, promoCode?:
     if (!target || !(await hasEventAccess(target))) return { ok: false, error: "ACCESS_REQUIRED" };
     const seats = Array.isArray(seatIds) && seatIds.length <= 50 && seatIds.every((x) => typeof x === "string" && x.length <= 40) ? (seatIds as string[]) : null;
     const r = await reserveOrder({ eventId, lines: parsed.data, locale: await getLocale(), promoCode: promoCode?.slice(0, 40) || null, seatIds: seats, nearCode: typeof nearCode === "string" ? nearCode.slice(0, 16) : null });
-    return { ok: true, data: { token: r.token, reference: r.reference, expiresAt: r.expiresAt.toISOString(), currency: r.currency, totalMinor: r.totalMinor, isFree: r.isFree, discountMinor: r.discountMinor, promoCode: r.promoCode, lines: r.lines, questions: r.questions, stripeAccountId: r.stripeAccountId } };
+    const held = await reservationSeats(r.orderId);
+    return { ok: true, data: { token: r.token, reference: r.reference, expiresAt: r.expiresAt.toISOString(), currency: r.currency, totalMinor: r.totalMinor, isFree: r.isFree, discountMinor: r.discountMinor, promoCode: r.promoCode, lines: r.lines, questions: r.questions, stripeAccountId: r.stripeAccountId , seats: held } };
   } catch (err) {
     return failure(err);
   }
@@ -190,5 +192,16 @@ export async function friendSeatsAction(eventId: string, code: string): Promise<
   if (typeof eventId !== "string" || typeof code !== "string" || code.length > 16) return null;
   if ((await hit(`friends:${await clientIp()}`, 600)) > 60) return null;
   return friendSeats(eventId, code);
+}
+
+/** Section 9.9 : changer ses places pendant la réservation (même commande, même temps restant). */
+export async function changeSeatsAction(token: string, seatIds: unknown): Promise<Result<Array<{ id: string; row: string; label: string }>>> {
+  if (typeof token !== "string" || !Array.isArray(seatIds) || seatIds.length > 50 || !seatIds.every((x) => typeof x === "string" && x.length <= 40)) return { ok: false, error: "SEATS_MISMATCH" };
+  if ((await hit(`checkout:seats:${await clientIp()}`, 600)) > 60) return { ok: false, error: "RATE_LIMITED" };
+  try {
+    return { ok: true, data: await changeReservationSeats(token, seatIds as string[]) };
+  } catch (err) {
+    return failure(err);
+  }
 }
 

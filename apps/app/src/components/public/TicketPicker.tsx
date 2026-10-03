@@ -1,7 +1,6 @@
 "use client";
 
 import type { PublicSeatMap } from "@/server/seating";
-import { SeatMapPicker } from "./SeatMapPicker";
 
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { availabilityDisplay, unitDiscount } from "@evoly/core";
@@ -68,9 +67,6 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
     setQty((q) => ({ ...q, [tt.id]: v }));
   };
   // section 9.9 : places à choisir par catégorie, d'après les billets sélectionnés
-  const [seatStep, setSeatStep] = useState(false);
-  const [chosen, setChosen] = useState<string[]>([]);
-  const [seatValid, setSeatValid] = useState(true);
   // « à côté de mes amis » : lien partagé (?amis=…), places de l'ami et meilleures places proches des siennes
   const [friend, setFriend] = useState<{ code: string; firstName: string; seatIds: string[]; center: { x: number; y: number } } | null>(null);
   useEffect(() => {
@@ -81,40 +77,19 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
   const needed: Record<string, number> = {};
   // fosse, zone debout : billets sans place, pas de choix sur le plan
   if (seatMap) for (const [ticketTypeId, n] of Object.entries(qty)) { const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(ticketTypeId)); if (c && !c.standing && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n; }
-  const needsSeats = Object.keys(needed).length > 0;
-  const seatsComplete = Object.values(needed).reduce((a, b) => a + b, 0) === chosen.length;
   const reserve = async () => {
     if (!checkout || count === 0) return;
-    if (seatMap && needsSeats && !seatStep) {
-      setChosen([]);
-      return setSeatStep(true);
-    }
     setPending(true);
     setError(null);
     const lines = Object.entries(qty).filter(([, n]) => n > 0).map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
-    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, seatMap && needsSeats ? chosen : null, friend?.code ?? null);
+    // meilleures places attribuées tout de suite (ou près de l'ami) ; l'acheteur peut les voir et les changer ensuite
+    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null);
     setPending(false);
     if (res.ok) return setReservation(res.data);
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
   };
-  if (seatStep && seatMap && needsSeats && checkout && !reservation)
-    return (
-      <div className="grid gap-4">
-        <p className="font-semibold">{tseat("title")}</p>
-        <SeatMapPicker map={seatMap} needed={needed} chosen={chosen} friend={friend} onChange={(ids, valid) => { setChosen(ids); setSeatValid(valid); }} />
-        {error ? <p role="alert" className="text-sm text-danger">{error}</p> : null}
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="h-12 rounded-full px-5 font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]" onClick={() => setSeatStep(false)}>
-            {tseat("back")}
-          </button>
-          <button type="button" disabled={!seatsComplete || !seatValid || pending} className="h-12 flex-1 rounded-full bg-surface-inverse px-5 font-semibold text-ink-inverse disabled:opacity-50" onClick={reserve}>
-            {pending ? tc("processing") : tseat("reserve")}
-          </button>
-        </div>
-      </div>
-    );
   if (reservation && checkout) {
-    return <CheckoutPanel reservation={reservation} organizationName={checkout.organizationName} requirePhone={checkout.requirePhone} publishableKey={checkout.publishableKey} onCancel={() => { setReservation(null); setQty({}); }} />;
+    return <CheckoutPanel reservation={reservation} seatMap={seatMap} organizationName={checkout.organizationName} requirePhone={checkout.requirePhone} publishableKey={checkout.publishableKey} onCancel={() => { setReservation(null); setQty({}); }} />;
   }
   return (
     <div className="grid gap-4">

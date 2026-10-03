@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { cancelReservation, reserveOrder } from "@/server/checkout";
+import { cancelReservation, changeReservationSeats, reservationSeats, reserveOrder } from "@/server/checkout";
 import type { OrgContext } from "@/server/context";
 import { getPlans } from "@/server/plans";
 import { applySeatingTemplate, publicSeatMap, setSeatChoice, setSeatingMode } from "@/server/seating";
@@ -70,4 +70,29 @@ describe("plan de salle par modèle (section 9.9)", () => {
     const stands = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[1]!.id, quantity: 2 }, { ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr" });
     expect(await db.seat.count({ where: { holdOrderId: stands.orderId, status: "HELD" } })).toBe(2);
   });
+
+  it("places changées pendant la réservation : échange réussi, refus sans rien perdre, choix désactivé", async () => {
+    const { event, ctx, types } = await setup();
+    await applySeatingTemplate(ctx, event.id, "hall", { rows: 2, seatsFirst: 8, seatsLast: 8, centerAisle: false, categories: 1 });
+    await setSeatingMode(ctx, event.id, true);
+    await setSeatChoice(ctx, event.id, true);
+    const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }], locale: "fr" });
+    const before = await reservationSeats(r.orderId);
+    expect(before).toHaveLength(2);
+    const seat = async (row: string, label: string) => (await db.seat.findFirstOrThrow({ where: { label, row: { name: row, seatingMap: { eventId: event.id } } } })).id;
+
+    // échange vers B7, B8 : les anciennes places sont libérées
+    const after = await changeReservationSeats(r.token, [await seat("B", "7"), await seat("B", "8")]);
+    expect(after.map((s) => `${s.row}${s.label}`)).toEqual(["B7", "B8"]);
+    expect(await db.seat.count({ where: { id: { in: before.map((s) => s.id) }, status: "AVAILABLE" } })).toBe(2);
+
+    // B2 et B4 laisseraient B3 seule (et B1 seule) : refusé, l'acheteur garde B7 et B8
+    await expect(changeReservationSeats(r.token, [await seat("B", "2"), await seat("B", "4")])).rejects.toThrow("SEAT_ORPHAN");
+    expect((await reservationSeats(r.orderId)).map((s) => `${s.row}${s.label}`)).toEqual(["B7", "B8"]);
+
+    // choix désactivé par l'organisateur : les places attribuées ne changent pas
+    await setSeatChoice(ctx, event.id, false);
+    await expect(changeReservationSeats(r.token, [await seat("A", "1"), await seat("A", "2")])).rejects.toThrow("SEAT_CHOICE_DISABLED");
+  });
 });
+

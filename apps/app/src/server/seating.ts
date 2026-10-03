@@ -82,7 +82,7 @@ export async function setSeatChoice(ctx: OrgContext, eventId: string, allow: boo
 }
 
 /** Plan public : disponibilités lues en direct (jamais mises en cache), catégories et leurs tarifs. */
-export async function publicSeatMap(eventId: string) {
+export async function publicSeatMap(eventId: string, allowChoice = true) {
   const map = await db.seatingMap.findUnique({
     where: { eventId },
     include: {
@@ -93,6 +93,7 @@ export async function publicSeatMap(eventId: string) {
   });
   if (!map) return null;
   return {
+    allowChoice,
     // une catégorie sans places numérotées (fosse, zone debout) se vend sans place attribuée
     categories: map.categories.map((c) => ({ id: c.id, name: c.name, color: c.color, ticketTypeIds: c.ticketTypes.map((t) => t.id), standing: c._count.seats === 0 })),
     blocks: map.blocks.map((b) => ({ ...b, params: b.params as Record<string, unknown> })),
