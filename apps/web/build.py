@@ -786,13 +786,41 @@ else:
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>'''
 
+# ------------------------------------------------------------------ référencement (titre, aperçus de liens, données structurées)
+import json as _json, re as _re
+SITE = 'https://evoly.me'
+SEO_TITLE = 'Evoly — Billetterie en ligne, 1 € max par billet'
+SEO_DESC = 'Vendez vos billets en ligne en 60 secondes : paiement en un tap (Apple Pay, Google Pay), revente en un lien, plan de salle, statistiques en direct. Commission plafonnée à 1 € par billet.'
+_strip = lambda t: _re.sub(r'<[^>]+>', '', t).replace('\u202f', ' ').strip()
+LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'url': f'{SITE}/', 'logo': f'{SITE}/apple-touch-icon.png', 'description': SEO_DESC},
+    {'@type': 'WebSite', '@id': f'{SITE}/#site', 'name': 'Evoly', 'url': f'{SITE}/', 'inLanguage': 'fr', 'publisher': {'@id': f'{SITE}/#organisation'}},
+    {'@type': 'SoftwareApplication', 'name': 'Evoly', 'applicationCategory': 'BusinessApplication', 'operatingSystem': 'Web, iOS, Android', 'url': 'https://app.evoly.me/register', 'description': SEO_DESC, 'publisher': {'@id': f'{SITE}/#organisation'},
+     'offers': [
+       {'@type': 'Offer', 'name': 'Free', 'price': '0', 'priceCurrency': 'EUR', 'description': 'Billets gratuits sans commission ; billets payants : 0,15 € + 1,5 %, plafonné à 1 € par billet.'},
+       {'@type': 'Offer', 'name': 'Pro', 'price': '29', 'priceCurrency': 'EUR', 'priceSpecification': {'@type': 'UnitPriceSpecification', 'price': '29', 'priceCurrency': 'EUR', 'billingDuration': 'P1M', 'unitText': 'mois'}, 'description': 'Commission plafonnée à 0,70 € par billet, marque, domaine personnalisé, plan de salle, équipe.'},
+     ]},
+    {'@type': 'FAQPage', 'mainEntity': [{'@type': 'Question', 'name': _strip(q), 'acceptedAnswer': {'@type': 'Answer', 'text': _strip(a)}} for q, a in FAQ]},
+  ],
+}
+SEO_HEAD = f"""<title>{SEO_TITLE}</title>
+<meta name="description" content="{SEO_DESC}">
+<link rel="canonical" href="{SITE}/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Evoly"><meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="{SITE}/"><meta property="og:title" content="{SEO_TITLE}"><meta property="og:description" content="{SEO_DESC}">
+<meta property="og:image" content="{SITE}/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Evoly, la billetterie en ligne : commission plafonnée à 1 € par billet">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne : commission plafonnée à 1 € par billet">
+<script type="application/ld+json">{_json.dumps(LD, ensure_ascii=False)}</script>"""
+
 page = f'''<!doctype html>
 <html lang="fr" class="no-js">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Evoly — Ton prochain souvenir t’attend</title>
-<meta name="description" content="Créez votre événement en 60 secondes. Achat en un tap avec Apple Pay, Google Pay et les moyens de paiement locaux, revente en un lien, statistiques en direct et une commission plafonnée à 1 € par billet.">
+{SEO_HEAD}
 <meta name="theme-color" content="#222222">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 {fonts}

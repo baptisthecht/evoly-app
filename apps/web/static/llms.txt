@@ -1,0 +1,19 @@
+# Evoly
+
+> Evoly is an online ticketing platform for event organisers (associations, theatres, concerts, parties, galas, sports clubs, conferences). Organisers create an event and start selling tickets in about 60 seconds. Pricing is transparent: free tickets carry no commission; paid tickets cost 0.15 € + 1.5 % per ticket, capped at 1 € per ticket on the Free plan and 0.70 € on Pro (29 € per month).
+
+Evoly — billetterie en ligne : créez votre événement en 60 secondes, commission plafonnée à 1 € par billet, billets gratuits sans commission.
+
+## Key facts
+- Buyers pay in one tap with Apple Pay, Google Pay, cards, PayPal, Klarna and local payment methods; payouts go directly to the organiser's own Stripe account.
+- Fan-to-fan resale with a shareable link, capped at face value.
+- Assigned seating (Pro): visual seating plan editor with templates (theatre, hall, gala, church, cabaret, conference, arena, football stadium), best seats chosen automatically, "book next to my friends" link.
+- E-tickets with QR codes, Apple Wallet and Google Wallet passes, free scanner app for volunteers (works offline).
+- Live sales statistics, promo codes, dynamic pricing tiers (Pro), email campaigns (Pro), custom domains and branding (Pro), team roles (Pro).
+- Available in French and English; organisers sell in their own currency; GDPR-compliant, data hosted in the European Union.
+
+## Links
+- Website: https://evoly.me/
+- Create an account: https://app.evoly.me/register
+- Terms: https://evoly.me/cgu
+- Privacy policy: https://evoly.me/privacy

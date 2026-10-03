@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# moteurs de réponse et assistants d'IA : bienvenus (visibilité d'Evoly dans leurs réponses)
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://evoly.me/sitemap.xml
