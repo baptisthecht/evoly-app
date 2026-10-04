@@ -36,12 +36,12 @@ async function setup() {
 describe("abonnement Pro (RG-SUB-01 à 08)", () => {
   it("essai démarré par webhook : plafond Pro pour les nouvelles commandes, un seul essai, e-mail au propriétaire", async () => {
     const s = await setup();
-    expect(await s.fee()).toBe(90); // Free : 0,15 € + 1,5 % de 50 € = 0,90 €
+    expect(await s.fee()).toBe(129); // Free : 0,29 € + 2 % de 50 € = 1,29 €
     expect(trialEligible(await db.subscription.findUnique({ where: { organizationId: s.org.id } }))).toBe(true);
     expect(await syncSubscription(s.stripeSub("trialing"))).toBe(true);
     const sub = await db.subscription.findUniqueOrThrow({ where: { organizationId: s.org.id } });
     expect(sub).toMatchObject({ planId: "pro", status: "TRIALING", interval: "YEAR", stripeSubscriptionId: `sub_${s.id}` });
-    expect(await s.fee()).toBe(70); // RG-SUB-07 : plafond Pro à 0,70 €
+    expect(await s.fee()).toBe(100); // RG-SUB-07 : plafond Pro à 1 €
     expect(trialEligible(sub)).toBe(false);
     expect(await db.emailMessage.count({ where: { organizationId: s.org.id, template: "subscription.started", toEmail: s.owner.email } })).toBe(1);
   });
@@ -79,11 +79,11 @@ describe("abonnement Pro (RG-SUB-01 à 08)", () => {
     let sub = await db.subscription.findUniqueOrThrow({ where: { organizationId: s.org.id } });
     expect(sub.status).toBe("PAST_DUE");
     expect(sub.pastDueSince).not.toBeNull();
-    expect(await s.fee()).toBe(70);
+    expect(await s.fee()).toBe(100);
     await invoiceFailed(`sub_${s.id}`);
     expect(await db.emailMessage.count({ where: { organizationId: s.org.id, template: "subscription.payment_failed" } })).toBe(2);
     await db.subscription.update({ where: { id: sub.id }, data: { pastDueSince: new Date(Date.now() - 8 * DAY) } });
-    expect(await s.fee()).toBe(90); // au-delà de 7 jours : plafond Free
+    expect(await s.fee()).toBe(129); // au-delà de 7 jours : commission Free
     await invoicePaid(`sub_${s.id}`);
     sub = await db.subscription.findUniqueOrThrow({ where: { organizationId: s.org.id } });
     expect(sub).toMatchObject({ status: "ACTIVE", pastDueSince: null });

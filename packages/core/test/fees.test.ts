@@ -6,16 +6,18 @@ const pro = EUR_TERMS.pro;
 
 describe("commission (RG-FEE-01 à 03, annexe C)", () => {
   it.each([
-    [100, 17, 17],
-    [500, 23, 23],
-    [1000, 30, 30],
-    [2000, 45, 45],
-    [3000, 60, 60],
-    [3600, 69, 69],
-    [3700, 71, 70],
-    [5000, 90, 70],
-    [5700, 100, 70],
-    [10000, 100, 70],
+    // 0,29 € + 2 %, arrondi ; plafond 2,50 € en Free et 1 € en Pro (grille d'octobre 2026)
+    [100, 31, 31],
+    [500, 39, 39],
+    [1000, 49, 49],
+    [2000, 69, 69],
+    [3000, 89, 89],
+    [3600, 101, 100],
+    [3700, 103, 100],
+    [5000, 129, 100],
+    [5700, 143, 100],
+    [10000, 229, 100],
+    [12000, 250, 100],
   ])("billet à %i centimes : Free %i, Pro %i", (price, expectedFree, expectedPro) => {
     expect(ticketCommission(price, free)).toBe(expectedFree);
     expect(ticketCommission(price, pro)).toBe(expectedPro);
@@ -27,8 +29,8 @@ describe("commission (RG-FEE-01 à 03, annexe C)", () => {
   });
 
   it("arrondi au plus proche, 0,5 vers le haut", () => {
-    expect(ticketCommission(1500, free)).toBe(38); // 15 + 22,5
-    expect(ticketCommission(1499, free)).toBe(37); // 15 + 22,485
+    expect(ticketCommission(1525, free)).toBe(60); // 29 + 30,5
+    expect(ticketCommission(1524, free)).toBe(59); // 29 + 30,48
   });
 
   it("refuse les montants non entiers ou négatifs", () => {
@@ -37,13 +39,13 @@ describe("commission (RG-FEE-01 à 03, annexe C)", () => {
     expect(() => assertNonNegative(-5)).toThrow();
   });
 
-  it("plafond atteint dès 36,34 € en Pro et 56,34 € en Free (commission arrondie)", () => {
-    expect(capThresholdMinor(pro)).toBe(3634);
-    expect(ticketCommission(3633, pro)).toBe(69);
-    expect(ticketCommission(3634, pro)).toBe(70);
-    expect(capThresholdMinor(free)).toBe(5634);
-    expect(ticketCommission(5633, free)).toBe(99);
-    expect(ticketCommission(5634, free)).toBe(100);
+  it("plafond atteint dès 35,25 € en Pro et 110,25 € en Free (commission arrondie)", () => {
+    expect(capThresholdMinor(pro)).toBe(3525);
+    expect(ticketCommission(3524, pro)).toBe(99);
+    expect(ticketCommission(3525, pro)).toBe(100);
+    expect(capThresholdMinor(free)).toBe(11025);
+    expect(ticketCommission(11024, free)).toBe(249);
+    expect(ticketCommission(11025, free)).toBe(250);
   });
 
   it("plafond inférieur ou égal à la part fixe", () => {
@@ -51,7 +53,7 @@ describe("commission (RG-FEE-01 à 03, annexe C)", () => {
   });
 
   it("instantané des conditions (RG-FEE-04)", () => {
-    expect(feeSnapshot(pro)).toEqual({ planId: "pro", currency: "EUR", fixedMinor: 15, rateBps: 150, capMinor: 70 });
+    expect(feeSnapshot(pro)).toEqual({ planId: "pro", currency: "EUR", fixedMinor: 29, rateBps: 200, capMinor: 100 });
   });
 });
 

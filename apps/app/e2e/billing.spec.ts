@@ -7,7 +7,7 @@ test("abonnement : Free, essai en cours, impayé (section 9.21)", async ({ page 
   await expect(page.getByRole("heading", { name: "Free", exact: true })).toBeVisible();
   await expect(page.getByText("295,80 €").first()).toBeVisible();
   await expect(page.getByText("−15 %")).toBeVisible();
-  await expect(page.getByText("plafonnée à 0,70 €")).toBeVisible();
+  await expect(page.getByText(/plafonnée à 1(,00)?\u00a0?€/).first()).toBeVisible();
   await page.getByRole("button", { name: "Essayer Pro 14 jours" }).click();
   await expect(page.getByText("Le paiement de l’abonnement n’est pas encore disponible.", { exact: false })).toBeVisible();
 

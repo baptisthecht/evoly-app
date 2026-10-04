@@ -9,10 +9,13 @@ export interface FeeTerms {
   capMinor: Minor;
 }
 
-/** Conditions de référence en euros (CDC section 3.1). */
+/**
+ * Conditions de référence en euros (grille d'octobre 2026) : 0,29 € + 2 % par billet payant, plafonnée à 2,50 € en Free
+ * et à 1 € en Pro. Frais de paiement Stripe en sus, à la charge de l'organisateur : l'acheteur paie le prix affiché.
+ */
 export const EUR_TERMS: Readonly<Record<"free" | "pro", FeeTerms>> = {
-  free: { planId: "free", currency: "EUR", fixedMinor: 15, rateBps: 150, capMinor: 100 },
-  pro: { planId: "pro", currency: "EUR", fixedMinor: 15, rateBps: 150, capMinor: 70 },
+  free: { planId: "free", currency: "EUR", fixedMinor: 29, rateBps: 200, capMinor: 250 },
+  pro: { planId: "pro", currency: "EUR", fixedMinor: 29, rateBps: 200, capMinor: 100 },
 };
 
 /**

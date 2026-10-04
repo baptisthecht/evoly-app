@@ -49,7 +49,7 @@ describe("réservation atomique (RG-BUY-01)", () => {
     const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }], locale: "fr" });
     const order = await db.order.findUniqueOrThrow({ where: { id: r.orderId } });
     expect(order.totalMinor).toBe(4800);
-    expect(order.applicationFeeMinor).toBe(102); // 2 × (0,15 € + 1,5 % de 24 €) en Free
+    expect(order.applicationFeeMinor).toBe(154); // 2 × (0,29 € + 2 % de 24 €) en Free
     expect(r.token).toBe(orderAccessToken(r.orderId, 1));
   });
 });

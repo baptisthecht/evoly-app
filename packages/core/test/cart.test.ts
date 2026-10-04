@@ -63,10 +63,10 @@ describe("chiffrage d'une commande (RG-BUY-03)", () => {
     const o = priceOrder([fosse, vip], [{ ticketTypeId: "fosse", quantity: 2 }, { ticketTypeId: "vip", quantity: 1 }], EUR_TERMS.free, now);
     expect(o.subtotalMinor).toBe(9300);
     expect(o.totalMinor).toBe(9300);
-    expect(o.applicationFeeMinor).toBe(2 * 51 + 83); // 15 + 36 = 51 ; 15 + 67,5 → 83
+    expect(o.applicationFeeMinor).toBe(2 * 77 + 119); // 29 + 48 = 77 ; 29 + 90 = 119
     expect(o.ticketCount).toBe(3);
     expect(o.isFree).toBe(false);
-    expect(o.feeSnapshot.capMinor).toBe(100);
+    expect(o.feeSnapshot.capMinor).toBe(250);
   });
   it("remise de 50 % sur 30 €, commission sur le prix payé", () => {
     const t = { ...fosse, priceMinor: 3000 };
@@ -74,7 +74,7 @@ describe("chiffrage d'une commande (RG-BUY-03)", () => {
     const o = priceOrder([t], [{ ticketTypeId: "fosse", quantity: 1 }], EUR_TERMS.free, now, { promo });
     expect(o.discountMinor).toBe(1500);
     expect(o.totalMinor).toBe(1500);
-    expect(o.applicationFeeMinor).toBe(38);
+    expect(o.applicationFeeMinor).toBe(59); // 29 + 2 % de 15 €
   });
   it("code limité à un tarif", () => {
     const promo: PromoInput = { id: "p", eventId: "e1", code: "VIP10", discountType: "AMOUNT", amountOffMinor: 1000, ticketTypeIds: ["vip"], usedCount: 0, isActive: true };

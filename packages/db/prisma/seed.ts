@@ -55,18 +55,18 @@ const SYSTEM_ROLES: { key: SystemRole; name: string; description: string; permis
 async function main() {
   await prisma.plan.upsert({
     where: { id: "free" },
-    create: { id: "free", name: "Free", feeRateBps: 150, trialDays: 0, features: FREE_FEATURES, sortOrder: 0 },
-    update: { feeRateBps: 150, features: FREE_FEATURES },
+    create: { id: "free", name: "Free", feeRateBps: 200, trialDays: 0, features: FREE_FEATURES, sortOrder: 0 },
+    update: { feeRateBps: 200, features: FREE_FEATURES },
   });
   await prisma.plan.upsert({
     where: { id: "pro" },
-    create: { id: "pro", name: "Pro", feeRateBps: 150, trialDays: 14, features: PRO_FEATURES, sortOrder: 1 },
-    update: { feeRateBps: 150, trialDays: 14, features: PRO_FEATURES },
+    create: { id: "pro", name: "Pro", feeRateBps: 200, trialDays: 14, features: PRO_FEATURES, sortOrder: 1 },
+    update: { feeRateBps: 200, trialDays: 14, features: PRO_FEATURES },
   });
 
   const terms = [
-    { planId: "free", currency: "EUR", feeFixedMinor: 15, feeCapMinor: 100, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
-    { planId: "pro", currency: "EUR", feeFixedMinor: 15, feeCapMinor: 70, monthlyPriceMinor: 2900, yearlyPriceMinor: 29580 },
+    { planId: "free", currency: "EUR", feeFixedMinor: 29, feeCapMinor: 250, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
+    { planId: "pro", currency: "EUR", feeFixedMinor: 29, feeCapMinor: 100, monthlyPriceMinor: 2900, yearlyPriceMinor: 29580 },
   ];
   for (const t of terms) {
     await prisma.planCurrencyTerms.upsert({

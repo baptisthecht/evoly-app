@@ -157,18 +157,18 @@ export function refundEmail(o: { brand?: EmailBrand | null; kind: "PROCESSED" | 
 
 const SUB_COPY = {
   fr: {
-    STARTED: { subject: "Bienvenue dans Evoly Pro", body: "Votre organisation est passée en Pro : commission plafonnée à 0,70 € par billet, prix dynamiques, marque personnalisée et équipe. Vous pouvez gérer votre abonnement à tout moment." },
+    STARTED: { subject: "Bienvenue dans Evoly Pro", body: "Votre organisation est passée en Pro : commission plafonnée à 1 € par billet, prix dynamiques, marque personnalisée et équipe. Vous pouvez gérer votre abonnement à tout moment." },
     TRIAL_ENDING: { subject: "Votre essai Pro se termine dans 3 jours", body: "Sans action de votre part, votre abonnement démarrera automatiquement à la fin de l’essai. Vous pouvez changer de formule ou résilier depuis la page Abonnement." },
     PAYMENT_FAILED: { subject: "Le paiement de votre abonnement Pro a échoué", body: "Stripe va réessayer automatiquement. Mettez à jour votre moyen de paiement pour éviter le retour en Free, qui interviendra 7 jours après le premier échec." },
-    ENDED: { subject: "Votre organisation est repassée en Free", body: "Rien n’est supprimé : vos événements, vos réglages de marque et vos paliers de prix sont conservés. La commission est de nouveau plafonnée à 1 €, la marque Evoly s’affiche, les paliers des événements publiés restent appliqués sans modification possible, et les membres autres que le propriétaire n’ont plus accès. Tout revient en repassant en Pro." },
+    ENDED: { subject: "Votre organisation est repassée en Free", body: "Rien n’est supprimé : vos événements, vos réglages de marque et vos paliers de prix sont conservés. La commission est de nouveau plafonnée à 2,50 €, la marque Evoly s’affiche, les paliers des événements publiés restent appliqués sans modification possible, et les membres autres que le propriétaire n’ont plus accès. Tout revient en repassant en Pro." },
     cta: "Gérer mon abonnement",
     hello: (n: string) => `Bonjour ${n},`,
   },
   en: {
-    STARTED: { subject: "Welcome to Evoly Pro", body: "Your organisation is now on Pro: fee capped at €0.70 per ticket, dynamic pricing, custom branding and team. You can manage your subscription at any time." },
+    STARTED: { subject: "Welcome to Evoly Pro", body: "Your organisation is now on Pro: fee capped at €1 per ticket, dynamic pricing, custom branding and team. You can manage your subscription at any time." },
     TRIAL_ENDING: { subject: "Your Pro trial ends in 3 days", body: "If you do nothing, your subscription starts automatically when the trial ends. You can switch plans or cancel from the Billing page." },
     PAYMENT_FAILED: { subject: "Your Pro subscription payment failed", body: "Stripe will retry automatically. Update your payment method to avoid returning to Free, which happens 7 days after the first failure." },
-    ENDED: { subject: "Your organisation is back on Free", body: "Nothing is deleted: your events, branding settings and price tiers are kept. The fee is capped at €1 again, the Evoly brand shows, tiers on published events keep applying but can't be edited, and members other than the owner lose access. Everything comes back when you return to Pro." },
+    ENDED: { subject: "Your organisation is back on Free", body: "Nothing is deleted: your events, branding settings and price tiers are kept. The fee is capped at €2.50 again, the Evoly brand shows, tiers on published events keep applying but can't be edited, and members other than the owner lose access. Everything comes back when you return to Pro." },
     cta: "Manage my subscription",
     hello: (n: string) => `Hi ${n},`,
   },

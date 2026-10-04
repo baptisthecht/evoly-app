@@ -17,9 +17,9 @@ describe("frais bancaires estimés et net de l'organisateur (annexe C)", () => {
   it("paiement nul : aucun frais", () => {
     expect(estimateBankFee(0)).toBe(0);
   });
-  it("billet à 30 €, Free : 28,70 € par carte, 29,05 € par Bancontact", () => {
+  it("billet à 30 €, Free : 28,41 € par carte, 28,76 € par Bancontact", () => {
     const c = ticketCommission(3000, EUR_TERMS.free);
-    expect(organizerNet(3000, c, estimateBankFee(3000))).toBe(2870);
-    expect(organizerNet(3000, c, estimateBankFee(3000, "bancontact"))).toBe(2905);
+    expect(organizerNet(3000, c, estimateBankFee(3000))).toBe(2841); // 30 € − 0,89 € − 0,70 €
+    expect(organizerNet(3000, c, estimateBankFee(3000, "bancontact"))).toBe(2876); // 30 € − 0,89 € − 0,35 €
   });
 });

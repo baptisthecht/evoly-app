@@ -33,8 +33,8 @@ describe("prix de revente (RG-RSL-02)", () => {
 });
 
 describe("montants d'une revente (RG-FEE-50 à 52, annexe C)", () => {
-  it("revente 30 € par carte, Free : le vendeur récupère 28,70 €", () => {
-    expect(resaleAmounts(3000, EUR_TERMS.free, estimateBankFee(3000))).toEqual({ buyerPaysMinor: 3000, commissionMinor: 60, bankFeeMinor: 70, sellerRefundMinor: 2870 });
+  it("revente 30 € par carte, Free : le vendeur récupère 28,41 €", () => {
+    expect(resaleAmounts(3000, EUR_TERMS.free, estimateBankFee(3000))).toEqual({ buyerPaysMinor: 3000, commissionMinor: 89, bankFeeMinor: 70, sellerRefundMinor: 2841 });
   });
   it("revente à 0 € : simple transfert", () => {
     expect(resaleAmounts(0, EUR_TERMS.free, 0)).toEqual({ buyerPaysMinor: 0, commissionMinor: 0, bankFeeMinor: 0, sellerRefundMinor: 0 });

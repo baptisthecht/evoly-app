@@ -15,7 +15,7 @@ Le détail des fonctionnalités de chaque offre figure sur la page Abonnement de
 
 ## 4. Commission Evoly
 
-Pour chaque billet payant vendu, Evoly perçoit une commission de 0,15 € plus 1,5 % du prix payé, plafonnée à 1 € par billet en Free et à 0,70 € en Pro. Les billets gratuits ne génèrent aucune commission. La commission est prélevée automatiquement sur chaque paiement. Les conditions de l'offre en vigueur au moment de la réservation s'appliquent à la commande.
+Pour chaque billet payant vendu, Evoly perçoit une commission de 0,29 € plus 2 % du prix payé, plafonnée à 2,50 € par billet en Free et à 1 € en Pro, hors frais de paiement. Les billets gratuits ne génèrent aucune commission. La commission est prélevée automatiquement sur chaque paiement. Les conditions de l'offre en vigueur au moment de la réservation s'appliquent à la commande.
 
 ## 5. Paiements et frais bancaires
 
