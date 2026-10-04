@@ -232,8 +232,7 @@ TIERS_HTML = '\n'.join(tiers_html)
 YES = f'<span class="yes">{CHECK}<span class="vh">Oui</span></span>'
 NO = '<span class="no"><span aria-hidden="true">—</span><span class="vh">Non</span></span>'
 ROWS = [
-    ('Frais sur un billet à 30 €, carte comprise', '1,30 €', '1,30 €', '1,36 € en moyenne'),
-    ('Commission de 1 € maximum par billet', '1 € maximum', '0,70 € maximum', 'Rare'),
+    ('Commission plafonnée, même sur les billets chers', '2,50 € maximum', '1 € maximum', 'Rare'),
     ('Revente intégrée, sans passer par un site tiers', YES, YES, 'Rare'),
     ('Prix affiché sans frais ajoutés à l’acheteur', YES, YES, 'Une partie'),
     ('Billets gratuits sans commission ni limite', YES, YES, 'Fréquent'),
@@ -251,33 +250,33 @@ def plan_items(items):
     return ''.join(out)
 
 
-FREE_LIST = plan_items(['0 % sur les billets gratuits, sans limite', '0,15 € + 1,5 % par billet payant, 1 € maximum', 'Frais bancaires au coût réel, sans marge',
+FREE_LIST = plan_items(['0 % sur les billets gratuits, sans limite', '0,29 € + 2 % par billet payant, 2,50 € maximum', 'Frais de paiement au coût réel, sans marge',
                         'Frais inclus dans votre prix : rien n’est ajouté à l’acheteur', ('Revente sécurisée entre participants', True),
                         'Statistiques en direct', 'Sous-domaine Evoly inclus', 'Check-in QR inclus', 'E-mails transactionnels'])
-PRO_LIST = plan_items(['Tout le plan Free', 'Commission plafonnée à 0,70 € par billet', ('Prix dynamiques', True), 'E-mail marketing et automatisations',
+PRO_LIST = plan_items(['Tout le plan Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), 'E-mail marketing et automatisations',
                        'Domaine personnalisé avec SSL', 'Vos couleurs et votre logo', 'Sous-domaines dédiés par événement', 'Multi-orgs et rôles', 'Sans branding Evoly'])
 
 # ------------------------------------------------------------------ FAQ (brouillon à valider)
 FAQ = [
-    ('Comment fonctionne la commission ?', 'Evoly prend 0,15 € + 1,5 % par billet payant, jamais plus de 1 € par billet en Free et 0,70 € en Pro. Les frais bancaires de Stripe s’ajoutent au coût réel, sans marge. Tout est inclus dans le prix de vos billets et déduit automatiquement de vos ventes : vos participants paient le prix affiché, sans frais ajoutés. Les billets gratuits restent à 0 %.'),
+    ('Comment fonctionne la commission ?', 'Evoly prend 0,29 € + 2 % par billet payant, plafonnée à 2,50 € par billet en Free et à 1 € en Pro. Les frais de paiement de Stripe s’ajoutent, au coût réel et sans marge. Tout est déduit automatiquement de vos ventes : vos participants paient le prix affiché, sans frais ajoutés. Les billets gratuits restent à 0 %.'),
     ('Les billets gratuits sont-ils vraiment sans commission ?', 'Oui. 0 % sur les billets à 0 €, toujours et sans limite de volume, dans les deux offres. Aucun don pré-coché n’est ajouté au panier de vos participants.'),
     ('Quels moyens de paiement acceptez-vous ?', 'Apple Pay, Google Pay, Visa, Mastercard, American Express, PayPal, Klarna et les moyens de paiement locaux comme Bancontact, iDEAL | Wero, Cartes Bancaires, TWINT, BLIK ou Swish. Les paiements passent par Stripe, et les frais bancaires vous sont facturés au coût réel.'),
     ('Comment fonctionne la revente de billets ?', 'Un participant qui ne peut plus venir génère un lien de revente et le publie où il veut, sans rien d’autre à faire. Sa place apparaît aussi dans la section « Revente » de votre page de vente. Le premier acheteur paie en un tap : l’ancien billet est désactivé immédiatement et le nouveau lui est envoyé par e-mail. La revente est incluse dans toutes les offres.'),
     ('Comment fonctionnent les prix dynamiques ?', 'Avec l’offre Pro, vous définissez des paliers de prix, par exemple une prévente, un tarif normal et un tarif jour J. Le prix change automatiquement selon la date ou selon d’autres critères, sans que vous ayez à intervenir.'),
-    ('Qu’est-ce que l’offre Pro change ?', 'Des fonctionnalités en plus : prix dynamiques, e-mail marketing et automatisations, domaine personnalisé, vos couleurs et votre logo, multi-organisations et rôles, sans branding Evoly. Et une commission plafonnée à 0,70 € par billet, au lieu de 1 € en Free.'),
+    ('Qu’est-ce que l’offre Pro change ?', 'Des fonctionnalités en plus : prix dynamiques, e-mail marketing et automatisations, domaine personnalisé, vos couleurs et votre logo, multi-organisations et rôles, sans branding Evoly. Et une commission plafonnée à 1 € par billet, au lieu de 2,50 € en Free.'),
     ('Quand est-ce que je reçois mon argent ?', 'Les paiements passent par Stripe. Les recettes de vos ventes sont versées sur votre compte bancaire via votre compte Stripe, selon son calendrier de versement.'),
     ('Comment fonctionne l’essai Pro 14 jours ?', 'Vous accédez à toutes les fonctionnalités Pro pendant 14 jours. Une carte bancaire est demandée au démarrage. Sans résiliation avant la fin de l’essai, l’abonnement passe à 29 € par mois.'),
     ('Puis-je annuler à tout moment ?', 'Oui. L’offre Free est gratuite et sans engagement, et l’offre Pro se résilie quand vous voulez depuis votre espace. Vous repassez alors sur l’offre Free.'),
     ('Comment configurer mon domaine custom ?', 'Avec l’offre Pro, ajoutez votre domaine (par exemple tickets.monsite.com) depuis votre espace, puis faites-le pointer vers Evoly chez votre fournisseur de nom de domaine. Le certificat SSL est activé automatiquement.'),
     ('Comment fonctionne le check-in QR ?', 'Chaque billet porte un QR code. Le jour J, vous scannez les entrées avec le scanner intégré, installable sur mobile, avec un retour haptique à chaque scan. Vos bénévoles reçoivent un lien temporaire et scannent sans créer de compte. La saisie manuelle et les statistiques sont incluses.'),
     ('Que se passe-t-il si j’annule un événement ?', 'Vous annulez depuis votre espace et vos participants sont prévenus par e-mail. Les billets payés sont remboursés via Stripe.'),
-    ('Quelle différence avec HelloAsso ?', 'HelloAsso est réservé aux associations et se finance grâce à une contribution volontaire proposée à vos participants au moment du paiement. Evoly s’adresse à tous les organisateurs, partout, avec une commission simple, plafonnée à 1 € par billet et incluse dans le prix.'),
+    ('Quelle différence avec HelloAsso ?', 'HelloAsso est réservé aux associations et se finance grâce à une contribution volontaire proposée à vos participants au moment du paiement. Evoly s’adresse à tous les organisateurs, partout, avec une commission simple, plafonnée et incluse dans le prix.'),
     ('Evoly est-il conforme au RGPD ?', 'Oui. Les données sont hébergées dans l’Union européenne et traitées conformément au RGPD. Les paiements sont gérés par Stripe.'),
 ]
 FAQ_HTML = ''.join(f'<details class="qa"><summary><span>{q}</span><span class="qa__plus" aria-hidden="true">{icon("i-plus", 24, 24)}</span></summary><div class="qa__a"><p>{a}</p></div></details>' for q, a in FAQ)
 
 # ------------------------------------------------------------------ divers
-BAND_ITEMS = ['ZÉRO SURPRISE.', 'APPLE PAY ET GOOGLE PAY.', 'REVENTE EN UN LIEN.', 'JAMAIS PLUS DE 1 € PAR BILLET.', 'STATS EN DIRECT.', '0 % SUR LES BILLETS GRATUITS.']
+BAND_ITEMS = ['ZÉRO SURPRISE.', 'PRIX AFFICHÉ, PRIX PAYÉ.', 'APPLE PAY ET GOOGLE PAY.', 'REVENTE EN UN LIEN.', 'COMMISSION PLAFONNÉE.', 'STATS EN DIRECT.', '0 % SUR LES BILLETS GRATUITS.']
 
 PMS = [('Apple Pay', 'i-phone', '', -3), ('Google Pay', 'i-phone', '', 2), ('Visa', 'i-card', '', -2), ('Mastercard', 'i-card', '', 3),
        ('American Express', 'i-card', '', -1), ('PayPal', 'i-phone', '', 2), ('Klarna', 'i-clock', '', -3), ('Bancontact', 'i-card', '', 1),
@@ -346,7 +345,7 @@ BODY = f'''
       </h1>
       <div class="hero__copy">
         <p class="lede hero__lede">Créez votre événement en 60 secondes. Vos participants achètent en un tap, avec Apple Pay, Google Pay ou leur carte, et paient le prix affiché, sans frais ajoutés.</p>
-        <div class="hero__ctas"><a class="btn btn--pink" href="{REGISTER}" {EXT}>Créer mon premier événement</a><a class="link" href="#economies">Calculer mes économies</a></div>
+        <div class="hero__ctas"><a class="btn btn--pink" href="{REGISTER}" {EXT}>Créer mon premier événement</a><a class="link" href="#economies">Calculer ce que je touche</a></div>
         <ul class="trust" aria-label="Garanties">
           <li>{CHECK}Paiement sécurisé par Stripe</li><li>{CHECK}Données hébergées en UE</li><li>{CHECK}Conforme au RGPD</li><li>{CHECK}Gratuit, sans engagement</li>
         </ul>
@@ -383,8 +382,8 @@ BODY = f'''
 
   <section class="calc" id="economies" aria-labelledby="calc-title">
     <div class="calc__head">
-      <h2 class="h2" id="calc-title">calculez vos <span class="script">économies</span>.</h2>
-      <p class="lede">Ce que vous touchez avec Evoly, commission et frais bancaires compris, face à la moyenne des autres billetteries.</p>
+      <h2 class="h2" id="calc-title">calculez ce que vous <span class="script">touchez</span>.</h2>
+      <p class="lede">Ce que vous touchez avec Evoly, commission déduite, en Free et en Pro.</p>
     </div>
     <div class="calc__body">
       <div class="ctrl">
@@ -393,16 +392,15 @@ BODY = f'''
         <div class="ctrl__sum">
           <div><span>Chiffre d’affaires</span><b id="calc-gross">6 000 €</b></div>
           <div class="ctrl__net"><span>Vous touchez avec Evoly <em id="calc-plan">Free</em></span><b id="calc-net">5 740 €</b></div>
-          <p class="ctrl__more" id="calc-more">Soit <b>12 €</b> de plus qu’avec la moyenne des concurrents.</p>
+          <p class="ctrl__more" id="calc-more">À ce prix, l’offre Free est la plus avantageuse.</p>
         </div>
       </div>
       <div class="res">
-        <div class="stub stub--avg" data-k="avg"><p class="stub__name">Moyenne des concurrents</p><p class="stub__rule" id="calc-range">de 0,59 € à 2,20 € par billet selon la billetterie</p><p class="stub__amt"><b>272 €</b><span>de frais</span></p><div class="stub__bar" aria-hidden="true"><i></i></div></div>
-        <div class="stub stub--free is-best" data-k="free"><span class="stub__best">meilleur choix</span><p class="stub__name">Evoly Free</p><p class="stub__rule">0,15 € + 1,5 % par billet, 1 € maximum, plus les frais bancaires</p><p class="stub__amt"><b>260 €</b><span>de frais</span></p><p class="stub__split">dont <b id="calc-comm-free">120 €</b> de commission et <b id="calc-bank-free">140 €</b> de frais bancaires</p><div class="stub__bar" aria-hidden="true"><i></i></div></div>
-        <div class="stub stub--pro" data-k="pro"><span class="stub__best">meilleur choix</span><p class="stub__name">Evoly Pro</p><p class="stub__rule">0,15 € + 1,5 % par billet, 0,70 € maximum, plus 29 € d’abonnement et les frais bancaires</p><p class="stub__amt"><b>289 €</b><span>de frais</span></p><p class="stub__split">dont <b id="calc-comm-pro">120 €</b> de commission, 29 € d’abonnement et <b id="calc-bank-pro">140 €</b> de frais bancaires</p><div class="stub__bar" aria-hidden="true"><i></i></div></div>
+        <div class="stub stub--free is-best" data-k="free"><span class="stub__best">meilleur choix</span><p class="stub__name">Evoly Free</p><p class="stub__rule">0,29 € + 2 % par billet, 2,50 € maximum</p><p class="stub__amt"><b>178 €</b><span>de commission</span></p><div class="stub__bar" aria-hidden="true"><i></i></div></div>
+        <div class="stub stub--pro" data-k="pro"><span class="stub__best">meilleur choix</span><p class="stub__name">Evoly Pro</p><p class="stub__rule">0,29 € + 2 % par billet, 1 € maximum, plus 29 € d’abonnement</p><p class="stub__amt"><b>207 €</b><span>de commission et d’abonnement</span></p><p class="stub__split">dont <b id="calc-comm-pro">178 €</b> de commission et 29 € d’abonnement</p><div class="stub__bar" aria-hidden="true"><i></i></div></div>
       </div>
     </div>
-    <p class="calc__note">Moyenne de 9 billetteries en libre-service : Billetweb, Yurplan, Weezevent, PassPass, Eventbrite (formule Essentials, France), Ticket Tailor, Weeztix, Billetto et Luma. Tarifs publics relevés en septembre 2026, frais de paiement compris, un billet par commande. Paiements par carte européenne (1,5 % + 0,25 € par paiement chez Stripe), abonnement Pro compté pour un mois. Les frais Evoly sont inclus dans le prix de vos billets : vos participants paient le prix affiché.</p>
+    <p class="calc__note">Commission Evoly hors frais de paiement : les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Abonnement Pro compté pour un mois. Vos participants paient toujours le prix affiché.</p>
     <p class="vh" id="calc-live" aria-live="polite"></p>
   </section>
 
@@ -653,7 +651,7 @@ BODY = f'''
     <div class="pricing__head">
       <h2 class="h2" id="pr-title">sans frais cachés, <span class="script">vraiment</span>.</h2>
       <div class="pricing__side">
-        <p class="lede">Une commission simple : 0,15 € + 1,5 % par billet payant, jamais plus de 1 € en Free, ni plus de 0,70 € en Pro.</p>
+        <p class="lede">Une commission simple : 0,29 € + 2 % par billet payant, plafonnée à 2,50 € en Free et à 1 € en Pro.</p>
         <div class="bill" role="group" aria-label="Facturation"><button type="button" data-bill="month" aria-pressed="true">Mensuel</button><button type="button" data-bill="year" aria-pressed="false">Annuel<span class="off">−15 %</span></button></div>
       </div>
     </div>
@@ -672,7 +670,7 @@ BODY = f'''
         <a class="btn plan__cta" href="{REGISTER_PRO}" {EXT}>Essayer Pro 14 jours</a>
       </article>
     </div>
-    <p class="pricing__note">Commission et frais bancaires sont déduits automatiquement de vos ventes : vos participants paient le prix affiché, rien de plus. Les frais bancaires sont facturés au coût réel par Stripe.</p>
+    <p class="pricing__note">Commission hors frais de paiement. Les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Tout est déduit automatiquement de vos ventes : vos participants paient le prix affiché, rien de plus.</p>
     <div class="waves" aria-hidden="true"></div>
   </section>
 
@@ -789,8 +787,9 @@ else:
 # ------------------------------------------------------------------ référencement (titre, aperçus de liens, données structurées)
 import json as _json, re as _re
 SITE = 'https://evoly.me'
-SEO_TITLE = 'Evoly — Billetterie en ligne, 1 € max par billet'
-SEO_DESC = 'Vendez vos billets en ligne en 60 secondes : paiement en un tap (Apple Pay, Google Pay), revente en un lien, plan de salle, statistiques en direct. Commission plafonnée à 1 € par billet.'
+SEO_TITLE = 'Evoly — Billetterie en ligne : prix affiché, prix payé'
+OG_VERSION = '2'  # à incrémenter quand les images d'aperçu changent (caches de Facebook, WhatsApp, LinkedIn)
+SEO_DESC = 'Vendez vos billets en ligne en 60 secondes : paiement en un tap (Apple Pay, Google Pay), revente en un lien, plan de salle, statistiques en direct. Commission plafonnée, et vos participants paient le prix affiché.'
 _strip = lambda t: _re.sub(r'<[^>]+>', '', t).replace('\u202f', ' ').strip()
 LD = {
   '@context': 'https://schema.org',
@@ -799,8 +798,8 @@ LD = {
     {'@type': 'WebSite', '@id': f'{SITE}/#site', 'name': 'Evoly', 'url': f'{SITE}/', 'inLanguage': 'fr', 'publisher': {'@id': f'{SITE}/#organisation'}},
     {'@type': 'SoftwareApplication', 'name': 'Evoly', 'applicationCategory': 'BusinessApplication', 'operatingSystem': 'Web, iOS, Android', 'url': 'https://app.evoly.me/register', 'description': SEO_DESC, 'publisher': {'@id': f'{SITE}/#organisation'},
      'offers': [
-       {'@type': 'Offer', 'name': 'Free', 'price': '0', 'priceCurrency': 'EUR', 'description': 'Billets gratuits sans commission ; billets payants : 0,15 € + 1,5 %, plafonné à 1 € par billet.'},
-       {'@type': 'Offer', 'name': 'Pro', 'price': '29', 'priceCurrency': 'EUR', 'priceSpecification': {'@type': 'UnitPriceSpecification', 'price': '29', 'priceCurrency': 'EUR', 'billingDuration': 'P1M', 'unitText': 'mois'}, 'description': 'Commission plafonnée à 0,70 € par billet, marque, domaine personnalisé, plan de salle, équipe.'},
+       {'@type': 'Offer', 'name': 'Free', 'price': '0', 'priceCurrency': 'EUR', 'description': 'Billets gratuits sans commission ; billets payants : 0,29 € + 2 %, plafonnée à 2,50 € par billet, hors frais de paiement.'},
+       {'@type': 'Offer', 'name': 'Pro', 'price': '29', 'priceCurrency': 'EUR', 'priceSpecification': {'@type': 'UnitPriceSpecification', 'price': '29', 'priceCurrency': 'EUR', 'billingDuration': 'P1M', 'unitText': 'mois'}, 'description': 'Commission plafonnée à 1 € par billet, hors frais de paiement ; marque, domaine personnalisé, plan de salle, équipe.'},
      ]},
     {'@type': 'FAQPage', 'mainEntity': [{'@type': 'Question', 'name': _strip(q), 'acceptedAnswer': {'@type': 'Answer', 'text': _strip(a)}} for q, a in FAQ]},
   ],
@@ -811,8 +810,8 @@ SEO_HEAD = f"""<title>{SEO_TITLE}</title>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Evoly"><meta property="og:locale" content="fr_FR">
 <meta property="og:url" content="{SITE}/"><meta property="og:title" content="{SEO_TITLE}"><meta property="og:description" content="{SEO_DESC}">
-<meta property="og:image" content="{SITE}/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Evoly, la billetterie en ligne : commission plafonnée à 1 € par billet">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne : commission plafonnée à 1 € par billet">
+<meta property="og:image" content="{SITE}/og.png?v={OG_VERSION}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Evoly, la billetterie en ligne : prix affiché, prix payé">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png?v={OG_VERSION}"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne : prix affiché, prix payé">
 <script type="application/ld+json">{_json.dumps(LD, ensure_ascii=False)}</script>"""
 
 page = f'''<!doctype html>

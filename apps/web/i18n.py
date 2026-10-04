@@ -17,7 +17,10 @@ META_TEXT = ('description', 'og:title', 'og:description', 'og:image:alt', 'twitt
 JS = {
     'paidOne': 'Payé en un tap : le billet part par e-mail.',
     'paidMany': 'Payé en un tap : vos {n} billets partent par e-mail.',
-    'calcLive': 'Pour {n} billets à {p} : {free} de frais avec Evoly Free, {pro} avec Evoly Pro, contre {avg} en moyenne ailleurs.',
+    'calcLive': 'Pour {n} billets à {p} : {free} de commission avec Evoly Free, {pro} avec Evoly Pro abonnement compris. Vous touchez {net}.',
+    'calcProSaves': 'Le Pro vous fait économiser {x} à ce volume.',
+    'calcProFrom': 'Le Pro devient rentable dès {n} billets à ce prix.',
+    'calcFreeBest': 'À ce prix, l’offre Free est la plus avantageuse.',
     'resaleToast': 'Achat simulé\u00a0: le billet de Thomas est désactivé, celui de Léa est parti par e-mail.',
     'dayJ': 'Jour J', 'dayMinus': 'J-{n}', 'tierPresale': 'Prévente', 'tierNormal': 'Normal', 'tierDay': 'Jour J',
     'yearly': 'Soit 295,80\u202f€ facturés une fois par an', 'monthly': 'Facturé chaque mois',
@@ -63,6 +66,24 @@ def _ld_translate(obj, table):
     if isinstance(obj, list): return [_ld_translate(v, table) for v in obj]
     return obj
 
+# montants et pourcentages isolés (sans lettres, donc hors traduction) : écrits au format de chaque pays
+NUM_FMT = {  # (séparateur de milliers, séparateur décimal, gabarit monétaire, espace avant %)
+    'en': (',', '.', '€{n}', ''), 'nl': ('.', ',', '€ {n}', ''), 'de': ('.', ',', '{n} €', '\u00a0'),
+    'es': ('.', ',', '{n} €', '\u00a0'), 'it': ('.', ',', '{n} €', ''), 'pt': ('\u00a0', ',', '{n} €', ''),
+}
+MONEY = re.compile(r'(\d{1,3}(?:[\u202f\u00a0 ]\d{3})+|\d+)(?:,(\d{1,2}))?[\u202f\u00a0 ]?€')
+PCT = re.compile(r'(\d+)(?:,(\d+))?[\u202f\u00a0 ]?%')
+
+def localize_numbers(text, code):
+    if code not in NUM_FMT or any(c.isalpha() for c in text): return text
+    thou, dec, money, pct_space = NUM_FMT[code]
+    def num(i, d, group=True):
+        i = re.sub(r'\D', '', i)
+        if group and len(i) > 3 and not (code == 'es' and len(i) == 4): i = f'{int(i):,}'.replace(',', thou)
+        return i + (dec + d if d else '')
+    text = MONEY.sub(lambda m: money.format(n=num(m.group(1), m.group(2))), text)
+    return PCT.sub(lambda m: num(m.group(1), m.group(2), False) + pct_space + '%', text)
+
 def translate(page, table):
     parts = []
     for part in TOKEN.split(page):
@@ -79,7 +100,7 @@ def translate(page, table):
         else:
             lead, trail = re.match(r'^\s*', part).group(0), re.search(r'\s*$', part).group(0)
             t = norm(part)
-            if not translatable(t): parts.append(part); continue
+            if not translatable(t): parts.append(localize_numbers(part, table.get('__lang__', '')) if ('€' in part or '%' in part) else part); continue
             out = table.get(key(t), t)
             # traduction qui commence par une ponctuation (« , que… », « -Marketing ») : pas d'espace devant
             if out[:1] in ',.;:!?)-»”': lead = ''
@@ -134,7 +155,7 @@ def build_all(page_fr, dist):
     written = {}
     for code, _, og_locale, _ in LANGS:
         table = load(code) if code != 'fr' else {}
-        page = translate(page_fr, table) if code != 'fr' else page_fr
+        page = translate(page_fr, {**table, '__lang__': code}) if code != 'fr' else page_fr
         page = decorate(head_for(page, code, og_locale), code, table)
         target = os.path.join(dist, 'evoly-billetterie.html') if code == 'fr' else os.path.join(dist, code, 'index.html')
         os.makedirs(os.path.dirname(target), exist_ok=True)

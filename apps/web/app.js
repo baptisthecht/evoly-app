@@ -259,37 +259,21 @@
   /* ---------- curseurs : remplissage ---------- */
   const fill = (r) => r.style.setProperty('--f', ((r.value - r.min) / (r.max - r.min)) * 100 + '%');
 
-  /* ---------- calculateur d'économies : Free et Pro face à la moyenne ---------- */
+  /* ---------- calculateur : ce que l'organisateur touche en Free et en Pro (commission hors frais de paiement) ---------- */
   const cN = $('#calc-n'), cP = $('#calc-p');
   if (cN && cP) {
     const outN = $('#calc-n-out'), outP = $('#calc-p-out'), gross = $('#calc-gross'), net = $('#calc-net'), planEl = $('#calc-plan'), more = $('#calc-more'), live = $('#calc-live');
-    const rangeEl = $('#calc-range');
-    const stubs = { avg: $('[data-k="avg"]'), free: $('[data-k="free"]'), pro: $('[data-k="pro"]') };
-    const els = { commFree: $('#calc-comm-free'), bankFree: $('#calc-bank-free'), commPro: $('#calc-comm-pro'), bankPro: $('#calc-bank-pro') };
-    // frais par billet, paiement compris (tarifs publics, septembre 2026)
-    const RIVALS = [
-      (p) => 0.29 + 0.010 * p,             // Billetweb
-      (p) => 0.39 + 0.010 * p,             // Yurplan
-      (p) => (p <= 40 ? 0.99 : 0.025 * p), // Weezevent
-      (p) => 0.60 + 0.020 * p,             // PassPass
-      (p) => 0.49 + 0.035 * p,             // Eventbrite Essentials (France)
-      (p) => 0.95 + 0.015 * p,             // Ticket Tailor + Stripe
-      (p) => 1.00 + 0.018 * p,             // Weeztix
-      (p) => 0.90 + 0.039 * p,             // Billetto
-      (p) => 0.25 + 0.065 * p              // Luma + Stripe
-    ];
+    const stubs = { free: $('[data-k="free"]'), pro: $('[data-k="pro"]') };
+    const commProEl = $('#calc-comm-pro');
     const SUB = 29;
-    const comm = (p, cap) => Math.min(cap, 0.15 + 0.015 * p);
-    const bank = (p) => 0.25 + 0.015 * p; // carte européenne, un billet par commande
+    // grille d'octobre 2026 : 0,29 € + 2 % par billet payant, plafonnée à 2,50 € (Free) et 1 € (Pro), arrondie au centime
+    const comm = (p, cap) => Math.min(cap, Math.round((0.29 + 0.02 * p) * 100) / 100);
     const compute = () => {
       const n = +cN.value, p = +cP.value, g = n * p;
-      const per = RIVALS.map((f) => f(p));
-      const avgR = Math.round((n * per.reduce((a, b) => a + b, 0)) / per.length);
-      const bankR = Math.round(n * bank(p));
-      const commFree = Math.round(n * comm(p, 1)), commPro = Math.round(n * comm(p, 0.70));
-      const free = commFree + bankR, pro = commPro + bankR + SUB;
-      const best = pro < free ? 'pro' : 'free', bestFees = Math.min(free, pro);
-      return { n, p, g, avgR, bankR, commFree, commPro, free, pro, best, net: g - bestFees, save: avgR - bestFees, min: Math.min(...per), max: Math.max(...per) };
+      const commFree = Math.round(n * comm(p, 2.5) * 100) / 100, commPro = Math.round(n * comm(p, 1) * 100) / 100;
+      const pro = commPro + SUB, best = pro < commFree ? 'pro' : 'free';
+      const gain = comm(p, 2.5) - comm(p, 1); // économie par billet en Pro
+      return { n, p, g, commFree, commPro, pro, best, net: g - Math.min(commFree, pro), save: commFree - pro, from: gain > 0 ? Math.ceil(SUB / gain) : 0 };
     };
     const shown = {};
     const put = (key, el, val, now, write) => {
@@ -298,12 +282,9 @@
       if (shown[key] === undefined) shown[key] = val;
       G.to(shown, { [key]: val, duration: .5, ease: 'power3.out', overwrite: 'auto', onUpdate: () => w(shown[key]) });
     };
-    const writeMore = (v) => {
-      const x = Math.round(v);
-      more.innerHTML = x > 0 ? `Soit <b>${eur0(x)}</b> de plus qu’avec la moyenne des concurrents.`
-        : x < 0 ? `Soit <b>${eur0(-x)}</b> de moins qu’avec la moyenne des concurrents.`
-        : 'Autant qu’avec la moyenne des concurrents.';
-    };
+    const advice = (r) => r.best === 'pro' ? T('calcProSaves', { x: eur0(r.save) }, 'Le Pro vous fait économiser {x} à ce volume.')
+      : r.from > 0 ? T('calcProFrom', { n: nf0.format(r.from) }, 'Le Pro devient rentable dès {n} billets à ce prix.')
+      : T('calcFreeBest', {}, 'À ce prix, l’offre Free est la plus avantageuse.');
     const render = (now) => {
       const r = compute();
       outN.textContent = nf0.format(r.n);
@@ -311,26 +292,20 @@
       fill(cN); fill(cP);
       put('g', gross, r.g, now);
       put('net', net, r.net, now);
-      put('save', more, r.save, now, writeMore);
-      put('avg', $('.stub__amt b', stubs.avg), r.avgR, now);
-      put('free', $('.stub__amt b', stubs.free), r.free, now);
+      put('free', $('.stub__amt b', stubs.free), r.commFree, now);
       put('pro', $('.stub__amt b', stubs.pro), r.pro, now);
-      put('cf', els.commFree, r.commFree, now);
-      put('bf', els.bankFree, r.bankR, now);
-      put('cp', els.commPro, r.commPro, now);
-      put('bp', els.bankPro, r.bankR, now);
+      put('cp', commProEl, r.commPro, now);
+      more.textContent = advice(r);
       planEl.textContent = r.best === 'pro' ? 'Pro' : 'Free';
       stubs.free.classList.toggle('is-best', r.best === 'free');
       stubs.pro.classList.toggle('is-best', r.best === 'pro');
-      rangeEl.textContent = `de ${eur(r.min)} à ${eur(r.max)} par billet selon la billetterie`;
-      const max = Math.max(1, r.avgR, r.free, r.pro);
-      stubs.avg.style.setProperty('--w', (r.avgR / max) * 100 + '%');
-      stubs.free.style.setProperty('--w', Math.max(2, (r.free / max) * 100) + '%');
+      const max = Math.max(1, r.commFree, r.pro);
+      stubs.free.style.setProperty('--w', Math.max(2, (r.commFree / max) * 100) + '%');
       stubs.pro.style.setProperty('--w', Math.max(2, (r.pro / max) * 100) + '%');
     };
     const announce = () => {
       const r = compute();
-      live.textContent = T('calcLive', { n: nf0.format(r.n), p: eur0(r.p), free: eur0(r.free), pro: eur0(r.pro), avg: eur0(r.avgR) }, 'Pour {n} billets à {p} : {free} de frais avec Evoly Free, {pro} avec Evoly Pro, contre {avg} en moyenne ailleurs.');
+      live.textContent = T('calcLive', { n: nf0.format(r.n), p: eur0(r.p), free: eur0(r.commFree), pro: eur0(r.pro), net: eur0(r.net) }, 'Pour {n} billets à {p} : {free} de commission avec Evoly Free, {pro} avec Evoly Pro abonnement compris. Vous touchez {net}.');
     };
     [cN, cP].forEach((i) => { i.addEventListener('input', () => render(false)); i.addEventListener('change', announce); });
     render(true);
