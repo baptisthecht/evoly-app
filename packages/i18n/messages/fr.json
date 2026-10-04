@@ -1867,7 +1867,7 @@
     "title": "Billets offerts",
     "intro": "Envoyez des billets gratuits à vos invités : sans paiement ni commission, décomptés de la jauge. Chaque invité reçoit ses billets par e-mail.",
     "recipients": "Invités",
-    "recipientsHint": "Une adresse par ligne, éventuellement avec le nom : Léa Martin <lea@exemple.be> ou lea@exemple.be;Léa;Martin. 200 au maximum.",
+    "recipientsHint": "Une adresse par ligne, éventuellement avec le nom : Léa Martin '<'lea@exemple.be'>' ou lea@exemple.be;Léa;Martin. 200 au maximum.",
     "ticketType": "Tarif",
     "quantityEach": "Billets par invité",
     "send": "Envoyer les billets",

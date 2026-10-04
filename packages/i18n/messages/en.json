@@ -1867,7 +1867,7 @@
     "title": "Complimentary tickets",
     "intro": "Send free tickets to your guests: no payment or fee, counted against capacity. Each guest gets their tickets by email.",
     "recipients": "Guests",
-    "recipientsHint": "One address per line, optionally with the name: Léa Martin <lea@example.com> or lea@example.com;Léa;Martin. 200 at most.",
+    "recipientsHint": "One address per line, optionally with the name: Léa Martin '<'lea@example.com'>' or lea@example.com;Léa;Martin. 200 at most.",
     "ticketType": "Ticket type",
     "quantityEach": "Tickets per guest",
     "send": "Send the tickets",
