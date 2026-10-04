@@ -6,6 +6,7 @@ Evoly — billetterie en ligne : créez votre événement en 60 secondes ; prix 
 
 ## Key facts
 - Buyers pay in one tap with Apple Pay, Google Pay, cards, PayPal, Klarna and local payment methods; payouts go directly to the organiser's own Stripe account.
+- Price helper: organisers can enter what they want to receive per ticket and the attendee price is calculated for them (commission and payment fees included); or they enter the attendee price and see what they receive.
 - Fan-to-fan resale with a shareable link, capped at face value.
 - Assigned seating (Pro): visual seating plan editor with templates (theatre, hall, gala, church, cabaret, conference, arena, football stadium), best seats chosen automatically, "book next to my friends" link.
 - E-tickets with QR codes, Apple Wallet and Google Wallet passes, free scanner app for volunteers (works offline).

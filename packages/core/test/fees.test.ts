@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyBps, assertNonNegative, capThresholdMinor, EUR_TERMS, feeSnapshot, normalizeCurrency, sum, ticketCommission } from "../src";
+import { applyBps, assertNonNegative, capThresholdMinor, EUR_TERMS, feeSnapshot, grossForNet, netForGross, normalizeCurrency, roundedPriceOptions, sum, ticketCommission } from "../src";
 
 const free = EUR_TERMS.free;
 const pro = EUR_TERMS.pro;
@@ -88,3 +88,34 @@ describe("saisie des prix", () => {
     for (const bad of ["", "-5", "24,555", "abc", "24,", "1e3", "12.345.678"]) expect(parseMajorToMinor(bad)).toBeNull();
   });
 });
+
+describe("aide au prix : ce que l'organisateur veut toucher → prix de vente", () => {
+  it("20 € voulus en Free : 21,29 € (0,72 € de commission, 0,57 € de frais de paiement)", () => {
+    expect(grossForNet(2000, free)).toBe(2129);
+    expect(netForGross(2129, free)).toBe(2000);
+    expect(netForGross(2128, free)).toBe(1999); // c'est bien le plus petit prix qui convient
+  });
+  it("plafonds atteints : 50 € en Pro → 52,03 € ; 150 € en Free → 155,08 €", () => {
+    expect(grossForNet(5000, pro)).toBe(5203);
+    expect(netForGross(5203, pro)).toBe(5000);
+    expect(grossForNet(15000, free)).toBe(15508);
+    expect(netForGross(15508, free)).toBe(15000);
+  });
+  it("billet gratuit : aucun frais", () => {
+    expect(grossForNet(0, free)).toBe(0);
+    expect(netForGross(0, free)).toBe(0);
+  });
+  it("le net ne descend jamais sous la somme voulue, de 1 à 300 €", () => {
+    for (let net = 100; net <= 30_000; net += 37) {
+      const g = grossForNet(net, free);
+      expect(netForGross(g, free)).toBeGreaterThanOrEqual(net);
+      expect(netForGross(g - 1, free)).toBeLessThan(net);
+    }
+  });
+  it("prix ronds proposés : 21,29 € → 21 € et 22 € ; 12,30 € → 12 € et 12,50 €", () => {
+    expect(roundedPriceOptions(2129)).toEqual([2100, 2200]);
+    expect(roundedPriceOptions(1230)).toEqual([1200, 1250]);
+    expect(roundedPriceOptions(2000)).toEqual([]);
+  });
+});
+

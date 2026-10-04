@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { saveTicketTypeAction, ticketCommandAction } from "../../actions";
-import { FeePreview } from "./FeePreview";
+import { PriceFields } from "./PriceFields";
 import { TiersEditor, type TierRow } from "./TiersEditor";
 
 export interface TicketTypeRow {
@@ -58,18 +58,15 @@ export function TicketTypeForm({ orgSlug, eventId, row, terms, onDone }: { orgSl
   return (
     <form {...formProps} className="grid gap-5" noValidate>
       <FormError state={state} />
-      <div className="grid gap-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid gap-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Field label={t("name")} htmlFor={`name-${row?.id ?? "new"}`} error={error("name")}>
           <Input id={`name-${row?.id ?? "new"}`} name="name" defaultValue={row?.name ?? ""} maxLength={60} required />
-        </Field>
-        <Field label={t("price")} htmlFor={`price-${row?.id ?? "new"}`} hint={row?.priceLocked ? t("priceLocked") : t("priceHint")} error={error("price")}>
-          <Input id={`price-${row?.id ?? "new"}`} name="price" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} readOnly={row?.priceLocked} required />
         </Field>
         <Field label={t("quantity")} htmlFor={`quantity-${row?.id ?? "new"}`} hint={t("unlimited")} error={error("quantity")}>
           <Input id={`quantity-${row?.id ?? "new"}`} name="quantity" type="number" min={Math.max(1, row?.quantitySold ?? 1)} inputMode="numeric" defaultValue={row?.quantity ?? ""} />
         </Field>
       </div>
-      <FeePreview price={price} terms={terms} />
+      <PriceFields id={`price-${row?.id ?? "new"}`} name="price" label={t("pricePaid")} hint={row?.priceLocked ? t("priceLocked") : t("priceHint")} error={error("price")} price={price} onPrice={setPrice} terms={terms} locked={row?.priceLocked} />
       <details className="rounded-md bg-surface-sunken px-4 py-3 [&[open]]:pb-4">
         <summary className="cursor-pointer font-semibold">{t("moreOptions")}</summary>
         <div className="mt-4 grid gap-5">

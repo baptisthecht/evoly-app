@@ -273,7 +273,12 @@
     "emptyBody": "Ajoutez au moins un tarif pour pouvoir publier.",
     "requireHolderEmail": "Demander aussi l’e-mail de chaque titulaire",
     "seatingMoved": "Le plan de salle se gère désormais dans son propre onglet.",
-    "seatingLink": "Ouvrir le plan de salle"
+    "seatingLink": "Ouvrir le plan de salle",
+    "youGet": "Vous touchez",
+    "youGetHint": "Ce que vous voulez recevoir par billet : le prix se calcule tout seul.",
+    "pricePaid": "Prix payé par le participant",
+    "roundTo": "Prix ronds :",
+    "roundOption": "{price} · vous touchez {net}"
   },
   "checkout": {
     "tickets": "Billets",

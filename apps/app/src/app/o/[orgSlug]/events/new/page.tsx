@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
+import { getPlans } from "@/server/plans";
 import { NewEventForm } from "./NewEventForm";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,6 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function NewEventPage({ params }: { params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params;
   const ctx = await requireOrgContext(orgSlug);
+  const plans = await getPlans();
+  const terms = plans[ctx.plan].terms[ctx.organization.currency] ?? plans[ctx.plan].terms.EUR!; // aide au prix du premier tarif
   if (!can(ctx.membership, "EVENTS_CREATE") || ctx.readOnly) notFound();
   const t = await getTranslations("events");
   // proposition : dans trois semaines, à 20 h, dans le fuseau de l'organisation
@@ -26,7 +29,7 @@ export default async function NewEventPage({ params }: { params: Promise<{ orgSl
         <h1 className="page-title">{t("newEvent")}</h1>
         <p className="text-ink-muted">{t("newEventIntro")}</p>
       </header>
-      <NewEventForm orgSlug={orgSlug} timezone={ctx.organization.timezone} country={ctx.organization.country} defaultStart={defaultStart} currencySymbol={symbol} />
+      <NewEventForm orgSlug={orgSlug} terms={terms} timezone={ctx.organization.timezone} country={ctx.organization.country} defaultStart={defaultStart} currencySymbol={symbol} />
     </div>
   );
 }

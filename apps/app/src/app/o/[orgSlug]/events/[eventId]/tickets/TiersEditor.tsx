@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
 import { saveTiersAction } from "../../actions";
-import { FeePreview } from "./FeePreview";
+import { PriceFields } from "./PriceFields";
 
 export interface TierRow {
   id: string | null;
@@ -50,16 +50,11 @@ export function TiersEditor({ orgSlug, eventId, ticketTypeId, initial, enabled, 
       <ol className="grid gap-3">
         {rows.map((row, i) => (
           <li key={row.id ?? `new-${i}`} className="grid gap-3 rounded-md bg-surface-sunken p-4">
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)]">
-              <label className="grid gap-1 text-xs font-bold">
-                {t("name")}
-                <Input placeholder={t("namePlaceholder")} value={row.name} onChange={(e) => update(i, { name: e.target.value })} readOnly={readOnly} />
-              </label>
-              <label className="grid gap-1 text-xs font-bold">
-                {t("price")}
-                <Input inputMode="decimal" value={row.price} onChange={(e) => update(i, { price: e.target.value })} readOnly={readOnly || row.sold > 0} />
-              </label>
-            </div>
+            <label className="grid gap-1 text-xs font-bold">
+              {t("name")}
+              <Input placeholder={t("namePlaceholder")} value={row.name} onChange={(e) => update(i, { name: e.target.value })} readOnly={readOnly} />
+            </label>
+            <PriceFields compact id={`tier-${ticketTypeId}-${i}-price`} label={t("price")} price={row.price} onPrice={(v) => update(i, { price: v })} terms={terms} locked={readOnly || row.sold > 0} />
             <div className="grid items-end gap-3 sm:grid-cols-3">
               <label className="grid gap-1 text-xs font-bold">
                 {t("from")}
@@ -74,7 +69,6 @@ export function TiersEditor({ orgSlug, eventId, ticketTypeId, initial, enabled, 
                 <Input type="number" min={1} inputMode="numeric" value={row.quantityLimit} onChange={(e) => update(i, { quantityLimit: e.target.value })} readOnly={readOnly} />
               </label>
             </div>
-            <FeePreview price={row.price} terms={terms} />
             <div className="flex items-center justify-between gap-2 text-sm text-ink-muted">
               <span>{row.sold > 0 ? t("soldOnTier", { count: row.sold }) : t("noSales")}</span>
               {!readOnly && row.sold === 0 ? (

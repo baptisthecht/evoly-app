@@ -273,7 +273,12 @@
     "emptyBody": "Add at least one ticket type to publish.",
     "requireHolderEmail": "Also ask for each holder’s email",
     "seatingMoved": "The seating plan now has its own tab.",
-    "seatingLink": "Open the seating plan"
+    "seatingLink": "Open the seating plan",
+    "youGet": "You receive",
+    "youGetHint": "What you want to receive per ticket: the price is calculated for you.",
+    "pricePaid": "Price paid by the attendee",
+    "roundTo": "Round prices:",
+    "roundOption": "{price} · you receive {net}"
   },
   "checkout": {
     "tickets": "Tickets",
