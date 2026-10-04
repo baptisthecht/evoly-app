@@ -23,3 +23,13 @@ test("acheteur espagnol : page d'événement, commande et confirmation en espagn
   await expect(guest.getByRole("img", { name: /^Código QR de la entrada / })).toHaveCount(1);
   await ctx.close();
 });
+
+test("organisateur allemand : inscription en allemand, d'après la langue du navigateur", async ({ browser }) => {
+  const ctx = await browser.newContext({ locale: "de-DE" });
+  const page = await ctx.newPage();
+  await page.goto("/register");
+  await expect(page.locator("html")).toHaveAttribute("lang", "de");
+  await expect(page.getByRole("heading", { name: "Konto erstellen" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mein Konto erstellen" })).toBeVisible();
+  await ctx.close();
+});

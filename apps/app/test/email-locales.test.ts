@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { refundEmail, seatChangedEmail, ticketsLookupEmail } from "@/server/email/templates";
+import { refundEmail, resetPasswordEmail, seatChangedEmail, ticketsLookupEmail, verifyEmailEmail } from "@/server/email/templates";
 
 // des mots qui ne doivent jamais apparaître dans un e-mail envoyé dans une autre langue
 const FRENCH = /\b(Bonjour|Votre|vos billets|remboursement|Voir mes)\b/i;
@@ -29,4 +29,11 @@ describe("e-mails des acheteurs dans leur langue", () => {
   it("langue inconnue : repli sur l'anglais, jamais sur le français", () => {
     expect(ticketsLookupEmail({ locale: "ja" as never, organizationName: "Asso", orders: [] }).subject).toBe("Your tickets");
   });
+
+  it("e-mails de compte des organisateurs dans leur langue", () => {
+    expect(verifyEmailEmail({ url: "https://x.test/v", locale: "es" }).subject).toBe("Confirma tu dirección de e-mail");
+    expect(resetPasswordEmail({ url: "https://x.test/r", locale: "de" }).subject).toBe("Setzen Sie Ihr Passwort zurück");
+    expect(verifyEmailEmail({ url: "https://x.test/v", locale: "nl" }).text).not.toMatch(FRENCH);
+  });
 });
+
