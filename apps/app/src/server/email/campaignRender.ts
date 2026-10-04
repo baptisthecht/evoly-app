@@ -13,6 +13,11 @@ export interface CampaignEventCard { title: string; startsAt: Date; timezone: st
 const COPY = {
   fr: { reason: (org: string) => `Vous recevez cet e-mail car vous avez accepté de recevoir les actualités de ${org}.`, unsubscribe: "Se désinscrire", book: "Voir l’événement" },
   en: { reason: (org: string) => `You’re receiving this email because you agreed to receive news from ${org}.`, unsubscribe: "Unsubscribe", book: "See the event" },
+  es: { reason: (org: string) => `Recibes este e-mail porque aceptaste recibir las novedades de ${org}.`, unsubscribe: "Darse de baja", book: "Ver el evento" },
+  de: { reason: (org: string) => `Sie erhalten diese E-Mail, weil Sie zugestimmt haben, Neuigkeiten von ${org} zu erhalten.`, unsubscribe: "Abmelden", book: "Veranstaltung ansehen" },
+  it: { reason: (org: string) => `Ricevi questa e-mail perché hai accettato di ricevere le novità di ${org}.`, unsubscribe: "Annulla l’iscrizione", book: "Vedi l’evento" },
+  pt: { reason: (org: string) => `Recebe este e-mail porque aceitou receber as novidades de ${org}.`, unsubscribe: "Cancelar a subscrição", book: "Ver o evento" },
+  nl: { reason: (org: string) => `Je ontvangt deze e-mail omdat je ermee hebt ingestemd nieuws van ${org} te ontvangen.`, unsubscribe: "Uitschrijven", book: "Bekijk het evenement" },
 } as const;
 
 /** Section 9.18 : rendu d'une campagne (blocs), avec le pied de page obligatoire (RG-MKT-02). */
