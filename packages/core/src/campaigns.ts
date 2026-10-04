@@ -68,11 +68,14 @@ export function validateSegment(input: unknown): CampaignSegment | null {
   return null;
 }
 
-/** Personnalisation : {{prenom}} (ou {{firstName}}) remplacé par le prénom, sinon supprimé proprement. */
+/**
+ * Personnalisation : la balise du prénom, dans n'importe quelle langue de l'app ({{prenom}}, {{firstName}}, {{nombre}},
+ * {{vorname}}, {{nome}}, {{voornaam}}), est remplacée par le prénom, sinon supprimée proprement.
+ */
 export function applyMergeTags(text: string, vars: { firstName?: string | null }): string {
   const name = (vars.firstName ?? "").trim();
   // balise vide : on retire aussi l'espace qui la précède, sans toucher à la ponctuation (espace avant « ! » en français)
-  return text.replace(/( ?)\{\{\s*(?:prenom|prénom|firstName)\s*\}\}/gi, (_m, space: string) => (name ? `${space}${name}` : ""));
+  return text.replace(/( ?)\{\{\s*(?:prenom|prénom|firstName|nombre|vorname|nome|voornaam)\s*\}\}/gi, (_m, space: string) => (name ? `${space}${name}` : ""));
 }
 
 /** RG-MKT-05 : programmée, modifiable jusqu'à 30 minutes avant l'envoi et annulable jusqu'à 5 minutes avant. */

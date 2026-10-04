@@ -35,3 +35,14 @@ describe("campagnes (US-MKT-03)", () => {
     expect(complaintRateExceeded(5, 200)).toBe(false); // volume trop faible pour conclure
   });
 });
+
+describe("balise du prénom dans chaque langue de l'app", () => {
+  it.each(["{{prenom}}", "{{firstName}}", "{{nombre}}", "{{Vorname}}", "{{nome}}", "{{voornaam}}"])("%s", (tag) => {
+    expect(applyMergeTags(`Hola ${tag},`, { firstName: "Ana" })).toBe("Hola Ana,");
+    expect(applyMergeTags(`Hola ${tag},`, { firstName: null })).toBe("Hola,");
+  });
+  it("une autre balise reste telle quelle", () => {
+    expect(applyMergeTags("{{ciudad}}", { firstName: "Ana" })).toBe("{{ciudad}}");
+  });
+});
+

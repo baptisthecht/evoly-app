@@ -1,3 +1,4 @@
+import { applyMergeTags } from "@evoly/core";
 import { LOCALES, MESSAGES } from "@evoly/i18n";
 import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
@@ -20,3 +21,15 @@ describe("messages : syntaxe valide dans toutes les langues", () => {
     expect(errors).toEqual([]);
   });
 });
+
+describe("modèles de campagne : la balise du prénom de chaque langue est bien remplacée", () => {
+  it.each(LOCALES)("%s", (locale) => {
+    const t = createTranslator({ locale, messages: MESSAGES[locale], namespace: "campaignTemplates" });
+    for (const key of ["announceSubject", "announceText", "lastSeatsText", "thanksSubject", "thanksText", "blankText"] as const) {
+      const out = applyMergeTags(t(key), { firstName: "Ana" });
+      expect(out, `${locale} ${key}`).toContain("Ana");
+      expect(out, `${locale} ${key}`).not.toContain("{{");
+    }
+  });
+});
+
