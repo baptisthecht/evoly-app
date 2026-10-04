@@ -1,6 +1,6 @@
 import "server-only";
 import { CoreError, effectiveEnd, effectivePlan, eventCapacity, hasFeature, lastSeatsReached, postEventDue, remainingDailyQuota, reminderDue, reminderSendAt, utcToZonedLocal, zonedLocalToUtc, type CampaignBlock, type ReminderType } from "@evoly/core";
-import { formatDateTime, type Locale, baseLocale, toLocale } from "@evoly/i18n";
+import { formatDateTime, type Locale, toLocale } from "@evoly/i18n";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
 import { orderAccessToken } from "./checkout";
@@ -83,7 +83,7 @@ export async function runDueReminders(now = new Date()): Promise<number> {
 export const MARKETING_AUTOMATIONS = ["POST_EVENT", "LAST_TICKETS"] as const;
 export type MarketingAutomation = (typeof MARKETING_AUTOMATIONS)[number];
 
-const DEFAULTS: Record<"fr" | "en", Record<MarketingAutomation, (title: string) => { subject: string; message: string }>> = {
+const DEFAULTS: Record<Locale, Record<MarketingAutomation, (title: string) => { subject: string; message: string }>> = {
   fr: {
     POST_EVENT: (t) => ({ subject: `Merci d’être venu·e à ${t}`, message: `Bonjour {{prenom}},\nMerci pour votre présence à ${t}. On espère vous revoir très vite !` }),
     LAST_TICKETS: (t) => ({ subject: `Dernières places pour ${t}`, message: `Bonjour {{prenom}},\nIl ne reste que quelques places pour ${t}. Réservez vite la vôtre.` }),
@@ -91,6 +91,26 @@ const DEFAULTS: Record<"fr" | "en", Record<MarketingAutomation, (title: string) 
   en: {
     POST_EVENT: (t) => ({ subject: `Thanks for coming to ${t}`, message: `Hi {{prenom}},\nThanks for being at ${t}. We hope to see you again soon!` }),
     LAST_TICKETS: (t) => ({ subject: `Last seats for ${t}`, message: `Hi {{prenom}},\nOnly a few seats are left for ${t}. Book yours now.` }),
+  },
+  es: {
+    POST_EVENT: (t) => ({ subject: `Gracias por venir a ${t}`, message: `Hola, {{nombre}}:\nGracias por tu asistencia a ${t}. ¡Esperamos volver a verte muy pronto!` }),
+    LAST_TICKETS: (t) => ({ subject: `Últimas plazas para ${t}`, message: `Hola, {{nombre}}:\nSolo quedan unas pocas plazas para ${t}. Reserva la tuya cuanto antes.` }),
+  },
+  de: {
+    POST_EVENT: (t) => ({ subject: `Danke fürs Kommen zu ${t}`, message: `Hallo {{vorname}},\nvielen Dank, dass Sie bei ${t} dabei waren. Wir hoffen, Sie bald wiederzusehen!` }),
+    LAST_TICKETS: (t) => ({ subject: `Letzte Plätze für ${t}`, message: `Hallo {{vorname}},\nfür ${t} sind nur noch wenige Plätze frei. Sichern Sie sich schnell Ihren.` }),
+  },
+  it: {
+    POST_EVENT: (t) => ({ subject: `Grazie per essere stati a ${t}`, message: `Ciao {{nome}},\ngrazie per la tua presenza a ${t}. Speriamo di rivederti molto presto!` }),
+    LAST_TICKETS: (t) => ({ subject: `Ultimi posti per ${t}`, message: `Ciao {{nome}},\nrestano solo pochi posti per ${t}. Prenota subito il tuo.` }),
+  },
+  pt: {
+    POST_EVENT: (t) => ({ subject: `Obrigado pela presença em ${t}`, message: `Olá {{nome}},\nobrigado por ter estado em ${t}. Esperamos voltar a vê-lo muito em breve!` }),
+    LAST_TICKETS: (t) => ({ subject: `Últimos lugares para ${t}`, message: `Olá {{nome}},\nrestam poucos lugares para ${t}. Reserve já o seu.` }),
+  },
+  nl: {
+    POST_EVENT: (t) => ({ subject: `Bedankt voor je komst naar ${t}`, message: `Hallo {{voornaam}},\nbedankt dat je erbij was op ${t}. We hopen je snel terug te zien!` }),
+    LAST_TICKETS: (t) => ({ subject: `Laatste plaatsen voor ${t}`, message: `Hallo {{voornaam}},\ner zijn nog maar een paar plaatsen voor ${t}. Reserveer de jouwe snel.` }),
   },
 };
 
@@ -100,7 +120,7 @@ export async function eventMarketingAutomations(eventId: string) {
   const existing = await db.emailAutomation.findMany({ where: { eventId, type: { in: [...MARKETING_AUTOMATIONS] } } });
   const locale = toLocale(event.organization.locale);
   const missing = MARKETING_AUTOMATIONS.filter((t) => !existing.some((a) => a.type === t));
-  if (missing.length) await db.emailAutomation.createMany({ data: missing.map((type) => { const d = DEFAULTS[baseLocale(locale)][type](event.title); return { eventId, type, enabled: false, subject: d.subject, content: { message: d.message } }; }), skipDuplicates: true });
+  if (missing.length) await db.emailAutomation.createMany({ data: missing.map((type) => { const d = DEFAULTS[locale][type](event.title); return { eventId, type, enabled: false, subject: d.subject, content: { message: d.message } }; }), skipDuplicates: true });
   // ordre de déclaration de l'énumération : remerciement, puis dernières places
   return db.emailAutomation.findMany({ where: { eventId, type: { in: [...MARKETING_AUTOMATIONS] } }, orderBy: { type: "asc" } });
 }

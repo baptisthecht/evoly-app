@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { refundEmail, resetPasswordEmail, seatChangedEmail, ticketsLookupEmail, verifyEmailEmail } from "@/server/email/templates";
+import { refundEmail, resetPasswordEmail, seatChangedEmail, subscriptionEmail, ticketsLookupEmail, verifyEmailEmail } from "@/server/email/templates";
 
 // des mots qui ne doivent jamais apparaître dans un e-mail envoyé dans une autre langue
 const FRENCH = /\b(Bonjour|Votre|vos billets|remboursement|Voir mes)\b/i;
@@ -34,6 +34,14 @@ describe("e-mails des acheteurs dans leur langue", () => {
     expect(verifyEmailEmail({ url: "https://x.test/v", locale: "es" }).subject).toBe("Confirma tu dirección de e-mail");
     expect(resetPasswordEmail({ url: "https://x.test/r", locale: "de" }).subject).toBe("Setzen Sie Ihr Passwort zurück");
     expect(verifyEmailEmail({ url: "https://x.test/v", locale: "nl" }).text).not.toMatch(FRENCH);
+  });
+
+  it("e-mails d'abonnement des organisateurs dans leur langue", () => {
+    const de = subscriptionEmail({ kind: "STARTED", locale: "de", organizationName: "Verein", firstName: "Lena", url: "https://x.test/b" });
+    expect(de.subject).toBe("Willkommen bei Evoly Pro");
+    const nl = subscriptionEmail({ kind: "ENDED", locale: "nl", organizationName: "Vereniging", firstName: "Lotte", url: "https://x.test/b" });
+    expect(nl.subject).toBe("Je organisatie zit weer in Free");
+    expect(nl.text).toContain("€ 2,50");
   });
 });
 

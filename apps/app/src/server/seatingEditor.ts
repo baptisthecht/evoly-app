@@ -1,3 +1,4 @@
+import { pick } from "@evoly/i18n";
 import "server-only";
 import { CoreError, generateBlock, type BlockSpec } from "@evoly/core";
 import { db } from "@/lib/db";
@@ -177,7 +178,16 @@ function holderOf(t: TicketHolder) {
   if (!t) return null;
   return { name: `${t.holderFirstName ?? t.order.buyerFirstName} ${t.holderLastName ?? t.order.buyerLastName}`.trim(), reference: t.order.reference, entered: t.checkedInAt !== null };
 }
-const seatName = (row: string, label: string, locale: string) => (locale !== "fr" ? `row ${row}, seat ${label}` : `rang ${row}, place ${label}`);
+const SEAT_NAME = {
+  fr: (r: string, l: string) => `rang ${r}, place ${l}`,
+  en: (r: string, l: string) => `row ${r}, seat ${l}`,
+  es: (r: string, l: string) => `fila ${r}, plaza ${l}`,
+  de: (r: string, l: string) => `Reihe ${r}, Platz ${l}`,
+  it: (r: string, l: string) => `fila ${r}, posto ${l}`,
+  pt: (r: string, l: string) => `fila ${r}, lugar ${l}`,
+  nl: (r: string, l: string) => `rij ${r}, plaats ${l}`,
+};
+const seatName = (row: string, label: string, locale: string) => pick(SEAT_NAME, locale)(row, label);
 
 /**
  * Change un billet de place : place libre de la même catégorie, prise en une transaction (refusée si elle vient

@@ -1,6 +1,6 @@
 import "server-only";
 import { commissionVat, CoreError, financeByEvent, financeTotals, statementNumber, utcToZonedLocal, vatIncluded, zonedLocalToUtc, type FinanceOrder, type VatMention } from "@evoly/core";
-import { formatDate, formatMoney, type Locale, baseLocale } from "@evoly/i18n";
+import { formatDate, formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { Prisma } from "@evoly/db";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { db } from "@/lib/db";
@@ -119,9 +119,25 @@ export async function statementMonths(ctx: OrgContext, now = new Date()) {
     .map((m) => ({ ...m, open: m.period >= current, statement: statements.find((s) => utcToZonedLocal(s.periodStart, tz).slice(0, 7) === m.period && s.currency === m.currency) ?? null }));
 }
 
-const MENTIONS: Record<"fr" | "en", Record<VatMention, (rate: string) => string>> = {
+const MENTIONS: Record<Locale, Record<VatMention, (rate: string) => string>> = {
   fr: { BE_VAT: (r) => `TVA belge ${r} comprise`, REVERSE_CHARGE: () => "Autoliquidation : TVA due par le preneur (article 196 de la directive 2006/112/CE)", OSS: (r) => `TVA ${r} du pays du client comprise, déclarée via le guichet unique (OSS)`, OUTSIDE_EU: () => "Hors champ de la TVA de l’Union européenne" },
   en: { BE_VAT: (r) => `Belgian VAT ${r} included`, REVERSE_CHARGE: () => "Reverse charge: VAT payable by the customer (article 196 of Directive 2006/112/EC)", OSS: (r) => `Customer country VAT ${r} included, declared via the One-Stop Shop (OSS)`, OUTSIDE_EU: () => "Outside the scope of EU VAT" },
+  es: { BE_VAT: (r) => `IVA belga ${r} incluido`, REVERSE_CHARGE: () => "Inversión del sujeto pasivo: IVA a cargo del cliente (artículo 196 de la Directiva 2006/112/CE)", OSS: (r) => `IVA ${r} del país del cliente incluido, declarado a través de la ventanilla única (OSS)`, OUTSIDE_EU: () => "Fuera del ámbito del IVA de la Unión Europea" },
+  de: { BE_VAT: (r) => `Belgische USt. ${r} enthalten`, REVERSE_CHARGE: () => "Steuerschuldnerschaft des Leistungsempfängers (Artikel 196 der Richtlinie 2006/112/EG)", OSS: (r) => `USt. ${r} des Kundenlandes enthalten, erklärt über den One-Stop-Shop (OSS)`, OUTSIDE_EU: () => "Nicht im Anwendungsbereich der Mehrwertsteuer der Europäischen Union" },
+  it: { BE_VAT: (r) => `IVA belga ${r} inclusa`, REVERSE_CHARGE: () => "Inversione contabile: IVA dovuta dal committente (articolo 196 della direttiva 2006/112/CE)", OSS: (r) => `IVA ${r} del paese del cliente inclusa, dichiarata tramite lo sportello unico (OSS)`, OUTSIDE_EU: () => "Fuori dal campo di applicazione dell’IVA dell’Unione europea" },
+  pt: { BE_VAT: (r) => `IVA belga ${r} incluído`, REVERSE_CHARGE: () => "Autoliquidação: IVA devido pelo adquirente (artigo 196.º da Diretiva 2006/112/CE)", OSS: (r) => `IVA ${r} do país do cliente incluído, declarado através do balcão único (OSS)`, OUTSIDE_EU: () => "Fora do âmbito do IVA da União Europeia" },
+  nl: { BE_VAT: (r) => `Belgische btw ${r} inbegrepen`, REVERSE_CHARGE: () => "Btw verlegd: btw verschuldigd door de afnemer (artikel 196 van Richtlijn 2006/112/EG)", OSS: (r) => `Btw ${r} van het land van de klant inbegrepen, aangegeven via het éénloketsysteem (OSS)`, OUTSIDE_EU: () => "Buiten het toepassingsgebied van de btw van de Europese Unie" },
+};
+
+/** Libellés du relevé de commissions, dans la langue de l'organisation. */
+const STATEMENT_LABELS: Record<Locale, { title: string; number: string; date: string; period: string; client: string; issuer: string; vat: string; event: string; tickets: string; fees: string; total: string; ofVat: string; noVat: string; footer: string }> = {
+  fr: { title: "Relevé de commissions", number: "Numéro", date: "Date d’émission", period: "Période", client: "Client", issuer: "Émetteur", vat: "TVA", event: "Événement", tickets: "Billets", fees: "Commissions", total: "Total TTC", ofVat: "dont TVA", noVat: "Numéro de TVA : à compléter", footer: "Commissions Evoly prélevées sur les ventes de billets, selon les conditions de l’offre en vigueur à la date de chaque vente. Montants débités par Stripe lors de chaque vente : rien à payer." },
+  en: { title: "Commission statement", number: "Number", date: "Issue date", period: "Period", client: "Customer", issuer: "Issuer", vat: "VAT", event: "Event", tickets: "Tickets", fees: "Fees", total: "Total incl. VAT", ofVat: "of which VAT", noVat: "VAT number: to be completed", footer: "Evoly fees taken on ticket sales, under the plan terms in force on the date of each sale. Amounts collected by Stripe on each sale: nothing to pay." },
+  es: { title: "Extracto de comisiones", number: "Número", date: "Fecha de emisión", period: "Periodo", client: "Cliente", issuer: "Emisor", vat: "IVA", event: "Evento", tickets: "Entradas", fees: "Comisiones", total: "Total con IVA", ofVat: "de los cuales IVA", noVat: "Número de IVA: pendiente de completar", footer: "Comisiones de Evoly cobradas sobre la venta de entradas, según las condiciones del plan vigentes en la fecha de cada venta. Importes cobrados por Stripe en cada venta: no hay nada que pagar." },
+  de: { title: "Gebührenabrechnung", number: "Nummer", date: "Ausstellungsdatum", period: "Zeitraum", client: "Kunde", issuer: "Aussteller", vat: "USt.", event: "Veranstaltung", tickets: "Tickets", fees: "Gebühren", total: "Gesamt inkl. USt.", ofVat: "davon USt.", noVat: "USt-IdNr.: noch zu ergänzen", footer: "Evoly-Gebühren, die beim Ticketverkauf einbehalten werden, gemäß den am Tag jedes Verkaufs geltenden Tarifbedingungen. Von Stripe bei jedem Verkauf eingezogene Beträge: nichts zu zahlen." },
+  it: { title: "Rendiconto delle commissioni", number: "Numero", date: "Data di emissione", period: "Periodo", client: "Cliente", issuer: "Emittente", vat: "IVA", event: "Evento", tickets: "Biglietti", fees: "Commissioni", total: "Totale IVA inclusa", ofVat: "di cui IVA", noVat: "Partita IVA: da completare", footer: "Commissioni Evoly trattenute sulle vendite di biglietti, secondo le condizioni del piano in vigore alla data di ogni vendita. Importi riscossi da Stripe a ogni vendita: nulla da pagare." },
+  pt: { title: "Extrato de comissões", number: "Número", date: "Data de emissão", period: "Período", client: "Cliente", issuer: "Emitente", vat: "IVA", event: "Evento", tickets: "Bilhetes", fees: "Comissões", total: "Total com IVA", ofVat: "dos quais IVA", noVat: "Número de IVA: a completar", footer: "Comissões Evoly cobradas sobre as vendas de bilhetes, segundo as condições do plano em vigor na data de cada venda. Montantes cobrados pela Stripe em cada venda: nada a pagar." },
+  nl: { title: "Commissie-overzicht", number: "Nummer", date: "Uitgiftedatum", period: "Periode", client: "Klant", issuer: "Uitgever", vat: "Btw", event: "Evenement", tickets: "Tickets", fees: "Commissies", total: "Totaal incl. btw", ofVat: "waarvan btw", noVat: "Btw-nummer: nog in te vullen", footer: "Commissies van Evoly ingehouden op de ticketverkoop, volgens de abonnementsvoorwaarden die gelden op de datum van elke verkoop. Bedragen die Stripe bij elke verkoop int: niets te betalen." },
 };
 
 /**
@@ -163,13 +179,11 @@ const clean = (s: string) => s.replace(/[\u202f\u00a0\u2009]/g, " ").replace(/[^
 export async function statementPdf(statementId: string): Promise<{ bytes: Uint8Array; number: string }> {
   const st = await db.commissionStatement.findUniqueOrThrow({ where: { id: statementId }, include: { organization: true } });
   const org = st.organization;
-  const locale = baseLocale(org.locale); // relevés : français ou anglais
+  const locale = toLocale(org.locale); // relevés dans la langue de l'organisation
   const orders = await periodOrders(org.id, { from: st.periodStart, to: st.periodEnd }, undefined, st.currency);
   const events = await db.event.findMany({ where: { id: { in: [...new Set(orders.map((o) => o.eventId))] } }, select: { id: true, title: true } });
   const rows = events.map((e) => ({ title: e.title, tickets: orders.filter((o) => o.eventId === e.id).reduce((n, o) => n + o._count.tickets, 0), fees: orders.filter((o) => o.eventId === e.id).reduce((n, o) => n + o.applicationFeeMinor, 0) })).filter((r) => r.fees > 0);
-  const L = locale === "fr"
-    ? { title: "Relevé de commissions", number: "Numéro", date: "Date d’émission", period: "Période", client: "Client", issuer: "Émetteur", vat: "TVA", event: "Événement", tickets: "Billets", fees: "Commissions", total: "Total TTC", ofVat: "dont TVA", noVat: "Numéro de TVA : à compléter", footer: "Commissions Evoly prélevées sur les ventes de billets, selon les conditions de l’offre en vigueur à la date de chaque vente. Montants débités par Stripe lors de chaque vente : rien à payer." }
-    : { title: "Commission statement", number: "Number", date: "Issue date", period: "Period", client: "Customer", issuer: "Issuer", vat: "VAT", event: "Event", tickets: "Tickets", fees: "Fees", total: "Total incl. VAT", ofVat: "of which VAT", noVat: "VAT number: to be completed", footer: "Evoly fees taken on ticket sales , under the plan terms in force on the date of each sale. Amounts collected by Stripe on each sale: nothing to pay." };
+  const L = STATEMENT_LABELS[locale];
   const money = (v: number) => clean(formatMoney(v, st.currency, locale));
   const pdf = await PDFDocument.create();
   pdf.setTitle(clean(`${L.title} ${st.number}`));

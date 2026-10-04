@@ -1,5 +1,5 @@
 import "server-only";
-import { baseLocale } from "@evoly/i18n";
+import { toLocale } from "@evoly/i18n";
 import type { Locale } from "@evoly/i18n";
 import { createSign } from "node:crypto";
 import { env } from "@/lib/env";
@@ -22,7 +22,7 @@ const text = (value: string, language: string) => ({ defaultValue: { language, v
 
 /** Contenu du jeton « Enregistrer dans Google Wallet » : classe de l'événement et billet (format eventTicket). */
 export function googleWalletClaims(t: WalletTicket, creds: Pick<GoogleCredentials, "issuerId" | "serviceAccountEmail">, origin: string, now = new Date()) {
-  const lang = baseLocale(t.locale);
+  const lang = toLocale(t.locale); // étiquette de langue des textes de l'événement
   const classId = `${creds.issuerId}.evoly_event_${t.eventId}`;
   return {
     iss: creds.serviceAccountEmail,

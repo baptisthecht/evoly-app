@@ -56,12 +56,12 @@ describe("messages", () => {
     expect(en).toEqual(fr);
     expect(fr.length).toBeGreaterThan(150);
   });
-  it("langues en cours de traduction : uniquement des clés connues, complètes grâce au repli sur l'anglais", () => {
+  it("toutes les langues sont complètes : aucune clé manquante ni inconnue (un nouveau texte doit être traduit partout)", () => {
     const fr = new Set(flattenKeys(MESSAGES.fr));
-    for (const [locale, partial] of Object.entries(PARTIAL_MESSAGES)) {
-      const unknown = flattenKeys(partial).filter((k) => k && !fr.has(k));
-      expect(unknown, locale).toEqual([]);
-      expect(flattenKeys(MESSAGES[locale as keyof typeof MESSAGES]).sort(), locale).toEqual([...fr].sort());
+    for (const [locale, own] of Object.entries(PARTIAL_MESSAGES)) {
+      const keys = new Set(flattenKeys(own));
+      expect([...keys].filter((k) => !fr.has(k)), `${locale} : clés inconnues`).toEqual([]);
+      expect([...fr].filter((k) => !keys.has(k)), `${locale} : clés à traduire`).toEqual([]);
     }
   });
   it("aucun message vide", () => {

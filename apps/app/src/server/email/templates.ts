@@ -257,6 +257,46 @@ const SUB_COPY = {
     cta: "Manage my subscription",
     hello: (n: string) => `Hi ${n},`,
   },
+  es: {
+    STARTED: { subject: "Te damos la bienvenida a Evoly Pro", body: "Tu organización ya está en Pro: comisión con un máximo de 1 € por entrada, precios dinámicos, marca propia y equipo. Puedes gestionar tu suscripción en cualquier momento." },
+    TRIAL_ENDING: { subject: "Tu prueba Pro termina dentro de 3 días", body: "Si no haces nada, la suscripción empieza automáticamente al final de la prueba. Puedes cambiar de plan o cancelar desde la página Suscripción." },
+    PAYMENT_FAILED: { subject: "El pago de tu suscripción Pro ha fallado", body: "Stripe lo volverá a intentar automáticamente. Actualiza tu método de pago para no volver a Free, lo que ocurre 7 días después del primer fallo." },
+    ENDED: { subject: "Tu organización ha vuelto a Free", body: "No se elimina nada: tus eventos, tu configuración de marca y tus tramos de precio se conservan. La comisión vuelve a tener un máximo de 2,50 €, se muestra la marca Evoly, los tramos de los eventos publicados siguen aplicándose pero no se pueden modificar, y los miembros distintos del propietario pierden el acceso. Todo vuelve al pasar de nuevo a Pro." },
+    cta: "Gestionar mi suscripción",
+    hello: (n: string) => `Hola, ${n}:`,
+  },
+  de: {
+    STARTED: { subject: "Willkommen bei Evoly Pro", body: "Ihre Organisation ist jetzt im Pro-Tarif: Gebühr höchstens 1 € pro Ticket, dynamische Preise, eigene Marke und Team. Sie können Ihr Abo jederzeit verwalten." },
+    TRIAL_ENDING: { subject: "Ihr Pro-Test endet in 3 Tagen", body: "Wenn Sie nichts tun, startet Ihr Abo am Ende des Tests automatisch. Sie können den Tarif auf der Seite Abo wechseln oder kündigen." },
+    PAYMENT_FAILED: { subject: "Die Zahlung Ihres Pro-Abos ist fehlgeschlagen", body: "Stripe versucht es automatisch erneut. Aktualisieren Sie Ihr Zahlungsmittel, um nicht zu Free zurückzukehren, was 7 Tage nach dem ersten Fehlschlag geschieht." },
+    ENDED: { subject: "Ihre Organisation ist wieder im Free-Tarif", body: "Es wird nichts gelöscht: Ihre Veranstaltungen, Markeneinstellungen und Preisstufen bleiben erhalten. Die Gebühr ist wieder auf 2,50 € begrenzt, die Marke Evoly wird angezeigt, Preisstufen veröffentlichter Veranstaltungen gelten weiter, sind aber nicht mehr änderbar, und Mitglieder außer dem Inhaber verlieren den Zugang. Alles kommt zurück, wenn Sie wieder zu Pro wechseln." },
+    cta: "Mein Abo verwalten",
+    hello: (n: string) => `Hallo ${n},`,
+  },
+  it: {
+    STARTED: { subject: "Benvenuto in Evoly Pro", body: "La tua organizzazione è ora in Pro: commissione con un tetto di 1 € a biglietto, prezzi dinamici, brand personalizzato e team. Puoi gestire l’abbonamento in qualsiasi momento." },
+    TRIAL_ENDING: { subject: "La tua prova Pro termina tra 3 giorni", body: "Se non fai nulla, l’abbonamento parte automaticamente alla fine della prova. Puoi cambiare piano o disdire dalla pagina Abbonamento." },
+    PAYMENT_FAILED: { subject: "Il pagamento del tuo abbonamento Pro non è riuscito", body: "Stripe riproverà automaticamente. Aggiorna il metodo di pagamento per evitare il ritorno a Free, che avviene 7 giorni dopo il primo errore." },
+    ENDED: { subject: "La tua organizzazione è tornata a Free", body: "Non viene eliminato nulla: eventi, impostazioni del brand e fasce di prezzo vengono conservati. La commissione torna ad avere un tetto di 2,50 €, compare il brand Evoly, le fasce degli eventi pubblicati restano applicate ma non sono più modificabili, e i membri diversi dal proprietario perdono l’accesso. Tutto torna ripassando a Pro." },
+    cta: "Gestisci il mio abbonamento",
+    hello: (n: string) => `Ciao ${n},`,
+  },
+  pt: {
+    STARTED: { subject: "Bem-vindo ao Evoly Pro", body: "A sua organização está agora no Pro: comissão com um máximo de 1 € por bilhete, preços dinâmicos, marca própria e equipa. Pode gerir a sua subscrição a qualquer momento." },
+    TRIAL_ENDING: { subject: "O seu teste Pro termina daqui a 3 dias", body: "Se não fizer nada, a subscrição começa automaticamente no fim do teste. Pode mudar de plano ou cancelar na página Subscrição." },
+    PAYMENT_FAILED: { subject: "O pagamento da sua subscrição Pro falhou", body: "A Stripe vai tentar de novo automaticamente. Atualize o seu meio de pagamento para não regressar ao Free, o que acontece 7 dias depois da primeira falha." },
+    ENDED: { subject: "A sua organização voltou ao Free", body: "Nada é eliminado: os seus eventos, as definições da marca e os escalões de preço são mantidos. A comissão volta a ter um máximo de 2,50 €, a marca Evoly aparece, os escalões dos eventos publicados continuam a aplicar-se mas já não podem ser alterados, e os membros que não sejam o proprietário perdem o acesso. Tudo volta ao passar de novo a Pro." },
+    cta: "Gerir a minha subscrição",
+    hello: (n: string) => `Olá ${n},`,
+  },
+  nl: {
+    STARTED: { subject: "Welkom bij Evoly Pro", body: "Je organisatie zit nu in Pro: commissie met een plafond van € 1 per ticket, dynamische prijzen, eigen merk en team. Je kunt je abonnement op elk moment beheren." },
+    TRIAL_ENDING: { subject: "Je Pro-proefperiode eindigt over 3 dagen", body: "Als je niets doet, start het abonnement automatisch aan het einde van de proefperiode. Je kunt van abonnement wisselen of opzeggen via de pagina Abonnement." },
+    PAYMENT_FAILED: { subject: "De betaling van je Pro-abonnement is mislukt", body: "Stripe probeert het automatisch opnieuw. Werk je betaalmethode bij om niet terug te vallen naar Free, wat 7 dagen na de eerste mislukte betaling gebeurt." },
+    ENDED: { subject: "Je organisatie zit weer in Free", body: "Er wordt niets verwijderd: je evenementen, merkinstellingen en prijsniveaus blijven bewaard. De commissie heeft weer een plafond van € 2,50, het merk Evoly wordt getoond, prijsniveaus van gepubliceerde evenementen blijven gelden maar zijn niet meer te wijzigen, en leden behalve de eigenaar verliezen hun toegang. Alles komt terug als je opnieuw overstapt naar Pro." },
+    cta: "Mijn abonnement beheren",
+    hello: (n: string) => `Hallo ${n},`,
+  },
 } as const;
 
 /** E-mails de l'abonnement Pro (RG-SUB-03, RG-SUB-06, RG-SUB-08). */
