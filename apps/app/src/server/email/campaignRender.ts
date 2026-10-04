@@ -1,5 +1,6 @@
 import "server-only";
 import { applyMergeTags, type CampaignBlock } from "@evoly/core";
+import { pick } from "@evoly/i18n";
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import type { EmailBrand } from "./brand";
 import type { RenderedEmail } from "./templates";
@@ -16,7 +17,7 @@ const COPY = {
 
 /** Section 9.18 : rendu d'une campagne (blocs), avec le pied de page obligatoire (RG-MKT-02). */
 export function renderCampaign(o: { subject: string; previewText?: string | null; blocks: CampaignBlock[]; brand: EmailBrand; organizationName: string; organizationAddress: string; firstName?: string | null; locale: Locale; unsubscribeUrl: string; events: Map<string, CampaignEventCard> }): RenderedEmail {
-  const c = COPY[o.locale];
+  const c = pick(COPY, o.locale);
   const tag = (s: string) => applyMergeTags(s, { firstName: o.firstName });
   const button = (label: string, url: string) => `<a href="${esc(url)}" style="display:inline-block;${o.brand.accent ? `background:${o.brand.accent};color:${o.brand.accentInk}` : `background:${PALETTE.rose};color:${PALETTE.charbon}`};text-decoration:none;font-weight:600;padding:14px 22px;border-radius:999px">${esc(label)}</a>`;
   const html: string[] = [];

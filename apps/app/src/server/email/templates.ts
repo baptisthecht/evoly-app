@@ -1,7 +1,7 @@
+import { pick, type Locale } from "@evoly/i18n";
 import type { EmailBrand } from "./brand";
 import { palette } from "@evoly/ui";
 
-type Locale = "fr" | "en";
 
 export interface RenderedEmail {
   subject: string;
@@ -37,7 +37,7 @@ const COPY = {
 } as const;
 
 function build(kind: keyof typeof COPY, url: string, locale: Locale): RenderedEmail {
-  const c = COPY[kind][locale];
+  const c = pick(COPY[kind], locale);
   return { subject: c.subject, html: layout({ ...c, url }), text: `${c.title}\n\n${c.intro}\n\n${c.cta} : ${url}\n\n${c.outro}` };
 }
 
@@ -50,7 +50,7 @@ const ORDER_COPY = {
 } as const;
 
 export function orderConfirmationEmail(o: { brand?: EmailBrand | null; locale: Locale; organizationName: string; eventTitle: string; when: string; where: string | null; online: string | null; lines: Array<{ name: string; quantity: number }>; total: string | null; reference: string; url: string; firstName: string }): RenderedEmail {
-  const c = ORDER_COPY[o.locale];
+  const c = pick(ORDER_COPY, o.locale);
   const u = escapeHtml(o.url);
   const row = (label: string, value: string) => `<tr><td style="padding:6px 0;color:#555;font-size:13px;width:110px;vertical-align:top">${escapeHtml(label)}</td><td style="padding:6px 0;font-size:15px">${escapeHtml(value)}</td></tr>`;
   const details = [row(c.when, o.when), o.where ? row(c.where, o.where) : "", o.online ? row(c.online, o.online) : "", ...o.lines.map((l) => row(`${l.quantity} ×`, l.name)), row(c.total, o.total ?? c.free), row(c.reference, o.reference)].join("");
@@ -75,7 +75,7 @@ const LOOKUP_COPY = {
 
 /** RG-POST-02 : liens vers les commandes à venir d'une adresse. */
 export function ticketsLookupEmail(o: { brand?: EmailBrand | null; locale: Locale; organizationName: string; orders: Array<{ eventTitle: string; when: string; url: string }> }): RenderedEmail {
-  const c = LOOKUP_COPY[o.locale];
+  const c = pick(LOOKUP_COPY, o.locale);
   const items = o.orders
     .map((x) => `<tr><td style="padding:12px 0;border-top:1px solid #eee"><div style="font-weight:600;font-size:15px">${escapeHtml(x.eventTitle)}</div><div style="font-size:13px;color:#555;padding-bottom:8px">${escapeHtml(x.when)}</div><a href="${escapeHtml(x.url)}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:10px 18px;border-radius:999px;font-size:14px">${escapeHtml(c.cta)}</a></td></tr>`)
     .join("");
@@ -109,7 +109,7 @@ const RESALE_COPY = {
 
 /** E-mails au vendeur : place revendue et montant remboursé, annonce retirée, revente terminée. */
 export function resaleSellerEmail(o: { brand?: EmailBrand | null; kind: "SOLD" | "CANCELLED" | "EXPIRED"; locale: Locale; organizationName: string; eventTitle: string; firstName: string; amount: string | null }): RenderedEmail {
-  const c = RESALE_COPY[o.locale];
+  const c = pick(RESALE_COPY, o.locale);
   const k = c[o.kind];
   const body = o.kind === "SOLD" ? c.SOLD.body(o.amount) : k.body(null);
   const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
@@ -141,7 +141,7 @@ const REFUND_COPY = {
 
 /** E-mails de remboursement (section 9.14) : remboursement envoyé, demande refusée, événement annulé. */
 export function refundEmail(o: { brand?: EmailBrand | null; kind: "PROCESSED" | "REJECTED" | "CANCELLED"; locale: Locale; organizationName: string; eventTitle: string; firstName: string; amount: string | null; count: number; message?: string | null }): RenderedEmail {
-  const c = REFUND_COPY[o.locale];
+  const c = pick(REFUND_COPY, o.locale);
   const subject = c[o.kind].subject(o.eventTitle);
   const body = o.kind === "PROCESSED" ? c.PROCESSED.body(o.amount, o.count) : o.kind === "CANCELLED" ? c.CANCELLED.body(o.amount) : c.REJECTED.body();
   const note = o.message ? `<tr><td style="font-size:14px;line-height:1.6;padding-top:12px;color:#555">${escapeHtml(c.reason)}<br>${escapeHtml(o.message)}</td></tr>` : "";
@@ -176,7 +176,7 @@ const SUB_COPY = {
 
 /** E-mails de l'abonnement Pro (RG-SUB-03, RG-SUB-06, RG-SUB-08). */
 export function subscriptionEmail(o: { kind: "STARTED" | "TRIAL_ENDING" | "PAYMENT_FAILED" | "ENDED"; locale: Locale; organizationName: string; firstName: string; url: string }): RenderedEmail {
-  const c = SUB_COPY[o.locale];
+  const c = pick(SUB_COPY, o.locale);
   const k = c[o.kind];
   const u = escapeHtml(o.url);
   const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
@@ -230,7 +230,7 @@ const REMINDER_COPY = {
 
 /** US-MKT-01 : rappels J-7, J-1 et jour J (e-mails de service), pied de page obligatoire (RG-MKT-02). */
 export function reminderEmail(o: { brand?: EmailBrand | null; locale: Locale; type: "REMINDER_J7" | "REMINDER_J1" | "REMINDER_J0"; organizationName: string; organizationAddress: string; firstName: string; eventTitle: string; when: string; where: string; tickets: number; ticketsUrl: string; unsubscribeEventUrl: string }): RenderedEmail {
-  const c = REMINDER_COPY[o.locale];
+  const c = pick(REMINDER_COPY, o.locale);
   const subject = c[o.type](o.eventTitle);
   const row = (k: string, v: string) => (v ? `<tr><td style="padding:6px 16px 6px 0;color:#555;font-size:14px;vertical-align:top">${escapeHtml(k)}</td><td style="padding:6px 0;font-size:14px">${escapeHtml(v)}</td></tr>` : "");
   const footer = `${escapeHtml(o.organizationName)}${o.organizationAddress ? ` · ${escapeHtml(o.organizationAddress)}` : ""}<br>${escapeHtml(c.reason(o.organizationName, o.eventTitle))}<br><a href="${escapeHtml(o.unsubscribeEventUrl)}" style="color:#555">${escapeHtml(c.unsubscribe)}</a>`;
@@ -255,7 +255,7 @@ const SEAT_COPY = {
 
 /** Section 9.9 : l'organisateur a changé l'acheteur de place ; lien vers les billets mis à jour. */
 export function seatChangedEmail(o: { brand?: EmailBrand | null; locale: Locale; organizationName: string; eventTitle: string; firstName: string; from: string; to: string; url: string }): RenderedEmail {
-  const c = SEAT_COPY[o.locale];
+  const c = pick(SEAT_COPY, o.locale);
   const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">

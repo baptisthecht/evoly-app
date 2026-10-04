@@ -1,4 +1,6 @@
 import "server-only";
+import { toLocale } from "@evoly/i18n";
+import type { Locale } from "@evoly/i18n";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
@@ -15,7 +17,7 @@ const socialProviders = {
   ...(e.AUTH_APPLE_ID && e.AUTH_APPLE_SECRET ? { apple: { clientId: e.AUTH_APPLE_ID, clientSecret: e.AUTH_APPLE_SECRET } } : {}),
 };
 
-const localeOf = (user: unknown): "fr" | "en" => ((user as { locale?: string }).locale === "en" ? "en" : "fr");
+const localeOf = (user: unknown): Locale => toLocale((user as { locale?: string }).locale);
 
 export const auth = betterAuth({
   baseURL: e.BETTER_AUTH_URL,

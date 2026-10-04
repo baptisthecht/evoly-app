@@ -16,7 +16,7 @@ const schema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   ORDER_TOKEN_SECRET: z.string().min(32).optional(), // liens magiques des commandes ; BETTER_AUTH_SECRET à défaut
   CRON_SECRET: z.string().min(16).optional(), // tâches planifiées (libération des réservations expirées)
-  EVOLY_LEGAL_NAME: z.string().default("Evoly Solutions"), // émetteur des relevés de commissions
+  EVOLY_LEGAL_NAME: z.string().default("Baptist Hecht — Evoly Solutions"), // émetteur des relevés de commissions
   R2_ACCOUNT_ID: z.string().optional(), // fichiers importés (logos, images) ; à défaut, dossier local UPLOADS_DIR
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),
@@ -29,7 +29,7 @@ const schema = z.object({
   STRIPE_PRICE_PRO_MONTH: z.string().optional(), // abonnement Pro (compte Stripe d’Evoly) ; à défaut, prix de la base
   STRIPE_PRICE_PRO_YEAR: z.string().optional(),
   STRIPE_TAX_ENABLED: z.enum(["true", "false"]).default("false"),
-  EVOLY_LEGAL_ADDRESS: z.string().default("Bruxelles, Belgique"),
+  EVOLY_LEGAL_ADDRESS: z.string().default("Rue du Bilemont 376, 7700 Mouscron, Belgique"),
   EVOLY_VAT_NUMBER: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   APPLE_PASS_TYPE_ID: z.string().optional(), // US-POST-03 : Apple Wallet (pass.me.evoly.ticket)

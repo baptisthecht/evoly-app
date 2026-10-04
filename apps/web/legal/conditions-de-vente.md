@@ -1,6 +1,6 @@
 ## 1. Qui vend ?
 
-Les billets sont vendus par l'organisateur de l'événement, dont le nom figure sur la page de vente et sur vos billets. Evoly ([Evoly Solutions SRL, siège, numéro d'entreprise BCE]) fournit la plateforme technique de billetterie : Evoly n'est pas l'organisateur de l'événement et n'est pas partie au contrat de vente, sauf pour le service de revente décrit ci-dessous.
+Les billets sont vendus par l'organisateur de l'événement, dont le nom figure sur la page de vente et sur vos billets. Evoly (Baptist Hecht, entrepreneur indépendant exerçant sous le nom commercial Evoly Solutions, rue du Bilemont 376, 7700 Mouscron, Belgique, numéro d'entreprise BCE 1043.315.766) fournit la plateforme technique de billetterie : Evoly n'est pas l'organisateur de l'événement et n'est pas partie au contrat de vente, sauf pour le service de revente décrit ci-dessous.
 
 ## 2. Prix et paiement
 
@@ -32,7 +32,7 @@ L'organisateur est responsable du traitement des données de votre commande ; Ev
 
 ## 8. Réclamations
 
-Pour toute question sur l'événement, contactez d'abord l'organisateur, via l'adresse indiquée dans l'e-mail de confirmation. Pour une question sur la plateforme : [adresse e-mail de contact]. Si aucune solution n'est trouvée, vous pouvez saisir le Service de médiation pour le consommateur (mediationconsommateur.be).
+Pour toute question sur l'événement, contactez d'abord l'organisateur, via l'adresse indiquée dans l'e-mail de confirmation. Pour une question sur la plateforme : hello@evoly.me. Si aucune solution n'est trouvée, vous pouvez saisir le Service de médiation pour le consommateur (mediationconsommateur.be).
 
 ## 9. Droit applicable
 

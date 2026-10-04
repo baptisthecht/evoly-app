@@ -1,9 +1,17 @@
-import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
+import { formatDateTime, formatMoney, toLocale } from "@evoly/i18n";
 import { ImageResponse } from "next/og";
 import { db } from "@/lib/db";
 import { hasFeatureForOrg } from "@/server/og";
 
-const COPY = { fr: { from: "Dès", free: "Entrée gratuite", powered: "Billetterie sur evoly.me", tickets: "Billets" }, en: { from: "From", free: "Free entry", powered: "Tickets on evoly.me", tickets: "Tickets" } } as const;
+const COPY = {
+  fr: { from: "Dès", free: "Entrée gratuite", powered: "Billetterie sur evoly.me", tickets: "Billets" },
+  en: { from: "From", free: "Free entry", powered: "Tickets on evoly.me", tickets: "Tickets" },
+  es: { from: "Desde", free: "Entrada gratuita", powered: "Entradas en evoly.me", tickets: "Entradas" },
+  de: { from: "Ab", free: "Eintritt frei", powered: "Tickets auf evoly.me", tickets: "Tickets" },
+  it: { from: "Da", free: "Ingresso gratuito", powered: "Biglietti su evoly.me", tickets: "Biglietti" },
+  pt: { from: "Desde", free: "Entrada gratuita", powered: "Bilhetes em evoly.me", tickets: "Bilhetes" },
+  nl: { from: "Vanaf", free: "Gratis toegang", powered: "Tickets op evoly.me", tickets: "Tickets" },
+} as const;
 
 /**
  * Image d'aperçu d'un événement (Open Graph, Twitter/X, WhatsApp, LinkedIn…) : titre, date, lieu, prix et organisateur,
@@ -16,7 +24,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ eventId
     select: { title: true, startsAt: true, timezone: true, city: true, locationName: true, currency: true, visibility: true, status: true, organizationId: true, organization: { select: { name: true, locale: true, brand: { select: { displayName: true, primaryColor: true, hideEvolyBranding: true } } } }, ticketTypes: { select: { priceMinor: true } } },
   });
   const visible = e && e.visibility !== "PRIVATE" && e.status !== "DRAFT" && e.status !== "ARCHIVED";
-  const locale = (e?.organization.locale === "en" ? "en" : "fr") as Locale;
+  const locale = toLocale(e?.organization.locale);
   const c = COPY[locale];
   const { branded, hidePowered } = visible ? await hasFeatureForOrg(e.organizationId, e.organization.brand?.hideEvolyBranding ?? true) : { branded: false, hidePowered: false };
   const bg = branded && e?.organization.brand?.primaryColor ? e.organization.brand.primaryColor : "#222222";

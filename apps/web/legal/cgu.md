@@ -1,6 +1,6 @@
 ## 1. Objet
 
-Les présentes conditions régissent l'utilisation de la plateforme de billetterie Evoly (app.evoly.me) par les organisateurs d'événements. Elles sont conclues entre [Evoly Solutions SRL, siège, numéro d'entreprise BCE] (« Evoly ») et toute personne ou structure qui crée une organisation sur la plateforme (« l'Organisateur »). L'accord de sous-traitance des données y est annexé.
+Les présentes conditions régissent l'utilisation de la plateforme de billetterie Evoly (app.evoly.me) par les organisateurs d'événements. Elles sont conclues entre Baptist Hecht, entrepreneur indépendant exerçant sous le nom commercial Evoly Solutions, rue du Bilemont 376, 7700 Mouscron, Belgique, numéro d'entreprise BCE 1043.315.766 (« Evoly ») et toute personne ou structure qui crée une organisation sur la plateforme (« l'Organisateur »). L'accord de sous-traitance des données y est annexé.
 
 ## 2. Compte et organisation
 
@@ -23,7 +23,7 @@ Les paiements des participants sont encaissés directement sur le compte Stripe 
 
 ## 6. Facturation
 
-Evoly émet chaque mois, par organisation et par devise, un relevé des commissions qui vaut facture. Il est disponible dans la page Finances et envoyé par e-mail au propriétaire. [Traitement de la TVA à valider avec l'expert-comptable : TVA belge, autoliquidation pour les assujettis de l'Union européenne, guichet unique OSS pour les autres.]
+Evoly émet chaque mois, par organisation et par devise, un relevé des commissions qui vaut facture. Il est disponible dans la page Finances et envoyé par e-mail au propriétaire. Les commissions sont facturées selon le régime de TVA applicable à Evoly.
 
 ## 7. Abonnement Pro
 
@@ -62,8 +62,8 @@ Les présentes conditions s'appliquent tant que l'organisation existe. Le propri
 
 ## 15. Droit applicable
 
-Les présentes conditions sont soumises au droit belge. À défaut de solution amiable, les tribunaux de [Bruxelles] sont compétents, sans préjudice des règles impératives applicables aux consommateurs.
+Les présentes conditions sont soumises au droit belge. À défaut de solution amiable, les tribunaux de Tournai (arrondissement judiciaire du Hainaut) sont compétents, sans préjudice des règles impératives applicables aux consommateurs.
 
 ## 16. Contact
 
-[Adresse e-mail de contact] — [adresse postale].
+hello@evoly.me — rue du Bilemont 376, 7700 Mouscron, Belgique.

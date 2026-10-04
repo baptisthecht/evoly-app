@@ -1,6 +1,6 @@
 import "server-only";
 import { CoreError, effectiveEnd, effectivePlan, eventCapacity, hasFeature, lastSeatsReached, postEventDue, remainingDailyQuota, reminderDue, reminderSendAt, utcToZonedLocal, zonedLocalToUtc, type CampaignBlock, type ReminderType } from "@evoly/core";
-import { formatDateTime, type Locale } from "@evoly/i18n";
+import { formatDateTime, type Locale, baseLocale, toLocale } from "@evoly/i18n";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
 import { orderAccessToken } from "./checkout";
@@ -98,9 +98,9 @@ const DEFAULTS: Record<"fr" | "en", Record<MarketingAutomation, (title: string) 
 export async function eventMarketingAutomations(eventId: string) {
   const event = await db.event.findUniqueOrThrow({ where: { id: eventId }, select: { title: true, organization: { select: { locale: true } } } });
   const existing = await db.emailAutomation.findMany({ where: { eventId, type: { in: [...MARKETING_AUTOMATIONS] } } });
-  const locale = event.organization.locale === "en" ? "en" : "fr";
+  const locale = toLocale(event.organization.locale);
   const missing = MARKETING_AUTOMATIONS.filter((t) => !existing.some((a) => a.type === t));
-  if (missing.length) await db.emailAutomation.createMany({ data: missing.map((type) => { const d = DEFAULTS[locale][type](event.title); return { eventId, type, enabled: false, subject: d.subject, content: { message: d.message } }; }), skipDuplicates: true });
+  if (missing.length) await db.emailAutomation.createMany({ data: missing.map((type) => { const d = DEFAULTS[baseLocale(locale)][type](event.title); return { eventId, type, enabled: false, subject: d.subject, content: { message: d.message } }; }), skipDuplicates: true });
   // ordre de déclaration de l'énumération : remerciement, puis dernières places
   return db.emailAutomation.findMany({ where: { eventId, type: { in: [...MARKETING_AUTOMATIONS] } }, orderBy: { type: "asc" } });
 }

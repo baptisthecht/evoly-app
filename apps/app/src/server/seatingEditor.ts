@@ -177,7 +177,7 @@ function holderOf(t: TicketHolder) {
   if (!t) return null;
   return { name: `${t.holderFirstName ?? t.order.buyerFirstName} ${t.holderLastName ?? t.order.buyerLastName}`.trim(), reference: t.order.reference, entered: t.checkedInAt !== null };
 }
-const seatName = (row: string, label: string, locale: "fr" | "en") => (locale === "en" ? `row ${row}, seat ${label}` : `rang ${row}, place ${label}`);
+const seatName = (row: string, label: string, locale: string) => (locale !== "fr" ? `row ${row}, seat ${label}` : `rang ${row}, place ${label}`);
 
 /**
  * Change un billet de place : place libre de la même catégorie, prise en une transaction (refusée si elle vient

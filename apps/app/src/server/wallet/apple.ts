@@ -1,3 +1,4 @@
+import { pick } from "@evoly/i18n";
 import "server-only";
 import { createHash } from "node:crypto";
 import { strToU8, zipSync } from "fflate";
@@ -27,11 +28,16 @@ export function appleCredentials(): AppleCredentials | null {
 const LABELS = {
   fr: { seat: "PLACE", date: "DATE", event: "ÉVÉNEMENT", when: "QUAND", where: "OÙ", type: "TARIF", holder: "TITULAIRE", order: "Commande", code: "Code du billet", info: "À savoir", infoText: "Présentez ce QR code à l’entrée. Il n’est valable qu’une fois : ne le partagez pas." },
   en: { seat: "SEAT", date: "DATE", event: "EVENT", when: "WHEN", where: "WHERE", type: "TICKET", holder: "HOLDER", order: "Order", code: "Ticket code", info: "Good to know", infoText: "Show this QR code at the entrance. It works only once: don't share it." },
+  es: { seat: "PLAZA", date: "FECHA", event: "EVENTO", when: "CUÁNDO", where: "DÓNDE", type: "TARIFA", holder: "TITULAR", order: "Pedido", code: "Código de la entrada", info: "Información", infoText: "Muestra este código QR en el acceso. Solo vale una vez: no lo compartas." },
+  de: { seat: "PLATZ", date: "DATUM", event: "VERANSTALTUNG", when: "WANN", where: "WO", type: "TARIF", holder: "INHABER", order: "Bestellung", code: "Ticketcode", info: "Gut zu wissen", infoText: "Zeigen Sie diesen QR-Code am Eingang vor. Er gilt nur einmal: Geben Sie ihn nicht weiter." },
+  it: { seat: "POSTO", date: "DATA", event: "EVENTO", when: "QUANDO", where: "DOVE", type: "TARIFFA", holder: "TITOLARE", order: "Ordine", code: "Codice del biglietto", info: "Da sapere", infoText: "Mostra questo codice QR all’ingresso. Vale una sola volta: non condividerlo." },
+  pt: { seat: "LUGAR", date: "DATA", event: "EVENTO", when: "QUANDO", where: "ONDE", type: "TARIFA", holder: "TITULAR", order: "Encomenda", code: "Código do bilhete", info: "A saber", infoText: "Apresente este código QR à entrada. Só é válido uma vez: não o partilhe." },
+  nl: { seat: "PLAATS", date: "DATUM", event: "EVENEMENT", when: "WANNEER", where: "WAAR", type: "TARIEF", holder: "HOUDER", order: "Bestelling", code: "Ticketcode", info: "Goed om te weten", infoText: "Toon deze QR-code aan de ingang. Hij is maar één keer geldig: deel hem niet." },
 } as const;
 
 /** Contenu du pass (format Apple « eventTicket »). */
 export function passJson(t: WalletTicket, creds: Pick<AppleCredentials, "passTypeIdentifier" | "teamIdentifier">) {
-  const L = LABELS[t.locale];
+  const L = pick(LABELS, t.locale);
   return {
     formatVersion: 1,
     passTypeIdentifier: creds.passTypeIdentifier,

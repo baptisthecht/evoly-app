@@ -1,6 +1,6 @@
 import type { Locale } from "./locales";
 
-const INTL_LOCALE: Record<Locale, string> = { fr: "fr-BE", en: "en-GB" };
+const INTL_LOCALE: Record<Locale, string> = { fr: "fr-BE", en: "en-GB", es: "es-ES", de: "de-DE", it: "it-IT", pt: "pt-PT", nl: "nl-BE" };
 
 /** Nombre de décimales d'une devise (2 pour l'euro, 0 pour le yen…). */
 export function currencyExponent(currency: string): number {

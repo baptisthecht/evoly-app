@@ -1,6 +1,6 @@
 import "server-only";
 import { commissionVat, CoreError, financeByEvent, financeTotals, statementNumber, utcToZonedLocal, vatIncluded, zonedLocalToUtc, type FinanceOrder, type VatMention } from "@evoly/core";
-import { formatDate, formatMoney, type Locale } from "@evoly/i18n";
+import { formatDate, formatMoney, type Locale, baseLocale } from "@evoly/i18n";
 import { Prisma } from "@evoly/db";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { db } from "@/lib/db";
@@ -119,7 +119,7 @@ export async function statementMonths(ctx: OrgContext, now = new Date()) {
     .map((m) => ({ ...m, open: m.period >= current, statement: statements.find((s) => utcToZonedLocal(s.periodStart, tz).slice(0, 7) === m.period && s.currency === m.currency) ?? null }));
 }
 
-const MENTIONS: Record<Locale, Record<VatMention, (rate: string) => string>> = {
+const MENTIONS: Record<"fr" | "en", Record<VatMention, (rate: string) => string>> = {
   fr: { BE_VAT: (r) => `TVA belge ${r} comprise`, REVERSE_CHARGE: () => "Autoliquidation : TVA due par le preneur (article 196 de la directive 2006/112/CE)", OSS: (r) => `TVA ${r} du pays du client comprise, déclarée via le guichet unique (OSS)`, OUTSIDE_EU: () => "Hors champ de la TVA de l’Union européenne" },
   en: { BE_VAT: (r) => `Belgian VAT ${r} included`, REVERSE_CHARGE: () => "Reverse charge: VAT payable by the customer (article 196 of Directive 2006/112/EC)", OSS: (r) => `Customer country VAT ${r} included, declared via the One-Stop Shop (OSS)`, OUTSIDE_EU: () => "Outside the scope of EU VAT" },
 };
@@ -163,7 +163,7 @@ const clean = (s: string) => s.replace(/[\u202f\u00a0\u2009]/g, " ").replace(/[^
 export async function statementPdf(statementId: string): Promise<{ bytes: Uint8Array; number: string }> {
   const st = await db.commissionStatement.findUniqueOrThrow({ where: { id: statementId }, include: { organization: true } });
   const org = st.organization;
-  const locale = (org.locale === "en" ? "en" : "fr") as Locale;
+  const locale = baseLocale(org.locale); // relevés : français ou anglais
   const orders = await periodOrders(org.id, { from: st.periodStart, to: st.periodEnd }, undefined, st.currency);
   const events = await db.event.findMany({ where: { id: { in: [...new Set(orders.map((o) => o.eventId))] } }, select: { id: true, title: true } });
   const rows = events.map((e) => ({ title: e.title, tickets: orders.filter((o) => o.eventId === e.id).reduce((n, o) => n + o._count.tickets, 0), fees: orders.filter((o) => o.eventId === e.id).reduce((n, o) => n + o.applicationFeeMinor, 0) })).filter((r) => r.fees > 0);

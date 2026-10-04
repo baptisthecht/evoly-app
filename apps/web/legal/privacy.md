@@ -1,9 +1,9 @@
 ## 1. Qui est responsable ?
 
-- Pour les comptes des organisateurs, le site evoly.me et la facturation : Evoly, [Evoly Solutions SRL, siège, numéro d'entreprise BCE], est responsable du traitement.
+- Pour les comptes des organisateurs, le site evoly.me et la facturation : Evoly (Baptist Hecht, entrepreneur indépendant exerçant sous le nom commercial Evoly Solutions, rue du Bilemont 376, 7700 Mouscron, Belgique, numéro d'entreprise BCE 1043.315.766) est responsable du traitement.
 - Pour les données des participants (commandes, billets, entrées) : chaque organisateur est responsable du traitement ; Evoly agit comme sous-traitant, selon l'[accord de sous-traitance](/sous-traitance).
 
-Contact pour vos données : [adresse e-mail dédiée].
+Contact pour vos données : hello@evoly.me.
 
 ## 2. Données, finalités et bases légales
 
@@ -36,7 +36,7 @@ Les e-mails marketing des organisateurs (campagnes, e-mails automatiques) contie
 | Resend | Envoi des e-mails | États-Unis (clauses contractuelles types) |
 | Anthropic | Lecture d’une photo de plan de salle envoyée par un organisateur (fonction facultative), sans conservation de l’image | États-Unis (clauses contractuelles types) |
 | Cloudflare | Réseau, certificats, stockage des images (R2) | Union européenne, États-Unis (clauses contractuelles types) |
-| [Hébergeur de l'application et de la base de données] | Hébergement | Union européenne |
+| OVH SAS (OVHcloud), France | Hébergement de l'application et de la base de données | Union européenne |
 | Sentry | Suivi des erreurs, sans données personnelles | Union européenne |
 
 ## 5. Vos droits

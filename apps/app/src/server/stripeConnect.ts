@@ -1,4 +1,6 @@
 import "server-only";
+import { baseLocale } from "@evoly/i18n";
+import type { Locale } from "@evoly/i18n";
 import { notify } from "./notifications";
 import { CoreError } from "@evoly/core";
 import type Stripe from "stripe";
@@ -56,7 +58,7 @@ export async function stripeOnboardingUrl(ctx: OrgContext): Promise<string> {
       identity: { country: ctx.organization.country.toLowerCase() },
       defaults: {
         currency: ctx.organization.currency.toLowerCase(),
-        locales: [ctx.organization.locale === "en" ? "en" : "fr"],
+        locales: [baseLocale(ctx.organization.locale)],
         responsibilities: { fees_collector: "stripe", losses_collector: "stripe" },
       },
       configuration: { merchant: { capabilities: { card_payments: { requested: true }, bancontact_payments: { requested: true } } } },

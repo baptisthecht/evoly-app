@@ -1,3 +1,4 @@
+import { baseLocale } from "@evoly/i18n";
 import { can, canOwnerOnly } from "@evoly/core";
 import type { Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
@@ -41,7 +42,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ orgSl
           readOnly={!can(ctx.membership, "ORG_SETTINGS_EDIT") || ctx.readOnly}
           currencyLocked={locked}
           currencies={[...new Set(currencies.map((c) => c.currency))]}
-          countries={LAUNCH_COUNTRIES.map((c) => ({ code: c.code, name: c.name[locale] }))}
+          countries={LAUNCH_COUNTRIES.map((c) => ({ code: c.code, name: c.name[baseLocale(locale)] }))}
           values={{ name: org.name, legalName: org.legalName ?? "", type: org.type, description: org.description ?? "", contactEmail: org.contactEmail ?? "", phone: org.phone ?? "", website: org.website ?? "", country: org.country, currency: org.currency, locale: org.locale, timezone: org.timezone, addressLine1: org.addressLine1 ?? "", addressLine2: org.addressLine2 ?? "", postalCode: org.postalCode ?? "", city: org.city ?? "", vatNumber: org.vatNumber ?? "", vatRegistered: org.vatRegistered }}
         />
       </Card>

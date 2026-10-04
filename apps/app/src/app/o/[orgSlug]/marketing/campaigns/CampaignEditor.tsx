@@ -1,5 +1,6 @@
 "use client";
 
+import { LOCALE_NAMES, LOCALES } from "@evoly/i18n";
 import type { CampaignBlock, CampaignSegment } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -169,8 +170,7 @@ export function CampaignEditor({ orgSlug, id, status, scheduledAt, initial, even
           ) : null}
           <Select aria-label={t("language")} value={v.segment.locale ?? ""} onChange={(e) => set({ segment: { ...v.segment, locale: (e.target.value || null) as "fr" | null } })}>
             <option value="">{t("language_ALL")}</option>
-            <option value="fr">Français</option>
-            <option value="en">English</option>
+            {LOCALES.map((l) => <option key={l} value={l}>{LOCALE_NAMES[l]}</option>)}
           </Select>
           <p className="text-sm font-semibold" data-testid="audience-count">{count == null ? "…" : t("recipients", { count })}</p>
           <p className="text-xs text-ink-muted">{t("audienceHint")}</p>

@@ -2,6 +2,7 @@ import "server-only";
 import { notify } from "./notifications";
 import { CoreError, daysBeforeDowngrade, effectivePlan, subscriptionStatusFromStripe, trialEligible } from "@evoly/core";
 import type { Locale } from "@evoly/i18n";
+import { toLocale } from "@evoly/i18n";
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -78,7 +79,7 @@ export async function startCheckout(ctx: OrgContext, interval: "MONTH" | "YEAR")
     tax_id_collection: { enabled: true },
     customer_update: { name: "auto", address: "auto" },
     automatic_tax: { enabled: env().STRIPE_TAX_ENABLED === "true" },
-    locale: ctx.organization.locale === "en" ? "en" : "fr",
+    locale: toLocale(ctx.organization.locale), // Stripe Checkout existe dans toutes nos langues
     metadata: { organizationId: ctx.organization.id },
     success_url: `${billingUrl(ctx.organization.slug)}?checkout=success`,
     cancel_url: `${billingUrl(ctx.organization.slug)}?checkout=cancel`,
@@ -101,7 +102,7 @@ async function notifyOwner(organizationId: string, kind: "STARTED" | "TRIAL_ENDI
   const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { name: true, slug: true, locale: true } });
   const who = await owner(organizationId);
   if (!who) return;
-  const mail = subscriptionEmail({ kind, locale: (org.locale === "en" ? "en" : "fr") as Locale, organizationName: org.name, firstName: who.name.split(" ")[0] ?? who.name, url: billingUrl(org.slug) });
+  const mail = subscriptionEmail({ kind, locale: toLocale(org.locale), organizationName: org.name, firstName: who.name.split(" ")[0] ?? who.name, url: billingUrl(org.slug) });
   await sendEmail({ ...mail, to: who.email, template: `subscription.${kind.toLowerCase()}`, category: "SERVICE", organizationId }).catch((err) => console.error("e-mail d'abonnement", organizationId, err));
 }
 

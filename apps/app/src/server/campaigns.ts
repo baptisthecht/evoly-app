@@ -2,6 +2,7 @@ import "server-only";
 import { notify } from "./notifications";
 import { CoreError, hasFeature, remainingDailyQuota, scheduledCancellable, scheduledEditable, utcToZonedLocal, validateBlocks, validateSegment, zonedLocalToUtc, type CampaignBlock, type CampaignSegment } from "@evoly/core";
 import type { Locale } from "@evoly/i18n";
+import { toLocale } from "@evoly/i18n";
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
@@ -85,7 +86,7 @@ export function renderWithBase(base: Awaited<ReturnType<typeof campaignBase>>, c
     organizationName: brand.fromName || org.name,
     organizationAddress: [org.addressLine1, [org.postalCode, org.city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
     firstName: recipient.firstName,
-    locale: (recipient.locale === "en" ? "en" : "fr") as Locale,
+    locale: toLocale(recipient.locale),
     unsubscribeUrl: unsubscribeUrl(recipient.email, campaign.organizationId, null, campaign.id ?? null),
     events,
   });

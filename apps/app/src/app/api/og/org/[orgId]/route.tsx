@@ -1,3 +1,4 @@
+import { baseLocale } from "@evoly/i18n";
 import { ImageResponse } from "next/og";
 import { db } from "@/lib/db";
 import { hasFeatureForOrg } from "@/server/og";
@@ -6,7 +7,7 @@ import { hasFeatureForOrg } from "@/server/og";
 export async function GET(_req: Request, { params }: { params: Promise<{ orgId: string }> }) {
   const { orgId } = await params;
   const org = await db.organization.findUnique({ where: { id: orgId }, select: { name: true, locale: true, brand: { select: { displayName: true, primaryColor: true, hideEvolyBranding: true } }, _count: { select: { events: { where: { visibility: "PUBLIC", status: "PUBLISHED", startsAt: { gte: new Date() } } } } } } });
-  const en = org?.locale === "en";
+  const en = baseLocale(org?.locale) === "en"; // français ou anglais (repli anglais pour les autres langues)
   const { branded, hidePowered } = org ? await hasFeatureForOrg(orgId, org.brand?.hideEvolyBranding ?? true) : { branded: false, hidePowered: false };
   const name = org ? (branded ? (org.brand?.displayName ?? org.name) : org.name) : "Evoly";
   const n = org?._count.events ?? 0;

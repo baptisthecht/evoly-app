@@ -1,5 +1,6 @@
 "use client";
 
+import { LOCALE_NAMES, LOCALES } from "@evoly/i18n";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { TIMEZONES } from "@/components/events/EventFields";
@@ -99,8 +100,7 @@ export function OrganizationSettingsForm({ orgSlug, values, countries, currencie
           </Field>
           <Field label={t("locale")} htmlFor="org-locale" hint={t("localeHint")}>
             <Select id="org-locale" name="locale" defaultValue={values.locale}>
-              <option value="fr">Français</option>
-              <option value="en">English</option>
+              {LOCALES.map((l) => <option key={l} value={l}>{LOCALE_NAMES[l]}</option>)}
             </Select>
           </Field>
           <Field label={t("timezone")} htmlFor="org-tz">

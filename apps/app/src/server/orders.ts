@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { notifyNewOrder, notifySalesMilestone } from "./notifications";
 import { qualifyReferral } from "./referrals";
 import { effectiveEnd } from "@evoly/core";
+import { pick } from "@evoly/i18n";
 import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
@@ -65,6 +66,11 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
 const PDF_LABELS = {
   fr: { ticket: (i: number, n: number) => `Billet ${i} sur ${n}`, holder: "Titulaire", reference: "Commande", entrance: "Présentez ce billet à l’entrée, imprimé ou sur votre téléphone. Chaque QR code n’est accepté qu’une fois : ne le partagez pas.", poweredBy: "Billetterie Evoly" },
   en: { ticket: (i: number, n: number) => `Ticket ${i} of ${n}`, holder: "Holder", reference: "Order", entrance: "Show this ticket at the entrance, printed or on your phone. Each QR code is accepted only once: don’t share it.", poweredBy: "Evoly ticketing" },
+  es: { ticket: (i: number, n: number) => `Entrada ${i} de ${n}`, holder: "Titular", reference: "Pedido", entrance: "Presenta esta entrada en el acceso, impresa o en tu móvil. Cada código QR solo se acepta una vez: no lo compartas.", poweredBy: "Venta de entradas Evoly" },
+  de: { ticket: (i: number, n: number) => `Ticket ${i} von ${n}`, holder: "Inhaber", reference: "Bestellung", entrance: "Zeigen Sie dieses Ticket am Eingang vor, ausgedruckt oder auf dem Handy. Jeder QR-Code wird nur einmal akzeptiert: Geben Sie ihn nicht weiter.", poweredBy: "Ticketing von Evoly" },
+  it: { ticket: (i: number, n: number) => `Biglietto ${i} di ${n}`, holder: "Titolare", reference: "Ordine", entrance: "Mostra questo biglietto all’ingresso, stampato o sul telefono. Ogni codice QR viene accettato una sola volta: non condividerlo.", poweredBy: "Biglietteria Evoly" },
+  pt: { ticket: (i: number, n: number) => `Bilhete ${i} de ${n}`, holder: "Titular", reference: "Encomenda", entrance: "Apresente este bilhete à entrada, impresso ou no telemóvel. Cada código QR só é aceite uma vez: não o partilhe.", poweredBy: "Bilheteira Evoly" },
+  nl: { ticket: (i: number, n: number) => `Ticket ${i} van ${n}`, holder: "Houder", reference: "Bestelling", entrance: "Toon dit ticket aan de ingang, afgedrukt of op je telefoon. Elke QR-code wordt maar één keer aanvaard: deel hem niet.", poweredBy: "Ticketverkoop door Evoly" },
 } as const;
 
 /** PDF des billets d'une commande payée (une page par billet). */
@@ -82,7 +88,7 @@ export async function ticketsPdfFor(
     where: e.locationType === "ONLINE" ? null : [e.locationName, e.addressLine1, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
     reference: order.reference,
     tickets: order.tickets.map((t) => ({ code: t.code, shortCode: t.shortCode, typeName: t.seat ? `${t.ticketType.name} · ${locale === "en" ? "Row" : "Rang"} ${t.seat.row.name} · ${locale === "en" ? "Seat" : "Place"} ${t.seat.label}` : t.ticketType.name, holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : null , invalidLabel: t.status && !["VALID", "CHECKED_IN"].includes(t.status) ? invalidTicketLabel(t.voidReason ?? t.status, locale) : null })),
-    labels: PDF_LABELS[locale],
+    labels: pick(PDF_LABELS, locale),
   };
   // RG-FILE-02 : PDF gardé en mémoire, indexé par l'empreinte de tout ce qui le compose (marque, logo, événement,
   // billets, langue) : un billet revendu, un titulaire changé ou un événement déplacé donnent un nouveau PDF
@@ -224,8 +230,8 @@ export async function getBuyerOrder(orderId: string) {
 }
 
 /** Mention d'un billet qui n'est plus valable, dans le PDF (section 9.12). */
-function invalidTicketLabel(reason: string, locale: "fr" | "en"): string {
+function invalidTicketLabel(reason: string, locale: string): string {
   const fr: Record<string, string> = { RESOLD: "BILLET REVENDU · NON VALABLE", REFUNDED: "BILLET REMBOURSÉ · NON VALABLE", EVENT_CANCELLED: "ÉVÉNEMENT ANNULÉ · NON VALABLE" };
   const en: Record<string, string> = { RESOLD: "TICKET RESOLD · NOT VALID", REFUNDED: "TICKET REFUNDED · NOT VALID", EVENT_CANCELLED: "EVENT CANCELLED · NOT VALID" };
-  return (locale === "en" ? en : fr)[reason] ?? (locale === "en" ? "TICKET NOT VALID" : "BILLET NON VALABLE");
+  return (locale === "fr" ? fr : en)[reason] ?? (locale === "fr" ? "BILLET NON VALABLE" : "TICKET NOT VALID");
 }

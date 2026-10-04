@@ -1,5 +1,5 @@
-/** Langues disponibles au lancement (CDC 7.3, décision 7). Ajouter "nl" en P1, "de" et "es" en P2. */
-export const LOCALES = ["fr", "en"] as const;
+/** Langues de l'app (section 7.3). fr et en sont complètes ; les autres se complètent progressivement, avec repli sur l'anglais. */
+export const LOCALES = ["fr", "en", "es", "de", "it", "pt", "nl"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "fr";
 
@@ -29,3 +29,26 @@ export function negotiateLocale(acceptLanguage: string | null | undefined, remem
   }
   return fallback;
 }
+
+/** Nom de chaque langue dans sa propre langue (sélecteurs). */
+export const LOCALE_NAMES: Readonly<Record<Locale, string>> = { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands" };
+
+/**
+ * Langue des textes écrits dans le code (e-mails, relevés, Wallet…) tant qu'ils n'existent qu'en français et en anglais :
+ * le français pour le français, l'anglais pour toutes les autres langues (plus universel qu'un repli sur le français).
+ */
+export function baseLocale(locale: string | null | undefined): "fr" | "en" {
+  return locale === "fr" ? "fr" : "en";
+}
+
+/** Une langue connue, sinon le repli indiqué. */
+export function toLocale(value: string | null | undefined, fallback: Locale = DEFAULT_LOCALE): Locale {
+  return isLocale(value) ? value : fallback;
+}
+
+/** Texte d'un modèle dans la langue demandée, sinon en anglais (modèles traduits progressivement). */
+export function pick<C extends { en: unknown }>(copy: C, locale: string | null | undefined): C["en"] {
+  const all = copy as unknown as Partial<Record<Locale, C["en"]>>;
+  return (isLocale(locale) ? all[locale] : undefined) ?? copy.en;
+}
+

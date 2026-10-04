@@ -1,3 +1,4 @@
+import type { Locale } from "@evoly/i18n";
 import "server-only";
 import { canOwnerOnly, CoreError, effectiveEnd, isValidTimeZone } from "@evoly/core";
 import { db } from "@/lib/db";
@@ -16,7 +17,7 @@ export interface OrganizationSettingsInput {
   website?: string | null;
   country: string;
   currency: string;
-  locale: "fr" | "en";
+  locale: Locale;
   timezone: string;
   addressLine1?: string | null;
   addressLine2?: string | null;

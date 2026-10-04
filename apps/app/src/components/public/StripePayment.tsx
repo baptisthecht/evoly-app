@@ -1,5 +1,8 @@
 "use client";
 
+import { toLocale } from "@evoly/i18n";
+import type { Locale } from "@evoly/i18n";
+
 import { palette } from "@evoly/ui";
 
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
@@ -25,7 +28,7 @@ export function StripePayment({ publishableKey, stripeAccountId, amountMinor, cu
         mode: "payment",
         amount: amountMinor,
         currency: currency.toLowerCase(),
-        locale: locale === "en" ? "en" : "fr",
+        locale: toLocale(locale), // Stripe Elements existe dans toutes nos langues
         appearance: { theme: "stripe", variables: { colorPrimary: palette.charbon, colorText: palette.charbon, colorDanger: palette.danger, borderRadius: "12px", fontFamily: "Poppins, system-ui, sans-serif", spacingUnit: "4px" } },
       }}
     >

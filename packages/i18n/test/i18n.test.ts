@@ -1,19 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { currencyExponent, flattenKeys, formatBps, formatDate, formatDateTime, formatMoney, formatTime, fromMinor, isLocale, MESSAGES, negotiateLocale, timeZoneLabel } from "../src";
+import { currencyExponent, flattenKeys, formatBps, formatDate, formatDateTime, formatMoney, formatTime, fromMinor, isLocale, MESSAGES, negotiateLocale, timeZoneLabel, PARTIAL_MESSAGES } from "../src";
 
 const nbsp = (s: string) => s.replace(/[\u00a0\u202f]/g, " ");
 
 describe("langues", () => {
   it("négociation depuis Accept-Language", () => {
     expect(negotiateLocale("en-US,en;q=0.9,fr;q=0.8")).toBe("en");
-    expect(negotiateLocale("nl-BE,nl;q=0.9,fr;q=0.7")).toBe("fr");
-    expect(negotiateLocale("de-DE")).toBe("fr");
-    expect(negotiateLocale("de-DE", null, "en")).toBe("en");
+    expect(negotiateLocale("nl-BE,nl;q=0.9,fr;q=0.7")).toBe("nl");
+    expect(negotiateLocale("de-DE")).toBe("de");
+    expect(negotiateLocale("es-ES,es;q=0.9")).toBe("es");
+    expect(negotiateLocale("pt-BR")).toBe("pt");
+    expect(negotiateLocale("ja-JP")).toBe("fr");
+    expect(negotiateLocale("ja-JP", null, "en")).toBe("en");
     expect(negotiateLocale("fr;q=0.2,en;q=0.9")).toBe("en");
     expect(negotiateLocale("en;q=0, fr")).toBe("fr");
     expect(negotiateLocale(null)).toBe("fr");
     expect(negotiateLocale("en", "fr")).toBe("fr");
-    expect(isLocale("nl")).toBe(false);
+    expect(isLocale("nl")).toBe(true);
+    expect(isLocale("ja")).toBe(false);
   });
 });
 
@@ -51,6 +55,14 @@ describe("messages", () => {
     const en = flattenKeys(MESSAGES.en).sort();
     expect(en).toEqual(fr);
     expect(fr.length).toBeGreaterThan(150);
+  });
+  it("langues en cours de traduction : uniquement des clés connues, complètes grâce au repli sur l'anglais", () => {
+    const fr = new Set(flattenKeys(MESSAGES.fr));
+    for (const [locale, partial] of Object.entries(PARTIAL_MESSAGES)) {
+      const unknown = flattenKeys(partial).filter((k) => k && !fr.has(k));
+      expect(unknown, locale).toEqual([]);
+      expect(flattenKeys(MESSAGES[locale as keyof typeof MESSAGES]).sort(), locale).toEqual([...fr].sort());
+    }
   });
   it("aucun message vide", () => {
     const values = (o: unknown): string[] => (typeof o === "string" ? [o] : Object.values(o as object).flatMap(values));

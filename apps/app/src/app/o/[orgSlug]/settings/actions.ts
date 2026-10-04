@@ -1,5 +1,7 @@
 "use server";
 
+import { LOCALES } from "@evoly/i18n";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -18,7 +20,7 @@ const settingsSchema = z.object({
   website: optional(300),
   country: z.string().length(2),
   currency: z.string().length(3),
-  locale: z.enum(["fr", "en"]),
+  locale: z.enum(LOCALES),
   timezone: z.string().min(1).max(60),
   addressLine1: optional(160),
   addressLine2: optional(160),
