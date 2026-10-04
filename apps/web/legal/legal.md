@@ -1,12 +1,12 @@
 ## Éditeur
 
-- [Evoly Solutions SRL]
+- Baptist Hecht, entrepreneur indépendant (personne physique), sous le nom commercial Evoly Solutions
 - [Adresse du siège]
-- Numéro d'entreprise (BCE) : [à compléter]
+- Numéro d'entreprise (BCE) : 1043.315.766
 - TVA : [BE0000000000]
-- Contact : [adresse e-mail] — [téléphone]
+- Contact : hello@evoly.me — [téléphone]
 
-Responsable de la publication : [nom].
+Responsable de la publication : Baptist Hecht.
 
 ## Hébergement
 

@@ -252,8 +252,8 @@ def plan_items(items):
 
 FREE_LIST = plan_items(['0 % sur les billets gratuits, sans limite', '0,29 € + 2 % par billet payant, 2,50 € maximum', 'Frais de paiement au coût réel, sans marge',
                         'Frais inclus dans votre prix : rien n’est ajouté à l’acheteur', ('Fixez ce que vous voulez toucher, le prix se calcule tout seul', True), ('Revente sécurisée entre participants', True),
-                        'Statistiques en direct', 'Sous-domaine Evoly inclus', 'Check-in QR inclus', 'E-mails transactionnels'])
-PRO_LIST = plan_items(['Tout le plan Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), 'E-mail marketing et automatisations',
+                        'Statistiques en direct', 'Codes promo et questions personnalisées', 'Sous-domaine Evoly inclus', 'Check-in QR inclus', 'E-mails transactionnels'])
+PRO_LIST = plan_items(['Tout le plan Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), ('Plan de salle et placement numéroté', True), 'E-mail marketing et automatisations',
                        'Domaine personnalisé avec SSL', 'Vos couleurs et votre logo', 'Sous-domaines dédiés par événement', 'Multi-orgs et rôles', 'Sans branding Evoly'])
 
 # ------------------------------------------------------------------ FAQ (brouillon à valider)
@@ -308,7 +308,7 @@ BODY = f'''
   <div class="nav__bar">
     <a class="nav__logo" href="#top" aria-label="Evoly, retour en haut">{icon('logo', 380, 286)}</a>
     <nav class="nav__links" aria-label="Principale">
-      <a href="#fonctionnement">Fonctionnalités</a><a href="#revente">Revente</a><a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a>
+      <a href="#fonctionnement">Fonctionnalités</a><a href="#revente">Revente</a><a href="/plan-de-salle/">Plan de salle</a><a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a>
     </nav>
     <div class="nav__actions">
       <a class="nav__login" href="{LOGIN}" {EXT}>Connexion</a>
@@ -323,6 +323,7 @@ BODY = f'''
   <ul class="menu__links">
     <li><a href="#fonctionnement">fonctionnalités</a></li>
     <li><a href="#revente">revente</a></li>
+    <li><a href="/plan-de-salle/">plan de salle</a></li>
     <li><a href="#tarifs">tarifs</a></li>
     <li><a href="#faq">questions</a></li>
   </ul>
@@ -631,6 +632,12 @@ BODY = f'''
     </div>
   </section>
 
+  <section class="seat" id="plan-de-salle" aria-labelledby="seat-title">
+    <h2 class="h2" id="seat-title">le plan de salle, <span class="script">enfin simple</span>.</h2>
+    <p class="lede">Théâtre, gala ou stade : dessinez votre salle en quelques minutes. Les meilleures places sont attribuées automatiquement, et vos participants peuvent les changer en un geste.</p>
+    <div class="seat__links"><a class="btn btn--pink" href="/plan-de-salle/">Découvrir le plan de salle</a><span class="pg__note">Inclus dans l’offre Pro.</span></div>
+  </section>
+
   <section class="cmp" id="comparatif" aria-labelledby="cmp-title">
     <div class="cmp__head">
       <h2 class="h2" id="cmp-title">ce qu’on fait <span class="script">de plus</span>.</h2>
@@ -704,7 +711,7 @@ BODY = f'''
 <footer class="footer">
   <div class="footer__brand">{icon('i-o', 100, 100)}<span>Ton prochain souvenir t’attend.</span></div>
   <nav aria-label="Pied de page">
-    <a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a><a href="mailto:hello@evoly.me">Contact</a>
+    <a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a><a href="/plan-de-salle/">Plan de salle</a><a href="/associations/">Associations</a><a href="/evoly-ou-eventbrite/">Evoly ou Eventbrite</a><a href="/a-propos/">Qui sommes-nous</a><a href="mailto:hello@evoly.me">Contact</a>
     <a href="https://evoly.me/cgu" {EXT}>CGU</a><a href="https://evoly.me/privacy" {EXT}>Confidentialité</a><a href="https://evoly.me/legal" {EXT}>Mentions légales</a><a href="https://evoly.me/cookies" {EXT}>Cookies</a>
   </nav>
   <p class="footer__copy">© 2026 Evoly Solutions</p>
@@ -814,6 +821,7 @@ SEO_HEAD = f"""<title>{SEO_TITLE}</title>
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png?v={OG_VERSION}"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne : prix affiché, prix payé">
 <script type="application/ld+json">{_json.dumps(LD, ensure_ascii=False)}</script>"""
 
+import pages
 page = f'''<!doctype html>
 <html lang="fr" class="no-js">
 <head>
@@ -824,7 +832,7 @@ page = f'''<!doctype html>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 {fonts}
 <style>{TOKENS}
-{css}</style>
+{css}{pages.PAGE_CSS}</style>
 </head>
 <body>
 {BODY}
@@ -849,5 +857,7 @@ if not TEST:
 # langues : une page par langue (traduction texte par texte), en-têtes hreflang, sélecteur et sitemap
 if not TEST:
     import i18n
-    total, done = i18n.build_all(open(os.path.join(HERE, 'dist', 'evoly-billetterie.html'), encoding='utf-8').read(), os.path.join(HERE, 'dist'))
+    home = open(os.path.join(HERE, 'dist', 'evoly-billetterie.html'), encoding='utf-8').read()
+    subpages = pages.build(home, lambda s: nowrap(fr_attr(fr_typo(s))))   # plan de salle, associations, comparatif, qui sommes-nous
+    total, done = i18n.build_all({'home': home, **subpages}, os.path.join(HERE, 'dist'))
     print('langues :', ', '.join(f'{c} {n}/{total}' for c, n in done.items()))

@@ -2,6 +2,7 @@
 puis chaque langue reçoit son adresse, son en-tête (canonique, hreflang, aperçus), son image d'aperçu et le sélecteur.
 Les textes sans traduction restent en français ; tests.py signale tout texte manquant."""
 import hashlib, html, json, os, re
+from pages import SLUGS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = 'https://evoly.me'
@@ -107,59 +108,78 @@ def translate(page, table):
             parts.append(lead + html.escape(out, quote=False) + trail)
     return ''.join(parts)
 
-def url_of(code): return f'{SITE}/' if code == 'fr' else f'{SITE}/{code}/'
+def path_of(code, pid='home'):
+    if pid == 'home': return '/' if code == 'fr' else f'/{code}/'
+    return f'/{SLUGS[pid][code]}/' if code == 'fr' else f'/{code}/{SLUGS[pid][code]}/'
 
-def head_for(page, code, og_locale):
+def url_of(code, pid='home'): return SITE + path_of(code, pid)
+
+def file_of(dist, code, pid):
+    if pid == 'home': return os.path.join(dist, 'evoly-billetterie.html') if code == 'fr' else os.path.join(dist, code, 'index.html')
+    return os.path.join(dist, SLUGS[pid][code], 'index.html') if code == 'fr' else os.path.join(dist, code, SLUGS[pid][code], 'index.html')
+
+def relink(page, code):
+    """Liens internes vers la même langue : /plan-de-salle/ → /en/seating-plan/, / et /#tarifs → /en/ et /en/#tarifs."""
+    if code == 'fr': return page
+    for pid, slugs in SLUGS.items():
+        page = page.replace(f'href="/{slugs["fr"]}/', f'href="/{code}/{slugs[code]}/')
+    return re.sub(r'href="/(#[\w-]*)?"', lambda m: f'href="/{code}/{m.group(1) or ""}"', page)
+
+def head_for(page, code, og_locale, pid='home'):
     """En-tête propre à la langue : lang, canonique, hreflang, image d'aperçu, données de langue pour le script."""
-    alternates = ''.join(f'<link rel="alternate" hreflang="{c}" href="{url_of(c)}">' for c, *_ in LANGS) + f'<link rel="alternate" hreflang="x-default" href="{url_of(X_DEFAULT)}">'
+    alternates = ''.join(f'<link rel="alternate" hreflang="{c}" href="{url_of(c, pid)}">' for c, *_ in LANGS) + f'<link rel="alternate" hreflang="x-default" href="{url_of(X_DEFAULT, pid)}">'
     page = re.sub(r'<html lang="[a-z-]+"', f'<html lang="{code}"', page, count=1)
-    page = re.sub(r'<link rel="canonical" href="[^"]*">', f'<link rel="canonical" href="{url_of(code)}">' + alternates, page, count=1)
-    page = re.sub(r'<meta property="og:url" content="[^"]*">', f'<meta property="og:url" content="{url_of(code)}">', page, count=1)
+    page = re.sub(r'<link rel="canonical" href="[^"]*">', f'<link rel="canonical" href="{url_of(code, pid)}">' + alternates, page, count=1)
+    page = re.sub(r'<meta property="og:url" content="[^"]*">', f'<meta property="og:url" content="{url_of(code, pid)}">', page, count=1)
     page = re.sub(r'<meta property="og:locale" content="[^"]*">', f'<meta property="og:locale" content="{og_locale}">' + ''.join(f'<meta property="og:locale:alternate" content="{l}">' for c, _, l, _ in LANGS if c != code), page, count=1)
     page = page.replace(f'{SITE}/og.png', f'{SITE}/og-{code}.png' if code != 'fr' else f'{SITE}/og.png')
     page = page.replace('"inLanguage": "fr"', f'"inLanguage": "{code}"')
+    if pid != 'home': page = page.replace(f'{SITE}/{SLUGS[pid]["fr"]}/', url_of(code, pid))   # données structurées
     return page
 
-def switcher(code, label):
-    opts = ''.join(f'<option value="{"/" if c == "fr" else f"/{c}/"}" lang="{c}"{" selected" if c == code else ""}>{name}</option>' for c, name, *_ in LANGS)
+def switcher(code, label, pid='home'):
+    opts = ''.join(f'<option value="{path_of(c, pid)}" lang="{c}"{" selected" if c == code else ""}>{name}</option>' for c, name, *_ in LANGS)
     return f'<label class="lang-switch"><span class="sr-only">{label}</span><select aria-label="{label}" onchange="location.href=this.value">{opts}</select></label>'
 
-def footer_links(code):
-    return '<nav class="lang-links" aria-label="Languages">' + ' · '.join(f'<a href="{"/" if c == "fr" else f"/{c}/"}" hreflang="{c}" lang="{c}"{" aria-current=\"page\"" if c == code else ""}>{name}</a>' for c, name, *_ in LANGS) + '</nav>'
+def footer_links(code, pid='home'):
+    return '<nav class="lang-links" aria-label="Languages">' + ' · '.join(f'<a href="{path_of(c, pid)}" hreflang="{c}" lang="{c}"{" aria-current=\"page\"" if c == code else ""}>{name}</a>' for c, name, *_ in LANGS) + '</nav>'
 
-LANG_CSS = '.lang-switch select{appearance:none;background:transparent;color:inherit;border:1.5px solid currentColor;border-radius:999px;padding:.45em 1.9em .45em .9em;font:inherit;font-size:.85em;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 13px) 55%,calc(100% - 9px) 55%;background-size:4px 4px;background-repeat:no-repeat}.lang-switch select option{color:#222}.lang-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4em;padding:1.2em 1em 2em;font-size:.85em;opacity:.8}.lang-links a{color:inherit}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
+LANG_CSS = '.lang-switch select{appearance:none;background:transparent;color:inherit;border:1.5px solid currentColor;border-radius:999px;padding:.45em 1.9em .45em .9em;font:inherit;font-size:.85em;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 13px) 55%,calc(100% - 9px) 55%;background-size:4px 4px;background-repeat:no-repeat}.lang-switch select option{color:#222}.lang-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4em;padding:1.2em 1em 2em;font-size:.85em;opacity:.8}.lang-links a{color:inherit}@media (max-width:760px){.nav__actions .lang-switch{display:none}}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
 
-def decorate(page, code, table):
+def decorate(page, code, table, pid='home'):
     label = table.get(key('Langue'), 'Langue') if code != 'fr' else 'Langue'
     js = {k: table.get(key(v), v) for k, v in JS.items()} if code != 'fr' else JS
     locale = next(n for c, _, _, n in LANGS if c == code)
-    page = page.replace('<a class="nav__login"', switcher(code, label) + '<a class="nav__login"', 1)
+    page = page.replace('<a class="nav__login"', switcher(code, label, pid) + '<a class="nav__login"', 1)
     page = page.replace('</style>', LANG_CSS + '</style>', 1)
-    page = page.replace('</body>', footer_links(code) + '</body>', 1)
+    page = page.replace('</body>', footer_links(code, pid) + '</body>', 1)
     return page.replace('<script>\n', f'<script>window.EVOLY_I18N={json.dumps({"locale": locale, "t": js}, ensure_ascii=False)};\n', 1)
 
 def sitemap():
-    alt = lambda: ''.join(f'<xhtml:link rel="alternate" hreflang="{c}" href="{url_of(c)}"/>' for c, *_ in LANGS) + f'<xhtml:link rel="alternate" hreflang="x-default" href="{url_of(X_DEFAULT)}"/>'
-    homes = ''.join(f'  <url><loc>{url_of(c)}</loc>{alt()}<priority>1.0</priority></url>\n' for c, *_ in LANGS)
+    def group(pid, prio):
+        alt = ''.join(f'<xhtml:link rel="alternate" hreflang="{c}" href="{url_of(c, pid)}"/>' for c, *_ in LANGS) + f'<xhtml:link rel="alternate" hreflang="x-default" href="{url_of(X_DEFAULT, pid)}"/>'
+        return ''.join(f'  <url><loc>{url_of(c, pid)}</loc>{alt}<priority>{prio}</priority></url>\n' for c, *_ in LANGS)
+    body = group('home', '1.0') + ''.join(group(pid, '0.8') for pid in SLUGS)
     legal = ''.join(f'  <url><loc>{SITE}/{p}</loc><priority>0.2</priority></url>\n' for p in LEGAL)
-    return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n{homes}{legal}</urlset>\n'
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n{body}{legal}</urlset>\n'
 
 def load(code):
     path = os.path.join(HERE, 'i18n', f'{code}.json')
     return json.load(open(path, encoding='utf-8')) if os.path.exists(path) else {}
 
-def build_all(page_fr, dist):
-    """Écrit la page de chaque langue (dist/<code>/index.html), la page française décorée et le sitemap."""
-    source = collect(page_fr)
+def build_all(pages_fr, dist):
+    """Écrit chaque page dans chaque langue (accueil et pages), avec son en-tête, son sélecteur et le sitemap."""
+    source = list(dict.fromkeys(t for h in pages_fr.values() for t in collect(h)))
     json.dump({key(t): t for t in source + ['Langue']}, open(os.path.join(HERE, 'i18n', 'source.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     written = {}
     for code, _, og_locale, _ in LANGS:
         table = load(code) if code != 'fr' else {}
-        page = translate(page_fr, {**table, '__lang__': code}) if code != 'fr' else page_fr
-        page = decorate(head_for(page, code, og_locale), code, table)
-        target = os.path.join(dist, 'evoly-billetterie.html') if code == 'fr' else os.path.join(dist, code, 'index.html')
-        os.makedirs(os.path.dirname(target), exist_ok=True)
-        open(target, 'w', encoding='utf-8').write(page)
+        for pid, page_fr in pages_fr.items():
+            page = translate(page_fr, {**table, '__lang__': code}) if code != 'fr' else page_fr
+            page = decorate(relink(head_for(page, code, og_locale, pid), code), code, table, pid)
+            target = file_of(dist, code, pid)
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            open(target, 'w', encoding='utf-8').write(page)
         written[code] = sum(1 for t in source if key(t) in table) if code != 'fr' else len(source)
     open(os.path.join(dist, 'sitemap.xml'), 'w', encoding='utf-8').write(sitemap())
     return len(source), written
