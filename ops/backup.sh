@@ -5,6 +5,13 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 # shellcheck source=ops/r2.sh
 . ops/r2.sh
+# shellcheck source=ops/healthchecks.sh
+. ops/healthchecks.sh
+
+# Surveillance : début, puis succès ou échec avec son code (même pour un arrêt prématuré, grâce au piège de sortie)
+hc_done() { local s=$?; hc_ping backup "$s" "${hc_msg:-échec (code $s) : voir journalctl -t evoly-backup}"; }
+trap hc_done EXIT
+hc_ping backup start
 
 if [ -z "$(r2_env BACKUP_R2_BUCKET)" ]; then echo "BACKUP_R2_BUCKET manque dans .env"; exit 1; fi
 stamp="$(date -u +%Y%m%d-%H%M%S)"
@@ -25,4 +32,5 @@ fi
 
 find "$dir" -name 'evoly-*.dump' -mtime +3 -delete
 find "$dir" -name 'uploads-*.tgz' -mtime +3 -delete
-echo "Sauvegarde envoyée : $(basename "$file") ($(du -h "$file" | cut -f1))"
+hc_msg="Sauvegarde envoyée : $(basename "$file") ($(du -h "$file" | cut -f1))"
+echo "$hc_msg"
