@@ -1,5 +1,6 @@
 import { pick, type Locale } from "@evoly/i18n";
 import type { EmailBrand } from "./brand";
+import { eventBlockRows } from "./eventBlock";
 import { palette } from "@evoly/ui";
 
 export interface RenderedEmail {
@@ -244,6 +245,8 @@ export function orderConfirmationEmail(o: {
   reference: string;
   url: string;
   firstName: string;
+  /** Bloc personnalisé de l'organisateur (éditeur visuel), déjà rendu et nettoyé. */
+  custom?: { html: string; text: string } | null;
 }): RenderedEmail {
   const c = pick(ORDER_COPY, o.locale);
   const u = escapeHtml(o.url);
@@ -265,6 +268,7 @@ export function orderConfirmationEmail(o: {
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:16px">${escapeHtml(c.hello(o.firstName))}<br>${escapeHtml(c.intro(o.organizationName))}</td></tr>
 <tr><td style="padding-bottom:20px"><a href="${u}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:14px 22px;border-radius:999px">${escapeHtml(c.cta)}</a></td></tr>
 <tr><td style="border-top:1px solid #eee;padding-top:12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${details}</table></td></tr>
+${eventBlockRows(o.custom)}
 <tr><td style="font-size:13px;line-height:1.6;color:#555;padding-top:16px">${escapeHtml(c.outro)}<br><a href="${u}" style="color:${palette.charbon};word-break:break-all">${u}</a></td></tr>
 </table></td></tr></table></body></html>`;
   const text = [
@@ -287,7 +291,7 @@ export function orderConfirmationEmail(o: {
   ]
     .filter((l) => l !== "")
     .join("\n");
-  return { subject: c.subject(o.eventTitle), html, text };
+  return { subject: c.subject(o.eventTitle), html, text: o.custom ? `${text}\n\n${o.custom.text}` : text };
 }
 
 const LOOKUP_COPY = {
@@ -1012,6 +1016,8 @@ export function reminderEmail(o: {
   tickets: number;
   ticketsUrl: string;
   unsubscribeEventUrl: string;
+  /** Bloc personnalisé de l'organisateur (éditeur visuel), déjà rendu et nettoyé. */
+  custom?: { html: string; text: string } | null;
 }): RenderedEmail {
   const c = pick(REMINDER_COPY, o.locale);
   const subject = c[o.type](o.eventTitle);
@@ -1028,6 +1034,7 @@ export function reminderEmail(o: {
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:20px">${escapeHtml(c.hello(o.firstName))}<br>${escapeHtml(c.body(o.tickets))}</td></tr>
 <tr><td style="padding-bottom:20px"><table role="presentation" cellpadding="0" cellspacing="0">${row(c.when, o.when)}${row(c.where, o.where)}</table></td></tr>
 <tr><td style="padding-bottom:24px"><a href="${escapeHtml(o.ticketsUrl)}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:14px 22px;border-radius:999px">${escapeHtml(c.cta)}</a></td></tr>
+${eventBlockRows(o.custom)}
 <tr><td style="border-top:1px solid #eee;padding-top:16px;font-size:12px;line-height:1.6;color:#555">${footer}</td></tr>
 </table></td></tr></table></body></html>`;
   const text = [
@@ -1047,7 +1054,7 @@ export function reminderEmail(o: {
   ]
     .filter((l) => l !== undefined)
     .join("\n");
-  return { subject, html, text };
+  return { subject, html, text: o.custom ? `${text}\n\n${o.custom.text}` : text };
 }
 
 const SEAT_COPY = {

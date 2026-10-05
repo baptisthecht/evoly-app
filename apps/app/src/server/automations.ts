@@ -31,6 +31,7 @@ import { getPlans } from "./plans";
 import { mayReceive, oneClickUnsubscribeUrl, unsubscribeUrl } from "./unsubscribe";
 import type { Prisma } from "@evoly/db";
 import { campaignBase, renderWithBase } from "./campaigns";
+import { renderEventBlock } from "./email/eventBlock";
 import { sanitizeEmailHtml } from "./email/sanitize";
 import { organizationPublicUrl } from "./urls";
 
@@ -117,6 +118,7 @@ export async function runDueReminders(now = new Date()): Promise<number> {
         const locale = (o.buyerLocale === "en" ? "en" : "fr") as Locale;
         const mail = reminderEmail({
           brand,
+          custom: renderEventBlock(event.reminderEmailContent, { firstName: o.buyerFirstName, brand }),
           locale,
           type: automation.type as ReminderType,
           organizationName: event.organization.name,

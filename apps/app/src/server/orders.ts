@@ -1,9 +1,10 @@
 import "server-only";
+import { renderEventBlock } from "./email/eventBlock";
 import { createHash } from "node:crypto";
 import { notifyNewOrder, notifySalesMilestone } from "./notifications";
 import { qualifyReferral } from "./referrals";
 import { effectiveEnd } from "@evoly/core";
-import { pick } from "@evoly/i18n";
+import { pick, toLocale } from "@evoly/i18n";
 import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
@@ -35,13 +36,14 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
       },
     },
   });
-  const locale = (order.buyerLocale === "en" ? "en" : "fr") as Locale;
+  const locale = toLocale(order.buyerLocale); // e-mail dans la langue de l'acheteur (7 langues)
   const e = order.event;
   const where =
     e.locationType === "ONLINE" ? null : [e.locationName, e.addressLine1, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
   const brand = await emailBrandFor(order.organizationId);
   const email = orderConfirmationEmail({
     brand,
+    custom: renderEventBlock(e.ticketEmailContent, { firstName: order.buyerFirstName, brand }),
     locale,
     organizationName: order.organization.name,
     eventTitle: e.title,

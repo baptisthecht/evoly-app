@@ -2288,5 +2288,16 @@
     "warn_FORM": "formulieren",
     "warn_STYLESHEET": "stylesheets",
     "warn_META": "meta- en base-tags"
+  },
+  "eventEmailBlocks": {
+    "title": "Persoonlijk bericht in de e-mails aan deelnemers",
+    "intro": "Voeg praktische informatie toe (toegang, parking, programma, richtlijnen) aan de e-mails die voor dit evenement worden verstuurd. Laat leeg om niets toe te voegen.",
+    "ticket": "Ticketmail",
+    "ticketHint": "Wordt bij elke bestelling verstuurd, samen met de tickets.",
+    "reminder": "Herinneringsmails",
+    "reminderHint": "Worden vóór het evenement verstuurd (7 dagen vooraf, de dag ervoor en op de dag zelf, volgens je instellingen).",
+    "save": "Bericht opslaan",
+    "saved": "Bericht opgeslagen.",
+    "error": "Het bericht kon niet worden opgeslagen."
   }
 }

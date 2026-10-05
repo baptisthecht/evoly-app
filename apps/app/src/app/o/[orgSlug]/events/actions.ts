@@ -9,6 +9,7 @@ import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
 import { cancelListingByOrganizer } from "@/server/resale";
 import { cancelEvent } from "@/server/refunds";
 import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
+import { previewEventEmailBlock, saveEventEmailBlock } from "@/server/eventEmailBlocks";
 import { moveQuestion, removeQuestion, saveQuestion } from "@/server/questions";
 import { sendComplimentaryTickets, type ComplimentaryResult } from "@/server/complimentary";
 import { applySeatingTemplate, deleteRow, saveCategory, setSeatChoice, setSeatingMode, toggleSeatBlocked } from "@/server/seating";
@@ -597,4 +598,26 @@ export async function seatingPhotoApplyAction(orgSlug: string, eventId: string, 
   });
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
+}
+
+/** Bloc personnalisé des e-mails de billets ou de rappel d'un événement. */
+const emailBlockSchema = z.object({ kind: z.enum(["ticket", "reminder"]), content: z.any() });
+export async function saveEventEmailBlockAction(orgSlug: string, eventId: string, kind: "ticket" | "reminder", content: unknown): Promise<ActionState> {
+  const r = await runOrgAction(orgSlug, { kind, content }, { schema: emailBlockSchema, permission: "EVENTS_EDIT" }, async (d, ctx) =>
+    saveEventEmailBlock(ctx, eventId, d.kind, d.content),
+  );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
+  return r;
+}
+
+export async function previewEventEmailBlockAction(
+  orgSlug: string,
+  eventId: string,
+  kind: "ticket" | "reminder",
+  input: unknown,
+): Promise<ActionState<{ html: string; subject: string; warnings: string[] }>> {
+  const content = (input as { content?: unknown } | null)?.content;
+  return runOrgAction(orgSlug, { kind, content }, { schema: emailBlockSchema, permission: "EVENTS_EDIT", write: false }, async (d, ctx) =>
+    previewEventEmailBlock(ctx, eventId, d.kind, d.content),
+  );
 }

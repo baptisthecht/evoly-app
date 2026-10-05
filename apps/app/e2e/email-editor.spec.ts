@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { appUrl, organizer, sql } from "./helpers";
+import { appUrl, buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
+import { lastEmail } from "./outbox";
 
 test("éditeur d'e-mails : mise en forme, bouton, aperçu en temps réel, bloc HTML nettoyé, enregistrement", async ({ page }) => {
   const { slug } = await organizer(page);
@@ -54,4 +55,18 @@ test("éditeur d'e-mails : mise en forme, bouton, aperçu en temps réel, bloc H
   const html = doc.content.find((b) => b.type === "rawHtml")?.attrs?.html ?? "";
   expect(html).toContain("<p>Bloc maison</p>");
   expect(html).not.toMatch(/<script|onerror/i);
+});
+
+test("bloc personnalisé de l'e-mail des billets : écrit par l'organisateur, reçu par l'acheteur", async ({ page }) => {
+  const { id, slug } = await organizer(page);
+  const eventUrl = await publishedFreeEvent(page, slug, `Concert ${id}`, 20);
+  await page.goto(`${eventUrl}/settings`);
+  const block = page.getByRole("region", { name: "E-mail des billets" });
+  await block.getByRole("textbox", { name: "Contenu de l'e-mail" }).click();
+  await page.keyboard.type("Parking gratuit rue des Lilas");
+  await block.getByRole("button", { name: "Enregistrer le message" }).click();
+  await expect(block.getByText("Message enregistré.")).toBeVisible();
+  const buyer = `lea.${id}@exemple.be`;
+  await buyFree(page, siteUrl(slug, `/concert-${id}`), "Fosse", 1, buyer);
+  expect((await lastEmail(buyer, "order.confirmation")).text).toContain("Parking gratuit rue des Lilas");
 });

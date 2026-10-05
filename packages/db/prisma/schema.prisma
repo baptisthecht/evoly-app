@@ -591,6 +591,8 @@ model Event {
   @@unique([organizationId, slug])
   @@index([organizationId, status, startsAt])
   @@index([status, startsAt])
+  ticketEmailContent   Json? // bloc personnalisé des e-mails de billets (document riche de l'éditeur)
+  reminderEmailContent Json? // bloc personnalisé des e-mails de rappel (document riche de l'éditeur)
 }
 
 // Version traduite des textes d'un événement (P2)

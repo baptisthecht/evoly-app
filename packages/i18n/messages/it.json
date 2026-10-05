@@ -2288,5 +2288,16 @@
     "warn_FORM": "moduli",
     "warn_STYLESHEET": "fogli di stile",
     "warn_META": "tag meta e base"
+  },
+  "eventEmailBlocks": {
+    "title": "Messaggio personalizzato nelle e-mail ai partecipanti",
+    "intro": "Aggiungi informazioni pratiche (accesso, parcheggio, programma, indicazioni) alle e-mail inviate per questo evento. Lascia vuoto per non aggiungere nulla.",
+    "ticket": "E-mail dei biglietti",
+    "ticketHint": "Inviata con ogni ordine, insieme ai biglietti.",
+    "reminder": "E-mail di promemoria",
+    "reminderHint": "Inviate prima dell'evento (7 giorni prima, il giorno prima e il giorno stesso, secondo le tue impostazioni).",
+    "save": "Salva il messaggio",
+    "saved": "Messaggio salvato.",
+    "error": "Non è stato possibile salvare il messaggio."
   }
 }

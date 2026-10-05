@@ -9,7 +9,22 @@ import { previewDraftAction } from "@/app/o/[orgSlug]/marketing/campaigns/action
  * Aperçu en temps réel : rendu par le serveur, avec exactement le code de l'envoi (nettoyage du HTML compris),
  * à chaque modification, sans rien enregistrer. Affiché dans un cadre isolé où aucun script ne peut s'exécuter.
  */
-export function EmailPreview({ orgSlug, subject, previewText, content }: { orgSlug: string; subject: string; previewText: string; content: EmailDoc }) {
+type PreviewResult = { ok: true; data: { html: string; subject: string; warnings: string[] } } | { ok: false } | null | undefined;
+
+export function EmailPreview({
+  orgSlug,
+  subject,
+  previewText,
+  content,
+  action,
+}: {
+  orgSlug: string;
+  subject: string;
+  previewText: string;
+  content: EmailDoc;
+  /** Rendu à utiliser (par défaut : une campagne) ; par exemple l'e-mail des billets d'un événement. */
+  action?: (input: unknown) => Promise<PreviewResult>;
+}) {
   const t = useTranslations("emailEditor");
   const [mail, setMail] = useState<{ html: string; subject: string; warnings: string[] } | null>(null);
   const [mode, setMode] = useState<"desktop" | "mobile">("desktop");
@@ -18,8 +33,9 @@ export function EmailPreview({ orgSlug, subject, previewText, content }: { orgSl
   useEffect(() => {
     const n = ++seq.current;
     const h = setTimeout(async () => {
-      const r = await previewDraftAction(orgSlug, JSON.parse(input) as unknown);
-      if (n === seq.current && r?.ok) setMail(r.data);
+      const parsed = JSON.parse(input) as unknown;
+      const r = (await (action ? action(parsed) : previewDraftAction(orgSlug, parsed))) as PreviewResult;
+      if (n === seq.current && r && r.ok) setMail(r.data);
     }, 300);
     return () => clearTimeout(h);
   }, [orgSlug, input]);

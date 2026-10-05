@@ -7,6 +7,8 @@ import { getEventWithTickets } from "@/server/events";
 import { SettingsForm } from "./SettingsForm";
 import { EventAppearance } from "./EventAppearance";
 import { EventReminders } from "./EventReminders";
+import { eventEmailBlocks } from "@/server/eventEmailBlocks";
+import { EventEmailBlocks } from "./EventEmailBlocks";
 import { EventMarketingEmails } from "./EventMarketingEmails";
 import { eventMarketingAutomations, eventReminders, automationDoc } from "@/server/automations";
 import { hasFeature } from "@evoly/core";
@@ -23,6 +25,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
   const e = await getEventWithTickets(ctx, eventId);
   const local = (d: Date | null) => (d ? utcToZonedLocal(d, e.timezone) : "");
   const readOnly = !can(ctx.membership, "EVENTS_EDIT") || ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
+  const emailBlocks = await eventEmailBlocks(eventId);
   return (
     <div className="max-w-3xl">
       <SettingsForm
@@ -57,6 +60,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
           showResaleSection: e.showResaleSection,
         }}
       />
+      {!readOnly ? <EventEmailBlocks orgSlug={orgSlug} eventId={eventId} ticket={emailBlocks.ticket} reminder={emailBlocks.reminder} /> : null}
       {!readOnly && can(ctx.membership, "MARKETING_MANAGE") ? (
         <EventReminders
           orgSlug={orgSlug}
