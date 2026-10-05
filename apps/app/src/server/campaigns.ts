@@ -12,6 +12,8 @@ import {
   zonedLocalToUtc,
   type CampaignBlock,
   type CampaignSegment,
+  toEmailDoc,
+  emailDocEventIds,
 } from "@evoly/core";
 import type { Locale } from "@evoly/i18n";
 import { toLocale } from "@evoly/i18n";
@@ -22,6 +24,7 @@ import { canonicalEventUrl } from "./canonical";
 import type { OrgContext } from "./context";
 import { emailBrandFor } from "./email/brand";
 import { renderCampaign, type CampaignEventCard } from "./email/campaignRender";
+import { sanitizeEmailHtml } from "./email/sanitize";
 import { sendEmail } from "./email/send";
 import { getPublicOrganization } from "./publicEvents";
 import { oneClickUnsubscribeUrl, unsubscribeUrl } from "./unsubscribe";
@@ -103,8 +106,7 @@ export async function saveCampaign(
   return db.emailCampaign.create({ data: { ...data, organizationId: ctx.organization.id, createdById: ctx.user.id } });
 }
 
-export async function eventCards(organizationId: string, blocks: CampaignBlock[]): Promise<Map<string, CampaignEventCard>> {
-  const ids = blocks.filter((b): b is Extract<CampaignBlock, { type: "event" }> => b.type === "event").map((b) => b.eventId);
+export async function eventCards(organizationId: string, ids: string[]): Promise<Map<string, CampaignEventCard>> {
   if (ids.length === 0) return new Map();
   const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { subdomain: true } });
   const pub = org.subdomain ? await getPublicOrganization(org.subdomain) : null;
@@ -133,8 +135,8 @@ export async function campaignBase(campaign: CampaignLike) {
     db.organization.findUniqueOrThrow({ where: { id: campaign.organizationId }, select: { name: true, addressLine1: true, postalCode: true, city: true } }),
     emailBrandFor(campaign.organizationId),
   ]);
-  const blocks = (campaign.content as CampaignBlock[]) ?? [];
-  return { org, brand, blocks, events: await eventCards(campaign.organizationId, blocks) };
+  const doc = toEmailDoc(campaign.content ?? [], { sanitizeHtml: sanitizeEmailHtml }); // anciens blocs ou document riche
+  return { org, brand, doc, events: await eventCards(campaign.organizationId, emailDocEventIds(doc)) };
 }
 
 export function renderWithBase(
@@ -142,11 +144,11 @@ export function renderWithBase(
   campaign: CampaignLike,
   recipient: { email: string; firstName?: string | null; locale?: string | null },
 ) {
-  const { org, brand, blocks, events } = base;
+  const { org, brand, doc, events } = base;
   const mail = renderCampaign({
     subject: campaign.subject,
     previewText: campaign.previewText,
-    blocks,
+    doc,
     brand,
     organizationName: brand.fromName || org.name,
     organizationAddress: [org.addressLine1, [org.postalCode, org.city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
