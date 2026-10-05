@@ -8,7 +8,7 @@ import { SettingsForm } from "./SettingsForm";
 import { EventAppearance } from "./EventAppearance";
 import { EventReminders } from "./EventReminders";
 import { EventMarketingEmails } from "./EventMarketingEmails";
-import { eventMarketingAutomations, eventReminders } from "@/server/automations";
+import { eventMarketingAutomations, eventReminders, automationDoc } from "@/server/automations";
 import { hasFeature } from "@evoly/core";
 import { env } from "@/lib/env";
 
@@ -82,7 +82,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
               type: a.type as "POST_EVENT",
               enabled: a.enabled,
               subject: a.subject,
-              message: String((a.content as { message?: string })?.message ?? ""),
+              content: automationDoc(a.content, a.subject),
               sent: !!a.lastRunAt,
             }))}
           />

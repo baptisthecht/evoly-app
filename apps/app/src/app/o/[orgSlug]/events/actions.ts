@@ -342,7 +342,14 @@ export async function marketingAutomationAction(
   const schema = z.object({
     enabled: z.preprocess((v) => v === "on", z.boolean()),
     subject: text(150).min(2, { message: "validation.textLength" }),
-    message: text(4000).min(2, { message: "validation.textLength" }),
+    content: z.string().transform((v, c) => {
+      try {
+        return JSON.parse(v) as unknown;
+      } catch {
+        c.addIssue({ code: "custom", message: "validation.textLength" });
+        return z.NEVER;
+      }
+    }),
   });
   const result = await runOrgAction(orgSlug, formToObject(form), { schema, permission: "MARKETING_MANAGE", feature: "EMAIL_MARKETING" }, async (d, ctx) => {
     await saveMarketingAutomation(ctx, eventId, type, d);

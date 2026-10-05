@@ -1,15 +1,25 @@
 "use client";
 
+import type { EmailDoc } from "@evoly/core";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { EmailEditor } from "@/components/email/EmailEditor";
+import { EmailPreview } from "@/components/email/EmailPreview";
 import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
 import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Field";
 import { marketingAutomationAction } from "@/app/o/[orgSlug]/events/actions";
 
-type Automation = { type: "POST_EVENT" | "LAST_TICKETS"; enabled: boolean; subject: string; message: string; sent: boolean };
+type Automation = { type: "POST_EVENT" | "LAST_TICKETS"; enabled: boolean; subject: string; content: EmailDoc; sent: boolean };
 
 function AutomationForm({ orgSlug, eventId, a }: { orgSlug: string; eventId: string; a: Automation }) {
   const t = useTranslations("marketingAutomations");
+  const te = useTranslations("emailEditor");
+  const [subject, setSubject] = useState(a.subject);
+  const [content, setContent] = useState<EmailDoc>(a.content);
+  const [preview, setPreview] = useState(false);
+  // dernières places : la carte de l'événement, ajoutée à l'envoi, figure aussi dans l'aperçu
+  const shown: EmailDoc = a.type === "LAST_TICKETS" ? { type: "doc", content: [...content.content, { type: "eventCard", attrs: { eventId } }] } : content;
   const { state, pending, formProps } = useActionForm(marketingAutomationAction.bind(null, orgSlug, eventId, a.type), null);
   const error = useFieldError(state);
   return (
@@ -29,18 +39,28 @@ function AutomationForm({ orgSlug, eventId, a }: { orgSlug: string; eventId: str
       </label>
       <FormError state={state} />
       <Field label={t("subject")} htmlFor={`${a.type}-subject`} error={error("subject")}>
-        <Input id={`${a.type}-subject`} name="subject" defaultValue={a.subject} maxLength={150} />
+        <Input id={`${a.type}-subject`} name="subject" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={150} />
       </Field>
-      <Field label={t("message")} htmlFor={`${a.type}-message`} hint={t("messageHint")} error={error("message")}>
-        <textarea
-          id={`${a.type}-message`}
-          name="message"
-          defaultValue={a.message}
-          rows={4}
-          maxLength={4000}
-          className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
-        />
-      </Field>
+      <div className="grid gap-2">
+        <span className="text-sm font-semibold">{t("message")}</span>
+        <span className="-mt-1 text-sm text-ink-muted">{t("messageHint")}</span>
+        <input type="hidden" name="content" value={JSON.stringify(content)} />
+        <EmailEditor orgSlug={orgSlug} value={a.content} onChange={setContent} events={[]} />
+        {error("content") ? (
+          <p className="text-sm text-danger" role="alert">
+            {error("content")}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          aria-expanded={preview}
+          onClick={() => setPreview((v) => !v)}
+          className="justify-self-start rounded-full px-4 py-2 text-sm font-semibold hover:bg-surface-sunken"
+        >
+          {te("preview")}
+        </button>
+        {preview && <EmailPreview orgSlug={orgSlug} subject={subject} previewText="" content={shown} />}
+      </div>
       {state?.ok ? (
         <p className="text-sm text-success" role="status">
           {t("saved")}

@@ -67,7 +67,7 @@ describe("e-mails marketing automatiques (US-MKT-02, section 9.18)", () => {
     await saveMarketingAutomation(s.ctx, past.id, "POST_EVENT", {
       enabled: true,
       subject: "Merci {{prenom}} !",
-      message: "Bonjour {{prenom}},\nMerci d'être venue.",
+      content: blocksToEmailDoc([{ type: "text", text: "Bonjour {{prenom}},\nMerci d'être venue." }]),
     });
     await runDueMarketingAutomations();
     await runDueMarketingAutomations();
@@ -88,7 +88,11 @@ describe("e-mails marketing automatiques (US-MKT-02, section 9.18)", () => {
     const other = await s.mk("bal", 12);
     const clara = await s.buy(other, "Clara", true);
     const dan = await s.buy(hot, "Dan", true);
-    await saveMarketingAutomation(s.ctx, hot.id, "LAST_TICKETS", { enabled: true, subject: "Dernières places", message: "Il reste quelques places." });
+    await saveMarketingAutomation(s.ctx, hot.id, "LAST_TICKETS", {
+      enabled: true,
+      subject: "Dernières places",
+      content: blocksToEmailDoc([{ type: "text", text: "Il reste quelques places." }]),
+    });
     await runDueMarketingAutomations();
     const a = (await eventMarketingAutomations(hot.id)).find((r) => r.type === "LAST_TICKETS")!;
     expect(await sentTo(a.id)).toHaveLength(0); // 1 place vendue sur 20

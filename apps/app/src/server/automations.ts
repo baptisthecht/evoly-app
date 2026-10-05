@@ -12,8 +12,12 @@ import {
   reminderSendAt,
   utcToZonedLocal,
   zonedLocalToUtc,
-  type CampaignBlock,
   type ReminderType,
+  blocksToEmailDoc,
+  emailDocIsEmpty,
+  toEmailDoc,
+  validateEmailDoc,
+  type EmailDoc,
 } from "@evoly/core";
 import { formatDateTime, type Locale, toLocale } from "@evoly/i18n";
 import { db } from "@/lib/db";
@@ -25,7 +29,9 @@ import { sendEmail } from "./email/send";
 import { reminderEmail } from "./email/templates";
 import { getPlans } from "./plans";
 import { mayReceive, oneClickUnsubscribeUrl, unsubscribeUrl } from "./unsubscribe";
+import type { Prisma } from "@evoly/db";
 import { campaignBase, renderWithBase } from "./campaigns";
+import { sanitizeEmailHtml } from "./email/sanitize";
 import { organizationPublicUrl } from "./urls";
 
 export const REMINDERS: ReminderType[] = ["REMINDER_J7", "REMINDER_J1", "REMINDER_J0"];
@@ -232,15 +238,17 @@ export async function saveMarketingAutomation(
   ctx: OrgContext,
   eventId: string,
   type: MarketingAutomation,
-  input: { enabled: boolean; subject: string; message: string },
+  input: { enabled: boolean; subject: string; content: unknown },
 ) {
   if (!hasFeature(ctx.features, "EMAIL_MARKETING")) throw new CoreError("PRO_REQUIRED");
+  const doc = validateEmailDoc(input.content, { sanitizeHtml: sanitizeEmailHtml }); // document riche, nettoyé
+  if (emailDocIsEmpty(doc)) throw new CoreError("CAMPAIGN_CONTENT_INVALID");
   const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id }, select: { id: true } });
   if (!event) throw new CoreError("NOT_FOUND");
   await eventMarketingAutomations(event.id);
   await db.emailAutomation.update({
     where: { eventId_type: { eventId: event.id, type } },
-    data: { enabled: input.enabled, subject: input.subject.trim(), content: { message: input.message.trim() } },
+    data: { enabled: input.enabled, subject: input.subject.trim(), content: doc as unknown as Prisma.InputJsonValue },
   });
   await audit({
     action: "automation.saved",
@@ -252,6 +260,19 @@ export async function saveMarketingAutomation(
   });
 }
 
+/** Contenu d'un e-mail automatique : document riche, ou ancien message texte (converti) ; à défaut, le texte de repli. */
+export function automationDoc(content: unknown, fallback = ""): EmailDoc {
+  const message = (content as { message?: unknown } | null)?.message;
+  const doc =
+    typeof message === "string" ? blocksToEmailDoc([{ type: "text", text: message.trim() }]) : toEmailDoc(content ?? {}, { sanitizeHtml: sanitizeEmailHtml });
+  return emailDocIsEmpty(doc) && fallback ? blocksToEmailDoc([{ type: "text", text: fallback }]) : doc;
+}
+
+const withEventCards = (doc: EmailDoc, ids: string[]): EmailDoc => ({
+  type: "doc",
+  content: [...doc.content, ...ids.map((eventId) => ({ type: "eventCard" as const, attrs: { eventId } }))],
+});
+
 async function marketingQuota(organizationId: string, timezone: string, cap: number, now: Date) {
   const start = zonedLocalToUtc(`${utcToZonedLocal(now, timezone).slice(0, 10)}T00:00`, timezone);
   return remainingDailyQuota(cap, await db.emailMessage.count({ where: { organizationId, category: "MARKETING", queuedAt: { gte: start } } }));
@@ -260,7 +281,7 @@ async function marketingQuota(organizationId: string, timezone: string, cap: num
 async function sendAutomation(
   a: { id: string; subject: string; content: unknown },
   organizationId: string,
-  blocks: CampaignBlock[],
+  blocks: EmailDoc,
   recipients: Array<{ id: string; email: string; firstName: string | null; locale: string | null }>,
   quota: number,
   eventId: string,
@@ -325,8 +346,8 @@ export async function runDueMarketingAutomations(now = new Date()): Promise<numb
     const e = a.event;
     if (!hasFeature(plans[effectivePlan(e.organization.subscription, now)].features, "EMAIL_MARKETING")) continue;
     let recipients: Array<{ id: string; email: string; firstName: string | null; locale: string | null }> = [];
-    let blocks: CampaignBlock[] = [];
-    const message = String((a.content as { message?: string })?.message ?? "").trim() || a.subject;
+    let blocks: EmailDoc = { type: "doc", content: [] };
+    const body = automationDoc(a.content, a.subject);
     if (a.type === "POST_EVENT") {
       if (!postEventDue(effectiveEnd(e.startsAt, e.endsAt), now)) continue;
       recipients = await db.contact.findMany({
@@ -350,7 +371,7 @@ export async function runDueMarketingAutomations(now = new Date()): Promise<numb
         orderBy: { startsAt: "asc" },
         select: { id: true },
       });
-      blocks = [{ type: "text", text: message }, ...(next ? [{ type: "event" as const, eventId: next.id }] : [])];
+      blocks = withEventCards(body, next ? [next.id] : []);
     } else {
       const capacity = eventCapacity(
         e.capacity,
@@ -367,10 +388,7 @@ export async function runDueMarketingAutomations(now = new Date()): Promise<numb
         },
         select: { id: true, email: true, firstName: true, locale: true },
       });
-      blocks = [
-        { type: "text", text: message },
-        { type: "event", eventId: e.id },
-      ];
+      blocks = withEventCards(body, [e.id]);
     }
     const quota = await marketingQuota(e.organizationId, e.organization.timezone, e.organization.marketingDailyCap, now);
     const { sent, complete } = await sendAutomation(a, e.organizationId, blocks, recipients, quota, e.id);
