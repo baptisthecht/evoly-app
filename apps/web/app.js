@@ -194,7 +194,7 @@
       for (let i = 0; i < 14; i++) {
         const sp = d.createElement('span');
         sp.className = 'burst';
-        sp.innerHTML = '<svg viewBox="0 0 100 100"><use href="#i-spark" width="100" height="100"/></svg>';
+        sp.innerHTML = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="currentColor"/></svg>';
         sp.style.left = cx + 'px';
         sp.style.top = cy + 'px';
         sp.style.color = colors[i % colors.length];
@@ -219,7 +219,7 @@
         buy.classList.remove('is-loading');
         buy.classList.add('is-done');
         pay.removeAttribute('aria-busy');
-        hintText.textContent = qty > 1 ? T('paidMany', { n: qty }, 'Payé en un tap : vos {n} billets partent par e-mail.') : T('paidOne', {}, 'Payé en un tap : le billet part par e-mail.');
+        hintText.textContent = qty > 1 ? T('paidMany', { n: qty }, 'Paiement confirmé : vos {n} billets sont envoyés par e-mail.') : T('paidOne', {}, 'Paiement confirmé : le billet est envoyé par e-mail.');
         replay.hidden = false;
         if (kb) replay.focus({ preventScroll: true });
         if (anim) {
@@ -358,7 +358,7 @@
       if (anim) G.fromTo(newIn, { y: -46, rotation: 10, scale: .9, opacity: 0 }, { y: 0, rotation: 3, scale: 1, opacity: 1, duration: 1, ease: 'back.out(1.6)', delay: .45 });
       rsReplay.hidden = false;
       if (kb) rsReplay.focus({ preventScroll: true });
-      toast(T('resaleToast', {}, 'Achat simulé\u00a0: le billet de Thomas est désactivé, celui de Léa est parti par e-mail.'));
+      toast(T('resaleToast', {}, 'Achat simulé : le billet de Thomas est désactivé et celui de Léa a été envoyé par e-mail.'));
     });
     rsReplay.addEventListener('click', () => {
       sold = false;

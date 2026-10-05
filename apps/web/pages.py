@@ -36,7 +36,7 @@ def cta(title, text, button):
 PAGES = {
     'seating': {
         'title': 'Plan de salle et placement numéroté en ligne - Evoly',
-        'desc': 'Créez votre plan de salle en quelques minutes : théâtre, gala, église, conférence ou stade. Les meilleures places sont attribuées automatiquement et vos participants peuvent les changer en un geste.',
+        'desc': 'Créez votre plan de salle en quelques minutes : théâtre, gala, église, conférence ou stade. Les meilleures places sont attribuées automatiquement et vos participants peuvent choisir les leurs sur le plan.',
         'crumb': 'Plan de salle',
         'faq': [
             ('Combien de places un plan peut-il contenir ?', 'Plusieurs milliers : le modèle de stade compte 4 000 places, et le choix des meilleures places reste instantané.'),
@@ -55,7 +55,7 @@ PAGES = {
             ]))
             + block('Pour vos participants', items([
                 'Les meilleures places disponibles sont choisies automatiquement : côte à côte, au plus près de la scène, sans siège isolé.',
-                'Ils peuvent les voir sur le plan et les changer en un geste, sans perdre leur réservation.',
+                'Ils les voient sur le plan et peuvent en changer, sans perdre leur réservation.',
                 'Un lien pour réserver à côté de ses amis.',
                 'La vue depuis sa place, en photo, avant d’acheter.',
                 'Sur téléphone, un zoom à deux doigts, sans application à installer.',
@@ -74,20 +74,20 @@ PAGES = {
             ('Comment l’argent arrive-t-il sur le compte de l’association ?', 'Les paiements passent par Stripe : les recettes sont versées sur le compte bancaire de l’association, via son propre compte Stripe.'),
         ],
         'main': lambda p: (
-            hero('la billetterie des <span class="script">associations</span>.', 'Soirée, gala, tournoi ou spectacle de fin d’année : créez votre billetterie en 60 secondes, sans abonnement et sans carte bancaire.', 'Créer la billetterie de mon association')
+            hero('la billetterie des <span class="script">associations</span>.', 'Soirée, gala, tournoi ou spectacle de fin d’année : créez votre billetterie en quelques minutes, sans abonnement et sans carte bancaire.', 'Créer la billetterie de mon association')
             + block('Pensée pour les associations', items([
                 '0 % de commission sur les billets gratuits, toujours, et sans limite.',
                 'Aucun pourboire ni don pré-coché : vos participants paient exactement le prix affiché.',
-                'Vous fixez le montant que vous voulez percevoir, le prix se calcule tout seul.',
+                'Vous indiquez le montant que vous souhaitez percevoir : le prix de vente est calculé automatiquement.',
                 'Vos bénévoles scannent les entrées depuis leur téléphone, avec un simple lien, sans créer de compte.',
-                'Un participant empêché revend sa place en un lien : plus de remboursements à gérer.',
+                'Un participant empêché peut revendre sa place en partageant un lien : vous n’avez plus de remboursements à gérer.',
                 'Codes promo pour vos membres, questions personnalisées à l’inscription et statistiques en direct.',
             ]))
-            + block('Combien ça coûte ?', '<div class="pg__table" role="region" aria-label="Commission Evoly selon le prix du billet" tabindex="0"><table><thead><tr><th scope="col">Prix du billet</th><th scope="col">Commission Evoly</th></tr></thead><tbody>'
+            + block('Quels sont les frais ?', '<div class="pg__table" role="region" aria-label="Commission Evoly selon le prix du billet" tabindex="0"><table><thead><tr><th scope="col">Prix du billet</th><th scope="col">Commission Evoly</th></tr></thead><tbody>'
                     '<tr><td>Billet gratuit</td><td>0 €</td></tr><tr><td>5 €</td><td>0,39 €</td></tr><tr><td>10 €</td><td>0,49 €</td></tr><tr><td>20 €</td><td>0,69 €</td></tr></tbody></table></div>'
                     '<p class="pg__note">Offre Free, sans abonnement. Commission hors frais de paiement : les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly.</p>', dark=True)
             + block('Questions fréquentes', faq(p['faq']))
-            + cta('Votre prochain événement, en ligne en une minute.', 'Gratuit, sans engagement et sans carte bancaire.', 'Commencer gratuitement')
+            + cta('Mettez votre prochain événement en ligne en quelques minutes.', 'Gratuit, sans engagement et sans carte bancaire.', 'Commencer gratuitement')
         ),
     },
     'eventbrite': {
@@ -106,7 +106,7 @@ PAGES = {
             + block('Ce qui change avec Evoly', items([
                 'Une commission plafonnée : 2,50 € maximum par billet en Free, 1 € en Pro. Chez Eventbrite, les frais suivent le prix du billet.',
                 'Le prix affiché est le prix payé : vos participants ne découvrent aucun frais au moment de payer.',
-                'Vous fixez le montant que vous voulez percevoir, le prix se calcule tout seul.',
+                'Vous indiquez le montant que vous souhaitez percevoir : le prix de vente est calculé automatiquement.',
                 'La revente entre participants, intégrée à toutes les offres.',
                 'Le plan de salle, avec les meilleures places choisies automatiquement (offre Pro).',
                 'Des données hébergées dans l’Union européenne.',
@@ -121,13 +121,13 @@ PAGES = {
         'crumb': 'Qui sommes-nous',
         'faq': [],
         'main': lambda p: (
-            hero('qui <span class="script">sommes-nous ?</span>', 'Evoly est une billetterie en ligne indépendante, conçue en Belgique pour les organisateurs du monde entier.', 'Créer mon premier événement')
-            + block('Notre conviction', '<p class="pg__p">Vendre des billets devrait être simple, rapide et honnête. Une commission claire et plafonnée, aucun frais caché pour vos participants, et des outils modernes, du paiement en un tap au plan de salle.</p>')
+            hero('qui <span class="script">sommes-nous ?</span>', 'Evoly est une billetterie en ligne indépendante, conçue en Belgique pour les organisateurs d’événements.', 'Créer mon premier événement')
+            + block('Notre conviction', '<p class="pg__p">Vendre des billets ne devrait réserver aucune mauvaise surprise, ni à l’organisateur ni au public. Evoly applique une commission claire et plafonnée, n’ajoute rien au prix affiché et propose des outils complets, du paiement mobile au plan de salle.</p>')
             + block('Nos principes', items([
-                'Transparence : le prix affiché est le prix payé, toujours.',
-                'Simplicité : votre événement en ligne en 60 secondes, sans formation.',
+                'Transparence : le prix affiché est le prix payé.',
+                'Simplicité : votre événement en ligne en quelques minutes, sans formation.',
                 'Respect des données : hébergement dans l’Union européenne, conformément au RGPD.',
-                'Proximité : une question ? Écrivez-nous à hello@evoly.me.',
+                'Disponibilité : pour toute question, écrivez-nous à hello@evoly.me.',
             ]), dark=True)
             + block('Qui est derrière Evoly', '<p class="pg__p">Evoly est développée et exploitée par Evoly Solutions, l’entreprise de Baptist Hecht, inscrite à la Banque-Carrefour des Entreprises sous le numéro 1043.315.766.</p>')
             + cta('Envie d’essayer ?', 'Gratuit, sans engagement et sans carte bancaire.', 'Commencer gratuitement')

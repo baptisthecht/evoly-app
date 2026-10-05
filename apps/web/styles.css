@@ -175,7 +175,7 @@ p{margin:0}
 .hero__replay[hidden]{display:none}
 .deco{position:absolute;z-index:3;width:var(--s,86px);pointer-events:none}
 .deco>.sticker,.deco>.diecut{position:relative;width:100%}
-.st-spark{--s:58px;--r:12deg;left:-8%;top:-4%;color:var(--creme)}
+
 .st-blob{--s:94px;--r:-11deg;left:-9%;bottom:-30%}
 .st-spiral{--s:74px;--r:0deg;right:-2%;top:-30%;color:var(--rose)}
 
@@ -186,7 +186,7 @@ p{margin:0}
   .hero__visual{margin-top:26px}
   .bigo--a{width:138vw;right:-62vw;top:-26vw}
   .bigo--b{width:74vw;left:-34vw;bottom:-8vw}
-  .st-spark{--s:44px;left:auto;right:6%;top:-24%}
+  
   .st-blob{--s:60px;left:1%;bottom:auto;top:-22%}
   .st-spiral{--s:52px;right:-3%;top:auto;bottom:-24%}
   .hero__hint{margin-top:36px;justify-content:center;text-align:center}
@@ -696,14 +696,14 @@ p{margin:0}
 .buy__methods{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
 .buy__methods li{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 .7rem;border-radius:99px;background:rgba(34,34,34,.06);font:600 .76rem/1 var(--f-body)}
 .buy__methods svg{width:14px;height:14px}
-.buy .st-spark{--s:54px;left:-4%;top:6%}
+
 .buy .st-spiral{--s:62px;right:-7%;top:44%}
 .buy .st-blob{--s:84px;left:-11%;bottom:-6%;top:auto}
 .burst{position:absolute;z-index:4;width:18px;height:18px;margin:-9px 0 0 -9px;pointer-events:none}
 .burst svg{display:block;width:100%;height:100%}
 @media (max-width:880px){
   .buy{margin:0 auto;padding-top:96px}
-  .buy .st-spark{--s:42px;left:0;top:8%}
+  
   .buy .st-spiral{--s:50px;right:0;top:0}
   .buy .st-blob{--s:58px;left:-3%;bottom:-8%}
 }

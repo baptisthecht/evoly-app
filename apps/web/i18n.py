@@ -16,13 +16,13 @@ TEXT_ATTRS = ('alt', 'aria-label', 'title', 'placeholder', 'data-toast', 'aria-v
 META_TEXT = ('description', 'og:title', 'og:description', 'og:image:alt', 'twitter:title', 'twitter:description', 'twitter:image:alt')
 # textes affichés par le script de la page (gabarits {n}, {p}…)
 JS = {
-    'paidOne': 'Payé en un tap : le billet part par e-mail.',
-    'paidMany': 'Payé en un tap : vos {n} billets partent par e-mail.',
+    'paidOne': 'Paiement confirmé : le billet est envoyé par e-mail.',
+    'paidMany': 'Paiement confirmé : vos {n} billets sont envoyés par e-mail.',
     'calcLive': 'Pour {n} billets à {p} : {free} de commission avec Evoly Free, {pro} avec Evoly Pro abonnement compris. Vous percevez {net}.',
     'calcProSaves': 'Le Pro vous fait économiser {x} à ce volume.',
     'calcProFrom': 'Le Pro devient rentable dès {n} billets à ce prix.',
     'calcFreeBest': 'À ce prix, l’offre Free est la plus avantageuse.',
-    'resaleToast': 'Achat simulé\u00a0: le billet de Thomas est désactivé, celui de Léa est parti par e-mail.',
+    'resaleToast': 'Achat simulé : le billet de Thomas est désactivé et celui de Léa a été envoyé par e-mail.',
     'dayJ': 'Jour J', 'dayMinus': 'J-{n}', 'tierPresale': 'Prévente', 'tierNormal': 'Normal', 'tierDay': 'Jour J',
     'yearly': 'Soit 295,80\u202f€ facturés une fois par an', 'monthly': 'Facturé chaque mois',
     'menuOpen': 'Ouvrir le menu',
