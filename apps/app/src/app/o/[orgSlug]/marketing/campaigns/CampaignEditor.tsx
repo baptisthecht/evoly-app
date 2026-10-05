@@ -1,7 +1,9 @@
 "use client";
 
 import { LOCALE_NAMES, LOCALES } from "@evoly/i18n";
-import type { CampaignBlock, CampaignSegment } from "@evoly/core";
+import type { CampaignSegment, EmailDoc } from "@evoly/core";
+import { EmailEditor } from "@/components/email/EmailEditor";
+import { EmailPreview } from "@/components/email/EmailPreview";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
@@ -21,7 +23,7 @@ import {
 import { uploadFile } from "@/app/o/[orgSlug]/brand/BrandClient";
 
 type EventOption = { id: string; title: string };
-type Values = { name: string; subject: string; previewText: string; blocks: CampaignBlock[]; segment: CampaignSegment };
+type Values = { name: string; subject: string; previewText: string; content: EmailDoc; segment: CampaignSegment };
 
 const textarea =
   "block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]";
@@ -56,14 +58,6 @@ export function CampaignEditor({
   const [at, setAt] = useState("");
   const [pending, start] = useTransition();
   const set = (patch: Partial<Values>) => setV((x) => ({ ...x, ...patch }));
-  const setBlock = (i: number, b: CampaignBlock) => set({ blocks: v.blocks.map((x, k) => (k === i ? b : x)) });
-  const move = (i: number, d: -1 | 1) => {
-    const next = [...v.blocks];
-    const j = i + d;
-    if (j < 0 || j >= next.length) return;
-    [next[i], next[j]] = [next[j]!, next[i]!];
-    set({ blocks: next });
-  };
   useEffect(() => {
     const h = setTimeout(async () => setCount(await audienceAction(orgSlug, v.segment)), 300);
     return () => clearTimeout(h);
@@ -84,21 +78,6 @@ export function CampaignEditor({
       setMessage(null);
       await fn();
     });
-  const addBlock = (type: CampaignBlock["type"]) => {
-    const b: CampaignBlock =
-      type === "heading"
-        ? { type, text: "" }
-        : type === "text"
-          ? { type, text: "" }
-          : type === "image"
-            ? { type, url: "https://" }
-            : type === "button"
-              ? { type, label: "", url: "https://" }
-              : type === "event"
-                ? { type, eventId: events[0]?.id ?? "" }
-                : { type: "divider" };
-    set({ blocks: [...v.blocks, b] });
-  };
   const locked = ["SENDING", "SENT", "CANCELLED", "FAILED"].includes(status);
   if (locked) return null;
   return (
@@ -116,109 +95,11 @@ export function CampaignEditor({
               <Input id="c-preview" value={v.previewText} onChange={(e) => set({ previewText: e.target.value })} maxLength={200} />
             </Field>
           </Card>
-          <section className="grid gap-3" aria-label={t("content")}>
+          <section className="grid gap-4" aria-label={t("content")}>
             <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("content")}</h2>
-            {v.blocks.map((b, i) => (
-              <Card key={i} className="grid gap-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-label text-[0.8rem] font-bold text-ink-muted">{t(`block_${b.type}`)}</span>
-                  <span className="flex gap-1">
-                    <Button type="button" size="sm" variant="ghost" onClick={() => move(i, -1)} aria-label={t("up")} disabled={i === 0}>
-                      ↑
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => move(i, 1)} aria-label={t("down")} disabled={i === v.blocks.length - 1}>
-                      ↓
-                    </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => set({ blocks: v.blocks.filter((_, k) => k !== i) })}>
-                      {t("remove")}
-                    </Button>
-                  </span>
-                </div>
-                {b.type === "heading" ? (
-                  <Input aria-label={t("block_heading")} value={b.text} onChange={(e) => setBlock(i, { ...b, text: e.target.value })} maxLength={140} />
-                ) : null}
-                {b.type === "text" ? (
-                  <textarea
-                    aria-label={t("block_text")}
-                    value={b.text}
-                    onChange={(e) => setBlock(i, { ...b, text: e.target.value })}
-                    rows={4}
-                    maxLength={4000}
-                    className={textarea}
-                  />
-                ) : null}
-                {b.type === "image" ? (
-                  <div className="grid gap-2">
-                    {b.url.startsWith("http") && b.url.length > 8 ? <img src={b.url} alt="" className="max-h-40 w-auto justify-self-start rounded-md" /> : null}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
-                        {t("uploadImage")}
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                          className="sr-only"
-                          data-testid={`image-input-${i}`}
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const r = await uploadFile(orgSlug, file, "campaign");
-                            if (r.url) setBlock(i, { ...b, url: r.url });
-                            else fail(r.error);
-                          }}
-                        />
-                      </label>
-                      <Input
-                        aria-label={t("imageUrl")}
-                        value={b.url}
-                        onChange={(e) => setBlock(i, { ...b, url: e.target.value })}
-                        inputMode="url"
-                        className="min-w-0 flex-1"
-                      />
-                    </div>
-                  </div>
-                ) : null}
-                {b.type === "button" ? (
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <Input
-                      aria-label={t("buttonLabel")}
-                      placeholder={t("buttonLabel")}
-                      value={b.label}
-                      onChange={(e) => setBlock(i, { ...b, label: e.target.value })}
-                      maxLength={60}
-                    />
-                    <Input
-                      aria-label={t("buttonUrl")}
-                      placeholder="https://"
-                      value={b.url}
-                      onChange={(e) => setBlock(i, { ...b, url: e.target.value })}
-                      inputMode="url"
-                    />
-                  </div>
-                ) : null}
-                {b.type === "event" ? (
-                  <Select aria-label={t("block_event")} value={b.eventId} onChange={(e) => setBlock(i, { type: "event", eventId: e.target.value })}>
-                    {events.map((e) => (
-                      <option key={e.id} value={e.id}>
-                        {e.title}
-                      </option>
-                    ))}
-                  </Select>
-                ) : null}
-              </Card>
-            ))}
-            <div className="flex flex-wrap gap-2">
-              {(["heading", "text", "event", "button", "image", "divider"] as const).map((type) => (
-                <Button
-                  key={type}
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => addBlock(type)}
-                  disabled={type === "event" && events.length === 0}
-                >
-                  + {t(`block_${type}`)}
-                </Button>
-              ))}
+            <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <EmailEditor orgSlug={orgSlug} value={v.content} onChange={(content) => set({ content })} events={events} />
+              <EmailPreview orgSlug={orgSlug} subject={v.subject} previewText={v.previewText} content={v.content} />
             </div>
           </section>
         </div>
@@ -335,7 +216,7 @@ export function CampaignEditor({
               disabled={pending}
               onClick={() =>
                 run(async () => {
-                  const r = await saveTemplateAction(orgSlug, { name: v.name, subject: v.subject, previewText: v.previewText, blocks: v.blocks });
+                  const r = await saveTemplateAction(orgSlug, { name: v.name, subject: v.subject, previewText: v.previewText, content: v.content });
                   if (r?.ok) setMessage({ ok: true, text: t("templateSaved") });
                   else fail(r?.error, r && !r.ok ? r.fields : undefined);
                 })

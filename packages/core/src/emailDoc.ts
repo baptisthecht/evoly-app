@@ -53,7 +53,9 @@ export function safeEmailUrl(value: unknown, kind: "link" | "image" = "link"): s
   } catch {
     return null;
   }
-  const allowed = kind === "image" ? ["https:"] : ["https:", "http:"];
+  // images : https seulement, sauf servies par localhost (développement et tests de bout en bout)
+  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname.endsWith(".localhost");
+  const allowed = kind === "image" ? (local ? ["https:", "http:"] : ["https:"]) : ["https:", "http:"];
   if (!allowed.includes(url.protocol) || !url.hostname) return null;
   return url.toString();
 }

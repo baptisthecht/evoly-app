@@ -7,13 +7,14 @@ import {
   scheduledCancellable,
   scheduledEditable,
   utcToZonedLocal,
-  validateBlocks,
   validateSegment,
   zonedLocalToUtc,
   type CampaignBlock,
   type CampaignSegment,
   toEmailDoc,
   emailDocEventIds,
+  validateEmailDoc,
+  emailDocIsEmpty,
 } from "@evoly/core";
 import type { Locale } from "@evoly/i18n";
 import { toLocale } from "@evoly/i18n";
@@ -24,7 +25,7 @@ import { canonicalEventUrl } from "./canonical";
 import type { OrgContext } from "./context";
 import { emailBrandFor } from "./email/brand";
 import { renderCampaign, type CampaignEventCard } from "./email/campaignRender";
-import { sanitizeEmailHtml } from "./email/sanitize";
+import { inspectEmailHtml, sanitizeEmailHtml } from "./email/sanitize";
 import { sendEmail } from "./email/send";
 import { getPublicOrganization } from "./publicEvents";
 import { oneClickUnsubscribeUrl, unsubscribeUrl } from "./unsubscribe";
@@ -81,13 +82,13 @@ async function ownCampaign(ctx: OrgContext, id: string) {
 /** Brouillon ou campagne programmée modifiable (RG-MKT-04, RG-MKT-05). */
 export async function saveCampaign(
   ctx: OrgContext,
-  input: { id?: string | null; name: string; subject: string; previewText?: string | null; blocks: unknown; segment: unknown },
+  input: { id?: string | null; name: string; subject: string; previewText?: string | null; content: unknown; segment: unknown },
   now = new Date(),
 ) {
   if (!hasFeature(ctx.features, "EMAIL_MARKETING")) throw new CoreError("PRO_REQUIRED");
-  const blocks = validateBlocks(input.blocks);
+  const blocks = validateEmailDoc(input.content, { sanitizeHtml: sanitizeEmailHtml }); // document riche, nettoyé
   const segment = validateSegment(input.segment);
-  if (!blocks) throw new CoreError("CAMPAIGN_CONTENT_INVALID");
+  if (emailDocIsEmpty(blocks)) throw new CoreError("CAMPAIGN_CONTENT_INVALID");
   if (!segment) throw new CoreError("CAMPAIGN_SEGMENT_INVALID");
   const data = {
     name: input.name.trim(),
@@ -137,6 +138,23 @@ export async function campaignBase(campaign: CampaignLike) {
   ]);
   const doc = toEmailDoc(campaign.content ?? [], { sanitizeHtml: sanitizeEmailHtml }); // anciens blocs ou document riche
   return { org, brand, doc, events: await eventCards(campaign.organizationId, emailDocEventIds(doc)) };
+}
+
+/** Aperçu en temps réel d'un brouillon, sans l'enregistrer : même rendu que l'envoi, nettoyage du HTML compris. */
+export async function renderCampaignDraft(ctx: OrgContext, input: { subject: string; previewText?: string | null; content: unknown }) {
+  const warnings = new Set<string>();
+  const walk = (n: unknown) => {
+    if (!n || typeof n !== "object") return;
+    const r = n as { type?: unknown; attrs?: { html?: unknown }; content?: unknown };
+    if (r.type === "rawHtml" && typeof r.attrs?.html === "string") for (const w of inspectEmailHtml(r.attrs.html).warnings) warnings.add(w);
+    if (Array.isArray(r.content)) r.content.forEach(walk);
+  };
+  walk(input.content);
+  const campaign = { organizationId: ctx.organization.id, subject: input.subject, previewText: input.previewText ?? null, content: input.content, id: null };
+  const base = await campaignBase(campaign);
+  const firstName = ctx.user.name.trim().split(/\s+/)[0] || null;
+  const { mail } = renderWithBase(base, campaign, { email: ctx.user.email, firstName, locale: ctx.organization.locale });
+  return { html: mail.html, subject: mail.subject, warnings: [...warnings] };
 }
 
 export function renderWithBase(
@@ -308,10 +326,10 @@ export async function cancelCampaignsForEvent(eventId: string) {
 }
 
 /** Modèles personnels réutilisables (section 9.18, étape 2). */
-export async function saveTemplate(ctx: OrgContext, input: { name: string; subject: string; previewText?: string | null; blocks: unknown }) {
+export async function saveTemplate(ctx: OrgContext, input: { name: string; subject: string; previewText?: string | null; content: unknown }) {
   if (!hasFeature(ctx.features, "EMAIL_MARKETING")) throw new CoreError("PRO_REQUIRED");
-  const blocks = validateBlocks(input.blocks);
-  if (!blocks) throw new CoreError("CAMPAIGN_CONTENT_INVALID");
+  const blocks = validateEmailDoc(input.content, { sanitizeHtml: sanitizeEmailHtml }); // document riche, nettoyé
+  if (emailDocIsEmpty(blocks)) throw new CoreError("CAMPAIGN_CONTENT_INVALID");
   return db.emailTemplate.create({
     data: {
       organizationId: ctx.organization.id,

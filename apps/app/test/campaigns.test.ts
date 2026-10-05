@@ -1,3 +1,4 @@
+import { blocksToEmailDoc } from "@evoly/core";
 import { createHmac, randomBytes } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
@@ -88,27 +89,37 @@ describe("campagnes (US-MKT-03, RG-MKT-01 à 07)", () => {
 
   it("réservé au Pro ; contenu vérifié ; jamais sans destinataire ; délais de programmation", async () => {
     const free = await setup("free");
-    await expect(saveCampaign(free.ctx, { name: "Test", subject: "Test", blocks: BLOCKS, segment: { kind: "ALL_CONSENTING" } })).rejects.toThrow(
-      "PRO_REQUIRED",
-    );
+    await expect(
+      saveCampaign(free.ctx, { name: "Test", subject: "Test", content: blocksToEmailDoc(BLOCKS), segment: { kind: "ALL_CONSENTING" } }),
+    ).rejects.toThrow("PRO_REQUIRED");
     const s = await setup();
     await expect(
       saveCampaign(s.ctx, {
         name: "Test",
         subject: "Test",
-        blocks: [{ type: "button", label: "x", url: "javascript:alert(1)" }],
+        content: { type: "doc", content: [{ type: "button", attrs: { label: "x", href: "javascript:alert(1)" } }] },
         segment: { kind: "ALL_CONSENTING" },
       }),
     ).rejects.toThrow("CAMPAIGN_CONTENT_INVALID");
-    const empty = await saveCampaign(s.ctx, { name: "Vide", subject: "Vide", blocks: BLOCKS, segment: { kind: "ALL_CONSENTING", locale: "en" } });
+    const empty = await saveCampaign(s.ctx, {
+      name: "Vide",
+      subject: "Vide",
+      content: blocksToEmailDoc(BLOCKS),
+      segment: { kind: "ALL_CONSENTING", locale: "en" },
+    });
     await expect(scheduleCampaign(s.ctx, empty.id, null)).rejects.toThrow("CAMPAIGN_NO_RECIPIENTS");
-    const c = await saveCampaign(s.ctx, { name: "Printemps", subject: "{{prenom}}, le printemps arrive", blocks: BLOCKS, segment: { kind: "ALL_CONSENTING" } });
+    const c = await saveCampaign(s.ctx, {
+      name: "Printemps",
+      subject: "{{prenom}}, le printemps arrive",
+      content: blocksToEmailDoc(BLOCKS),
+      segment: { kind: "ALL_CONSENTING" },
+    });
     await expect(scheduleCampaign(s.ctx, c.id, new Date(Date.now() + 60_000))).rejects.toThrow("CAMPAIGN_SCHEDULE_TOO_SOON");
     const at = new Date(Date.now() + 20 * 60_000);
     await scheduleCampaign(s.ctx, c.id, at);
-    await expect(saveCampaign(s.ctx, { id: c.id, name: "Printemps", subject: "Autre", blocks: BLOCKS, segment: { kind: "ALL_CONSENTING" } })).rejects.toThrow(
-      "CAMPAIGN_TOO_LATE",
-    );
+    await expect(
+      saveCampaign(s.ctx, { id: c.id, name: "Printemps", subject: "Autre", content: blocksToEmailDoc(BLOCKS), segment: { kind: "ALL_CONSENTING" } }),
+    ).rejects.toThrow("CAMPAIGN_TOO_LATE");
     await unscheduleCampaign(s.ctx, c.id);
     expect((await db.emailCampaign.findUniqueOrThrow({ where: { id: c.id } })).status).toBe("DRAFT");
   });
@@ -116,7 +127,12 @@ describe("campagnes (US-MKT-03, RG-MKT-01 à 07)", () => {
   it("envoi : une fois par contact, prénom et pied de page, plafond quotidien respecté, puis verrouillée", async () => {
     const s = await setup();
     await db.organization.update({ where: { id: s.org.id }, data: { marketingDailyCap: 2 } });
-    const c = await saveCampaign(s.ctx, { name: "Printemps", subject: "{{prenom}}, le printemps arrive", blocks: BLOCKS, segment: { kind: "ALL_CONSENTING" } });
+    const c = await saveCampaign(s.ctx, {
+      name: "Printemps",
+      subject: "{{prenom}}, le printemps arrive",
+      content: blocksToEmailDoc(BLOCKS),
+      segment: { kind: "ALL_CONSENTING" },
+    });
     await scheduleCampaign(s.ctx, c.id, null);
     await processCampaigns(new Date());
     expect(await db.emailMessage.count({ where: { campaignId: c.id } })).toBe(2);
@@ -133,14 +149,14 @@ describe("campagnes (US-MKT-03, RG-MKT-01 à 07)", () => {
     expect(out.html).toContain("Rue Haute 1, 1000 Bruxelles");
     expect(out.html).toContain("Se désinscrire");
     expect(out.headers?.["List-Unsubscribe-Post"]).toBe("List-Unsubscribe=One-Click");
-    await expect(saveCampaign(s.ctx, { id: c.id, name: "x", subject: "x", blocks: BLOCKS, segment: { kind: "ALL_CONSENTING" } })).rejects.toThrow(
-      "CAMPAIGN_LOCKED",
-    );
+    await expect(
+      saveCampaign(s.ctx, { id: c.id, name: "x", subject: "x", content: blocksToEmailDoc(BLOCKS), segment: { kind: "ALL_CONSENTING" } }),
+    ).rejects.toThrow("CAMPAIGN_LOCKED");
   });
 
   it("événement annulé : campagne programmée annulée et son auteur prévenu (RG-MKT-06)", async () => {
     const s = await setup();
-    const c = await saveCampaign(s.ctx, { name: "Bal", subject: "Bal", blocks: BLOCKS, segment: { kind: "EVENTS", eventIds: [s.e2.id] } });
+    const c = await saveCampaign(s.ctx, { name: "Bal", subject: "Bal", content: blocksToEmailDoc(BLOCKS), segment: { kind: "EVENTS", eventIds: [s.e2.id] } });
     await scheduleCampaign(s.ctx, c.id, new Date(Date.now() + DAY));
     await db.organizationMember.create({
       data: { organizationId: s.org.id, userId: s.ctx.user.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id },
@@ -169,7 +185,7 @@ describe("délivrabilité Resend (RG-MKT-03)", () => {
     expect(verifyResendSignature(secret, { id: "msg_1", timestamp: String(Number(ts) - 900), signature: `v1,${sig}` }, body)).toBe(false);
 
     const s = await setup();
-    const c = await saveCampaign(s.ctx, { name: "Printemps", subject: "Printemps", blocks: BLOCKS, segment: { kind: "ALL_CONSENTING" } });
+    const c = await saveCampaign(s.ctx, { name: "Printemps", subject: "Printemps", content: blocksToEmailDoc(BLOCKS), segment: { kind: "ALL_CONSENTING" } });
     await scheduleCampaign(s.ctx, c.id, null);
     await processCampaigns(new Date());
     const [m1, m2] = await db.emailMessage.findMany({ where: { campaignId: c.id }, orderBy: { toEmail: "asc" } });

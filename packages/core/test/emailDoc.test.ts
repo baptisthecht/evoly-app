@@ -28,6 +28,7 @@ describe("document d'e-mail : validation par liste blanche", () => {
     expect(safeEmailUrl("https://evoly.me/a?b=1")).toBe("https://evoly.me/a?b=1");
     expect(safeEmailUrl("mailto:lea@exemple.be")).toBe("mailto:lea@exemple.be");
     expect(safeEmailUrl("http://exemple.be", "image")).toBeNull(); // images : https seulement
+    expect(safeEmailUrl("http://localhost:3001/files/a.png", "image")).toBe("http://localhost:3001/files/a.png"); // sauf en développement
     const doc = validateEmailDoc({
       type: "doc",
       content: [

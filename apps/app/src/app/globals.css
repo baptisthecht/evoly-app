@@ -110,3 +110,114 @@ body {
     touch-action: pan-x pan-y;
   }
 }
+
+/* Éditeur d'e-mails (TipTap) : zone d'édition, blocs spéciaux, pastille {{prénom}} */
+@layer components {
+  .email-editor__content {
+    min-height: 18rem;
+    padding: 1.25rem;
+    outline: none;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .email-editor__content > * + * {
+    margin-top: 0.75rem;
+  }
+  .email-editor__content h1,
+  .email-editor__content h2,
+  .email-editor__content h3 {
+    font-family: var(--font-display, "Archivo Black", Arial, sans-serif);
+    line-height: 1.2;
+  }
+  .email-editor__content h1 {
+    font-size: 1.75rem;
+  }
+  .email-editor__content h2 {
+    font-size: 1.375rem;
+  }
+  .email-editor__content h3 {
+    font-size: 1.125rem;
+  }
+  .email-editor__content ul {
+    list-style: disc;
+    padding-left: 1.4rem;
+  }
+  .email-editor__content ol {
+    list-style: decimal;
+    padding-left: 1.4rem;
+  }
+  .email-editor__content blockquote {
+    border-left: 3px solid #ffb8e8;
+    padding-left: 0.9rem;
+  }
+  .email-editor__content hr {
+    border: 0;
+    border-top: 1px solid var(--line-strong, #d9d2cc);
+  }
+  .email-editor__content a {
+    text-decoration: underline;
+  }
+  .email-editor__content p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+  .email-editor__content .ProseMirror-selectednode {
+    outline: 2px solid var(--ink, #222222);
+    outline-offset: 2px;
+    border-radius: 10px;
+  }
+  .email-chip {
+    display: inline-block;
+    padding: 0 0.45em;
+    border-radius: 999px;
+    background: #ffb8e8;
+    color: #222222;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+  .email-chip::before {
+    content: "{{";
+  }
+  .email-chip::after {
+    content: "}}";
+  }
+  .email-atom {
+    cursor: pointer;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    background: rgba(34, 34, 34, 0.05);
+    font-size: 0.9rem;
+  }
+  .email-atom__btn {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    background: #ffb8e8;
+    color: #222222;
+    font-weight: 600;
+  }
+  .email-atom--event::before {
+    content: "\1F4C5  ";
+  }
+  .email-atom--spacer {
+    padding: 0;
+    background: repeating-linear-gradient(45deg, rgba(34, 34, 34, 0.06) 0 6px, transparent 6px 12px);
+  }
+  .email-atom--html {
+    font-family: ui-monospace, monospace;
+  }
+  .email-image img {
+    display: inline-block;
+    max-width: 100%;
+    border-radius: 12px;
+  }
+  .email-align-center {
+    text-align: center;
+  }
+  .email-align-right {
+    text-align: right;
+  }
+}

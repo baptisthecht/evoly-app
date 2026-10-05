@@ -6,6 +6,7 @@ import {
   countAudience,
   deleteCampaign,
   previewCampaign,
+  renderCampaignDraft,
   saveCampaign,
   saveTemplate,
   scheduleCampaign,
@@ -21,7 +22,7 @@ const campaignSchema = z.object({
   name: z.string().trim().min(2, { message: "validation.textLength" }).max(120),
   subject: z.string().trim().min(2, { message: "validation.textLength" }).max(150),
   previewText: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().trim().max(200).nullable()),
-  blocks: z.array(z.any()).max(40),
+  content: z.any(),
   segment: z.any(),
 });
 
@@ -82,7 +83,7 @@ export async function saveTemplateAction(orgSlug: string, input: unknown): Promi
     name: z.string().trim().min(2).max(80),
     subject: z.string().trim().min(2).max(150),
     previewText: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().trim().max(200).nullable()),
-    blocks: z.array(z.any()).max(40),
+    content: z.any(),
   });
   const r = await runOrgAction(orgSlug, input, { schema, ...OPTS }, async (d, ctx) => {
     await saveTemplate(ctx, d);
@@ -90,4 +91,10 @@ export async function saveTemplateAction(orgSlug: string, input: unknown): Promi
   });
   if (r?.ok) revalidatePath(path(orgSlug), "layout");
   return r;
+}
+
+/** Aperçu en temps réel d'un brouillon (sans enregistrement), rendu comme à l'envoi. */
+export async function previewDraftAction(orgSlug: string, input: unknown): Promise<ActionState<{ html: string; subject: string; warnings: string[] }>> {
+  const schema = z.object({ subject: z.string().max(150), previewText: z.string().max(200).nullable().optional(), content: z.any() });
+  return runOrgAction(orgSlug, input, { schema, ...OPTS, write: false }, async (d, ctx) => renderCampaignDraft(ctx, d));
 }

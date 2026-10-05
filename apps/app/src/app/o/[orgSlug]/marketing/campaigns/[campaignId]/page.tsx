@@ -1,4 +1,4 @@
-import { can, hasFeature, type CampaignBlock, type CampaignSegment } from "@evoly/core";
+import { blocksToEmailDoc, can, hasFeature, toEmailDoc, type CampaignBlock, type CampaignSegment } from "@evoly/core";
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -7,6 +7,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Badge, Card } from "@/components/ui/Card";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
+import { sanitizeEmailHtml } from "@/server/email/sanitize";
 import { CampaignEditor } from "../CampaignEditor";
 import { listTemplates } from "@/server/campaigns";
 
@@ -67,7 +68,7 @@ export default async function CampaignPage({
         name: campaign.name,
         subject: campaign.subject,
         previewText: campaign.previewText ?? "",
-        blocks: campaign.content as CampaignBlock[],
+        content: toEmailDoc(campaign.content, { sanitizeHtml: sanitizeEmailHtml }),
         segment: campaign.segment as CampaignSegment,
       }
     : chosen
@@ -75,14 +76,14 @@ export default async function CampaignPage({
           name: chosen.name,
           subject: chosen.subject,
           previewText: chosen.previewText ?? "",
-          blocks: chosen.content as CampaignBlock[],
+          content: toEmailDoc(chosen.content, { sanitizeHtml: sanitizeEmailHtml }),
           segment: { kind: "ALL_CONSENTING", locale: null } as CampaignSegment,
         }
       : {
           name: tt(`${tpl}Name`),
           subject: tt(`${tpl}Subject`),
           previewText: "",
-          blocks: starters[tpl],
+          content: blocksToEmailDoc(starters[tpl]),
           segment: { kind: "ALL_CONSENTING", locale: null } as CampaignSegment,
         };
   const locked = campaign && ["SENDING", "SENT", "CANCELLED", "FAILED"].includes(campaign.status);

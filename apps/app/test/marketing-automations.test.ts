@@ -1,3 +1,4 @@
+import { blocksToEmailDoc } from "@evoly/core";
 import { readFile, readdir } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
@@ -106,7 +107,11 @@ describe("e-mails marketing automatiques (US-MKT-02, section 9.18)", () => {
     const vip = await s.buy(e, "Victor", true, 1);
     const audience = await campaignAudience(s.org.id, { kind: "EVENTS", eventIds: [e.id], ticketTypeIds: [e.ticketTypes[1]!.id], attendance: "ANY" });
     expect(audience.map((c) => c.email)).toEqual([vip]);
-    const tpl = await saveTemplate(s.ctx, { name: "Annonce maison", subject: "{{prenom}}, du nouveau", blocks: [{ type: "heading", text: "Du nouveau" }] });
+    const tpl = await saveTemplate(s.ctx, {
+      name: "Annonce maison",
+      subject: "{{prenom}}, du nouveau",
+      content: blocksToEmailDoc([{ type: "heading", text: "Du nouveau" }]),
+    });
     expect((await listTemplates(s.ctx)).map((t) => t.name)).toEqual(["Annonce maison"]);
     await archiveTemplate(s.ctx, tpl.id);
     expect(await listTemplates(s.ctx)).toHaveLength(0);
