@@ -2,7 +2,16 @@ import { describe, expect, it } from "vitest";
 import { normalizePromoCode, unitDiscount, validatePromo, type PromoInput } from "../src";
 
 const now = new Date("2026-10-20T12:00:00Z");
-const base: PromoInput = { id: "p1", eventId: "e1", code: "BIENVENUE", discountType: "PERCENT", percentOffBps: 5000, ticketTypeIds: [], usedCount: 0, isActive: true };
+const base: PromoInput = {
+  id: "p1",
+  eventId: "e1",
+  code: "BIENVENUE",
+  discountType: "PERCENT",
+  percentOffBps: 5000,
+  ticketTypeIds: [],
+  usedCount: 0,
+  isActive: true,
+};
 const ctx = { eventId: "e1", now, usesByEmail: 0, cartTicketTypeIds: ["t1"] };
 
 describe("validation d'un code promo (RG-PRM-01)", () => {

@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { applyBps, assertNonNegative, capThresholdMinor, EUR_TERMS, feeSnapshot, grossForNet, netForGross, normalizeCurrency, roundedPriceOptions, sum, ticketCommission } from "../src";
+import {
+  applyBps,
+  assertNonNegative,
+  capThresholdMinor,
+  EUR_TERMS,
+  feeSnapshot,
+  grossForNet,
+  netForGross,
+  normalizeCurrency,
+  roundedPriceOptions,
+  sum,
+  ticketCommission,
+} from "../src";
 
 const free = EUR_TERMS.free;
 const pro = EUR_TERMS.pro;
@@ -118,4 +130,3 @@ describe("aide au prix : ce que l'organisateur veut toucher → prix de vente", 
     expect(roundedPriceOptions(2000)).toEqual([]);
   });
 });
-

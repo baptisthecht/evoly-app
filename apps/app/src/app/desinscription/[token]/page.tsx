@@ -14,7 +14,12 @@ export default async function UnsubscribePage({ params, searchParams }: { params
   const { done } = await searchParams;
   const t = await getTranslations("unsubscribe");
   const data = readUnsubscribeToken(token);
-  const [org, event] = data ? await Promise.all([db.organization.findUnique({ where: { id: data.organizationId }, select: { name: true } }), data.eventId ? db.event.findUnique({ where: { id: data.eventId }, select: { title: true } }) : null]) : [null, null];
+  const [org, event] = data
+    ? await Promise.all([
+        db.organization.findUnique({ where: { id: data.organizationId }, select: { name: true } }),
+        data.eventId ? db.event.findUnique({ where: { id: data.eventId }, select: { title: true } }) : null,
+      ])
+    : [null, null];
   async function unsubscribe(scope: "EVENT" | "ORGANIZATION") {
     "use server";
     await applyUnsubscribe(token, scope);
@@ -30,7 +35,9 @@ export default async function UnsubscribePage({ params, searchParams }: { params
         ) : done ? (
           <>
             <h1 className="font-display text-2xl tracking-[-0.03em]">{t("doneTitle")}</h1>
-            <p className="text-ink-muted">{done === "event" && event ? t("doneEvent", { event: event.title }) : t("doneOrganization", { organization: org.name })}</p>
+            <p className="text-ink-muted">
+              {done === "event" && event ? t("doneEvent", { event: event.title }) : t("doneOrganization", { organization: org.name })}
+            </p>
           </>
         ) : (
           <>

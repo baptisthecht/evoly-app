@@ -28,11 +28,19 @@ export default async function BrandPage({ params }: { params: Promise<{ orgSlug:
   const [brand, domains, events, url] = await Promise.all([
     db.organizationBrand.findUnique({ where: { organizationId: ctx.organization.id } }),
     canDomains ? listCustomDomains(ctx) : Promise.resolve([]),
-    db.event.findMany({ where: { organizationId: ctx.organization.id, deletedAt: null, status: { notIn: ["ARCHIVED", "CANCELLED"] } }, select: { id: true, title: true }, orderBy: { startsAt: "desc" } }),
+    db.event.findMany({
+      where: { organizationId: ctx.organization.id, deletedAt: null, status: { notIn: ["ARCHIVED", "CANCELLED"] } },
+      select: { id: true, title: true },
+      orderBy: { startsAt: "desc" },
+    }),
     canonicalOrgUrl({ id: ctx.organization.id, subdomain: ctx.organization.subdomain, slug: ctx.organization.slug, features: ctx.features }),
   ]);
   const t = await getTranslations("brand");
-  const pro = { brand: hasFeature(ctx.features, "BRANDING"), domains: hasFeature(ctx.features, "CUSTOM_DOMAINS"), hide: hasFeature(ctx.features, "REMOVE_EVOLY_BRANDING") };
+  const pro = {
+    brand: hasFeature(ctx.features, "BRANDING"),
+    domains: hasFeature(ctx.features, "CUSTOM_DOMAINS"),
+    hide: hasFeature(ctx.features, "REMOVE_EVOLY_BRANDING"),
+  };
   const upsell = (text: string) => (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-accent px-4 py-3">
       <p className="text-sm">{text}</p>
@@ -69,7 +77,16 @@ export default async function BrandPage({ params }: { params: Promise<{ orgSlug:
               orgSlug={orgSlug}
               organizationName={ctx.organization.name}
               canHide={pro.hide}
-              values={{ displayName: brand?.displayName ?? "", logoUrl: brand?.logoUrl ?? "", faviconUrl: brand?.faviconUrl ?? "", primaryColor: brand?.primaryColor ?? "", accentColor: brand?.accentColor ?? "", emailFromName: brand?.emailFromName ?? "", emailReplyTo: brand?.emailReplyTo ?? "", hideEvolyBranding: brand?.hideEvolyBranding ?? true }}
+              values={{
+                displayName: brand?.displayName ?? "",
+                logoUrl: brand?.logoUrl ?? "",
+                faviconUrl: brand?.faviconUrl ?? "",
+                primaryColor: brand?.primaryColor ?? "",
+                accentColor: brand?.accentColor ?? "",
+                emailFromName: brand?.emailFromName ?? "",
+                emailReplyTo: brand?.emailReplyTo ?? "",
+                hideEvolyBranding: brand?.hideEvolyBranding ?? true,
+              }}
             />
           ) : (
             upsell(t("brandUpsell"))
@@ -89,10 +106,26 @@ export default async function BrandPage({ params }: { params: Promise<{ orgSlug:
               key={d.id}
               orgSlug={orgSlug}
               planOk={pro.domains}
-              d={{ id: d.id, domain: d.domain, status: d.status, dnsTarget: d.dnsTarget, lastError: d.lastError, checksStopped: !!d.checksStoppedAt, target: d.scope === "EVENT" ? t("scopeEvent", { title: d.event?.title ?? "-" }) : t("scopeOrganization") }}
+              d={{
+                id: d.id,
+                domain: d.domain,
+                status: d.status,
+                dnsTarget: d.dnsTarget,
+                lastError: d.lastError,
+                checksStopped: !!d.checksStoppedAt,
+                target: d.scope === "EVENT" ? t("scopeEvent", { title: d.event?.title ?? "-" }) : t("scopeOrganization"),
+              }}
             />
           ))}
-          {pro.domains ? domains.length < MAX_CUSTOM_DOMAINS ? <Card><AddDomain orgSlug={orgSlug} events={events} /></Card> : <p className="text-sm text-ink-muted">{t("domainsLimit", { max: MAX_CUSTOM_DOMAINS })}</p> : null}
+          {pro.domains ? (
+            domains.length < MAX_CUSTOM_DOMAINS ? (
+              <Card>
+                <AddDomain orgSlug={orgSlug} events={events} />
+              </Card>
+            ) : (
+              <p className="text-sm text-ink-muted">{t("domainsLimit", { max: MAX_CUSTOM_DOMAINS })}</p>
+            )
+          ) : null}
         </section>
       ) : null}
     </div>

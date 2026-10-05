@@ -31,7 +31,15 @@ export function negotiateLocale(acceptLanguage: string | null | undefined, remem
 }
 
 /** Nom de chaque langue dans sa propre langue (sélecteurs). */
-export const LOCALE_NAMES: Readonly<Record<Locale, string>> = { fr: "Français", en: "English", es: "Español", de: "Deutsch", it: "Italiano", pt: "Português", nl: "Nederlands" };
+export const LOCALE_NAMES: Readonly<Record<Locale, string>> = {
+  fr: "Français",
+  en: "English",
+  es: "Español",
+  de: "Deutsch",
+  it: "Italiano",
+  pt: "Português",
+  nl: "Nederlands",
+};
 
 /**
  * Langue des textes écrits dans le code (e-mails, relevés, Wallet…) tant qu'ils n'existent qu'en français et en anglais :
@@ -51,4 +59,3 @@ export function pick<C extends { en: unknown }>(copy: C, locale: string | null |
   const all = copy as unknown as Partial<Record<Locale, C["en"]>>;
   return (isLocale(locale) ? all[locale] : undefined) ?? copy.en;
 }
-

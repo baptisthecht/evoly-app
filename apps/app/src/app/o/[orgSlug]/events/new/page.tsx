@@ -22,14 +22,23 @@ export default async function NewEventPage({ params }: { params: Promise<{ orgSl
   // proposition : dans trois semaines, à 20 h, dans le fuseau de l'organisation
   const inThreeWeeks = new Date(Date.now() + 21 * 86_400_000);
   const defaultStart = `${utcToZonedLocal(inThreeWeeks, ctx.organization.timezone).slice(0, 10)}T20:00`;
-  const symbol = new Intl.NumberFormat("fr-BE", { style: "currency", currency: ctx.organization.currency }).formatToParts(0).find((p) => p.type === "currency")?.value ?? ctx.organization.currency;
+  const symbol =
+    new Intl.NumberFormat("fr-BE", { style: "currency", currency: ctx.organization.currency }).formatToParts(0).find((p) => p.type === "currency")?.value ??
+    ctx.organization.currency;
   return (
     <div className="grid max-w-3xl gap-8">
       <header className="grid gap-2">
         <h1 className="page-title">{t("newEvent")}</h1>
         <p className="text-ink-muted">{t("newEventIntro")}</p>
       </header>
-      <NewEventForm orgSlug={orgSlug} terms={terms} timezone={ctx.organization.timezone} country={ctx.organization.country} defaultStart={defaultStart} currencySymbol={symbol} />
+      <NewEventForm
+        orgSlug={orgSlug}
+        terms={terms}
+        timezone={ctx.organization.timezone}
+        country={ctx.organization.country}
+        defaultStart={defaultStart}
+        currencySymbol={symbol}
+      />
     </div>
   );
 }

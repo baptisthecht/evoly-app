@@ -4,7 +4,17 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
-import { changeMemberRole, deleteCustomRole, inviteMember, leaveOrganization, removeMember, resendInvitation, revokeInvitation, saveCustomRole, transferOwnership } from "@/server/team";
+import {
+  changeMemberRole,
+  deleteCustomRole,
+  inviteMember,
+  leaveOrganization,
+  removeMember,
+  resendInvitation,
+  revokeInvitation,
+  saveCustomRole,
+  transferOwnership,
+} from "@/server/team";
 
 const path = (orgSlug: string) => `/o/${orgSlug}/members`;
 
@@ -29,10 +39,15 @@ export async function invitationCommandAction(orgSlug: string, invitationId: str
 }
 
 export async function memberRoleAction(orgSlug: string, memberId: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, formToObject(form), { schema: z.object({ roleId: z.string().min(1).max(40) }), permission: "MEMBERS_MANAGE" }, async (d, ctx) => {
-    await changeMemberRole(ctx, memberId, d.roleId);
-    return null;
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: z.object({ roleId: z.string().min(1).max(40) }), permission: "MEMBERS_MANAGE" },
+    async (d, ctx) => {
+      await changeMemberRole(ctx, memberId, d.roleId);
+      return null;
+    },
+  );
   if (r?.ok) revalidatePath(path(orgSlug));
   return r;
 }
@@ -56,17 +71,26 @@ export async function leaveAction(orgSlug: string, _: ActionState): Promise<Acti
 }
 
 export async function transferAction(orgSlug: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, formToObject(form), { schema: z.object({ memberId: z.string().min(1).max(40) }), permission: "MEMBERS_MANAGE" }, async (d, ctx) => {
-    await transferOwnership(ctx, d.memberId);
-    return null;
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: z.object({ memberId: z.string().min(1).max(40) }), permission: "MEMBERS_MANAGE" },
+    async (d, ctx) => {
+      await transferOwnership(ctx, d.memberId);
+      return null;
+    },
+  );
   if (r?.ok) revalidatePath(path(orgSlug));
   return r;
 }
 
 export async function saveRoleAction(orgSlug: string, roleId: string | null, _: ActionState, form: FormData): Promise<ActionState> {
   const data = { ...formToObject(form), permissions: form.getAll("permissions").map(String) };
-  const schema = z.object({ name: z.string().trim().min(2, { message: "validation.textLength" }).max(40), description: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().trim().max(200).nullable()), permissions: z.array(z.string().max(40)).max(40) });
+  const schema = z.object({
+    name: z.string().trim().min(2, { message: "validation.textLength" }).max(40),
+    description: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().trim().max(200).nullable()),
+    permissions: z.array(z.string().max(40)).max(40),
+  });
   const r = await runOrgAction(orgSlug, data, { schema, permission: "ROLES_MANAGE", feature: "CUSTOM_ROLES" }, async (d, ctx) => {
     await saveCustomRole(ctx, { id: roleId, ...d });
     return null;

@@ -39,4 +39,3 @@ export const scanSchema = z.object({
   scannedAt: z.string().max(40).nullish(),
   deviceId: z.string().max(64).nullish(),
 });
-

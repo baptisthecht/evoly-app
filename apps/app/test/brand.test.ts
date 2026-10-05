@@ -9,20 +9,49 @@ import { resolveSite } from "@/server/publicEvents";
 import { readLocalFile } from "@/server/storage";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
-const PNG = Uint8Array.from(Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR42mP8z8DwnwEIGBmgAhgYAAAAAP//AwBfDQX/AAAAAElFTkSuQmCC", "base64"));
+const PNG = Uint8Array.from(
+  Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR42mP8z8DwnwEIGBmgAhgYAAAAAP//AwBfDQX/AAAAAElFTkSuQmCC", "base64"),
+);
 
 async function setup(plan: "free" | "pro") {
   const id = rid();
   const user = await db.user.create({ data: { name: "Camille Dupont", email: `own.${id}@exemple.be`, emailVerified: true } });
-  const org = await db.organization.create({ data: { name: `Asso ${id}`, slug: `asso-${id}`, subdomain: `asso-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-  await db.organizationMember.create({ data: { organizationId: org.id, userId: user.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id, status: "ACTIVE" } });
-  if (plan === "pro") await db.subscription.create({ data: { organizationId: org.id, planId: "pro", status: "ACTIVE", currentPeriodEnd: new Date(Date.now() + 30 * 86_400_000) } });
-  const event = await db.event.create({ data: { organizationId: org.id, slug: `gala-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Gala ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 9 * 86_400_000), status: "PUBLISHED" } });
+  const org = await db.organization.create({
+    data: { name: `Asso ${id}`, slug: `asso-${id}`, subdomain: `asso-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
+  await db.organizationMember.create({
+    data: { organizationId: org.id, userId: user.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id, status: "ACTIVE" },
+  });
+  if (plan === "pro")
+    await db.subscription.create({
+      data: { organizationId: org.id, planId: "pro", status: "ACTIVE", currentPeriodEnd: new Date(Date.now() + 30 * 86_400_000) },
+    });
+  const event = await db.event.create({
+    data: {
+      organizationId: org.id,
+      slug: `gala-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: `Gala ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: new Date(Date.now() + 9 * 86_400_000),
+      status: "PUBLISHED",
+    },
+  });
   const features = (await getPlans())[plan].features;
-  const ctx = { organization: { id: org.id, slug: org.slug, subdomain: org.subdomain, name: org.name }, user: { id: user.id }, features } as unknown as OrgContext;
+  const ctx = {
+    organization: { id: org.id, slug: org.slug, subdomain: org.subdomain, name: org.name },
+    user: { id: user.id },
+    features,
+  } as unknown as OrgContext;
   return { id, org, event, ctx, features };
 }
-const resolver = (records: Record<string, string[]>) => ({ resolveCname: async (h: string) => { if (!records[h]) throw Object.assign(new Error("absent"), { code: "ENODATA" }); return records[h]!; } });
+const resolver = (records: Record<string, string[]>) => ({
+  resolveCname: async (h: string) => {
+    if (!records[h]) throw Object.assign(new Error("absent"), { code: "ENODATA" });
+    return records[h]!;
+  },
+});
 
 describe("sous-domaines et domaines (section 9.19)", () => {
   it("résolution : organisation, événement en Pro, retour en Free, ancienne adresse redirigée", async () => {

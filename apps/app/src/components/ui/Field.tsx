@@ -6,7 +6,19 @@ const control =
   "shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none transition-shadow focus:shadow-[inset_0_0_0_2px_var(--ink),0_0_0_4px_color-mix(in_srgb,var(--focus-halo)_70%,transparent)] " +
   "aria-[invalid=true]:shadow-[inset_0_0_0_2px_var(--color-danger)]";
 
-export function Field({ label, htmlFor, hint, error, children }: { label: string; htmlFor: string; hint?: ReactNode; error?: string | null; children: ReactNode }) {
+export function Field({
+  label,
+  htmlFor,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  hint?: ReactNode;
+  error?: string | null;
+  children: ReactNode;
+}) {
   return (
     <div className="grid content-start gap-1.5">
       <label htmlFor={htmlFor} className="font-label text-[0.8rem] font-bold text-ink">

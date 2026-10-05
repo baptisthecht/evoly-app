@@ -36,7 +36,8 @@ function drawQr(page: PDFPage, text: string, x: number, y: number, size: number)
   page.drawRectangle({ x, y, width: size, height: size, color: rgb(1, 1, 1) });
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
-      if (qr.modules.get(r, c)) page.drawRectangle({ x: x + (c + quiet) * cell, y: y + size - (r + quiet + 1) * cell, width: cell + 0.2, height: cell + 0.2, color: CHARBON });
+      if (qr.modules.get(r, c))
+        page.drawRectangle({ x: x + (c + quiet) * cell, y: y + size - (r + quiet + 1) * cell, width: cell + 0.2, height: cell + 0.2, color: CHARBON });
     }
   }
 }
@@ -51,7 +52,16 @@ export interface PdfTicket {
 }
 
 /** PDF d'une commande : une page par billet, QR code grand format (section 9.12). */
-export async function buildTicketsPdf(o: { brand?: { primary: string | null; primaryInk: string | null; logo: { bytes: Uint8Array; type: "image/png" | "image/jpeg" } | null; showPoweredBy: boolean }; organizationName: string; eventTitle: string; when: string; where: string | null; reference: string; tickets: PdfTicket[]; labels: { ticket: (i: number, n: number) => string; holder: string; reference: string; entrance: string; poweredBy: string } }): Promise<Uint8Array> {
+export async function buildTicketsPdf(o: {
+  brand?: { primary: string | null; primaryInk: string | null; logo: { bytes: Uint8Array; type: "image/png" | "image/jpeg" } | null; showPoweredBy: boolean };
+  organizationName: string;
+  eventTitle: string;
+  when: string;
+  where: string | null;
+  reference: string;
+  tickets: PdfTicket[];
+  labels: { ticket: (i: number, n: number) => string; holder: string; reference: string; entrance: string; poweredBy: string };
+}): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(clean(`${o.eventTitle} - ${o.reference}`));
   pdf.setCreator("Evoly");
@@ -63,7 +73,9 @@ export async function buildTicketsPdf(o: { brand?: { primary: string | null; pri
   const toRgb = (hex: string) => rgb(parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255);
   const band = o.brand?.primary ? toRgb(o.brand.primary) : CHARBON;
   const bandInk = o.brand?.primaryInk ? toRgb(o.brand.primaryInk) : CREME;
-  const logo = o.brand?.logo ? await (o.brand.logo.type === "image/png" ? pdf.embedPng(o.brand.logo.bytes) : pdf.embedJpg(o.brand.logo.bytes)).catch(() => null) : null;
+  const logo = o.brand?.logo
+    ? await (o.brand.logo.type === "image/png" ? pdf.embedPng(o.brand.logo.bytes) : pdf.embedJpg(o.brand.logo.bytes)).catch(() => null)
+    : null;
   o.tickets.forEach((t, i) => {
     const page = pdf.addPage([W, H]);
     page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: CREME });
@@ -90,7 +102,15 @@ export async function buildTicketsPdf(o: { brand?: { primary: string | null; pri
     }
     const qrSize = 280;
     const qrY = y - 40 - qrSize;
-    page.drawRectangle({ x: (W - qrSize) / 2 - 16, y: qrY - 70, width: qrSize + 32, height: qrSize + 100, color: rgb(1, 1, 1), borderColor: ROSE, borderWidth: 3 });
+    page.drawRectangle({
+      x: (W - qrSize) / 2 - 16,
+      y: qrY - 70,
+      width: qrSize + 32,
+      height: qrSize + 100,
+      color: rgb(1, 1, 1),
+      borderColor: ROSE,
+      borderWidth: 3,
+    });
     if (t.invalidLabel) {
       // aucun QR code : le billet ne doit plus pouvoir être présenté à l'entrée
       page.drawLine({ start: { x: (W - qrSize) / 2, y: qrY }, end: { x: (W + qrSize) / 2, y: qrY + qrSize }, thickness: 6, color: rgb(0.8, 0.13, 0.2) });
@@ -109,7 +129,8 @@ export async function buildTicketsPdf(o: { brand?: { primary: string | null; pri
       infoY -= 18;
     }
     page.drawText(clean(`${o.labels.reference} : ${o.reference}`), { x: 48, y: infoY, size: 12, font: regular, color: GRIS });
-    for (const [k, line] of wrap(o.labels.entrance, regular, 10, W - 96).entries()) page.drawText(line, { x: 48, y: 70 - k * 14, size: 10, font: regular, color: GRIS });
+    for (const [k, line] of wrap(o.labels.entrance, regular, 10, W - 96).entries())
+      page.drawText(line, { x: 48, y: 70 - k * 14, size: 10, font: regular, color: GRIS });
     if (o.brand?.showPoweredBy !== false) page.drawText(clean(o.labels.poweredBy), { x: 48, y: 30, size: 9, font: bold, color: CHARBON });
   });
   return pdf.save();

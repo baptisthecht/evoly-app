@@ -77,7 +77,13 @@ export async function updateOrganizationSettings(ctx: OrgContext, input: Organiz
       vatRegistered: input.vatRegistered,
     },
   });
-  await audit({ action: "organization.settings_updated", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Organization", targetId: ctx.organization.id });
+  await audit({
+    action: "organization.settings_updated",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Organization",
+    targetId: ctx.organization.id,
+  });
   return updated;
 }
 
@@ -86,11 +92,16 @@ export type DeletionBlocker = "UPCOMING_SALES" | "ACTIVE_SUBSCRIPTION";
 /** RG-ORG-06 : impossible tant qu'un événement à venir a des participants ou qu'un abonnement Pro va se renouveler. */
 export async function deletionBlockers(organizationId: string, now = new Date()): Promise<DeletionBlocker[]> {
   const blockers: DeletionBlocker[] = [];
-  const events = await db.event.findMany({ where: { organizationId, deletedAt: null, status: { notIn: ["CANCELLED", "ARCHIVED"] } }, select: { id: true, startsAt: true, endsAt: true } });
+  const events = await db.event.findMany({
+    where: { organizationId, deletedAt: null, status: { notIn: ["CANCELLED", "ARCHIVED"] } },
+    select: { id: true, startsAt: true, endsAt: true },
+  });
   const upcoming = events.filter((e) => effectiveEnd(e.startsAt, e.endsAt) >= now).map((e) => e.id);
-  if (upcoming.length && (await db.ticket.count({ where: { eventId: { in: upcoming }, status: { in: ["VALID", "CHECKED_IN"] } } })) > 0) blockers.push("UPCOMING_SALES");
+  if (upcoming.length && (await db.ticket.count({ where: { eventId: { in: upcoming }, status: { in: ["VALID", "CHECKED_IN"] } } })) > 0)
+    blockers.push("UPCOMING_SALES");
   const sub = await db.subscription.findUnique({ where: { organizationId }, select: { status: true, stripeSubscriptionId: true, cancelAtPeriodEnd: true } });
-  if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID", "INCOMPLETE"].includes(sub.status) && !sub.cancelAtPeriodEnd) blockers.push("ACTIVE_SUBSCRIPTION");
+  if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID", "INCOMPLETE"].includes(sub.status) && !sub.cancelAtPeriodEnd)
+    blockers.push("ACTIVE_SUBSCRIPTION");
   return blockers;
 }
 
@@ -119,7 +130,27 @@ export async function deleteOrganization(ctx: OrgContext, confirmation: string, 
     db.event.updateMany({ where: { organizationId: id, status: { notIn: ["ARCHIVED", "CANCELLED"] } }, data: { status: "ARCHIVED" } }),
     db.organizationBrand.deleteMany({ where: { organizationId: id } }),
     db.organizationMember.deleteMany({ where: { organizationId: id } }),
-    db.organization.update({ where: { id }, data: { status: "DELETED", deletedAt: now, name: "Organisation supprimée", slug: `supprimee-${id}`, subdomain: null, legalName: null, description: null, contactEmail: null, phone: null, website: null, addressLine1: null, addressLine2: null, postalCode: null, city: null, region: null, vatNumber: null } }),
+    db.organization.update({
+      where: { id },
+      data: {
+        status: "DELETED",
+        deletedAt: now,
+        name: "Organisation supprimée",
+        slug: `supprimee-${id}`,
+        subdomain: null,
+        legalName: null,
+        description: null,
+        contactEmail: null,
+        phone: null,
+        website: null,
+        addressLine1: null,
+        addressLine2: null,
+        postalCode: null,
+        city: null,
+        region: null,
+        vatNumber: null,
+      },
+    }),
   ]);
   await Promise.all([deletePublicFile(org.brand?.logoUrl), deletePublicFile(org.brand?.faviconUrl)]);
   await audit({ action: "organization.deleted", organizationId: id, actorUserId: ctx.user.id, targetType: "Organization", targetId: id });

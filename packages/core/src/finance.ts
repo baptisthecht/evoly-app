@@ -31,7 +31,16 @@ const COUNTED = new Set(["PAID", "PARTIALLY_REFUNDED", "REFUNDED"]);
  * RG-FEE-40), frais bancaires, net. Une revente reste neutre : paiement de l'acheteur et remboursement du vendeur s'équilibrent.
  */
 export function financeTotals(orders: readonly FinanceOrder[]): FinanceTotals {
-  const t: FinanceTotals = { orders: 0, tickets: 0, grossMinor: 0, refundedMinor: 0, commissionMinor: 0, bankFeeMinor: 0, bankFeeEstimated: false, netMinor: 0 };
+  const t: FinanceTotals = {
+    orders: 0,
+    tickets: 0,
+    grossMinor: 0,
+    refundedMinor: 0,
+    commissionMinor: 0,
+    bankFeeMinor: 0,
+    bankFeeEstimated: false,
+    netMinor: 0,
+  };
   for (const o of orders) {
     if (!COUNTED.has(o.status)) continue;
     t.orders += 1;
@@ -56,8 +65,48 @@ export function financeByEvent(orders: readonly FinanceOrder[]): Map<string, Fin
 }
 
 /** Taux normaux de TVA des pays de lancement (points de base). À tenir à jour. */
-export const VAT_RATES_BPS: Readonly<Record<string, number>> = { BE: 2100, FR: 2000, LU: 1700, NL: 2100, IE: 2300, DE: 1900, AT: 2000, ES: 2100, IT: 2200, PT: 2300, FI: 2550 };
-const EU = new Set(["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK"]);
+export const VAT_RATES_BPS: Readonly<Record<string, number>> = {
+  BE: 2100,
+  FR: 2000,
+  LU: 1700,
+  NL: 2100,
+  IE: 2300,
+  DE: 1900,
+  AT: 2000,
+  ES: 2100,
+  IT: 2200,
+  PT: 2300,
+  FI: 2550,
+};
+const EU = new Set([
+  "AT",
+  "BE",
+  "BG",
+  "CY",
+  "CZ",
+  "DE",
+  "DK",
+  "EE",
+  "ES",
+  "FI",
+  "FR",
+  "GR",
+  "HR",
+  "HU",
+  "IE",
+  "IT",
+  "LT",
+  "LU",
+  "LV",
+  "MT",
+  "NL",
+  "PL",
+  "PT",
+  "RO",
+  "SE",
+  "SI",
+  "SK",
+]);
 
 export type VatMention = "BE_VAT" | "REVERSE_CHARGE" | "OSS" | "OUTSIDE_EU";
 

@@ -12,10 +12,23 @@ type Policy = "NON_REFUNDABLE" | "UNTIL_DEADLINE" | "ON_REQUEST" | "ALWAYS";
 async function setup(opts: { policy: Policy; priceMinor?: number; quantity?: number }) {
   const id = rid();
   const user = await db.user.create({ data: { name: "Camille Dupont", email: `org.${id}@exemple.be`, emailVerified: true } });
-  const org = await db.organization.create({ data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
+  const org = await db.organization.create({
+    data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
   const price = opts.priceMinor ?? 0;
   const event = await db.event.create({
-    data: { organizationId: org.id, slug: `soiree-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Soirée ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 5 * 86_400_000), status: "PUBLISHED", refundPolicy: opts.policy, ticketTypes: { create: { name: "Fosse", priceMinor: price, currency: "EUR", quantity: 50 } } },
+    data: {
+      organizationId: org.id,
+      slug: `soiree-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: `Soirée ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: new Date(Date.now() + 5 * 86_400_000),
+      status: "PUBLISHED",
+      refundPolicy: opts.policy,
+      ticketTypes: { create: { name: "Fosse", priceMinor: price, currency: "EUR", quantity: 50 } },
+    },
     include: { ticketTypes: true },
   });
   const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: opts.quantity ?? 2 }], locale: "fr" });
@@ -23,7 +36,13 @@ async function setup(opts: { policy: Policy; priceMinor?: number; quantity?: num
   if (price === 0) await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email, marketingOptIn: false });
   else {
     await db.order.update({ where: { id: r.orderId }, data: { buyerFirstName: "Léa", buyerLastName: "Martin", buyerEmail: email } });
-    await finalizeOrder(r.orderId, { paymentIntentId: `pi_${id}`, amountMinor: price * (opts.quantity ?? 2), currency: "eur", chargeId: `ch_${id}`, paymentMethodType: "card" });
+    await finalizeOrder(r.orderId, {
+      paymentIntentId: `pi_${id}`,
+      amountMinor: price * (opts.quantity ?? 2),
+      currency: "eur",
+      chargeId: `ch_${id}`,
+      paymentMethodType: "card",
+    });
   }
   const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
   const ctx = { organization: { id: org.id }, user: { id: user.id } } as unknown as OrgContext;

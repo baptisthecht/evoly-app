@@ -18,7 +18,15 @@ export interface EmailBrand {
 
 /** RG-BRD-02 : marque de l'organisation dans les e-mails aux acheteurs et les PDF (Pro), sinon thème Evoly (RG-BRD-03). */
 export async function emailBrandFor(organizationId: string): Promise<EmailBrand> {
-  const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { name: true, contactEmail: true, brand: true, subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } });
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: organizationId },
+    select: {
+      name: true,
+      contactEmail: true,
+      brand: true,
+      subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } },
+    },
+  });
   const features = (await getPlans())[effectivePlan(org.subscription, new Date())].features;
   const b = hasFeature(features, "BRANDING") ? org.brand : null;
   const accent = b?.accentColor ?? b?.primaryColor ?? null;

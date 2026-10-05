@@ -66,21 +66,42 @@ export async function stripeOnboardingUrl(ctx: OrgContext): Promise<string> {
     });
     accountId = account.id;
     await db.stripeAccount.create({
-      data: { organizationId: ctx.organization.id, stripeAccountId: account.id, country: ctx.organization.country, defaultCurrency: ctx.organization.currency, status: "PENDING" },
+      data: {
+        organizationId: ctx.organization.id,
+        stripeAccountId: account.id,
+        country: ctx.organization.country,
+        defaultCurrency: ctx.organization.currency,
+        status: "PENDING",
+      },
     });
-    await audit({ action: "stripe.account_created", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "StripeAccount", targetId: account.id, metadata: { api: "v2" } });
+    await audit({
+      action: "stripe.account_created",
+      organizationId: ctx.organization.id,
+      actorUserId: ctx.user.id,
+      targetType: "StripeAccount",
+      targetId: account.id,
+      metadata: { api: "v2" },
+    });
   }
   const base = `${env().NEXT_PUBLIC_APP_URL}/o/${ctx.organization.slug}/settings/payments`;
   try {
     const link = await s.v2.core.accountLinks.create({
       account: accountId,
-      use_case: { type: "account_onboarding", account_onboarding: { configurations: ["merchant"], refresh_url: `${base}?stripe=refresh`, return_url: `${base}?stripe=return` } },
+      use_case: {
+        type: "account_onboarding",
+        account_onboarding: { configurations: ["merchant"], refresh_url: `${base}?stripe=refresh`, return_url: `${base}?stripe=return` },
+      },
     });
     return link.url;
   } catch (err) {
     // compte créé avant le passage à Accounts v2 : lien d'inscription v1 (seule la création v1 est restreinte)
     console.warn("lien d'inscription v2 indisponible, repli v1", err instanceof Error ? err.message.slice(0, 200) : "");
-    const link = await s.accountLinks.create({ account: accountId, refresh_url: `${base}?stripe=refresh`, return_url: `${base}?stripe=return`, type: "account_onboarding" });
+    const link = await s.accountLinks.create({
+      account: accountId,
+      refresh_url: `${base}?stripe=refresh`,
+      return_url: `${base}?stripe=return`,
+      type: "account_onboarding",
+    });
     return link.url;
   }
 }
@@ -124,11 +145,22 @@ export async function ensurePaymentDomains(organizationId: string): Promise<void
 export async function syncStripeAccount(account: Stripe.Account) {
   const before = await db.stripeAccount.findUnique({ where: { stripeAccountId: account.id }, select: { status: true, requirementsDue: true } });
   const result = await syncStripeAccountRecord(account);
-  const row = await db.stripeAccount.findUnique({ where: { stripeAccountId: account.id }, select: { organizationId: true, status: true, requirementsDue: true } });
+  const row = await db.stripeAccount.findUnique({
+    where: { stripeAccountId: account.id },
+    select: { organizationId: true, status: true, requirementsDue: true },
+  });
   // section 9.20 : action requise quand Stripe demande de nouvelles informations ou restreint le compte
   const due = (v: unknown) => (Array.isArray(v) ? v.length : 0);
-  if (row && ((due(row.requirementsDue) > 0 && due(before?.requirementsDue) === 0) || (row.status !== before?.status && ["RESTRICTED", "RESTRICTED_SOON", "DISABLED"].includes(row.status))))
-    await notify(row.organizationId, "STRIPE_ACTION_REQUIRED", { title: "Compte Stripe", body: "Stripe demande des informations pour que les paiements et les virements continuent.", link: "/settings/payments" });
+  if (
+    row &&
+    ((due(row.requirementsDue) > 0 && due(before?.requirementsDue) === 0) ||
+      (row.status !== before?.status && ["RESTRICTED", "RESTRICTED_SOON", "DISABLED"].includes(row.status)))
+  )
+    await notify(row.organizationId, "STRIPE_ACTION_REQUIRED", {
+      title: "Compte Stripe",
+      body: "Stripe demande des informations pour que les paiements et les virements continuent.",
+      link: "/settings/payments",
+    });
   if (row) await ensurePaymentDomains(row.organizationId).catch((err) => console.error("domaines de paiement", err));
   return result;
 }

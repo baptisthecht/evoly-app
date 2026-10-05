@@ -7,7 +7,9 @@ test("scanner bénévole : sans compte, code court, déjà scanné, inconnu, rec
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Soirée ${id}`, 10);
   await buyFree(page, siteUrl(slug, `/soiree-${id}`), "Fosse", 3, `lea.${id}@exemple.be`);
-  const codes = sql(`select t."shortCode" from "Ticket" t join "Event" e on e.id = t."eventId" where e.slug = 'soiree-${id}' order by t."createdAt", t.id`).split("\n");
+  const codes = sql(
+    `select t."shortCode" from "Ticket" t join "Event" e on e.id = t."eventId" where e.slug = 'soiree-${id}' order by t."createdAt", t.id`,
+  ).split("\n");
   expect(codes).toHaveLength(3);
 
   // US-SCN-01 : lien bénévole

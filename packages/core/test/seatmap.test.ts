@@ -1,9 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { SEATING_TEMPLATES, bestSeats, createsOrphan, hasOrphanFreeChoice, generateBlock, rowLabel, seatNumbers, seatingTemplate, type BlockSpec, type PlanSeat } from "../src";
+import {
+  SEATING_TEMPLATES,
+  bestSeats,
+  createsOrphan,
+  hasOrphanFreeChoice,
+  generateBlock,
+  rowLabel,
+  seatNumbers,
+  seatingTemplate,
+  type BlockSpec,
+  type PlanSeat,
+} from "../src";
 
 const rowsBlock = (over: Partial<Extract<BlockSpec, { kind: "ROWS" }>["params"]> = {}, rot = 0, y = 0): BlockSpec => ({
-  kind: "ROWS", name: "Salle", x: 0, y, rotation: rot,
-  params: { rows: 2, seatsFirst: 4, seatsLast: 4, seatGap: 30, rowGap: 34, curve: 0, centerAisle: false, aisleGap: 36, rowLabels: { style: "letters", start: "A", skip: [] }, seatNumbering: "ltr", seatStart: 1, categories: ["c1"], accessible: [], ...over },
+  kind: "ROWS",
+  name: "Salle",
+  x: 0,
+  y,
+  rotation: rot,
+  params: {
+    rows: 2,
+    seatsFirst: 4,
+    seatsLast: 4,
+    seatGap: 30,
+    rowGap: 34,
+    curve: 0,
+    centerAisle: false,
+    aisleGap: 36,
+    rowLabels: { style: "letters", start: "A", skip: [] },
+    seatNumbering: "ltr",
+    seatStart: 1,
+    categories: ["c1"],
+    accessible: [],
+    ...over,
+  },
 });
 
 describe("plan de salle : numérotations (section 9.9)", () => {
@@ -27,7 +57,10 @@ describe("plan de salle : numérotations (section 9.9)", () => {
 describe("plan de salle : géométrie", () => {
   it("rangs droits symétriques, allée centrale, catégories et places pour mobilité réduite", () => {
     const rows = generateBlock(rowsBlock({ centerAisle: true, categories: ["c1", "c2"], accessible: [{ row: 1, ends: 1 }] }));
-    expect(rows.map((r) => [r.label, r.category])).toEqual([["A", "c1"], ["B", "c2"]]);
+    expect(rows.map((r) => [r.label, r.category])).toEqual([
+      ["A", "c1"],
+      ["B", "c2"],
+    ]);
     const xs = rows[0]!.seats.map((s) => s.x);
     expect(xs[0]).toBe(-xs[3]!);
     expect(xs[2]! - xs[1]!).toBe(30 + 36); // l'allée sépare les deux moitiés
@@ -43,12 +76,20 @@ describe("plan de salle : géométrie", () => {
     expect(north[1]!.seats[0]!.y).toBeLessThan(-250);
   });
   it("tables rondes : places autour de chaque table, numérotées depuis le haut", () => {
-    const tables = generateBlock({ kind: "TABLE_ROUND", name: "Tables", x: 0, y: 0, rotation: 0, params: { tables: 2, seats: 4, perRow: 2, tableGap: 30, labelStart: 1, category: "c1" } });
+    const tables = generateBlock({
+      kind: "TABLE_ROUND",
+      name: "Tables",
+      x: 0,
+      y: 0,
+      rotation: 0,
+      params: { tables: 2, seats: 4, perRow: 2, tableGap: 30, labelStart: 1, category: "c1" },
+    });
     expect(tables.map((t) => t.label)).toEqual(["1", "2"]);
     const [a, , c] = tables[0]!.seats;
     expect(tables[0]!.seats.map((s) => s.label)).toEqual(["1", "2", "3", "4"]);
     expect(a!.y).toBeLessThan(c!.y);
-    const cx = (a!.x + c!.x) / 2, cy = (a!.y + c!.y) / 2;
+    const cx = (a!.x + c!.x) / 2,
+      cy = (a!.y + c!.y) / 2;
     const d = tables[0]!.seats.map((s) => Math.round(Math.hypot(s.x - cx, s.y - cy)));
     expect(new Set(d).size).toBe(1);
   });
@@ -56,18 +97,32 @@ describe("plan de salle : géométrie", () => {
     for (const t of SEATING_TEMPLATES) {
       const plan = seatingTemplate(t);
       const rows = plan.blocks.flatMap(generateBlock);
-      if (t === "blank") { expect(rows).toHaveLength(0); continue; }
+      if (t === "blank") {
+        expect(rows).toHaveLength(0);
+        continue;
+      }
       expect(rows.reduce((n, r) => n + r.seats.length, 0)).toBeGreaterThan(0);
       for (const r of rows) expect(new Set(r.seats.map((s) => s.label)).size).toBe(r.seats.length);
       for (const r of rows) expect(plan.categories.map((c) => c.key)).toContain(r.category);
     }
-    expect(seatingTemplate("stadium").blocks.flatMap(generateBlock).reduce((n, r) => n + r.seats.length, 0)).toBe(2 * 20 * 60 + 2 * 20 * 40);
+    expect(
+      seatingTemplate("stadium")
+        .blocks.flatMap(generateBlock)
+        .reduce((n, r) => n + r.seats.length, 0),
+    ).toBe(2 * 20 * 60 + 2 * 20 * 40);
   });
 });
 
 describe("plan de salle : meilleures places et sièges isolés", () => {
   const line = (n: number, taken: number[] = [], aisleAfter = -1): PlanSeat[] =>
-    Array.from({ length: n }, (_, i) => ({ id: `s${i}`, rowId: "A", order: i, x: i * 30 + (aisleAfter >= 0 && i > aisleAfter ? 40 : 0), y: 0, available: !taken.includes(i) }));
+    Array.from({ length: n }, (_, i) => ({
+      id: `s${i}`,
+      rowId: "A",
+      order: i,
+      x: i * 30 + (aisleAfter >= 0 && i > aisleAfter ? 40 : 0),
+      y: 0,
+      available: !taken.includes(i),
+    }));
   it("côte à côte, au plus près de la scène, sans laisser de siège isolé", () => {
     const seats = line(8, [0]);
     // [2,3] serait plus central mais isolerait la place 1 : [1,2] est préféré
@@ -87,11 +142,16 @@ describe("plan de salle : meilleures places et sièges isolés", () => {
   it("rapide à grande échelle : meilleures places d'un stade de 4 000 places en moins de 200 ms", () => {
     const plan = seatingTemplate("stadium");
     const seats: PlanSeat[] = [];
-    plan.blocks.forEach((b, bi) => generateBlock(b).forEach((r, ri) => r.seats.forEach((s, k) => seats.push({ id: `${bi}-${ri}-${s.label}`, rowId: `${bi}-${ri}`, order: s.order, x: s.x, y: s.y, available: (bi + ri + k) % 3 !== 0 }))));
+    plan.blocks.forEach((b, bi) =>
+      generateBlock(b).forEach((r, ri) =>
+        r.seats.forEach((s, k) =>
+          seats.push({ id: `${bi}-${ri}-${s.label}`, rowId: `${bi}-${ri}`, order: s.order, x: s.x, y: s.y, available: (bi + ri + k) % 3 !== 0 }),
+        ),
+      ),
+    );
     const t0 = performance.now();
     expect(bestSeats(seats, 2, plan.focus)).toHaveLength(2);
     expect(hasOrphanFreeChoice(seats, 2)).toBe(true); // une place sur trois prise : suites libres de 2
     expect(performance.now() - t0).toBeLessThan(200);
   });
 });
-

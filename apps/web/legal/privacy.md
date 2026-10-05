@@ -7,15 +7,15 @@ Contact pour vos données : hello@evoly.me.
 
 ## 2. Données, finalités et bases légales
 
-| Traitement | Données | Base légale |
-|---|---|---|
-| Compte organisateur | Nom, e-mail, mot de passe haché, organisation | Exécution du contrat |
-| Commande et billets | Identité, e-mail, téléphone si demandé, réponses aux questions, paiement (traité par Stripe) | Exécution du contrat |
-| Contrôle des entrées | Passages, horodatage, appareil | Exécution du contrat |
-| E-mails de service (rappels) | E-mail, commande | Intérêt légitime, désinscription en un clic |
-| E-mails marketing de l'organisateur | E-mail, historique d'achat | Consentement, case non cochée à l'achat |
-| Facturation des commissions | Organisation, montants | Obligation légale |
-| Sécurité et prévention de la fraude | Adresse IP, tentatives de connexion | Intérêt légitime |
+| Traitement                          | Données                                                                                      | Base légale                                 |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Compte organisateur                 | Nom, e-mail, mot de passe haché, organisation                                                | Exécution du contrat                        |
+| Commande et billets                 | Identité, e-mail, téléphone si demandé, réponses aux questions, paiement (traité par Stripe) | Exécution du contrat                        |
+| Contrôle des entrées                | Passages, horodatage, appareil                                                               | Exécution du contrat                        |
+| E-mails de service (rappels)        | E-mail, commande                                                                             | Intérêt légitime, désinscription en un clic |
+| E-mails marketing de l'organisateur | E-mail, historique d'achat                                                                   | Consentement, case non cochée à l'achat     |
+| Facturation des commissions         | Organisation, montants                                                                       | Obligation légale                           |
+| Sécurité et prévention de la fraude | Adresse IP, tentatives de connexion                                                          | Intérêt légitime                            |
 
 ### Suivi des e-mails
 
@@ -30,14 +30,14 @@ Les e-mails marketing des organisateurs (campagnes, e-mails automatiques) contie
 
 ## 4. Sous-traitants
 
-| Sous-traitant | Service | Localisation |
-|---|---|---|
-| Stripe | Paiements, prévention de la fraude | Union européenne, États-Unis (clauses contractuelles types) |
-| Resend | Envoi des e-mails | États-Unis (clauses contractuelles types) |
-| Anthropic | Lecture d’une photo de plan de salle envoyée par un organisateur (fonction facultative), sans conservation de l’image | États-Unis (clauses contractuelles types) |
-| Cloudflare | Réseau, certificats, stockage des images (R2) | Union européenne, États-Unis (clauses contractuelles types) |
-| OVH SAS (OVHcloud), France | Hébergement de l'application et de la base de données | Union européenne |
-| Sentry | Suivi des erreurs, sans données personnelles | Union européenne |
+| Sous-traitant              | Service                                                                                                               | Localisation                                                |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Stripe                     | Paiements, prévention de la fraude                                                                                    | Union européenne, États-Unis (clauses contractuelles types) |
+| Resend                     | Envoi des e-mails                                                                                                     | États-Unis (clauses contractuelles types)                   |
+| Anthropic                  | Lecture d’une photo de plan de salle envoyée par un organisateur (fonction facultative), sans conservation de l’image | États-Unis (clauses contractuelles types)                   |
+| Cloudflare                 | Réseau, certificats, stockage des images (R2)                                                                         | Union européenne, États-Unis (clauses contractuelles types) |
+| OVH SAS (OVHcloud), France | Hébergement de l'application et de la base de données                                                                 | Union européenne                                            |
+| Sentry                     | Suivi des erreurs, sans données personnelles                                                                          | Union européenne                                            |
 
 ## 5. Vos droits
 

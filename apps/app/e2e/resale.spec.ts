@@ -44,7 +44,11 @@ test("revente : transfert gratuit de bout en bout, section publique, retrait d'a
   await expect(page.getByText("Billet revendu : il n’est plus valable.")).toBeVisible();
   const mail = await lastEmail(sellerEmail, "resale.sold");
   expect(mail.subject).toBe(`Votre place pour Cabaret ${id} est revendue`);
-  expect(sql(`select count(*) from "Ticket" t join "Event" e on e.id = t."eventId" where e.slug = 'cabaret-${id}' and t.status = 'VOID' and t."voidReason" = 'RESOLD'`)).toBe("1");
+  expect(
+    sql(
+      `select count(*) from "Ticket" t join "Event" e on e.id = t."eventId" where e.slug = 'cabaret-${id}' and t.status = 'VOID' and t."voidReason" = 'RESOLD'`,
+    ),
+  ).toBe("1");
 
   // le lien court mène à l'annonce, désormais indisponible
   await b.goto(shortUrl);

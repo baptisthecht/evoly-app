@@ -43,7 +43,9 @@ export default async function OrganizationResalePage({ params }: { params: Promi
       </Card>
 
       <section className="grid gap-3" aria-labelledby="resale-events">
-        <h2 id="resale-events" className="font-display text-xl tracking-[var(--tracking-title)]">{t("byEvent")}</h2>
+        <h2 id="resale-events" className="font-display text-xl tracking-[var(--tracking-title)]">
+          {t("byEvent")}
+        </h2>
         {events.length === 0 ? <EmptyState title={t("noEventsTitle")}>{t("noEventsBody")}</EmptyState> : null}
         <ul className="grid gap-2">
           {events.map((e) => (
@@ -58,7 +60,10 @@ export default async function OrganizationResalePage({ params }: { params: Promi
                     {formatDateTime(e.startsAt, e.timezone, locale, "short")} · {t("eventCounts", { open: e.open, sold: e.sold })}
                   </p>
                 </div>
-                <Link href={`/o/${orgSlug}/events/${e.id}/resale`} className="justify-self-start rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)] sm:justify-self-end">
+                <Link
+                  href={`/o/${orgSlug}/events/${e.id}/resale`}
+                  className="justify-self-start rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)] sm:justify-self-end"
+                >
                   {t("manage")}
                 </Link>
               </Card>
@@ -68,7 +73,9 @@ export default async function OrganizationResalePage({ params }: { params: Promi
       </section>
 
       <section className="grid gap-3" aria-labelledby="resale-recent">
-        <h2 id="resale-recent" className="font-display text-xl tracking-[var(--tracking-title)]">{t("recent")}</h2>
+        <h2 id="resale-recent" className="font-display text-xl tracking-[var(--tracking-title)]">
+          {t("recent")}
+        </h2>
         {recent.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
         <ul className="grid gap-2">
           {recent.map((l) => (

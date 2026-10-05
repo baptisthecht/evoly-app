@@ -32,11 +32,17 @@ export default async function PaymentsPage({ params, searchParams }: { params: P
         <h1 className="page-title">{t("payments")}</h1>
         <p className="max-w-prose text-ink-muted">{t("paymentsIntro")}</p>
       </header>
-      {!configured ? <Banner tone="info" title={t("stripeNotConfiguredTitle")}>{t("stripeNotConfiguredBody")}</Banner> : null}
+      {!configured ? (
+        <Banner tone="info" title={t("stripeNotConfiguredTitle")}>
+          {t("stripeNotConfiguredBody")}
+        </Banner>
+      ) : null}
       <Card className="grid gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-xl tracking-[var(--tracking-title)]">Stripe</h2>
-          <Badge tone={status === "ACTIVE" ? "success" : status === "NONE" ? "neutral" : status === "PENDING" ? "warning" : "danger"}>{t(`stripeStatus_${status}`)}</Badge>
+          <Badge tone={status === "ACTIVE" ? "success" : status === "NONE" ? "neutral" : status === "PENDING" ? "warning" : "danger"}>
+            {t(`stripeStatus_${status}`)}
+          </Badge>
         </div>
         <p className="text-[0.95rem]">{t(`stripeExplain_${status}`)}</p>
         {ctx.stripe && ctx.stripe.requirementsDue.length > 0 ? (

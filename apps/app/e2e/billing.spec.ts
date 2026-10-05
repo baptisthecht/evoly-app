@@ -13,7 +13,9 @@ test("abonnement : Free, essai en cours, impayé (section 9.21)", async ({ page 
 
   // essai en cours (simulé en base, comme après le webhook de Stripe)
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
-  sql(`insert into "Subscription" (id, "organizationId", "planId", status, interval, "stripeCustomerId", "stripeSubscriptionId", "trialEndsAt", "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'TRIALING', 'MONTH', 'cus_${orgId}', 'sub_${orgId}', now() + interval '10 days', now() + interval '10 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'TRIALING', interval = 'MONTH', "stripeCustomerId" = 'cus_${orgId}', "stripeSubscriptionId" = 'sub_${orgId}', "trialEndsAt" = now() + interval '10 days', "currentPeriodEnd" = now() + interval '10 days'`);
+  sql(
+    `insert into "Subscription" (id, "organizationId", "planId", status, interval, "stripeCustomerId", "stripeSubscriptionId", "trialEndsAt", "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'TRIALING', 'MONTH', 'cus_${orgId}', 'sub_${orgId}', now() + interval '10 days', now() + interval '10 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'TRIALING', interval = 'MONTH', "stripeCustomerId" = 'cus_${orgId}', "stripeSubscriptionId" = 'sub_${orgId}', "trialEndsAt" = now() + interval '10 days', "currentPeriodEnd" = now() + interval '10 days'`,
+  );
   await page.reload();
   await expect(page.getByRole("heading", { name: "Pro", exact: true })).toBeVisible();
   await expect(page.getByText("Essai en cours")).toBeVisible();

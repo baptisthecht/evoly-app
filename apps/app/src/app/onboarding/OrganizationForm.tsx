@@ -44,14 +44,30 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
     <form {...formProps} className="grid gap-6" noValidate>
       <FormError state={state} />
       <Field label={t("organizationName")} htmlFor="name" error={fieldError("name")}>
-        <Input id="name" name="name" autoComplete="organization" value={name} onChange={(e) => setName(e.target.value)} required invalid={!!fieldError("name")} />
+        <Input
+          id="name"
+          name="name"
+          autoComplete="organization"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          invalid={!!fieldError("name")}
+        />
       </Field>
 
       <Field
         label={t("pageAddress")}
         htmlFor="subdomain"
         error={subError}
-        hint={availability === "available" ? <span className="text-success">{t("addressAvailable")}</span> : availability === "checking" ? t("checking") : t("pageAddressHint")}
+        hint={
+          availability === "available" ? (
+            <span className="text-success">{t("addressAvailable")}</span>
+          ) : availability === "checking" ? (
+            t("checking")
+          ) : (
+            t("pageAddressHint")
+          )
+        }
       >
         <div className="flex items-stretch overflow-hidden rounded-md shadow-[inset_0_0_0_1.5px_var(--line-strong)] focus-within:shadow-[inset_0_0_0_2px_var(--ink)]">
           <input
@@ -87,7 +103,13 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
           <legend className="mb-1.5 font-label text-[0.8rem] font-bold">{t("type")}</legend>
           <div className="grid grid-cols-2 gap-2">
             {(["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"] as const).map((v, i) => (
-              <label key={v} className={cn("flex h-11 cursor-pointer items-center justify-center rounded-md px-2 text-center text-sm font-medium shadow-[inset_0_0_0_1.5px_var(--line-strong)]", "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:shadow-none")}>
+              <label
+                key={v}
+                className={cn(
+                  "flex h-11 cursor-pointer items-center justify-center rounded-md px-2 text-center text-sm font-medium shadow-[inset_0_0_0_1.5px_var(--line-strong)]",
+                  "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:shadow-none",
+                )}
+              >
                 <input type="radio" name="type" value={v} defaultChecked={i === 0} className="sr-only" />
                 {t(`type_${v}`)}
               </label>
@@ -105,11 +127,11 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
                 {chunks}
               </a>
             ),
-                dpa: (chunks) => (
-                  <a href={`${siteUrl}/sous-traitance`} target="_blank" rel="noreferrer" className="font-semibold text-ink underline underline-offset-4">
-                    {chunks}
-                  </a>
-                ),
+            dpa: (chunks) => (
+              <a href={`${siteUrl}/sous-traitance`} target="_blank" rel="noreferrer" className="font-semibold text-ink underline underline-offset-4">
+                {chunks}
+              </a>
+            ),
           })}
         </span>
       </label>

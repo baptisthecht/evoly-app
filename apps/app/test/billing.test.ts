@@ -10,15 +10,43 @@ const DAY = 86_400_000;
 
 async function setup() {
   const id = rid();
-  const [owner, admin] = await Promise.all([db.user.create({ data: { name: "Camille Dupont", email: `own.${id}@exemple.be`, emailVerified: true } }), db.user.create({ data: { name: "Sam Admin", email: `adm.${id}@exemple.be`, emailVerified: true } })]);
-  const org = await db.organization.create({ data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-  const [ownerRole, adminRole] = await Promise.all([db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } }), db.role.findFirstOrThrow({ where: { systemKey: "ADMIN" } })]);
-  await db.organizationMember.createMany({ data: [{ organizationId: org.id, userId: owner.id, roleId: ownerRole.id, status: "ACTIVE" }, { organizationId: org.id, userId: admin.id, roleId: adminRole.id, status: "ACTIVE" }] });
+  const [owner, admin] = await Promise.all([
+    db.user.create({ data: { name: "Camille Dupont", email: `own.${id}@exemple.be`, emailVerified: true } }),
+    db.user.create({ data: { name: "Sam Admin", email: `adm.${id}@exemple.be`, emailVerified: true } }),
+  ]);
+  const org = await db.organization.create({
+    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
+  const [ownerRole, adminRole] = await Promise.all([
+    db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } }),
+    db.role.findFirstOrThrow({ where: { systemKey: "ADMIN" } }),
+  ]);
+  await db.organizationMember.createMany({
+    data: [
+      { organizationId: org.id, userId: owner.id, roleId: ownerRole.id, status: "ACTIVE" },
+      { organizationId: org.id, userId: admin.id, roleId: adminRole.id, status: "ACTIVE" },
+    ],
+  });
   const event = await db.event.create({
-    data: { organizationId: org.id, slug: `soiree-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Soirée ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 20 * DAY), status: "PUBLISHED", ticketTypes: { create: { name: "Entrée", priceMinor: 5000, currency: "EUR", quantity: 100 } } },
+    data: {
+      organizationId: org.id,
+      slug: `soiree-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: `Soirée ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: new Date(Date.now() + 20 * DAY),
+      status: "PUBLISHED",
+      ticketTypes: { create: { name: "Entrée", priceMinor: 5000, currency: "EUR", quantity: 100 } },
+    },
     include: { ticketTypes: true },
   });
-  const fee = async () => (await db.order.findUniqueOrThrow({ where: { id: (await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" })).orderId } })).applicationFeeMinor;
+  const fee = async () =>
+    (
+      await db.order.findUniqueOrThrow({
+        where: { id: (await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" })).orderId },
+      })
+    ).applicationFeeMinor;
   const stripeSub = (status: string, extra: Partial<{ periodEnd: number; cancelAtPeriodEnd: boolean; cancelAt: number }> = {}) => ({
     id: `sub_${id}`,
     status: status as "trialing",
@@ -28,7 +56,15 @@ async function setup() {
     cancel_at_period_end: extra.cancelAtPeriodEnd ?? false,
     cancel_at: extra.cancelAt ?? null,
     canceled_at: null,
-    items: { data: [{ current_period_start: Math.floor(Date.now() / 1000), current_period_end: extra.periodEnd ?? Math.floor((Date.now() + 14 * DAY) / 1000), price: { recurring: { interval: "year" } } }] },
+    items: {
+      data: [
+        {
+          current_period_start: Math.floor(Date.now() / 1000),
+          current_period_end: extra.periodEnd ?? Math.floor((Date.now() + 14 * DAY) / 1000),
+          price: { recurring: { interval: "year" } },
+        },
+      ],
+    },
   });
   return { id, org, owner, admin, fee, stripeSub };
 }

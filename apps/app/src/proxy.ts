@@ -5,7 +5,27 @@ const PROTECTED = ["/o/", "/onboarding", "/acces-scanner", "/admin", "/2fa", "/c
 const BASE_DOMAIN = (process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "evoly.me").toLowerCase();
 const APP_HOST = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").host.toLowerCase();
 /** Hôtes qui ne sont pas des pages d'organisateur (RG-DOM-02). */
-const RESERVED = new Set(["app", "api", "www", "scanner", "admin", "mail", "support", "blog", "help", "docs", "status", "evoly", "auth", "login", "register", "static", "cdn", "r", "e"]);
+const RESERVED = new Set([
+  "app",
+  "api",
+  "www",
+  "scanner",
+  "admin",
+  "mail",
+  "support",
+  "blog",
+  "help",
+  "docs",
+  "status",
+  "evoly",
+  "auth",
+  "login",
+  "register",
+  "static",
+  "cdn",
+  "r",
+  "e",
+]);
 
 function notFoundPage(request: NextRequest) {
   const url = request.nextUrl.clone();
@@ -44,7 +64,16 @@ export function proxy(request: NextRequest) {
   const sub = siteSubdomain(host);
   const hostname = host.split(":")[0] ?? "";
   // domaine personnalisé d'un organisateur (US-BRD-04) : tout hôte qui n'est ni Evoly ni local
-  if (!sub && hostname && host !== BASE_DOMAIN && host !== APP_HOST && !host.endsWith(`.${BASE_DOMAIN}`) && hostname !== "localhost" && !/^[\d.]+$|^\[/.test(hostname) && hostname.includes(".")) {
+  if (
+    !sub &&
+    hostname &&
+    host !== BASE_DOMAIN &&
+    host !== APP_HOST &&
+    !host.endsWith(`.${BASE_DOMAIN}`) &&
+    hostname !== "localhost" &&
+    !/^[\d.]+$|^\[/.test(hostname) &&
+    hostname.includes(".")
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = `/site/_d_${hostname}${pathname === "/" ? "" : pathname}`;
     const headers = new Headers(request.headers);
@@ -72,7 +101,8 @@ export function proxy(request: NextRequest) {
   const wantsPro = request.nextUrl.searchParams.get("plan") === "pro";
   if ((ref && /^[a-z0-9]{4,20}$/i.test(ref)) || wantsPro) {
     const res = NextResponse.next();
-    if (ref && /^[a-z0-9]{4,20}$/i.test(ref)) res.cookies.set("evoly_ref", ref.toLowerCase(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
+    if (ref && /^[a-z0-9]{4,20}$/i.test(ref))
+      res.cookies.set("evoly_ref", ref.toLowerCase(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
     if (wantsPro) res.cookies.set("evoly_plan", "pro", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
     return res;
   }

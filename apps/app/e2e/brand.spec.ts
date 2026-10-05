@@ -7,7 +7,9 @@ test("marque, sous-domaine d'événement, changement d'adresse et domaine person
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Soirée ${id}`, 20);
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
-  sql(`insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`);
+  sql(
+    `insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`,
+  );
 
   // US-BRD-01 : logo et couleurs, mention Evoly retirée (US-BRD-02)
   await page.goto(appUrl(`/o/${slug}/brand`));

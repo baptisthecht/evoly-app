@@ -14,7 +14,19 @@ export interface SidebarLink {
   pro: boolean;
 }
 
-export function Shell({ links, orgSwitcher, account, bell, children }: { links: SidebarLink[]; orgSwitcher: ReactNode; account: ReactNode; bell?: ReactNode; children: ReactNode }) {
+export function Shell({
+  links,
+  orgSwitcher,
+  account,
+  bell,
+  children,
+}: {
+  links: SidebarLink[];
+  orgSwitcher: ReactNode;
+  account: ReactNode;
+  bell?: ReactNode;
+  children: ReactNode;
+}) {
   const t = useTranslations("nav");
   const tp = useTranslations("plans");
   const pathname = usePathname();
@@ -62,12 +74,21 @@ export function Shell({ links, orgSwitcher, account, bell, children }: { links: 
       <header className="sticky top-0 z-30 flex items-center justify-between gap-3 bg-charbon px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 text-creme lg:hidden">
         <Logo className="h-8 w-auto text-creme" />
         <span className="ml-auto">{bell}</span>
-        <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="mobile-nav" className="flex h-11 items-center gap-2 rounded-full bg-blanc/10 px-4 text-sm font-semibold">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          className="flex h-11 items-center gap-2 rounded-full bg-blanc/10 px-4 text-sm font-semibold"
+        >
           {open ? t("closeMenu") : t("menu")}
         </button>
       </header>
       {open ? (
-        <div id="mobile-nav" className="fixed inset-x-0 top-[calc(max(env(safe-area-inset-top),0.75rem)+3.5rem)] bottom-0 z-20 flex flex-col gap-6 overflow-y-auto bg-charbon p-5 text-creme lg:hidden">
+        <div
+          id="mobile-nav"
+          className="fixed inset-x-0 top-[calc(max(env(safe-area-inset-top),0.75rem)+3.5rem)] bottom-0 z-20 flex flex-col gap-6 overflow-y-auto bg-charbon p-5 text-creme lg:hidden"
+        >
           {orgSwitcher}
           {nav}
           {account}

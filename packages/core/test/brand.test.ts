@@ -9,12 +9,24 @@ const pixels = (colors: Array<[number, number, number, number, number]>) => {
 
 describe("marque (section 9.19)", () => {
   it("couleurs dominantes d'un logo, sans blancs, noirs, gris ni pixels transparents", () => {
-    const logo = pixels([[255, 255, 255, 255, 5000], [0, 0, 0, 255, 3000], [128, 128, 128, 255, 2000], [230, 60, 90, 255, 900], [232, 62, 92, 255, 300], [40, 90, 200, 255, 500], [20, 200, 90, 0, 4000]]);
+    const logo = pixels([
+      [255, 255, 255, 255, 5000],
+      [0, 0, 0, 255, 3000],
+      [128, 128, 128, 255, 2000],
+      [230, 60, 90, 255, 900],
+      [232, 62, 92, 255, 300],
+      [40, 90, 200, 255, 500],
+      [20, 200, 90, 0, 4000],
+    ]);
     expect(dominantColors(logo)).toEqual(["#E73D5B", "#285AC8"]);
     expect(dominantColors(pixels([[255, 255, 255, 255, 100]]))).toEqual([]);
   });
   it("deux propositions nettement différentes", () => {
-    const logo = pixels([[200, 40, 40, 255, 500], [210, 45, 45, 255, 400], [30, 120, 60, 255, 100]]);
+    const logo = pixels([
+      [200, 40, 40, 255, 500],
+      [210, 45, 45, 255, 400],
+      [30, 120, 60, 255, 100],
+    ]);
     expect(dominantColors(logo)).toHaveLength(2);
     expect(dominantColors(logo)[1]).toBe("#1E783C");
   });
@@ -42,9 +54,20 @@ describe("logos SVG (RG-FILE-01)", async () => {
     expect(isSvg(enc("<html><body></body></html>"))).toBe(false);
   });
   it("refuse scripts, gestionnaires, références externes et entités ; accepte liens internes et images intégrées", () => {
-    const ok = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><linearGradient id="g"/></defs><rect fill="url(#g)" width="10" height="10"/><use xlink:href="#g"/><image href="data:image/png;base64,AAAA"/></svg>';
+    const ok =
+      '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><linearGradient id="g"/></defs><rect fill="url(#g)" width="10" height="10"/><use xlink:href="#g"/><image href="data:image/png;base64,AAAA"/></svg>';
     expect(svgIsSafe(ok)).toBe(true);
-    for (const bad of ['<svg><script>alert(1)</script></svg>', '<svg><rect onload="x()"/></svg>', '<svg><image href="https://pirate.example/x.png"/></svg>', '<svg><use xlink:href="file:///etc/passwd"/></svg>', '<svg><rect style="fill:url(https://x/y)"/></svg>', '<!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]><svg>&x;</svg>', '<svg><foreignObject><div/></foreignObject></svg>', '<svg><a href="javascript:alert(1)"/></svg>']) expect(svgIsSafe(bad)).toBe(false);
+    for (const bad of [
+      "<svg><script>alert(1)</script></svg>",
+      '<svg><rect onload="x()"/></svg>',
+      '<svg><image href="https://pirate.example/x.png"/></svg>',
+      '<svg><use xlink:href="file:///etc/passwd"/></svg>',
+      '<svg><rect style="fill:url(https://x/y)"/></svg>',
+      '<!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]><svg>&x;</svg>',
+      "<svg><foreignObject><div/></foreignObject></svg>",
+      '<svg><a href="javascript:alert(1)"/></svg>',
+    ])
+      expect(svgIsSafe(bad)).toBe(false);
   });
 });
 

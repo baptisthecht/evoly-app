@@ -5,7 +5,9 @@ import { appUrl, organizer, sql } from "./helpers";
 test("équipe : invitation, inscription de l'invité, adhésion automatique, rôle, retrait (section 9.3)", async ({ page, browser }) => {
   const { id, slug } = await organizer(page);
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
-  sql(`insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`);
+  sql(
+    `insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`,
+  );
   const email = `sam.${id}@exemple.be`;
 
   // US-ORG-02 : invitation avec un rôle
@@ -39,7 +41,9 @@ test("équipe : invitation, inscription de l'invité, adhésion automatique, rô
   await row.getByLabel("Rôle", { exact: true }).selectOption({ label: "Lecture seule" });
   await page.waitForTimeout(800);
   await page.reload();
-  await expect(page.getByRole("listitem").filter({ hasText: email }).getByLabel("Rôle", { exact: true })).toHaveValue(sql(`select id from "Role" where "systemKey" = 'VIEWER'`));
+  await expect(page.getByRole("listitem").filter({ hasText: email }).getByLabel("Rôle", { exact: true })).toHaveValue(
+    sql(`select id from "Role" where "systemKey" = 'VIEWER'`),
+  );
   page.once("dialog", (d) => d.accept());
   await page.getByRole("listitem").filter({ hasText: email }).getByRole("button", { name: "Retirer" }).click();
   await expect(page.getByText(email)).toHaveCount(0);

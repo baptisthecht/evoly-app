@@ -14,7 +14,11 @@ export interface GoogleCredentials {
 export function googleCredentials(): GoogleCredentials | null {
   const e = env();
   if (!e.GOOGLE_WALLET_ISSUER_ID || !e.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL || !e.GOOGLE_WALLET_PRIVATE_KEY) return null;
-  return { issuerId: e.GOOGLE_WALLET_ISSUER_ID, serviceAccountEmail: e.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL, privateKeyPem: Buffer.from(e.GOOGLE_WALLET_PRIVATE_KEY, "base64").toString("utf8") };
+  return {
+    issuerId: e.GOOGLE_WALLET_ISSUER_ID,
+    serviceAccountEmail: e.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL,
+    privateKeyPem: Buffer.from(e.GOOGLE_WALLET_PRIVATE_KEY, "base64").toString("utf8"),
+  };
 }
 
 const b64url = (v: string | Buffer) => Buffer.from(v).toString("base64url");
@@ -37,7 +41,17 @@ export function googleWalletClaims(t: WalletTicket, creds: Pick<GoogleCredential
           issuerName: t.organizationName,
           reviewStatus: "UNDER_REVIEW",
           eventName: text(t.title, lang),
-          ...(t.place ? { venue: { name: text(t.place, lang), address: text([t.address.line, [t.address.postalCode, t.address.city].filter(Boolean).join(" "), t.address.country].filter(Boolean).join(", ") || t.place, lang) } } : {}),
+          ...(t.place
+            ? {
+                venue: {
+                  name: text(t.place, lang),
+                  address: text(
+                    [t.address.line, [t.address.postalCode, t.address.city].filter(Boolean).join(" "), t.address.country].filter(Boolean).join(", ") || t.place,
+                    lang,
+                  ),
+                },
+              }
+            : {}),
           dateTime: { start: t.startsAt.toISOString(), end: t.endsAt.toISOString() },
           hexBackgroundColor: t.background,
         },

@@ -13,7 +13,14 @@ export function EventTabs({ tabs }: { tabs: Array<{ href: string; label: string 
           const active = i === 0 ? pathname === tab.href : pathname.startsWith(tab.href);
           return (
             <li key={tab.href}>
-              <Link href={tab.href} aria-current={active ? "page" : undefined} className={cn("flex h-10 items-center rounded-full px-4 text-sm font-semibold", active ? "bg-surface-inverse text-ink-inverse" : "text-ink-muted hover:text-ink")}>
+              <Link
+                href={tab.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex h-10 items-center rounded-full px-4 text-sm font-semibold",
+                  active ? "bg-surface-inverse text-ink-inverse" : "text-ink-muted hover:text-ink",
+                )}
+              >
                 {tab.label}
               </Link>
             </li>

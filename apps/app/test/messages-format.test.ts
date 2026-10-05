@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 
 // chaque message de chaque langue doit se formater sans erreur (syntaxe ICU : pluriels, sélections, balises)
 function flat(o: unknown, p = ""): Array<[string, string]> {
-  return Object.entries(o as Record<string, unknown>).flatMap(([k, v]) => (typeof v === "string" ? [[`${p}${k}`, v] as [string, string]] : flat(v, `${p}${k}.`)));
+  return Object.entries(o as Record<string, unknown>).flatMap(([k, v]) =>
+    typeof v === "string" ? [[`${p}${k}`, v] as [string, string]] : flat(v, `${p}${k}.`),
+  );
 }
 
 describe("messages : syntaxe valide dans toutes les langues", () => {
@@ -16,7 +18,7 @@ describe("messages : syntaxe valide dans toutes les langues", () => {
       const values: Record<string, unknown> = Object.fromEntries([...msg.matchAll(/\{(\w+)[,}]/g)].map((m) => [m[1], 1]));
       for (const m of msg.matchAll(/<(\w+)>/g)) values[m[1]!] = (chunks: string) => chunks;
       const out = t.markup(key as never, values as never);
-      if (typeof out !== "string" || out.includes("{") && !msg.includes("'{")) errors.push(`${key} : ${out}`);
+      if (typeof out !== "string" || (out.includes("{") && !msg.includes("'{"))) errors.push(`${key} : ${out}`);
     }
     expect(errors).toEqual([]);
   });
@@ -32,4 +34,3 @@ describe("modèles de campagne : la balise du prénom de chaque langue est bien 
     }
   });
 });
-

@@ -43,7 +43,12 @@ export const auth = betterAuth({
     revokeSessionsOnPasswordReset: true,
     password: { hash: hashPassword, verify: verifyPassword },
     sendResetPassword: async ({ user, url }) => {
-      await sendEmail({ to: user.email, ...resetPasswordEmail({ url, locale: localeOf(user) }), template: "account.reset_password", category: "TRANSACTIONAL" });
+      await sendEmail({
+        to: user.email,
+        ...resetPasswordEmail({ url, locale: localeOf(user) }),
+        template: "account.reset_password",
+        category: "TRANSACTIONAL",
+      });
     },
   },
   emailVerification: {

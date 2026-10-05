@@ -12,5 +12,10 @@ export async function GET(req: Request) {
   const secret = env().CRON_SECRET;
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) return new Response("Non autorisé", { status: 401 });
   // RG-BUY-02 et RG-RSL-08 : réservations expirées libérées, annonces de revente closes à la fin de la revente
-  return Response.json({ released: await releaseExpiredHolds(), expiredListings: await expireResaleListings(), downgraded: await applyTimedDowngrades(), stripeFees: await fillMissingStripeFees() });
+  return Response.json({
+    released: await releaseExpiredHolds(),
+    expiredListings: await expireResaleListings(),
+    downgraded: await applyTimedDowngrades(),
+    stripeFees: await fillMissingStripeFees(),
+  });
 }

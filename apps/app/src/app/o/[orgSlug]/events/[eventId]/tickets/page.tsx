@@ -44,7 +44,15 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
     requireHolderEmail: tt.requireHolderEmail,
     resaleAllowed: tt.resaleAllowed,
     priceLocked: !!tt.priceLockedAt || tt.quantitySold > 0,
-    tiers: tt.priceTiers.map((p) => ({ id: p.id, name: p.name, price: minorToInput(p.priceMinor), startsAtLocal: local(p.startsAt), endsAtLocal: local(p.endsAt), quantityLimit: p.quantityLimit != null ? String(p.quantityLimit) : "", sold: p.quantitySold })),
+    tiers: tt.priceTiers.map((p) => ({
+      id: p.id,
+      name: p.name,
+      price: minorToInput(p.priceMinor),
+      startsAtLocal: local(p.startsAt),
+      endsAtLocal: local(p.endsAt),
+      quantityLimit: p.quantityLimit != null ? String(p.quantityLimit) : "",
+      sold: p.quantitySold,
+    })),
   }));
   const manage = can(ctx.membership, "TICKETS_MANAGE") && !ctx.readOnly && !["CANCELLED", "ENDED", "ARCHIVED"].includes(event.status);
   const tiersEnabled = hasFeature(ctx.features, "DYNAMIC_PRICING");
@@ -53,20 +61,46 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
       <p className="text-ink-muted">{t("pageIntro")}</p>
       {rows.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
       {rows.map((row, i) => (
-        <TicketTypeCard key={row.id} orgSlug={orgSlug} eventId={eventId} row={row} terms={terms} currency={event.currency} index={i} count={rows.length} tiersEnabled={tiersEnabled && manage} tiersLocked={!manage} />
+        <TicketTypeCard
+          key={row.id}
+          orgSlug={orgSlug}
+          eventId={eventId}
+          row={row}
+          terms={terms}
+          currency={event.currency}
+          index={i}
+          count={rows.length}
+          tiersEnabled={tiersEnabled && manage}
+          tiersLocked={!manage}
+        />
       ))}
       {manage ? <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} /> : null}
-      {can(ctx.membership, "ORDERS_MANAGE") && !ctx.readOnly && event.ticketTypes.length > 0 ? <ComplimentaryForm orgSlug={orgSlug} eventId={eventId} ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name }))} /> : null}
+      {can(ctx.membership, "ORDERS_MANAGE") && !ctx.readOnly && event.ticketTypes.length > 0 ? (
+        <ComplimentaryForm orgSlug={orgSlug} eventId={eventId} ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name }))} />
+      ) : null}
       <p className="text-sm text-ink-muted">
         {t("seatingMoved")}{" "}
-        <Link href={`/o/${orgSlug}/events/${eventId}/seating`} className="font-semibold underline">{t("seatingLink")}</Link>
+        <Link href={`/o/${orgSlug}/events/${eventId}/seating`} className="font-semibold underline">
+          {t("seatingLink")}
+        </Link>
       </p>
       <QuestionsManager
         orgSlug={orgSlug}
         eventId={eventId}
         readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly}
         ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name }))}
-        questions={(await listQuestions(ctx, eventId)).map((q) => ({ id: q.id, label: q.label, helpText: q.helpText, type: q.type, options: (q.options as string[] | null) ?? null, required: q.required, scope: q.scope, ticketTypeIds: q.ticketTypeIds, archived: !!q.archivedAt, answers: q._count.answers }))}
+        questions={(await listQuestions(ctx, eventId)).map((q) => ({
+          id: q.id,
+          label: q.label,
+          helpText: q.helpText,
+          type: q.type,
+          options: (q.options as string[] | null) ?? null,
+          required: q.required,
+          scope: q.scope,
+          ticketTypeIds: q.ticketTypeIds,
+          archived: !!q.archivedAt,
+          answers: q._count.answers,
+        }))}
       />
     </div>
   );

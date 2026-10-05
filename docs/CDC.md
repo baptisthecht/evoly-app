@@ -4,12 +4,12 @@
 > Toute décision d'implémentation doit être cohérente avec ce document. Toute évolution doit y être reportée.
 > Remplace `CDC Evenly.md` (v1). Le schéma de données correspondant est `packages/db/prisma/schema.prisma`.
 
-| | |
-|---|---|
-| Version | 2.0 |
-| Date | 28 septembre 2026 |
-| Éditeur | Evoly Solutions |
-| Statut | À valider (voir section 17, décisions ouvertes) |
+|         |                                                 |
+| ------- | ----------------------------------------------- |
+| Version | 2.0                                             |
+| Date    | 28 septembre 2026                               |
+| Éditeur | Evoly Solutions                                 |
+| Statut  | À valider (voir section 17, décisions ouvertes) |
 
 ---
 
@@ -32,6 +32,7 @@
 15. [Reprise de la v1](#15-reprise-de-la-v1)
 16. [Plan de réalisation](#16-plan-de-réalisation)
 17. [Décisions à valider](#17-décisions-à-valider)
+
 - [Annexe A - Glossaire](#annexe-a--glossaire)
 - [Annexe B - Rôles système et permissions](#annexe-b--rôles-système-et-permissions)
 - [Annexe C - Calculs de référence](#annexe-c--calculs-de-référence)
@@ -48,18 +49,18 @@ Ce cahier des charges décrit l'intégralité du produit Evoly côté organisate
 
 ### 1.2 Ce qui change par rapport à la v1
 
-| Sujet | v1 | v2 |
-|---|---|---|
-| Commission | 5 % (Free) ou 2,5 % (Pro) au-delà d'un quota mensuel de billets offerts | 0,15 € + 1,5 % par billet payant, plafonnée à 1 € (Free) ou 0,70 € (Pro), sans quota |
-| Frais bancaires | Payés par Evoly (charges de destination) | Payés par l'organisateur, au coût réel, prélevés directement par Stripe |
-| Qui paie | Commission affichée à l'acheteur | Tout est inclus dans le prix du billet : l'acheteur paie le prix affiché |
-| Argent des organisateurs | Solde interne, réserve de 20 %, virements manuels | Aucun solde interne : Stripe verse directement l'organisateur |
-| Revente | Argent versé à l'organisateur, vendeur non remboursé, prix jusqu'à 2 fois le prix d'origine | Nouvelle commande pour l'acheteur, vendeur remboursé, prix plafonné au prix payé |
-| Prix dynamiques | Absents | Paliers automatiques par date ou par quantité (Pro) |
-| Membres et rôles | Toutes offres | Pro |
-| International | Français et euros codés en dur | Langues et devises dès la conception |
-| Design | Aucun design system | Design system repris de la charte Evoly |
-| Slogan | « La billetterie honnête » | « Ton prochain souvenir t'attend » |
+| Sujet                    | v1                                                                                          | v2                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Commission               | 5 % (Free) ou 2,5 % (Pro) au-delà d'un quota mensuel de billets offerts                     | 0,15 € + 1,5 % par billet payant, plafonnée à 1 € (Free) ou 0,70 € (Pro), sans quota |
+| Frais bancaires          | Payés par Evoly (charges de destination)                                                    | Payés par l'organisateur, au coût réel, prélevés directement par Stripe              |
+| Qui paie                 | Commission affichée à l'acheteur                                                            | Tout est inclus dans le prix du billet : l'acheteur paie le prix affiché             |
+| Argent des organisateurs | Solde interne, réserve de 20 %, virements manuels                                           | Aucun solde interne : Stripe verse directement l'organisateur                        |
+| Revente                  | Argent versé à l'organisateur, vendeur non remboursé, prix jusqu'à 2 fois le prix d'origine | Nouvelle commande pour l'acheteur, vendeur remboursé, prix plafonné au prix payé     |
+| Prix dynamiques          | Absents                                                                                     | Paliers automatiques par date ou par quantité (Pro)                                  |
+| Membres et rôles         | Toutes offres                                                                               | Pro                                                                                  |
+| International            | Français et euros codés en dur                                                              | Langues et devises dès la conception                                                 |
+| Design                   | Aucun design system                                                                         | Design system repris de la charte Evoly                                              |
+| Slogan                   | « La billetterie honnête »                                                                  | « Ton prochain souvenir t'attend »                                                   |
 
 ### 1.3 Conventions
 
@@ -123,13 +124,13 @@ Le détail des conditions par pays (devise, part fixe de la commission, moyens d
 
 ### 3.1 Offres
 
-| | Free | Pro |
-|---|---|---|
-| Abonnement | 0 €, sans carte bancaire | 29 € par mois, ou 295,80 € par an (soit 24,65 € par mois, −15 %) |
-| Essai | - | 14 jours, carte bancaire requise |
-| Billets gratuits | 0 %, sans limite | 0 %, sans limite |
-| Commission par billet payant | 0,15 € + 1,5 %, plafonnée à 1 € | 0,15 € + 1,5 %, plafonnée à 0,70 € |
-| Frais bancaires | Au coût réel, prélevés par Stripe | Au coût réel, prélevés par Stripe |
+|                              | Free                              | Pro                                                              |
+| ---------------------------- | --------------------------------- | ---------------------------------------------------------------- |
+| Abonnement                   | 0 €, sans carte bancaire          | 29 € par mois, ou 295,80 € par an (soit 24,65 € par mois, −15 %) |
+| Essai                        | -                                 | 14 jours, carte bancaire requise                                 |
+| Billets gratuits             | 0 %, sans limite                  | 0 %, sans limite                                                 |
+| Commission par billet payant | 0,15 € + 1,5 %, plafonnée à 1 €   | 0,15 € + 1,5 %, plafonnée à 0,70 €                               |
+| Frais bancaires              | Au coût réel, prélevés par Stripe | Au coût réel, prélevés par Stripe                                |
 
 Les paramètres sont stockés en base (`Plan`, `PlanCurrencyTerms`) et modifiables sans redéploiement.
 
@@ -147,17 +148,17 @@ Les paramètres sont stockés en base (`Plan`, `PlanCurrencyTerms`) et modifiabl
 
 Exemples (euros) :
 
-| Prix du billet | Commission Free | Commission Pro |
-|---|---|---|
-| 1,00 | 0,17 | 0,17 |
-| 5,00 | 0,23 | 0,23 |
-| 10,00 | 0,30 | 0,30 |
-| 20,00 | 0,45 | 0,45 |
-| 30,00 | 0,60 | 0,60 |
-| 37,00 | 0,71 | 0,70 (plafond atteint dès 36,34 €, commission arrondie) |
-| 50,00 | 0,90 | 0,70 |
-| 57,00 | 1,00 (plafond atteint dès 56,34 €, commission arrondie) | 0,70 |
-| 100,00 | 1,00 | 0,70 |
+| Prix du billet | Commission Free                                         | Commission Pro                                          |
+| -------------- | ------------------------------------------------------- | ------------------------------------------------------- |
+| 1,00           | 0,17                                                    | 0,17                                                    |
+| 5,00           | 0,23                                                    | 0,23                                                    |
+| 10,00          | 0,30                                                    | 0,30                                                    |
+| 20,00          | 0,45                                                    | 0,45                                                    |
+| 30,00          | 0,60                                                    | 0,60                                                    |
+| 37,00          | 0,71                                                    | 0,70 (plafond atteint dès 36,34 €, commission arrondie) |
+| 50,00          | 0,90                                                    | 0,70                                                    |
+| 57,00          | 1,00 (plafond atteint dès 56,34 €, commission arrondie) | 0,70                                                    |
+| 100,00         | 1,00                                                    | 0,70                                                    |
 
 ### 3.3 Frais bancaires
 
@@ -219,37 +220,37 @@ Le simulateur du site compare les frais d'Evoly (commission + frais d'une carte 
 
 ## 4. Offres et fonctionnalités
 
-| Fonctionnalité | Free | Pro | Priorité |
-|---|---|---|---|
-| Événements et tarifs illimités | Oui | Oui | P0 |
-| Billets gratuits à 0 %, sans limite | Oui | Oui | P0 |
-| Commission plafonnée | 1 € | 0,70 € | P0 |
-| Frais bancaires au coût réel | Oui | Oui | P0 |
-| Paiement Apple Pay, Google Pay, cartes et moyens locaux | Oui | Oui | P0 |
-| Page de vente sur `mon-asso.evoly.me` | Oui | Oui | P0 |
-| Revente entre participants par lien | Oui | Oui | P0 |
-| Section Revente sur la page de vente | Oui | Oui | P0 |
-| Statistiques en direct | Oui | Oui | P0 |
-| Scanner, liens bénévoles sans compte, mode hors ligne | Oui | Oui | P0 |
-| E-mails transactionnels | Oui | Oui | P0 |
-| Codes promo | Oui | Oui | P0 |
-| Questions à l'achat, billets nominatifs | Oui | Oui | P0 |
-| Remboursements et politique par événement | Oui | Oui | P0 |
-| Relevés et factures de commission | Oui | Oui | P0 |
-| Billets offerts | Oui | Oui | P1 |
-| Apple Wallet et Google Wallet | Oui | Oui | P1 |
-| Prix dynamiques (paliers par date ou quantité) | - | Oui | P0 |
-| Rappels automatiques J-7, J-1, jour J | - | Oui | P0 |
-| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | - | Oui | P0 |
-| Couleurs et logo | - | Oui | P0 |
-| Aucune mention d'Evoly | - | Oui | P0 |
-| Domaine personnalisé avec SSL | - | Oui | P0 |
-| Sous-domaine dédié par événement | - | Oui | P1 |
-| Membres, rôles système et rôles personnalisés | - | Oui | P0 |
-| Plusieurs organisations sur un compte | Une seule | Oui | P0 |
-| Plan de salle et placement numéroté | - | Oui | P2 ⚠ |
-| Parrainage | Oui | Oui | P2 |
-| Espace participant avec compte | Oui | Oui | P2 |
+| Fonctionnalité                                                        | Free      | Pro    | Priorité |
+| --------------------------------------------------------------------- | --------- | ------ | -------- |
+| Événements et tarifs illimités                                        | Oui       | Oui    | P0       |
+| Billets gratuits à 0 %, sans limite                                   | Oui       | Oui    | P0       |
+| Commission plafonnée                                                  | 1 €       | 0,70 € | P0       |
+| Frais bancaires au coût réel                                          | Oui       | Oui    | P0       |
+| Paiement Apple Pay, Google Pay, cartes et moyens locaux               | Oui       | Oui    | P0       |
+| Page de vente sur `mon-asso.evoly.me`                                 | Oui       | Oui    | P0       |
+| Revente entre participants par lien                                   | Oui       | Oui    | P0       |
+| Section Revente sur la page de vente                                  | Oui       | Oui    | P0       |
+| Statistiques en direct                                                | Oui       | Oui    | P0       |
+| Scanner, liens bénévoles sans compte, mode hors ligne                 | Oui       | Oui    | P0       |
+| E-mails transactionnels                                               | Oui       | Oui    | P0       |
+| Codes promo                                                           | Oui       | Oui    | P0       |
+| Questions à l'achat, billets nominatifs                               | Oui       | Oui    | P0       |
+| Remboursements et politique par événement                             | Oui       | Oui    | P0       |
+| Relevés et factures de commission                                     | Oui       | Oui    | P0       |
+| Billets offerts                                                       | Oui       | Oui    | P1       |
+| Apple Wallet et Google Wallet                                         | Oui       | Oui    | P1       |
+| Prix dynamiques (paliers par date ou quantité)                        | -         | Oui    | P0       |
+| Rappels automatiques J-7, J-1, jour J                                 | -         | Oui    | P0       |
+| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | -         | Oui    | P0       |
+| Couleurs et logo                                                      | -         | Oui    | P0       |
+| Aucune mention d'Evoly                                                | -         | Oui    | P0       |
+| Domaine personnalisé avec SSL                                         | -         | Oui    | P0       |
+| Sous-domaine dédié par événement                                      | -         | Oui    | P1       |
+| Membres, rôles système et rôles personnalisés                         | -         | Oui    | P0       |
+| Plusieurs organisations sur un compte                                 | Une seule | Oui    | P0       |
+| Plan de salle et placement numéroté                                   | -         | Oui    | P2 ⚠     |
+| Parrainage                                                            | Oui       | Oui    | P2       |
+| Espace participant avec compte                                        | Oui       | Oui    | P2       |
 
 Le contrôle d'accès aux fonctionnalités passe par une fonction unique `hasFeature(organisation, fonctionnalité)` qui lit `Plan.features` et l'état de l'abonnement (voir section 6.4).
 
@@ -346,21 +347,21 @@ evoly/
 
 ### 6.3 Pile technique
 
-| Couche | Choix |
-|---|---|
-| Framework | Next.js 16 (App Router), React 19, TypeScript en mode strict |
-| Base de données | PostgreSQL 16 ou plus, Prisma 7 avec l'adaptateur PostgreSQL |
-| Authentification | Better Auth (adaptateur Prisma, sessions en base, limitation des tentatives en base) |
-| Paiements | Stripe Connect (comptes des organisateurs), Stripe Billing (abonnement Pro) |
-| E-mails | Resend et React Email |
-| Fichiers | Cloudflare R2 (images d'événements, logos, PDF) |
-| Tâches de fond | File de tâches sur PostgreSQL ⚠ (par exemple pg-boss), déclenchée par un planificateur |
-| Styles | Tailwind CSS 4 alimenté par les jetons du design system |
-| Traductions | next-intl |
-| Validation | Zod |
-| Tests | Vitest (logique), Playwright (parcours complets) |
-| Suivi d'erreurs | Sentry |
-| Hébergement | Serveurs dans l'Union européenne ⚠ (Coolify sur VPS ou équivalent), CDN devant les pages publiques |
+| Couche           | Choix                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------- |
+| Framework        | Next.js 16 (App Router), React 19, TypeScript en mode strict                                       |
+| Base de données  | PostgreSQL 16 ou plus, Prisma 7 avec l'adaptateur PostgreSQL                                       |
+| Authentification | Better Auth (adaptateur Prisma, sessions en base, limitation des tentatives en base)               |
+| Paiements        | Stripe Connect (comptes des organisateurs), Stripe Billing (abonnement Pro)                        |
+| E-mails          | Resend et React Email                                                                              |
+| Fichiers         | Cloudflare R2 (images d'événements, logos, PDF)                                                    |
+| Tâches de fond   | File de tâches sur PostgreSQL ⚠ (par exemple pg-boss), déclenchée par un planificateur             |
+| Styles           | Tailwind CSS 4 alimenté par les jetons du design system                                            |
+| Traductions      | next-intl                                                                                          |
+| Validation       | Zod                                                                                                |
+| Tests            | Vitest (logique), Playwright (parcours complets)                                                   |
+| Suivi d'erreurs  | Sentry                                                                                             |
+| Hébergement      | Serveurs dans l'Union européenne ⚠ (Coolify sur VPS ou équivalent), CDN devant les pages publiques |
 
 ### 6.4 Règles d'architecture
 
@@ -541,20 +542,20 @@ erDiagram
 
 ### 8.3 Domaines et modèles
 
-| Domaine | Modèles |
-|---|---|
-| Comptes | `User`, `Account`, `Session`, `Verification`, `RateLimit` |
-| Offres et abonnement | `Plan`, `PlanCurrencyTerms`, `Subscription` |
-| Organisations | `Organization`, `StripeAccount`, `OrganizationBrand`, `Role`, `OrganizationMember`, `Invitation`, `Venue` |
-| Événements | `Event`, `EventTranslation`, `TicketType`, `TicketTypeTranslation`, `PriceTier`, `CheckoutQuestion`, `QuestionAnswer`, `PromoCode` |
-| Plan de salle (P2) | `SeatingMap`, `SeatingCategory`, `SeatingRow`, `Seat` |
-| Ventes | `Order`, `OrderItem`, `Ticket`, `WalletPass` |
-| Revente et remboursements | `ResaleListing`, `Refund`, `RefundItem` |
-| Contrôle d'accès | `ScannerLink`, `CheckIn` |
-| Finances | `CommissionStatement`, `Dispute`, `StripeWebhookEvent`, `EventDailyStat` |
-| Domaines | `CustomDomain`, `HostRedirect` |
-| Marketing | `Contact`, `EmailTemplate`, `EmailAutomation`, `EmailCampaign`, `EmailMessage`, `EmailSuppression` |
-| Divers | `Notification`, `Referral`, `AuditLog`, `FeatureFlag` |
+| Domaine                   | Modèles                                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Comptes                   | `User`, `Account`, `Session`, `Verification`, `RateLimit`                                                                          |
+| Offres et abonnement      | `Plan`, `PlanCurrencyTerms`, `Subscription`                                                                                        |
+| Organisations             | `Organization`, `StripeAccount`, `OrganizationBrand`, `Role`, `OrganizationMember`, `Invitation`, `Venue`                          |
+| Événements                | `Event`, `EventTranslation`, `TicketType`, `TicketTypeTranslation`, `PriceTier`, `CheckoutQuestion`, `QuestionAnswer`, `PromoCode` |
+| Plan de salle (P2)        | `SeatingMap`, `SeatingCategory`, `SeatingRow`, `Seat`                                                                              |
+| Ventes                    | `Order`, `OrderItem`, `Ticket`, `WalletPass`                                                                                       |
+| Revente et remboursements | `ResaleListing`, `Refund`, `RefundItem`                                                                                            |
+| Contrôle d'accès          | `ScannerLink`, `CheckIn`                                                                                                           |
+| Finances                  | `CommissionStatement`, `Dispute`, `StripeWebhookEvent`, `EventDailyStat`                                                           |
+| Domaines                  | `CustomDomain`, `HostRedirect`                                                                                                     |
+| Marketing                 | `Contact`, `EmailTemplate`, `EmailAutomation`, `EmailCampaign`, `EmailMessage`, `EmailSuppression`                                 |
+| Divers                    | `Notification`, `Referral`, `AuditLog`, `FeatureFlag`                                                                              |
 
 ### 8.4 Cycles de vie
 
@@ -764,17 +765,17 @@ Paramètres
 
 **Onglets de gestion d'un événement**
 
-| Onglet | Contenu |
-|---|---|
-| Aperçu | Statut, liens publics (copier, partager, QR code de la page), statistiques en direct, actions |
-| Billets | Tarifs, paliers (Pro), jauge, questions à l'achat |
-| Codes promo | Liste et création |
-| Commandes | Liste, recherche, détail, actions |
-| Revente | Annonces en cours et conclues, réglages de revente |
-| Entrées | Liens bénévoles, liste de contrôle, statistiques de présence, ouvrir le scanner |
-| E-mails (Pro) | Automatisations, campagnes liées à l'événement |
-| Page | Description riche, image, FAQ, message de confirmation, couleurs (Pro), sous-domaine (Pro) |
-| Réglages | Dates, lieu, visibilité, ventes, remboursements, revente, annulation |
+| Onglet        | Contenu                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| Aperçu        | Statut, liens publics (copier, partager, QR code de la page), statistiques en direct, actions |
+| Billets       | Tarifs, paliers (Pro), jauge, questions à l'achat                                             |
+| Codes promo   | Liste et création                                                                             |
+| Commandes     | Liste, recherche, détail, actions                                                             |
+| Revente       | Annonces en cours et conclues, réglages de revente                                            |
+| Entrées       | Liens bénévoles, liste de contrôle, statistiques de présence, ouvrir le scanner               |
+| E-mails (Pro) | Automatisations, campagnes liées à l'événement                                                |
+| Page          | Description riche, image, FAQ, message de confirmation, couleurs (Pro), sous-domaine (Pro)    |
+| Réglages      | Dates, lieu, visibilité, ventes, remboursements, revente, annulation                          |
 
 **Réglages d'un événement**
 
@@ -1053,13 +1054,13 @@ Pied de page : organisateur, conditions, « Billetterie propulsée par Evoly » 
 
 **Retours**
 
-| Résultat | Visuel | Son | Vibration |
-|---|---|---|---|
-| Valide | Vert, nom du titulaire, tarif | Bip aigu court | Courte |
-| Déjà scanné | Orange, « Déjà scanné à HH:MM, entrée X » | Double bip grave | Longue |
-| Billet désactivé | Rouge, motif (revendu, remboursé, annulé) | Bip grave | Longue |
-| Autre événement | Rouge, nom de l'autre événement | Bip grave | Longue |
-| Invalide | Rouge, « Billet inconnu » | Bip grave | Longue |
+| Résultat         | Visuel                                    | Son              | Vibration |
+| ---------------- | ----------------------------------------- | ---------------- | --------- |
+| Valide           | Vert, nom du titulaire, tarif             | Bip aigu court   | Courte    |
+| Déjà scanné      | Orange, « Déjà scanné à HH:MM, entrée X » | Double bip grave | Longue    |
+| Billet désactivé | Rouge, motif (revendu, remboursé, annulé) | Bip grave        | Longue    |
+| Autre événement  | Rouge, nom de l'autre événement           | Bip grave        | Longue    |
+| Invalide         | Rouge, « Billet inconnu »                 | Bip grave        | Longue    |
 
 Retour automatique au scan après 1,5 seconde.
 
@@ -1089,13 +1090,13 @@ Retour automatique au scan après 1,5 seconde.
 
 **Automatisations par événement**
 
-| Automatisation | Envoi | Destinataires | Nature | Par défaut |
-|---|---|---|---|---|
-| Rappel J-7 | 7 jours avant, 10 h (fuseau de l'événement) | Détenteurs d'un billet valide | Service | Activée |
-| Rappel J-1 | La veille, 10 h | Détenteurs d'un billet valide | Service | Activée |
-| Rappel jour J | Le jour même, 8 h | Détenteurs d'un billet valide | Service | Activée |
-| Après l'événement | 2 heures après la fin | Contacts consentants de l'événement | Marketing | Désactivée |
-| Dernières places | Quand il reste moins de 10 % de la jauge | Contacts consentants de l'organisation | Marketing | Désactivée |
+| Automatisation    | Envoi                                       | Destinataires                          | Nature    | Par défaut |
+| ----------------- | ------------------------------------------- | -------------------------------------- | --------- | ---------- |
+| Rappel J-7        | 7 jours avant, 10 h (fuseau de l'événement) | Détenteurs d'un billet valide          | Service   | Activée    |
+| Rappel J-1        | La veille, 10 h                             | Détenteurs d'un billet valide          | Service   | Activée    |
+| Rappel jour J     | Le jour même, 8 h                           | Détenteurs d'un billet valide          | Service   | Activée    |
+| Après l'événement | 2 heures après la fin                       | Contacts consentants de l'événement    | Marketing | Désactivée |
+| Dernières places  | Quand il reste moins de 10 % de la jauge    | Contacts consentants de l'organisation | Marketing | Désactivée |
 
 **Campagnes**
 
@@ -1213,38 +1214,38 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 
 Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la file de tâches. Catégories : **T** transactionnel (toujours envoyé), **S** service (respecte la désinscription de l'événement), **M** marketing (consentement requis).
 
-| Clé | Destinataire | Déclencheur | Cat. |
-|---|---|---|---|
-| `account.verify_email` | Utilisateur | Inscription par e-mail | T |
-| `account.reset_password` | Utilisateur | Demande de réinitialisation | T |
-| `org.invitation` | Invité | Invitation d'un membre | T |
-| `org.ownership_transferred` | Ancien et nouveau propriétaires | Transfert de propriété | T |
-| `stripe.action_required` | Propriétaire, administrateurs | Compte Stripe restreint ou documents demandés | T |
-| `subscription.trial_started` | Propriétaire | Début de l'essai Pro | T |
-| `subscription.trial_ending` | Propriétaire | 3 jours avant la fin de l'essai | T |
-| `subscription.payment_failed` | Propriétaire | Chaque échec de paiement | T |
-| `subscription.downgraded` | Propriétaire | Retour en Free | T |
-| `statement.issued` | Propriétaire | Relevé mensuel disponible | T |
-| `domain.active` / `domain.error` | Propriétaire | Changement d'état d'un domaine | T |
-| `order.confirmation` | Acheteur | Commande payée ou gratuite (PDF et ICS joints) | T |
-| `order.tickets_resent` | Acheteur | Renvoi par l'organisateur | T |
-| `order.find_my_tickets` | Acheteur | « Retrouver mes billets » | T |
-| `order.late_payment_refunded` | Acheteur | Paiement arrivé après expiration, places indisponibles | T |
-| `order.email_changed` | Acheteur (nouvelle adresse) | Correction de l'e-mail | T |
-| `event.changed` | Détenteurs de billets | Date, heure ou lieu modifiés | T |
-| `event.cancelled` | Acheteurs | Annulation de l'événement | T |
-| `refund.requested` | Organisateur | Demande d'un acheteur | T |
-| `refund.succeeded` | Acheteur | Remboursement effectué | T |
-| `refund.rejected` | Acheteur | Demande refusée | T |
-| `resale.listed` | Vendeur | Annonce créée (avec le lien) | T |
-| `resale.sold` | Vendeur | Place vendue, montant remboursé | T |
-| `resale.purchase` | Acheteur | Achat en revente (billets joints) | T |
-| `resale.expired` | Vendeur | Fin de la revente sans vente | T |
-| `resale.removed` | Vendeur | Annonce retirée par l'organisateur | T |
-| `automation.reminder_j7` / `_j1` / `_j0` | Détenteurs de billets | Automatisations (Pro) | S |
-| `automation.post_event` | Contacts consentants | 2 heures après la fin (Pro) | M |
-| `automation.last_tickets` | Contacts consentants | Moins de 10 % de la jauge (Pro) | M |
-| `campaign` | Segment choisi | Campagne (Pro) | M |
+| Clé                                      | Destinataire                    | Déclencheur                                            | Cat. |
+| ---------------------------------------- | ------------------------------- | ------------------------------------------------------ | ---- |
+| `account.verify_email`                   | Utilisateur                     | Inscription par e-mail                                 | T    |
+| `account.reset_password`                 | Utilisateur                     | Demande de réinitialisation                            | T    |
+| `org.invitation`                         | Invité                          | Invitation d'un membre                                 | T    |
+| `org.ownership_transferred`              | Ancien et nouveau propriétaires | Transfert de propriété                                 | T    |
+| `stripe.action_required`                 | Propriétaire, administrateurs   | Compte Stripe restreint ou documents demandés          | T    |
+| `subscription.trial_started`             | Propriétaire                    | Début de l'essai Pro                                   | T    |
+| `subscription.trial_ending`              | Propriétaire                    | 3 jours avant la fin de l'essai                        | T    |
+| `subscription.payment_failed`            | Propriétaire                    | Chaque échec de paiement                               | T    |
+| `subscription.downgraded`                | Propriétaire                    | Retour en Free                                         | T    |
+| `statement.issued`                       | Propriétaire                    | Relevé mensuel disponible                              | T    |
+| `domain.active` / `domain.error`         | Propriétaire                    | Changement d'état d'un domaine                         | T    |
+| `order.confirmation`                     | Acheteur                        | Commande payée ou gratuite (PDF et ICS joints)         | T    |
+| `order.tickets_resent`                   | Acheteur                        | Renvoi par l'organisateur                              | T    |
+| `order.find_my_tickets`                  | Acheteur                        | « Retrouver mes billets »                              | T    |
+| `order.late_payment_refunded`            | Acheteur                        | Paiement arrivé après expiration, places indisponibles | T    |
+| `order.email_changed`                    | Acheteur (nouvelle adresse)     | Correction de l'e-mail                                 | T    |
+| `event.changed`                          | Détenteurs de billets           | Date, heure ou lieu modifiés                           | T    |
+| `event.cancelled`                        | Acheteurs                       | Annulation de l'événement                              | T    |
+| `refund.requested`                       | Organisateur                    | Demande d'un acheteur                                  | T    |
+| `refund.succeeded`                       | Acheteur                        | Remboursement effectué                                 | T    |
+| `refund.rejected`                        | Acheteur                        | Demande refusée                                        | T    |
+| `resale.listed`                          | Vendeur                         | Annonce créée (avec le lien)                           | T    |
+| `resale.sold`                            | Vendeur                         | Place vendue, montant remboursé                        | T    |
+| `resale.purchase`                        | Acheteur                        | Achat en revente (billets joints)                      | T    |
+| `resale.expired`                         | Vendeur                         | Fin de la revente sans vente                           | T    |
+| `resale.removed`                         | Vendeur                         | Annonce retirée par l'organisateur                     | T    |
+| `automation.reminder_j7` / `_j1` / `_j0` | Détenteurs de billets           | Automatisations (Pro)                                  | S    |
+| `automation.post_event`                  | Contacts consentants            | 2 heures après la fin (Pro)                            | M    |
+| `automation.last_tickets`                | Contacts consentants            | Moins de 10 % de la jauge (Pro)                        | M    |
+| `campaign`                               | Segment choisi                  | Campagne (Pro)                                         | M    |
 
 Les factures de l'abonnement Pro sont envoyées par Stripe.
 
@@ -1252,24 +1253,24 @@ Les factures de l'abonnement Pro sont envoyées par Stripe.
 
 ## 11. Tâches planifiées
 
-| Tâche | Fréquence | Rôle |
-|---|---|---|
-| Libérer les réservations expirées | Chaque minute | Commandes `PENDING` expirées → `EXPIRED`, quantités et sièges libérés |
-| Libérer les annonces réservées | Chaque minute | Annonces `RESERVED` expirées → `ACTIVE` |
-| Clore la revente | Toutes les 5 minutes | Annonces ouvertes après la fin de la revente → `EXPIRED`, vendeurs prévenus |
-| Terminer les événements | Toutes les 15 minutes | Événements passés → `ENDED` |
-| Automatisations d'e-mails | Toutes les 5 minutes | Rappels, après l'événement, dernières places |
-| Campagnes programmées | Chaque minute | Envoi par lots |
-| Vérifier les domaines | Toutes les 10 minutes | DNS des domaines en attente (48 heures maximum) |
-| Surveiller les certificats | Quotidienne | Échéances et échecs de renouvellement |
-| Rétrograder les impayés | Quotidienne | Abonnements impayés depuis plus de 7 jours → Free |
-| Relevés de commissions | Le 1er du mois | Génération, PDF, envoi |
-| Agrégats quotidiens | Toutes les heures | Recalcul de `EventDailyStat` |
-| Réconciliation Stripe | Toutes les heures | Frais réels manquants, paiements sans commande, remboursements non synchronisés |
-| Relancer les webhooks en échec | Toutes les 5 minutes | Retraitement de `StripeWebhookEvent` en échec |
-| Expirer invitations et jetons | Toutes les heures | Invitations, liens de réinitialisation, jetons |
-| Nettoyer les redirections | Quotidienne | `HostRedirect` expirées |
-| Conservation des données | Mensuelle | Anonymisation au-delà des durées légales |
+| Tâche                             | Fréquence             | Rôle                                                                            |
+| --------------------------------- | --------------------- | ------------------------------------------------------------------------------- |
+| Libérer les réservations expirées | Chaque minute         | Commandes `PENDING` expirées → `EXPIRED`, quantités et sièges libérés           |
+| Libérer les annonces réservées    | Chaque minute         | Annonces `RESERVED` expirées → `ACTIVE`                                         |
+| Clore la revente                  | Toutes les 5 minutes  | Annonces ouvertes après la fin de la revente → `EXPIRED`, vendeurs prévenus     |
+| Terminer les événements           | Toutes les 15 minutes | Événements passés → `ENDED`                                                     |
+| Automatisations d'e-mails         | Toutes les 5 minutes  | Rappels, après l'événement, dernières places                                    |
+| Campagnes programmées             | Chaque minute         | Envoi par lots                                                                  |
+| Vérifier les domaines             | Toutes les 10 minutes | DNS des domaines en attente (48 heures maximum)                                 |
+| Surveiller les certificats        | Quotidienne           | Échéances et échecs de renouvellement                                           |
+| Rétrograder les impayés           | Quotidienne           | Abonnements impayés depuis plus de 7 jours → Free                               |
+| Relevés de commissions            | Le 1er du mois        | Génération, PDF, envoi                                                          |
+| Agrégats quotidiens               | Toutes les heures     | Recalcul de `EventDailyStat`                                                    |
+| Réconciliation Stripe             | Toutes les heures     | Frais réels manquants, paiements sans commande, remboursements non synchronisés |
+| Relancer les webhooks en échec    | Toutes les 5 minutes  | Retraitement de `StripeWebhookEvent` en échec                                   |
+| Expirer invitations et jetons     | Toutes les heures     | Invitations, liens de réinitialisation, jetons                                  |
+| Nettoyer les redirections         | Quotidienne           | `HostRedirect` expirées                                                         |
+| Conservation des données          | Mensuelle             | Anonymisation au-delà des durées légales                                        |
 
 ---
 
@@ -1277,26 +1278,26 @@ Les factures de l'abonnement Pro sont envoyées par Stripe.
 
 **Point d'entrée de la plateforme** (compte Evoly)
 
-| Événement | Traitement |
-|---|---|
-| `checkout.session.completed` | Démarrage de l'essai ou de l'abonnement Pro |
+| Événement                                               | Traitement                                                          |
+| ------------------------------------------------------- | ------------------------------------------------------------------- |
+| `checkout.session.completed`                            | Démarrage de l'essai ou de l'abonnement Pro                         |
 | `customer.subscription.created`, `.updated`, `.deleted` | Synchronisation de `Subscription`, effets de RG-SUB-07 et RG-SUB-08 |
-| `customer.subscription.trial_will_end` | E-mail `subscription.trial_ending` |
-| `invoice.paid` | Abonnement actif, fin de l'impayé |
-| `invoice.payment_failed` | Statut impayé, e-mail, bandeau |
+| `customer.subscription.trial_will_end`                  | E-mail `subscription.trial_ending`                                  |
+| `invoice.paid`                                          | Abonnement actif, fin de l'impayé                                   |
+| `invoice.payment_failed`                                | Statut impayé, e-mail, bandeau                                      |
 
 **Point d'entrée Connect** (comptes des organisateurs)
 
-| Événement | Traitement |
-|---|---|
-| `account.updated` | Synchronisation de `StripeAccount` (statut, exigences) |
-| `account.application.deauthorized` | Compte déconnecté : ventes payantes bloquées, propriétaire prévenu |
-| `payment_intent.succeeded` | Validation d'une commande (RG-BUY-07) ou d'une revente (section 9.13) |
-| `payment_intent.payment_failed` | Échec enregistré, réservation conservée jusqu'à expiration |
-| `payment_intent.canceled` | Réservation libérée |
-| `charge.refunded`, `refund.updated` | Synchronisation de `Refund` |
-| `charge.dispute.created`, `.updated`, `.closed` | Synchronisation de `Dispute`, notification, affichage dans Finances |
-| `payout.paid`, `payout.failed` | Affichage dans Finances, notification en cas d'échec |
+| Événement                                       | Traitement                                                            |
+| ----------------------------------------------- | --------------------------------------------------------------------- |
+| `account.updated`                               | Synchronisation de `StripeAccount` (statut, exigences)                |
+| `account.application.deauthorized`              | Compte déconnecté : ventes payantes bloquées, propriétaire prévenu    |
+| `payment_intent.succeeded`                      | Validation d'une commande (RG-BUY-07) ou d'une revente (section 9.13) |
+| `payment_intent.payment_failed`                 | Échec enregistré, réservation conservée jusqu'à expiration            |
+| `payment_intent.canceled`                       | Réservation libérée                                                   |
+| `charge.refunded`, `refund.updated`             | Synchronisation de `Refund`                                           |
+| `charge.dispute.created`, `.updated`, `.closed` | Synchronisation de `Dispute`, notification, affichage dans Finances   |
+| `payout.paid`, `payout.failed`                  | Affichage dans Finances, notification en cas d'échec                  |
 
 **Règles** : signature vérifiée ; enregistrement dans `StripeWebhookEvent` avant traitement ; traitement idempotent ; vérification que l'événement concerne bien le compte connecté attendu ; réponse rapide à Stripe et traitement lourd en file de tâches.
 
@@ -1379,24 +1380,24 @@ La v1 ne contient que des données de test : **scénario A retenu**.
 
 **Scénario B, avec des données à conserver** (non retenu, gardé pour mémoire) : script de migration testé sur une copie, puis exécuté pendant une fenêtre de maintenance.
 
-| v1 | v2 |
-|---|---|
-| `User`, `Account`, `Session` | Repris (`avatarUrl` → `image`) |
-| `Organization` | `Organization` + `Subscription` (champs d'abonnement) + `StripeAccount` (compte connecté) ; `ticketsSoldThisMonth`, `quotaResetAt`, soldes supprimés |
-| `Plan` | `Plan` + `PlanCurrencyTerms` avec les nouvelles valeurs |
-| `Role`, `OrganizationMember`, `Invitation` | Repris, permissions converties vers la nouvelle liste, invitations en attente réémises |
-| `OrganizationBrand` | Repris (`brandName` → `displayName`, `fromName` → `emailFromName`) |
-| `Event` | Repris : `publicCode` généré, adresse découpée, `streamUrl` → `onlineUrl`, `seatingType` → `seatingMode`, politique de remboursement convertie |
-| `TicketType` | Repris ; `customFields` convertis en `CheckoutQuestion` |
-| `PromoCode` | Repris ; `value` converti en `percentOffBps` ou `amountOffMinor` |
-| `Order` | Repris : `COMPLETED` → `PAID`, `feesCents` → `applicationFeeMinor`, `magicToken` haché dans `accessTokenHash` (les anciens liens continuent de fonctionner), `reference` générée |
-| `OrderItem` | Repris |
-| `Ticket` | Repris : `qrCode` → `code`, `shortCode` généré, statuts convertis, `faceValueMinor` calculé |
-| `ResaleLink` | Annonces ouvertes retirées (prix possiblement au-dessus de la valeur faciale), vendeurs prévenus ; historique archivé |
-| `RefundRequest` | `Refund` + `RefundItem` |
-| `Reserve`, `Payout` | Supprimés, après réconciliation (ci-dessous) |
-| `CustomDomain`, `ScannerLink`, `Notification`, `Referral` | Repris |
-| `EmailTemplate`, `EmailAutomation`, `EmailCampaign`, `EmailUnsubscribe` | Repris si le format de l'éditeur est compatible, sinon archivés ; désinscriptions converties en `EmailSuppression` |
+| v1                                                                      | v2                                                                                                                                                                               |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `User`, `Account`, `Session`                                            | Repris (`avatarUrl` → `image`)                                                                                                                                                   |
+| `Organization`                                                          | `Organization` + `Subscription` (champs d'abonnement) + `StripeAccount` (compte connecté) ; `ticketsSoldThisMonth`, `quotaResetAt`, soldes supprimés                             |
+| `Plan`                                                                  | `Plan` + `PlanCurrencyTerms` avec les nouvelles valeurs                                                                                                                          |
+| `Role`, `OrganizationMember`, `Invitation`                              | Repris, permissions converties vers la nouvelle liste, invitations en attente réémises                                                                                           |
+| `OrganizationBrand`                                                     | Repris (`brandName` → `displayName`, `fromName` → `emailFromName`)                                                                                                               |
+| `Event`                                                                 | Repris : `publicCode` généré, adresse découpée, `streamUrl` → `onlineUrl`, `seatingType` → `seatingMode`, politique de remboursement convertie                                   |
+| `TicketType`                                                            | Repris ; `customFields` convertis en `CheckoutQuestion`                                                                                                                          |
+| `PromoCode`                                                             | Repris ; `value` converti en `percentOffBps` ou `amountOffMinor`                                                                                                                 |
+| `Order`                                                                 | Repris : `COMPLETED` → `PAID`, `feesCents` → `applicationFeeMinor`, `magicToken` haché dans `accessTokenHash` (les anciens liens continuent de fonctionner), `reference` générée |
+| `OrderItem`                                                             | Repris                                                                                                                                                                           |
+| `Ticket`                                                                | Repris : `qrCode` → `code`, `shortCode` généré, statuts convertis, `faceValueMinor` calculé                                                                                      |
+| `ResaleLink`                                                            | Annonces ouvertes retirées (prix possiblement au-dessus de la valeur faciale), vendeurs prévenus ; historique archivé                                                            |
+| `RefundRequest`                                                         | `Refund` + `RefundItem`                                                                                                                                                          |
+| `Reserve`, `Payout`                                                     | Supprimés, après réconciliation (ci-dessous)                                                                                                                                     |
+| `CustomDomain`, `ScannerLink`, `Notification`, `Referral`               | Repris                                                                                                                                                                           |
+| `EmailTemplate`, `EmailAutomation`, `EmailCampaign`, `EmailUnsubscribe` | Repris si le format de l'éditeur est compatible, sinon archivés ; désinscriptions converties en `EmailSuppression`                                                               |
 
 **Points complémentaires**
 
@@ -1424,28 +1425,28 @@ Chaque étape se termine par une démonstration et le passage des tests de la se
 
 Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle à implémenter. ✅ = décision validée.
 
-| # | Sujet | Valeur par défaut |
-|---|---|---|
-| 1 | Qui supporte les frais d'une revente | ✅ Le vendeur (déduits de son remboursement) |
-| 2 | Commission sur les billets remboursés et lors d'une annulation | ✅ Toujours conservée par Evoly |
-| 3 | TVA : prix Pro TTC ou HT, traitement de la TVA sur la commission, mentions des relevés | Prix TTC ; traitement à définir avec l'expert-comptable |
-| 4 | Free limité à une organisation par compte, membres réservés au Pro | Oui |
-| 5 | Rétrogradation : membres suspendus, organisations supplémentaires en lecture seule | Oui |
-| 6 | Rétrogradation : paliers maintenus jusqu'à la fin des événements publiés | Oui |
-| 7 | Langues et devises au lancement | Français et anglais, euro |
-| 8 | Prix minimum d'un billet payant | 1,00 € |
-| 9 | Remboursement possible après un changement de date ou de lieu | Pendant 14 jours |
-| 10 | Téléphone de l'acheteur | Facultatif, rendu obligatoire par l'organisateur s'il le souhaite |
-| 11 | Plan de salle : offre et priorité | Pro, P2 |
-| 12 | Wallet : offre et priorité | Toutes les offres, P1 |
-| 13 | Parrainage : récompense et condition | Un mois de Pro au parrain à la première vente payante du filleul |
-| 14 | Plafond d'envoi d'e-mails marketing au démarrage | 5 000 par jour et par organisation |
-| 15 | Hébergement et file de tâches | VPS dans l'Union européenne avec Coolify, file sur PostgreSQL |
-| 16 | Authentification | ✅ Better Auth : Auth.js v5 est toujours en bêta en septembre 2026, Better Auth est stable et reprend le projet Auth.js |
-| 17 | Moyens de paiement mis en avant au lancement | Ceux de RG-BUY-11 |
-| 18 | Données de production v1 | ✅ Aucune donnée réelle : scénario A |
-| 19 | Comptes Stripe v1 | ✅ Sans objet (comptes de test non repris) |
-| 20 | Réponses de la FAQ du site (versements, essai, résiliation, domaine, annulation, HelloAsso) | À relire avec les règles de ce document |
+| #   | Sujet                                                                                       | Valeur par défaut                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | Qui supporte les frais d'une revente                                                        | ✅ Le vendeur (déduits de son remboursement)                                                                            |
+| 2   | Commission sur les billets remboursés et lors d'une annulation                              | ✅ Toujours conservée par Evoly                                                                                         |
+| 3   | TVA : prix Pro TTC ou HT, traitement de la TVA sur la commission, mentions des relevés      | Prix TTC ; traitement à définir avec l'expert-comptable                                                                 |
+| 4   | Free limité à une organisation par compte, membres réservés au Pro                          | Oui                                                                                                                     |
+| 5   | Rétrogradation : membres suspendus, organisations supplémentaires en lecture seule          | Oui                                                                                                                     |
+| 6   | Rétrogradation : paliers maintenus jusqu'à la fin des événements publiés                    | Oui                                                                                                                     |
+| 7   | Langues et devises au lancement                                                             | Français et anglais, euro                                                                                               |
+| 8   | Prix minimum d'un billet payant                                                             | 1,00 €                                                                                                                  |
+| 9   | Remboursement possible après un changement de date ou de lieu                               | Pendant 14 jours                                                                                                        |
+| 10  | Téléphone de l'acheteur                                                                     | Facultatif, rendu obligatoire par l'organisateur s'il le souhaite                                                       |
+| 11  | Plan de salle : offre et priorité                                                           | Pro, P2                                                                                                                 |
+| 12  | Wallet : offre et priorité                                                                  | Toutes les offres, P1                                                                                                   |
+| 13  | Parrainage : récompense et condition                                                        | Un mois de Pro au parrain à la première vente payante du filleul                                                        |
+| 14  | Plafond d'envoi d'e-mails marketing au démarrage                                            | 5 000 par jour et par organisation                                                                                      |
+| 15  | Hébergement et file de tâches                                                               | VPS dans l'Union européenne avec Coolify, file sur PostgreSQL                                                           |
+| 16  | Authentification                                                                            | ✅ Better Auth : Auth.js v5 est toujours en bêta en septembre 2026, Better Auth est stable et reprend le projet Auth.js |
+| 17  | Moyens de paiement mis en avant au lancement                                                | Ceux de RG-BUY-11                                                                                                       |
+| 18  | Données de production v1                                                                    | ✅ Aucune donnée réelle : scénario A                                                                                    |
+| 19  | Comptes Stripe v1                                                                           | ✅ Sans objet (comptes de test non repris)                                                                              |
+| 20  | Réponses de la FAQ du site (versements, essai, résiliation, domaine, annulation, HelloAsso) | À relire avec les règles de ce document                                                                                 |
 
 ---
 
@@ -1470,32 +1471,32 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 
 ## Annexe B - Rôles système et permissions
 
-| Permission | Propriétaire | Administrateur | Gestion des événements | Billetterie | Contrôle des entrées | Lecture seule |
-|---|---|---|---|---|---|---|
-| `ORG_SETTINGS_EDIT` | ✓ | ✓ | | | | |
-| `BRAND_EDIT` | ✓ | ✓ | | | | |
-| `DOMAINS_MANAGE` | ✓ | ✓ | | | | |
-| `BILLING_MANAGE` | ✓ | ✓ | | | | |
-| `PAYMENTS_MANAGE` | ✓ | ✓ | | | | |
-| `FINANCE_VIEW` | ✓ | ✓ | | | | |
-| `MEMBERS_MANAGE` | ✓ | ✓ | | | | |
-| `ROLES_MANAGE` | ✓ | ✓ | | | | |
-| `EVENTS_CREATE` | ✓ | ✓ | ✓ | | | |
-| `EVENTS_EDIT` | ✓ | ✓ | ✓ | | | |
-| `EVENTS_PUBLISH` | ✓ | ✓ | ✓ | | | |
-| `EVENTS_CANCEL` | ✓ | ✓ | ✓ | | | |
-| `EVENTS_DELETE` | ✓ | ✓ | | | | |
-| `TICKETS_MANAGE` | ✓ | ✓ | ✓ | | | |
-| `PROMO_MANAGE` | ✓ | ✓ | ✓ | | | |
-| `ORDERS_VIEW` | ✓ | ✓ | ✓ | ✓ | | ✓ |
-| `ORDERS_MANAGE` | ✓ | ✓ | ✓ | ✓ | | |
-| `REFUNDS_MANAGE` | ✓ | ✓ | ✓ | ✓ | | |
-| `RESALE_MANAGE` | ✓ | ✓ | ✓ | ✓ | | |
-| `CHECKIN_SCAN` | ✓ | ✓ | ✓ | ✓ | ✓ | |
-| `CHECKIN_MANAGE` | ✓ | ✓ | ✓ | | | |
-| `STATS_VIEW` | ✓ | ✓ | ✓ | ✓ | | ✓ |
-| `MARKETING_MANAGE` | ✓ | ✓ | ✓ | | | |
-| `CONTACTS_EXPORT` | ✓ | ✓ | | | | |
+| Permission          | Propriétaire | Administrateur | Gestion des événements | Billetterie | Contrôle des entrées | Lecture seule |
+| ------------------- | ------------ | -------------- | ---------------------- | ----------- | -------------------- | ------------- |
+| `ORG_SETTINGS_EDIT` | ✓            | ✓              |                        |             |                      |               |
+| `BRAND_EDIT`        | ✓            | ✓              |                        |             |                      |               |
+| `DOMAINS_MANAGE`    | ✓            | ✓              |                        |             |                      |               |
+| `BILLING_MANAGE`    | ✓            | ✓              |                        |             |                      |               |
+| `PAYMENTS_MANAGE`   | ✓            | ✓              |                        |             |                      |               |
+| `FINANCE_VIEW`      | ✓            | ✓              |                        |             |                      |               |
+| `MEMBERS_MANAGE`    | ✓            | ✓              |                        |             |                      |               |
+| `ROLES_MANAGE`      | ✓            | ✓              |                        |             |                      |               |
+| `EVENTS_CREATE`     | ✓            | ✓              | ✓                      |             |                      |               |
+| `EVENTS_EDIT`       | ✓            | ✓              | ✓                      |             |                      |               |
+| `EVENTS_PUBLISH`    | ✓            | ✓              | ✓                      |             |                      |               |
+| `EVENTS_CANCEL`     | ✓            | ✓              | ✓                      |             |                      |               |
+| `EVENTS_DELETE`     | ✓            | ✓              |                        |             |                      |               |
+| `TICKETS_MANAGE`    | ✓            | ✓              | ✓                      |             |                      |               |
+| `PROMO_MANAGE`      | ✓            | ✓              | ✓                      |             |                      |               |
+| `ORDERS_VIEW`       | ✓            | ✓              | ✓                      | ✓           |                      | ✓             |
+| `ORDERS_MANAGE`     | ✓            | ✓              | ✓                      | ✓           |                      |               |
+| `REFUNDS_MANAGE`    | ✓            | ✓              | ✓                      | ✓           |                      |               |
+| `RESALE_MANAGE`     | ✓            | ✓              | ✓                      | ✓           |                      |               |
+| `CHECKIN_SCAN`      | ✓            | ✓              | ✓                      | ✓           | ✓                    |               |
+| `CHECKIN_MANAGE`    | ✓            | ✓              | ✓                      |             |                      |               |
+| `STATS_VIEW`        | ✓            | ✓              | ✓                      | ✓           |                      | ✓             |
+| `MARKETING_MANAGE`  | ✓            | ✓              | ✓                      |             |                      |               |
+| `CONTACTS_EXPORT`   | ✓            | ✓              |                        |             |                      |               |
 
 Actions réservées au propriétaire, en plus de ses permissions : transférer la propriété, supprimer l'organisation.
 
@@ -1541,72 +1542,72 @@ function sellerRefund(resalePriceMinor: number, resaleCommissionMinor: number, r
 
 **Cas de test attendus** (euros, conditions EUR)
 
-| Cas | Entrée | Résultat attendu |
-|---|---|---|
-| Commission Free | 3 000 | 60 |
-| Commission Free, arrondi | 500 | 23 (15 + 7,5) |
-| Commission Free, plafond | 5 700 | 100 |
-| Commission Pro, plafond | 3 700 | 70 |
-| Commission Pro, sous le plafond | 3 600 | 69 |
-| Billet gratuit | 0 | 0 |
-| Remise 50 % sur 3 000, commission Free | 1 500 | commission 38 (15 + 22,5) |
-| Remise fixe 500 sur 400 | 400 | prix 0, commission 0 |
-| Paliers : prévente (quota 100, 100 vendus), normal (jusqu'au 1er novembre) | le 20 octobre | prix du palier normal |
-| Paliers : aucun palier applicable | après le dernier palier | prix de base |
-| Revente 3 000, carte standard (frais 70), Free | commission 60 | vendeur 2 870 |
-| Organisateur, billet 3 000, carte standard, Free | commission 60, frais 70 | net 2 870 |
-| Organisateur, billet 3 000, Bancontact, Free | commission 60, frais 35 | net 2 905 |
+| Cas                                                                        | Entrée                  | Résultat attendu          |
+| -------------------------------------------------------------------------- | ----------------------- | ------------------------- |
+| Commission Free                                                            | 3 000                   | 60                        |
+| Commission Free, arrondi                                                   | 500                     | 23 (15 + 7,5)             |
+| Commission Free, plafond                                                   | 5 700                   | 100                       |
+| Commission Pro, plafond                                                    | 3 700                   | 70                        |
+| Commission Pro, sous le plafond                                            | 3 600                   | 69                        |
+| Billet gratuit                                                             | 0                       | 0                         |
+| Remise 50 % sur 3 000, commission Free                                     | 1 500                   | commission 38 (15 + 22,5) |
+| Remise fixe 500 sur 400                                                    | 400                     | prix 0, commission 0      |
+| Paliers : prévente (quota 100, 100 vendus), normal (jusqu'au 1er novembre) | le 20 octobre           | prix du palier normal     |
+| Paliers : aucun palier applicable                                          | après le dernier palier | prix de base              |
+| Revente 3 000, carte standard (frais 70), Free                             | commission 60           | vendeur 2 870             |
+| Organisateur, billet 3 000, carte standard, Free                           | commission 60, frais 70 | net 2 870                 |
+| Organisateur, billet 3 000, Bancontact, Free                               | commission 60, frais 35 | net 2 905                 |
 
 ---
 
 ## Annexe D - Liens et textes de référence
 
-| Élément | Valeur |
-|---|---|
-| Slogan | Ton prochain souvenir t'attend. |
-| Éditeur | Evoly Solutions |
-| Inscription | `https://app.evoly.me/register` |
-| Inscription avec essai Pro | `https://app.evoly.me/register?plan=pro` |
-| Connexion | `https://app.evoly.me/login` |
-| Conditions d'utilisation | `https://evoly.me/cgu` |
-| Confidentialité | `https://evoly.me/privacy` |
-| Mentions légales | `https://evoly.me/legal` |
-| Cookies | `https://evoly.me/cookies` |
-| Contact | `hello@evoly.me` |
-| Grille Stripe de référence | `https://stripe.com/fr-be/pricing/local-payment-methods` |
-| Tarification Stripe Connect | `https://stripe.com/fr/connect/pricing` |
+| Élément                     | Valeur                                                   |
+| --------------------------- | -------------------------------------------------------- |
+| Slogan                      | Ton prochain souvenir t'attend.                          |
+| Éditeur                     | Evoly Solutions                                          |
+| Inscription                 | `https://app.evoly.me/register`                          |
+| Inscription avec essai Pro  | `https://app.evoly.me/register?plan=pro`                 |
+| Connexion                   | `https://app.evoly.me/login`                             |
+| Conditions d'utilisation    | `https://evoly.me/cgu`                                   |
+| Confidentialité             | `https://evoly.me/privacy`                               |
+| Mentions légales            | `https://evoly.me/legal`                                 |
+| Cookies                     | `https://evoly.me/cookies`                               |
+| Contact                     | `hello@evoly.me`                                         |
+| Grille Stripe de référence  | `https://stripe.com/fr-be/pricing/local-payment-methods` |
+| Tarification Stripe Connect | `https://stripe.com/fr/connect/pricing`                  |
 
 ---
 
 ## Annexe E - Sort des fonctionnalités de la v1
 
-| Fonctionnalité v1 | v2 |
-|---|---|
-| Quota mensuel de billets offerts, remise à zéro mensuelle | Supprimé |
-| Commission à 5 % ou 2,5 % | Remplacée (section 3.2) |
-| Réserve de 20 % pendant 30 jours | Supprimée (Stripe gère les risques du compte) |
-| Solde interne et virements manuels | Supprimés (virements Stripe) |
-| Commission affichée à l'acheteur | Supprimée (prix tout compris) |
-| Revente plafonnée à 2 fois le prix | Remplacée par le plafond à la valeur faciale |
-| Revente payée à l'organisateur | Remplacée par le remboursement du vendeur |
-| Onboarding en 3 étapes | Conservé, modifié (section 9.2) |
-| Rôles système et personnalisés | Conservés, réservés au Pro, permissions revues |
-| Assistant de création en 3 étapes, sauvegarde automatique | Conservé |
-| Placement libre et plan de salle | Placement libre conservé ; plan de salle en P2 |
-| Codes promo | Conservés, corrigés |
-| Champs personnalisés des tarifs | Remplacés par les questions à l'achat |
-| Page publique, compte à rebours, FAQ, carte, partage | Conservés |
-| Création de compte acheteur facultative | Déplacée en P2 (espace participant) |
-| Lien magique, PDF | Conservés |
-| Apple Wallet et Google Wallet | Conservés, P1 |
-| Remboursements et politiques | Conservés, étendus |
-| Scanner, liens bénévoles, hors ligne | Conservés, corrigés |
-| E-mail marketing, automatisations, campagnes | Conservés, consentement et catégories ajoutés |
-| Sous-domaines, domaines personnalisés, tutoriels | Conservés |
-| Notifications | Conservées, étendues |
-| Parrainage | Conservé en P2, sécurisé |
-| Landing page | Remplacée par le nouveau site (`apps/web`) |
+| Fonctionnalité v1                                         | v2                                             |
+| --------------------------------------------------------- | ---------------------------------------------- |
+| Quota mensuel de billets offerts, remise à zéro mensuelle | Supprimé                                       |
+| Commission à 5 % ou 2,5 %                                 | Remplacée (section 3.2)                        |
+| Réserve de 20 % pendant 30 jours                          | Supprimée (Stripe gère les risques du compte)  |
+| Solde interne et virements manuels                        | Supprimés (virements Stripe)                   |
+| Commission affichée à l'acheteur                          | Supprimée (prix tout compris)                  |
+| Revente plafonnée à 2 fois le prix                        | Remplacée par le plafond à la valeur faciale   |
+| Revente payée à l'organisateur                            | Remplacée par le remboursement du vendeur      |
+| Onboarding en 3 étapes                                    | Conservé, modifié (section 9.2)                |
+| Rôles système et personnalisés                            | Conservés, réservés au Pro, permissions revues |
+| Assistant de création en 3 étapes, sauvegarde automatique | Conservé                                       |
+| Placement libre et plan de salle                          | Placement libre conservé ; plan de salle en P2 |
+| Codes promo                                               | Conservés, corrigés                            |
+| Champs personnalisés des tarifs                           | Remplacés par les questions à l'achat          |
+| Page publique, compte à rebours, FAQ, carte, partage      | Conservés                                      |
+| Création de compte acheteur facultative                   | Déplacée en P2 (espace participant)            |
+| Lien magique, PDF                                         | Conservés                                      |
+| Apple Wallet et Google Wallet                             | Conservés, P1                                  |
+| Remboursements et politiques                              | Conservés, étendus                             |
+| Scanner, liens bénévoles, hors ligne                      | Conservés, corrigés                            |
+| E-mail marketing, automatisations, campagnes              | Conservés, consentement et catégories ajoutés  |
+| Sous-domaines, domaines personnalisés, tutoriels          | Conservés                                      |
+| Notifications                                             | Conservées, étendues                           |
+| Parrainage                                                | Conservé en P2, sécurisé                       |
+| Landing page                                              | Remplacée par le nouveau site (`apps/web`)     |
 
 ---
 
-*Fin du document. Toute modification doit être validée puis reportée ici et dans le schéma.*
+_Fin du document. Toute modification doit être validée puis reportée ici et dans le schéma._

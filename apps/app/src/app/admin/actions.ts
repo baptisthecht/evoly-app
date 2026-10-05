@@ -2,10 +2,23 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { assignPlan, extendTrial, reactivateOrganization, requireStaff, resendOrderEmail, retryFailedResale, setFeatureFlag, startSupportView, suspendOrganization } from "@/server/platform";
+import {
+  assignPlan,
+  extendTrial,
+  reactivateOrganization,
+  requireStaff,
+  resendOrderEmail,
+  retryFailedResale,
+  setFeatureFlag,
+  startSupportView,
+  suspendOrganization,
+} from "@/server/platform";
 
 const orgPath = (id: string) => `/admin/organisations/${id}`;
-const text = (f: FormData, k: string, max = 300) => String(f.get(k) ?? "").trim().slice(0, max);
+const text = (f: FormData, k: string, max = 300) =>
+  String(f.get(k) ?? "")
+    .trim()
+    .slice(0, max);
 
 export async function suspendAction(id: string, form: FormData) {
   const st = await requireStaff("ADMIN");

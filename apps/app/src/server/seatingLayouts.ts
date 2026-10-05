@@ -13,7 +13,10 @@ export async function saveSeatingLayout(ctx: OrgContext, eventId: string, input:
   const map = await seatingMapFor(ctx, eventId);
   const full = await db.seatingMap.findUniqueOrThrow({
     where: { id: map.id },
-    include: { categories: { orderBy: { sortOrder: "asc" } }, blocks: { orderBy: { sortOrder: "asc" }, include: { rows: { orderBy: { sortOrder: "asc" }, include: { seats: { orderBy: { sortOrder: "asc" } } } } } } },
+    include: {
+      categories: { orderBy: { sortOrder: "asc" } },
+      blocks: { orderBy: { sortOrder: "asc" }, include: { rows: { orderBy: { sortOrder: "asc" }, include: { seats: { orderBy: { sortOrder: "asc" } } } } } },
+    },
   });
   if (!full.blocks.length) throw new CoreError("SEATING_LAYOUT_EMPTY");
   const keyOf = new Map(full.categories.map((c, i) => [c.id, `k${i}`]));
@@ -25,7 +28,14 @@ export async function saveSeatingLayout(ctx: OrgContext, eventId: string, input:
   };
   const overrides: SeatOverride[] = [];
   const blocks = full.blocks.map((b, bi) => {
-    const spec = { kind: b.kind, name: b.name, x: b.x, y: b.y, rotation: b.rotation, params: toKeys(b.params as Record<string, unknown>) } as unknown as BlockSpec;
+    const spec = {
+      kind: b.kind,
+      name: b.name,
+      x: b.x,
+      y: b.y,
+      rotation: b.rotation,
+      params: toKeys(b.params as Record<string, unknown>),
+    } as unknown as BlockSpec;
     const generated = generateBlock(spec);
     b.rows.forEach((row, ri) =>
       row.seats.forEach((seat) => {
@@ -40,10 +50,31 @@ export async function saveSeatingLayout(ctx: OrgContext, eventId: string, input:
     );
     return spec;
   });
-  const plan: StoredPlan = { categories: full.categories.map((c, i) => ({ key: `k${i}`, name: c.name, color: c.color })), blocks, focus: { x: full.focusX ?? 0, y: full.focusY ?? -60 }, overrides };
+  const plan: StoredPlan = {
+    categories: full.categories.map((c, i) => ({ key: `k${i}`, name: c.name, color: c.color })),
+    blocks,
+    focus: { x: full.focusX ?? 0, y: full.focusY ?? -60 },
+    overrides,
+  };
   const seatCount = full.blocks.reduce((n, b) => n + b.rows.reduce((m, r) => m + r.seats.length, 0), 0);
-  const layout = await db.seatingLayout.create({ data: { organizationId: ctx.organization.id, name: input.name.trim().slice(0, 60), city: input.city?.trim().slice(0, 60) || null, shared: input.shared, plan: plan as object, seatCount } });
-  await audit({ action: "seating.layout_saved", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "SeatingLayout", targetId: layout.id, metadata: { shared: input.shared } });
+  const layout = await db.seatingLayout.create({
+    data: {
+      organizationId: ctx.organization.id,
+      name: input.name.trim().slice(0, 60),
+      city: input.city?.trim().slice(0, 60) || null,
+      shared: input.shared,
+      plan: plan as object,
+      seatCount,
+    },
+  });
+  await audit({
+    action: "seating.layout_saved",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "SeatingLayout",
+    targetId: layout.id,
+    metadata: { shared: input.shared },
+  });
   return layout.id;
 }
 

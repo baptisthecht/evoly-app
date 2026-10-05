@@ -11,12 +11,25 @@ import { findEvent } from "./events";
 /** Questions publiques d'un événement (actives, dans l'ordre), telles que les voit l'acheteur. */
 export async function publicQuestions(eventId: string): Promise<Array<QuestionDef & { helpText: string | null }>> {
   const rows = await db.checkoutQuestion.findMany({ where: { eventId, archivedAt: null }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
-  return rows.map((q) => ({ id: q.id, label: q.label, helpText: q.helpText, type: q.type, required: q.required, options: (q.options as string[] | null) ?? null, scope: q.scope, ticketTypeIds: q.ticketTypeIds }));
+  return rows.map((q) => ({
+    id: q.id,
+    label: q.label,
+    helpText: q.helpText,
+    type: q.type,
+    required: q.required,
+    options: (q.options as string[] | null) ?? null,
+    scope: q.scope,
+    ticketTypeIds: q.ticketTypeIds,
+  }));
 }
 
 export async function listQuestions(ctx: OrgContext, eventId: string) {
   await findEvent(ctx, eventId);
-  return db.checkoutQuestion.findMany({ where: { eventId }, include: { _count: { select: { answers: true } } }, orderBy: [{ archivedAt: { sort: "asc", nulls: "first" } }, { sortOrder: "asc" }, { createdAt: "asc" }] });
+  return db.checkoutQuestion.findMany({
+    where: { eventId },
+    include: { _count: { select: { answers: true } } },
+    orderBy: [{ archivedAt: { sort: "asc", nulls: "first" } }, { sortOrder: "asc" }, { createdAt: "asc" }],
+  });
 }
 
 /** US-QST-01 : création ou modification d'une question. */
@@ -35,13 +48,23 @@ export async function saveQuestion(ctx: OrgContext, eventId: string, id: string 
   }
   const last = await db.checkoutQuestion.aggregate({ where: { eventId: event.id }, _max: { sortOrder: true } });
   const created = await db.checkoutQuestion.create({ data: { ...data, eventId: event.id, sortOrder: (last._max.sortOrder ?? 0) + 1 } });
-  await audit({ action: "question.created", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "CheckoutQuestion", targetId: created.id });
+  await audit({
+    action: "question.created",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "CheckoutQuestion",
+    targetId: created.id,
+  });
   return created;
 }
 
 export async function moveQuestion(ctx: OrgContext, eventId: string, id: string, direction: -1 | 1) {
   await findEvent(ctx, eventId);
-  const list = await db.checkoutQuestion.findMany({ where: { eventId, archivedAt: null }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }], select: { id: true } });
+  const list = await db.checkoutQuestion.findMany({
+    where: { eventId, archivedAt: null },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    select: { id: true },
+  });
   const i = list.findIndex((q) => q.id === id);
   const j = i + direction;
   if (i < 0 || j < 0 || j >= list.length) return;
@@ -71,14 +94,33 @@ const cell = (v: unknown) => {
 export async function answersCsv(ctx: OrgContext, eventId: string): Promise<string> {
   await findEvent(ctx, eventId);
   const questions = await db.checkoutQuestion.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
-  const orders = await db.order.findMany({ where: { eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } }, include: { answers: true, tickets: { select: { id: true, shortCode: true, holderFirstName: true, holderLastName: true, ticketType: { select: { name: true } } } } }, orderBy: { paidAt: "asc" } });
+  const orders = await db.order.findMany({
+    where: { eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
+    include: {
+      answers: true,
+      tickets: { select: { id: true, shortCode: true, holderFirstName: true, holderLastName: true, ticketType: { select: { name: true } } } },
+    },
+    orderBy: { paidAt: "asc" },
+  });
   const head = ["Référence", "Acheteur", "E-mail", "Billet", "Tarif", "Titulaire", ...questions.map((q) => q.label)];
   const lines: unknown[][] = [];
   for (const o of orders) {
     const orderValues = (qid: string) => (o.answers.find((a) => a.questionId === qid && !a.ticketId)?.value as { value?: unknown } | undefined)?.value;
     const rows = o.tickets.length ? o.tickets : [null];
     for (const t of rows) {
-      lines.push([o.reference, `${o.buyerFirstName} ${o.buyerLastName}`, o.buyerEmail, t?.shortCode ?? "", t?.ticketType.name ?? "", t?.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : "", ...questions.map((q) => (q.scope === "TICKET" ? (o.answers.find((a) => a.questionId === q.id && a.ticketId === t?.id)?.value as { value?: unknown } | undefined)?.value : orderValues(q.id)))]);
+      lines.push([
+        o.reference,
+        `${o.buyerFirstName} ${o.buyerLastName}`,
+        o.buyerEmail,
+        t?.shortCode ?? "",
+        t?.ticketType.name ?? "",
+        t?.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : "",
+        ...questions.map((q) =>
+          q.scope === "TICKET"
+            ? (o.answers.find((a) => a.questionId === q.id && a.ticketId === t?.id)?.value as { value?: unknown } | undefined)?.value
+            : orderValues(q.id),
+        ),
+      ]);
     }
   }
   return "\ufeff" + [head, ...lines].map((l) => l.map(cell).join(";")).join("\r\n") + "\r\n";
@@ -88,7 +130,8 @@ export async function answersCsv(ctx: OrgContext, eventId: string): Promise<stri
 
 const secret = () => env().ORDER_TOKEN_SECRET ?? env().BETTER_AUTH_SECRET;
 export const accessCodeHash = (eventId: string, code: string) => createHmac("sha256", `access:${secret()}`).update(`${eventId}:${code}`).digest("hex");
-const grantFor = (eventId: string, codeHash: string) => createHmac("sha256", `grant:${secret()}`).update(`${eventId}:${codeHash}`).digest("base64url").slice(0, 40);
+const grantFor = (eventId: string, codeHash: string) =>
+  createHmac("sha256", `grant:${secret()}`).update(`${eventId}:${codeHash}`).digest("base64url").slice(0, 40);
 export const accessCookieName = (eventId: string) => `evoly_access_${eventId}`;
 
 /** Accès accordé à ce navigateur : lié au code actuel (changer le code révoque les accès déjà donnés). */
@@ -108,6 +151,12 @@ export async function unlockEvent(eventId: string, input: string): Promise<boole
   const given = Buffer.from(accessCodeHash(event.id, code));
   const stored = Buffer.from(event.accessCodeHash);
   if (given.length !== stored.length || !timingSafeEqual(given, stored)) return false;
-  (await cookies()).set(accessCookieName(event.id), grantFor(event.id, event.accessCodeHash), { httpOnly: true, sameSite: "lax", secure: env().NEXT_PUBLIC_APP_URL.startsWith("https"), path: "/", maxAge: 30 * 86_400 });
+  (await cookies()).set(accessCookieName(event.id), grantFor(event.id, event.accessCodeHash), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: env().NEXT_PUBLIC_APP_URL.startsWith("https"),
+    path: "/",
+    maxAge: 30 * 86_400,
+  });
   return true;
 }

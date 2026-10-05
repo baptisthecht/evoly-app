@@ -61,7 +61,9 @@ export default async function NotificationsPage({ params, searchParams }: { para
                         {!n.readAt ? <span className="size-2.5 rounded-full bg-rose" aria-label={t("unread")} /> : null}
                         {n.title}
                       </span>
-                      <span className="text-xs text-ink-muted">{t(`type_${n.type}`)} · {formatDateTime(n.createdAt, ctx.organization.timezone, locale, "short")}</span>
+                      <span className="text-xs text-ink-muted">
+                        {t(`type_${n.type}`)} · {formatDateTime(n.createdAt, ctx.organization.timezone, locale, "short")}
+                      </span>
                     </p>
                     <p className="text-sm text-ink-muted">{n.body}</p>
                   </Card>
@@ -73,8 +75,18 @@ export default async function NotificationsPage({ params, searchParams }: { para
       )}
       {pages > 1 ? (
         <nav className="flex justify-between" aria-label={t("pagination")}>
-          {page > 0 ? <a href={`?page=${page - 1}`} className={buttonClass("secondary", "md")}>{t("previous")}</a> : <span />}
-          {page < pages - 1 ? <a href={`?page=${page + 1}`} className={buttonClass("secondary", "md")}>{t("next")}</a> : null}
+          {page > 0 ? (
+            <a href={`?page=${page - 1}`} className={buttonClass("secondary", "md")}>
+              {t("previous")}
+            </a>
+          ) : (
+            <span />
+          )}
+          {page < pages - 1 ? (
+            <a href={`?page=${page + 1}`} className={buttonClass("secondary", "md")}>
+              {t("next")}
+            </a>
+          ) : null}
         </nav>
       ) : null}
     </div>

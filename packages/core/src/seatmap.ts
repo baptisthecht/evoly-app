@@ -7,7 +7,11 @@
  */
 
 export type SeatNumbering = "ltr" | "rtl" | "odd-left" | "odd-right";
-export interface RowLabeling { style: "letters" | "numbers"; start: string; skip: string[] }
+export interface RowLabeling {
+  style: "letters" | "numbers";
+  start: string;
+  skip: string[];
+}
 
 export interface RowsParams {
   rows: number;
@@ -27,13 +31,44 @@ export interface RowsParams {
   /** places pour personnes à mobilité réduite : aux extrémités de certains rangs (0 = premier) */
   accessible: Array<{ row: number; ends: number }>;
 }
-export interface RoundTablesParams { tables: number; seats: number; perRow: number; tableGap: number; labelStart: number; category: string }
-export interface RectTablesParams { tables: number; seatsPerSide: number; endSeats: 0 | 1 | 2; perRow: number; tableGap: number; labelStart: number; category: string }
-export interface StandingParams { width: number; height: number; capacity: number; label: string; category: string }
+export interface RoundTablesParams {
+  tables: number;
+  seats: number;
+  perRow: number;
+  tableGap: number;
+  labelStart: number;
+  category: string;
+}
+export interface RectTablesParams {
+  tables: number;
+  seatsPerSide: number;
+  endSeats: 0 | 1 | 2;
+  perRow: number;
+  tableGap: number;
+  labelStart: number;
+  category: string;
+}
+export interface StandingParams {
+  width: number;
+  height: number;
+  capacity: number;
+  label: string;
+  category: string;
+}
 export type ShapeType = "stage" | "screen" | "pitch" | "altar" | "bar" | "entrance" | "label";
-export interface ShapeParams { shape: ShapeType; width: number; height: number; label: string }
+export interface ShapeParams {
+  shape: ShapeType;
+  width: number;
+  height: number;
+  label: string;
+}
 
-interface BlockBase { name: string; x: number; y: number; rotation: number }
+interface BlockBase {
+  name: string;
+  x: number;
+  y: number;
+  rotation: number;
+}
 export type BlockSpec =
   | (BlockBase & { kind: "ROWS"; params: RowsParams })
   | (BlockBase & { kind: "TABLE_ROUND"; params: RoundTablesParams })
@@ -41,8 +76,19 @@ export type BlockSpec =
   | (BlockBase & { kind: "STANDING"; params: StandingParams })
   | (BlockBase & { kind: "SHAPE"; params: ShapeParams });
 
-export interface GenSeat { label: string; x: number; y: number; angle: number; order: number; accessible: boolean }
-export interface GenRow { label: string; category: string; seats: GenSeat[] }
+export interface GenSeat {
+  label: string;
+  x: number;
+  y: number;
+  angle: number;
+  order: number;
+  accessible: boolean;
+}
+export interface GenRow {
+  label: string;
+  category: string;
+  seats: GenSeat[];
+}
 
 const r2 = (v: number) => Math.round(v * 100) / 100;
 
@@ -67,7 +113,15 @@ export function seatNumbers(n: number, mode: SeatNumbering, start = 1): string[]
 export function rowLabel(i: number, labeling: RowLabeling): string {
   if (labeling.style === "numbers") return String((Number.parseInt(labeling.start, 10) || 1) + i);
   const skip = new Set(labeling.skip.map((l) => l.toUpperCase()));
-  const toLetters = (k: number) => { let s = ""; let v = k; do { s = String.fromCharCode(65 + (v % 26)) + s; v = Math.floor(v / 26) - 1; } while (v >= 0); return s; };
+  const toLetters = (k: number) => {
+    let s = "";
+    let v = k;
+    do {
+      s = String.fromCharCode(65 + (v % 26)) + s;
+      v = Math.floor(v / 26) - 1;
+    } while (v >= 0);
+    return s;
+  };
   const fromLetters = (s: string) => [...s.toUpperCase()].reduce((acc, c) => acc * 26 + (c.charCodeAt(0) - 64), 0) - 1;
   let k = Math.max(0, fromLetters(labeling.start || "A"));
   let produced = -1;
@@ -163,10 +217,14 @@ function rectTables(b: BlockBase, p: RectTablesParams): GenRow[] {
 /** Places d'un bloc, en coordonnées du plan. Zones debout et formes n'ont pas de places numérotées. */
 export function generateBlock(block: BlockSpec): GenRow[] {
   switch (block.kind) {
-    case "ROWS": return rowsBlock(block, block.params);
-    case "TABLE_ROUND": return roundTables(block, block.params);
-    case "TABLE_RECT": return rectTables(block, block.params);
-    default: return [];
+    case "ROWS":
+      return rowsBlock(block, block.params);
+    case "TABLE_ROUND":
+      return roundTables(block, block.params);
+    case "TABLE_RECT":
+      return rectTables(block, block.params);
+    default:
+      return [];
   }
 }
 
@@ -174,8 +232,23 @@ export function generateBlock(block: BlockSpec): GenRow[] {
 
 export const SEATING_TEMPLATES = ["theatre", "hall", "gala", "pit", "church", "cabaret", "conference", "arena", "stadium", "blank"] as const;
 export type SeatingTemplate = (typeof SEATING_TEMPLATES)[number];
-export interface TemplateOptions { rows?: number; seatsFirst?: number; seatsLast?: number; balconyRows?: number; centerAisle?: boolean; numbering?: SeatNumbering; rowLabels?: RowLabeling; categories?: 1 | 2 | 3; tables?: number; seatsPerTable?: number }
-export interface TemplatePlan { blocks: BlockSpec[]; categories: Array<{ key: string; name: string; color: string }>; focus: { x: number; y: number } }
+export interface TemplateOptions {
+  rows?: number;
+  seatsFirst?: number;
+  seatsLast?: number;
+  balconyRows?: number;
+  centerAisle?: boolean;
+  numbering?: SeatNumbering;
+  rowLabels?: RowLabeling;
+  categories?: 1 | 2 | 3;
+  tables?: number;
+  seatsPerTable?: number;
+}
+export interface TemplatePlan {
+  blocks: BlockSpec[];
+  categories: Array<{ key: string; name: string; color: string }>;
+  focus: { x: number; y: number };
+}
 
 const CATEGORY_DEFAULTS = [
   { key: "c1", name: "Catégorie 1", color: "#FFB8E8" },
@@ -189,9 +262,35 @@ function spread(rows: number, count: number): string[] {
   return Array.from({ length: rows }, (_, i) => CATEGORY_DEFAULTS[Math.min(count - 1, Math.floor((i * count) / rows))]!.key);
 }
 function rows(name: string, x: number, y: number, rotation: number, p: Partial<RowsParams> & Pick<RowsParams, "rows" | "seatsFirst" | "seatsLast">): BlockSpec {
-  return { kind: "ROWS", name, x, y, rotation, params: { seatGap: 30, rowGap: 34, curve: 0, centerAisle: false, aisleGap: 36, rowLabels: LETTERS, seatNumbering: "ltr", seatStart: 1, categories: ["c1"], accessible: [], ...p } };
+  return {
+    kind: "ROWS",
+    name,
+    x,
+    y,
+    rotation,
+    params: {
+      seatGap: 30,
+      rowGap: 34,
+      curve: 0,
+      centerAisle: false,
+      aisleGap: 36,
+      rowLabels: LETTERS,
+      seatNumbering: "ltr",
+      seatStart: 1,
+      categories: ["c1"],
+      accessible: [],
+      ...p,
+    },
+  };
 }
-const shape = (name: string, x: number, y: number, s: ShapeType, width: number, height: number, label: string, rotation = 0): BlockSpec => ({ kind: "SHAPE", name, x, y, rotation, params: { shape: s, width, height, label } });
+const shape = (name: string, x: number, y: number, s: ShapeType, width: number, height: number, label: string, rotation = 0): BlockSpec => ({
+  kind: "SHAPE",
+  name,
+  x,
+  y,
+  rotation,
+  params: { shape: s, width, height, label },
+});
 
 /** Plan de départ d'un modèle, à ajuster ensuite bloc par bloc. */
 export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = {}): TemplatePlan {
@@ -202,54 +301,190 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
   const common = (r: number) => ({ rowLabels: labels, categories: spread(r, nCat) });
   switch (template) {
     case "theatre": {
-      const r = o.rows ?? 8, balcony = o.balconyRows ?? 3;
+      const r = o.rows ?? 8,
+        balcony = o.balconyRows ?? 3;
       const blocks: BlockSpec[] = [
         shape("Scène", 0, -70, "stage", 380, 56, "SCÈNE"),
-        rows("Parterre", 0, 40, 0, { rows: r, seatsFirst: o.seatsFirst ?? 14, seatsLast: o.seatsLast ?? 22, curve: 0.55, centerAisle: o.centerAisle ?? true, seatNumbering: numbering ?? "odd-left", ...common(r), accessible: [{ row: r - 1, ends: 1 }] }),
+        rows("Parterre", 0, 40, 0, {
+          rows: r,
+          seatsFirst: o.seatsFirst ?? 14,
+          seatsLast: o.seatsLast ?? 22,
+          curve: 0.55,
+          centerAisle: o.centerAisle ?? true,
+          seatNumbering: numbering ?? "odd-left",
+          ...common(r),
+          accessible: [{ row: r - 1, ends: 1 }],
+        }),
       ];
-      if (balcony > 0) blocks.push(rows("Balcon", 0, 40 + r * 34 + 90, 0, { rows: balcony, seatsFirst: 24, seatsLast: 24, centerAisle: true, seatNumbering: numbering ?? "odd-left", rowLabels: { ...labels, start: rowLabel(r, labels) }, categories: [categories[categories.length - 1]!.key] }));
+      if (balcony > 0)
+        blocks.push(
+          rows("Balcon", 0, 40 + r * 34 + 90, 0, {
+            rows: balcony,
+            seatsFirst: 24,
+            seatsLast: 24,
+            centerAisle: true,
+            seatNumbering: numbering ?? "odd-left",
+            rowLabels: { ...labels, start: rowLabel(r, labels) },
+            categories: [categories[categories.length - 1]!.key],
+          }),
+        );
       return { blocks, categories, focus: { x: 0, y: -70 } };
     }
     case "hall": {
       const r = o.rows ?? 12;
-      return { blocks: [shape("Scène", 0, -70, "stage", 420, 56, "SCÈNE"), rows("Salle", 0, 30, 0, { rows: r, seatsFirst: o.seatsFirst ?? 20, seatsLast: o.seatsLast ?? 20, centerAisle: o.centerAisle ?? true, seatNumbering: numbering ?? "ltr", ...common(r), accessible: [{ row: r - 1, ends: 1 }] })], categories, focus: { x: 0, y: -70 } };
+      return {
+        blocks: [
+          shape("Scène", 0, -70, "stage", 420, 56, "SCÈNE"),
+          rows("Salle", 0, 30, 0, {
+            rows: r,
+            seatsFirst: o.seatsFirst ?? 20,
+            seatsLast: o.seatsLast ?? 20,
+            centerAisle: o.centerAisle ?? true,
+            seatNumbering: numbering ?? "ltr",
+            ...common(r),
+            accessible: [{ row: r - 1, ends: 1 }],
+          }),
+        ],
+        categories,
+        focus: { x: 0, y: -70 },
+      };
     }
     case "gala":
-      return { blocks: [shape("Scène", 0, -80, "stage", 420, 56, "SCÈNE"), { kind: "TABLE_ROUND", name: "Tables", x: 0, y: 0, rotation: 0, params: { tables: o.tables ?? 12, seats: o.seatsPerTable ?? 10, perRow: 4, tableGap: 36, labelStart: 1, category: "c1" } }], categories: categories.slice(0, 1), focus: { x: 0, y: -80 } };
+      return {
+        blocks: [
+          shape("Scène", 0, -80, "stage", 420, 56, "SCÈNE"),
+          {
+            kind: "TABLE_ROUND",
+            name: "Tables",
+            x: 0,
+            y: 0,
+            rotation: 0,
+            params: { tables: o.tables ?? 12, seats: o.seatsPerTable ?? 10, perRow: 4, tableGap: 36, labelStart: 1, category: "c1" },
+          },
+        ],
+        categories: categories.slice(0, 1),
+        focus: { x: 0, y: -80 },
+      };
     case "pit": {
       const r = o.rows ?? 10;
       return {
-        blocks: [shape("Scène", 0, -70, "stage", 460, 56, "SCÈNE"), { kind: "STANDING", name: "Fosse", x: 0, y: 30, rotation: 0, params: { width: 460, height: 170, capacity: 300, label: "FOSSE DEBOUT", category: "c1" } }, rows("Gradins", 0, 250, 0, { rows: r, seatsFirst: o.seatsFirst ?? 30, seatsLast: o.seatsLast ?? 30, centerAisle: o.centerAisle ?? false, seatNumbering: numbering ?? "ltr", ...common(r), categories: [categories[Math.min(1, nCat - 1)]!.key] })],
-        categories, focus: { x: 0, y: -70 },
+        blocks: [
+          shape("Scène", 0, -70, "stage", 460, 56, "SCÈNE"),
+          {
+            kind: "STANDING",
+            name: "Fosse",
+            x: 0,
+            y: 30,
+            rotation: 0,
+            params: { width: 460, height: 170, capacity: 300, label: "FOSSE DEBOUT", category: "c1" },
+          },
+          rows("Gradins", 0, 250, 0, {
+            rows: r,
+            seatsFirst: o.seatsFirst ?? 30,
+            seatsLast: o.seatsLast ?? 30,
+            centerAisle: o.centerAisle ?? false,
+            seatNumbering: numbering ?? "ltr",
+            ...common(r),
+            categories: [categories[Math.min(1, nCat - 1)]!.key],
+          }),
+        ],
+        categories,
+        focus: { x: 0, y: -70 },
       };
     }
     case "church": {
-      const r = o.rows ?? 15, side = o.seatsFirst ?? 8;
+      const r = o.rows ?? 15,
+        side = o.seatsFirst ?? 8;
       const half = (side * 30) / 2 + 40;
       return {
-        blocks: [shape("Chœur", 0, -90, "altar", 300, 70, "CHŒUR"), rows("Bancs gauche", -half, 0, 0, { rows: r, seatsFirst: side, seatsLast: side, seatNumbering: numbering ?? "ltr", ...common(r) }), rows("Bancs droite", half, 0, 0, { rows: r, seatsFirst: side, seatsLast: side, seatNumbering: numbering ?? "ltr", ...common(r) })],
-        categories, focus: { x: 0, y: -90 },
+        blocks: [
+          shape("Chœur", 0, -90, "altar", 300, 70, "CHŒUR"),
+          rows("Bancs gauche", -half, 0, 0, { rows: r, seatsFirst: side, seatsLast: side, seatNumbering: numbering ?? "ltr", ...common(r) }),
+          rows("Bancs droite", half, 0, 0, { rows: r, seatsFirst: side, seatsLast: side, seatNumbering: numbering ?? "ltr", ...common(r) }),
+        ],
+        categories,
+        focus: { x: 0, y: -90 },
       };
     }
     case "cabaret":
-      return { blocks: [shape("Scène", 0, -80, "stage", 360, 56, "SCÈNE"), { kind: "TABLE_ROUND", name: "Tables", x: 0, y: 0, rotation: 0, params: { tables: o.tables ?? 16, seats: o.seatsPerTable ?? 4, perRow: 4, tableGap: 30, labelStart: 1, category: "c1" } }, shape("Bar", 0, 520, "bar", 260, 44, "BAR")], categories: categories.slice(0, 1), focus: { x: 0, y: -80 } };
+      return {
+        blocks: [
+          shape("Scène", 0, -80, "stage", 360, 56, "SCÈNE"),
+          {
+            kind: "TABLE_ROUND",
+            name: "Tables",
+            x: 0,
+            y: 0,
+            rotation: 0,
+            params: { tables: o.tables ?? 16, seats: o.seatsPerTable ?? 4, perRow: 4, tableGap: 30, labelStart: 1, category: "c1" },
+          },
+          shape("Bar", 0, 520, "bar", 260, 44, "BAR"),
+        ],
+        categories: categories.slice(0, 1),
+        focus: { x: 0, y: -80 },
+      };
     case "conference": {
       const r = o.rows ?? 10;
-      return { blocks: [shape("Écran", 0, -70, "screen", 400, 20, "ÉCRAN"), rows("Salle", 0, 30, 0, { rows: r, seatsFirst: o.seatsFirst ?? 16, seatsLast: o.seatsLast ?? 16, centerAisle: o.centerAisle ?? false, seatNumbering: numbering ?? "ltr", rowLabels: labels, categories: ["c1"], accessible: [{ row: 0, ends: 1 }] })], categories: categories.slice(0, 1), focus: { x: 0, y: -70 } };
+      return {
+        blocks: [
+          shape("Écran", 0, -70, "screen", 400, 20, "ÉCRAN"),
+          rows("Salle", 0, 30, 0, {
+            rows: r,
+            seatsFirst: o.seatsFirst ?? 16,
+            seatsLast: o.seatsLast ?? 16,
+            centerAisle: o.centerAisle ?? false,
+            seatNumbering: numbering ?? "ltr",
+            rowLabels: labels,
+            categories: ["c1"],
+            accessible: [{ row: 0, ends: 1 }],
+          }),
+        ],
+        categories: categories.slice(0, 1),
+        focus: { x: 0, y: -70 },
+      };
     }
     case "arena": {
-      const r = o.rows ?? 10, s = o.seatsFirst ?? 20;
+      const r = o.rows ?? 10,
+        s = o.seatsFirst ?? 20;
       const d = 130;
-      const side = (name: string, x: number, y: number, rot: number) => rows(name, x, y, rot, { rows: r, seatsFirst: s, seatsLast: o.seatsLast ?? s + 6, seatNumbering: numbering ?? "ltr", ...common(r) });
-      return { blocks: [shape("Scène", 0, 0, "stage", 180, 180, "SCÈNE"), side("Nord", 0, -d, 180), side("Sud", 0, d, 0), side("Est", d, 0, -90), side("Ouest", -d, 0, 90)], categories, focus: { x: 0, y: 0 } };
+      const side = (name: string, x: number, y: number, rot: number) =>
+        rows(name, x, y, rot, { rows: r, seatsFirst: s, seatsLast: o.seatsLast ?? s + 6, seatNumbering: numbering ?? "ltr", ...common(r) });
+      return {
+        blocks: [
+          shape("Scène", 0, 0, "stage", 180, 180, "SCÈNE"),
+          side("Nord", 0, -d, 180),
+          side("Sud", 0, d, 0),
+          side("Est", d, 0, -90),
+          side("Ouest", -d, 0, 90),
+        ],
+        categories,
+        focus: { x: 0, y: 0 },
+      };
     }
     case "stadium": {
-      const r = o.rows ?? 20, long = o.seatsFirst ?? 60, short = o.seatsLast ?? 40;
-      const stand = (name: string, x: number, y: number, rot: number, seats: number, cat: string) => rows(name, x, y, rot, { rows: r, seatsFirst: seats, seatsLast: seats, seatNumbering: numbering ?? "ltr", rowLabels: { style: "numbers", start: "1", skip: [] }, categories: [cat] });
+      const r = o.rows ?? 20,
+        long = o.seatsFirst ?? 60,
+        short = o.seatsLast ?? 40;
+      const stand = (name: string, x: number, y: number, rot: number, seats: number, cat: string) =>
+        rows(name, x, y, rot, {
+          rows: r,
+          seatsFirst: seats,
+          seatsLast: seats,
+          seatNumbering: numbering ?? "ltr",
+          rowLabels: { style: "numbers", start: "1", skip: [] },
+          categories: [cat],
+        });
       const c = (i: number) => CATEGORY_DEFAULTS[Math.min(i, nCat - 1)]!.key;
       return {
-        blocks: [shape("Terrain", 0, 0, "pitch", 680, 440, "TERRAIN"), stand("Tribune Ouest", -370, 0, 90, long, c(0)), stand("Tribune Est", 370, 0, -90, long, c(1)), stand("Tribune Nord", 0, -250, 180, short, c(2)), stand("Tribune Sud", 0, 250, 0, short, c(2))],
-        categories, focus: { x: 0, y: 0 },
+        blocks: [
+          shape("Terrain", 0, 0, "pitch", 680, 440, "TERRAIN"),
+          stand("Tribune Ouest", -370, 0, 90, long, c(0)),
+          stand("Tribune Est", 370, 0, -90, long, c(1)),
+          stand("Tribune Nord", 0, -250, 180, short, c(2)),
+          stand("Tribune Sud", 0, 250, 0, short, c(2)),
+        ],
+        categories,
+        focus: { x: 0, y: 0 },
       };
     }
     case "blank":
@@ -260,7 +495,14 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
 
 // -- meilleures places et sièges isolés --
 
-export interface PlanSeat { id: string; rowId: string; order: number; x: number; y: number; available: boolean }
+export interface PlanSeat {
+  id: string;
+  rowId: string;
+  order: number;
+  x: number;
+  y: number;
+  available: boolean;
+}
 
 /** Segments d'un rang : places consécutives qu'aucune allée ne sépare (écart > 1,6 × l'espacement habituel). */
 export function seatSegments(seats: readonly PlanSeat[]): PlanSeat[][] {
@@ -273,11 +515,17 @@ export function seatSegments(seats: readonly PlanSeat[]): PlanSeat[][] {
   const out: PlanSeat[][] = [];
   for (const row of byRow.values()) {
     row.sort((a, b) => a.order - b.order);
-    const gaps = row.slice(1).map((s, i) => Math.hypot(s.x - row[i]!.x, s.y - row[i]!.y)).sort((a, b) => a - b);
+    const gaps = row
+      .slice(1)
+      .map((s, i) => Math.hypot(s.x - row[i]!.x, s.y - row[i]!.y))
+      .sort((a, b) => a - b);
     const usual = gaps.length ? gaps[Math.floor(gaps.length / 2)]! : 0;
     let current: PlanSeat[] = [];
     row.forEach((s, i) => {
-      if (i > 0 && usual > 0 && Math.hypot(s.x - row[i - 1]!.x, s.y - row[i - 1]!.y) > usual * 1.6) { out.push(current); current = []; }
+      if (i > 0 && usual > 0 && Math.hypot(s.x - row[i - 1]!.x, s.y - row[i - 1]!.y) > usual * 1.6) {
+        out.push(current);
+        current = [];
+      }
       current.push(s);
     });
     if (current.length) out.push(current);
@@ -335,12 +583,16 @@ export function bestSeats(seats: readonly PlanSeat[], n: number, focus: { x: num
   let bestWithOrphan: { ids: string[]; score: number } | null = null;
   for (const w of windows(seats, n)) {
     const score = w.seats.reduce((sum, s) => sum + dist(s), 0) / n;
-    if (!w.orphan) { if (!best || score < best.score) best = { ids: w.seats.map((s) => s.id), score }; }
-    else if (!bestWithOrphan || score < bestWithOrphan.score) bestWithOrphan = { ids: w.seats.map((s) => s.id), score };
+    if (!w.orphan) {
+      if (!best || score < best.score) best = { ids: w.seats.map((s) => s.id), score };
+    } else if (!bestWithOrphan || score < bestWithOrphan.score) bestWithOrphan = { ids: w.seats.map((s) => s.id), score };
   }
   if (best) return best.ids;
   if (bestWithOrphan) return bestWithOrphan.ids;
-  return [...free].sort((a, b) => dist(a) - dist(b)).slice(0, n).map((s) => s.id);
+  return [...free]
+    .sort((a, b) => dist(a) - dist(b))
+    .slice(0, n)
+    .map((s) => s.id);
 }
 
 /** Il existe n places côte à côte qui ne laissent aucun siège isolé (sinon, la règle ne peut pas être imposée). */

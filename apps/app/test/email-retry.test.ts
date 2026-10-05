@@ -4,7 +4,15 @@ import { db } from "@/lib/db";
 import { emailTestHooks, retryFailedEmails, sendEmail } from "@/server/email/send";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
-const mail = (to: string) => ({ to, template: "test.retry", category: "TRANSACTIONAL" as const, subject: "Vos billets", text: "Bonjour", html: "<p>Bonjour</p>", attachments: [{ filename: "billets.pdf", contentType: "application/pdf", content: Buffer.from("%PDF-1.7 test") }] });
+const mail = (to: string) => ({
+  to,
+  template: "test.retry",
+  category: "TRANSACTIONAL" as const,
+  subject: "Vos billets",
+  text: "Bonjour",
+  html: "<p>Bonjour</p>",
+  attachments: [{ filename: "billets.pdf", contentType: "application/pdf", content: Buffer.from("%PDF-1.7 test") }],
+});
 
 describe("renvoi des e-mails en échec (RG-ARC-06)", () => {
   it("contenu gardé après une panne, renvoyé par la tâche, pièce jointe comprise ; délai doublé, abandon après 5 tentatives", async () => {

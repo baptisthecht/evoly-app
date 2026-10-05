@@ -6,14 +6,43 @@ import { getPlans } from "@/server/plans";
 import { addRow, deleteRow, saveCategory, setSeatChoice, setSeatingMode, toggleSeatBlocked } from "@/server/seating";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
-const seatsOf = async (orderId: string) => (await db.ticket.findMany({ where: { orderId }, include: { seat: { include: { row: true } } } })).map((t) => `${t.seat?.row.name}${t.seat?.label}`).sort();
+const seatsOf = async (orderId: string) =>
+  (await db.ticket.findMany({ where: { orderId }, include: { seat: { include: { row: true } } } })).map((t) => `${t.seat?.row.name}${t.seat?.label}`).sort();
 
 describe("plan de salle (section 9.9, RG-SEAT-01 et 02)", () => {
   it("meilleures places côte à côte, retenues avec le panier, attribuées aux billets, libérées à l'annulation et à l'expiration", async () => {
     const id = rid();
     const user = await db.user.create({ data: { name: "Camille", email: `own.${id}@exemple.be`, emailVerified: true } });
-    const org = await db.organization.create({ data: { name: `Théâtre ${id}`, slug: `theatre-${id}`, subdomain: `theatre-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-    const event = await db.event.create({ data: { organizationId: org.id, slug: `piece-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Pièce ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 7 * 86_400_000), status: "PUBLISHED", ticketTypes: { create: [{ name: "Carré", priceMinor: 0, currency: "EUR", quantity: 8, sortOrder: 0 }, { name: "Balcon", priceMinor: 0, currency: "EUR", quantity: 3, sortOrder: 1 }] } }, include: { ticketTypes: { orderBy: { sortOrder: "asc" } } } });
+    const org = await db.organization.create({
+      data: {
+        name: `Théâtre ${id}`,
+        slug: `theatre-${id}`,
+        subdomain: `theatre-${id}`,
+        country: "BE",
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        locale: "fr",
+      },
+    });
+    const event = await db.event.create({
+      data: {
+        organizationId: org.id,
+        slug: `piece-${id}`,
+        publicCode: id.toUpperCase().slice(0, 8),
+        title: `Pièce ${id}`,
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        startsAt: new Date(Date.now() + 7 * 86_400_000),
+        status: "PUBLISHED",
+        ticketTypes: {
+          create: [
+            { name: "Carré", priceMinor: 0, currency: "EUR", quantity: 8, sortOrder: 0 },
+            { name: "Balcon", priceMinor: 0, currency: "EUR", quantity: 3, sortOrder: 1 },
+          ],
+        },
+      },
+      include: { ticketTypes: { orderBy: { sortOrder: "asc" } } },
+    });
     const [carre, balcon] = event.ticketTypes;
     const ctx = { organization: { id: org.id }, user: { id: user.id }, features: (await getPlans()).pro.features } as unknown as OrgContext;
     await expect(setSeatingMode(ctx, event.id, true)).rejects.toThrow("SEATING_TYPES_UNMAPPED");
@@ -33,7 +62,11 @@ describe("plan de salle (section 9.9, RG-SEAT-01 et 02)", () => {
     expect(await db.seat.count({ where: { holdOrderId: r1.orderId, status: "SOLD" } })).toBe(2);
 
     const r2 = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: carre!.id, quantity: 3 }], locale: "fr" });
-    expect((await db.seat.findMany({ where: { holdOrderId: r2.orderId }, include: { row: true } })).map((s) => `${s.row.name}${s.label}`).sort()).toEqual(["B1", "B2", "B3"]);
+    expect((await db.seat.findMany({ where: { holdOrderId: r2.orderId }, include: { row: true } })).map((s) => `${s.row.name}${s.label}`).sort()).toEqual([
+      "B1",
+      "B2",
+      "B3",
+    ]);
     await cancelReservation(r2.token);
     expect(await db.seat.count({ where: { holdOrderId: r2.orderId } })).toBe(0);
 
@@ -50,8 +83,23 @@ describe("plan de salle (section 9.9, RG-SEAT-01 et 02)", () => {
   it("places choisies par l'acheteur : exactement celles-là ; place prise ou mauvais nombre refusés", async () => {
     const id = rid();
     const user = await db.user.create({ data: { name: "Camille", email: `own.${id}@exemple.be`, emailVerified: true } });
-    const org = await db.organization.create({ data: { name: `Opéra ${id}`, slug: `opera-${id}`, subdomain: `opera-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-    const event = await db.event.create({ data: { organizationId: org.id, slug: `tosca-${id}`, publicCode: `T${id}`.toUpperCase().slice(0, 8), title: `Tosca ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 7 * 86_400_000), status: "PUBLISHED", ticketTypes: { create: { name: "Parterre", priceMinor: 0, currency: "EUR", quantity: 10 } } }, include: { ticketTypes: true } });
+    const org = await db.organization.create({
+      data: { name: `Opéra ${id}`, slug: `opera-${id}`, subdomain: `opera-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    });
+    const event = await db.event.create({
+      data: {
+        organizationId: org.id,
+        slug: `tosca-${id}`,
+        publicCode: `T${id}`.toUpperCase().slice(0, 8),
+        title: `Tosca ${id}`,
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        startsAt: new Date(Date.now() + 7 * 86_400_000),
+        status: "PUBLISHED",
+        ticketTypes: { create: { name: "Parterre", priceMinor: 0, currency: "EUR", quantity: 10 } },
+      },
+      include: { ticketTypes: true },
+    });
     const ctx = { organization: { id: org.id }, user: { id: user.id }, features: (await getPlans()).pro.features } as unknown as OrgContext;
     const cat = await saveCategory(ctx, event.id, { name: "Parterre", color: "#FFB8E8", ticketTypeId: event.ticketTypes[0]!.id });
     const row = await addRow(ctx, event.id, { categoryId: cat.id, name: "A", seats: "5" });
@@ -68,4 +116,3 @@ describe("plan de salle (section 9.9, RG-SEAT-01 et 02)", () => {
     expect(await db.seat.count({ where: { rowId: row.id, status: "HELD" } })).toBe(2); // les refus ne retiennent rien
   });
 });
-

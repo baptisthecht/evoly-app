@@ -27,10 +27,27 @@ export async function addCustomDomain(ctx: OrgContext, input: string, scope: "OR
   const base = env().NEXT_PUBLIC_BASE_DOMAIN.split(":")[0]!;
   if (domain === base || domain.endsWith(`.${base}`) || domain.endsWith("evoly.me")) throw new CoreError("DOMAIN_RESERVED");
   if ((await db.customDomain.count({ where: { organizationId: ctx.organization.id } })) >= MAX_CUSTOM_DOMAINS) throw new CoreError("DOMAIN_LIMIT");
-  if (scope === "EVENT" && !(await db.event.findFirst({ where: { id: eventId ?? "", organizationId: ctx.organization.id }, select: { id: true } }))) throw new CoreError("NOT_FOUND");
+  if (scope === "EVENT" && !(await db.event.findFirst({ where: { id: eventId ?? "", organizationId: ctx.organization.id }, select: { id: true } })))
+    throw new CoreError("NOT_FOUND");
   if (await db.customDomain.findUnique({ where: { domain }, select: { id: true } })) throw new CoreError("DOMAIN_TAKEN");
-  const created = await db.customDomain.create({ data: { organizationId: ctx.organization.id, domain, scope, eventId: scope === "EVENT" ? eventId : null, dnsTarget: dnsTarget(), verificationToken: secretToken(12) } });
-  await audit({ action: "domain.added", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "CustomDomain", targetId: created.id, metadata: { domain } });
+  const created = await db.customDomain.create({
+    data: {
+      organizationId: ctx.organization.id,
+      domain,
+      scope,
+      eventId: scope === "EVENT" ? eventId : null,
+      dnsTarget: dnsTarget(),
+      verificationToken: secretToken(12),
+    },
+  });
+  await audit({
+    action: "domain.added",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "CustomDomain",
+    targetId: created.id,
+    metadata: { domain },
+  });
   return created;
 }
 
@@ -38,7 +55,14 @@ export async function removeCustomDomain(ctx: OrgContext, id: string) {
   const d = await db.customDomain.findFirst({ where: { id, organizationId: ctx.organization.id } });
   if (!d) throw new CoreError("NOT_FOUND");
   await db.customDomain.delete({ where: { id: d.id } });
-  await audit({ action: "domain.removed", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "CustomDomain", targetId: d.id, metadata: { domain: d.domain } });
+  await audit({
+    action: "domain.removed",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "CustomDomain",
+    targetId: d.id,
+    metadata: { domain: d.domain },
+  });
 }
 
 /**
@@ -56,16 +80,31 @@ export async function verifyCustomDomain(id: string, resolver: CnameResolver = d
     error = (err as { code?: string }).code === "ENODATA" || (err as { code?: string }).code === "ENOTFOUND" ? "DNS_NOT_FOUND" : "DNS_ERROR";
   }
   if (!error) {
-    const updated = await db.customDomain.update({ where: { id: d.id }, data: { status: "ACTIVE", verifiedAt: d.verifiedAt ?? now, lastCheckedAt: now, lastError: null, checksStoppedAt: null } });
+    const updated = await db.customDomain.update({
+      where: { id: d.id },
+      data: { status: "ACTIVE", verifiedAt: d.verifiedAt ?? now, lastCheckedAt: now, lastError: null, checksStoppedAt: null },
+    });
     await ensurePaymentDomains(d.organizationId).catch(() => undefined); // RG-DOM-04
-    if (d.status !== "ACTIVE") await notify(d.organizationId, "DOMAIN_ACTIVE", { title: d.domain, body: "Domaine actif : votre billetterie est en ligne à cette adresse.", link: "/brand" });
+    if (d.status !== "ACTIVE")
+      await notify(d.organizationId, "DOMAIN_ACTIVE", {
+        title: d.domain,
+        body: "Domaine actif : votre billetterie est en ligne à cette adresse.",
+        link: "/brand",
+      });
     return updated;
   }
   const expired = now.getTime() - d.createdAt.getTime() > CHECK_WINDOW_MS;
-  const updated = await db.customDomain.update({ where: { id: d.id }, data: { lastCheckedAt: now, lastError: error, ...(expired && d.status === "PENDING_DNS" ? { status: "ERROR", checksStoppedAt: now } : {}) } });
+  const updated = await db.customDomain.update({
+    where: { id: d.id },
+    data: { lastCheckedAt: now, lastError: error, ...(expired && d.status === "PENDING_DNS" ? { status: "ERROR", checksStoppedAt: now } : {}) },
+  });
   if (expired && d.status === "PENDING_DNS") {
     await notifyStopped(d.organizationId, d.domain).catch(() => undefined);
-    await notify(d.organizationId, "DOMAIN_ERROR", { title: d.domain, body: "Enregistrement DNS introuvable après 48 heures : vérifiez la configuration.", link: "/brand" });
+    await notify(d.organizationId, "DOMAIN_ERROR", {
+      title: d.domain,
+      body: "Enregistrement DNS introuvable après 48 heures : vérifiez la configuration.",
+      link: "/brand",
+    });
   }
   return updated;
 }
@@ -78,7 +117,10 @@ export async function verifyPendingDomains(resolver: CnameResolver = dns, now = 
 }
 
 async function notifyStopped(organizationId: string, domain: string) {
-  const owner = await db.organizationMember.findFirst({ where: { organizationId, role: { systemKey: "OWNER" } }, include: { user: { select: { email: true, name: true } }, organization: { select: { slug: true, locale: true } } } });
+  const owner = await db.organizationMember.findFirst({
+    where: { organizationId, role: { systemKey: "OWNER" } },
+    include: { user: { select: { email: true, name: true } }, organization: { select: { slug: true, locale: true } } },
+  });
   if (!owner) return;
   const fr = owner.organization.locale !== "en";
   const url = `${env().NEXT_PUBLIC_APP_URL}/o/${owner.organization.slug}/brand`;
@@ -88,13 +130,19 @@ async function notifyStopped(organizationId: string, domain: string) {
     category: "SERVICE",
     organizationId,
     subject: fr ? `Domaine ${domain} : configuration à vérifier` : `Domain ${domain}: check the configuration`,
-    text: fr ? `Bonjour ${owner.user.name},\n\nNous n’avons pas trouvé l’enregistrement DNS attendu pour ${domain} pendant 48 heures. Vérifiez le CNAME chez votre registraire, puis cliquez sur « Vérifier maintenant » : ${url}\n\nEvoly` : `Hi ${owner.user.name},\n\nWe couldn't find the expected DNS record for ${domain} for 48 hours. Check the CNAME with your registrar, then click “Check now”: ${url}\n\nEvoly`,
+    text: fr
+      ? `Bonjour ${owner.user.name},\n\nNous n’avons pas trouvé l’enregistrement DNS attendu pour ${domain} pendant 48 heures. Vérifiez le CNAME chez votre registraire, puis cliquez sur « Vérifier maintenant » : ${url}\n\nEvoly`
+      : `Hi ${owner.user.name},\n\nWe couldn't find the expected DNS record for ${domain} for 48 hours. Check the CNAME with your registrar, then click “Check now”: ${url}\n\nEvoly`,
     html: `<p>${fr ? `Nous n’avons pas trouvé l’enregistrement DNS attendu pour <strong>${domain}</strong> pendant 48 heures.` : `We couldn't find the expected DNS record for <strong>${domain}</strong> for 48 hours.`}</p><p><a href="${url}">${fr ? "Vérifier la configuration" : "Check the configuration"}</a></p>`,
   });
 }
 
 export async function listCustomDomains(ctx: OrgContext) {
-  return db.customDomain.findMany({ where: { organizationId: ctx.organization.id }, include: { event: { select: { title: true } } }, orderBy: { createdAt: "asc" } });
+  return db.customDomain.findMany({
+    where: { organizationId: ctx.organization.id },
+    include: { event: { select: { title: true } } },
+    orderBy: { createdAt: "asc" },
+  });
 }
 
 /**
@@ -138,17 +186,38 @@ export async function checkCertificates(now = new Date(), resolve: (domain: stri
         socket.end();
       });
       socket.on("error", () => done({ authorized: false, validTo: null }));
-      socket.on("timeout", () => { socket.destroy(); done({ authorized: false, validTo: null }); });
+      socket.on("timeout", () => {
+        socket.destroy();
+        done({ authorized: false, validTo: null });
+      });
     });
     const problem = certificateProblem(info, now);
     if (!problem) continue;
     const link = `/brand?certificat=${encodeURIComponent(d.domain)}`;
-    const recent = await db.notification.findFirst({ where: { organizationId: d.organizationId, type: "DOMAIN_ERROR", link, createdAt: { gte: new Date(now.getTime() - 86_400_000) } }, select: { id: true } });
+    const recent = await db.notification.findFirst({
+      where: { organizationId: d.organizationId, type: "DOMAIN_ERROR", link, createdAt: { gte: new Date(now.getTime() - 86_400_000) } },
+      select: { id: true },
+    });
     if (recent) continue;
-    const body = problem === "INVALID" ? "Le certificat HTTPS de ce domaine est invalide : les visiteurs voient une alerte de sécurité. Vérifiez que l'enregistrement DNS pointe toujours vers Evoly." : "Le certificat HTTPS de ce domaine n'a pas pu être renouvelé et expire bientôt. Vérifiez que l'enregistrement DNS pointe toujours vers Evoly.";
+    const body =
+      problem === "INVALID"
+        ? "Le certificat HTTPS de ce domaine est invalide : les visiteurs voient une alerte de sécurité. Vérifiez que l'enregistrement DNS pointe toujours vers Evoly."
+        : "Le certificat HTTPS de ce domaine n'a pas pu être renouvelé et expire bientôt. Vérifiez que l'enregistrement DNS pointe toujours vers Evoly.";
     await notify(d.organizationId, "DOMAIN_ERROR", { title: d.domain, body, link });
-    const owner = await db.organizationMember.findFirst({ where: { organizationId: d.organizationId, role: { systemKey: "OWNER" } }, include: { user: { select: { email: true } } } });
-    if (owner) await sendEmail({ to: owner.user.email, template: "domain.certificate", category: "SERVICE", organizationId: d.organizationId, subject: `Certificat HTTPS à vérifier : ${d.domain}`, text: `${body}\n\nEvoly`, html: `<p>${body}</p><p>Evoly</p>` }).catch(() => undefined);
+    const owner = await db.organizationMember.findFirst({
+      where: { organizationId: d.organizationId, role: { systemKey: "OWNER" } },
+      include: { user: { select: { email: true } } },
+    });
+    if (owner)
+      await sendEmail({
+        to: owner.user.email,
+        template: "domain.certificate",
+        category: "SERVICE",
+        organizationId: d.organizationId,
+        subject: `Certificat HTTPS à vérifier : ${d.domain}`,
+        text: `${body}\n\nEvoly`,
+        html: `<p>${body}</p><p>Evoly</p>`,
+      }).catch(() => undefined);
     alerts += 1;
   }
   return { checked: domains.length, alerts };

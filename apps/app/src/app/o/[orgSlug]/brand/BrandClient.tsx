@@ -14,7 +14,12 @@ import { Field, Input, Select } from "@/components/ui/Field";
 import { addDomainAction, changeSubdomainAction, checkSubdomainAction, domainCommandAction, saveBrandAction } from "./actions";
 
 /** Import d'une image vers la route d'import, renvoie son adresse publique. */
-export async function uploadFile(orgSlug: string, file: File, kind: "logo" | "favicon" | "cover" | "campaign", eventId?: string): Promise<{ url?: string; error?: string }> {
+export async function uploadFile(
+  orgSlug: string,
+  file: File,
+  kind: "logo" | "favicon" | "cover" | "campaign",
+  eventId?: string,
+): Promise<{ url?: string; error?: string }> {
   const body = new FormData();
   body.set("file", file);
   body.set("kind", kind);
@@ -51,12 +56,22 @@ export function SubdomainForm({ orgSlug, current, baseDomain }: { orgSlug: strin
     <form {...formProps} className="grid gap-3" noValidate>
       <FormError state={state} />
       <div className="flex flex-wrap items-center gap-2">
-        <Input name="subdomain" value={value} onChange={(e) => setValue(e.target.value.toLowerCase())} className="max-w-[16rem] font-mono" aria-label={t("subdomain")} />
+        <Input
+          name="subdomain"
+          value={value}
+          onChange={(e) => setValue(e.target.value.toLowerCase())}
+          className="max-w-[16rem] font-mono"
+          aria-label={t("subdomain")}
+        />
         <span className="font-mono text-sm text-ink-muted">.{baseDomain}</span>
       </div>
       {check ? <p className={`text-sm ${check.ok ? "text-success" : "text-danger"}`}>{check.ok ? t("available") : t(`unavailable_${check.reason}`)}</p> : null}
       {value !== current ? <p className="text-sm text-ink-muted">{t("redirectNotice", { old: `${current}.${baseDomain}` })}</p> : null}
-      {state?.ok ? <p className="text-sm text-success" role="status">{t("subdomainChanged")}</p> : null}
+      {state?.ok ? (
+        <p className="text-sm text-success" role="status">
+          {t("subdomainChanged")}
+        </p>
+      ) : null}
       <SubmitButton pending={pending} className="w-full sm:w-auto sm:justify-self-start">
         {t("changeSubdomain")}
       </SubmitButton>
@@ -76,7 +91,17 @@ export interface BrandValues {
 }
 
 /** US-BRD-01, US-BRD-02 : configurateur avec aperçu en direct et contraste contrôlé (RG-BRD-01). */
-export function BrandForm({ orgSlug, values, organizationName, canHide }: { orgSlug: string; values: BrandValues; organizationName: string; canHide: boolean }) {
+export function BrandForm({
+  orgSlug,
+  values,
+  organizationName,
+  canHide,
+}: {
+  orgSlug: string;
+  values: BrandValues;
+  organizationName: string;
+  canHide: boolean;
+}) {
   const t = useTranslations("brand");
   const [v, setV] = useState(values);
   const [suggested, setSuggested] = useState<string[]>([]);
@@ -109,15 +134,30 @@ export function BrandForm({ orgSlug, values, organizationName, canHide }: { orgS
         <input type="hidden" name="logoUrl" value={v.logoUrl} />
         <input type="hidden" name="faviconUrl" value={v.faviconUrl} />
         <Field label={t("displayName")} htmlFor="displayName" hint={t("displayNameHint")}>
-          <Input id="displayName" name="displayName" value={v.displayName} onChange={(e) => set({ displayName: e.target.value })} placeholder={organizationName} maxLength={80} />
+          <Input
+            id="displayName"
+            name="displayName"
+            value={v.displayName}
+            onChange={(e) => set({ displayName: e.target.value })}
+            placeholder={organizationName}
+            maxLength={80}
+          />
         </Field>
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="grid content-start gap-2">
             <p className="font-label text-[0.8rem] font-bold">{t("logo")}</p>
-            {v.logoUrl ? <img src={v.logoUrl} alt={t("logoAlt")} className="h-16 w-auto justify-self-start rounded-md bg-surface-sunken object-contain p-2" /> : null}
+            {v.logoUrl ? (
+              <img src={v.logoUrl} alt={t("logoAlt")} className="h-16 w-auto justify-self-start rounded-md bg-surface-sunken object-contain p-2" />
+            ) : null}
             <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
               {busy === "logo" ? t("uploading") : v.logoUrl ? t("replaceLogo") : t("uploadLogo")}
-              <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(e) => upload(e.target.files?.[0], "logo")} data-testid="logo-input" />
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                className="sr-only"
+                onChange={(e) => upload(e.target.files?.[0], "logo")}
+                data-testid="logo-input"
+              />
             </label>
             {v.logoUrl ? (
               <button type="button" className="w-fit text-sm underline underline-offset-4" onClick={() => set({ logoUrl: "" })}>
@@ -131,17 +171,31 @@ export function BrandForm({ orgSlug, values, organizationName, canHide }: { orgS
             {v.faviconUrl ? <img src={v.faviconUrl} alt="" className="size-10 rounded-md bg-surface-sunken object-contain p-1" /> : null}
             <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
               {busy === "favicon" ? t("uploading") : t("uploadFavicon")}
-              <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(e) => upload(e.target.files?.[0], "favicon")} />
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                className="sr-only"
+                onChange={(e) => upload(e.target.files?.[0], "favicon")}
+              />
             </label>
           </div>
         </div>
-        {uploadError ? <p role="alert" className="text-sm text-danger">{uploadError}</p> : null}
+        {uploadError ? (
+          <p role="alert" className="text-sm text-danger">
+            {uploadError}
+          </p>
+        ) : null}
         {suggested.length > 0 ? (
           <div className="grid gap-2">
             <p className="text-sm">{t("suggested")}</p>
             <div className="flex flex-wrap gap-2">
               {suggested.map((c, i) => (
-                <button key={c} type="button" onClick={() => set(i === 0 ? { primaryColor: c } : { accentColor: c })} className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ring-1 ring-line-strong">
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => set(i === 0 ? { primaryColor: c } : { accentColor: c })}
+                  className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ring-1 ring-line-strong"
+                >
                   <span className="size-4 rounded-full ring-1 ring-line" style={{ background: c }} aria-hidden="true" />
                   {c}
                 </button>
@@ -153,15 +207,36 @@ export function BrandForm({ orgSlug, values, organizationName, canHide }: { orgS
           {(["primaryColor", "accentColor"] as const).map((k) => (
             <Field key={k} label={t(k)} htmlFor={k} hint={t("contrast", { ratio: ratio(k === "primaryColor" ? primary : accent) })} error={error(k)}>
               <div className="flex items-center gap-2">
-                <input type="color" aria-label={t(k)} value={k === "primaryColor" ? primary : accent} onChange={(e) => set({ [k]: e.target.value.toUpperCase() })} className="size-11 cursor-pointer rounded-md bg-transparent" />
-                <Input id={k} name={k} value={v[k]} onChange={(e) => set({ [k]: e.target.value })} placeholder={k === "primaryColor" ? palette.charbon : palette.rose} className="font-mono" maxLength={9} />
+                <input
+                  type="color"
+                  aria-label={t(k)}
+                  value={k === "primaryColor" ? primary : accent}
+                  onChange={(e) => set({ [k]: e.target.value.toUpperCase() })}
+                  className="size-11 cursor-pointer rounded-md bg-transparent"
+                />
+                <Input
+                  id={k}
+                  name={k}
+                  value={v[k]}
+                  onChange={(e) => set({ [k]: e.target.value })}
+                  placeholder={k === "primaryColor" ? palette.charbon : palette.rose}
+                  className="font-mono"
+                  maxLength={9}
+                />
               </div>
             </Field>
           ))}
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label={t("emailFromName")} htmlFor="emailFromName" hint={t("emailFromNameHint")}>
-            <Input id="emailFromName" name="emailFromName" value={v.emailFromName} onChange={(e) => set({ emailFromName: e.target.value })} placeholder={organizationName} maxLength={80} />
+            <Input
+              id="emailFromName"
+              name="emailFromName"
+              value={v.emailFromName}
+              onChange={(e) => set({ emailFromName: e.target.value })}
+              placeholder={organizationName}
+              maxLength={80}
+            />
           </Field>
           <Field label={t("emailReplyTo")} htmlFor="emailReplyTo" error={error("emailReplyTo")}>
             <Input id="emailReplyTo" name="emailReplyTo" type="email" value={v.emailReplyTo} onChange={(e) => set({ emailReplyTo: e.target.value })} />
@@ -169,11 +244,21 @@ export function BrandForm({ orgSlug, values, organizationName, canHide }: { orgS
         </div>
         {canHide ? (
           <label className="flex items-center gap-3 text-sm">
-            <input type="checkbox" name="hideEvolyBranding" checked={v.hideEvolyBranding} onChange={(e) => set({ hideEvolyBranding: e.target.checked })} className="size-5 accent-[var(--ink)]" />
+            <input
+              type="checkbox"
+              name="hideEvolyBranding"
+              checked={v.hideEvolyBranding}
+              onChange={(e) => set({ hideEvolyBranding: e.target.checked })}
+              className="size-5 accent-[var(--ink)]"
+            />
             {t("hideEvolyBranding")}
           </label>
         ) : null}
-        {state?.ok ? <p className="text-sm text-success" role="status">{t("saved")}</p> : null}
+        {state?.ok ? (
+          <p className="text-sm text-success" role="status">
+            {t("saved")}
+          </p>
+        ) : null}
         <SubmitButton pending={pending} className="w-full sm:w-auto sm:justify-self-start">
           {t("save")}
         </SubmitButton>
@@ -231,7 +316,15 @@ export function AddDomain({ orgSlug, events }: { orgSlug: string; events: Array<
   );
 }
 
-export function DomainRow({ orgSlug, d, planOk }: { orgSlug: string; d: { id: string; domain: string; status: string; dnsTarget: string; lastError: string | null; target: string; checksStopped: boolean }; planOk: boolean }) {
+export function DomainRow({
+  orgSlug,
+  d,
+  planOk,
+}: {
+  orgSlug: string;
+  d: { id: string; domain: string; status: string; dnsTarget: string; lastError: string | null; target: string; checksStopped: boolean };
+  planOk: boolean;
+}) {
   const t = useTranslations("brand");
   const [verifyState, verify, verifying] = useActionState(domainCommandAction.bind(null, orgSlug, d.id, "verify"), null);
   const [removeState, remove] = useActionState(domainCommandAction.bind(null, orgSlug, d.id, "remove"), null);

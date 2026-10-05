@@ -67,7 +67,8 @@ export function netForGross(grossMinor: Minor, terms: FeeTerms): Minor {
 export function grossForNet(netMinor: Minor, terms: FeeTerms): Minor {
   assertNonNegative(netMinor, "montant");
   if (netMinor === 0) return 0;
-  let lo = netMinor, hi = netMinor * 2 + 1_000;
+  let lo = netMinor,
+    hi = netMinor * 2 + 1_000;
   while (lo < hi) {
     const mid = Math.floor((lo + hi) / 2);
     if (netForGross(mid, terms) >= netMinor) hi = mid;
@@ -80,7 +81,7 @@ export function grossForNet(netMinor: Minor, terms: FeeTerms): Minor {
 export function roundedPriceOptions(grossMinor: Minor): Minor[] {
   if (grossMinor <= 0) return [];
   const step = grossMinor < 2_000 ? 50 : 100;
-  const down = Math.floor(grossMinor / step) * step, up = Math.ceil(grossMinor / step) * step;
+  const down = Math.floor(grossMinor / step) * step,
+    up = Math.ceil(grossMinor / step) * step;
   return [...new Set([down, up])].filter((v) => v > 0 && v !== grossMinor);
 }
-

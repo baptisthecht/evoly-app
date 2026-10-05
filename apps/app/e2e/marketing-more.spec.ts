@@ -6,7 +6,9 @@ const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR
 test("remerciement après l'événement, image importée et modèle personnel réutilisé (section 9.18)", async ({ page }) => {
   const { id, slug } = await organizer(page);
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
-  sql(`insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`);
+  sql(
+    `insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`,
+  );
   const eventUrl = await publishedFreeEvent(page, slug, `Salon ${id}`, 30);
 
   // US-MKT-02 : remerciement activé, objet personnalisé
@@ -16,7 +18,11 @@ test("remerciement après l'événement, image importée et modèle personnel r�
   await card.getByLabel("Objet").first().fill(`Merci d’être venu·e au Salon ${id}`);
   await card.getByRole("button", { name: "Enregistrer" }).first().click();
   await expect(card.getByText("Enregistré.")).toBeVisible();
-  expect(sql(`select enabled || '|' || subject from "EmailAutomation" where "eventId" = (select id from "Event" where "organizationId" = '${orgId}') and type = 'POST_EVENT'`)).toBe(`true|Merci d’être venu·e au Salon ${id}`);
+  expect(
+    sql(
+      `select enabled || '|' || subject from "EmailAutomation" where "eventId" = (select id from "Event" where "organizationId" = '${orgId}') and type = 'POST_EVENT'`,
+    ),
+  ).toBe(`true|Merci d’être venu·e au Salon ${id}`);
 
   // image importée dans une campagne, puis modèle personnel réutilisé
   await page.goto(appUrl(`/o/${slug}/marketing/campaigns/new?template=blank`));

@@ -9,7 +9,8 @@ export async function GET() {
     env();
   } catch (err) {
     // noms des variables en cause seulement, jamais leurs valeurs
-    const names = err && typeof err === "object" && "issues" in err ? (err as { issues: Array<{ path: PropertyKey[] }> }).issues.map((i) => i.path.join(".")) : [];
+    const names =
+      err && typeof err === "object" && "issues" in err ? (err as { issues: Array<{ path: PropertyKey[] }> }).issues.map((i) => i.path.join(".")) : [];
     console.error("configuration invalide :", names.join(", ") || "voir les variables d'environnement");
     return Response.json({ status: "config", variables: names }, { status: 503 });
   }

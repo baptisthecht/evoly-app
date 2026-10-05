@@ -6,12 +6,12 @@ L'Organisateur est responsable du traitement des données des participants à se
 
 ## 2. Description des traitements
 
-| Élément | Détail |
-|---|---|
-| Finalités | Vente et envoi des billets, contrôle des entrées, remboursements, revente, service client, e-mails de service et, avec consentement, e-mails marketing de l'Organisateur |
-| Personnes concernées | Acheteurs, titulaires de billets, contacts de l'Organisateur |
-| Données | Identité, adresse e-mail, téléphone si demandé, réponses aux questions à l'achat, commandes, billets, passages à l'entrée, consentement marketing |
-| Durée | Pendant la durée du contrat ; commandes conservées, anonymisées, pendant la durée légale de conservation des pièces comptables |
+| Élément              | Détail                                                                                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Finalités            | Vente et envoi des billets, contrôle des entrées, remboursements, revente, service client, e-mails de service et, avec consentement, e-mails marketing de l'Organisateur |
+| Personnes concernées | Acheteurs, titulaires de billets, contacts de l'Organisateur                                                                                                             |
+| Données              | Identité, adresse e-mail, téléphone si demandé, réponses aux questions à l'achat, commandes, billets, passages à l'entrée, consentement marketing                        |
+| Durée                | Pendant la durée du contrat ; commandes conservées, anonymisées, pendant la durée légale de conservation des pièces comptables                                           |
 
 ## 3. Obligations d'Evoly
 

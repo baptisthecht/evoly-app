@@ -21,7 +21,19 @@ export function useActionForm<S>(action: (state: Awaited<S>, form: FormData) => 
 }
 
 /** Bouton d'envoi qui se désactive pendant le traitement. */
-export function SubmitButton({ children, pendingLabel, variant = "dark", className, pending: forced }: { children: ReactNode; pendingLabel?: string; variant?: "primary" | "dark" | "secondary" | "ghost" | "danger"; className?: string; pending?: boolean }) {
+export function SubmitButton({
+  children,
+  pendingLabel,
+  variant = "dark",
+  className,
+  pending: forced,
+}: {
+  children: ReactNode;
+  pendingLabel?: string;
+  variant?: "primary" | "dark" | "secondary" | "ghost" | "danger";
+  className?: string;
+  pending?: boolean;
+}) {
   const status = useFormStatus();
   const pending = forced ?? status.pending;
   const t = useTranslations("common");

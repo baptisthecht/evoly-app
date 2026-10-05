@@ -47,6 +47,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Formatage (Prettier)
+        run: pnpm format:check
       - name: Outils des tests (lecture des PDF) et identifiants Wallet de test
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils

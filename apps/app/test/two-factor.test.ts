@@ -1,10 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
 const jar = new Map<string, string>();
-vi.mock("next/headers", () => ({ cookies: async () => ({ get: (k: string) => (jar.has(k) ? { value: jar.get(k) } : undefined), set: (k: string, v: string) => void jar.set(k, v), delete: (k: string) => void jar.delete(k) }) }));
+vi.mock("next/headers", () => ({
+  cookies: async () => ({
+    get: (k: string) => (jar.has(k) ? { value: jar.get(k) } : undefined),
+    set: (k: string, v: string) => void jar.set(k, v),
+    delete: (k: string) => void jar.delete(k),
+  }),
+}));
 
 const { db } = await import("@/lib/db");
-const { decryptSecret, disableTwoFactor, enableTwoFactor, regenerateRecoveryCodes, setupSecret, totpFor, twoFactorSatisfied, verifyTwoFactor } = await import("@/server/twoFactor");
+const { decryptSecret, disableTwoFactor, enableTwoFactor, regenerateRecoveryCodes, setupSecret, totpFor, twoFactorSatisfied, verifyTwoFactor } =
+  await import("@/server/twoFactor");
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 

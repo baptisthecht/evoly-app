@@ -27,7 +27,10 @@ describe("section Revente de la page de vente (RG-PUB-04)", () => {
       { id: "c", ticketTypeId: "fosse", ticketTypeName: "Fosse", priceMinor: 2400, createdAt: at(2) },
       { id: "d", ticketTypeId: "fosse", ticketTypeName: "Fosse", priceMinor: 2000, createdAt: at(9) },
     ]);
-    expect(groups.map((g) => [g.ticketTypeName, g.count, g.fromMinor])).toEqual([["Fosse", 3, 2000], ["VIP", 1, 4500]]);
+    expect(groups.map((g) => [g.ticketTypeName, g.count, g.fromMinor])).toEqual([
+      ["Fosse", 3, 2000],
+      ["VIP", 1, 4500],
+    ]);
     expect(groups[0]!.listings.map((l) => l.id)).toEqual(["d", "c", "b"]);
   });
 });

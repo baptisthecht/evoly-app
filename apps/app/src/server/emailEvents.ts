@@ -6,7 +6,12 @@ import { audit } from "./audit";
 import { sendEmail } from "./email/send";
 
 /** Vérification d'un webhook Resend (format Svix) : HMAC-SHA256 de « id.horodatage.corps », horodatage à 5 minutes près. */
-export function verifyResendSignature(secret: string, headers: { id: string | null; timestamp: string | null; signature: string | null }, body: string, now = Date.now()): boolean {
+export function verifyResendSignature(
+  secret: string,
+  headers: { id: string | null; timestamp: string | null; signature: string | null },
+  body: string,
+  now = Date.now(),
+): boolean {
   if (!headers.id || !headers.timestamp || !headers.signature) return false;
   const ts = Number(headers.timestamp);
   if (!Number.isFinite(ts) || Math.abs(now / 1000 - ts) > 300) return false;
@@ -31,7 +36,8 @@ export async function applyResendEvent(event: ResendEvent, now = new Date()): Pr
   if (!id) return "IGNORED";
   const msg = await db.emailMessage.findUnique({ where: { providerMessageId: id } });
   if (!msg) return "IGNORED";
-  const inc = (field: "deliveredCount" | "openCount" | "clickCount" | "bounceCount" | "complaintCount") => (msg.campaignId ? db.emailCampaign.update({ where: { id: msg.campaignId }, data: { [field]: { increment: 1 } } }) : null);
+  const inc = (field: "deliveredCount" | "openCount" | "clickCount" | "bounceCount" | "complaintCount") =>
+    msg.campaignId ? db.emailCampaign.update({ where: { id: msg.campaignId }, data: { [field]: { increment: 1 } } }) : null;
   const block = async (reason: "HARD_BOUNCE" | "COMPLAINT") => {
     if (!msg.organizationId) return;
     const where = { email: msg.toEmail.toLowerCase(), scope: "ORGANIZATION" as const, organizationId: msg.organizationId, eventId: null };
@@ -40,7 +46,10 @@ export async function applyResendEvent(event: ResendEvent, now = new Date()): Pr
   switch (event.type) {
     case "email.delivered":
       if (msg.deliveredAt) return "IGNORED";
-      await db.emailMessage.update({ where: { id: msg.id }, data: { deliveredAt: now, ...(msg.status === "SENT" || msg.status === "QUEUED" ? { status: "DELIVERED" } : {}) } });
+      await db.emailMessage.update({
+        where: { id: msg.id },
+        data: { deliveredAt: now, ...(msg.status === "SENT" || msg.status === "QUEUED" ? { status: "DELIVERED" } : {}) },
+      });
       await inc("deliveredCount");
       return "PROCESSED";
     case "email.opened":
@@ -83,8 +92,18 @@ async function checkComplaintRate(organizationId: string, now: Date) {
   ]);
   if (complaintRateExceeded(complaints, delivered)) {
     await db.organization.update({ where: { id: organizationId }, data: { marketingDailyCap: 0 } });
-    await audit({ action: "marketing.suspended", organizationId, actorType: "SYSTEM", targetType: "Organization", targetId: organizationId, metadata: { complaints, delivered } });
-    const owner = await db.organizationMember.findFirst({ where: { organizationId, role: { systemKey: "OWNER" } }, include: { user: { select: { email: true, name: true } }, organization: { select: { name: true } } } });
+    await audit({
+      action: "marketing.suspended",
+      organizationId,
+      actorType: "SYSTEM",
+      targetType: "Organization",
+      targetId: organizationId,
+      metadata: { complaints, delivered },
+    });
+    const owner = await db.organizationMember.findFirst({
+      where: { organizationId, role: { systemKey: "OWNER" } },
+      include: { user: { select: { email: true, name: true } }, organization: { select: { name: true } } },
+    });
     if (owner)
       await sendEmail({
         to: owner.user.email,

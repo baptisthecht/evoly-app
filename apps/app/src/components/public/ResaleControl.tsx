@@ -11,7 +11,23 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Field";
 
 /** Mise en revente depuis la page des billets (section 9.13, étapes 1 à 3). */
-export function ResaleControl({ token, ticketId, currency, faceValueMinor, terms, listing, canResell }: { token: string; ticketId: string; currency: string; faceValueMinor: number; terms: FeeTerms; listing: { id: string; status: string; priceMinor: number; url: string } | null; canResell: boolean }) {
+export function ResaleControl({
+  token,
+  ticketId,
+  currency,
+  faceValueMinor,
+  terms,
+  listing,
+  canResell,
+}: {
+  token: string;
+  ticketId: string;
+  currency: string;
+  faceValueMinor: number;
+  terms: FeeTerms;
+  listing: { id: string; status: string; priceMinor: number; url: string } | null;
+  canResell: boolean;
+}) {
   const t = useTranslations("resale");
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -49,7 +65,11 @@ export function ResaleControl({ token, ticketId, currency, faceValueMinor, terms
             {t("withdraw")}
           </button>
         ) : null}
-        {error ? <p role="alert" className="text-danger">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-danger">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -69,10 +89,22 @@ export function ResaleControl({ token, ticketId, currency, faceValueMinor, terms
         <Input inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} aria-describedby={`resale-est-${ticketId}`} />
       </label>
       <p id={`resale-est-${ticketId}`} aria-live="polite">
-        {minor == null ? t("priceInvalid") : minor > faceValueMinor ? t("aboveFaceValue", { max: money(faceValueMinor) }) : minor === 0 ? t("freeTransfer") : t("youGetBack", { amount: money(amounts!.sellerRefundMinor) })}
+        {minor == null
+          ? t("priceInvalid")
+          : minor > faceValueMinor
+            ? t("aboveFaceValue", { max: money(faceValueMinor) })
+            : minor === 0
+              ? t("freeTransfer")
+              : t("youGetBack", { amount: money(amounts!.sellerRefundMinor) })}
       </p>
-      {amounts && minor! > 0 ? <p className="text-xs text-ink-muted">{t("feesExplained", { commission: money(amounts.commissionMinor), bank: money(amounts.bankFeeMinor) })}</p> : null}
-      {error ? <p role="alert" className="text-danger">{error}</p> : null}
+      {amounts && minor! > 0 ? (
+        <p className="text-xs text-ink-muted">{t("feesExplained", { commission: money(amounts.commissionMinor), bank: money(amounts.bankFeeMinor) })}</p>
+      ) : null}
+      {error ? (
+        <p role="alert" className="text-danger">
+          {error}
+        </p>
+      ) : null}
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"

@@ -28,14 +28,33 @@ export async function searchOrders(ctx: OrgContext, opts: { q?: string; eventId?
             { buyerLastName: { contains: q, mode: "insensitive" } },
             { reference: { contains: q.toUpperCase() } },
             { tickets: { some: { shortCode: normalizeShortCode(q) } } },
-            ...(q.includes(" ") ? [{ AND: [{ buyerFirstName: { contains: q.split(" ")[0], mode: "insensitive" as const } }, { buyerLastName: { contains: q.split(" ").slice(1).join(" "), mode: "insensitive" as const } }] }] : []),
+            ...(q.includes(" ")
+              ? [
+                  {
+                    AND: [
+                      { buyerFirstName: { contains: q.split(" ")[0], mode: "insensitive" as const } },
+                      { buyerLastName: { contains: q.split(" ").slice(1).join(" "), mode: "insensitive" as const } },
+                    ],
+                  },
+                ]
+              : []),
           ],
         }
       : {}),
   };
   const page = Math.max(0, opts.page ?? 0);
   const [rows, total, pendingRequests] = await Promise.all([
-    db.order.findMany({ where, orderBy: { createdAt: "desc" }, take: 50, skip: page * 50, include: { event: { select: { title: true } }, _count: { select: { tickets: true } }, refunds: { where: { status: { in: ["REQUESTED", "FAILED"] } }, select: { status: true } } } }),
+    db.order.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      skip: page * 50,
+      include: {
+        event: { select: { title: true } },
+        _count: { select: { tickets: true } },
+        refunds: { where: { status: { in: ["REQUESTED", "FAILED"] } }, select: { status: true } },
+      },
+    }),
     db.order.count({ where }),
     db.refund.count({ where: { status: "REQUESTED", order: { organizationId: ctx.organization.id } } }),
   ]);
@@ -50,8 +69,19 @@ export async function getOrderDetail(ctx: OrgContext, orderId: string) {
       event: true,
       promoCode: { select: { code: true } },
       items: { include: { ticketType: { select: { name: true } }, priceTier: { select: { name: true } } } },
-      tickets: { include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } }, checkIns: { where: { result: "VALID" }, orderBy: { scannedAt: "asc" }, take: 1 }, refundItems: { select: { refund: { select: { status: true } } } } }, orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }] },
-      refunds: { include: { items: { include: { ticket: { select: { shortCode: true } } } }, handledBy: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
+      tickets: {
+        include: {
+          ticketType: { select: { name: true } },
+          seat: { select: { label: true, row: { select: { name: true } } } },
+          checkIns: { where: { result: "VALID" }, orderBy: { scannedAt: "asc" }, take: 1 },
+          refundItems: { select: { refund: { select: { status: true } } } },
+        },
+        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
+      },
+      refunds: {
+        include: { items: { include: { ticket: { select: { shortCode: true } } } }, handledBy: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
+      },
       soldListings: { orderBy: { createdAt: "desc" } },
       emailMessages: { orderBy: { queuedAt: "desc" }, take: 30 },
       answers: { include: { question: { select: { label: true, sortOrder: true } } }, orderBy: { question: { sortOrder: "asc" } } },
@@ -75,8 +105,18 @@ export async function correctBuyerEmail(ctx: OrgContext, orderId: string, email:
   if (!order) throw new CoreError("NOT_FOUND");
   const next = email.trim().toLowerCase();
   const version = order.accessTokenVersion + 1;
-  await db.order.update({ where: { id: order.id }, data: { buyerEmail: next, accessTokenVersion: version, accessTokenHash: await sha256Hex(orderAccessToken(order.id, version)) } });
-  await audit({ action: "order.email_corrected", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Order", targetId: order.id, metadata: { from: order.buyerEmail, to: next } });
+  await db.order.update({
+    where: { id: order.id },
+    data: { buyerEmail: next, accessTokenVersion: version, accessTokenHash: await sha256Hex(orderAccessToken(order.id, version)) },
+  });
+  await audit({
+    action: "order.email_corrected",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Order",
+    targetId: order.id,
+    metadata: { from: order.buyerEmail, to: next },
+  });
   if (order.status === "PAID" || order.status === "PARTIALLY_REFUNDED") await sendOrderConfirmation(order.id);
 }
 

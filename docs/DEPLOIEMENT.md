@@ -2,17 +2,17 @@
 
 Installation sur un seul serveur, sans outil de déploiement tiers : **Caddy** (seul service ouvert sur Internet, certificats HTTPS à la volée), **l'app** et **PostgreSQL**, dans Docker Compose. Tous les fichiers sont dans le dépôt :
 
-| Fichier | Rôle |
-|---|---|
-| `Dockerfile` | image de l'app (monorepo pnpm, construite sans base ni secret réel) |
-| `compose.yaml` | PostgreSQL (jamais exposé), l'app (joignable depuis le serveur seulement), Caddy (ports 80 et 443) |
-| `ops/Caddyfile` | site vitrine sur le domaine principal, tout le reste en certificats à la volée après accord de l'app |
-| `ops/setup-server.sh` | installation du serveur : Docker, mémoire d'échange, pare-feu, mises à jour de sécurité automatiques |
-| `ops/new-env.sh`, `ops/env.production.example` | fichier d'environnement, secrets générés |
-| `ops/first-start.sh` | premier démarrage : migration initiale, contraintes, données de départ |
-| `ops/deploy.sh` | mises à jour |
-| `ops/cron.sh`, `ops/crontab` | tâches planifiées |
-| `ops/backup.sh`, `ops/restore.sh` | sauvegarde quotidienne vers R2, restauration |
+| Fichier                                        | Rôle                                                                                                 |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `Dockerfile`                                   | image de l'app (monorepo pnpm, construite sans base ni secret réel)                                  |
+| `compose.yaml`                                 | PostgreSQL (jamais exposé), l'app (joignable depuis le serveur seulement), Caddy (ports 80 et 443)   |
+| `ops/Caddyfile`                                | site vitrine sur le domaine principal, tout le reste en certificats à la volée après accord de l'app |
+| `ops/setup-server.sh`                          | installation du serveur : Docker, mémoire d'échange, pare-feu, mises à jour de sécurité automatiques |
+| `ops/new-env.sh`, `ops/env.production.example` | fichier d'environnement, secrets générés                                                             |
+| `ops/first-start.sh`                           | premier démarrage : migration initiale, contraintes, données de départ                               |
+| `ops/deploy.sh`                                | mises à jour                                                                                         |
+| `ops/cron.sh`, `ops/crontab`                   | tâches planifiées                                                                                    |
+| `ops/backup.sh`, `ops/restore.sh`              | sauvegarde quotidienne vers R2, restauration                                                         |
 
 Serveur conseillé au lancement : 2 cœurs, 4 Go de mémoire, 40 Go de disque (par exemple OVH VPS-1), Debian 13.
 
@@ -32,20 +32,21 @@ Serveur conseillé au lancement : 2 cœurs, 4 Go de mémoire, 40 Go de disque (p
 
 Tous les enregistrements pointent vers l'adresse IPv4 du serveur (enregistrement A), et vers son IPv6 si elle existe (AAAA) :
 
-| Nom | Usage |
-|---|---|
-| `evoly.me` | site vitrine, documents légaux, liens courts `/e/…` et `/r/…` |
-| `www.evoly.me` | redirigé vers `evoly.me` |
-| `app.evoly.me` | tableau de bord, back-office (`/admin`), espace participant |
-| `scanner.evoly.me` | scanner des entrées |
-| `*.evoly.me` | billetteries des organisations et sous-domaines d'événement |
-| `domains.evoly.me` | cible des CNAME des domaines personnalisés |
+| Nom                | Usage                                                         |
+| ------------------ | ------------------------------------------------------------- |
+| `evoly.me`         | site vitrine, documents légaux, liens courts `/e/…` et `/r/…` |
+| `www.evoly.me`     | redirigé vers `evoly.me`                                      |
+| `app.evoly.me`     | tableau de bord, back-office (`/admin`), espace participant   |
+| `scanner.evoly.me` | scanner des entrées                                           |
+| `*.evoly.me`       | billetteries des organisations et sous-domaines d'événement   |
+| `domains.evoly.me` | cible des CNAME des domaines personnalisés                    |
 
 Aucun certificat wildcard n'est nécessaire : Caddy obtient chaque certificat à la première visite, uniquement pour un domaine que l'app reconnaît (`/api/domains/allowed`).
 
 ## 3. Stripe
 
 **Compte de la plateforme (Connect)**
+
 - Activer Connect, comptes « Standard » avec tableau de bord complet, pays de lancement.
 - Clés : `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
 
@@ -56,6 +57,7 @@ Aucun certificat wildcard n'est nécessaire : Caddy obtient chaque certificat à
 `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.trial_will_end`, `invoice.paid`, `invoice.payment_failed`.
 
 **Abonnement Pro**
+
 - Créer le produit « Evoly Pro » avec deux prix TTC (29 € par mois, 295,80 € par an), et renseigner `STRIPE_PRICE_PRO_MONTH` et `STRIPE_PRICE_PRO_YEAR`.
 - Portail client : changement de périodicité avec prorata, résiliation en fin de période, factures, mise à jour du moyen de paiement.
 - TVA de l'abonnement : décider avec l'expert-comptable, puis `STRIPE_TAX_ENABLED`.
@@ -74,14 +76,15 @@ Les domaines Apple Pay et Google Pay sont déclarés automatiquement sur le comp
 ## 5. Fichiers et sauvegardes (Cloudflare R2)
 
 - **Images** : bucket public (par exemple `evoly-uploads`), accessible par `files.evoly.me`, avec un jeton limité à ce bucket (`R2_*`). Sans R2, les images restent sur le serveur (volume `uploads`) et sont incluses dans la sauvegarde.
-- **Sauvegardes** : un **second bucket, privé** (par exemple `evoly-backups`), avec son propre jeton *Object Read & Write* limité à ce bucket (`BACKUP_R2_*`, R2 → *Account Details* → *Manage* à côté d'*API Tokens*). Il ne doit jamais être public : les sauvegardes contiennent des données personnelles.
-- **Rétention** : dans ce bucket, *Settings* → *Object lifecycle rules* → ajouter une règle qui supprime les objets **30 jours** après leur envoi. Les scripts envoient et téléchargent avec `curl` (signature S3), sans autre outil.
+- **Sauvegardes** : un **second bucket, privé** (par exemple `evoly-backups`), avec son propre jeton _Object Read & Write_ limité à ce bucket (`BACKUP_R2_*`, R2 → _Account Details_ → _Manage_ à côté d'_API Tokens_). Il ne doit jamais être public : les sauvegardes contiennent des données personnelles.
+- **Rétention** : dans ce bucket, _Settings_ → _Object lifecycle rules_ → ajouter une règle qui supprime les objets **30 jours** après leur envoi. Les scripts envoient et téléchargent avec `curl` (signature S3), sans autre outil.
 
 ## 6. Apple Wallet et Google Wallet (facultatif)
 
 Les boutons « Ajouter à Apple Wallet » et « Ajouter à Google Wallet » n'apparaissent sur la page des billets que si les identifiants correspondants sont fournis.
 
 **Apple** (compte Apple Developer, 99 $ par an)
+
 1. Certificates, Identifiers & Profiles → Identifiers → Pass Type IDs : créer `pass.me.evoly.ticket` (`APPLE_PASS_TYPE_ID`). L'identifiant d'équipe est `APPLE_TEAM_ID`.
 2. Créer le certificat de ce Pass Type ID (demande de signature générée avec `openssl req -new -newkey rsa:2048 -nodes -keyout pass.key -out pass.csr`), télécharger `pass.cer`, puis `openssl x509 -inform DER -in pass.cer -out pass.pem`.
 3. Télécharger le certificat intermédiaire « Apple Worldwide Developer Relations - G4 », puis `openssl x509 -inform DER -in AppleWWDRCAG4.cer -out wwdr.pem`.
@@ -89,6 +92,7 @@ Les boutons « Ajouter à Apple Wallet » et « Ajouter à Google Wallet » n'ap
 5. Le certificat expire au bout d'un an : prévoir son renouvellement.
 
 **Google** (console Google Pay & Wallet)
+
 1. Demander l'accès émetteur (Issuer) : l'identifiant est `GOOGLE_WALLET_ISSUER_ID`.
 2. Google Cloud : créer un compte de service, activer l'API Google Wallet, lui donner accès à l'émetteur, créer une clé JSON.
 3. `GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL` = `client_email` de la clé ; `GOOGLE_WALLET_PRIVATE_KEY` = `private_key` de la clé, encodée en base64.
@@ -117,9 +121,11 @@ crontab ops/crontab
 Le premier démarrage construit l'image, crée la **migration initiale** de la base (à versionner ensuite : `git add packages/db/prisma/migrations && git commit && git push`), applique les contraintes SQL et les données de départ (offres, rôles), puis démarre l'app. La crontab programme les 7 tâches planifiées et la sauvegarde quotidienne (heures en UTC).
 
 **Premier administrateur du back-office** :
+
 ```
 docker compose exec db psql -U evoly -d evoly -c "update \"User\" set \"platformRole\" = 'ADMIN' where email = 'prenom@evoly.me';"
 ```
+
 À la première visite de `/admin`, la double authentification est enregistrée et 8 codes de secours sont affichés une seule fois.
 
 ## 9. Mises à jour
@@ -127,6 +133,7 @@ docker compose exec db psql -U evoly -d evoly -c "update \"User\" set \"platform
 ```
 ops/deploy.sh
 ```
+
 Récupère le code, reconstruit l'image, applique les migrations, redémarre l'app (coupure de quelques secondes) et vérifie qu'elle répond. À éviter pendant un événement (scanner, ouverture des ventes).
 
 ## 10. Sauvegardes et restauration

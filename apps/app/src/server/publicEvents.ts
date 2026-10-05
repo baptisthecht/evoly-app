@@ -10,7 +10,13 @@ import { effectivePlan, hasFeature } from "@evoly/core";
 const VISIBLE_STATUSES = ["PUBLISHED", "SALES_PAUSED", "CANCELLED", "ENDED"] as const;
 
 const ORG_SELECT = {
-  id: true, name: true, slug: true, subdomain: true, locale: true, timezone: true, currency: true,
+  id: true,
+  name: true,
+  slug: true,
+  subdomain: true,
+  locale: true,
+  timezone: true,
+  currency: true,
   brand: { select: { displayName: true, logoUrl: true, faviconUrl: true, primaryColor: true, accentColor: true, hideEvolyBranding: true } },
   subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } },
 } as const;
@@ -47,7 +53,8 @@ async function resolveSiteUncached(key: string): Promise<SiteResolution | null> 
     if (!cd) return { kind: "DISABLED", fallback: null };
     const org = await publicOrg({ id: cd.organizationId });
     if (!org) return { kind: "DISABLED", fallback: null };
-    if (cd.status !== "ACTIVE" || !hasFeature(org.features, "CUSTOM_DOMAINS")) return { kind: "DISABLED", fallback: org.subdomain ? organizationPublicUrl(org.subdomain) : null };
+    if (cd.status !== "ACTIVE" || !hasFeature(org.features, "CUSTOM_DOMAINS"))
+      return { kind: "DISABLED", fallback: org.subdomain ? organizationPublicUrl(org.subdomain) : null };
     return cd.scope === "EVENT" && cd.eventId ? { kind: "EVENT", org, eventId: cd.eventId } : { kind: "ORG", org };
   }
   const org = await publicOrg({ subdomain: key });
@@ -87,7 +94,16 @@ export interface PublicTicketType {
   onSale: boolean;
 }
 
-function toTier(t: { id: string; priceMinor: number; startsAt: Date | null; endsAt: Date | null; quantityLimit: number | null; quantitySold: number; quantityHeld: number; sortOrder: number }): PriceTierInput {
+function toTier(t: {
+  id: string;
+  priceMinor: number;
+  startsAt: Date | null;
+  endsAt: Date | null;
+  quantityLimit: number | null;
+  quantitySold: number;
+  quantityHeld: number;
+  sortOrder: number;
+}): PriceTierInput {
   return t;
 }
 
@@ -97,12 +113,27 @@ export function loadPublicEvent(where: { organizationId: string; slug: string } 
 }
 
 // mis en commun le temps d'une visite (métadonnées et page) : aucune donnée gardée d'une visite à l'autre
-const loadPublicEventOnce = cache((where: string, allowDraft: boolean, codeOnly: boolean) => loadPublicEventUncached(JSON.parse(where), { allowDraft, codeOnly }));
+const loadPublicEventOnce = cache((where: string, allowDraft: boolean, codeOnly: boolean) =>
+  loadPublicEventUncached(JSON.parse(where), { allowDraft, codeOnly }),
+);
 
-async function loadPublicEventUncached(where: { organizationId: string; slug: string } | { id: string }, options: { allowDraft?: boolean; codeOnly?: boolean } = {}) {
+async function loadPublicEventUncached(
+  where: { organizationId: string; slug: string } | { id: string },
+  options: { allowDraft?: boolean; codeOnly?: boolean } = {},
+) {
   const event = await db.event.findFirst({
-    where: { ...("id" in where ? { id: where.id } : { organizationId: where.organizationId, slug: where.slug }), deletedAt: null, ...(options.allowDraft ? {} : { status: { in: [...VISIBLE_STATUSES] } }) },
-    include: { ticketTypes: { where: { status: { in: ["ACTIVE", "SOLD_OUT"] }, visibility: options.codeOnly ? "CODE_ONLY" : "VISIBLE" }, include: { priceTiers: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
+    where: {
+      ...("id" in where ? { id: where.id } : { organizationId: where.organizationId, slug: where.slug }),
+      deletedAt: null,
+      ...(options.allowDraft ? {} : { status: { in: [...VISIBLE_STATUSES] } }),
+    },
+    include: {
+      ticketTypes: {
+        where: { status: { in: ["ACTIVE", "SOLD_OUT"] }, visibility: options.codeOnly ? "CODE_ONLY" : "VISIBLE" },
+        include: { priceTiers: true },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      },
+    },
   });
   if (!event) return null;
   const now = new Date();
@@ -139,8 +170,23 @@ export async function listPublicEvents(organizationId: string) {
   const now = new Date();
   const events = await db.event.findMany({
     where: { organizationId, deletedAt: null, visibility: "PUBLIC", status: { in: ["PUBLISHED", "SALES_PAUSED", "ENDED"] } },
-    select: { id: true, slug: true, title: true, summary: true, startsAt: true, timezone: true, city: true, locationName: true, locationType: true, status: true, coverImageUrl: true },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      summary: true,
+      startsAt: true,
+      timezone: true,
+      city: true,
+      locationName: true,
+      locationType: true,
+      status: true,
+      coverImageUrl: true,
+    },
     orderBy: { startsAt: "asc" },
   });
-  return { upcoming: events.filter((e) => e.startsAt >= now && e.status !== "ENDED"), past: events.filter((e) => e.startsAt < now || e.status === "ENDED").reverse() };
+  return {
+    upcoming: events.filter((e) => e.startsAt >= now && e.status !== "ENDED"),
+    past: events.filter((e) => e.startsAt < now || e.status === "ENDED").reverse(),
+  };
 }

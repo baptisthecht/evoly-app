@@ -19,16 +19,33 @@ function AutomationForm({ orgSlug, eventId, a }: { orgSlug: string; eventId: str
           <span className="block font-semibold">{t(`type_${a.type}`)}</span>
           <span className="block text-sm text-ink-muted">{a.sent ? t("sent") : t(`when_${a.type}`)}</span>
         </span>
-        <input type="checkbox" name="enabled" defaultChecked={a.enabled} className="size-5 accent-[var(--ink)]" aria-label={t("enable", { type: t(`type_${a.type}`) })} />
+        <input
+          type="checkbox"
+          name="enabled"
+          defaultChecked={a.enabled}
+          className="size-5 accent-[var(--ink)]"
+          aria-label={t("enable", { type: t(`type_${a.type}`) })}
+        />
       </label>
       <FormError state={state} />
       <Field label={t("subject")} htmlFor={`${a.type}-subject`} error={error("subject")}>
         <Input id={`${a.type}-subject`} name="subject" defaultValue={a.subject} maxLength={150} />
       </Field>
       <Field label={t("message")} htmlFor={`${a.type}-message`} hint={t("messageHint")} error={error("message")}>
-        <textarea id={`${a.type}-message`} name="message" defaultValue={a.message} rows={4} maxLength={4000} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+        <textarea
+          id={`${a.type}-message`}
+          name="message"
+          defaultValue={a.message}
+          rows={4}
+          maxLength={4000}
+          className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+        />
       </Field>
-      {state?.ok ? <p className="text-sm text-success" role="status">{t("saved")}</p> : null}
+      {state?.ok ? (
+        <p className="text-sm text-success" role="status">
+          {t("saved")}
+        </p>
+      ) : null}
       <SubmitButton pending={pending} variant="secondary" className="w-full sm:w-auto sm:justify-self-start">
         {t("save")}
       </SubmitButton>

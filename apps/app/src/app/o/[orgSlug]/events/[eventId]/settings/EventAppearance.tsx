@@ -10,7 +10,23 @@ import { uploadFile } from "@/app/o/[orgSlug]/brand/BrandClient";
 import { checkSubdomainAction, eventCoverAction, eventSubdomainAction } from "@/app/o/[orgSlug]/brand/actions";
 
 /** Image de couverture et sous-domaine d'événement (Pro, US-BRD-05). */
-export function EventAppearance({ orgSlug, eventId, cover, subdomain, baseDomain, canSubdomain, protocol }: { orgSlug: string; eventId: string; cover: string | null; subdomain: string | null; baseDomain: string; canSubdomain: boolean; protocol: string }) {
+export function EventAppearance({
+  orgSlug,
+  eventId,
+  cover,
+  subdomain,
+  baseDomain,
+  canSubdomain,
+  protocol,
+}: {
+  orgSlug: string;
+  eventId: string;
+  cover: string | null;
+  subdomain: string | null;
+  baseDomain: string;
+  canSubdomain: boolean;
+  protocol: string;
+}) {
   const t = useTranslations("brand");
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -54,12 +70,23 @@ export function EventAppearance({ orgSlug, eventId, cover, subdomain, baseDomain
             />
           </label>
           {cover ? (
-            <button type="button" className="text-sm underline underline-offset-4" onClick={async () => { await eventCoverAction(orgSlug, eventId, null); router.refresh(); }}>
+            <button
+              type="button"
+              className="text-sm underline underline-offset-4"
+              onClick={async () => {
+                await eventCoverAction(orgSlug, eventId, null);
+                router.refresh();
+              }}
+            >
               {t("removeCover")}
             </button>
           ) : null}
         </div>
-        {error ? <p role="alert" className="text-sm text-danger">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
       </Card>
       <Card className="grid gap-3">
         <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("eventSubdomainTitle")}</h2>
@@ -68,14 +95,27 @@ export function EventAppearance({ orgSlug, eventId, cover, subdomain, baseDomain
             <p className="-mt-1 text-sm text-ink-muted">{t("eventSubdomainHint")}</p>
             <FormError state={state} />
             <div className="flex flex-wrap items-center gap-2">
-              <Input name="subdomain" value={value} onChange={(e) => setValue(e.target.value.toLowerCase())} className="max-w-[16rem] font-mono" aria-label={t("eventSubdomainTitle")} />
+              <Input
+                name="subdomain"
+                value={value}
+                onChange={(e) => setValue(e.target.value.toLowerCase())}
+                className="max-w-[16rem] font-mono"
+                aria-label={t("eventSubdomainTitle")}
+              />
               <span className="font-mono text-sm text-ink-muted">.{baseDomain}</span>
             </div>
-            {check ? <p className={`text-sm ${check.ok ? "text-success" : "text-danger"}`}>{check.ok ? t("available") : t(`unavailable_${check.reason}`)}</p> : null}
+            {check ? (
+              <p className={`text-sm ${check.ok ? "text-success" : "text-danger"}`}>{check.ok ? t("available") : t(`unavailable_${check.reason}`)}</p>
+            ) : null}
             {subdomain ? (
               <p className="text-sm">
                 {t("eventSubdomainActive")}{" "}
-                <a href={`${protocol}//${subdomain}.${baseDomain}`} target="_blank" rel="noreferrer" className="font-mono font-semibold underline underline-offset-4">
+                <a
+                  href={`${protocol}//${subdomain}.${baseDomain}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono font-semibold underline underline-offset-4"
+                >
                   {subdomain}.{baseDomain}
                 </a>
               </p>
@@ -89,7 +129,10 @@ export function EventAppearance({ orgSlug, eventId, cover, subdomain, baseDomain
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-lilas px-2 py-0.5 font-label text-xs font-bold text-charbon">Pro</span>
             <p className="text-sm text-ink-muted">{t("eventSubdomainUpsell")}</p>
-            <a href={`/o/${orgSlug}/billing`} className="inline-flex min-h-11 items-center rounded-full bg-surface-inverse px-5 font-label text-sm font-bold text-ink-inverse">
+            <a
+              href={`/o/${orgSlug}/billing`}
+              className="inline-flex min-h-11 items-center rounded-full bg-surface-inverse px-5 font-label text-sm font-bold text-ink-inverse"
+            >
               {t("upgradePro")}
             </a>
           </div>

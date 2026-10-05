@@ -16,7 +16,13 @@ export function ResendTickets({ orgSlug, orderId }: { orgSlug: string; orderId: 
       <SubmitButton variant="secondary" className="w-full sm:w-auto">
         {t("resend")}
       </SubmitButton>
-      {state?.ok ? <p className="text-sm text-success" role="status">{t("resent")}</p> : <FormError state={state} />}
+      {state?.ok ? (
+        <p className="text-sm text-success" role="status">
+          {t("resent")}
+        </p>
+      ) : (
+        <FormError state={state} />
+      )}
     </form>
   );
 }
@@ -38,7 +44,11 @@ export function CorrectEmail({ orgSlug, orderId, email }: { orgSlug: string; ord
       <Field label={t("newEmail")} htmlFor="new-email" hint={t("newEmailHint")} error={error("email")}>
         <Input id="new-email" name="email" type="email" defaultValue={email} required />
       </Field>
-      {state?.ok ? <p className="text-sm text-success" role="status">{t("emailCorrected")}</p> : null}
+      {state?.ok ? (
+        <p className="text-sm text-success" role="status">
+          {t("emailCorrected")}
+        </p>
+      ) : null}
       <div className="flex gap-2">
         <SubmitButton pending={pending} className="w-full sm:w-auto">
           {t("saveEmail")}
@@ -51,7 +61,19 @@ export function CorrectEmail({ orgSlug, orderId, email }: { orgSlug: string; ord
   );
 }
 
-export function HolderForm({ orgSlug, orderId, ticketId, firstName, lastName }: { orgSlug: string; orderId: string; ticketId: string; firstName: string; lastName: string }) {
+export function HolderForm({
+  orgSlug,
+  orderId,
+  ticketId,
+  firstName,
+  lastName,
+}: {
+  orgSlug: string;
+  orderId: string;
+  ticketId: string;
+  firstName: string;
+  lastName: string;
+}) {
   const t = useTranslations("ordersAdmin");
   const [open, setOpen] = useState(false);
   const { state, pending, formProps } = useActionForm(holderAction.bind(null, orgSlug, orderId, ticketId), null);
@@ -74,7 +96,17 @@ export function HolderForm({ orgSlug, orderId, ticketId, firstName, lastName }: 
 }
 
 /** US-REF-03 et RG-REF-05 : choix des billets, mention des frais non restitués avant validation. */
-export function RefundTickets({ orgSlug, orderId, tickets, currency }: { orgSlug: string; orderId: string; tickets: Array<{ id: string; label: string; faceValueMinor: number; scanned: boolean }>; currency: string }) {
+export function RefundTickets({
+  orgSlug,
+  orderId,
+  tickets,
+  currency,
+}: {
+  orgSlug: string;
+  orderId: string;
+  tickets: Array<{ id: string; label: string; faceValueMinor: number; scanned: boolean }>;
+  currency: string;
+}) {
   const t = useTranslations("ordersAdmin");
   const locale = useLocale() as Locale;
   const [open, setOpen] = useState(false);
@@ -89,14 +121,25 @@ export function RefundTickets({ orgSlug, orderId, tickets, currency }: { orgSlug
       </Button>
     );
   return (
-    <form {...formProps} onSubmit={(e) => (window.confirm(t("confirmRefund", { amount: formatMoney(total, currency, locale) })) ? formProps.onSubmit(e) : e.preventDefault())} className="grid gap-4 rounded-md bg-surface-sunken p-4">
+    <form
+      {...formProps}
+      onSubmit={(e) => (window.confirm(t("confirmRefund", { amount: formatMoney(total, currency, locale) })) ? formProps.onSubmit(e) : e.preventDefault())}
+      className="grid gap-4 rounded-md bg-surface-sunken p-4"
+    >
       <FormError state={state} />
       <fieldset className="grid gap-2">
         <legend className="mb-1 font-semibold">{t("refundWhich")}</legend>
         <p className="mb-2 text-xs text-ink-muted">{t("feesNotReturned")}</p>
         {tickets.map((tk) => (
           <label key={tk.id} className="flex items-center gap-3 text-sm">
-            <input type="checkbox" name="ticketIds" value={tk.id} checked={selected.includes(tk.id)} onChange={(e) => setSelected((s) => (e.target.checked ? [...s, tk.id] : s.filter((x) => x !== tk.id)))} className="size-5 accent-[var(--ink)]" />
+            <input
+              type="checkbox"
+              name="ticketIds"
+              value={tk.id}
+              checked={selected.includes(tk.id)}
+              onChange={(e) => setSelected((s) => (e.target.checked ? [...s, tk.id] : s.filter((x) => x !== tk.id)))}
+              className="size-5 accent-[var(--ink)]"
+            />
             {tk.label} · {tk.faceValueMinor === 0 ? t("free") : formatMoney(tk.faceValueMinor, currency, locale)}
             {tk.scanned ? <span className="text-ink-muted">· {t("scanned")}</span> : null}
           </label>

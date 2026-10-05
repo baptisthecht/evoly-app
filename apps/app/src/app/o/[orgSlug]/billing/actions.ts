@@ -7,7 +7,12 @@ import { runOrgAction, type ActionState } from "@/server/guard";
 
 /** Section 9.21 : « Essayer Pro 14 jours » vers Stripe Checkout (carte requise, mensuel ou annuel). */
 export async function checkoutAction(orgSlug: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, { interval: form.get("interval") }, { schema: z.object({ interval: z.enum(["MONTH", "YEAR"]) }), permission: "BILLING_MANAGE", write: false }, (d, ctx) => startCheckout(ctx, d.interval));
+  const r = await runOrgAction(
+    orgSlug,
+    { interval: form.get("interval") },
+    { schema: z.object({ interval: z.enum(["MONTH", "YEAR"]) }), permission: "BILLING_MANAGE", write: false },
+    (d, ctx) => startCheckout(ctx, d.interval),
+  );
   if (r?.ok) redirect(r.data);
   return r;
 }

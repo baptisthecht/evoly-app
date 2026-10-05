@@ -8,7 +8,9 @@ const buyer = (email: string) => ({ firstName: "Léa", lastName: "Martin", email
 
 async function setup(opts: { quantities: Array<number | null>; capacity?: number | null; priceMinor?: number }) {
   const id = rid();
-  const org = await db.organization.create({ data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
+  const org = await db.organization.create({
+    data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
   const event = await db.event.create({
     data: {
       organizationId: org.id,
@@ -20,7 +22,9 @@ async function setup(opts: { quantities: Array<number | null>; capacity?: number
       startsAt: future(),
       status: "PUBLISHED",
       capacity: opts.capacity ?? null,
-      ticketTypes: { create: opts.quantities.map((q, i) => ({ name: `Tarif ${i + 1}`, priceMinor: opts.priceMinor ?? 0, currency: "EUR", quantity: q, sortOrder: i })) },
+      ticketTypes: {
+        create: opts.quantities.map((q, i) => ({ name: `Tarif ${i + 1}`, priceMinor: opts.priceMinor ?? 0, currency: "EUR", quantity: q, sortOrder: i })),
+      },
     },
     include: { ticketTypes: { orderBy: { sortOrder: "asc" } } },
   });
@@ -32,7 +36,9 @@ const stock = (id: string) => db.ticketType.findUniqueOrThrow({ where: { id }, s
 describe("réservation atomique (RG-BUY-01)", () => {
   it("40 réservations simultanées pour 10 places : exactement 10 réussissent", async () => {
     const { event, types } = await setup({ quantities: [10] });
-    const results = await Promise.allSettled(Array.from({ length: 40 }, () => reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr" })));
+    const results = await Promise.allSettled(
+      Array.from({ length: 40 }, () => reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr" })),
+    );
     expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(10);
     expect(results.filter((r) => r.status === "rejected").every((r) => (r as PromiseRejectedResult).reason instanceof CartRejected)).toBe(true);
     expect(await stock(types[0]!.id)).toEqual({ quantitySold: 0, quantityHeld: 10 });
@@ -40,7 +46,9 @@ describe("réservation atomique (RG-BUY-01)", () => {
 
   it("jauge commune à plusieurs tarifs illimités", async () => {
     const { event, types } = await setup({ quantities: [null, null], capacity: 5 });
-    const results = await Promise.allSettled(Array.from({ length: 12 }, (_, i) => reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[i % 2]!.id, quantity: 1 }], locale: "fr" })));
+    const results = await Promise.allSettled(
+      Array.from({ length: 12 }, (_, i) => reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[i % 2]!.id, quantity: 1 }], locale: "fr" })),
+    );
     expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(5);
   });
 
@@ -105,18 +113,61 @@ import { getPlans } from "@/server/plans";
 
 async function setupWith(tt: Array<{ priceMinor: number; quantity?: number | null; visibility?: "VISIBLE" | "CODE_ONLY"; isNominative?: boolean }>) {
   const id = rid();
-  const org = await db.organization.create({ data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
+  const org = await db.organization.create({
+    data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
   const event = await db.event.create({
     data: {
-      organizationId: org.id, slug: `evenement-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Événement ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: future(), status: "PUBLISHED",
-      ticketTypes: { create: tt.map((t, i) => ({ name: `Tarif ${i + 1}`, priceMinor: t.priceMinor, currency: "EUR", quantity: t.quantity ?? 100, visibility: t.visibility ?? "VISIBLE", isNominative: t.isNominative ?? false, sortOrder: i })) },
+      organizationId: org.id,
+      slug: `evenement-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: `Événement ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: future(),
+      status: "PUBLISHED",
+      ticketTypes: {
+        create: tt.map((t, i) => ({
+          name: `Tarif ${i + 1}`,
+          priceMinor: t.priceMinor,
+          currency: "EUR",
+          quantity: t.quantity ?? 100,
+          visibility: t.visibility ?? "VISIBLE",
+          isNominative: t.isNominative ?? false,
+          sortOrder: i,
+        })),
+      },
     },
     include: { ticketTypes: { orderBy: { sortOrder: "asc" } } },
   });
   return { org, event, types: event.ticketTypes };
 }
-const promo = (eventId: string, data: Partial<{ code: string; discountType: "PERCENT" | "AMOUNT" | "FREE"; percentOffBps: number; amountOffMinor: number; maxUses: number; maxUsesPerEmail: number; unlocksHidden: boolean; ticketTypeIds: string[] }>) =>
-  db.promoCode.create({ data: { eventId, code: data.code ?? `CODE${rid().toUpperCase()}`, discountType: data.discountType ?? "PERCENT", percentOffBps: data.percentOffBps ?? null, amountOffMinor: data.amountOffMinor ?? null, maxUses: data.maxUses ?? null, maxUsesPerEmail: data.maxUsesPerEmail ?? null, unlocksHidden: data.unlocksHidden ?? false, ticketTypeIds: data.ticketTypeIds ?? [] } });
+const promo = (
+  eventId: string,
+  data: Partial<{
+    code: string;
+    discountType: "PERCENT" | "AMOUNT" | "FREE";
+    percentOffBps: number;
+    amountOffMinor: number;
+    maxUses: number;
+    maxUsesPerEmail: number;
+    unlocksHidden: boolean;
+    ticketTypeIds: string[];
+  }>,
+) =>
+  db.promoCode.create({
+    data: {
+      eventId,
+      code: data.code ?? `CODE${rid().toUpperCase()}`,
+      discountType: data.discountType ?? "PERCENT",
+      percentOffBps: data.percentOffBps ?? null,
+      amountOffMinor: data.amountOffMinor ?? null,
+      maxUses: data.maxUses ?? null,
+      maxUsesPerEmail: data.maxUsesPerEmail ?? null,
+      unlocksHidden: data.unlocksHidden ?? false,
+      ticketTypeIds: data.ticketTypeIds ?? [],
+    },
+  });
 
 describe("codes promo (RG-PRM-01 à 05)", () => {
   it("pourcentage : remise sur le prix, commission calculée sur le prix remisé", async () => {
@@ -138,14 +189,18 @@ describe("codes promo (RG-PRM-01 à 05)", () => {
     expect((await db.order.findUniqueOrThrow({ where: { id: r.orderId } })).applicationFeeMinor).toBe(0);
     expect(await submitBuyer(r.token, buyer(`invite.${rid()}@exemple.be`))).toEqual({ kind: "PAID" });
     expect((await db.promoCode.findUniqueOrThrow({ where: { id: p.id } })).usedCount).toBe(1);
-    await expect(reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr", promoCode: "INVITE" })).rejects.toMatchObject({ reason: "EXHAUSTED" });
+    await expect(
+      reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr", promoCode: "INVITE" }),
+    ).rejects.toMatchObject({ reason: "EXHAUSTED" });
   });
 
   it("limite d'utilisations : les réservations en cours comptent", async () => {
     const { event, types } = await setupWith([{ priceMinor: 2000 }]);
     await promo(event.id, { code: "UNSEUL", discountType: "AMOUNT", amountOffMinor: 500, maxUses: 1 });
     await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr", promoCode: "UNSEUL" });
-    await expect(reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr", promoCode: "UNSEUL" })).rejects.toBeInstanceOf(PromoRejected);
+    await expect(
+      reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr", promoCode: "UNSEUL" }),
+    ).rejects.toBeInstanceOf(PromoRejected);
   });
 
   it("tarif réservé aux codes : invisible sans code, débloqué par un code qui l'autorise", async () => {
@@ -173,13 +228,24 @@ describe("billets nominatifs et PDF (RG-QST-01, RG-QST-02, section 9.12)", () =>
     const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }], locale: "fr" });
     await expect(submitBuyer(r.token, buyer(`nom.${rid()}@exemple.be`))).rejects.toThrow("HOLDERS_REQUIRED");
     const itemId = r.lines[0]!.orderItemId;
-    await submitBuyer(r.token, { ...buyer(`nom.${rid()}@exemple.be`), holders: { [itemId]: [{ firstName: "Léa", lastName: "Martin" }, { firstName: "Tom", lastName: "Dubois" }] } });
+    await submitBuyer(r.token, {
+      ...buyer(`nom.${rid()}@exemple.be`),
+      holders: {
+        [itemId]: [
+          { firstName: "Léa", lastName: "Martin" },
+          { firstName: "Tom", lastName: "Dubois" },
+        ],
+      },
+    });
     const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
     expect(tickets.map((t) => `${t.holderFirstName} ${t.holderLastName}`).sort()).toEqual(["Léa Martin", "Tom Dubois"]);
     await updateTicketHolder(r.token, tickets[0]!.id, { firstName: "Zoé", lastName: "Leroy" });
     expect((await db.ticket.findUniqueOrThrow({ where: { id: tickets[0]!.id } })).holderFirstName).toBe("Zoé");
 
-    const order = await db.order.findUniqueOrThrow({ where: { id: r.orderId }, include: { organization: { select: { name: true } }, event: true, tickets: { include: { ticketType: { select: { name: true } } } } } });
+    const order = await db.order.findUniqueOrThrow({
+      where: { id: r.orderId },
+      include: { organization: { select: { name: true } }, event: true, tickets: { include: { ticketType: { select: { name: true } } } } },
+    });
     const bytes = await ticketsPdfFor(order, "fr");
     expect(Buffer.from(bytes.slice(0, 5)).toString()).toBe("%PDF-");
     expect((await PDFDocument.load(bytes)).getPageCount()).toBe(2);

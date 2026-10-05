@@ -1,5 +1,14 @@
 import "server-only";
-import { PERMISSIONS,  effectivePlan, isReadOnlyOrganization, type MembershipInput, type Permission, type PlanFeature, type PlanId, type SystemRole } from "@evoly/core";
+import {
+  PERMISSIONS,
+  effectivePlan,
+  isReadOnlyOrganization,
+  type MembershipInput,
+  type Permission,
+  type PlanFeature,
+  type PlanId,
+  type SystemRole,
+} from "@evoly/core";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { db } from "@/lib/db";
@@ -39,13 +48,29 @@ export async function findOrgContext(userId: string, orgSlug: string, opts: { su
         where: { userId, status: "ACTIVE", organization: { slug: orgSlug, status: { in: ["ACTIVE", "SUSPENDED"] }, deletedAt: null } },
         include: { role: true, organization: { include: { subscription: true, stripeAccount: true } } },
       });
-  const supportOrg = opts.supportView ? await db.organization.findFirst({ where: { slug: orgSlug, deletedAt: null }, include: { subscription: true, stripeAccount: true } }) : null;
+  const supportOrg = opts.supportView
+    ? await db.organization.findFirst({ where: { slug: orgSlug, deletedAt: null }, include: { subscription: true, stripeAccount: true } })
+    : null;
   if (!found && !supportOrg) return null;
   // consultation support : tout voir, rien modifier (les actions exigent d'être membre)
-  const member = found ?? { status: "ACTIVE" as const, role: { systemKey: "OWNER" as const, permissions: [...PERMISSIONS], name: "Support Evoly" }, organization: supportOrg! };
+  const member = found ?? {
+    status: "ACTIVE" as const,
+    role: { systemKey: "OWNER" as const, permissions: [...PERMISSIONS], name: "Support Evoly" },
+    organization: supportOrg!,
+  };
   const o = member.organization;
   const now = new Date();
-  const plan = effectivePlan(o.subscription ? { planId: o.subscription.planId, status: o.subscription.status, currentPeriodEnd: o.subscription.currentPeriodEnd, pastDueSince: o.subscription.pastDueSince } : null, now);
+  const plan = effectivePlan(
+    o.subscription
+      ? {
+          planId: o.subscription.planId,
+          status: o.subscription.status,
+          currentPeriodEnd: o.subscription.currentPeriodEnd,
+          pastDueSince: o.subscription.pastDueSince,
+        }
+      : null,
+    now,
+  );
   const plans = await getPlans();
   let readOnly = false;
   if (plan === "free") {
@@ -53,7 +78,15 @@ export async function findOrgContext(userId: string, orgSlug: string, opts: { su
     const owner = await db.organizationMember.findFirst({ where: { organizationId: o.id, role: { systemKey: "OWNER" } }, select: { userId: true } });
     if (owner) {
       const firstFree = await db.organization.findFirst({
-        where: { deletedAt: null, members: { some: { userId: owner.userId, role: { systemKey: "OWNER" } } }, OR: [{ subscription: null }, { subscription: { planId: "free" } }, { subscription: { status: { in: ["NONE", "CANCELED", "UNPAID", "INCOMPLETE"] } } }] },
+        where: {
+          deletedAt: null,
+          members: { some: { userId: owner.userId, role: { systemKey: "OWNER" } } },
+          OR: [
+            { subscription: null },
+            { subscription: { planId: "free" } },
+            { subscription: { status: { in: ["NONE", "CANCELED", "UNPAID", "INCOMPLETE"] } } },
+          ],
+        },
         orderBy: { createdAt: "asc" },
         select: { id: true },
       });
@@ -65,14 +98,36 @@ export async function findOrgContext(userId: string, orgSlug: string, opts: { su
   if (!opts.supportView && !plans[plan].features.includes("TEAM_MEMBERS") && member.role.systemKey !== "OWNER") return null;
   if (o.status === "SUSPENDED" || opts.supportView) readOnly = true;
   return {
-    organization: { id: o.id, slug: o.slug, name: o.name, country: o.country, currency: o.currency, locale: o.locale, timezone: o.timezone, subdomain: o.subdomain, contactEmail: o.contactEmail },
-    membership: { status: member.status, systemRole: (member.role.systemKey ?? null) as SystemRole | null, permissions: member.role.permissions as Permission[], roleName: member.role.name },
+    organization: {
+      id: o.id,
+      slug: o.slug,
+      name: o.name,
+      country: o.country,
+      currency: o.currency,
+      locale: o.locale,
+      timezone: o.timezone,
+      subdomain: o.subdomain,
+      contactEmail: o.contactEmail,
+    },
+    membership: {
+      status: member.status,
+      systemRole: (member.role.systemKey ?? null) as SystemRole | null,
+      permissions: member.role.permissions as Permission[],
+      roleName: member.role.name,
+    },
     plan,
     features: plans[plan].features,
     readOnly,
     suspended: o.status === "SUSPENDED",
     supportView: !!opts.supportView,
-    stripe: sa ? { status: sa.status, chargesEnabled: sa.chargesEnabled, payoutsEnabled: sa.payoutsEnabled, requirementsDue: Array.isArray(sa.requirementsDue) ? (sa.requirementsDue as string[]) : [] } : null,
+    stripe: sa
+      ? {
+          status: sa.status,
+          chargesEnabled: sa.chargesEnabled,
+          payoutsEnabled: sa.payoutsEnabled,
+          requirementsDue: Array.isArray(sa.requirementsDue) ? (sa.requirementsDue as string[]) : [],
+        }
+      : null,
   };
 }
 

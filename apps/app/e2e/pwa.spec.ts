@@ -9,7 +9,9 @@ test("application installable sur app.evoly.me : manifeste, icônes, service wor
   const m = await res.json();
   expect(m).toMatchObject({ id: "/", name: "Evoly", short_name: "Evoly", lang: "de", start_url: "/", scope: "/", display: "standalone" });
   expect(m.description).toContain("Online-Ticketing");
-  expect(m.icons.map((i: { sizes: string; purpose: string }) => `${i.sizes} ${i.purpose}`)).toEqual(expect.arrayContaining(["192x192 any", "512x512 any", "512x512 maskable"]));
+  expect(m.icons.map((i: { sizes: string; purpose: string }) => `${i.sizes} ${i.purpose}`)).toEqual(
+    expect.arrayContaining(["192x192 any", "512x512 any", "512x512 maskable"]),
+  );
   for (const icon of m.icons as Array<{ src: string; type: string }>) {
     const r = await request.get(appUrl(icon.src));
     expect(r.status(), icon.src).toBe(200);
@@ -38,7 +40,19 @@ test("application installable sur app.evoly.me : manifeste, icônes, service wor
   const installed = await browser.newContext();
   await installed.addInitScript(() => {
     const original = window.matchMedia.bind(window);
-    window.matchMedia = (q: string) => (q.includes("display-mode: standalone") ? ({ matches: true, media: q, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false } as MediaQueryList) : original(q));
+    window.matchMedia = (q: string) =>
+      q.includes("display-mode: standalone")
+        ? ({
+            matches: true,
+            media: q,
+            onchange: null,
+            addEventListener() {},
+            removeEventListener() {},
+            addListener() {},
+            removeListener() {},
+            dispatchEvent: () => false,
+          } as MediaQueryList)
+        : original(q);
   });
   const app = await installed.newPage();
   await app.goto(appUrl("/login"));

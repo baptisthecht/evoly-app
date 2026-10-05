@@ -20,7 +20,21 @@ function stripeFor(publishableKey: string, stripeAccount: string) {
 }
 
 /** Payment Element en création différée : les moyens de paiement s'affichent avant la création de l'intention (RG-PAY-03). */
-export function StripePayment({ publishableKey, stripeAccountId, amountMinor, currency, locale, children }: { publishableKey: string; stripeAccountId: string; amountMinor: number; currency: string; locale: string; children: ReactNode }) {
+export function StripePayment({
+  publishableKey,
+  stripeAccountId,
+  amountMinor,
+  currency,
+  locale,
+  children,
+}: {
+  publishableKey: string;
+  stripeAccountId: string;
+  amountMinor: number;
+  currency: string;
+  locale: string;
+  children: ReactNode;
+}) {
   return (
     <Elements
       stripe={stripeFor(publishableKey, stripeAccountId)}
@@ -29,7 +43,17 @@ export function StripePayment({ publishableKey, stripeAccountId, amountMinor, cu
         amount: amountMinor,
         currency: currency.toLowerCase(),
         locale: toLocale(locale), // Stripe Elements existe dans toutes nos langues
-        appearance: { theme: "stripe", variables: { colorPrimary: palette.charbon, colorText: palette.charbon, colorDanger: palette.danger, borderRadius: "12px", fontFamily: "Poppins, system-ui, sans-serif", spacingUnit: "4px" } },
+        appearance: {
+          theme: "stripe",
+          variables: {
+            colorPrimary: palette.charbon,
+            colorText: palette.charbon,
+            colorDanger: palette.danger,
+            borderRadius: "12px",
+            fontFamily: "Poppins, system-ui, sans-serif",
+            spacingUnit: "4px",
+          },
+        },
       }}
     >
       {children}
@@ -46,7 +70,14 @@ export function PayButton({ label, busy, onPay }: { label: string; busy: boolean
   const stripe = useStripe();
   const elements = useElements();
   return (
-    <Button type="button" size="lg" className="w-full" disabled={!stripe || !elements || busy} aria-busy={busy} onClick={() => stripe && elements && onPay(stripe, elements)}>
+    <Button
+      type="button"
+      size="lg"
+      className="w-full"
+      disabled={!stripe || !elements || busy}
+      aria-busy={busy}
+      onClick={() => stripe && elements && onPay(stripe, elements)}
+    >
       {label}
     </Button>
   );

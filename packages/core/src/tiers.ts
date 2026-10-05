@@ -97,9 +97,7 @@ export interface TierIssue {
 
 /** Trous et chevauchements de calendrier entre paliers datés (RG-TKT-10). */
 export function tierCalendarIssues(tiers: readonly PriceTierInput[]): TierIssue[] {
-  const dated = tiers
-    .filter((t) => t.startsAt && t.endsAt)
-    .sort((a, b) => a.startsAt!.getTime() - b.startsAt!.getTime());
+  const dated = tiers.filter((t) => t.startsAt && t.endsAt).sort((a, b) => a.startsAt!.getTime() - b.startsAt!.getTime());
   const issues: TierIssue[] = [];
   for (let i = 1; i < dated.length; i++) {
     const prev = dated[i - 1]!;

@@ -51,7 +51,8 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
   const wallet = { apple: !!appleCredentials(), google: !!googleCredentials() };
   // badges officiels s'ils sont déposés dans public/wallet (voir LISEZMOI.md), sinon bouton texte
   const badgeLocale = (await getLocale()) === "en" ? "en" : "fr";
-  const badge = (name: string) => (existsSync(join(process.cwd(), "public", "wallet", `${name}-${badgeLocale}.svg`)) ? `/wallet/${name}-${badgeLocale}.svg` : null);
+  const badge = (name: string) =>
+    existsSync(join(process.cwd(), "public", "wallet", `${name}-${badgeLocale}.svg`)) ? `/wallet/${name}-${badgeLocale}.svg` : null;
   const badges = { apple: badge("add-to-apple-wallet"), google: badge("add-to-google-wallet") };
   const locale = (await getLocale()) as Locale;
   const e = order.event;
@@ -61,14 +62,41 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
   const friendUrl = friendCode ? `${organizationPublicUrl(org.subdomain ?? org.slug)}/${e.slug}?amis=${friendCode}` : null;
   const eventHref = `/${e.slug}`;
   const place = e.locationType === "ONLINE" ? null : [e.locationName, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
-  const qrs = order.status === "PAID" || order.status === "PARTIALLY_REFUNDED" ? await Promise.all(order.tickets.map((tk) => QRCode.toString(tk.code, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: palette.charbon, light: palette.blanc } }))) : [];
+  const qrs =
+    order.status === "PAID" || order.status === "PARTIALLY_REFUNDED"
+      ? await Promise.all(
+          order.tickets.map((tk) =>
+            QRCode.toString(tk.code, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: palette.charbon, light: palette.blanc } }),
+          ),
+        )
+      : [];
   // revente (section 9.13) : annonces ouvertes et conditions, billet par billet
-  const openListings = await db.resaleListing.findMany({ where: { sellerOrderId: order.id, status: { in: ["ACTIVE", "RESERVED"] } }, select: { id: true, ticketId: true, status: true, priceMinor: true, linkCode: true } });
-  const quotes = new Map(await Promise.all(order.tickets.filter((tk) => tk.status === "VALID").map(async (tk) => [tk.id, await resaleQuote(token, tk.id).catch(() => null)] as const)));
+  const openListings = await db.resaleListing.findMany({
+    where: { sellerOrderId: order.id, status: { in: ["ACTIVE", "RESERVED"] } },
+    select: { id: true, ticketId: true, status: true, priceMinor: true, linkCode: true },
+  });
+  const quotes = new Map(
+    await Promise.all(
+      order.tickets.filter((tk) => tk.status === "VALID").map(async (tk) => [tk.id, await resaleQuote(token, tk.id).catch(() => null)] as const),
+    ),
+  );
   // US-REF-01 : remboursements possibles selon la politique de l'événement
-  const refundsList = await db.refund.findMany({ where: { orderId: order.id }, include: { items: { select: { ticketId: true } } }, orderBy: { createdAt: "desc" } });
-  const pendingTickets = new Set(refundsList.filter((r) => ["REQUESTED", "APPROVED", "PROCESSING"].includes(r.status)).flatMap((r) => r.items.map((i) => i.ticketId)));
-  const refundCheck = checkRefundRequest({ policy: e.refundPolicy, deadlineAt: e.refundDeadlineAt, eventStatus: e.status, eventStartsAt: e.startsAt, lastMajorChangeAt: e.lastMajorChangeAt, now: new Date() });
+  const refundsList = await db.refund.findMany({
+    where: { orderId: order.id },
+    include: { items: { select: { ticketId: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  const pendingTickets = new Set(
+    refundsList.filter((r) => ["REQUESTED", "APPROVED", "PROCESSING"].includes(r.status)).flatMap((r) => r.items.map((i) => i.ticketId)),
+  );
+  const refundCheck = checkRefundRequest({
+    policy: e.refundPolicy,
+    deadlineAt: e.refundDeadlineAt,
+    eventStatus: e.status,
+    eventStartsAt: e.startsAt,
+    lastMajorChangeAt: e.lastMajorChangeAt,
+    now: new Date(),
+  });
   const refundableTickets = order.tickets.filter((tk) => tk.status === "VALID" && !pendingTickets.has(tk.id));
   const holdActive = order.status === "PENDING" && !!order.holdExpiresAt && order.holdExpiresAt > new Date();
 
@@ -104,29 +132,58 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
             </section>
             <ol className="grid gap-4 sm:grid-cols-2">
               {order.tickets.map((tk, i) => (
-                <li key={tk.id} className="grid min-w-0 justify-items-center gap-3 rounded-[var(--r-panel)] bg-surface-raised p-5 text-center shadow-md ring-1 ring-line [&>*]:max-w-full">
+                <li
+                  key={tk.id}
+                  className="grid min-w-0 justify-items-center gap-3 rounded-[var(--r-panel)] bg-surface-raised p-5 text-center shadow-md ring-1 ring-line [&>*]:max-w-full"
+                >
                   <p className="font-label text-xs font-bold text-ink-muted">{t("ticketOf", { index: i + 1, count: order.tickets.length })}</p>
                   <p className="font-display text-lg tracking-[-0.03em]">{tk.ticketType.name}</p>
-                  {tk.seat ? <p className="text-sm font-semibold" data-testid="seat">{t("seat", { row: tk.seat.row.name, seat: tk.seat.label })}</p> : null}
+                  {tk.seat ? (
+                    <p className="text-sm font-semibold" data-testid="seat">
+                      {t("seat", { row: tk.seat.row.name, seat: tk.seat.label })}
+                    </p>
+                  ) : null}
                   {(() => {
                     const listing = openListings.find((l) => l.ticketId === tk.id);
-                    if (tk.status === "REFUNDED") return <p className="rounded-md bg-surface-sunken px-4 py-6 text-sm font-semibold">{t("ticketStatus_REFUNDED")}</p>;
-                    if (tk.status === "VOID") return <p className="rounded-md bg-surface-sunken px-4 py-6 text-sm font-semibold">{t(tk.voidReason === "RESOLD" ? "ticketResold" : "ticketStatus_VOID")}</p>;
+                    if (tk.status === "REFUNDED")
+                      return <p className="rounded-md bg-surface-sunken px-4 py-6 text-sm font-semibold">{t("ticketStatus_REFUNDED")}</p>;
+                    if (tk.status === "VOID")
+                      return (
+                        <p className="rounded-md bg-surface-sunken px-4 py-6 text-sm font-semibold">
+                          {t(tk.voidReason === "RESOLD" ? "ticketResold" : "ticketStatus_VOID")}
+                        </p>
+                      );
                     if (listing) return <p className="rounded-md bg-surface-sunken px-4 py-6 text-sm">{t("qrHiddenWhileListed")}</p>;
                     return (
                       <>
-                        <div className="w-full max-w-[15rem] rounded-md bg-blanc p-2 [&_svg]:h-auto [&_svg]:w-full" role="img" aria-label={t("qrLabel", { code: tk.shortCode })} dangerouslySetInnerHTML={{ __html: qrs[i]! }} />
+                        <div
+                          className="w-full max-w-[15rem] rounded-md bg-blanc p-2 [&_svg]:h-auto [&_svg]:w-full"
+                          role="img"
+                          aria-label={t("qrLabel", { code: tk.shortCode })}
+                          dangerouslySetInnerHTML={{ __html: qrs[i]! }}
+                        />
                         <p className="font-mono text-lg tracking-[0.2em]">{tk.shortCode}</p>
                         {/* US-POST-03 : ajout au portefeuille du téléphone (si Evoly est configuré pour Apple ou Google) */}
                         {wallet.apple || wallet.google ? (
                           <div className="flex flex-wrap justify-center gap-2">
                             {wallet.apple ? (
-                              <a href={`/billets/${token}/wallet/${tk.id}/apple`} className={badges.apple ? "inline-flex" : "inline-flex h-11 items-center rounded-lg bg-noir px-4 text-sm font-semibold text-blanc"}>
+                              <a
+                                href={`/billets/${token}/wallet/${tk.id}/apple`}
+                                className={
+                                  badges.apple ? "inline-flex" : "inline-flex h-11 items-center rounded-lg bg-noir px-4 text-sm font-semibold text-blanc"
+                                }
+                              >
                                 {badges.apple ? <img src={badges.apple} alt={t("addToAppleWallet")} className="h-11 w-auto" /> : t("addToAppleWallet")}
                               </a>
                             ) : null}
                             {wallet.google ? (
-                              <a href={`/billets/${token}/wallet/${tk.id}/google`} rel="noreferrer" className={badges.google ? "inline-flex" : "inline-flex h-11 items-center rounded-lg bg-noir px-4 text-sm font-semibold text-blanc"}>
+                              <a
+                                href={`/billets/${token}/wallet/${tk.id}/google`}
+                                rel="noreferrer"
+                                className={
+                                  badges.google ? "inline-flex" : "inline-flex h-11 items-center rounded-lg bg-noir px-4 text-sm font-semibold text-blanc"
+                                }
+                              >
                                 {badges.google ? <img src={badges.google} alt={t("addToGoogleWallet")} className="h-11 w-auto" /> : t("addToGoogleWallet")}
                               </a>
                             ) : null}
@@ -173,18 +230,46 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
               <RefundRequest
                 token={token}
                 tickets={refundableTickets.map((tk) => ({ id: tk.id, label: `${tk.ticketType.name} · ${tk.shortCode}` }))}
-                automatic={!refundCheck.outOfDeadline && (refundCheck.reason === "EVENT_CHANGED" || e.refundPolicy === "ALWAYS" || e.refundPolicy === "UNTIL_DEADLINE")}
+                automatic={
+                  !refundCheck.outOfDeadline && (refundCheck.reason === "EVENT_CHANGED" || e.refundPolicy === "ALWAYS" || e.refundPolicy === "UNTIL_DEADLINE")
+                }
                 outOfDeadline={refundCheck.outOfDeadline}
                 policyText={t(refundCheck.reason === "EVENT_CHANGED" ? "policy_EVENT_CHANGED" : `policy_${e.refundPolicy}`)}
               />
             ) : null}
             {friendUrl ? <ShareFriendLink url={friendUrl} eventTitle={e.title} /> : null}
-            <p className="text-center text-sm text-ink-muted">{t("paidTotal", { total: order.totalMinor === 0 ? t("free") : formatMoney(order.totalMinor, order.currency, locale) })}</p>
+            <p className="text-center text-sm text-ink-muted">
+              {t("paidTotal", { total: order.totalMinor === 0 ? t("free") : formatMoney(order.totalMinor, order.currency, locale) })}
+            </p>
           </>
         ) : (
           <section className="grid gap-4 rounded-[var(--r-panel)] bg-surface-raised p-6 shadow-md ring-1 ring-line" aria-live="polite">
-            <h1 className="font-display text-2xl tracking-[-0.03em]">{t(order.status === "PENDING" ? (order.stripePaymentIntentId ? "confirmingTitle" : holdActive ? "heldTitle" : "expiredTitle") : e.status === "CANCELLED" ? "status_EVENT_CANCELLED" : `status_${order.status}`)}</h1>
-            <p className="text-ink-muted">{t(order.status === "PENDING" ? (order.stripePaymentIntentId ? "confirmingBody" : holdActive ? "heldBody" : "expiredBody") : e.status === "CANCELLED" ? "statusBody_EVENT_CANCELLED" : `statusBody_${order.status}`)}</p>
+            <h1 className="font-display text-2xl tracking-[-0.03em]">
+              {t(
+                order.status === "PENDING"
+                  ? order.stripePaymentIntentId
+                    ? "confirmingTitle"
+                    : holdActive
+                      ? "heldTitle"
+                      : "expiredTitle"
+                  : e.status === "CANCELLED"
+                    ? "status_EVENT_CANCELLED"
+                    : `status_${order.status}`,
+              )}
+            </h1>
+            <p className="text-ink-muted">
+              {t(
+                order.status === "PENDING"
+                  ? order.stripePaymentIntentId
+                    ? "confirmingBody"
+                    : holdActive
+                      ? "heldBody"
+                      : "expiredBody"
+                  : e.status === "CANCELLED"
+                    ? "statusBody_EVENT_CANCELLED"
+                    : `statusBody_${order.status}`,
+              )}
+            </p>
             {order.status === "PENDING" && order.stripePaymentIntentId ? <AutoRefresh /> : null}
             <Link href={eventHref} className={buttonClass("dark", "lg", "justify-self-start")}>
               {t("backToEvent")}
@@ -192,7 +277,11 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
           </section>
         )}
       </div>
-      <p className="mx-auto mt-6 max-w-xl px-5 text-center text-sm"><a href={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/mon-espace`} className="font-semibold underline underline-offset-4">{t("allMyTickets")}</a></p>
+      <p className="mx-auto mt-6 max-w-xl px-5 text-center text-sm">
+        <a href={`${process.env.NEXT_PUBLIC_APP_URL ?? ""}/mon-espace`} className="font-semibold underline underline-offset-4">
+          {t("allMyTickets")}
+        </a>
+      </p>
     </PublicShell>
   );
 }

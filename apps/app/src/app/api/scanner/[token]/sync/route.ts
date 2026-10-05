@@ -16,7 +16,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   if (!parsed.success) return json({ error: "INVALID_INPUT" }, 400);
   if (await rateLimited(r.link.id, parsed.data.deviceId, 3)) return json({ error: "RATE_LIMITED" }, 429);
   try {
-    return json({ results: await syncScans(r.link, parsed.data.scans.map((s) => ({ ...s, deviceId: s.deviceId ?? parsed.data.deviceId }))) });
+    return json({
+      results: await syncScans(
+        r.link,
+        parsed.data.scans.map((s) => ({ ...s, deviceId: s.deviceId ?? parsed.data.deviceId })),
+      ),
+    });
   } catch (err) {
     return failure(err);
   }

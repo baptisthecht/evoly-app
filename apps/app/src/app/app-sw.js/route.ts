@@ -10,7 +10,9 @@ export const dynamic = "force-static";
  * son propre hôte. Textes tirés des traductions de l'app (espace de noms « pwa »).
  */
 export function GET() {
-  const texts = Object.fromEntries(LOCALES.map((l) => [l, { title: MESSAGES[l].pwa.offlineTitle, body: MESSAGES[l].pwa.offlineBody, retry: MESSAGES[l].pwa.offlineRetry }]));
+  const texts = Object.fromEntries(
+    LOCALES.map((l) => [l, { title: MESSAGES[l].pwa.offlineTitle, body: MESSAGES[l].pwa.offlineBody, retry: MESSAGES[l].pwa.offlineRetry }]),
+  );
   const js = `/* Evoly : application installable, sans cache de pages ; page « hors ligne » sans réseau. */
 const TEXTS = ${JSON.stringify(texts)};
 const COLORS = ${JSON.stringify({ creme: palette.creme, charbon: palette.charbon, rose: palette.rose })};

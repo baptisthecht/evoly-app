@@ -28,10 +28,24 @@ export function HolderEditor({ token, ticketId, firstName, lastName }: { token: 
   return (
     <div className="grid w-full gap-2">
       <div className="grid grid-cols-2 gap-2">
-        <Input aria-label={t("holderFirstName")} placeholder={t("holderFirstName")} value={value.firstName} onChange={(e) => setValue((v) => ({ ...v, firstName: e.target.value }))} />
-        <Input aria-label={t("holderLastName")} placeholder={t("holderLastName")} value={value.lastName} onChange={(e) => setValue((v) => ({ ...v, lastName: e.target.value }))} />
+        <Input
+          aria-label={t("holderFirstName")}
+          placeholder={t("holderFirstName")}
+          value={value.firstName}
+          onChange={(e) => setValue((v) => ({ ...v, firstName: e.target.value }))}
+        />
+        <Input
+          aria-label={t("holderLastName")}
+          placeholder={t("holderLastName")}
+          value={value.lastName}
+          onChange={(e) => setValue((v) => ({ ...v, lastName: e.target.value }))}
+        />
       </div>
-      {error ? <p role="alert" className="text-sm text-danger">{t("holderError")}</p> : null}
+      {error ? (
+        <p role="alert" className="text-sm text-danger">
+          {t("holderError")}
+        </p>
+      ) : null}
       <div className="flex justify-center gap-2">
         <Button
           type="button"

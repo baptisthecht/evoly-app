@@ -2,9 +2,15 @@ import { describe, expect, it } from "vitest";
 import { checkResalePrice, EUR_TERMS, estimateBankFee, resaleAmounts, resaleBlockers, resaleCutoff, type ResaleEligibilityInput } from "../src";
 
 const base: ResaleEligibilityInput = {
-  eventStatus: "PUBLISHED", eventResaleEnabled: true, ticketTypeResaleAllowed: true,
-  eventStartsAt: new Date("2026-11-14T20:00:00Z"), resaleCutoffMinutes: 120, ticketStatus: "VALID",
-  hasOpenListing: false, originalPaymentRefundable: true, now: new Date("2026-11-14T17:00:00Z"),
+  eventStatus: "PUBLISHED",
+  eventResaleEnabled: true,
+  ticketTypeResaleAllowed: true,
+  eventStartsAt: new Date("2026-11-14T20:00:00Z"),
+  resaleCutoffMinutes: 120,
+  ticketStatus: "VALID",
+  hasOpenListing: false,
+  originalPaymentRefundable: true,
+  now: new Date("2026-11-14T17:00:00Z"),
 };
 
 describe("éligibilité à la revente (RG-RSL-01 à 05)", () => {
@@ -14,10 +20,17 @@ describe("éligibilité à la revente (RG-RSL-01 à 05)", () => {
     expect(resaleBlockers({ ...base, now: new Date("2026-11-14T18:00:00Z") })).toEqual(["CUTOFF_PASSED"]);
   });
   it("tous les motifs de refus", () => {
-    expect(resaleBlockers({
-      ...base, eventResaleEnabled: false, ticketTypeResaleAllowed: false, eventStatus: "CANCELLED",
-      ticketStatus: "CHECKED_IN", hasOpenListing: true, originalPaymentRefundable: false,
-    })).toEqual(["EVENT_RESALE_DISABLED", "TICKET_TYPE_RESALE_DISABLED", "EVENT_NOT_ON_SALE", "TICKET_NOT_VALID", "ALREADY_LISTED", "PAYMENT_NOT_REFUNDABLE"]);
+    expect(
+      resaleBlockers({
+        ...base,
+        eventResaleEnabled: false,
+        ticketTypeResaleAllowed: false,
+        eventStatus: "CANCELLED",
+        ticketStatus: "CHECKED_IN",
+        hasOpenListing: true,
+        originalPaymentRefundable: false,
+      }),
+    ).toEqual(["EVENT_RESALE_DISABLED", "TICKET_TYPE_RESALE_DISABLED", "EVENT_NOT_ON_SALE", "TICKET_NOT_VALID", "ALREADY_LISTED", "PAYMENT_NOT_REFUNDABLE"]);
   });
   it("ventes en pause : revente toujours possible", () => expect(resaleBlockers({ ...base, eventStatus: "SALES_PAUSED" })).toEqual([]));
 });
@@ -34,7 +47,12 @@ describe("prix de revente (RG-RSL-02)", () => {
 
 describe("montants d'une revente (RG-FEE-50 à 52, annexe C)", () => {
   it("revente 30 € par carte, Free : le vendeur récupère 28,41 €", () => {
-    expect(resaleAmounts(3000, EUR_TERMS.free, estimateBankFee(3000))).toEqual({ buyerPaysMinor: 3000, commissionMinor: 89, bankFeeMinor: 70, sellerRefundMinor: 2841 });
+    expect(resaleAmounts(3000, EUR_TERMS.free, estimateBankFee(3000))).toEqual({
+      buyerPaysMinor: 3000,
+      commissionMinor: 89,
+      bankFeeMinor: 70,
+      sellerRefundMinor: 2841,
+    });
   });
   it("revente à 0 € : simple transfert", () => {
     expect(resaleAmounts(0, EUR_TERMS.free, 0)).toEqual({ buyerPaysMinor: 0, commissionMinor: 0, bankFeeMinor: 0, sellerRefundMinor: 0 });

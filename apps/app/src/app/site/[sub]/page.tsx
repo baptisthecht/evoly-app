@@ -25,7 +25,15 @@ export async function generateMetadata({ params }: { params: Promise<{ sub: stri
   const tp = await getTranslations("public");
   const description = tp("seoOrgDescription", { org: name });
   const image = { url: orgOgImageUrl(site.org.id), width: 1200, height: 630, alt: name };
-  return { title: { absolute: tp("seoOrgTitle", { org: name }) }, description, openGraph: { type: "website", siteName: name, title: name, description, images: [image] }, twitter: { card: "summary_large_image", title: name, description, images: [image] }, alternates: { canonical: await canonicalOrgUrl(site.org) }, robots: { index: true, follow: true }, icons: site.org.brand?.faviconUrl ? { icon: site.org.brand.faviconUrl } : undefined };
+  return {
+    title: { absolute: tp("seoOrgTitle", { org: name }) },
+    description,
+    openGraph: { type: "website", siteName: name, title: name, description, images: [image] },
+    twitter: { card: "summary_large_image", title: name, description, images: [image] },
+    alternates: { canonical: await canonicalOrgUrl(site.org) },
+    robots: { index: true, follow: true },
+    icons: site.org.brand?.faviconUrl ? { icon: site.org.brand.faviconUrl } : undefined,
+  };
 }
 
 /** RG-PUB-07 : la page de l'organisation liste ses événements publics à venir, puis passés. */
@@ -60,7 +68,11 @@ export default async function OrganizationPublicPage({ params }: { params: Promi
           <h2 id="upcoming" className="font-display text-2xl tracking-[-0.03em]">
             {t("upcoming")}
           </h2>
-          {upcoming.length ? <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{upcoming.map(card)}</ul> : <p className="text-ink-muted">{t("noUpcoming")}</p>}
+          {upcoming.length ? (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{upcoming.map(card)}</ul>
+          ) : (
+            <p className="text-ink-muted">{t("noUpcoming")}</p>
+          )}
         </section>
         {past.length ? (
           <section className="grid gap-4" aria-labelledby="past">

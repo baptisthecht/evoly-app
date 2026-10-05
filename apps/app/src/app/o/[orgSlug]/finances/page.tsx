@@ -19,7 +19,13 @@ export async function generateMetadata(): Promise<Metadata> {
 const PERIODS: Period[] = ["THIS_MONTH", "LAST_MONTH", "LAST_30_DAYS", "THIS_YEAR", "ALL"];
 
 /** Section 9.16 : ventes, commissions, frais, net ; compte Stripe ; relevés ; exports. */
-export default async function FinancesPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ period?: string; event?: string }> }) {
+export default async function FinancesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ period?: string; event?: string }>;
+}) {
   const { orgSlug } = await params;
   const sp = await searchParams;
   const ctx = await requireOrgContext(orgSlug);
@@ -30,7 +36,11 @@ export default async function FinancesPage({ params, searchParams }: { params: P
     financeOverview(ctx, { period, eventId }),
     stripeOverview(ctx),
     statementMonths(ctx),
-    db.event.findMany({ where: { organizationId: ctx.organization.id, deletedAt: null, status: { not: "DRAFT" } }, select: { id: true, title: true }, orderBy: { startsAt: "desc" } }),
+    db.event.findMany({
+      where: { organizationId: ctx.organization.id, deletedAt: null, status: { not: "DRAFT" } },
+      select: { id: true, title: true },
+      orderBy: { startsAt: "desc" },
+    }),
   ]);
   const t = await getTranslations("finances");
   const locale = (await getLocale()) as Locale;
@@ -159,11 +169,15 @@ export default async function FinancesPage({ params, searchParams }: { params: P
             <dl className="grid grid-cols-2 gap-3">
               <div>
                 <dt className="font-label text-[0.8rem] font-bold text-ink-muted">{t("available")}</dt>
-                <dd className="font-display text-xl tabular-nums">{stripeInfo.balance.available.map((b) => money(b.amount, b.currency)).join(" · ") || money(0)}</dd>
+                <dd className="font-display text-xl tabular-nums">
+                  {stripeInfo.balance.available.map((b) => money(b.amount, b.currency)).join(" · ") || money(0)}
+                </dd>
               </div>
               <div>
                 <dt className="font-label text-[0.8rem] font-bold text-ink-muted">{t("pending")}</dt>
-                <dd className="font-display text-xl tabular-nums">{stripeInfo.balance.pending.map((b) => money(b.amount, b.currency)).join(" · ") || money(0)}</dd>
+                <dd className="font-display text-xl tabular-nums">
+                  {stripeInfo.balance.pending.map((b) => money(b.amount, b.currency)).join(" · ") || money(0)}
+                </dd>
               </div>
             </dl>
           ) : (
@@ -230,7 +244,9 @@ export default async function FinancesPage({ params, searchParams }: { params: P
                     </>
                   ) : null}
                 </span>
-                <span className="font-semibold text-warning">{d.evidenceDueBy ? t("disputeDue", { date: formatDate(d.evidenceDueBy, ctx.organization.timezone, locale) }) : t(`dispute_${d.status}`)}</span>
+                <span className="font-semibold text-warning">
+                  {d.evidenceDueBy ? t("disputeDue", { date: formatDate(d.evidenceDueBy, ctx.organization.timezone, locale) }) : t(`dispute_${d.status}`)}
+                </span>
               </li>
             ))}
           </ul>

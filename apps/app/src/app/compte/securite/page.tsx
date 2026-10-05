@@ -22,9 +22,16 @@ export default async function SecurityPage() {
     <main className="grid min-h-dvh place-items-center bg-surface px-5 py-10">
       <div className="grid w-full max-w-md gap-5 rounded-[var(--r-panel)] bg-surface-raised p-6 shadow-md ring-1 ring-line">
         <Logo className="h-8 w-auto" />
-        <Link href="/" className="text-sm font-semibold text-ink-muted">← {t("back")}</Link>
+        <Link href="/" className="text-sm font-semibold text-ink-muted">
+          ← {t("back")}
+        </Link>
         <h1 className="font-display text-2xl tracking-[-0.03em]">{t("title")}</h1>
-        <TwoFactorPanel enabled={user.twoFactorEnabled} staff={user.platformRole !== "NONE"} setup={setup && qr ? { qr, secret: setup.secret } : null} status={user.twoFactorEnabled ? t("enabled", { count: await remainingRecoveryCodes(session.user.id) }) : ""} />
+        <TwoFactorPanel
+          enabled={user.twoFactorEnabled}
+          staff={user.platformRole !== "NONE"}
+          setup={setup && qr ? { qr, secret: setup.secret } : null}
+          status={user.twoFactorEnabled ? t("enabled", { count: await remainingRecoveryCodes(session.user.id) }) : ""}
+        />
       </div>
     </main>
   );

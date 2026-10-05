@@ -33,7 +33,25 @@ export async function walletTicket(token: string, ticketId: string): Promise<Wal
   if (!orderId) return null;
   const t = await db.ticket.findFirst({
     where: { id: ticketId, orderId, status: { in: ["VALID", "CHECKED_IN"] }, order: { status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
-    include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } }, order: { select: { reference: true, buyerLocale: true, organizationId: true } }, event: { select: { id: true, title: true, startsAt: true, endsAt: true, timezone: true, locationName: true, city: true, addressLine1: true, postalCode: true, country: true } } },
+    include: {
+      ticketType: { select: { name: true } },
+      seat: { select: { label: true, row: { select: { name: true } } } },
+      order: { select: { reference: true, buyerLocale: true, organizationId: true } },
+      event: {
+        select: {
+          id: true,
+          title: true,
+          startsAt: true,
+          endsAt: true,
+          timezone: true,
+          locationName: true,
+          city: true,
+          addressLine1: true,
+          postalCode: true,
+          country: true,
+        },
+      },
+    },
   });
   if (!t) return null;
   const brand = await emailBrandFor(t.order.organizationId);

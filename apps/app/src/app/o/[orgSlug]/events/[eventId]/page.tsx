@@ -28,12 +28,19 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
   const t = await getTranslations("events");
   const locale = (await getLocale()) as Locale;
   const blockers = event.status === "DRAFT" || event.status === "SALES_PAUSED" ? await eventPublicationBlockers(ctx, eventId) : [];
-  const url = await canonicalEventUrl({ id: ctx.organization.id, subdomain: ctx.organization.subdomain, slug: ctx.organization.slug, features: ctx.features }, event); // RG-DOM-06
+  const url = await canonicalEventUrl(
+    { id: ctx.organization.id, subdomain: ctx.organization.subdomain, slug: ctx.organization.slug, features: ctx.features },
+    event,
+  ); // RG-DOM-06
   const short = eventShortUrl(event.publicCode);
   const canPublish = can(ctx.membership, "EVENTS_PUBLISH") && !ctx.readOnly;
   const sold = event.ticketTypes.reduce((n, tt) => n + tt.quantitySold, 0);
   // billets vendus par palier (commandes payées), pour les tarifs à prix dynamiques
-  const tierRows = await db.orderItem.groupBy({ by: ["ticketTypeId", "priceTierId"], where: { order: { eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } }, _sum: { quantity: true } });
+  const tierRows = await db.orderItem.groupBy({
+    by: ["ticketTypeId", "priceTierId"],
+    where: { order: { eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
+    _sum: { quantity: true },
+  });
   const tierNames = new Map((await db.priceTier.findMany({ where: { ticketType: { eventId } }, select: { id: true, name: true } })).map((t) => [t.id, t.name]));
   const tiersSold = new Map<string, Array<{ name: string; sold: number }>>();
   for (const r of tierRows) {
@@ -57,7 +64,13 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
             <ul className="grid gap-3">
               {checks.map((c) => (
                 <li key={c.key} className="flex items-start gap-3">
-                  <span aria-hidden="true" className={cn("mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold", c.done ? "bg-success text-blanc" : "bg-surface-sunken text-ink-muted ring-1 ring-line-strong")}>
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold",
+                      c.done ? "bg-success text-blanc" : "bg-surface-sunken text-ink-muted ring-1 ring-line-strong",
+                    )}
+                  >
                     {c.done ? "✓" : ""}
                   </span>
                   <div className="grid gap-0.5">
@@ -72,7 +85,9 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
               ))}
             </ul>
             <div className="flex flex-wrap gap-3">
-              {canPublish && blockers.length === 0 ? <EventCommand orgSlug={orgSlug} eventId={eventId} command={event.status === "DRAFT" ? "publish" : "resume"} variant="primary" /> : null}
+              {canPublish && blockers.length === 0 ? (
+                <EventCommand orgSlug={orgSlug} eventId={eventId} command={event.status === "DRAFT" ? "publish" : "resume"} variant="primary" />
+              ) : null}
               <Link href={`/o/${orgSlug}/events/${eventId}/preview`} className={buttonClass("secondary", "lg")}>
                 {t("preview")}
               </Link>
@@ -90,7 +105,12 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
               <div key={l.label} className="grid min-w-0 gap-2">
                 <p className="font-label text-[0.8rem] font-bold text-ink-muted">{l.label}</p>
                 <div className="flex min-w-0 items-center gap-2">
-                  <a href={l.value} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate rounded-md bg-surface-sunken px-3 py-2.5 font-mono text-sm">
+                  <a
+                    href={l.value}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-w-0 flex-1 truncate rounded-md bg-surface-sunken px-3 py-2.5 font-mono text-sm"
+                  >
                     {l.value.replace(/^https?:\/\//, "")}
                   </a>
                   <CopyButton value={l.value} />
@@ -123,7 +143,9 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
                 </span>
                 {/* RG-TKT-11 : ventes par palier de prix */}
                 {(tiersSold.get(tt.id) ?? []).length > 1 ? (
-                  <span className="text-xs text-ink-muted" data-testid="tier-sales">{(tiersSold.get(tt.id) ?? []).map((x) => `${x.name} : ${x.sold}`).join(" · ")}</span>
+                  <span className="text-xs text-ink-muted" data-testid="tier-sales">
+                    {(tiersSold.get(tt.id) ?? []).map((x) => `${x.name} : ${x.sold}`).join(" · ")}
+                  </span>
                 ) : null}
               </li>
             ))}
@@ -135,7 +157,10 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
         {/* US-STAT-01 : ventes et remplissage à jour sans recharger la page */}
         <AutoRefresh everyMs={5_000} maxTimes={720} />
         {can(ctx.membership, "ORDERS_VIEW") ? (
-          <a href={`/o/${orgSlug}/events/${eventId}/participants`} className="rounded-full px-4 py-3 text-center text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
+          <a
+            href={`/o/${orgSlug}/events/${eventId}/participants`}
+            className="rounded-full px-4 py-3 text-center text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]"
+          >
             {t("exportParticipants")}
           </a>
         ) : null}
@@ -147,10 +172,23 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
               {t("openPublicPage")}
             </a>
           ) : null}
-          {can(ctx.membership, "EVENTS_CREATE") && !ctx.readOnly ? <EventCommand orgSlug={orgSlug} eventId={eventId} command="duplicate" variant="secondary" /> : null}
-          {can(ctx.membership, "EVENTS_DELETE") && event.status === "DRAFT" ? <EventCommand orgSlug={orgSlug} eventId={eventId} command="delete" variant="ghost" confirm={t("confirmDelete")} /> : null}
-          {can(ctx.membership, "EVENTS_CANCEL") && !ctx.readOnly && isLive ? <CancelEvent orgSlug={orgSlug} eventId={eventId} title={event.title} paidOrders={await db.order.count({ where: { eventId, totalMinor: { gt: 0 }, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } })} /> : null}
-          {event.status === "CANCELLED" ? <p className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">{t("cancelledNotice", { reason: event.cancellationReason ?? "" })}</p> : null}
+          {can(ctx.membership, "EVENTS_CREATE") && !ctx.readOnly ? (
+            <EventCommand orgSlug={orgSlug} eventId={eventId} command="duplicate" variant="secondary" />
+          ) : null}
+          {can(ctx.membership, "EVENTS_DELETE") && event.status === "DRAFT" ? (
+            <EventCommand orgSlug={orgSlug} eventId={eventId} command="delete" variant="ghost" confirm={t("confirmDelete")} />
+          ) : null}
+          {can(ctx.membership, "EVENTS_CANCEL") && !ctx.readOnly && isLive ? (
+            <CancelEvent
+              orgSlug={orgSlug}
+              eventId={eventId}
+              title={event.title}
+              paidOrders={await db.order.count({ where: { eventId, totalMinor: { gt: 0 }, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } })}
+            />
+          ) : null}
+          {event.status === "CANCELLED" ? (
+            <p className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">{t("cancelledNotice", { reason: event.cancellationReason ?? "" })}</p>
+          ) : null}
         </Card>
       </aside>
     </div>

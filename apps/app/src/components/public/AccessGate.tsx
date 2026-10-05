@@ -32,8 +32,20 @@ export function AccessGate({ eventId }: { eventId: string }) {
           else setError(res.error === "RATE_LIMITED" ? t("privateTooMany") : t("privateWrong"));
         }}
       >
-        <Input aria-label={t("privateCode")} placeholder={t("privateCode")} value={code} onChange={(e) => setCode(e.target.value)} autoComplete="off" autoCapitalize="characters" className="text-center font-mono text-lg tracking-[0.2em]" />
-        {error ? <p role="alert" className="text-sm text-danger">{error}</p> : null}
+        <Input
+          aria-label={t("privateCode")}
+          placeholder={t("privateCode")}
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          autoComplete="off"
+          autoCapitalize="characters"
+          className="text-center font-mono text-lg tracking-[0.2em]"
+        />
+        {error ? (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
         <Button type="submit" size="lg" disabled={busy || code.trim().length < 4}>
           {t("privateSubmit")}
         </Button>

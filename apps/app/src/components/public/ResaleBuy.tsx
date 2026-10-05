@@ -7,13 +7,34 @@ import { Button } from "../ui/Button";
 import { CheckoutPanel } from "./CheckoutPanel";
 
 /** Achat d'une place en revente : réservation de l'annonce, puis tunnel d'achat habituel. */
-export function ResaleBuy({ linkCode, label, organizationName, requirePhone, publishableKey }: { linkCode: string; label: string; organizationName: string; requirePhone: boolean; publishableKey: string | null }) {
+export function ResaleBuy({
+  linkCode,
+  label,
+  organizationName,
+  requirePhone,
+  publishableKey,
+}: {
+  linkCode: string;
+  label: string;
+  organizationName: string;
+  requirePhone: boolean;
+  publishableKey: string | null;
+}) {
   const t = useTranslations("resale");
   const tc = useTranslations("checkout");
   const [reservation, setReservation] = useState<ReservationView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  if (reservation) return <CheckoutPanel reservation={reservation} organizationName={organizationName} requirePhone={requirePhone} publishableKey={publishableKey} onCancel={() => setReservation(null)} />;
+  if (reservation)
+    return (
+      <CheckoutPanel
+        reservation={reservation}
+        organizationName={organizationName}
+        requirePhone={requirePhone}
+        publishableKey={publishableKey}
+        onCancel={() => setReservation(null)}
+      />
+    );
   return (
     <div className="grid gap-3">
       {error ? (

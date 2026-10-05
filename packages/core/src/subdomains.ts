@@ -1,7 +1,24 @@
 /** Sous-domaines réservés (RG-DOM-02). */
 export const RESERVED_SUBDOMAINS: ReadonlySet<string> = new Set([
-  "app", "api", "www", "scanner", "admin", "mail", "support", "blog", "help", "docs", "status", "evoly",
-  "auth", "login", "register", "static", "cdn", "r", "e",
+  "app",
+  "api",
+  "www",
+  "scanner",
+  "admin",
+  "mail",
+  "support",
+  "blog",
+  "help",
+  "docs",
+  "status",
+  "evoly",
+  "auth",
+  "login",
+  "register",
+  "static",
+  "cdn",
+  "r",
+  "e",
 ]);
 
 export type SubdomainCheck = { ok: true; value: string } | { ok: false; reason: "LENGTH" | "FORMAT" | "RESERVED" };
@@ -31,7 +48,12 @@ export function slugify(name: string, maxLength = 50): string {
 
 /** Nettoie un domaine saisi : « https://Tickets.MonSite.com/ » → « tickets.monsite.com ». */
 export function normalizeDomain(input: string): string | null {
-  const host = input.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/\.$/, "");
+  const host = input
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/.*$/, "")
+    .replace(/\.$/, "");
   const label = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/;
   const parts = host.split(".");
   if (parts.length < 2 || !parts.every((p) => label.test(p)) || host.length > 253) return null;

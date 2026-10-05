@@ -44,9 +44,28 @@ export async function createPromo(ctx: OrgContext, eventId: string, input: Promo
   if (startsAt && expiresAt && expiresAt <= startsAt) throw new CoreError("PROMO_DATES_INVALID");
   try {
     const promo = await db.promoCode.create({
-      data: { eventId, code, discountType: input.discountType, percentOffBps, amountOffMinor, ticketTypeIds: input.ticketTypeIds, maxUses: input.maxUses ?? null, maxUsesPerEmail: input.maxUsesPerEmail ?? null, startsAt, expiresAt, unlocksHidden: input.unlocksHidden },
+      data: {
+        eventId,
+        code,
+        discountType: input.discountType,
+        percentOffBps,
+        amountOffMinor,
+        ticketTypeIds: input.ticketTypeIds,
+        maxUses: input.maxUses ?? null,
+        maxUsesPerEmail: input.maxUsesPerEmail ?? null,
+        startsAt,
+        expiresAt,
+        unlocksHidden: input.unlocksHidden,
+      },
     });
-    await audit({ action: "promo.created", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "PromoCode", targetId: promo.id, metadata: { code } });
+    await audit({
+      action: "promo.created",
+      organizationId: ctx.organization.id,
+      actorUserId: ctx.user.id,
+      targetType: "PromoCode",
+      targetId: promo.id,
+      metadata: { code },
+    });
     return promo;
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") throw new CoreError("PROMO_CODE_TAKEN");
@@ -69,7 +88,13 @@ export async function setPromoActive(ctx: OrgContext, eventId: string, promoId: 
   await findEvent(ctx, eventId);
   const promo = await findPromo(eventId, promoId);
   await db.promoCode.update({ where: { id: promo.id }, data: { isActive: active } });
-  await audit({ action: active ? "promo.activated" : "promo.deactivated", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "PromoCode", targetId: promo.id });
+  await audit({
+    action: active ? "promo.activated" : "promo.deactivated",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "PromoCode",
+    targetId: promo.id,
+  });
 }
 
 /** RG-PRM-04 : un code déjà utilisé ne peut pas être supprimé, seulement désactivé. */
@@ -78,5 +103,12 @@ export async function deletePromo(ctx: OrgContext, eventId: string, promoId: str
   const promo = await findPromo(eventId, promoId);
   if (promo.usedCount > 0 || (await db.order.count({ where: { promoCodeId: promo.id, status: "PENDING" } })) > 0) throw new CoreError("PROMO_USED");
   await db.promoCode.delete({ where: { id: promo.id } });
-  await audit({ action: "promo.deleted", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "PromoCode", targetId: promo.id, metadata: { code: promo.code } });
+  await audit({
+    action: "promo.deleted",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "PromoCode",
+    targetId: promo.id,
+    metadata: { code: promo.code },
+  });
 }

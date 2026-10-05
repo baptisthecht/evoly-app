@@ -17,7 +17,17 @@ export function Badge({ tone = "neutral", children }: { tone?: "neutral" | "acce
   return <span className={cn("inline-flex h-6 items-center rounded-full px-2.5 font-label text-[0.72rem] font-bold", tones[tone])}>{children}</span>;
 }
 
-export function Banner({ tone = "warning", title, children, action }: { tone?: "warning" | "info" | "danger" | "success"; title: string; children?: ReactNode; action?: ReactNode }) {
+export function Banner({
+  tone = "warning",
+  title,
+  children,
+  action,
+}: {
+  tone?: "warning" | "info" | "danger" | "success";
+  title: string;
+  children?: ReactNode;
+  action?: ReactNode;
+}) {
   const tones = {
     warning: "bg-warning-soft ring-warning/30",
     info: "bg-info-soft ring-info/30",

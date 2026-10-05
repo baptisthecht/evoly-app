@@ -41,7 +41,10 @@ export function normalizeCurrency(code: string): string {
  * Renvoie null si la saisie n'est pas un montant valide (plus de décimales que la devise, signe, lettres…).
  */
 export function parseMajorToMinor(input: string, exponent = 2): Minor | null {
-  const s = input.trim().replace(/[\s\u00a0\u202f]/g, "").replace(/[€$£]/g, "");
+  const s = input
+    .trim()
+    .replace(/[\s\u00a0\u202f]/g, "")
+    .replace(/[€$£]/g, "");
   if (!s) return null;
   const m = /^(\d{1,7})(?:[.,](\d+))?$/.exec(s);
   if (!m) return null;

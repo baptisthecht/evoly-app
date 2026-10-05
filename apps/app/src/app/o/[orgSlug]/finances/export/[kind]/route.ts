@@ -17,5 +17,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ orgSlug:
   const eventId = url.searchParams.get("event") || undefined;
   const csv = kind === "orders" ? await ordersCsv(ctx, { period, eventId }) : await ticketsCsv(ctx, { period, eventId });
   const name = `${kind === "orders" ? "commandes" : "billets"}-${ctx.organization.slug}-${period.toLowerCase()}.csv`;
-  return new Response(csv, { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="${name}"`, "cache-control": "private, no-store" } });
+  return new Response(csv, {
+    headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="${name}"`, "cache-control": "private, no-store" },
+  });
 }

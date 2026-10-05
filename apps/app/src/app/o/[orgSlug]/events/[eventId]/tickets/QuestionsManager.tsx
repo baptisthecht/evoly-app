@@ -9,9 +9,32 @@ import { Field, Input, Select } from "@/components/ui/Field";
 import { questionCommandAction, saveQuestionAction } from "@/app/o/[orgSlug]/events/actions";
 
 const TYPES = ["TEXT", "TEXTAREA", "SELECT", "MULTI_SELECT", "CHECKBOX", "NUMBER", "DATE", "PHONE", "EMAIL"] as const;
-type Question = { id: string; label: string; helpText: string | null; type: (typeof TYPES)[number]; options: string[] | null; required: boolean; scope: "ORDER" | "TICKET"; ticketTypeIds: string[]; archived: boolean; answers: number };
+type Question = {
+  id: string;
+  label: string;
+  helpText: string | null;
+  type: (typeof TYPES)[number];
+  options: string[] | null;
+  required: boolean;
+  scope: "ORDER" | "TICKET";
+  ticketTypeIds: string[];
+  archived: boolean;
+  answers: number;
+};
 
-function QuestionForm({ orgSlug, eventId, q, ticketTypes, onDone }: { orgSlug: string; eventId: string; q: Question | null; ticketTypes: Array<{ id: string; name: string }>; onDone: () => void }) {
+function QuestionForm({
+  orgSlug,
+  eventId,
+  q,
+  ticketTypes,
+  onDone,
+}: {
+  orgSlug: string;
+  eventId: string;
+  q: Question | null;
+  ticketTypes: Array<{ id: string; name: string }>;
+  onDone: () => void;
+}) {
   const t = useTranslations("questions");
   const [type, setType] = useState<Question["type"]>(q?.type ?? "TEXT");
   const { state, pending, formProps } = useActionForm(saveQuestionAction.bind(null, orgSlug, eventId, q?.id ?? null), null);
@@ -36,7 +59,13 @@ function QuestionForm({ orgSlug, eventId, q, ticketTypes, onDone }: { orgSlug: s
       </div>
       {type === "SELECT" || type === "MULTI_SELECT" ? (
         <Field label={t("options")} htmlFor={`qo-${q?.id ?? "new"}`} hint={t("optionsHint")}>
-          <textarea id={`qo-${q?.id ?? "new"}`} name="options" defaultValue={(q?.options ?? []).join("\n")} rows={4} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+          <textarea
+            id={`qo-${q?.id ?? "new"}`}
+            name="options"
+            defaultValue={(q?.options ?? []).join("\n")}
+            rows={4}
+            className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+          />
         </Field>
       ) : null}
       <Field label={t("helpText")} htmlFor={`qh-${q?.id ?? "new"}`} hint={t("optional")}>
@@ -56,7 +85,13 @@ function QuestionForm({ orgSlug, eventId, q, ticketTypes, onDone }: { orgSlug: s
           <legend className="mb-1 font-label text-[0.8rem] font-bold">{t("ticketTypes")}</legend>
           {ticketTypes.map((tt) => (
             <label key={tt.id} className="flex items-center gap-3 text-sm">
-              <input type="checkbox" name="ticketTypeIds" value={tt.id} defaultChecked={q?.ticketTypeIds.includes(tt.id)} className="size-5 accent-[var(--ink)]" />
+              <input
+                type="checkbox"
+                name="ticketTypeIds"
+                value={tt.id}
+                defaultChecked={q?.ticketTypeIds.includes(tt.id)}
+                className="size-5 accent-[var(--ink)]"
+              />
               {tt.name}
             </label>
           ))}
@@ -80,7 +115,19 @@ function QuestionForm({ orgSlug, eventId, q, ticketTypes, onDone }: { orgSlug: s
 }
 
 /** US-QST-01 et RG-QST-03 : questions du formulaire d'achat. */
-export function QuestionsManager({ orgSlug, eventId, questions, ticketTypes, readOnly }: { orgSlug: string; eventId: string; questions: Question[]; ticketTypes: Array<{ id: string; name: string }>; readOnly: boolean }) {
+export function QuestionsManager({
+  orgSlug,
+  eventId,
+  questions,
+  ticketTypes,
+  readOnly,
+}: {
+  orgSlug: string;
+  eventId: string;
+  questions: Question[];
+  ticketTypes: Array<{ id: string; name: string }>;
+  readOnly: boolean;
+}) {
   const t = useTranslations("questions");
   const [editing, setEditing] = useState<string | "new" | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -102,7 +149,11 @@ export function QuestionsManager({ orgSlug, eventId, questions, ticketTypes, rea
         ) : null}
       </div>
       <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
-      {message ? <p className="text-sm text-success" role="status">{message}</p> : null}
+      {message ? (
+        <p className="text-sm text-success" role="status">
+          {message}
+        </p>
+      ) : null}
       <ul className="grid gap-2">
         {active.map((q, i) => (
           <li key={q.id} className="grid gap-2 border-t border-line pt-2">
@@ -119,10 +170,31 @@ export function QuestionsManager({ orgSlug, eventId, questions, ticketTypes, rea
                 </p>
                 {!readOnly ? (
                   <span className="flex gap-1">
-                    <Button type="button" size="sm" variant="ghost" disabled={pending || i === 0} onClick={() => command(q.id, "up")} aria-label={t("up")}>↑</Button>
-                    <Button type="button" size="sm" variant="ghost" disabled={pending || i === active.length - 1} onClick={() => command(q.id, "down")} aria-label={t("down")}>↓</Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(q.id)}>{t("edit")}</Button>
-                    <Button type="button" size="sm" variant="ghost" disabled={pending} onClick={() => (window.confirm(q.answers ? t("confirmArchive") : t("confirmDelete")) ? command(q.id, "remove") : undefined)}>{q.answers ? t("archive") : t("delete")}</Button>
+                    <Button type="button" size="sm" variant="ghost" disabled={pending || i === 0} onClick={() => command(q.id, "up")} aria-label={t("up")}>
+                      ↑
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={pending || i === active.length - 1}
+                      onClick={() => command(q.id, "down")}
+                      aria-label={t("down")}
+                    >
+                      ↓
+                    </Button>
+                    <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(q.id)}>
+                      {t("edit")}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={pending}
+                      onClick={() => (window.confirm(q.answers ? t("confirmArchive") : t("confirmDelete")) ? command(q.id, "remove") : undefined)}
+                    >
+                      {q.answers ? t("archive") : t("delete")}
+                    </Button>
                   </span>
                 ) : null}
               </div>
@@ -130,8 +202,18 @@ export function QuestionsManager({ orgSlug, eventId, questions, ticketTypes, rea
           </li>
         ))}
       </ul>
-      {!readOnly ? editing === "new" ? <QuestionForm orgSlug={orgSlug} eventId={eventId} q={null} ticketTypes={ticketTypes} onDone={() => setEditing(null)} /> : <Button type="button" variant="secondary" size="sm" className="justify-self-start" onClick={() => setEditing("new")}>+ {t("add")}</Button> : null}
-      {questions.some((q) => q.archived) ? <p className="text-xs text-ink-muted">{t("archivedCount", { count: questions.filter((q) => q.archived).length })}</p> : null}
+      {!readOnly ? (
+        editing === "new" ? (
+          <QuestionForm orgSlug={orgSlug} eventId={eventId} q={null} ticketTypes={ticketTypes} onDone={() => setEditing(null)} />
+        ) : (
+          <Button type="button" variant="secondary" size="sm" className="justify-self-start" onClick={() => setEditing("new")}>
+            + {t("add")}
+          </Button>
+        )
+      ) : null}
+      {questions.some((q) => q.archived) ? (
+        <p className="text-xs text-ink-muted">{t("archivedCount", { count: questions.filter((q) => q.archived).length })}</p>
+      ) : null}
     </Card>
   );
 }

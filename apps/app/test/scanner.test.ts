@@ -11,9 +11,21 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 async function setup(count: number, opts: { allowManualSearch?: boolean } = {}) {
   const id = rid();
   const user = await db.user.create({ data: { name: "Camille Dupont", email: `scan.${id}@exemple.be`, emailVerified: true } });
-  const org = await db.organization.create({ data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
+  const org = await db.organization.create({
+    data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
   const event = await db.event.create({
-    data: { organizationId: org.id, slug: `e-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Concert ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 3 * 86_400_000), status: "PUBLISHED", ticketTypes: { create: { name: "Fosse", priceMinor: 0, currency: "EUR", quantity: 500 } } },
+    data: {
+      organizationId: org.id,
+      slug: `e-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: `Concert ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: new Date(Date.now() + 3 * 86_400_000),
+      status: "PUBLISHED",
+      ticketTypes: { create: { name: "Fosse", priceMinor: 0, currency: "EUR", quantity: 500 } },
+    },
     include: { ticketTypes: true },
   });
   const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: count }], locale: "fr" });
@@ -56,7 +68,9 @@ describe("scanner (RG-SCN-01 à 09)", () => {
     const [earlier] = await syncScans(link, [{ clientId: "a", code: tickets[0]!.code, method: "QR", scannedAt: tenMinutesAgo }]);
     expect(earlier!.result).toBe("VALID");
     expect((await db.ticket.findUniqueOrThrow({ where: { id: tickets[0]!.id } })).checkedInAt?.toISOString()).toBe(tenMinutesAgo);
-    const [later] = await syncScans(link, [{ clientId: "b", code: tickets[0]!.code, method: "QR", scannedAt: new Date(Date.now() - 5 * 60_000).toISOString() }]);
+    const [later] = await syncScans(link, [
+      { clientId: "b", code: tickets[0]!.code, method: "QR", scannedAt: new Date(Date.now() - 5 * 60_000).toISOString() },
+    ]);
     expect(later!.result).toBe("ALREADY_USED");
   });
 

@@ -1,7 +1,10 @@
 /** Section 9.24 : signaux de risque du back-office Evoly. */
 export type RiskSignal = "NEW_ORG_HIGH_PRICE" | "HIGH_DISPUTE_RATE" | "MANY_REFUNDS";
 
-export function riskSignals(o: { createdAt: Date; maxTicketPriceMinor: number; paidOrders: number; disputes: number; refundedOrders: number }, now: Date): RiskSignal[] {
+export function riskSignals(
+  o: { createdAt: Date; maxTicketPriceMinor: number; paidOrders: number; disputes: number; refundedOrders: number },
+  now: Date,
+): RiskSignal[] {
   const out: RiskSignal[] = [];
   // nouvelle organisation (moins de 30 jours) avec un billet à 150 € ou plus
   if (now.getTime() - o.createdAt.getTime() < 30 * 86_400_000 && o.maxTicketPriceMinor >= 15_000) out.push("NEW_ORG_HIGH_PRICE");

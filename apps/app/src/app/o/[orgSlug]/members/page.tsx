@@ -41,7 +41,15 @@ export default async function MembersPage({ params, searchParams }: { params: Pr
       <h1 className="page-title">{t("title")}</h1>
       <nav className="flex w-fit gap-1 rounded-full bg-surface-sunken p-1" aria-label={t("tabs")}>
         {(["members", "roles"] as const).map((k) => (
-          <Link key={k} href={`/o/${orgSlug}/members${k === "roles" ? "?tab=roles" : ""}`} aria-current={active === k ? "page" : undefined} className={cn("flex h-10 items-center rounded-full px-4 text-sm font-semibold", active === k ? "bg-surface-inverse text-ink-inverse" : "text-ink-muted")}>
+          <Link
+            key={k}
+            href={`/o/${orgSlug}/members${k === "roles" ? "?tab=roles" : ""}`}
+            aria-current={active === k ? "page" : undefined}
+            className={cn(
+              "flex h-10 items-center rounded-full px-4 text-sm font-semibold",
+              active === k ? "bg-surface-inverse text-ink-inverse" : "text-ink-muted",
+            )}
+          >
             {t(`tab_${k}`)}
           </Link>
         ))}
@@ -105,7 +113,8 @@ export default async function MembersPage({ params, searchParams }: { params: Pr
                 {invitations.map((i) => (
                   <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2 text-sm">
                     <span>
-                      <span className="font-semibold">{i.email}</span> · {label(i.role)} · {t("expires", { date: formatDate(i.expiresAt, ctx.organization.timezone, locale) })}
+                      <span className="font-semibold">{i.email}</span> · {label(i.role)} ·{" "}
+                      {t("expires", { date: formatDate(i.expiresAt, ctx.organization.timezone, locale) })}
                     </span>
                     {manageMembers ? <InvitationActions orgSlug={orgSlug} invitationId={i.id} /> : null}
                   </li>
@@ -118,7 +127,10 @@ export default async function MembersPage({ params, searchParams }: { params: Pr
             {owner ? (
               <>
                 <p className="-mt-1 text-sm text-ink-muted">{t("transferIntro")}</p>
-                <TransferOwnership orgSlug={orgSlug} members={members.filter((m) => m.userId !== ctx.user.id).map((m) => ({ id: m.id, label: `${m.user.name} (${m.user.email})` }))} />
+                <TransferOwnership
+                  orgSlug={orgSlug}
+                  members={members.filter((m) => m.userId !== ctx.user.id).map((m) => ({ id: m.id, label: `${m.user.name} (${m.user.email})` }))}
+                />
               </>
             ) : (
               <LeaveOrganization orgSlug={orgSlug} />
@@ -132,13 +144,15 @@ export default async function MembersPage({ params, searchParams }: { params: Pr
               {t("systemRoles")}
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              {roles.filter((r) => r.systemKey).map((r) => (
-                <Card key={r.id} className="grid gap-1">
-                  <p className="font-semibold">{label(r)}</p>
-                  <p className="text-sm text-ink-muted">{tr(`${r.systemKey}.description`)}</p>
-                  <p className="text-xs text-ink-muted">{t("permissionsCount", { count: (r.permissions as Permission[]).length })}</p>
-                </Card>
-              ))}
+              {roles
+                .filter((r) => r.systemKey)
+                .map((r) => (
+                  <Card key={r.id} className="grid gap-1">
+                    <p className="font-semibold">{label(r)}</p>
+                    <p className="text-sm text-ink-muted">{tr(`${r.systemKey}.description`)}</p>
+                    <p className="text-xs text-ink-muted">{t("permissionsCount", { count: (r.permissions as Permission[]).length })}</p>
+                  </Card>
+                ))}
             </div>
           </section>
           <section className="grid gap-3" aria-labelledby="custom-roles">
@@ -146,17 +160,25 @@ export default async function MembersPage({ params, searchParams }: { params: Pr
               {t("customRoles")}
             </h2>
             {!customRoles ? <p className="text-sm text-ink-muted">{t("customRolesUpsell")}</p> : null}
-            {roles.filter((r) => !r.systemKey).map((r) => (
-              <Card key={r.id} className="grid gap-2">
-                <p className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold">{r.name}</span>
-                  <Badge>{t("membersUsing", { count: r._count.members })}</Badge>
-                </p>
-                {r.description ? <p className="text-sm text-ink-muted">{r.description}</p> : null}
-                <p className="text-xs text-ink-muted">{(r.permissions as Permission[]).map((p) => tp(p)).join(" · ")}</p>
-                {manageRoles && customRoles ? <RoleEditor orgSlug={orgSlug} role={{ id: r.id, name: r.name, description: r.description ?? "", permissions: r.permissions as Permission[] }} allowed={allowed} /> : null}
-              </Card>
-            ))}
+            {roles
+              .filter((r) => !r.systemKey)
+              .map((r) => (
+                <Card key={r.id} className="grid gap-2">
+                  <p className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold">{r.name}</span>
+                    <Badge>{t("membersUsing", { count: r._count.members })}</Badge>
+                  </p>
+                  {r.description ? <p className="text-sm text-ink-muted">{r.description}</p> : null}
+                  <p className="text-xs text-ink-muted">{(r.permissions as Permission[]).map((p) => tp(p)).join(" · ")}</p>
+                  {manageRoles && customRoles ? (
+                    <RoleEditor
+                      orgSlug={orgSlug}
+                      role={{ id: r.id, name: r.name, description: r.description ?? "", permissions: r.permissions as Permission[] }}
+                      allowed={allowed}
+                    />
+                  ) : null}
+                </Card>
+              ))}
             {manageRoles && customRoles ? <RoleEditor orgSlug={orgSlug} role={null} allowed={allowed} /> : null}
           </section>
         </>

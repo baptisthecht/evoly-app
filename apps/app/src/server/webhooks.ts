@@ -20,9 +20,15 @@ export async function processStripeEvent(event: Stripe.Event, handle: (event: St
   }
   try {
     const outcome = await handle(event);
-    await db.stripeWebhookEvent.update({ where: { id: event.id }, data: { status: outcome, processedAt: new Date(), attempts: { increment: 1 }, lastError: null } });
+    await db.stripeWebhookEvent.update({
+      where: { id: event.id },
+      data: { status: outcome, processedAt: new Date(), attempts: { increment: 1 }, lastError: null },
+    });
   } catch (err) {
-    await db.stripeWebhookEvent.update({ where: { id: event.id }, data: { status: "FAILED", attempts: { increment: 1 }, lastError: String(err).slice(0, 1000) } });
+    await db.stripeWebhookEvent.update({
+      where: { id: event.id },
+      data: { status: "FAILED", attempts: { increment: 1 }, lastError: String(err).slice(0, 1000) },
+    });
     throw err;
   }
   return { duplicate: false };

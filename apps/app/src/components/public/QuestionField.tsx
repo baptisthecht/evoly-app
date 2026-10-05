@@ -6,7 +6,19 @@ import { Input, Select } from "../ui/Field";
 export type PublicQuestion = { id: string; label: string; helpText: string | null; type: QuestionType; required: boolean; options?: string[] | null };
 
 /** Champ d'une question à l'achat (US-QST-01), selon son type. */
-export function QuestionField({ q, id, value, onChange, error }: { q: PublicQuestion; id: string; value: unknown; onChange: (v: unknown) => void; error?: string | null }) {
+export function QuestionField({
+  q,
+  id,
+  value,
+  onChange,
+  error,
+}: {
+  q: PublicQuestion;
+  id: string;
+  value: unknown;
+  onChange: (v: unknown) => void;
+  error?: string | null;
+}) {
   const label = (
     <span className="font-label text-[0.8rem] font-bold">
       {q.label}
@@ -14,12 +26,23 @@ export function QuestionField({ q, id, value, onChange, error }: { q: PublicQues
     </span>
   );
   const help = q.helpText ? <span className="text-xs text-ink-muted">{q.helpText}</span> : null;
-  const err = error ? <span className="text-sm text-danger" role="alert">{error}</span> : null;
+  const err = error ? (
+    <span className="text-sm text-danger" role="alert">
+      {error}
+    </span>
+  ) : null;
   if (q.type === "CHECKBOX")
     return (
       <div className="grid gap-1">
         <label className="flex items-start gap-3 text-sm">
-          <input id={id} type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--ink)]" aria-invalid={!!error} />
+          <input
+            id={id}
+            type="checkbox"
+            checked={value === true}
+            onChange={(e) => onChange(e.target.checked)}
+            className="mt-0.5 size-5 shrink-0 accent-[var(--ink)]"
+            aria-invalid={!!error}
+          />
           <span>
             {q.label}
             {q.required ? <span aria-hidden="true"> *</span> : null}
@@ -36,7 +59,12 @@ export function QuestionField({ q, id, value, onChange, error }: { q: PublicQues
         <legend className="mb-1">{label}</legend>
         {(q.options ?? []).map((o) => (
           <label key={o} className="flex items-center gap-3 text-sm">
-            <input type="checkbox" checked={list.includes(o)} onChange={(e) => onChange(e.target.checked ? [...list, o] : list.filter((x) => x !== o))} className="size-5 accent-[var(--ink)]" />
+            <input
+              type="checkbox"
+              checked={list.includes(o)}
+              onChange={(e) => onChange(e.target.checked ? [...list, o] : list.filter((x) => x !== o))}
+              className="size-5 accent-[var(--ink)]"
+            />
             {o}
           </label>
         ))}
@@ -58,7 +86,15 @@ export function QuestionField({ q, id, value, onChange, error }: { q: PublicQues
           ))}
         </Select>
       ) : q.type === "TEXTAREA" ? (
-        <textarea id={id} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} rows={3} maxLength={2000} aria-invalid={!!error} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+        <textarea
+          id={id}
+          value={typeof value === "string" ? value : ""}
+          onChange={(e) => onChange(e.target.value)}
+          rows={3}
+          maxLength={2000}
+          aria-invalid={!!error}
+          className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+        />
       ) : (
         <Input
           id={id}

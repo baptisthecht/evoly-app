@@ -48,7 +48,11 @@ export function normalizeHexColor(input: string | null | undefined): string | nu
 
 /** RG-FILE-01 : fichier SVG (début du fichier, avec ou sans déclaration XML). */
 export function isSvg(bytes: Uint8Array): boolean {
-  const head = new TextDecoder().decode(bytes.slice(0, 1024)).replace(/^\uFEFF/, "").trimStart().toLowerCase();
+  const head = new TextDecoder()
+    .decode(bytes.slice(0, 1024))
+    .replace(/^\uFEFF/, "")
+    .trimStart()
+    .toLowerCase();
   return head.startsWith("<svg") || ((head.startsWith("<?xml") || head.startsWith("<!doctype svg") || head.startsWith("<!--")) && head.includes("<svg"));
 }
 

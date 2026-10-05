@@ -78,7 +78,21 @@ export function NewScannerLink({ orgSlug, eventId }: { orgSlug: string; eventId:
   );
 }
 
-export function LinkActions({ orgSlug, eventId, linkId, url, qrSvg, active }: { orgSlug: string; eventId: string; linkId: string; url: string; qrSvg: string; active: boolean }) {
+export function LinkActions({
+  orgSlug,
+  eventId,
+  linkId,
+  url,
+  qrSvg,
+  active,
+}: {
+  orgSlug: string;
+  eventId: string;
+  linkId: string;
+  url: string;
+  qrSvg: string;
+  active: boolean;
+}) {
   const t = useTranslations("entries");
   const [state, action, pending] = useActionState(revokeScannerLinkAction.bind(null, orgSlug, eventId, linkId), null);
   const [qr, setQr] = useState(false);
@@ -102,7 +116,14 @@ export function LinkActions({ orgSlug, eventId, linkId, url, qrSvg, active }: { 
         </form>
       </div>
       <FormError state={state} />
-      {qr ? <div className="w-48 rounded-md bg-blanc p-2 [&_svg]:h-auto [&_svg]:w-full" role="img" aria-label={t("qrLabel")} dangerouslySetInnerHTML={{ __html: qrSvg }} /> : null}
+      {qr ? (
+        <div
+          className="w-48 rounded-md bg-blanc p-2 [&_svg]:h-auto [&_svg]:w-full"
+          role="img"
+          aria-label={t("qrLabel")}
+          dangerouslySetInnerHTML={{ __html: qrSvg }}
+        />
+      ) : null}
     </div>
   );
 }

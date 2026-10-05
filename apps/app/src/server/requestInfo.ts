@@ -8,7 +8,10 @@ import { headers } from "next/headers";
  */
 export function ipFrom(h: Headers): string {
   const hops = Math.max(1, Number(process.env.TRUSTED_PROXY_HOPS ?? 1));
-  const parts = (h.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const parts = (h.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (parts.length > 0) return parts[Math.max(0, parts.length - hops)]!;
   return h.get("x-real-ip") ?? "unknown";
 }

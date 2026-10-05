@@ -13,19 +13,39 @@ const DAY = 86_400_000;
 async function setup() {
   const id = rid();
   const user = await db.user.create({ data: { name: "Camille", email: `own.${id}@exemple.be`, emailVerified: true } });
-  const org = await db.organization.create({ data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
+  const org = await db.organization.create({
+    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
   await db.subscription.create({ data: { organizationId: org.id, planId: "pro", status: "ACTIVE", currentPeriodEnd: new Date(Date.now() + 60 * DAY) } });
   const mk = (slug: string, days: number, quantities: number[] = [50]) =>
-    db.event.create({ data: { organizationId: org.id, slug: `${slug}-${id}`, publicCode: `${slug.slice(0, 2)}${id}`.toUpperCase().slice(0, 8) /* 6 caractères aléatoires : pas de collision entre les exécutions */, title: `${slug} ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + days * DAY), status: "PUBLISHED", visibility: "PUBLIC", ticketTypes: { create: quantities.map((q, i) => ({ name: i ? "VIP" : "Entrée", priceMinor: 0, currency: "EUR", quantity: q, sortOrder: i })) } }, include: { ticketTypes: { orderBy: { sortOrder: "asc" } } } });
+    db.event.create({
+      data: {
+        organizationId: org.id,
+        slug: `${slug}-${id}`,
+        publicCode: `${slug.slice(0, 2)}${id}`.toUpperCase().slice(0, 8) /* 6 caractères aléatoires : pas de collision entre les exécutions */,
+        title: `${slug} ${id}`,
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        startsAt: new Date(Date.now() + days * DAY),
+        status: "PUBLISHED",
+        visibility: "PUBLIC",
+        ticketTypes: { create: quantities.map((q, i) => ({ name: i ? "VIP" : "Entrée", priceMinor: 0, currency: "EUR", quantity: q, sortOrder: i })) },
+      },
+      include: { ticketTypes: { orderBy: { sortOrder: "asc" } } },
+    });
   const buy = async (event: Awaited<ReturnType<typeof mk>>, who: string, consent: boolean, typeIndex = 0) => {
     const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[typeIndex]!.id, quantity: 1 }], locale: "fr" });
     await submitBuyer(r.token, { firstName: who, lastName: "Test", email: `${who.toLowerCase()}.${id}@exemple.be`, marketingOptIn: consent });
     return `${who.toLowerCase()}.${id}@exemple.be`;
   };
-  const ctx = { organization: { id: org.id, slug: org.slug, locale: "fr", timezone: "Europe/Brussels" }, user: { id: user.id }, features: (await getPlans()).pro.features } as unknown as OrgContext;
+  const ctx = {
+    organization: { id: org.id, slug: org.slug, locale: "fr", timezone: "Europe/Brussels" },
+    user: { id: user.id },
+    features: (await getPlans()).pro.features,
+  } as unknown as OrgContext;
   return { id, org, ctx, mk, buy };
 }
-const sentTo = async (automationId: string) => (await db.emailMessage.findMany({ where: { automationId }, select: { toEmail: true, id: true } }));
+const sentTo = async (automationId: string) => await db.emailMessage.findMany({ where: { automationId }, select: { toEmail: true, id: true } });
 
 describe("e-mails marketing automatiques (US-MKT-02, section 9.18)", () => {
   it("désactivés par défaut ; remerciement 2 heures après la fin, consentants seulement, avec la prochaine date, une seule fois", async () => {
@@ -35,12 +55,19 @@ describe("e-mails marketing automatiques (US-MKT-02, section 9.18)", () => {
     const anna = await s.buy(past, "Anna", true);
     await s.buy(past, "Bruno", false);
     const rows = await eventMarketingAutomations(past.id);
-    expect(rows.map((r) => [r.type, r.enabled])).toEqual([["POST_EVENT", false], ["LAST_TICKETS", false]]);
+    expect(rows.map((r) => [r.type, r.enabled])).toEqual([
+      ["POST_EVENT", false],
+      ["LAST_TICKETS", false],
+    ]);
     const end = new Date(Date.now() - 3 * 3_600_000);
     await db.event.update({ where: { id: past.id }, data: { startsAt: new Date(end.getTime() - 3 * 3_600_000), endsAt: end } });
     await runDueMarketingAutomations();
     expect(await db.emailMessage.count({ where: { organizationId: s.org.id, template: "automation.marketing" } })).toBe(0);
-    await saveMarketingAutomation(s.ctx, past.id, "POST_EVENT", { enabled: true, subject: "Merci {{prenom}} !", message: "Bonjour {{prenom}},\nMerci d'être venue." });
+    await saveMarketingAutomation(s.ctx, past.id, "POST_EVENT", {
+      enabled: true,
+      subject: "Merci {{prenom}} !",
+      message: "Bonjour {{prenom}},\nMerci d'être venue.",
+    });
     await runDueMarketingAutomations();
     await runDueMarketingAutomations();
     const a = (await eventMarketingAutomations(past.id)).find((r) => r.type === "POST_EVENT")!;

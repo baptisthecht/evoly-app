@@ -13,14 +13,23 @@ export type ComplimentaryResult = { email: string; ok: true; orderId: string } |
  * ni commission), décomptée de la jauge : places réservées sous verrou, puis même finalisation qu'une commande gratuite
  * (billets, contact sans consentement marketing, e-mail avec le PDF). Envoi partiel possible, rapporté ligne par ligne.
  */
-export async function sendComplimentaryTickets(ctx: OrgContext, eventId: string, input: { ticketTypeId: string; recipients: Recipient[]; quantityEach: number }, now = new Date()): Promise<ComplimentaryResult[]> {
+export async function sendComplimentaryTickets(
+  ctx: OrgContext,
+  eventId: string,
+  input: { ticketTypeId: string; recipients: Recipient[]; quantityEach: number },
+  now = new Date(),
+): Promise<ComplimentaryResult[]> {
   const n = input.quantityEach;
   if (!Number.isInteger(n) || n < 1 || n > 10) throw new CoreError("COMPLIMENTARY_QUANTITY");
   if (input.recipients.length === 0 || input.recipients.length > 200) throw new CoreError("COMPLIMENTARY_RECIPIENTS");
-  const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null }, include: { ticketTypes: { where: { id: input.ticketTypeId } } } });
+  const event = await db.event.findFirst({
+    where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null },
+    include: { ticketTypes: { where: { id: input.ticketTypeId } } },
+  });
   const type = event?.ticketTypes[0];
   if (!event || !type) throw new CoreError("NOT_FOUND");
-  if (["DRAFT", "CANCELLED", "ARCHIVED"].includes(event.status) || event.startsAt.getTime() + 12 * 3_600_000 < now.getTime()) throw new CoreError("COMPLIMENTARY_EVENT_CLOSED");
+  if (["DRAFT", "CANCELLED", "ARCHIVED"].includes(event.status) || event.startsAt.getTime() + 12 * 3_600_000 < now.getTime())
+    throw new CoreError("COMPLIMENTARY_EVENT_CLOSED");
   const results: ComplimentaryResult[] = [];
   for (const r of input.recipients) {
     const orderId = `c${humanCode(24, ID_ALPHABET)}`;
@@ -28,7 +37,8 @@ export async function sendComplimentaryTickets(ctx: OrgContext, eventId: string,
       const accessTokenHash = await sha256Hex(orderAccessToken(orderId, 1));
       await db.$transaction(async (tx) => {
         if (!(await lockEvent(tx, event.id))) throw new CoreError("NOT_FOUND");
-        const held = await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${type.id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${n})`;
+        const held =
+          await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${type.id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${n})`;
         if (held !== 1) throw new CoreError("COMPLIMENTARY_NO_STOCK");
         await tx.order.create({
           data: {
@@ -40,7 +50,12 @@ export async function sendComplimentaryTickets(ctx: OrgContext, eventId: string,
             status: "PENDING",
             buyerEmail: r.email,
             // sans nom fourni : la partie de l'adresse avant le @, pour saluer le destinataire
-            buyerFirstName: r.firstName ?? r.email.split("@")[0]!.split(/[._-]/)[0]!.replace(/^./, (c) => c.toUpperCase()),
+            buyerFirstName:
+              r.firstName ??
+              r.email
+                .split("@")[0]!
+                .split(/[._-]/)[0]!
+                .replace(/^./, (c) => c.toUpperCase()),
             buyerLastName: r.lastName ?? "",
             buyerLocale: ctx.organization.locale,
             currency: event.currency,
@@ -67,6 +82,13 @@ export async function sendComplimentaryTickets(ctx: OrgContext, eventId: string,
     }
   }
   const sent = results.filter((x) => x.ok).length;
-  await audit({ action: "order.complimentary_sent", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Event", targetId: event.id, metadata: { recipients: input.recipients.length, sent, ticketsEach: n } });
+  await audit({
+    action: "order.complimentary_sent",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Event",
+    targetId: event.id,
+    metadata: { recipients: input.recipients.length, sent, ticketsEach: n },
+  });
   return results;
 }

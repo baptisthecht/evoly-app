@@ -8,7 +8,17 @@ import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { createPromoAction, promoCommandAction } from "../../actions";
 
-export function PromoForm({ orgSlug, eventId, ticketTypes, currencySymbol }: { orgSlug: string; eventId: string; ticketTypes: Array<{ id: string; name: string; codeOnly: boolean }>; currencySymbol: string }) {
+export function PromoForm({
+  orgSlug,
+  eventId,
+  ticketTypes,
+  currencySymbol,
+}: {
+  orgSlug: string;
+  eventId: string;
+  ticketTypes: Array<{ id: string; name: string; codeOnly: boolean }>;
+  currencySymbol: string;
+}) {
   const t = useTranslations("promo");
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"PERCENT" | "AMOUNT" | "FREE">("PERCENT");
@@ -95,11 +105,29 @@ export function PromoForm({ orgSlug, eventId, ticketTypes, currencySymbol }: { o
   );
 }
 
-export function PromoCommand({ orgSlug, eventId, promoId, command, label }: { orgSlug: string; eventId: string; promoId: string; command: "activate" | "deactivate" | "delete"; label: string }) {
+export function PromoCommand({
+  orgSlug,
+  eventId,
+  promoId,
+  command,
+  label,
+}: {
+  orgSlug: string;
+  eventId: string;
+  promoId: string;
+  command: "activate" | "deactivate" | "delete";
+  label: string;
+}) {
   const [state, action, pending] = useActionState(promoCommandAction.bind(null, orgSlug, eventId, promoId, command), null);
   return (
     <form action={action} className="contents">
-      <Button type="submit" size="sm" variant={command === "delete" ? "ghost" : "secondary"} className={command === "delete" ? "text-danger" : undefined} disabled={pending}>
+      <Button
+        type="submit"
+        size="sm"
+        variant={command === "delete" ? "ghost" : "secondary"}
+        className={command === "delete" ? "text-danger" : undefined}
+        disabled={pending}
+      >
         {label}
       </Button>
       <FormError state={state} />

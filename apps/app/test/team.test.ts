@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { findOrgContext, type OrgContext } from "@/server/context";
-import { acceptInvitation, autoJoinPendingInvitations, changeMemberRole, deleteCustomRole, inviteMember, leaveOrganization, removeMember, saveCustomRole, transferOwnership } from "@/server/team";
+import {
+  acceptInvitation,
+  autoJoinPendingInvitations,
+  changeMemberRole,
+  deleteCustomRole,
+  inviteMember,
+  leaveOrganization,
+  removeMember,
+  saveCustomRole,
+  transferOwnership,
+} from "@/server/team";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 const role = (key: string) => db.role.findFirstOrThrow({ where: { systemKey: key as "OWNER" } });
@@ -12,9 +22,14 @@ async function user(email: string, verified = true) {
 async function setup(plan: "free" | "pro" = "pro") {
   const id = rid();
   const owner = await user(`own.${id}@exemple.be`);
-  const org = await db.organization.create({ data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
+  const org = await db.organization.create({
+    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
   await db.organizationMember.create({ data: { organizationId: org.id, userId: owner.id, roleId: (await role("OWNER")).id } });
-  if (plan === "pro") await db.subscription.create({ data: { organizationId: org.id, planId: "pro", status: "ACTIVE", currentPeriodEnd: new Date(Date.now() + 30 * 86_400_000) } });
+  if (plan === "pro")
+    await db.subscription.create({
+      data: { organizationId: org.id, planId: "pro", status: "ACTIVE", currentPeriodEnd: new Date(Date.now() + 30 * 86_400_000) },
+    });
   const ctxOf = async (userId: string) => ({ ...(await findOrgContext(userId, org.slug))!, user: { id: userId } }) as unknown as OrgContext;
   return { id, org, owner, ctxOf };
 }

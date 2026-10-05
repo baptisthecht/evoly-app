@@ -7,7 +7,9 @@ test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({ page }
   await buyFree(page, siteUrl(slug, `/bal-${id}`), "Fosse", 2, `lea.${id}@exemple.be`);
   // commande payée simulée : 48 € dont 1,02 € de commission et 0,97 € de frais Stripe réels, payée le mois dernier
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
-  sql(`update "Order" set "totalMinor" = 4800, "subtotalMinor" = 4800, "applicationFeeMinor" = 102, "paymentFeeMinor" = 97, "netMinor" = 4601, "paidAt" = date_trunc('month', now()) - interval '3 days' where "organizationId" = '${orgId}'`);
+  sql(
+    `update "Order" set "totalMinor" = 4800, "subtotalMinor" = 4800, "applicationFeeMinor" = 102, "paymentFeeMinor" = 97, "netMinor" = 4601, "paidAt" = date_trunc('month', now()) - interval '3 days' where "organizationId" = '${orgId}'`,
+  );
   const reference = sql(`select reference from "Order" where "organizationId" = '${orgId}'`);
 
   await page.goto(appUrl(`/o/${slug}/finances?period=ALL`));
@@ -22,7 +24,11 @@ test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({ page }
   expect(csv.headers()["content-type"]).toContain("text/csv");
   expect(await csv.text()).toContain(`${reference};`);
 
-  await page.getByRole("link", { name: "Télécharger le relevé" }).first().click({ modifiers: [] }).catch(() => undefined);
+  await page
+    .getByRole("link", { name: "Télécharger le relevé" })
+    .first()
+    .click({ modifiers: [] })
+    .catch(() => undefined);
   const period = sql(`select to_char((date_trunc('month', now()) - interval '3 days') at time zone 'Europe/Brussels', 'YYYY-MM')`);
   const pdf = await page.request.get(appUrl(`/o/${slug}/finances/statements/${period}`));
   expect(pdf.headers()["content-type"]).toBe("application/pdf");

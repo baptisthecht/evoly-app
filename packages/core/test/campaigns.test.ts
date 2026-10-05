@@ -3,7 +3,13 @@ import { applyMergeTags, complaintRateExceeded, remainingDailyQuota, scheduledCa
 
 describe("campagnes (US-MKT-03)", () => {
   it("blocs valides ; liens non http(s), blocs inconnus et contenus vides refusés", () => {
-    expect(validateBlocks([{ type: "heading", text: " Printemps " }, { type: "button", label: "Réserver", url: "https://club.evoly.me/printemps" }, { type: "divider" }])).toEqual([{ type: "heading", text: "Printemps" }, { type: "button", label: "Réserver", url: "https://club.evoly.me/printemps" }, { type: "divider" }]);
+    expect(
+      validateBlocks([
+        { type: "heading", text: " Printemps " },
+        { type: "button", label: "Réserver", url: "https://club.evoly.me/printemps" },
+        { type: "divider" },
+      ]),
+    ).toEqual([{ type: "heading", text: "Printemps" }, { type: "button", label: "Réserver", url: "https://club.evoly.me/printemps" }, { type: "divider" }]);
     expect(validateBlocks([{ type: "button", label: "Clic", url: "javascript:alert(1)" }])).toBeNull();
     expect(validateBlocks([{ type: "image", url: "data:image/png;base64,AAAA" }])).toBeNull();
     expect(validateBlocks([{ type: "script", text: "x" }])).toBeNull();
@@ -12,9 +18,20 @@ describe("campagnes (US-MKT-03)", () => {
   });
   it("destinataires : tous les consentants, ou participants d'événements, présents ou absents", () => {
     expect(validateSegment({ kind: "ALL_CONSENTING", locale: "nl" })).toEqual({ kind: "ALL_CONSENTING", locale: null });
-    expect(validateSegment({ kind: "EVENTS", eventIds: ["a", "a", "b"], attendance: "ABSENT" })).toEqual({ kind: "EVENTS", eventIds: ["a", "b"], attendance: "ABSENT", locale: null });
+    expect(validateSegment({ kind: "EVENTS", eventIds: ["a", "a", "b"], attendance: "ABSENT" })).toEqual({
+      kind: "EVENTS",
+      eventIds: ["a", "b"],
+      attendance: "ABSENT",
+      locale: null,
+    });
     expect(validateSegment({ kind: "EVENTS", eventIds: [] })).toBeNull();
-    expect(validateSegment({ kind: "EVENTS", eventIds: ["a"], ticketTypeIds: ["t1", "t1"] })).toEqual({ kind: "EVENTS", eventIds: ["a"], ticketTypeIds: ["t1"], attendance: "ANY", locale: null });
+    expect(validateSegment({ kind: "EVENTS", eventIds: ["a"], ticketTypeIds: ["t1", "t1"] })).toEqual({
+      kind: "EVENTS",
+      eventIds: ["a"],
+      ticketTypeIds: ["t1"],
+      attendance: "ANY",
+      locale: null,
+    });
   });
   it("personnalisation par le prénom", () => {
     expect(applyMergeTags("Bonjour {{prenom}}, à bientôt !", { firstName: "Léa" })).toBe("Bonjour Léa, à bientôt !");
@@ -45,4 +62,3 @@ describe("balise du prénom dans chaque langue de l'app", () => {
     expect(applyMergeTags("{{ciudad}}", { firstName: "Ana" })).toBe("{{ciudad}}");
   });
 });
-

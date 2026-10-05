@@ -5,15 +5,7 @@ import { PrismaClient, type Permission, type PlanFeature, type SystemRole } from
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }) });
 
-const FREE_FEATURES: PlanFeature[] = [
-  "RESALE",
-  "LIVE_STATS",
-  "QR_CHECKIN",
-  "EVOLY_SUBDOMAIN",
-  "TRANSACTIONAL_EMAILS",
-  "PROMO_CODES",
-  "WALLET_PASSES",
-];
+const FREE_FEATURES: PlanFeature[] = ["RESALE", "LIVE_STATS", "QR_CHECKIN", "EVOLY_SUBDOMAIN", "TRANSACTIONAL_EMAILS", "PROMO_CODES", "WALLET_PASSES"];
 
 const PRO_FEATURES: PlanFeature[] = [
   ...FREE_FEATURES,
@@ -30,22 +22,60 @@ const PRO_FEATURES: PlanFeature[] = [
 ];
 
 const ALL: Permission[] = [
-  "ORG_SETTINGS_EDIT", "BRAND_EDIT", "DOMAINS_MANAGE", "BILLING_MANAGE", "PAYMENTS_MANAGE", "FINANCE_VIEW",
-  "MEMBERS_MANAGE", "ROLES_MANAGE", "EVENTS_CREATE", "EVENTS_EDIT", "EVENTS_PUBLISH", "EVENTS_CANCEL",
-  "EVENTS_DELETE", "TICKETS_MANAGE", "PROMO_MANAGE", "ORDERS_VIEW", "ORDERS_MANAGE", "REFUNDS_MANAGE",
-  "RESALE_MANAGE", "CHECKIN_SCAN", "CHECKIN_MANAGE", "STATS_VIEW", "MARKETING_MANAGE", "CONTACTS_EXPORT",
+  "ORG_SETTINGS_EDIT",
+  "BRAND_EDIT",
+  "DOMAINS_MANAGE",
+  "BILLING_MANAGE",
+  "PAYMENTS_MANAGE",
+  "FINANCE_VIEW",
+  "MEMBERS_MANAGE",
+  "ROLES_MANAGE",
+  "EVENTS_CREATE",
+  "EVENTS_EDIT",
+  "EVENTS_PUBLISH",
+  "EVENTS_CANCEL",
+  "EVENTS_DELETE",
+  "TICKETS_MANAGE",
+  "PROMO_MANAGE",
+  "ORDERS_VIEW",
+  "ORDERS_MANAGE",
+  "REFUNDS_MANAGE",
+  "RESALE_MANAGE",
+  "CHECKIN_SCAN",
+  "CHECKIN_MANAGE",
+  "STATS_VIEW",
+  "MARKETING_MANAGE",
+  "CONTACTS_EXPORT",
 ];
 
 const SYSTEM_ROLES: { key: SystemRole; name: string; description: string; permissions: Permission[] }[] = [
   { key: "OWNER", name: "Propriétaire", description: "Tous les droits, y compris supprimer l'organisation et transférer la propriété.", permissions: ALL },
   { key: "ADMIN", name: "Administrateur", description: "Tous les droits sauf les actions réservées au propriétaire.", permissions: ALL },
   {
-    key: "MANAGER", name: "Gestion des événements", description: "Crée, vend et opère les événements, sans les finances ni les réglages.",
-    permissions: ["EVENTS_CREATE", "EVENTS_EDIT", "EVENTS_PUBLISH", "EVENTS_CANCEL", "TICKETS_MANAGE", "PROMO_MANAGE", "ORDERS_VIEW",
-      "ORDERS_MANAGE", "REFUNDS_MANAGE", "RESALE_MANAGE", "CHECKIN_SCAN", "CHECKIN_MANAGE", "STATS_VIEW", "MARKETING_MANAGE"],
+    key: "MANAGER",
+    name: "Gestion des événements",
+    description: "Crée, vend et opère les événements, sans les finances ni les réglages.",
+    permissions: [
+      "EVENTS_CREATE",
+      "EVENTS_EDIT",
+      "EVENTS_PUBLISH",
+      "EVENTS_CANCEL",
+      "TICKETS_MANAGE",
+      "PROMO_MANAGE",
+      "ORDERS_VIEW",
+      "ORDERS_MANAGE",
+      "REFUNDS_MANAGE",
+      "RESALE_MANAGE",
+      "CHECKIN_SCAN",
+      "CHECKIN_MANAGE",
+      "STATS_VIEW",
+      "MARKETING_MANAGE",
+    ],
   },
   {
-    key: "BOX_OFFICE", name: "Billetterie", description: "Suit les commandes, gère remboursements et revente, scanne les entrées.",
+    key: "BOX_OFFICE",
+    name: "Billetterie",
+    description: "Suit les commandes, gère remboursements et revente, scanne les entrées.",
     permissions: ["ORDERS_VIEW", "ORDERS_MANAGE", "REFUNDS_MANAGE", "RESALE_MANAGE", "CHECKIN_SCAN", "STATS_VIEW"],
   },
   { key: "SCANNER", name: "Contrôle des entrées", description: "Accès au scanner uniquement.", permissions: ["CHECKIN_SCAN"] },

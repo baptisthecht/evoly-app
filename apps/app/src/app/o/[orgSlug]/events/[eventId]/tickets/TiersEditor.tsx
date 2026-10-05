@@ -20,7 +20,23 @@ export interface TierRow {
 }
 
 /** Prix dynamiques (US-TKT-03, Pro) : prévente, normal, dernière minute… par date ou par quantité. */
-export function TiersEditor({ orgSlug, eventId, ticketTypeId, initial, enabled, locked, terms }: { orgSlug: string; eventId: string; ticketTypeId: string; initial: TierRow[]; enabled: boolean; locked: boolean; terms: FeeTerms }) {
+export function TiersEditor({
+  orgSlug,
+  eventId,
+  ticketTypeId,
+  initial,
+  enabled,
+  locked,
+  terms,
+}: {
+  orgSlug: string;
+  eventId: string;
+  ticketTypeId: string;
+  initial: TierRow[];
+  enabled: boolean;
+  locked: boolean;
+  terms: FeeTerms;
+}) {
   const t = useTranslations("tiers");
   const tf = useTranslations();
   const locale = useLocale();
@@ -54,7 +70,15 @@ export function TiersEditor({ orgSlug, eventId, ticketTypeId, initial, enabled, 
               {t("name")}
               <Input placeholder={t("namePlaceholder")} value={row.name} onChange={(e) => update(i, { name: e.target.value })} readOnly={readOnly} />
             </label>
-            <PriceFields compact id={`tier-${ticketTypeId}-${i}-price`} label={t("price")} price={row.price} onPrice={(v) => update(i, { price: v })} terms={terms} locked={readOnly || row.sold > 0} />
+            <PriceFields
+              compact
+              id={`tier-${ticketTypeId}-${i}-price`}
+              label={t("price")}
+              price={row.price}
+              onPrice={(v) => update(i, { price: v })}
+              terms={terms}
+              locked={readOnly || row.sold > 0}
+            />
             <div className="grid items-end gap-3 sm:grid-cols-3">
               <label className="grid gap-1 text-xs font-bold">
                 {t("from")}
@@ -66,7 +90,14 @@ export function TiersEditor({ orgSlug, eventId, ticketTypeId, initial, enabled, 
               </label>
               <label className="grid gap-1 text-xs font-bold">
                 {t("limit")}
-                <Input type="number" min={1} inputMode="numeric" value={row.quantityLimit} onChange={(e) => update(i, { quantityLimit: e.target.value })} readOnly={readOnly} />
+                <Input
+                  type="number"
+                  min={1}
+                  inputMode="numeric"
+                  value={row.quantityLimit}
+                  onChange={(e) => update(i, { quantityLimit: e.target.value })}
+                  readOnly={readOnly}
+                />
               </label>
             </div>
             <div className="flex items-center justify-between gap-2 text-sm text-ink-muted">
@@ -82,7 +113,12 @@ export function TiersEditor({ orgSlug, eventId, ticketTypeId, initial, enabled, 
       </ol>
       {!readOnly ? (
         <div className="flex flex-wrap gap-3">
-          <Button type="button" variant="secondary" onClick={() => setRows((r) => [...r, { id: null, name: "", price: "", startsAtLocal: "", endsAtLocal: "", quantityLimit: "", sold: 0 }])} disabled={rows.length >= 10}>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setRows((r) => [...r, { id: null, name: "", price: "", startsAtLocal: "", endsAtLocal: "", quantityLimit: "", sold: 0 }])}
+            disabled={rows.length >= 10}
+          >
             {t("add")}
           </Button>
           <Button
@@ -95,11 +131,22 @@ export function TiersEditor({ orgSlug, eventId, ticketTypeId, initial, enabled, 
                   orgSlug,
                   eventId,
                   ticketTypeId,
-                  rows.map((r) => ({ id: r.id, name: r.name, price: r.price, startsAtLocal: r.startsAtLocal || null, endsAtLocal: r.endsAtLocal || null, quantityLimit: r.quantityLimit || null })),
+                  rows.map((r) => ({
+                    id: r.id,
+                    name: r.name,
+                    price: r.price,
+                    startsAtLocal: r.startsAtLocal || null,
+                    endsAtLocal: r.endsAtLocal || null,
+                    quantityLimit: r.quantityLimit || null,
+                  })),
                 );
                 if (res?.ok) {
                   const issues = res.data.issues;
-                  setMessage(issues.length ? { tone: "warn", text: issues.map((x) => t(x.kind === "GAP" ? "gap" : "overlap", { from: fmt(x.from), to: fmt(x.to) })).join(" ") } : { tone: "ok", text: t("saved") });
+                  setMessage(
+                    issues.length
+                      ? { tone: "warn", text: issues.map((x) => t(x.kind === "GAP" ? "gap" : "overlap", { from: fmt(x.from), to: fmt(x.to) })).join(" ") }
+                      : { tone: "ok", text: t("saved") },
+                  );
                 } else if (res) {
                   setMessage({ tone: "error", text: tf.has(`formErrors.${res.error}`) ? tf(`formErrors.${res.error}`) : tf("formErrors.generic") });
                 }
@@ -111,7 +158,16 @@ export function TiersEditor({ orgSlug, eventId, ticketTypeId, initial, enabled, 
         </div>
       ) : null}
       {message ? (
-        <p role="status" className={message.tone === "ok" ? "text-sm text-success" : message.tone === "warn" ? "rounded-md bg-warning-soft px-4 py-3 text-sm text-warning" : "rounded-md bg-danger-soft px-4 py-3 text-sm text-danger"}>
+        <p
+          role="status"
+          className={
+            message.tone === "ok"
+              ? "text-sm text-success"
+              : message.tone === "warn"
+                ? "rounded-md bg-warning-soft px-4 py-3 text-sm text-warning"
+                : "rounded-md bg-danger-soft px-4 py-3 text-sm text-danger"
+          }
+        >
           {message.text}
         </p>
       ) : null}

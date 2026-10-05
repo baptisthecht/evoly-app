@@ -26,7 +26,11 @@ export default async function ParticipantSpace({ searchParams }: { searchParams:
           <Logo className="h-8 w-auto" />
           <h1 className="font-display text-2xl tracking-[-0.03em]">{t("title")}</h1>
           <p className="text-ink-muted">{t("intro")}</p>
-          {expired ? <p role="alert" className="text-sm text-danger">{t("expired")}</p> : null}
+          {expired ? (
+            <p role="alert" className="text-sm text-danger">
+              {t("expired")}
+            </p>
+          ) : null}
           <LinkForm />
         </div>
       </main>
@@ -42,8 +46,13 @@ export default async function ParticipantSpace({ searchParams }: { searchParams:
             <a href={o.url} className={`${card} grid gap-1 transition-shadow hover:shadow-md`}>
               <span className="text-xs font-semibold text-ink-muted">{o.organization}</span>
               <span className="font-semibold">{o.title}</span>
-              <span className="text-sm text-ink-muted">{formatDateTime(o.startsAt, o.timezone, locale, "long")}{o.place ? ` · ${o.place}` : ""}</span>
-              <span className="text-sm">{o.cancelled ? t("cancelled") : o.refunded ? t("refunded") : t("tickets", { count: o.tickets })} · {o.reference}</span>
+              <span className="text-sm text-ink-muted">
+                {formatDateTime(o.startsAt, o.timezone, locale, "long")}
+                {o.place ? ` · ${o.place}` : ""}
+              </span>
+              <span className="text-sm">
+                {o.cancelled ? t("cancelled") : o.refunded ? t("refunded") : t("tickets", { count: o.tickets })} · {o.reference}
+              </span>
             </a>
           </li>
         ))}
@@ -56,7 +65,9 @@ export default async function ParticipantSpace({ searchParams }: { searchParams:
         <header className="flex flex-wrap items-center justify-between gap-3">
           <Logo className="h-8 w-auto" />
           <form action={logoutAction}>
-            <button type="submit" className="text-sm font-semibold underline underline-offset-4">{t("logout")}</button>
+            <button type="submit" className="text-sm font-semibold underline underline-offset-4">
+              {t("logout")}
+            </button>
           </form>
         </header>
         <div className="grid gap-1">
@@ -71,7 +82,9 @@ export default async function ParticipantSpace({ searchParams }: { searchParams:
               {data.listings.map((l) => (
                 <li key={l.id} className={`${card} flex flex-wrap justify-between gap-2 text-sm`}>
                   <span className="font-semibold">{l.title}</span>
-                  <span>{formatMoney(l.priceMinor, l.currency, locale)} · {t(`listing_${l.status}`)}</span>
+                  <span>
+                    {formatMoney(l.priceMinor, l.currency, locale)} · {t(`listing_${l.status}`)}
+                  </span>
                 </li>
               ))}
             </ul>

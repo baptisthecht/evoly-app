@@ -25,12 +25,17 @@ export function decryptSecret(blob: string): string {
   d.setAuthTag(raw.subarray(12, 28));
   return Buffer.concat([d.update(raw.subarray(28)), d.final()]).toString("utf8");
 }
-export const totpFor = (secret: string, label: string) => new OTPAuth.TOTP({ issuer: "Evoly", label, algorithm: "SHA1", digits: 6, period: 30, secret: OTPAuth.Secret.fromBase32(secret) });
+export const totpFor = (secret: string, label: string) =>
+  new OTPAuth.TOTP({ issuer: "Evoly", label, algorithm: "SHA1", digits: 6, period: 30, secret: OTPAuth.Secret.fromBase32(secret) });
 
 const COOKIE = "evoly_2fa";
-const mark = (sessionId: string, userId: string) => createHmac("sha256", `2fa-session:${env().BETTER_AUTH_SECRET}`).update(`${sessionId}:${userId}`).digest("base64url");
+const mark = (sessionId: string, userId: string) =>
+  createHmac("sha256", `2fa-session:${env().BETTER_AUTH_SECRET}`).update(`${sessionId}:${userId}`).digest("base64url");
 const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
-const hashCode = (code: string) => createHash("sha256").update(`recovery:${code.toUpperCase().replace(/[^A-Z0-9]/g, "")}`).digest("hex");
+const hashCode = (code: string) =>
+  createHash("sha256")
+    .update(`recovery:${code.toUpperCase().replace(/[^A-Z0-9]/g, "")}`)
+    .digest("hex");
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const recoveryCode = () => Array.from({ length: 8 }, (_, i) => (i === 4 ? "-" : "") + ALPHABET[randomInt(ALPHABET.length)]).join("");
 
@@ -53,7 +58,12 @@ async function checkCode(userId: string, email: string, code: string): Promise<"
   if ((await hit(`2fa:${userId}`, 900)) > 10) throw new CoreError("RATE_LIMITED");
   const row = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { twoFactorSecret: true, twoFactorBackupCodes: true } });
   const clean = code.trim();
-  if (row.twoFactorSecret && /^\d{6}$/.test(clean.replace(/\s/g, "")) && totpFor(decryptSecret(row.twoFactorSecret), email).validate({ token: clean.replace(/\s/g, ""), window: 1 }) !== null) return "TOTP";
+  if (
+    row.twoFactorSecret &&
+    /^\d{6}$/.test(clean.replace(/\s/g, "")) &&
+    totpFor(decryptSecret(row.twoFactorSecret), email).validate({ token: clean.replace(/\s/g, ""), window: 1 }) !== null
+  )
+    return "TOTP";
   const h = hashCode(clean);
   if (clean.length >= 8 && row.twoFactorBackupCodes.includes(h)) {
     // code de secours : usage unique
@@ -64,7 +74,13 @@ async function checkCode(userId: string, email: string, code: string): Promise<"
 }
 
 async function markSession(userId: string, sessionId: string) {
-  (await cookies()).set(COOKIE, mark(sessionId, userId), { httpOnly: true, sameSite: "lax", secure: env().NEXT_PUBLIC_APP_URL.startsWith("https"), path: "/", maxAge: 12 * 3600 });
+  (await cookies()).set(COOKIE, mark(sessionId, userId), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: env().NEXT_PUBLIC_APP_URL.startsWith("https"),
+    path: "/",
+    maxAge: 12 * 3600,
+  });
 }
 
 /** Activation : premier code correct → double authentification active et 8 codes de secours, montrés une seule fois. */
@@ -80,7 +96,12 @@ export async function enableTwoFactor(user: { id: string; email: string }, sessi
 /** Connexion : code de l'application ou code de secours ; journalisé. */
 export async function verifyTwoFactor(user: { id: string; email: string }, sessionId: string, code: string): Promise<boolean> {
   const kind = await checkCode(user.id, user.email, code);
-  await audit({ action: kind ? `account.2fa_verified_${kind.toLowerCase()}` : "account.2fa_failed", actorUserId: user.id, targetType: "User", targetId: user.id });
+  await audit({
+    action: kind ? `account.2fa_verified_${kind.toLowerCase()}` : "account.2fa_failed",
+    actorUserId: user.id,
+    targetType: "User",
+    targetId: user.id,
+  });
   if (!kind) return false;
   await markSession(user.id, sessionId);
   return true;

@@ -35,7 +35,21 @@ export interface TicketTypeRow {
 
 const checkboxClass = "size-5 accent-[var(--ink)]";
 
-function Command({ orgSlug, eventId, id, command, label, variant = "ghost" }: { orgSlug: string; eventId: string; id: string; command: "delete" | "pause" | "activate" | "archive" | "up" | "down"; label: string; variant?: "ghost" | "secondary" }) {
+function Command({
+  orgSlug,
+  eventId,
+  id,
+  command,
+  label,
+  variant = "ghost",
+}: {
+  orgSlug: string;
+  eventId: string;
+  id: string;
+  command: "delete" | "pause" | "activate" | "archive" | "up" | "down";
+  label: string;
+  variant?: "ghost" | "secondary";
+}) {
   const [state, action, pending] = useActionState(ticketCommandAction.bind(null, orgSlug, eventId, id, command), null);
   return (
     <form action={action} className="contents">
@@ -47,7 +61,19 @@ function Command({ orgSlug, eventId, id, command, label, variant = "ghost" }: { 
   );
 }
 
-export function TicketTypeForm({ orgSlug, eventId, row, terms, onDone }: { orgSlug: string; eventId: string; row: TicketTypeRow | null; terms: FeeTerms; onDone?: () => void }) {
+export function TicketTypeForm({
+  orgSlug,
+  eventId,
+  row,
+  terms,
+  onDone,
+}: {
+  orgSlug: string;
+  eventId: string;
+  row: TicketTypeRow | null;
+  terms: FeeTerms;
+  onDone?: () => void;
+}) {
   const t = useTranslations("tickets");
   const { state, pending, formProps } = useActionForm(saveTicketTypeAction.bind(null, orgSlug, eventId, row?.id ?? null), null);
   const error = useFieldError(state);
@@ -63,10 +89,27 @@ export function TicketTypeForm({ orgSlug, eventId, row, terms, onDone }: { orgSl
           <Input id={`name-${row?.id ?? "new"}`} name="name" defaultValue={row?.name ?? ""} maxLength={60} required />
         </Field>
         <Field label={t("quantity")} htmlFor={`quantity-${row?.id ?? "new"}`} hint={t("unlimited")} error={error("quantity")}>
-          <Input id={`quantity-${row?.id ?? "new"}`} name="quantity" type="number" min={Math.max(1, row?.quantitySold ?? 1)} inputMode="numeric" defaultValue={row?.quantity ?? ""} />
+          <Input
+            id={`quantity-${row?.id ?? "new"}`}
+            name="quantity"
+            type="number"
+            min={Math.max(1, row?.quantitySold ?? 1)}
+            inputMode="numeric"
+            defaultValue={row?.quantity ?? ""}
+          />
         </Field>
       </div>
-      <PriceFields id={`price-${row?.id ?? "new"}`} name="price" label={t("pricePaid")} hint={row?.priceLocked ? t("priceLocked") : t("priceHint")} error={error("price")} price={price} onPrice={setPrice} terms={terms} locked={row?.priceLocked} />
+      <PriceFields
+        id={`price-${row?.id ?? "new"}`}
+        name="price"
+        label={t("pricePaid")}
+        hint={row?.priceLocked ? t("priceLocked") : t("priceHint")}
+        error={error("price")}
+        price={price}
+        onPrice={setPrice}
+        terms={terms}
+        locked={row?.priceLocked}
+      />
       <details className="rounded-md bg-surface-sunken px-4 py-3 [&[open]]:pb-4">
         <summary className="cursor-pointer font-semibold">{t("moreOptions")}</summary>
         <div className="mt-4 grid gap-5">
@@ -111,7 +154,9 @@ export function TicketTypeForm({ orgSlug, eventId, row, terms, onDone }: { orgSl
         </div>
       </details>
       <div className="flex flex-wrap gap-3">
-        <SubmitButton pending={pending} className="w-full sm:w-auto">{row ? t("save") : t("addTicketType")}</SubmitButton>
+        <SubmitButton pending={pending} className="w-full sm:w-auto">
+          {row ? t("save") : t("addTicketType")}
+        </SubmitButton>
         {onDone ? (
           <Button type="button" variant="ghost" size="lg" onClick={onDone}>
             {t("cancel")}
@@ -122,7 +167,27 @@ export function TicketTypeForm({ orgSlug, eventId, row, terms, onDone }: { orgSl
   );
 }
 
-export function TicketTypeCard({ orgSlug, eventId, row, terms, currency, index, count, tiersEnabled, tiersLocked }: { orgSlug: string; eventId: string; row: TicketTypeRow; terms: FeeTerms; currency: string; index: number; count: number; tiersEnabled: boolean; tiersLocked: boolean }) {
+export function TicketTypeCard({
+  orgSlug,
+  eventId,
+  row,
+  terms,
+  currency,
+  index,
+  count,
+  tiersEnabled,
+  tiersLocked,
+}: {
+  orgSlug: string;
+  eventId: string;
+  row: TicketTypeRow;
+  terms: FeeTerms;
+  currency: string;
+  index: number;
+  count: number;
+  tiersEnabled: boolean;
+  tiersLocked: boolean;
+}) {
   const t = useTranslations("tickets");
   const locale = useLocale() as Locale;
   const [editing, setEditing] = useState(false);
@@ -137,7 +202,8 @@ export function TicketTypeCard({ orgSlug, eventId, row, terms, currency, index, 
             {row.visibility !== "VISIBLE" ? <Badge>{t(`visibility_${row.visibility}`)}</Badge> : null}
           </div>
           <p className="text-sm text-ink-muted">
-            {row.priceMinor === 0 ? t("free") : formatMoney(row.priceMinor, currency, locale)} · {row.quantity ? t("soldOf", { sold: row.quantitySold, total: Number(row.quantity) }) : t("soldUnlimited", { sold: row.quantitySold })}
+            {row.priceMinor === 0 ? t("free") : formatMoney(row.priceMinor, currency, locale)} ·{" "}
+            {row.quantity ? t("soldOf", { sold: row.quantitySold, total: Number(row.quantity) }) : t("soldUnlimited", { sold: row.quantitySold })}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1">
@@ -151,12 +217,28 @@ export function TicketTypeCard({ orgSlug, eventId, row, terms, currency, index, 
       {editing ? (
         <div className="grid gap-5 border-t border-line pt-5">
           <TicketTypeForm orgSlug={orgSlug} eventId={eventId} row={row} terms={terms} onDone={() => setEditing(false)} />
-          <TiersEditor orgSlug={orgSlug} eventId={eventId} ticketTypeId={row.id} initial={row.tiers} enabled={tiersEnabled} locked={tiersLocked} terms={terms} />
+          <TiersEditor
+            orgSlug={orgSlug}
+            eventId={eventId}
+            ticketTypeId={row.id}
+            initial={row.tiers}
+            enabled={tiersEnabled}
+            locked={tiersLocked}
+            terms={terms}
+          />
           <div className="flex flex-wrap gap-2 border-t border-line pt-4">
-            {row.status === "ACTIVE" ? <Command orgSlug={orgSlug} eventId={eventId} id={row.id} command="pause" label={t("pause")} variant="secondary" /> : null}
-            {row.status === "PAUSED" || row.status === "ARCHIVED" ? <Command orgSlug={orgSlug} eventId={eventId} id={row.id} command="activate" label={t("activate")} variant="secondary" /> : null}
-            {row.quantitySold > 0 && row.status !== "ARCHIVED" ? <Command orgSlug={orgSlug} eventId={eventId} id={row.id} command="archive" label={t("archive")} variant="secondary" /> : null}
-            {row.quantitySold === 0 ? <Command orgSlug={orgSlug} eventId={eventId} id={row.id} command="delete" label={t("delete")} variant="secondary" /> : null}
+            {row.status === "ACTIVE" ? (
+              <Command orgSlug={orgSlug} eventId={eventId} id={row.id} command="pause" label={t("pause")} variant="secondary" />
+            ) : null}
+            {row.status === "PAUSED" || row.status === "ARCHIVED" ? (
+              <Command orgSlug={orgSlug} eventId={eventId} id={row.id} command="activate" label={t("activate")} variant="secondary" />
+            ) : null}
+            {row.quantitySold > 0 && row.status !== "ARCHIVED" ? (
+              <Command orgSlug={orgSlug} eventId={eventId} id={row.id} command="archive" label={t("archive")} variant="secondary" />
+            ) : null}
+            {row.quantitySold === 0 ? (
+              <Command orgSlug={orgSlug} eventId={eventId} id={row.id} command="delete" label={t("delete")} variant="secondary" />
+            ) : null}
           </div>
         </div>
       ) : null}

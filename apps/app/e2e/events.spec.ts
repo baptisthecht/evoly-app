@@ -119,7 +119,9 @@ test("prix dynamiques : réservés au Pro, puis prix de prévente sur la page pu
   // passage en Pro (abonnement actif) et compte Stripe actif, simulés en base
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
   sql(`update "Subscription" set "planId" = 'pro', status = 'ACTIVE' where "organizationId" = '${orgId}'`);
-  sql(`insert into "StripeAccount" (id, "organizationId", "stripeAccountId", country, "defaultCurrency", status, "chargesEnabled", "payoutsEnabled", "detailsSubmitted", "updatedAt") values ('sa_${id}', '${orgId}', 'acct_test_${id}', 'BE', 'EUR', 'ACTIVE', true, true, true, now())`);
+  sql(
+    `insert into "StripeAccount" (id, "organizationId", "stripeAccountId", country, "defaultCurrency", status, "chargesEnabled", "payoutsEnabled", "detailsSubmitted", "updatedAt") values ('sa_${id}', '${orgId}', 'acct_test_${id}', 'BE', 'EUR', 'ACTIVE', true, true, true, now())`,
+  );
 
   await page.reload();
   await page.getByRole("button", { name: "Modifier" }).click();

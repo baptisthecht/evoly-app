@@ -20,7 +20,13 @@ const FILTERS: OrderFilter[] = ["ALL", "PAID", "PARTIALLY_REFUNDED", "REFUNDED",
 const TONES = { PAID: "success", PARTIALLY_REFUNDED: "warning", REFUNDED: "neutral", FAILED: "danger" } as const;
 
 /** US-ORD-01 : recherche et filtres. */
-export default async function OrdersPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ q?: string; event?: string; type?: string; filter?: string; page?: string }> }) {
+export default async function OrdersPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ q?: string; event?: string; type?: string; filter?: string; page?: string }>;
+}) {
   const { orgSlug } = await params;
   const sp = await searchParams;
   const ctx = await requireOrgContext(orgSlug);
@@ -29,18 +35,37 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
   const page = Math.max(0, Number(sp.page ?? 0) || 0);
   const [result, events] = await Promise.all([
     searchOrders(ctx, { q: sp.q, eventId: sp.event || undefined, ticketTypeId: sp.event && sp.type ? sp.type : undefined, filter, page }),
-    db.event.findMany({ where: { organizationId: ctx.organization.id, deletedAt: null, status: { not: "DRAFT" } }, select: { id: true, title: true }, orderBy: { startsAt: "desc" } }),
+    db.event.findMany({
+      where: { organizationId: ctx.organization.id, deletedAt: null, status: { not: "DRAFT" } },
+      select: { id: true, title: true },
+      orderBy: { startsAt: "desc" },
+    }),
   ]);
   // US-ORD-01 : filtre par tarif, une fois l'événement choisi
-  const types = sp.event ? await db.ticketType.findMany({ where: { eventId: sp.event, event: { organizationId: ctx.organization.id } }, select: { id: true, name: true }, orderBy: { sortOrder: "asc" } }) : [];
+  const types = sp.event
+    ? await db.ticketType.findMany({
+        where: { eventId: sp.event, event: { organizationId: ctx.organization.id } },
+        select: { id: true, name: true },
+        orderBy: { sortOrder: "asc" },
+      })
+    : [];
   const t = await getTranslations("ordersAdmin");
   const locale = (await getLocale()) as Locale;
-  const qs = (extra: Record<string, string | number>) => new URLSearchParams({ ...(sp.q ? { q: sp.q } : {}), ...(sp.event ? { event: sp.event } : {}), ...(filter !== "ALL" ? { filter } : {}), ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, String(v)])) }).toString();
+  const qs = (extra: Record<string, string | number>) =>
+    new URLSearchParams({
+      ...(sp.q ? { q: sp.q } : {}),
+      ...(sp.event ? { event: sp.event } : {}),
+      ...(filter !== "ALL" ? { filter } : {}),
+      ...Object.fromEntries(Object.entries(extra).map(([k, v]) => [k, String(v)])),
+    }).toString();
   return (
     <div className="grid gap-6">
       <h1 className="page-title">{t("title")}</h1>
       {result.pendingRequests > 0 && filter !== "REFUND_REQUESTED" ? (
-        <Link href={`/o/${orgSlug}/orders?filter=REFUND_REQUESTED`} className="flex items-center justify-between gap-3 rounded-lg bg-warning-soft px-5 py-4 font-semibold text-warning">
+        <Link
+          href={`/o/${orgSlug}/orders?filter=REFUND_REQUESTED`}
+          className="flex items-center justify-between gap-3 rounded-lg bg-warning-soft px-5 py-4 font-semibold text-warning"
+        >
           <span>{t("pendingRequests", { count: result.pendingRequests })}</span>
           <span aria-hidden="true">→</span>
         </Link>
@@ -90,7 +115,9 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
                       <p className="truncate font-semibold">
                         {o.buyerFirstName} {o.buyerLastName}
                       </p>
-                      <Badge tone={TONES[o.status as keyof typeof TONES] ?? "neutral"}>{t(o.status === "PAID" && o.totalMinor === 0 ? "status_CONFIRMED" : `status_${o.status}`)}</Badge>
+                      <Badge tone={TONES[o.status as keyof typeof TONES] ?? "neutral"}>
+                        {t(o.status === "PAID" && o.totalMinor === 0 ? "status_CONFIRMED" : `status_${o.status}`)}
+                      </Badge>
                       {o.source === "COMPLIMENTARY" ? <Badge>{t("complimentary")}</Badge> : null}
                       {o.refunds.some((r) => r.status === "REQUESTED") ? <Badge tone="warning">{t("refundRequested")}</Badge> : null}
                       {o.refunds.some((r) => r.status === "FAILED") ? <Badge tone="danger">{t("refundFailed")}</Badge> : null}
@@ -113,8 +140,18 @@ export default async function OrdersPage({ params, searchParams }: { params: Pro
       )}
       {result.pages > 1 ? (
         <nav className="flex justify-between gap-3" aria-label={t("pagination")}>
-          {page > 0 ? <Link href={`?${qs({ page: page - 1 })}`} className={buttonClass("secondary", "md")}>{t("previous")}</Link> : <span />}
-          {page < result.pages - 1 ? <Link href={`?${qs({ page: page + 1 })}`} className={buttonClass("secondary", "md")}>{t("next")}</Link> : null}
+          {page > 0 ? (
+            <Link href={`?${qs({ page: page - 1 })}`} className={buttonClass("secondary", "md")}>
+              {t("previous")}
+            </Link>
+          ) : (
+            <span />
+          )}
+          {page < result.pages - 1 ? (
+            <Link href={`?${qs({ page: page + 1 })}`} className={buttonClass("secondary", "md")}>
+              {t("next")}
+            </Link>
+          ) : null}
         </nav>
       ) : null}
     </div>

@@ -3,7 +3,9 @@ import { answerFor, normalizeAccessCode, questionsForOrder, validateQuestion } f
 
 describe("questions à l'achat (US-QST-01)", () => {
   it("définition : libellé, type, choix pour les listes", () => {
-    expect(validateQuestion({ label: "Régime alimentaire", type: "SELECT", options: "Aucun\nVégétarien\nVégétarien\n\nSans gluten", scope: "TICKET" })).toMatchObject({ ok: true, value: { options: ["Aucun", "Végétarien", "Sans gluten"], scope: "TICKET", required: false } });
+    expect(
+      validateQuestion({ label: "Régime alimentaire", type: "SELECT", options: "Aucun\nVégétarien\nVégétarien\n\nSans gluten", scope: "TICKET" }),
+    ).toMatchObject({ ok: true, value: { options: ["Aucun", "Végétarien", "Sans gluten"], scope: "TICKET", required: false } });
     expect(validateQuestion({ label: "Taille", type: "SELECT", options: "M" })).toMatchObject({ ok: false, code: "QUESTION_OPTIONS" });
     expect(validateQuestion({ label: "x", type: "TEXT" })).toMatchObject({ ok: false, code: "QUESTION_LABEL" });
     expect(validateQuestion({ label: "Script", type: "HTML" })).toMatchObject({ ok: false, code: "QUESTION_TYPE" });
@@ -31,7 +33,10 @@ describe("questions à l'achat (US-QST-01)", () => {
       { id: "q2", label: "Taille du t-shirt", type: "TEXT" as const, required: true, scope: "TICKET" as const, ticketTypeIds: ["vip"] },
       { id: "q3", label: "Numéro de licence", type: "TEXT" as const, required: true, scope: "ORDER" as const, ticketTypeIds: ["club"] },
     ];
-    const r = questionsForOrder(qs, [{ orderItemId: "i1", ticketTypeId: "fosse" }, { orderItemId: "i2", ticketTypeId: "vip" }]);
+    const r = questionsForOrder(qs, [
+      { orderItemId: "i1", ticketTypeId: "fosse" },
+      { orderItemId: "i2", ticketTypeId: "vip" },
+    ]);
     expect(r.order.map((q) => q.id)).toEqual(["q1"]);
     expect(r.perLine).toEqual({ i1: [], i2: [qs[1]] });
   });

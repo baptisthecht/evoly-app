@@ -44,4 +44,3 @@ describe("e-mails des acheteurs dans leur langue", () => {
     expect(nl.text).toContain("€ 2,50");
   });
 });
-

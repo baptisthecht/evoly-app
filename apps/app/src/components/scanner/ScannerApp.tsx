@@ -82,7 +82,15 @@ let audio: AudioContext | null = null;
 function beep(kind: Kind) {
   try {
     audio ??= new AudioContext();
-    const tones = kind === "VALID" ? [[1400, 0, 0.12]] : kind === "ALREADY_USED" ? [[420, 0, 0.14], [420, 0.22, 0.14]] : [[300, 0, 0.35]];
+    const tones =
+      kind === "VALID"
+        ? [[1400, 0, 0.12]]
+        : kind === "ALREADY_USED"
+          ? [
+              [420, 0, 0.14],
+              [420, 0.22, 0.14],
+            ]
+          : [[300, 0, 0.35]];
     for (const [freq, delay, duration] of tones) {
       const osc = audio.createOscillator();
       const gain = audio.createGain();
@@ -126,7 +134,8 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       return uid();
     }
   }, []);
-  const time = (iso: string) => new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", timeZone: manifest?.event.timezone }).format(new Date(iso));
+  const time = (iso: string) =>
+    new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", timeZone: manifest?.event.timezone }).format(new Date(iso));
 
   const kill = useCallback(
     (reason: Dead) => {
@@ -156,7 +165,11 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     const queue = pendingRef.current;
     if (queue.length === 0) return;
     try {
-      const res = await fetch(`/api/scanner/${token}/sync`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ deviceId, scans: queue }) });
+      const res = await fetch(`/api/scanner/${token}/sync`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ deviceId, scans: queue }),
+      });
       if (res.status === 404 || res.status === 410) return kill(((await res.json().catch(() => ({}))) as { error?: Dead }).error ?? "UNKNOWN_LINK");
       if (!res.ok) throw new Error(String(res.status));
       const { results } = (await res.json()) as { results: Array<{ clientId: string }> };
@@ -212,7 +225,8 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     beep(f.kind);
     setTimeout(() => setFeedback((cur) => (cur === f ? null : cur)), 1500);
   };
-  const setLocal = (id: string, status: TicketStatus, checkedInAt: string | null) => setManifest((m) => (m ? { ...m, tickets: m.tickets.map((tk) => (tk.id === id ? { ...tk, status, checkedInAt } : tk)) } : m));
+  const setLocal = (id: string, status: TicketStatus, checkedInAt: string | null) =>
+    setManifest((m) => (m ? { ...m, tickets: m.tickets.map((tk) => (tk.id === id ? { ...tk, status, checkedInAt } : tk)) } : m));
   const voidLabel = (reason: string | null, status: TicketStatus) => {
     const key = `void_${reason ?? (status === "REFUNDED" ? "REFUNDED" : "OTHER")}`;
     return t.has(key) ? t(key) : t("void_OTHER");
@@ -231,7 +245,12 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     else if (input.ticketId) local = manifest.tickets.find((tk) => tk.id === input.ticketId);
     try {
       if (!navigator.onLine) throw new Error("hors ligne");
-      const res = await fetch(`/api/scanner/${token}/scan`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...input, scannedAt, deviceId }), signal: AbortSignal.timeout(4000) });
+      const res = await fetch(`/api/scanner/${token}/scan`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...input, scannedAt, deviceId }),
+        signal: AbortSignal.timeout(4000),
+      });
       if (res.status === 404 || res.status === 410) return kill(((await res.json().catch(() => ({}))) as { error?: Dead }).error ?? "UNKNOWN_LINK");
       if (res.status >= 500 || res.status === 429) throw new Error(String(res.status));
       const r = (await res.json()) as ServerResult;
@@ -248,7 +267,12 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
               : r.result === "WRONG_EVENT"
                 ? (r.otherEvent ?? undefined)
                 : undefined;
-      show({ kind: r.result, title: t(`result_${r.result}`), detail: r.result === "ALREADY_USED" && r.ticket ? `${detail} · ${r.ticket.holder}` : detail, offline: false });
+      show({
+        kind: r.result,
+        title: t(`result_${r.result}`),
+        detail: r.result === "ALREADY_USED" && r.ticket ? `${detail} · ${r.ticket.holder}` : detail,
+        offline: false,
+      });
     } catch {
       // RG-SCN-03 : validation locale, scan mis en file
       setOnline(false);
@@ -257,7 +281,13 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
         setLocal(local.id, "CHECKED_IN", scannedAt);
         setPending((p) => [...p, { clientId: uid(), ...input, ticketId: local!.id, scannedAt }]);
       }
-      const detail = local ? (kind === "ALREADY_USED" && local.checkedInAt ? t("alreadyAt", { time: time(local.checkedInAt) }) : kind === "VOID" ? voidLabel(local.voidReason, local.status) : `${local.holder} · ${local.typeName}`) : t("unknownOffline");
+      const detail = local
+        ? kind === "ALREADY_USED" && local.checkedInAt
+          ? t("alreadyAt", { time: time(local.checkedInAt) })
+          : kind === "VOID"
+            ? voidLabel(local.voidReason, local.status)
+            : `${local.holder} · ${local.typeName}`
+        : t("unknownOffline");
       show({ kind, title: t(`result_${kind}`), detail, offline: true });
     }
   };
@@ -285,11 +315,24 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
   const q = fold(query.trim());
   const results = manifest.link.allowManualSearch
     ? manifest.tickets
-        .filter((tk) => !q || fold(tk.holder).includes(q) || fold(tk.buyer).includes(q) || tk.shortCode.startsWith(shortOf(query)) || (emailHash != null && tk.emailHash === emailHash))
+        .filter(
+          (tk) =>
+            !q ||
+            fold(tk.holder).includes(q) ||
+            fold(tk.buyer).includes(q) ||
+            tk.shortCode.startsWith(shortOf(query)) ||
+            (emailHash != null && tk.emailHash === emailHash),
+        )
         .sort((a, b) => a.holder.localeCompare(b.holder, locale))
         .slice(0, 60)
     : [];
-  const tone: Record<Kind, string> = { VALID: "bg-[var(--evoly-signal-ok)]", ALREADY_USED: "bg-[var(--evoly-signal-warn)]", VOID: "bg-[var(--evoly-signal-ko)]", WRONG_EVENT: "bg-[var(--evoly-signal-ko)]", INVALID: "bg-[var(--evoly-signal-ko)]" };
+  const tone: Record<Kind, string> = {
+    VALID: "bg-[var(--evoly-signal-ok)]",
+    ALREADY_USED: "bg-[var(--evoly-signal-warn)]",
+    VOID: "bg-[var(--evoly-signal-ko)]",
+    WRONG_EVENT: "bg-[var(--evoly-signal-ko)]",
+    INVALID: "bg-[var(--evoly-signal-ko)]",
+  };
 
   return (
     <main className="min-h-dvh bg-[var(--evoly-charbon)] pb-[max(env(safe-area-inset-bottom),1rem)] text-[var(--evoly-creme)]">
@@ -299,7 +342,10 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
             <p className="truncate font-display text-lg tracking-[-0.03em]">{manifest.event.title}</p>
             <p className="truncate text-sm opacity-75">{manifest.link.label}</p>
           </div>
-          <p role="status" className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${online ? "bg-[var(--evoly-signal-ok)] text-blanc" : "bg-[var(--evoly-signal-warn)] text-blanc"}`}>
+          <p
+            role="status"
+            className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${online ? "bg-[var(--evoly-signal-ok)] text-blanc" : "bg-[var(--evoly-signal-warn)] text-blanc"}`}
+          >
             {online ? t("online") : t("offline")}
           </p>
         </div>
@@ -312,7 +358,13 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
         {manifest.link.allowManualSearch ? (
           <nav className="grid grid-cols-2 gap-1 rounded-full bg-blanc/10 p-1" aria-label={t("tabs")}>
             {(["scan", "search"] as const).map((k) => (
-              <button key={k} type="button" onClick={() => setTab(k)} aria-current={tab === k ? "page" : undefined} className={`h-10 rounded-full text-sm font-semibold ${tab === k ? "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]" : ""}`}>
+              <button
+                key={k}
+                type="button"
+                onClick={() => setTab(k)}
+                aria-current={tab === k ? "page" : undefined}
+                className={`h-10 rounded-full text-sm font-semibold ${tab === k ? "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]" : ""}`}
+              >
                 {t(`tab_${k}`)}
               </button>
             ))}
@@ -335,7 +387,16 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
             <label className="sr-only" htmlFor="short-code">
               {t("shortCode")}
             </label>
-            <input id="short-code" value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("shortCode")} autoCapitalize="characters" autoComplete="off" spellCheck={false} className="h-12 min-w-0 rounded-full bg-blanc px-5 font-mono text-lg tracking-[0.15em] text-[var(--evoly-charbon)] uppercase outline-none focus:ring-4 focus:ring-[var(--evoly-rose)]" />
+            <input
+              id="short-code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder={t("shortCode")}
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              className="h-12 min-w-0 rounded-full bg-blanc px-5 font-mono text-lg tracking-[0.15em] text-[var(--evoly-charbon)] uppercase outline-none focus:ring-4 focus:ring-[var(--evoly-rose)]"
+            />
             <button type="submit" className="h-12 rounded-full bg-[var(--evoly-rose)] px-5 font-semibold text-[var(--evoly-charbon)]">
               {t("validate")}
             </button>
@@ -346,7 +407,14 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
           <label className="sr-only" htmlFor="search">
             {t("searchLabel")}
           </label>
-          <input id="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t("searchLabel")} autoComplete="off" className="h-12 rounded-full bg-blanc px-5 text-[var(--evoly-charbon)] outline-none focus:ring-4 focus:ring-[var(--evoly-rose)]" />
+          <input
+            id="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("searchLabel")}
+            autoComplete="off"
+            className="h-12 rounded-full bg-blanc px-5 text-[var(--evoly-charbon)] outline-none focus:ring-4 focus:ring-[var(--evoly-rose)]"
+          />
           <ul className="grid gap-2">
             {results.map((tk) => (
               <li key={tk.id} className="flex items-center justify-between gap-3 rounded-2xl bg-blanc/10 px-4 py-3">
@@ -357,11 +425,17 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
                   </p>
                 </div>
                 {tk.status === "VALID" ? (
-                  <button type="button" onClick={() => setConfirm(tk)} className="shrink-0 rounded-full bg-[var(--evoly-rose)] px-4 py-2 text-sm font-semibold text-[var(--evoly-charbon)]">
+                  <button
+                    type="button"
+                    onClick={() => setConfirm(tk)}
+                    className="shrink-0 rounded-full bg-[var(--evoly-rose)] px-4 py-2 text-sm font-semibold text-[var(--evoly-charbon)]"
+                  >
                     {t("checkInButton")}
                   </button>
                 ) : (
-                  <span className="shrink-0 text-sm opacity-80">{tk.status === "CHECKED_IN" ? t("alreadyShort", { time: tk.checkedInAt ? time(tk.checkedInAt) : "" }) : t("result_VOID")}</span>
+                  <span className="shrink-0 text-sm opacity-80">
+                    {tk.status === "CHECKED_IN" ? t("alreadyShort", { time: tk.checkedInAt ? time(tk.checkedInAt) : "" }) : t("result_VOID")}
+                  </span>
                 )}
               </li>
             ))}
@@ -371,7 +445,12 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       )}
 
       {confirm ? (
-        <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" className="fixed inset-0 z-30 grid place-items-end bg-noir/60 p-4 sm:place-items-center">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-title"
+          className="fixed inset-0 z-30 grid place-items-end bg-noir/60 p-4 sm:place-items-center"
+        >
           <div className="grid w-full max-w-sm gap-4 rounded-[var(--r-panel)] bg-[var(--evoly-creme)] p-5 text-[var(--evoly-charbon)]">
             <p id="confirm-title" className="font-display text-xl tracking-[-0.03em]">
               {t("confirmTitle", { name: confirm.holder })}
@@ -398,7 +477,13 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       ) : null}
 
       {feedback ? (
-        <button type="button" onClick={() => setFeedback(null)} role="alert" data-testid="scan-feedback" className={`fixed inset-0 z-40 grid place-items-center p-8 text-center text-blanc ${tone[feedback.kind]}`}>
+        <button
+          type="button"
+          onClick={() => setFeedback(null)}
+          role="alert"
+          data-testid="scan-feedback"
+          className={`fixed inset-0 z-40 grid place-items-center p-8 text-center text-blanc ${tone[feedback.kind]}`}
+        >
           <span className="grid gap-3">
             <span aria-hidden="true" className="font-display text-7xl">
               {feedback.kind === "VALID" ? "✓" : feedback.kind === "ALREADY_USED" ? "!" : "✕"}

@@ -1,8 +1,23 @@
 import { describe, expect, it } from "vitest";
 import {
-  assertTransition, canTransition, checkSubdomain, CoreError, EVENT_TRANSITIONS, eventPublicCode, HUMAN_ALPHABET, humanCode,
-  normalizeDomain, ORDER_TRANSITIONS, orderReference, resaleLinkCode, RESALE_TRANSITIONS, secretToken, sha256Hex, slugify,
-  TICKET_TRANSITIONS, ticketShortCode,
+  assertTransition,
+  canTransition,
+  checkSubdomain,
+  CoreError,
+  EVENT_TRANSITIONS,
+  eventPublicCode,
+  HUMAN_ALPHABET,
+  humanCode,
+  normalizeDomain,
+  ORDER_TRANSITIONS,
+  orderReference,
+  resaleLinkCode,
+  RESALE_TRANSITIONS,
+  secretToken,
+  sha256Hex,
+  slugify,
+  TICKET_TRANSITIONS,
+  ticketShortCode,
 } from "../src";
 
 describe("sous-domaines et domaines (RG-SDM-01, RG-DOM-02)", () => {

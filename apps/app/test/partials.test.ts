@@ -18,9 +18,26 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 async function setup() {
   const id = rid();
   const user = await db.user.create({ data: { name: "Camille", email: `own.${id}@exemple.be`, emailVerified: true } });
-  const org = await db.organization.create({ data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-  await db.organizationMember.create({ data: { organizationId: org.id, userId: user.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id } });
-  const event = await db.event.create({ data: { organizationId: org.id, slug: `bal-${id}`, publicCode: `B${id}`.toUpperCase().slice(0, 8), title: `Bal ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 5 * 86_400_000), status: "PUBLISHED", ticketTypes: { create: { name: "Entrée", priceMinor: 0, currency: "EUR", quantity: 20 } } }, include: { ticketTypes: true } });
+  const org = await db.organization.create({
+    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
+  await db.organizationMember.create({
+    data: { organizationId: org.id, userId: user.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id },
+  });
+  const event = await db.event.create({
+    data: {
+      organizationId: org.id,
+      slug: `bal-${id}`,
+      publicCode: `B${id}`.toUpperCase().slice(0, 8),
+      title: `Bal ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: new Date(Date.now() + 5 * 86_400_000),
+      status: "PUBLISHED",
+      ticketTypes: { create: { name: "Entrée", priceMinor: 0, currency: "EUR", quantity: 20 } },
+    },
+    include: { ticketTypes: true },
+  });
   const ctx = { organization: { id: org.id, timezone: "Europe/Brussels" }, user: { id: user.id } } as unknown as OrgContext;
   return { id, org, event, ctx };
 }
@@ -32,9 +49,18 @@ describe("les cinq points partiels du cahier des charges", () => {
     const q2 = await saveQuestion(s.ctx, s.event.id, null, { label: "Régime", type: "SELECT", options: "Aucun\nVégétarien", required: true, scope: "TICKET" });
     const r = await reserveOrder({ eventId: s.event.id, lines: [{ ticketTypeId: s.event.ticketTypes[0]!.id, quantity: 2 }], locale: "fr" });
     const item = (await db.orderItem.findFirstOrThrow({ where: { orderId: r.orderId } })).id;
-    await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${s.id}@exemple.be`, marketingOptIn: false, answers: { order: { [q1.id]: "Un ami" }, tickets: { [item]: [{ [q2.id]: "Aucun" }, { [q2.id]: "Végétarien" }] } } });
+    await submitBuyer(r.token, {
+      firstName: "Léa",
+      lastName: "Martin",
+      email: `lea.${s.id}@exemple.be`,
+      marketingOptIn: false,
+      answers: { order: { [q1.id]: "Un ami" }, tickets: { [item]: [{ [q2.id]: "Aucun" }, { [q2.id]: "Végétarien" }] } },
+    });
     const csv = await ticketsCsv(s.ctx, { period: "ALL", eventId: s.event.id, withAnswers: true });
-    const [head, ...rows] = csv.replace(/^\uFEFF/, "").trim().split("\r\n");
+    const [head, ...rows] = csv
+      .replace(/^\uFEFF/, "")
+      .trim()
+      .split("\r\n");
     expect(head!.split(";").slice(-2)).toEqual(["Comment nous avez-vous connus ?", "Régime"]);
     expect(rows.map((l) => l.split(";").slice(-2).join(" | ")).sort()).toEqual(["Un ami | Aucun", "Un ami | Végétarien"]);
   });
@@ -43,7 +69,11 @@ describe("les cinq points partiels du cahier des charges", () => {
     const s = await setup();
     const r = await reserveOrder({ eventId: s.event.id, lines: [{ ticketTypeId: s.event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" });
     await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${s.id}@exemple.be`, marketingOptIn: false });
-    const load = () => db.order.findUniqueOrThrow({ where: { id: r.orderId }, include: { organization: { select: { name: true } }, event: true, tickets: { include: { ticketType: { select: { name: true } } } } } });
+    const load = () =>
+      db.order.findUniqueOrThrow({
+        where: { id: r.orderId },
+        include: { organization: { select: { name: true } }, event: true, tickets: { include: { ticketType: { select: { name: true } } } } },
+      });
     const before = { ...pdfCacheStats };
     const a = await ticketsPdfFor(await load(), "fr");
     const b = await ticketsPdfFor(await load(), "fr");
@@ -58,19 +88,41 @@ describe("les cinq points partiels du cahier des charges", () => {
 
   it("RG-FILE-01 : logo SVG converti en PNG ; SVG dangereux refusé", async () => {
     const s = await setup();
-    const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40"><rect width="120" height="40" rx="8" fill="#FFB8E8"/><circle cx="20" cy="20" r="12" fill="#222222"/></svg>');
+    const svg = new TextEncoder().encode(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40"><rect width="120" height="40" rx="8" fill="#FFB8E8"/><circle cx="20" cy="20" r="12" fill="#222222"/></svg>',
+    );
     const url = await uploadImage(s.ctx, "logo", svg);
     expect(url).toMatch(/\.png$/);
     const key = decodeURIComponent(url.split("/files/")[1] ?? "");
     const file = await readLocalFile(key);
     expect(file?.bytes.subarray(0, 4).toString("hex")).toBe("89504e47"); // signature PNG
-    await expect(uploadImage(s.ctx, "logo", new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'))).rejects.toThrow("UPLOAD_SVG_UNSAFE");
+    await expect(
+      uploadImage(s.ctx, "logo", new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')),
+    ).rejects.toThrow("UPLOAD_SVG_UNSAFE");
   });
 
   it("RG-CDM-02 : certificat refusé sur un domaine actif → organisateur prévenu une fois par jour", async () => {
     const s = await setup();
     const dir = mkdtempSync(join(tmpdir(), "cert-"));
-    execFileSync("openssl", ["req", "-x509", "-newkey", "rsa:2048", "-nodes", "-keyout", join(dir, "k.pem"), "-out", join(dir, "c.pem"), "-days", "1", "-subj", `/CN=billets.club-${s.id}.be`], { stdio: "ignore" });
+    execFileSync(
+      "openssl",
+      [
+        "req",
+        "-x509",
+        "-newkey",
+        "rsa:2048",
+        "-nodes",
+        "-keyout",
+        join(dir, "k.pem"),
+        "-out",
+        join(dir, "c.pem"),
+        "-days",
+        "1",
+        "-subj",
+        `/CN=billets.club-${s.id}.be`,
+      ],
+      { stdio: "ignore" },
+    );
     const server = createServer({ key: readFileSync(join(dir, "k.pem")), cert: readFileSync(join(dir, "c.pem")) }, (_q, res) => res.end("ok"));
     await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
     const port = (server.address() as { port: number }).port;
@@ -83,7 +135,9 @@ describe("les cinq points partiels du cahier des charges", () => {
     } finally {
       server.close();
     }
-    const alerts = await db.notification.findMany({ where: { organizationId: s.org.id, type: "DOMAIN_ERROR", link: `/brand?certificat=${encodeURIComponent(domain)}` } });
+    const alerts = await db.notification.findMany({
+      where: { organizationId: s.org.id, type: "DOMAIN_ERROR", link: `/brand?certificat=${encodeURIComponent(domain)}` },
+    });
     expect(alerts).toHaveLength(1); // un seul membre, une seule alerte malgré deux passages
     expect(await db.emailMessage.count({ where: { organizationId: s.org.id, template: "domain.certificate" } })).toBe(1);
   });

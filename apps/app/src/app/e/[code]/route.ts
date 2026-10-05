@@ -14,5 +14,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ code: s
   });
   if (!event) return new Response("Événement introuvable", { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
   const org = event.organization.subdomain ? await getPublicOrganization(event.organization.subdomain) : null;
-  return Response.redirect(org ? await canonicalEventUrl(org, { id: event.id, slug: event.slug, subdomain: event.subdomain }) : eventPublicUrl(event.organization, event), 302);
+  return Response.redirect(
+    org ? await canonicalEventUrl(org, { id: event.id, slug: event.slug, subdomain: event.subdomain }) : eventPublicUrl(event.organization, event),
+    302,
+  );
 }

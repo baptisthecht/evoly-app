@@ -22,17 +22,108 @@ const b64 = (v: string) => Buffer.from(v, "base64").toString("utf8");
 export function appleCredentials(): AppleCredentials | null {
   const e = env();
   if (!e.APPLE_PASS_TYPE_ID || !e.APPLE_TEAM_ID || !e.APPLE_PASS_CERT_PEM || !e.APPLE_PASS_KEY_PEM || !e.APPLE_WWDR_PEM) return null;
-  return { passTypeIdentifier: e.APPLE_PASS_TYPE_ID, teamIdentifier: e.APPLE_TEAM_ID, certPem: b64(e.APPLE_PASS_CERT_PEM), keyPem: b64(e.APPLE_PASS_KEY_PEM), passphrase: e.APPLE_PASS_KEY_PASSPHRASE, wwdrPem: b64(e.APPLE_WWDR_PEM) };
+  return {
+    passTypeIdentifier: e.APPLE_PASS_TYPE_ID,
+    teamIdentifier: e.APPLE_TEAM_ID,
+    certPem: b64(e.APPLE_PASS_CERT_PEM),
+    keyPem: b64(e.APPLE_PASS_KEY_PEM),
+    passphrase: e.APPLE_PASS_KEY_PASSPHRASE,
+    wwdrPem: b64(e.APPLE_WWDR_PEM),
+  };
 }
 
 const LABELS = {
-  fr: { seat: "PLACE", date: "DATE", event: "ÉVÉNEMENT", when: "QUAND", where: "OÙ", type: "TARIF", holder: "TITULAIRE", order: "Commande", code: "Code du billet", info: "À savoir", infoText: "Présentez ce QR code à l’entrée. Il n’est valable qu’une fois : ne le partagez pas." },
-  en: { seat: "SEAT", date: "DATE", event: "EVENT", when: "WHEN", where: "WHERE", type: "TICKET", holder: "HOLDER", order: "Order", code: "Ticket code", info: "Good to know", infoText: "Show this QR code at the entrance. It works only once: don't share it." },
-  es: { seat: "PLAZA", date: "FECHA", event: "EVENTO", when: "CUÁNDO", where: "DÓNDE", type: "TARIFA", holder: "TITULAR", order: "Pedido", code: "Código de la entrada", info: "Información", infoText: "Muestra este código QR en el acceso. Solo vale una vez: no lo compartas." },
-  de: { seat: "PLATZ", date: "DATUM", event: "VERANSTALTUNG", when: "WANN", where: "WO", type: "TARIF", holder: "INHABER", order: "Bestellung", code: "Ticketcode", info: "Gut zu wissen", infoText: "Zeigen Sie diesen QR-Code am Eingang vor. Er gilt nur einmal: Geben Sie ihn nicht weiter." },
-  it: { seat: "POSTO", date: "DATA", event: "EVENTO", when: "QUANDO", where: "DOVE", type: "TARIFFA", holder: "TITOLARE", order: "Ordine", code: "Codice del biglietto", info: "Da sapere", infoText: "Mostra questo codice QR all’ingresso. Vale una sola volta: non condividerlo." },
-  pt: { seat: "LUGAR", date: "DATA", event: "EVENTO", when: "QUANDO", where: "ONDE", type: "TARIFA", holder: "TITULAR", order: "Encomenda", code: "Código do bilhete", info: "A saber", infoText: "Apresente este código QR à entrada. Só é válido uma vez: não o partilhe." },
-  nl: { seat: "PLAATS", date: "DATUM", event: "EVENEMENT", when: "WANNEER", where: "WAAR", type: "TARIEF", holder: "HOUDER", order: "Bestelling", code: "Ticketcode", info: "Goed om te weten", infoText: "Toon deze QR-code aan de ingang. Hij is maar één keer geldig: deel hem niet." },
+  fr: {
+    seat: "PLACE",
+    date: "DATE",
+    event: "ÉVÉNEMENT",
+    when: "QUAND",
+    where: "OÙ",
+    type: "TARIF",
+    holder: "TITULAIRE",
+    order: "Commande",
+    code: "Code du billet",
+    info: "À savoir",
+    infoText: "Présentez ce QR code à l’entrée. Il n’est valable qu’une fois : ne le partagez pas.",
+  },
+  en: {
+    seat: "SEAT",
+    date: "DATE",
+    event: "EVENT",
+    when: "WHEN",
+    where: "WHERE",
+    type: "TICKET",
+    holder: "HOLDER",
+    order: "Order",
+    code: "Ticket code",
+    info: "Good to know",
+    infoText: "Show this QR code at the entrance. It works only once: don't share it.",
+  },
+  es: {
+    seat: "PLAZA",
+    date: "FECHA",
+    event: "EVENTO",
+    when: "CUÁNDO",
+    where: "DÓNDE",
+    type: "TARIFA",
+    holder: "TITULAR",
+    order: "Pedido",
+    code: "Código de la entrada",
+    info: "Información",
+    infoText: "Muestra este código QR en el acceso. Solo vale una vez: no lo compartas.",
+  },
+  de: {
+    seat: "PLATZ",
+    date: "DATUM",
+    event: "VERANSTALTUNG",
+    when: "WANN",
+    where: "WO",
+    type: "TARIF",
+    holder: "INHABER",
+    order: "Bestellung",
+    code: "Ticketcode",
+    info: "Gut zu wissen",
+    infoText: "Zeigen Sie diesen QR-Code am Eingang vor. Er gilt nur einmal: Geben Sie ihn nicht weiter.",
+  },
+  it: {
+    seat: "POSTO",
+    date: "DATA",
+    event: "EVENTO",
+    when: "QUANDO",
+    where: "DOVE",
+    type: "TARIFFA",
+    holder: "TITOLARE",
+    order: "Ordine",
+    code: "Codice del biglietto",
+    info: "Da sapere",
+    infoText: "Mostra questo codice QR all’ingresso. Vale una sola volta: non condividerlo.",
+  },
+  pt: {
+    seat: "LUGAR",
+    date: "DATA",
+    event: "EVENTO",
+    when: "QUANDO",
+    where: "ONDE",
+    type: "TARIFA",
+    holder: "TITULAR",
+    order: "Encomenda",
+    code: "Código do bilhete",
+    info: "A saber",
+    infoText: "Apresente este código QR à entrada. Só é válido uma vez: não o partilhe.",
+  },
+  nl: {
+    seat: "PLAATS",
+    date: "DATUM",
+    event: "EVENEMENT",
+    when: "WANNEER",
+    where: "WAAR",
+    type: "TARIEF",
+    holder: "HOUDER",
+    order: "Bestelling",
+    code: "Ticketcode",
+    info: "Goed om te weten",
+    infoText: "Toon deze QR-code aan de ingang. Hij is maar één keer geldig: deel hem niet.",
+  },
 } as const;
 
 /** Contenu du pass (format Apple « eventTicket »). */
@@ -55,11 +146,12 @@ export function passJson(t: WalletTicket, creds: Pick<AppleCredentials, "passTyp
     barcode: { format: "PKBarcodeFormatQR", message: t.code, messageEncoding: "iso-8859-1", altText: t.shortCode },
     eventTicket: {
       primaryFields: [{ key: "event", label: L.event, value: t.title }],
-      secondaryFields: [
-        { key: "when", label: L.when, value: t.when },
-        ...(t.place ? [{ key: "where", label: L.where, value: t.place }] : []),
+      secondaryFields: [{ key: "when", label: L.when, value: t.when }, ...(t.place ? [{ key: "where", label: L.where, value: t.place }] : [])],
+      auxiliaryFields: [
+        { key: "type", label: L.type, value: t.typeName },
+        ...(t.seat ? [{ key: "seat", label: L.seat, value: t.seat }] : []),
+        ...(t.holder ? [{ key: "holder", label: L.holder, value: t.holder }] : []),
       ],
-      auxiliaryFields: [{ key: "type", label: L.type, value: t.typeName }, ...(t.seat ? [{ key: "seat", label: L.seat, value: t.seat }] : []), ...(t.holder ? [{ key: "holder", label: L.holder, value: t.holder }] : [])],
       backFields: [
         { key: "order", label: L.order, value: t.reference },
         { key: "code", label: L.code, value: t.shortCode },
@@ -84,7 +176,11 @@ function signManifest(manifest: Uint8Array, creds: AppleCredentials): Uint8Array
     key,
     certificate: cert,
     digestAlgorithm: forge.pki.oids.sha256!,
-    authenticatedAttributes: [{ type: forge.pki.oids.contentType!, value: forge.pki.oids.data! }, { type: forge.pki.oids.messageDigest! }, { type: forge.pki.oids.signingTime!, value: new Date().toISOString() }],
+    authenticatedAttributes: [
+      { type: forge.pki.oids.contentType!, value: forge.pki.oids.data! },
+      { type: forge.pki.oids.messageDigest! },
+      { type: forge.pki.oids.signingTime!, value: new Date().toISOString() },
+    ],
   });
   p7.sign({ detached: true });
   return Uint8Array.from(Buffer.from(forge.asn1.toDer(p7.toAsn1()).getBytes(), "binary"));

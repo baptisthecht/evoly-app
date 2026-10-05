@@ -38,7 +38,13 @@ export async function POST(req: Request) {
         const known = await db.stripeAccount.findUnique({ where: { stripeAccountId: e.account }, select: { organizationId: true } });
         if (!known) return "IGNORED";
         await db.stripeAccount.update({ where: { stripeAccountId: e.account }, data: { status: "DISABLED", chargesEnabled: false, payoutsEnabled: false } });
-        await audit({ action: "stripe.account_deauthorized", organizationId: known.organizationId, actorType: "STRIPE", targetType: "StripeAccount", targetId: e.account });
+        await audit({
+          action: "stripe.account_deauthorized",
+          organizationId: known.organizationId,
+          actorType: "STRIPE",
+          targetType: "StripeAccount",
+          targetId: e.account,
+        });
         return "PROCESSED";
       }
       case "charge.updated": {
@@ -51,7 +57,13 @@ export async function POST(req: Request) {
         const pi = e.data.object as Stripe.PaymentIntent;
         const orderId = pi.metadata?.orderId;
         if (!orderId) return "IGNORED";
-        await completeOrder(orderId, { paymentIntentId: pi.id, amountMinor: pi.amount_received, currency: pi.currency, chargeId: typeof pi.latest_charge === "string" ? pi.latest_charge : (pi.latest_charge?.id ?? null), paymentMethodType: pi.payment_method_types[0] ?? null });
+        await completeOrder(orderId, {
+          paymentIntentId: pi.id,
+          amountMinor: pi.amount_received,
+          currency: pi.currency,
+          chargeId: typeof pi.latest_charge === "string" ? pi.latest_charge : (pi.latest_charge?.id ?? null),
+          paymentMethodType: pi.payment_method_types[0] ?? null,
+        });
         return "PROCESSED";
       }
       case "charge.refund.updated":
@@ -67,7 +79,16 @@ export async function POST(req: Request) {
         // RG-FIN-03 : litiges listés dans la page Finances, avec leur échéance
         const d = e.data.object as Stripe.Dispute;
         if (!e.account) return "IGNORED";
-        await upsertDispute({ id: d.id, charge: typeof d.charge === "string" ? d.charge : d.charge.id, account: e.account, amount: d.amount, currency: d.currency, reason: d.reason, status: d.status, dueBy: d.evidence_details?.due_by ?? null });
+        await upsertDispute({
+          id: d.id,
+          charge: typeof d.charge === "string" ? d.charge : d.charge.id,
+          account: e.account,
+          amount: d.amount,
+          currency: d.currency,
+          reason: d.reason,
+          status: d.status,
+          dueBy: d.evidence_details?.due_by ?? null,
+        });
         return "PROCESSED";
       }
       case "payment_intent.payment_failed":

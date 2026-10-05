@@ -28,7 +28,10 @@ export function invitationUsable(inv: { status: string; expiresAt: Date }, now: 
 
 /** Groupes de permissions pour l'éditeur de rôles (onglet Rôles). */
 export const PERMISSION_GROUPS: ReadonlyArray<{ key: string; permissions: readonly Permission[] }> = [
-  { key: "organization", permissions: ["ORG_SETTINGS_EDIT", "BRAND_EDIT", "DOMAINS_MANAGE", "BILLING_MANAGE", "PAYMENTS_MANAGE", "MEMBERS_MANAGE", "ROLES_MANAGE"] },
+  {
+    key: "organization",
+    permissions: ["ORG_SETTINGS_EDIT", "BRAND_EDIT", "DOMAINS_MANAGE", "BILLING_MANAGE", "PAYMENTS_MANAGE", "MEMBERS_MANAGE", "ROLES_MANAGE"],
+  },
   { key: "events", permissions: ["EVENTS_CREATE", "EVENTS_EDIT", "EVENTS_PUBLISH", "EVENTS_CANCEL", "EVENTS_DELETE", "TICKETS_MANAGE", "PROMO_MANAGE"] },
   { key: "sales", permissions: ["ORDERS_VIEW", "ORDERS_MANAGE", "REFUNDS_MANAGE", "RESALE_MANAGE", "FINANCE_VIEW", "STATS_VIEW"] },
   { key: "entries", permissions: ["CHECKIN_SCAN", "CHECKIN_MANAGE"] },

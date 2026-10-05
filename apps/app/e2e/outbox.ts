@@ -4,11 +4,17 @@ import path from "node:path";
 const DIR = process.env.EMAIL_OUTBOX_DIR ?? "/tmp/evoly-outbox";
 
 /** Dernier e-mail d'un modèle donné, écrit par l'app dans la boîte d'envoi locale. */
-export async function lastEmail(to: string, template: string): Promise<{ subject: string; text: string; attachments?: Array<{ filename: string; contentType: string; size: number }> }> {
+export async function lastEmail(
+  to: string,
+  template: string,
+): Promise<{ subject: string; text: string; attachments?: Array<{ filename: string; contentType: string; size: number }> }> {
   for (let i = 0; i < 50; i++) {
     const files = (() => {
       try {
-        return readdirSync(DIR).filter((f) => f.endsWith(".json")).sort().reverse();
+        return readdirSync(DIR)
+          .filter((f) => f.endsWith(".json"))
+          .sort()
+          .reverse();
       } catch {
         return [];
       }

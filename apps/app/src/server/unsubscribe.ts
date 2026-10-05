@@ -11,7 +11,9 @@ const sign = (payload: string) => createHmac("sha256", `unsubscribe:${secret()}`
 
 /** Lien de désinscription signé, sans connexion (US-MKT-05, RG-MKT-02). */
 export function unsubscribeToken(email: string, organizationId: string, eventId?: string | null, campaignId?: string | null): string {
-  const payload = b64(JSON.stringify({ e: email.toLowerCase(), o: organizationId, ...(eventId ? { v: eventId } : {}), ...(campaignId ? { c: campaignId } : {}) }));
+  const payload = b64(
+    JSON.stringify({ e: email.toLowerCase(), o: organizationId, ...(eventId ? { v: eventId } : {}), ...(campaignId ? { c: campaignId } : {}) }),
+  );
   return `${payload}.${sign(payload)}`;
 }
 
@@ -47,10 +49,18 @@ export async function applyUnsubscribe(token: string, scope: "EVENT" | "ORGANIZA
   if (!existed) {
     await db.emailSuppression.create({ data: { ...where, reason: "UNSUBSCRIBED" } });
     // statistiques de la campagne d'origine : une désinscription comptée une seule fois
-    if (t.campaignId) await db.emailCampaign.updateMany({ where: { id: t.campaignId, organizationId: t.organizationId }, data: { unsubscribeCount: { increment: 1 } } });
+    if (t.campaignId)
+      await db.emailCampaign.updateMany({ where: { id: t.campaignId, organizationId: t.organizationId }, data: { unsubscribeCount: { increment: 1 } } });
   }
-  if (scope === "ORGANIZATION") await db.contact.updateMany({ where: { organizationId: t.organizationId, email: t.email }, data: { unsubscribedAt: now, marketingConsent: false } });
-  await audit({ action: `contact.unsubscribed_${scope.toLowerCase()}`, organizationId: t.organizationId, actorType: "SYSTEM", targetType: "Contact", targetId: t.email.length.toString() });
+  if (scope === "ORGANIZATION")
+    await db.contact.updateMany({ where: { organizationId: t.organizationId, email: t.email }, data: { unsubscribedAt: now, marketingConsent: false } });
+  await audit({
+    action: `contact.unsubscribed_${scope.toLowerCase()}`,
+    organizationId: t.organizationId,
+    actorType: "SYSTEM",
+    targetType: "Contact",
+    targetId: t.email.length.toString(),
+  });
   return t;
 }
 
@@ -58,7 +68,12 @@ export async function applyUnsubscribe(token: string, scope: "EVENT" | "ORGANIZA
  * RG-MKT-01 : transactionnel toujours envoyé ; service bloqué par la désinscription de l'événement ou une adresse bloquée
  * (rebond définitif, plainte, RG-MKT-03) ; marketing seulement avec consentement et sans aucune désinscription.
  */
-export async function mayReceive(email: string, category: "TRANSACTIONAL" | "SERVICE" | "MARKETING", organizationId: string, eventId?: string | null): Promise<boolean> {
+export async function mayReceive(
+  email: string,
+  category: "TRANSACTIONAL" | "SERVICE" | "MARKETING",
+  organizationId: string,
+  eventId?: string | null,
+): Promise<boolean> {
   if (category === "TRANSACTIONAL") return true;
   const e = email.toLowerCase();
   const blocked = await db.emailSuppression.findFirst({
@@ -74,6 +89,9 @@ export async function mayReceive(email: string, category: "TRANSACTIONAL" | "SER
   });
   if (blocked) return false;
   if (category === "SERVICE") return true;
-  const contact = await db.contact.findUnique({ where: { organizationId_email: { organizationId, email: e } }, select: { marketingConsent: true, unsubscribedAt: true } });
+  const contact = await db.contact.findUnique({
+    where: { organizationId_email: { organizationId, email: e } },
+    select: { marketingConsent: true, unsubscribedAt: true },
+  });
   return !!contact?.marketingConsent && !contact.unsubscribedAt;
 }

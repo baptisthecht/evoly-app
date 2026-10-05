@@ -6,7 +6,19 @@ import { appUrl, organizer, publishedFreeEvent, siteUrl } from "./helpers";
 async function audit(page: Page, name: string) {
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   const serious = r.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
-  if (serious.length) console.log(`\n[${name}]`, serious.map((v) => `${v.id} (${v.impact}) : ${v.help} → ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`).join("\n"));
+  if (serious.length)
+    console.log(
+      `\n[${name}]`,
+      serious
+        .map(
+          (v) =>
+            `${v.id} (${v.impact}) : ${v.help} → ${v.nodes
+              .slice(0, 3)
+              .map((n) => n.target.join(" "))
+              .join(" | ")}`,
+        )
+        .join("\n"),
+    );
   return serious.map((v) => `${name} · ${v.id}`);
 }
 

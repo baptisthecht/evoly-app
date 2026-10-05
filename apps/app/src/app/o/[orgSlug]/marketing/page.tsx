@@ -19,7 +19,13 @@ export async function generateMetadata(): Promise<Metadata> {
 const FILTERS: ContactFilter[] = ["ALL", "CONSENTING", "UNSUBSCRIBED"];
 
 /** US-MKT-04 : contacts et consentement ; rappels automatiques et campagnes (Pro). */
-export default async function MarketingPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ q?: string; filter?: string; page?: string; tab?: string }> }) {
+export default async function MarketingPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ q?: string; filter?: string; page?: string; tab?: string }>;
+}) {
   const { orgSlug } = await params;
   const sp = await searchParams;
   const ctx = await requireOrgContext(orgSlug);
@@ -30,14 +36,25 @@ export default async function MarketingPage({ params, searchParams }: { params: 
   const locale = (await getLocale()) as Locale;
   const pro = hasFeature(ctx.features, "EMAIL_MARKETING");
   const tab = sp.tab === "campaigns" ? "campaigns" : "contacts";
-  const suspended = (await db.organization.findUniqueOrThrow({ where: { id: ctx.organization.id }, select: { marketingDailyCap: true } })).marketingDailyCap === 0;
-  const banner = suspended ? <p role="alert" className="rounded-lg bg-danger-soft px-5 py-4 font-semibold text-danger">{t("suspended")}</p> : null;
+  const suspended =
+    (await db.organization.findUniqueOrThrow({ where: { id: ctx.organization.id }, select: { marketingDailyCap: true } })).marketingDailyCap === 0;
+  const banner = suspended ? (
+    <p role="alert" className="rounded-lg bg-danger-soft px-5 py-4 font-semibold text-danger">
+      {t("suspended")}
+    </p>
+  ) : null;
   const tc = await getTranslations("campaigns");
-  const campaigns = tab === "campaigns" ? await db.emailCampaign.findMany({ where: { organizationId: ctx.organization.id }, orderBy: { createdAt: "desc" }, take: 50 }) : [];
+  const campaigns =
+    tab === "campaigns" ? await db.emailCampaign.findMany({ where: { organizationId: ctx.organization.id }, orderBy: { createdAt: "desc" }, take: 50 }) : [];
   const tabs = (
     <nav className="flex w-fit gap-1 rounded-full bg-surface-sunken p-1" aria-label={t("tabs")}>
       {(["contacts", "campaigns"] as const).map((k) => (
-        <Link key={k} href={`/o/${orgSlug}/marketing${k === "campaigns" ? "?tab=campaigns" : ""}`} aria-current={tab === k ? "page" : undefined} className={`flex h-10 items-center rounded-full px-4 text-sm font-semibold ${tab === k ? "bg-surface-inverse text-ink-inverse" : "text-ink-muted"}`}>
+        <Link
+          key={k}
+          href={`/o/${orgSlug}/marketing${k === "campaigns" ? "?tab=campaigns" : ""}`}
+          aria-current={tab === k ? "page" : undefined}
+          className={`flex h-10 items-center rounded-full px-4 text-sm font-semibold ${tab === k ? "bg-surface-inverse text-ink-inverse" : "text-ink-muted"}`}
+        >
           {t(`tab_${k}`)}
         </Link>
       ))}
@@ -74,13 +91,19 @@ export default async function MarketingPage({ params, searchParams }: { params: 
                     <div className="grid min-w-0 gap-1">
                       <p className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold">{c.name}</span>
-                        <Badge tone={c.status === "SENT" ? "success" : c.status === "SCHEDULED" || c.status === "SENDING" ? "warning" : "neutral"}>{tc(`status_${c.status}`)}</Badge>
+                        <Badge tone={c.status === "SENT" ? "success" : c.status === "SCHEDULED" || c.status === "SENDING" ? "warning" : "neutral"}>
+                          {tc(`status_${c.status}`)}
+                        </Badge>
                       </p>
                       <p className="truncate text-sm text-ink-muted">« {c.subject} »</p>
                     </div>
                     <p className="text-sm text-ink-muted sm:text-right">
                       {c.status === "SENT" || c.status === "SENDING"
-                        ? tc("listStats", { recipients: c.recipientCount ?? 0, opens: c.deliveredCount ? Math.round((c.openCount / c.deliveredCount) * 100) : 0, clicks: c.deliveredCount ? Math.round((c.clickCount / c.deliveredCount) * 100) : 0 })
+                        ? tc("listStats", {
+                            recipients: c.recipientCount ?? 0,
+                            opens: c.deliveredCount ? Math.round((c.openCount / c.deliveredCount) * 100) : 0,
+                            clicks: c.deliveredCount ? Math.round((c.clickCount / c.deliveredCount) * 100) : 0,
+                          })
                         : c.scheduledAt
                           ? tc("scheduledFor", { date: formatDate(c.scheduledAt, ctx.organization.timezone, locale) })
                           : tc("draftSince", { date: formatDate(c.updatedAt, ctx.organization.timezone, locale) })}
@@ -145,7 +168,13 @@ export default async function MarketingPage({ params, searchParams }: { params: 
                 <div className="grid min-w-0 gap-1">
                   <p className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{[c.firstName, c.lastName].filter(Boolean).join(" ") || c.email}</span>
-                    {c.unsubscribedAt ? <Badge tone="neutral">{t("unsubscribed", { date: formatDate(c.unsubscribedAt, ctx.organization.timezone, locale) })}</Badge> : c.marketingConsent ? <Badge tone="success">{t("consent", { date: c.consentAt ? formatDate(c.consentAt, ctx.organization.timezone, locale) : "-" })}</Badge> : <Badge>{t("noConsent")}</Badge>}
+                    {c.unsubscribedAt ? (
+                      <Badge tone="neutral">{t("unsubscribed", { date: formatDate(c.unsubscribedAt, ctx.organization.timezone, locale) })}</Badge>
+                    ) : c.marketingConsent ? (
+                      <Badge tone="success">{t("consent", { date: c.consentAt ? formatDate(c.consentAt, ctx.organization.timezone, locale) : "-" })}</Badge>
+                    ) : (
+                      <Badge>{t("noConsent")}</Badge>
+                    )}
                   </p>
                   <p className="truncate text-sm text-ink-muted">{c.email}</p>
                 </div>

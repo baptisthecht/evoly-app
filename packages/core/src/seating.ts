@@ -1,4 +1,9 @@
-export interface SeatSlot { id: string; rowOrder: number; seatOrder: number; available: boolean }
+export interface SeatSlot {
+  id: string;
+  rowOrder: number;
+  seatOrder: number;
+  available: boolean;
+}
 
 /**
  * Section 9.9 : attribution automatique des meilleures places. D'abord n sièges côte à côte dans le premier rang
@@ -17,7 +22,10 @@ export function pickSeats(seats: readonly SeatSlot[], n: number): string[] | nul
       if (run.length === n) return run.map((x) => x.id);
     }
   }
-  return [...free].sort((a, b) => a.rowOrder - b.rowOrder || a.seatOrder - b.seatOrder).slice(0, n).map((s) => s.id);
+  return [...free]
+    .sort((a, b) => a.rowOrder - b.rowOrder || a.seatOrder - b.seatOrder)
+    .slice(0, n)
+    .map((s) => s.id);
 }
 
 /** Libellés d'un rang : « 12 » donne 1 à 12, sinon une liste séparée par des virgules (« 1, 2, 2 bis »). */
@@ -27,7 +35,10 @@ export function seatLabels(input: string): string[] | null {
     const n = Number(v);
     return n >= 1 && n <= 200 ? Array.from({ length: n }, (_, i) => String(i + 1)) : null;
   }
-  const list = v.split(",").map((x) => x.trim()).filter(Boolean);
+  const list = v
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
   if (list.length === 0 || list.length > 200 || list.some((l) => l.length > 10)) return null;
   return new Set(list).size === list.length ? list : null;
 }

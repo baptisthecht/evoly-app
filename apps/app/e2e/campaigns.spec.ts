@@ -2,12 +2,13 @@ import { expect, test } from "@playwright/test";
 import { lastEmail } from "./outbox";
 import { appUrl, buyFree, cronSecret, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
-
 test("campagne : modèle, destinataires, aperçu, test, envoi et statistiques (US-MKT-03)", async ({ page }) => {
   const { id, slug } = await organizer(page);
   const ownerEmail = `orga${id}@exemple.be`;
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
-  sql(`insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`);
+  sql(
+    `insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`,
+  );
   await publishedFreeEvent(page, slug, `Festival ${id}`, 30);
   const buyer = `lea.${id}@exemple.be`;
   await buyFree(page, siteUrl(slug, `/festival-${id}`), "Fosse", 1, buyer);

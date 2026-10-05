@@ -15,10 +15,18 @@ import { formToObject, zodFields, type ActionState } from "@/server/guard";
 import { hit, isLimited, reset } from "@/server/rateLimit";
 import { clientIp } from "@/server/requestInfo";
 
-const email = z.string().trim().toLowerCase().pipe(z.email({ message: "validation.email" }));
+const email = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email({ message: "validation.email" }));
 const password = z.string().min(10, { message: "validation.passwordLength" }).max(128, { message: "validation.passwordLength" });
 
-const registerSchema = z.object({ name: z.string().trim().min(2, { message: "validation.nameLength" }).max(80, { message: "validation.nameLength" }), email, password });
+const registerSchema = z.object({
+  name: z.string().trim().min(2, { message: "validation.nameLength" }).max(80, { message: "validation.nameLength" }),
+  email,
+  password,
+});
 const loginSchema = z.object({ email, password: z.string().min(1, { message: "validation.required" }) });
 const emailOnly = z.object({ email });
 const resetSchema = z.object({ token: z.string().min(1), password });
@@ -39,13 +47,20 @@ export async function registerAction(_: ActionState, form: FormData): Promise<Ac
   const locale = (await cookies()).get(LOCALE_COOKIE)?.value;
   try {
     await auth.api.signUpEmail({
-      body: { name: parsed.data.name, email: parsed.data.email, password: parsed.data.password, locale: isLocale(locale) ? locale : "fr", callbackURL: "/onboarding" },
+      body: {
+        name: parsed.data.name,
+        email: parsed.data.email,
+        password: parsed.data.password,
+        locale: isLocale(locale) ? locale : "fr",
+        callbackURL: "/onboarding",
+      },
       headers: await headers(),
     });
   } catch (e) {
     const c = apiCode(e);
     if (c?.code === "USER_ALREADY_EXISTS" || c?.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL") return { ok: false, error: "EMAIL_TAKEN" };
-    if (c?.code === "PASSWORD_TOO_SHORT" || c?.code === "PASSWORD_TOO_LONG") return { ok: false, error: "INVALID_INPUT", fields: { password: "validation.passwordLength" } };
+    if (c?.code === "PASSWORD_TOO_SHORT" || c?.code === "PASSWORD_TOO_LONG")
+      return { ok: false, error: "INVALID_INPUT", fields: { password: "validation.passwordLength" } };
     throw e;
   }
   redirect(`/verify-email?email=${encodeURIComponent(parsed.data.email)}`);

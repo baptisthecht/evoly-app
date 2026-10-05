@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { disableAction, enableAction, regenerateAction } from "./actions";
 
-const input = "h-12 rounded-xl bg-surface px-4 text-center font-mono text-lg tracking-[0.2em] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]";
+const input =
+  "h-12 rounded-xl bg-surface px-4 text-center font-mono text-lg tracking-[0.2em] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]";
 const button = "h-12 rounded-full px-5 font-semibold";
 
 function Codes({ codes }: { codes: string[] }) {
@@ -32,7 +33,11 @@ export function EnableForm() {
         {t("code")}
         <input name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} className={input} />
       </label>
-      {state?.error ? <p role="alert" className="text-sm text-danger">{t(state.error)}</p> : null}
+      {state?.error ? (
+        <p role="alert" className="text-sm text-danger">
+          {t(state.error)}
+        </p>
+      ) : null}
       <button type="submit" disabled={pending} className={`${button} bg-surface-inverse text-ink-inverse`}>
         {t("enable")}
       </button>
@@ -50,7 +55,11 @@ export function ManageForms({ staff }: { staff: boolean }) {
       <form action={regenAction} className="grid gap-3">
         <p className="font-semibold">{t("regenerateTitle")}</p>
         <input name="code" aria-label={t("code")} inputMode="numeric" maxLength={8} className={input} />
-        {regen?.error ? <p role="alert" className="text-sm text-danger">{t(regen.error)}</p> : null}
+        {regen?.error ? (
+          <p role="alert" className="text-sm text-danger">
+            {t(regen.error)}
+          </p>
+        ) : null}
         <button type="submit" disabled={regenPending} className={`${button} shadow-[inset_0_0_0_1.5px_var(--line-strong)]`}>
           {t("regenerate")}
         </button>
@@ -59,7 +68,11 @@ export function ManageForms({ staff }: { staff: boolean }) {
         <form action={disAction} className="grid gap-3">
           <p className="font-semibold">{t("disableTitle")}</p>
           <input name="code" aria-label={t("codeOrRecovery")} maxLength={12} className={input} />
-          {dis?.error ? <p role="alert" className="text-sm text-danger">{t(dis.error)}</p> : null}
+          {dis?.error ? (
+            <p role="alert" className="text-sm text-danger">
+              {t(dis.error)}
+            </p>
+          ) : null}
           <button type="submit" disabled={disPending} className={`${button} text-danger`}>
             {t("disable")}
           </button>
@@ -75,7 +88,17 @@ export function ManageForms({ staff }: { staff: boolean }) {
  * Un seul composant, rendu au même endroit que la double authentification soit active ou non :
  * l'activation pose un cookie, la page se recharge, et les codes de secours (montrés une seule fois) restent affichés.
  */
-export function TwoFactorPanel({ enabled, staff, setup, status }: { enabled: boolean; staff: boolean; setup: { qr: string; secret: string } | null; status: string }) {
+export function TwoFactorPanel({
+  enabled,
+  staff,
+  setup,
+  status,
+}: {
+  enabled: boolean;
+  staff: boolean;
+  setup: { qr: string; secret: string } | null;
+  status: string;
+}) {
   const t = useTranslations("twoFactor");
   const [state, action, pending] = useActionState(enableAction, null);
   return (
@@ -91,14 +114,21 @@ export function TwoFactorPanel({ enabled, staff, setup, status }: { enabled: boo
           <p className="text-ink-muted">{t("intro")}</p>
           <div className="w-fit rounded-xl bg-blanc p-3" dangerouslySetInnerHTML={{ __html: setup.qr }} />
           <p className="text-sm text-ink-muted">
-            {t("manualKey")} <code className="select-all break-all font-mono text-ink" data-testid="totp-secret">{setup.secret}</code>
+            {t("manualKey")}{" "}
+            <code className="select-all break-all font-mono text-ink" data-testid="totp-secret">
+              {setup.secret}
+            </code>
           </p>
           <form action={action} className="grid gap-3">
             <label className="grid gap-1.5 text-sm font-semibold">
               {t("code")}
               <input name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} className={input} />
             </label>
-            {state?.error ? <p role="alert" className="text-sm text-danger">{t(state.error)}</p> : null}
+            {state?.error ? (
+              <p role="alert" className="text-sm text-danger">
+                {t(state.error)}
+              </p>
+            ) : null}
             <button type="submit" disabled={pending} className={`${button} bg-surface-inverse text-ink-inverse`}>
               {t("enable")}
             </button>

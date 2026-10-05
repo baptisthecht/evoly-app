@@ -1,0 +1,19 @@
+# Dépendances et fichiers générés
+node_modules
+.next
+dist
+coverage
+test-results
+playwright-report
+pnpm-lock.yaml
+**/__pycache__
+packages/db/prisma/migrations
+packages/db/generated
+apps/web/i18n/source.json
+
+# Archive figée de la version 1 (ni déployée ni utilisée)
+legacy
+
+# Site vitrine : feuille de style et script volontairement compacts, intégrés tels quels dans chaque page
+apps/web/styles.css
+apps/web/app.js

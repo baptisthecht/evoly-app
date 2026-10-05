@@ -37,10 +37,15 @@ export async function checkSubdomainAction(orgSlug: string, value: string, event
 }
 
 export async function changeSubdomainAction(orgSlug: string, _: ActionState, form: FormData): Promise<ActionState<{ slug: string }>> {
-  const r = await runOrgAction(orgSlug, formToObject(form), { schema: z.object({ subdomain: z.string().trim().min(1).max(60) }), permission: "ORG_SETTINGS_EDIT" }, async (d, ctx) => {
-    await changeOrganizationSubdomain(ctx, d.subdomain);
-    return { slug: orgSlug };
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: z.object({ subdomain: z.string().trim().min(1).max(60) }), permission: "ORG_SETTINGS_EDIT" },
+    async (d, ctx) => {
+      await changeOrganizationSubdomain(ctx, d.subdomain);
+      return { slug: orgSlug };
+    },
+  );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/brand`);
   return r;
 }
@@ -69,10 +74,15 @@ export async function domainCommandAction(orgSlug: string, domainId: string, com
 }
 
 export async function eventSubdomainAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, formToObject(form), { schema: z.object({ subdomain: optional(60) }), permission: "EVENTS_EDIT", feature: "EVENT_SUBDOMAINS" }, async (d, ctx) => {
-    await setEventSubdomain(ctx, eventId, d.subdomain);
-    return null;
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: z.object({ subdomain: optional(60) }), permission: "EVENTS_EDIT", feature: "EVENT_SUBDOMAINS" },
+    async (d, ctx) => {
+      await setEventSubdomain(ctx, eventId, d.subdomain);
+      return null;
+    },
+  );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
 }

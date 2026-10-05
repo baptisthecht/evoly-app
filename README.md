@@ -1,21 +1,21 @@
 # Evoly v2
 
-Billetterie en libre-service pour les organisateurs d'événements. *Ton prochain souvenir t'attend.*
+Billetterie en libre-service pour les organisateurs d'événements. _Ton prochain souvenir t'attend._
 
 La référence fonctionnelle est **[docs/CDC.md](docs/CDC.md)** (cahier des charges v2) : toute décision d'implémentation doit y être conforme.
 
 ## Contenu
 
-| Dossier | Rôle | État |
-|---|---|---|
-| `apps/web` | Site vitrine evoly.me (page HTML autonome générée par `build.py`) | Livré |
-| `apps/app` | Tableau de bord, billetterie publique, API, webhooks | Comptes, onboarding, tableau de bord, encaissement Stripe livrés ; 9 parcours testés dans Chromium |
-| `apps/scanner` | PWA de contrôle d'accès | À reprendre de `legacy/scanner-v1` et corriger (étape 5) |
-| `packages/core` | Logique métier pure : commission, paliers, codes promo, panier, revente, remboursements, offres, permissions, cycles de vie | Livré, 112 tests |
-| `packages/db` | Schéma Prisma 7 (52 modèles), contraintes SQL, client, données de départ | Livré, schéma validé |
-| `packages/i18n` | Langues (fr, en), messages traduits, formats de montants et de dates | Livré, socle de messages |
-| `packages/ui` | Design system : jetons de la charte, pont Tailwind 4, polices auto-hébergées, tracés du logo | Livré |
-| `legacy/` | Code de la v1, hors workspace, gardé comme référence pour le portage | Lecture seule |
+| Dossier         | Rôle                                                                                                                        | État                                                                                               |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `apps/web`      | Site vitrine evoly.me (page HTML autonome générée par `build.py`)                                                           | Livré                                                                                              |
+| `apps/app`      | Tableau de bord, billetterie publique, API, webhooks                                                                        | Comptes, onboarding, tableau de bord, encaissement Stripe livrés ; 9 parcours testés dans Chromium |
+| `apps/scanner`  | PWA de contrôle d'accès                                                                                                     | À reprendre de `legacy/scanner-v1` et corriger (étape 5)                                           |
+| `packages/core` | Logique métier pure : commission, paliers, codes promo, panier, revente, remboursements, offres, permissions, cycles de vie | Livré, 112 tests                                                                                   |
+| `packages/db`   | Schéma Prisma 7 (52 modèles), contraintes SQL, client, données de départ                                                    | Livré, schéma validé                                                                               |
+| `packages/i18n` | Langues (fr, en), messages traduits, formats de montants et de dates                                                        | Livré, socle de messages                                                                           |
+| `packages/ui`   | Design system : jetons de la charte, pont Tailwind 4, polices auto-hébergées, tracés du logo                                | Livré                                                                                              |
+| `legacy/`       | Code de la v1, hors workspace, gardé comme référence pour le portage                                                        | Lecture seule                                                                                      |
 
 ## Démarrer
 

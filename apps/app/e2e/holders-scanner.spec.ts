@@ -19,12 +19,18 @@ test("e-mail de chaque titulaire, puis accès membre au scanner depuis scanner.e
   await box.getByLabel(/E-mail du titulaire 1/).fill(`camille.${id}@exemple.be`);
   await box.getByRole("button", { name: "Confirmer ma réservation" }).click();
   await page.waitForURL(/\/billets\//);
-  expect(sql(`select "holderEmail" from "Ticket" where "orderId" = (select id from "Order" where "buyerEmail" = 'lea.${id}@exemple.be')`)).toBe(`camille.${id}@exemple.be`);
+  expect(sql(`select "holderEmail" from "Ticket" where "orderId" = (select id from "Order" where "buyerEmail" = 'lea.${id}@exemple.be')`)).toBe(
+    `camille.${id}@exemple.be`,
+  );
 
   // US-SCN-06 : un membre ouvre le scanner depuis scanner.evoly.me
   await page.goto("http://scanner.localhost:3001/");
   await page.getByRole("link", { name: "Je fais partie de l’équipe" }).click();
   await expect(page.getByRole("heading", { name: "Scanner les billets" })).toBeVisible();
-  await page.getByRole("listitem").filter({ hasText: `Stage ${id}` }).getByRole("button", { name: "Ouvrir le scanner" }).click();
+  await page
+    .getByRole("listitem")
+    .filter({ hasText: `Stage ${id}` })
+    .getByRole("button", { name: "Ouvrir le scanner" })
+    .click();
   await page.waitForURL(/scanner\.localhost:3001\/s\//);
 });

@@ -25,7 +25,10 @@ const secure = () => env().NEXT_PUBLIC_APP_URL.startsWith("https");
 export async function currentStaff() {
   const s = await getSession();
   if (!s?.user) return null;
-  const user = await db.user.findUnique({ where: { id: s.user.id }, select: { id: true, email: true, name: true, platformRole: true, twoFactorEnabled: true } });
+  const user = await db.user.findUnique({
+    where: { id: s.user.id },
+    select: { id: true, email: true, name: true, platformRole: true, twoFactorEnabled: true },
+  });
   if (!user || user.platformRole === "NONE") return null;
   return { user, sessionId: s.session.id, verified: user.twoFactorEnabled && (await twoFactorSatisfied(user, s.session.id)) };
 }
@@ -48,12 +51,51 @@ export async function platformSearch(q: string) {
   if (t.length < 2) return null;
   const ci = { contains: t, mode: "insensitive" as const };
   const [organizations, users, events, orders, tickets, listings] = await Promise.all([
-    db.organization.findMany({ where: { OR: [{ name: ci }, { slug: ci }, { subdomain: ci }, { legalName: ci }] }, select: { id: true, name: true, slug: true, status: true, createdAt: true }, take: 10 }),
-    db.user.findMany({ where: { OR: [{ email: ci }, { name: ci }] }, select: { id: true, email: true, name: true, platformRole: true, memberships: { select: { organization: { select: { id: true, name: true } } } } }, take: 10 }),
-    db.event.findMany({ where: { OR: [{ title: ci }, { publicCode: t.toUpperCase() }] }, select: { id: true, title: true, startsAt: true, status: true, organization: { select: { id: true, name: true } } }, take: 10 }),
-    db.order.findMany({ where: { OR: [{ reference: { contains: t.toUpperCase() } }, { buyerEmail: ci }] }, select: { id: true, reference: true, buyerEmail: true, status: true, totalMinor: true, currency: true, organization: { select: { id: true, name: true } } }, orderBy: { createdAt: "desc" }, take: 10 }),
-    db.ticket.findMany({ where: { shortCode: normalizeShortCode(t) }, select: { id: true, shortCode: true, status: true, order: { select: { id: true, reference: true, organization: { select: { id: true, name: true } } } } }, take: 5 }),
-    db.resaleListing.findMany({ where: { OR: [{ linkCode: ci }, { sellerEmail: ci }] }, select: { id: true, linkCode: true, status: true, priceMinor: true, event: { select: { title: true, organization: { select: { id: true, name: true } } } } }, take: 5 }),
+    db.organization.findMany({
+      where: { OR: [{ name: ci }, { slug: ci }, { subdomain: ci }, { legalName: ci }] },
+      select: { id: true, name: true, slug: true, status: true, createdAt: true },
+      take: 10,
+    }),
+    db.user.findMany({
+      where: { OR: [{ email: ci }, { name: ci }] },
+      select: { id: true, email: true, name: true, platformRole: true, memberships: { select: { organization: { select: { id: true, name: true } } } } },
+      take: 10,
+    }),
+    db.event.findMany({
+      where: { OR: [{ title: ci }, { publicCode: t.toUpperCase() }] },
+      select: { id: true, title: true, startsAt: true, status: true, organization: { select: { id: true, name: true } } },
+      take: 10,
+    }),
+    db.order.findMany({
+      where: { OR: [{ reference: { contains: t.toUpperCase() } }, { buyerEmail: ci }] },
+      select: {
+        id: true,
+        reference: true,
+        buyerEmail: true,
+        status: true,
+        totalMinor: true,
+        currency: true,
+        organization: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+    db.ticket.findMany({
+      where: { shortCode: normalizeShortCode(t) },
+      select: { id: true, shortCode: true, status: true, order: { select: { id: true, reference: true, organization: { select: { id: true, name: true } } } } },
+      take: 5,
+    }),
+    db.resaleListing.findMany({
+      where: { OR: [{ linkCode: ci }, { sellerEmail: ci }] },
+      select: {
+        id: true,
+        linkCode: true,
+        status: true,
+        priceMinor: true,
+        event: { select: { title: true, organization: { select: { id: true, name: true } } } },
+      },
+      take: 5,
+    }),
   ]);
   return { organizations, users, events, orders, tickets, listings };
 }
@@ -62,21 +104,51 @@ const COUNTED = ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] as const;
 
 /** Fiche organisation : offre, abonnement, Stripe, événements, volumes, remboursements, litiges, journal d'audit. */
 export async function organizationSheet(id: string, now = new Date()) {
-  const org = await db.organization.findUnique({ where: { id }, include: { subscription: true, stripeAccount: true, featureFlags: true, _count: { select: { members: true, events: true } } } });
+  const org = await db.organization.findUnique({
+    where: { id },
+    include: { subscription: true, stripeAccount: true, featureFlags: true, _count: { select: { members: true, events: true } } },
+  });
   if (!org) return null;
   const [sales, refunds, refundedOrders, disputes, openDisputes, failedListings, auditLog, events, maxPrice] = await Promise.all([
     db.order.aggregate({ where: { organizationId: id, status: { in: [...COUNTED] } }, _count: true, _sum: { totalMinor: true, applicationFeeMinor: true } }),
     db.refund.aggregate({ where: { order: { organizationId: id }, status: { in: ["SUCCEEDED", "PROCESSING"] } }, _count: true, _sum: { amountMinor: true } }),
     db.order.count({ where: { organizationId: id, status: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] } } }),
     org.stripeAccount ? db.dispute.count({ where: { accountId: org.stripeAccount.stripeAccountId } }) : 0,
-    org.stripeAccount ? db.dispute.count({ where: { accountId: org.stripeAccount.stripeAccountId, status: { in: ["NEEDS_RESPONSE", "WARNING_NEEDS_RESPONSE", "UNDER_REVIEW", "WARNING_UNDER_REVIEW"] } } }) : 0,
-    db.resaleListing.findMany({ where: { event: { organizationId: id }, status: "FAILED" }, select: { id: true, linkCode: true, failureReason: true, priceMinor: true, event: { select: { title: true } } } }),
+    org.stripeAccount
+      ? db.dispute.count({
+          where: {
+            accountId: org.stripeAccount.stripeAccountId,
+            status: { in: ["NEEDS_RESPONSE", "WARNING_NEEDS_RESPONSE", "UNDER_REVIEW", "WARNING_UNDER_REVIEW"] },
+          },
+        })
+      : 0,
+    db.resaleListing.findMany({
+      where: { event: { organizationId: id }, status: "FAILED" },
+      select: { id: true, linkCode: true, failureReason: true, priceMinor: true, event: { select: { title: true } } },
+    }),
     db.auditLog.findMany({ where: { organizationId: id }, orderBy: { createdAt: "desc" }, take: 50 }),
-    db.event.findMany({ where: { organizationId: id }, select: { id: true, title: true, startsAt: true, status: true }, orderBy: { startsAt: "desc" }, take: 10 }),
+    db.event.findMany({
+      where: { organizationId: id },
+      select: { id: true, title: true, startsAt: true, status: true },
+      orderBy: { startsAt: "desc" },
+      take: 10,
+    }),
     db.ticketType.aggregate({ where: { event: { organizationId: id } }, _max: { priceMinor: true } }),
   ]);
-  const risks: RiskSignal[] = riskSignals({ createdAt: org.createdAt, maxTicketPriceMinor: maxPrice._max.priceMinor ?? 0, paidOrders: sales._count, disputes, refundedOrders }, now);
-  return { org, sales: { orders: sales._count, grossMinor: sales._sum.totalMinor ?? 0, commissionMinor: sales._sum.applicationFeeMinor ?? 0 }, refunds: { count: refunds._count, amountMinor: refunds._sum.amountMinor ?? 0 }, disputes: { total: disputes, open: openDisputes }, failedListings, auditLog, events, risks };
+  const risks: RiskSignal[] = riskSignals(
+    { createdAt: org.createdAt, maxTicketPriceMinor: maxPrice._max.priceMinor ?? 0, paidOrders: sales._count, disputes, refundedOrders },
+    now,
+  );
+  return {
+    org,
+    sales: { orders: sales._count, grossMinor: sales._sum.totalMinor ?? 0, commissionMinor: sales._sum.applicationFeeMinor ?? 0 },
+    refunds: { count: refunds._count, amountMinor: refunds._sum.amountMinor ?? 0 },
+    disputes: { total: disputes, open: openDisputes },
+    failedListings,
+    auditLog,
+    events,
+    risks,
+  };
 }
 
 /** Tableau de bord : volumes, commissions, organisations actives, abonnements, taux de litiges et de remboursements. */
@@ -96,32 +168,85 @@ export async function platformDashboard(now = new Date()) {
   ]);
   // signaux de risque : candidats trouvés par requêtes ciblées (exhaustif), puis règles de riskSignals (source unique)
   const [newHighPrice, paidBy, refundedBy, disputesBy] = await Promise.all([
-    db.organization.findMany({ where: { createdAt: { gte: d30 }, status: { not: "DELETED" }, events: { some: { ticketTypes: { some: { priceMinor: { gte: 15_000 } } } } } }, select: { id: true } }),
+    db.organization.findMany({
+      where: { createdAt: { gte: d30 }, status: { not: "DELETED" }, events: { some: { ticketTypes: { some: { priceMinor: { gte: 15_000 } } } } } },
+      select: { id: true },
+    }),
     db.order.groupBy({ by: ["organizationId"], where: { status: { in: [...COUNTED] } }, _count: { _all: true } }),
     db.order.groupBy({ by: ["organizationId"], where: { status: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] } }, _count: { _all: true } }),
     db.dispute.groupBy({ by: ["accountId"], _count: { _all: true } }),
   ]);
-  const accounts = await db.stripeAccount.findMany({ where: { stripeAccountId: { in: disputesBy.map((d) => d.accountId) } }, select: { stripeAccountId: true, organizationId: true } });
+  const accounts = await db.stripeAccount.findMany({
+    where: { stripeAccountId: { in: disputesBy.map((d) => d.accountId) } },
+    select: { stripeAccountId: true, organizationId: true },
+  });
   const paid = new Map(paidBy.map((r) => [r.organizationId, r._count._all]));
   const refunded = new Map(refundedBy.map((r) => [r.organizationId, r._count._all]));
   const disputesOf = new Map(accounts.map((a) => [a.organizationId, disputesBy.find((d) => d.accountId === a.stripeAccountId)?._count._all ?? 0]));
-  const candidates = new Set<string>([...newHighPrice.map((o) => o.id), ...[...disputesOf.keys()], ...[...refunded.keys()].filter((id) => (paid.get(id) ?? 0) >= 20)]);
-  const orgs = await db.organization.findMany({ where: { id: { in: [...candidates] }, status: { not: "DELETED" } }, select: { id: true, name: true, createdAt: true, events: { select: { ticketTypes: { select: { priceMinor: true }, orderBy: { priceMinor: "desc" }, take: 1 } } } } });
+  const candidates = new Set<string>([
+    ...newHighPrice.map((o) => o.id),
+    ...[...disputesOf.keys()],
+    ...[...refunded.keys()].filter((id) => (paid.get(id) ?? 0) >= 20),
+  ]);
+  const orgs = await db.organization.findMany({
+    where: { id: { in: [...candidates] }, status: { not: "DELETED" } },
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+      events: { select: { ticketTypes: { select: { priceMinor: true }, orderBy: { priceMinor: "desc" }, take: 1 } } },
+    },
+  });
   const risky = orgs
-    .map((o) => ({ id: o.id, name: o.name, risks: riskSignals({ createdAt: o.createdAt, maxTicketPriceMinor: Math.max(0, ...o.events.flatMap((e) => e.ticketTypes.map((t) => t.priceMinor))), paidOrders: paid.get(o.id) ?? 0, disputes: disputesOf.get(o.id) ?? 0, refundedOrders: refunded.get(o.id) ?? 0 }, now) }))
+    .map((o) => ({
+      id: o.id,
+      name: o.name,
+      risks: riskSignals(
+        {
+          createdAt: o.createdAt,
+          maxTicketPriceMinor: Math.max(0, ...o.events.flatMap((e) => e.ticketTypes.map((t) => t.priceMinor))),
+          paidOrders: paid.get(o.id) ?? 0,
+          disputes: disputesOf.get(o.id) ?? 0,
+          refundedOrders: refunded.get(o.id) ?? 0,
+        },
+        now,
+      ),
+    }))
     .filter((r) => r.risks.length > 0);
-  return { grossMinor: sales30._sum.totalMinor ?? 0, commissionMinor: sales30._sum.applicationFeeMinor ?? 0, orders30: sales30._count, activeOrganizations: active.length, subscriptions: { pro, trialing, pastDue }, disputeRate: ratePercent(disputes90, paid90), refundRate: ratePercent(refunded90, paid90), risky };
+  return {
+    grossMinor: sales30._sum.totalMinor ?? 0,
+    commissionMinor: sales30._sum.applicationFeeMinor ?? 0,
+    orders30: sales30._count,
+    activeOrganizations: active.length,
+    subscriptions: { pro, trialing, pastDue },
+    disputeRate: ratePercent(disputes90, paid90),
+    refundRate: ratePercent(refunded90, paid90),
+    risky,
+  };
 }
 
 // -- actions (ADMIN), toutes journalisées --
 
-const log = (st: Staff, action: string, organizationId: string | null, metadata?: Record<string, string | number | boolean | null>) => audit({ action, organizationId, actorType: "ADMIN", actorUserId: st.user.id, targetType: "Organization", targetId: organizationId ?? st.user.id, metadata });
+const log = (st: Staff, action: string, organizationId: string | null, metadata?: Record<string, string | number | boolean | null>) =>
+  audit({ action, organizationId, actorType: "ADMIN", actorUserId: st.user.id, targetType: "Organization", targetId: organizationId ?? st.user.id, metadata });
 
 export async function suspendOrganization(st: Staff, id: string, reason: string) {
   const org = await db.organization.update({ where: { id }, data: { status: "SUSPENDED" } });
   await log(st, "platform.organization_suspended", id, { reason });
-  const owner = await db.organizationMember.findFirst({ where: { organizationId: id, role: { systemKey: "OWNER" } }, include: { user: { select: { email: true } } } });
-  if (owner) await sendEmail({ to: owner.user.email, template: "platform.suspended", category: "SERVICE", organizationId: id, subject: `Organisation suspendue : ${org.name}`, text: `Votre organisation ${org.name} est suspendue par Evoly : les ventes sont interrompues.\n\nMotif : ${reason}\n\nRépondez à cet e-mail pour en discuter.\n\nEvoly`, html: `<p>Votre organisation <strong>${org.name.replace(/</g, "&lt;")}</strong> est suspendue par Evoly : les ventes sont interrompues.</p><p>Motif : ${reason.replace(/</g, "&lt;")}</p><p>Répondez à cet e-mail pour en discuter.</p>` }).catch(() => undefined);
+  const owner = await db.organizationMember.findFirst({
+    where: { organizationId: id, role: { systemKey: "OWNER" } },
+    include: { user: { select: { email: true } } },
+  });
+  if (owner)
+    await sendEmail({
+      to: owner.user.email,
+      template: "platform.suspended",
+      category: "SERVICE",
+      organizationId: id,
+      subject: `Organisation suspendue : ${org.name}`,
+      text: `Votre organisation ${org.name} est suspendue par Evoly : les ventes sont interrompues.\n\nMotif : ${reason}\n\nRépondez à cet e-mail pour en discuter.\n\nEvoly`,
+      html: `<p>Votre organisation <strong>${org.name.replace(/</g, "&lt;")}</strong> est suspendue par Evoly : les ventes sont interrompues.</p><p>Motif : ${reason.replace(/</g, "&lt;")}</p><p>Répondez à cet e-mail pour en discuter.</p>`,
+    }).catch(() => undefined);
 }
 
 export async function reactivateOrganization(st: Staff, id: string) {
@@ -135,8 +260,17 @@ export async function extendTrial(st: Staff, id: string, days: number, now = new
   const sub = await db.subscription.findUnique({ where: { organizationId: id } });
   const base = sub?.status === "TRIALING" && sub.trialEndsAt && sub.trialEndsAt > now ? sub.trialEndsAt : now;
   const end = new Date(base.getTime() + days * 86_400_000);
-  if (sub?.stripeSubscriptionId) await stripe()?.subscriptions.update(sub.stripeSubscriptionId, { trial_end: Math.floor(end.getTime() / 1000), proration_behavior: "none" }).catch((err) => { throw new CoreError(`STRIPE_${String(err?.code ?? "ERROR").toUpperCase()}`); });
-  await db.subscription.upsert({ where: { organizationId: id }, create: { organizationId: id, planId: "pro", status: "TRIALING", trialEndsAt: end, currentPeriodEnd: end }, update: { planId: "pro", status: "TRIALING", trialEndsAt: end, currentPeriodEnd: end } });
+  if (sub?.stripeSubscriptionId)
+    await stripe()
+      ?.subscriptions.update(sub.stripeSubscriptionId, { trial_end: Math.floor(end.getTime() / 1000), proration_behavior: "none" })
+      .catch((err) => {
+        throw new CoreError(`STRIPE_${String(err?.code ?? "ERROR").toUpperCase()}`);
+      });
+  await db.subscription.upsert({
+    where: { organizationId: id },
+    create: { organizationId: id, planId: "pro", status: "TRIALING", trialEndsAt: end, currentPeriodEnd: end },
+    update: { planId: "pro", status: "TRIALING", trialEndsAt: end, currentPeriodEnd: end },
+  });
   await log(st, "platform.trial_extended", id, { days, until: end.toISOString() });
 }
 
@@ -144,7 +278,12 @@ export async function extendTrial(st: Staff, id: string, days: number, now = new
 export async function assignPlan(st: Staff, id: string, planId: "pro" | "free", until: Date | null) {
   const sub = await db.subscription.findUnique({ where: { organizationId: id } });
   if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"].includes(sub.status)) throw new CoreError("PLAN_MANAGED_BY_STRIPE");
-  const data = planId === "free" ? { planId: "free", status: "NONE" as const, currentPeriodEnd: null } : until ? { planId: "pro", status: "CANCELED" as const, currentPeriodEnd: until, cancelAtPeriodEnd: true } : { planId: "pro", status: "ACTIVE" as const, currentPeriodEnd: null };
+  const data =
+    planId === "free"
+      ? { planId: "free", status: "NONE" as const, currentPeriodEnd: null }
+      : until
+        ? { planId: "pro", status: "CANCELED" as const, currentPeriodEnd: until, cancelAtPeriodEnd: true }
+        : { planId: "pro", status: "ACTIVE" as const, currentPeriodEnd: null };
   await db.subscription.upsert({ where: { organizationId: id }, create: { organizationId: id, ...data }, update: data });
   await log(st, "platform.plan_assigned", id, { planId, until: until?.toISOString() ?? null });
 }
@@ -170,7 +309,11 @@ export async function retryFailedResale(st: Staff, listingId: string) {
 
 /** Activation progressive (FeatureFlag) : pour une organisation, ou pour toutes (organisation vide). */
 export async function setFeatureFlag(st: Staff, key: string, organizationId: string | null, enabled: boolean) {
-  const k = key.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "").slice(0, 60);
+  const k = key
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_.-]/g, "")
+    .slice(0, 60);
   if (!k) throw new CoreError("FLAG_KEY_INVALID");
   const existing = await db.featureFlag.findFirst({ where: { key: k, organizationId } });
   if (existing) await db.featureFlag.update({ where: { id: existing.id }, data: { enabled } });
@@ -189,7 +332,13 @@ export async function featureEnabled(key: string, organizationId: string): Promi
 export async function startSupportView(st: Staff, organizationId: string): Promise<string> {
   const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { id: true, slug: true } });
   await log(st, "platform.support_view_started", org.id);
-  (await cookies()).set(SUPPORT_COOKIE, `${org.id}.${sign("support", `${org.id}:${st.user.id}:${st.sessionId}`)}`, { httpOnly: true, sameSite: "strict", secure: secure(), path: "/", maxAge: 3600 });
+  (await cookies()).set(SUPPORT_COOKIE, `${org.id}.${sign("support", `${org.id}:${st.user.id}:${st.sessionId}`)}`, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: secure(),
+    path: "/",
+    maxAge: 3600,
+  });
   return org.slug;
 }
 

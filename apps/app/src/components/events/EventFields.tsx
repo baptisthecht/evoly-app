@@ -5,7 +5,22 @@ import { useState } from "react";
 import { Field, Input, Select } from "../ui/Field";
 import { cn } from "../ui/cn";
 
-export const TIMEZONES = ["Europe/Brussels", "Europe/Paris", "Europe/Luxembourg", "Europe/Amsterdam", "Europe/Berlin", "Europe/Vienna", "Europe/Zurich", "Europe/Madrid", "Europe/Rome", "Europe/Lisbon", "Europe/Dublin", "Europe/London", "Europe/Helsinki", "UTC"];
+export const TIMEZONES = [
+  "Europe/Brussels",
+  "Europe/Paris",
+  "Europe/Luxembourg",
+  "Europe/Amsterdam",
+  "Europe/Berlin",
+  "Europe/Vienna",
+  "Europe/Zurich",
+  "Europe/Madrid",
+  "Europe/Rome",
+  "Europe/Lisbon",
+  "Europe/Dublin",
+  "Europe/London",
+  "Europe/Helsinki",
+  "UTC",
+];
 
 export interface EventFieldValues {
   title: string;
@@ -36,7 +51,14 @@ export function EventFields({ values, error }: { values: EventFieldValues; error
         </Field>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label={t("startsAt")} htmlFor="startsAtLocal" error={error("startsAtLocal")}>
-            <Input id="startsAtLocal" name="startsAtLocal" type="datetime-local" defaultValue={values.startsAtLocal} required invalid={!!error("startsAtLocal")} />
+            <Input
+              id="startsAtLocal"
+              name="startsAtLocal"
+              type="datetime-local"
+              defaultValue={values.startsAtLocal}
+              required
+              invalid={!!error("startsAtLocal")}
+            />
           </Field>
           <Field label={t("endsAt")} htmlFor="endsAtLocal" hint={t("optional")} error={error("endsAtLocal")}>
             <Input id="endsAtLocal" name="endsAtLocal" type="datetime-local" defaultValue={values.endsAtLocal} invalid={!!error("endsAtLocal")} />
@@ -67,7 +89,13 @@ export function EventFields({ values, error }: { values: EventFieldValues; error
         <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionLocation")}</legend>
         <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t("location")}>
           {(["PHYSICAL", "ONLINE", "HYBRID"] as const).map((v) => (
-            <label key={v} className={cn("flex h-11 cursor-pointer items-center justify-center rounded-md px-2 text-center text-sm font-medium shadow-[inset_0_0_0_1.5px_var(--line-strong)]", "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:shadow-none")}>
+            <label
+              key={v}
+              className={cn(
+                "flex h-11 cursor-pointer items-center justify-center rounded-md px-2 text-center text-sm font-medium shadow-[inset_0_0_0_1.5px_var(--line-strong)]",
+                "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:shadow-none",
+              )}
+            >
               <input type="radio" name="locationType" value={v} checked={locationType === v} onChange={() => setLocationType(v)} className="sr-only" />
               {t(`locationType_${v}`)}
             </label>

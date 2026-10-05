@@ -11,5 +11,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ sub: st
   if (!site) return new Response("Not found\n", { status: 404 });
   const host = (await headers()).get("host") ?? "";
   const proto = host.startsWith("localhost") || /:\d+$/.test(host) ? "http" : "https";
-  return new Response(siteRobots(`${proto}://${host}/sitemap.xml`), { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "public, max-age=3600" } });
+  return new Response(siteRobots(`${proto}://${host}/sitemap.xml`), {
+    headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "public, max-age=3600" },
+  });
 }

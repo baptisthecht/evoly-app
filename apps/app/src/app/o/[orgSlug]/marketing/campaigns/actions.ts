@@ -2,7 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { countAudience, deleteCampaign, previewCampaign, saveCampaign, saveTemplate, scheduleCampaign, sendTestCampaign, unscheduleCampaign } from "@/server/campaigns";
+import {
+  countAudience,
+  deleteCampaign,
+  previewCampaign,
+  saveCampaign,
+  saveTemplate,
+  scheduleCampaign,
+  sendTestCampaign,
+  unscheduleCampaign,
+} from "@/server/campaigns";
 import { runOrgAction, type ActionState } from "@/server/guard";
 
 const OPTS = { permission: "MARKETING_MANAGE", feature: "EMAIL_MARKETING" } as const;
@@ -23,7 +32,9 @@ export async function saveCampaignAction(orgSlug: string, id: string | null, inp
 }
 
 export async function audienceAction(orgSlug: string, segment: unknown): Promise<number> {
-  const r = await runOrgAction(orgSlug, { segment }, { schema: z.object({ segment: z.any() }), ...OPTS, write: false }, async (d, ctx) => countAudience(ctx, d.segment));
+  const r = await runOrgAction(orgSlug, { segment }, { schema: z.object({ segment: z.any() }), ...OPTS, write: false }, async (d, ctx) =>
+    countAudience(ctx, d.segment),
+  );
   return r?.ok ? r.data : 0;
 }
 
@@ -67,7 +78,12 @@ export async function deleteCampaignAction(orgSlug: string, id: string): Promise
 
 /** Modèle personnel réutilisable, à partir du contenu en cours. */
 export async function saveTemplateAction(orgSlug: string, input: unknown): Promise<ActionState> {
-  const schema = z.object({ name: z.string().trim().min(2).max(80), subject: z.string().trim().min(2).max(150), previewText: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().trim().max(200).nullable()), blocks: z.array(z.any()).max(40) });
+  const schema = z.object({
+    name: z.string().trim().min(2).max(80),
+    subject: z.string().trim().min(2).max(150),
+    previewText: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().trim().max(200).nullable()),
+    blocks: z.array(z.any()).max(40),
+  });
   const r = await runOrgAction(orgSlug, input, { schema, ...OPTS }, async (d, ctx) => {
     await saveTemplate(ctx, d);
     return null;

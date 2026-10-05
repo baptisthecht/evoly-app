@@ -32,7 +32,12 @@ export async function eventMetadata(org: PublicOrganization, data: PublicEventDa
   const orgName = org.brand?.displayName ?? org.name;
   if (!(await eventUnlocked(e.id))) {
     const title = `${(await getTranslations("public"))("privateTitle")} - ${orgName}`;
-    return { title: { absolute: title }, robots: { index: false, follow: false }, openGraph: { type: "website", title, siteName: orgName }, twitter: { card: "summary", title } };
+    return {
+      title: { absolute: title },
+      robots: { index: false, follow: false },
+      openGraph: { type: "website", title, siteName: orgName },
+      twitter: { card: "summary", title },
+    };
   }
   const t = await getTranslations("public");
   const locale = (await getLocale()) as Locale;
@@ -44,7 +49,8 @@ export async function eventMetadata(org: PublicOrganization, data: PublicEventDa
   const min = data.ticketTypes.length ? Math.min(...data.ticketTypes.map((tt) => tt.priceMinor)) : null;
   const price = min === null ? "" : min === 0 ? t("seoFree") : t("seoFrom", { price: formatMoney(min, e.currency, locale, { trimZeroCents: true }) });
   const title = t("seoTitle", { title: e.title, date, city: e.city ?? "", org: orgName });
-  const description = (e.summary?.trim() ? `${e.summary.trim()} ` : "") + t("seoDescription", { title: e.title, date, place: place || "-", price, org: orgName });
+  const description =
+    (e.summary?.trim() ? `${e.summary.trim()} ` : "") + t("seoDescription", { title: e.title, date, place: place || "-", price, org: orgName });
   const image = e.coverImageUrl ? { url: e.coverImageUrl, alt: e.title } : { url: eventOgImageUrl(e.id, e.updatedAt), width: 1200, height: 630, alt: e.title };
   return {
     title: { absolute: title },
@@ -52,7 +58,15 @@ export async function eventMetadata(org: PublicOrganization, data: PublicEventDa
     alternates: { canonical: url },
     robots: { index: indexable, follow: indexable, "max-image-preview": "large", "max-snippet": -1 },
     icons: org.brand?.faviconUrl ? { icon: org.brand.faviconUrl } : undefined,
-    openGraph: { type: "website", url, siteName: orgName, locale: locale === "en" ? "en_GB" : "fr_FR", title: e.title, description: description.slice(0, 300), images: [image] },
+    openGraph: {
+      type: "website",
+      url,
+      siteName: orgName,
+      locale: locale === "en" ? "en_GB" : "fr_FR",
+      title: e.title,
+      description: description.slice(0, 300),
+      images: [image],
+    },
     twitter: { card: "summary_large_image", title: e.title, description: description.slice(0, 200), images: [image] },
   };
 }
@@ -75,14 +89,36 @@ export async function PublicEventPage({ org, data, homeHref }: { org: PublicOrga
     startDate: e.startsAt.toISOString(),
     endDate: effectiveEnd(e.startsAt, e.endsAt).toISOString(),
     eventStatus: e.status === "CANCELLED" ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",
-    eventAttendanceMode: { PHYSICAL: "https://schema.org/OfflineEventAttendanceMode", ONLINE: "https://schema.org/OnlineEventAttendanceMode", HYBRID: "https://schema.org/MixedEventAttendanceMode" }[e.locationType],
+    eventAttendanceMode: {
+      PHYSICAL: "https://schema.org/OfflineEventAttendanceMode",
+      ONLINE: "https://schema.org/OnlineEventAttendanceMode",
+      HYBRID: "https://schema.org/MixedEventAttendanceMode",
+    }[e.locationType],
     location:
       e.locationType === "ONLINE"
         ? { "@type": "VirtualLocation", url }
-        : { "@type": "Place", name: e.locationName ?? e.city ?? undefined, address: { "@type": "PostalAddress", streetAddress: e.addressLine1 ?? undefined, postalCode: e.postalCode ?? undefined, addressLocality: e.city ?? undefined, addressCountry: e.country ?? undefined } },
+        : {
+            "@type": "Place",
+            name: e.locationName ?? e.city ?? undefined,
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: e.addressLine1 ?? undefined,
+              postalCode: e.postalCode ?? undefined,
+              addressLocality: e.city ?? undefined,
+              addressCountry: e.country ?? undefined,
+            },
+          },
     image: [e.coverImageUrl ?? eventOgImageUrl(e.id, e.updatedAt)],
     organizer: { "@type": "Organization", name: org.brand?.displayName ?? org.name, url: orgUrl },
-    offers: data.ticketTypes.map((tt) => ({ "@type": "Offer", name: tt.name, price: (tt.priceMinor / 100).toFixed(2), priceCurrency: e.currency, ...(e.salesStartAt ? { validFrom: e.salesStartAt.toISOString() } : {}), availability: tt.remaining > 0 ? "https://schema.org/InStock" : "https://schema.org/SoldOut", url })),
+    offers: data.ticketTypes.map((tt) => ({
+      "@type": "Offer",
+      name: tt.name,
+      price: (tt.priceMinor / 100).toFixed(2),
+      priceCurrency: e.currency,
+      ...(e.salesStartAt ? { validFrom: e.salesStartAt.toISOString() } : {}),
+      availability: tt.remaining > 0 ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+      url,
+    })),
   };
   return (
     <PublicShell org={org} homeHref={homeHref}>

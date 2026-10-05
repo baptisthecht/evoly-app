@@ -39,7 +39,10 @@ export function EventReminders({ orgSlug, eventId, pro, reminders }: { orgSlug: 
                     });
                   }}
                 />
-                <span className="h-7 w-12 rounded-full bg-line-strong transition-colors after:absolute after:left-1 after:top-1 after:size-5 after:rounded-full after:bg-blanc after:transition-transform peer-checked:bg-surface-inverse peer-checked:after:translate-x-5 peer-focus-visible:outline-2" aria-hidden="true" />
+                <span
+                  className="h-7 w-12 rounded-full bg-line-strong transition-colors after:absolute after:left-1 after:top-1 after:size-5 after:rounded-full after:bg-blanc after:transition-transform peer-checked:bg-surface-inverse peer-checked:after:translate-x-5 peer-focus-visible:outline-2"
+                  aria-hidden="true"
+                />
               </label>
             </li>
           ))}

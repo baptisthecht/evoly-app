@@ -13,7 +13,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgSlug
   try {
     const statement = await issueStatement(ctx.organization.id, period, ctx.organization.currency);
     const { bytes, number } = await statementPdf(statement.id);
-    return new Response(Buffer.from(bytes), { headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="${number}.pdf"`, "cache-control": "private, no-store" } });
+    return new Response(Buffer.from(bytes), {
+      headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="${number}.pdf"`, "cache-control": "private, no-store" },
+    });
   } catch (err) {
     if (err instanceof CoreError) return new Response(err.code, { status: err.code === "NOT_FOUND" ? 404 : 409 });
     throw err;

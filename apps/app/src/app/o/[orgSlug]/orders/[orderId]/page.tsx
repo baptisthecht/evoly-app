@@ -30,7 +30,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
   const manage = can(ctx.membership, "ORDERS_MANAGE") && !ctx.readOnly;
   const refunds = can(ctx.membership, "REFUNDS_MANAGE") && !ctx.readOnly;
   const finance = can(ctx.membership, "FINANCE_VIEW");
-  const pendingRefundTicketIds = new Set(order.tickets.filter((tk) => tk.refundItems.some((i) => ["REQUESTED", "APPROVED", "PROCESSING"].includes(i.refund.status))).map((tk) => tk.id));
+  const pendingRefundTicketIds = new Set(
+    order.tickets.filter((tk) => tk.refundItems.some((i) => ["REQUESTED", "APPROVED", "PROCESSING"].includes(i.refund.status))).map((tk) => tk.id),
+  );
   const refundable = order.tickets.filter((tk) => (tk.status === "VALID" || tk.status === "CHECKED_IN") && !pendingRefundTicketIds.has(tk.id));
   return (
     <div className="grid max-w-5xl gap-6">
@@ -42,7 +44,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
           <h1 className="page-title">
             {order.buyerFirstName} {order.buyerLastName}
           </h1>
-          <Badge tone={order.status === "PAID" ? "success" : order.status === "PARTIALLY_REFUNDED" ? "warning" : "neutral"}>{t(order.status === "PAID" && order.totalMinor === 0 ? "status_CONFIRMED" : `status_${order.status}`)}</Badge>
+          <Badge tone={order.status === "PAID" ? "success" : order.status === "PARTIALLY_REFUNDED" ? "warning" : "neutral"}>
+            {t(order.status === "PAID" && order.totalMinor === 0 ? "status_CONFIRMED" : `status_${order.status}`)}
+          </Badge>
         </div>
         <p className="text-ink-muted">
           <span className="font-mono">{order.reference}</span> · {order.event.title} · {formatDateTime(order.createdAt, tz, locale, "short")}
@@ -107,23 +111,42 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
             <li key={tk.id} className="grid gap-2 border-t border-line pt-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
               <div className="grid gap-1">
                 <p className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold">{tk.ticketType.name}{tk.seat ? ` · ${tk.seat.row.name}${tk.seat.label}` : ""}</span>
+                  <span className="font-semibold">
+                    {tk.ticketType.name}
+                    {tk.seat ? ` · ${tk.seat.row.name}${tk.seat.label}` : ""}
+                  </span>
                   <span className="font-mono text-sm">{tk.shortCode}</span>
                   <Badge tone={tk.status === "VALID" ? "success" : tk.status === "CHECKED_IN" ? "dark" : "neutral"}>{t(`ticket_${tk.status}`)}</Badge>
                 </p>
                 <p className="text-sm text-ink-muted">
                   {tk.holderFirstName ? `${tk.holderFirstName} ${tk.holderLastName ?? ""}${tk.holderEmail ? ` · ${tk.holderEmail}` : ""}` : t("noHolder")}
-                  {tk.checkIns[0] ? ` · ${t("scannedAt", { time: formatDateTime(tk.checkIns[0].scannedAt, tz, locale, "short"), gate: tk.checkIns[0].gate ?? "" })}` : ""}
+                  {tk.checkIns[0]
+                    ? ` · ${t("scannedAt", { time: formatDateTime(tk.checkIns[0].scannedAt, tz, locale, "short"), gate: tk.checkIns[0].gate ?? "" })}`
+                    : ""}
                   {tk.voidReason ? ` · ${t(`void_${tk.voidReason}`)}` : ""}
                 </p>
               </div>
-              {tk.status === "CHECKED_IN" && can(ctx.membership, "CHECKIN_MANAGE") && !ctx.readOnly ? <RevertCheckIn orgSlug={orgSlug} orderId={order.id} ticketId={tk.id} /> : null}
-              {manage && (tk.status === "VALID" || tk.status === "CHECKED_IN") ? <HolderForm orgSlug={orgSlug} orderId={order.id} ticketId={tk.id} firstName={tk.holderFirstName ?? ""} lastName={tk.holderLastName ?? ""} /> : null}
+              {tk.status === "CHECKED_IN" && can(ctx.membership, "CHECKIN_MANAGE") && !ctx.readOnly ? (
+                <RevertCheckIn orgSlug={orgSlug} orderId={order.id} ticketId={tk.id} />
+              ) : null}
+              {manage && (tk.status === "VALID" || tk.status === "CHECKED_IN") ? (
+                <HolderForm orgSlug={orgSlug} orderId={order.id} ticketId={tk.id} firstName={tk.holderFirstName ?? ""} lastName={tk.holderLastName ?? ""} />
+              ) : null}
             </li>
           ))}
         </ul>
         {refunds && (order.status === "PAID" || order.status === "PARTIALLY_REFUNDED") ? (
-          <RefundTickets orgSlug={orgSlug} orderId={order.id} currency={order.currency} tickets={refundable.map((tk) => ({ id: tk.id, label: `${tk.ticketType.name} ${tk.shortCode}`, faceValueMinor: tk.faceValueMinor, scanned: tk.status === "CHECKED_IN" }))} />
+          <RefundTickets
+            orgSlug={orgSlug}
+            orderId={order.id}
+            currency={order.currency}
+            tickets={refundable.map((tk) => ({
+              id: tk.id,
+              label: `${tk.ticketType.name} ${tk.shortCode}`,
+              faceValueMinor: tk.faceValueMinor,
+              scanned: tk.status === "CHECKED_IN",
+            }))}
+          />
         ) : null}
       </Card>
 
@@ -159,11 +182,14 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
                   <Badge tone={REFUND_TONES[r.status]}>{t(`refund_${r.status}`)}</Badge>
                   {r.isOutOfDeadline ? <Badge tone="warning">{t("outOfDeadline")}</Badge> : null}
                   <span className="text-sm text-ink-muted">
-                    {t(`initiator_${r.initiator}`)} · {t(`reason_${r.reason}`)} · {r.items.map((i) => i.ticket.shortCode).join(", ")} · {formatDateTime(r.createdAt, tz, locale, "short")}
+                    {t(`initiator_${r.initiator}`)} · {t(`reason_${r.reason}`)} · {r.items.map((i) => i.ticket.shortCode).join(", ")} ·{" "}
+                    {formatDateTime(r.createdAt, tz, locale, "short")}
                   </span>
                 </p>
                 {r.message ? <p className="text-sm">« {r.message} »</p> : null}
-                {r.responseMessage ? <p className="text-sm text-ink-muted">{t("response", { name: r.handledBy?.name ?? "", message: r.responseMessage })}</p> : null}
+                {r.responseMessage ? (
+                  <p className="text-sm text-ink-muted">{t("response", { name: r.handledBy?.name ?? "", message: r.responseMessage })}</p>
+                ) : null}
                 {r.failureReason ? <p className="text-sm text-danger">{t("failure", { reason: r.failureReason })}</p> : null}
                 {refunds && r.status === "REQUESTED" ? <RefundDecision orgSlug={orgSlug} orderId={order.id} refundId={r.id} mode="pending" /> : null}
                 {refunds && r.status === "FAILED" ? <RefundDecision orgSlug={orgSlug} orderId={order.id} refundId={r.id} mode="failed" /> : null}

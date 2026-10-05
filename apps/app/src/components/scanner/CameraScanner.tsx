@@ -69,12 +69,26 @@ export function CameraScanner({ onCode, paused }: { onCode: (code: string) => vo
     <div className="relative aspect-square w-full overflow-hidden rounded-[var(--r-panel)] bg-noir">
       <video ref={video} playsInline muted className={`size-full object-cover ${state === "on" ? "" : "hidden"}`} />
       <canvas ref={canvas} className="hidden" />
-      {state === "on" ? <div aria-hidden="true" className="pointer-events-none absolute inset-[14%] rounded-3xl border-4 border-[var(--evoly-rose)] shadow-[0_0_0_999px_rgba(0,0,0,0.35)]" /> : null}
+      {state === "on" ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-[14%] rounded-3xl border-4 border-[var(--evoly-rose)] shadow-[0_0_0_999px_rgba(0,0,0,0.35)]"
+        />
+      ) : null}
       {state !== "on" ? (
         <div className="absolute inset-0 grid place-items-center p-6 text-center">
           <div className="grid gap-3">
-            {state === "denied" ? <p className="text-sm">{t("cameraDenied")}</p> : state === "unsupported" ? <p className="text-sm">{t("cameraUnsupported")}</p> : null}
-            <button type="button" onClick={start} disabled={state === "starting"} className="rounded-full bg-[var(--evoly-rose)] px-6 py-3 font-semibold text-[var(--evoly-charbon)]">
+            {state === "denied" ? (
+              <p className="text-sm">{t("cameraDenied")}</p>
+            ) : state === "unsupported" ? (
+              <p className="text-sm">{t("cameraUnsupported")}</p>
+            ) : null}
+            <button
+              type="button"
+              onClick={start}
+              disabled={state === "starting"}
+              className="rounded-full bg-[var(--evoly-rose)] px-6 py-3 font-semibold text-[var(--evoly-charbon)]"
+            >
               {state === "starting" ? t("cameraStarting") : t("cameraStart")}
             </button>
           </div>

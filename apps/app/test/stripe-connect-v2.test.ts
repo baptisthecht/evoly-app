@@ -27,9 +27,23 @@ type Ctx = Parameters<typeof stripeOnboardingUrl>[0];
 describe("inscription Stripe des organisateurs avec Accounts v2", () => {
   it("création v2 (tableau de bord complet, frais et pertes chez Stripe, cartes et Bancontact), puis réutilisation du compte ; repli v1 pour le lien", async () => {
     const id = Math.random().toString(36).slice(2, 10);
-    const org = await db.organization.create({ data: { name: `Théâtre ${id}`, slug: `theatre-${id}`, subdomain: `theatre-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr", contactEmail: `contact.${id}@exemple.be` } });
+    const org = await db.organization.create({
+      data: {
+        name: `Théâtre ${id}`,
+        slug: `theatre-${id}`,
+        subdomain: `theatre-${id}`,
+        country: "BE",
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        locale: "fr",
+        contactEmail: `contact.${id}@exemple.be`,
+      },
+    });
     const user = await db.user.create({ data: { name: "Camille", email: `own.${id}@exemple.be`, emailVerified: true } });
-    const ctx = { organization: { id: org.id, slug: org.slug, name: org.name, country: "BE", currency: "EUR", locale: "fr", contactEmail: org.contactEmail }, user: { id: user.id, email: user.email } } as unknown as Ctx;
+    const ctx = {
+      organization: { id: org.id, slug: org.slug, name: org.name, country: "BE", currency: "EUR", locale: "fr", contactEmail: org.contactEmail },
+      user: { id: user.id, email: user.email },
+    } as unknown as Ctx;
 
     expect(await stripeOnboardingUrl(ctx)).toBe("https://connect.stripe.com/setup/v2/test");
     expect(calls.create).toHaveLength(1);
@@ -42,8 +56,15 @@ describe("inscription Stripe des organisateurs avec Accounts v2", () => {
       configuration: { merchant: { capabilities: { card_payments: { requested: true }, bancontact_payments: { requested: true } } } },
       metadata: { organizationId: org.id },
     });
-    expect(calls.linkV2[0]).toMatchObject({ account: `acct_v2_${RUN}_1`, use_case: { type: "account_onboarding", account_onboarding: { configurations: ["merchant"] } } });
-    expect(await db.stripeAccount.findUniqueOrThrow({ where: { organizationId: org.id } })).toMatchObject({ stripeAccountId: `acct_v2_${RUN}_1`, status: "PENDING", country: "BE" });
+    expect(calls.linkV2[0]).toMatchObject({
+      account: `acct_v2_${RUN}_1`,
+      use_case: { type: "account_onboarding", account_onboarding: { configurations: ["merchant"] } },
+    });
+    expect(await db.stripeAccount.findUniqueOrThrow({ where: { organizationId: org.id } })).toMatchObject({
+      stripeAccountId: `acct_v2_${RUN}_1`,
+      status: "PENDING",
+      country: "BE",
+    });
 
     // deuxième clic : pas de nouveau compte ; lien v2 refusé (compte v1) → lien v1
     failV2Link = true;

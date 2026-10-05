@@ -15,8 +15,22 @@ export function ReferralCard({ url, signedUp, qualified, rewarded }: { url: stri
       <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("title")}</h2>
       <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
       <div className="flex flex-wrap gap-2">
-        <Input readOnly value={url} aria-label={t("link")} className="min-w-0 flex-1 font-mono text-base" data-testid="referral-link" onFocus={(e) => e.currentTarget.select()} />
-        <Button type="button" variant="secondary" onClick={async () => { await navigator.clipboard?.writeText(url).catch(() => undefined); setCopied(true); }}>
+        <Input
+          readOnly
+          value={url}
+          aria-label={t("link")}
+          className="min-w-0 flex-1 font-mono text-base"
+          data-testid="referral-link"
+          onFocus={(e) => e.currentTarget.select()}
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={async () => {
+            await navigator.clipboard?.writeText(url).catch(() => undefined);
+            setCopied(true);
+          }}
+        >
           {copied ? t("copied") : t("copy")}
         </Button>
       </div>

@@ -5,7 +5,9 @@ import { organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de l'acheteur, billet avec sa place (section 9.9)", async ({ page, browser }) => {
   const { id, slug } = await organizer(page);
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
-  sql(`insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`);
+  sql(
+    `insert into "Subscription" (id, "organizationId", "planId", status, "currentPeriodEnd", "updatedAt") values ('s_${orgId}', '${orgId}', 'pro', 'ACTIVE', now() + interval '30 days', now()) on conflict ("organizationId") do update set "planId" = 'pro', status = 'ACTIVE', "currentPeriodEnd" = now() + interval '30 days'`,
+  );
   const eventUrl = await publishedFreeEvent(page, slug, `Opéra ${id}`, 20);
   const eventId = sql(`select id from "Event" where slug = 'opera-${id}'`);
 
@@ -22,7 +24,8 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await expect(page.getByRole("img", { name: "Plan de salle, 12 places" })).toBeVisible();
 
   // déplacement d'un bloc en le faisant glisser
-  const blockX = () => sql(`select b.x from "SeatingBlock" b join "SeatingMap" m on m.id = b."seatingMapId" where m."eventId" = '${eventId}' and b.kind = 'ROWS'`);
+  const blockX = () =>
+    sql(`select b.x from "SeatingBlock" b join "SeatingMap" m on m.id = b."seatingMapId" where m."eventId" = '${eventId}' and b.kind = 'ROWS'`);
   const seat = page.locator("[data-seat]").first();
   await seat.scrollIntoViewIfNeeded();
   const box = (await seat.boundingBox())!;
@@ -99,7 +102,9 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await page.getByRole("button", { name: "Trouver" }).click();
   await expect(page.getByText(/Léa Martin/)).toBeVisible();
   await page.getByRole("button", { name: "Changer de place" }).click();
-  const target = sql(`select s.id from "Seat" s join "SeatingRow" r on r.id = s."rowId" join "SeatingMap" m on m.id = r."seatingMapId" where m."eventId" = '${eventId}' and r.name = 'B' and s.label = '6' and s.status = 'AVAILABLE'`);
+  const target = sql(
+    `select s.id from "Seat" s join "SeatingRow" r on r.id = s."rowId" join "SeatingMap" m on m.id = r."seatingMapId" where m."eventId" = '${eventId}' and r.name = 'B' and s.label = '6' and s.status = 'AVAILABLE'`,
+  );
   expect(target).not.toBe("");
   await page.locator(`[data-seat="${target}"]`).click();
   await page.getByRole("button", { name: "Confirmer le changement de place" }).click();
@@ -123,7 +128,9 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
 
   // vue depuis la place : photo du bloc, visible par l'acheteur
   await page.getByRole("button", { name: "Salle", exact: true }).click();
-  const photo = await sharp({ create: { width: 120, height: 80, channels: 3, background: "#A9C4F2" } }).jpeg().toBuffer();
+  const photo = await sharp({ create: { width: 120, height: 80, channels: 3, background: "#A9C4F2" } })
+    .jpeg()
+    .toBuffer();
   await page.getByLabel("Photo de la vue").setInputFiles({ name: "vue.jpg", mimeType: "image/jpeg", buffer: photo });
   await page.getByRole("button", { name: "Ajouter la photo" }).click();
   await expect(page.getByRole("img", { name: "Vue depuis Salle" })).toBeVisible();

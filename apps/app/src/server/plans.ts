@@ -19,7 +19,8 @@ export async function getPlans(): Promise<Record<PlanId, PlanRecord>> {
   for (const id of ["free", "pro"] as const) {
     const row = rows.find((r) => r.id === id);
     const terms: Record<string, FeeTerms> = {};
-    for (const t of row?.currencyTerms ?? []) terms[t.currency] = { planId: id, currency: t.currency, fixedMinor: t.feeFixedMinor, rateBps: row!.feeRateBps, capMinor: t.feeCapMinor };
+    for (const t of row?.currencyTerms ?? [])
+      terms[t.currency] = { planId: id, currency: t.currency, fixedMinor: t.feeFixedMinor, rateBps: row!.feeRateBps, capMinor: t.feeCapMinor };
     if (!terms.EUR) terms.EUR = EUR_TERMS[id];
     plans[id] = { id, features: (row?.features ?? []) as PlanFeature[], terms };
   }

@@ -10,13 +10,45 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 
 async function setup(opts: { withTickets?: boolean; subscription?: "active" | "canceling" } = {}) {
   const id = rid();
-  const [owner, admin] = await Promise.all(["own", "adm"].map((p) => db.user.create({ data: { name: `${p} ${id}`, email: `${p}.${id}@exemple.be`, emailVerified: true } })));
-  const org = await db.organization.create({ data: { name: `Asso ${id}`, slug: `asso-${id}`, subdomain: `asso-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-  await db.organizationMember.createMany({ data: [{ organizationId: org.id, userId: owner!.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id }, { organizationId: org.id, userId: admin!.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "ADMIN" } })).id }] });
-  if (opts.subscription) await db.subscription.create({ data: { organizationId: org.id, planId: "pro", status: "ACTIVE", stripeSubscriptionId: `sub_${id}`, cancelAtPeriodEnd: opts.subscription === "canceling", currentPeriodEnd: new Date(Date.now() + 20 * 86_400_000) } });
+  const [owner, admin] = await Promise.all(
+    ["own", "adm"].map((p) => db.user.create({ data: { name: `${p} ${id}`, email: `${p}.${id}@exemple.be`, emailVerified: true } })),
+  );
+  const org = await db.organization.create({
+    data: { name: `Asso ${id}`, slug: `asso-${id}`, subdomain: `asso-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
+  await db.organizationMember.createMany({
+    data: [
+      { organizationId: org.id, userId: owner!.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id },
+      { organizationId: org.id, userId: admin!.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "ADMIN" } })).id },
+    ],
+  });
+  if (opts.subscription)
+    await db.subscription.create({
+      data: {
+        organizationId: org.id,
+        planId: "pro",
+        status: "ACTIVE",
+        stripeSubscriptionId: `sub_${id}`,
+        cancelAtPeriodEnd: opts.subscription === "canceling",
+        currentPeriodEnd: new Date(Date.now() + 20 * 86_400_000),
+      },
+    });
   let orderId: string | null = null;
   if (opts.withTickets) {
-    const event = await db.event.create({ data: { organizationId: org.id, slug: `fete-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Fête ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 4 * 86_400_000), status: "PUBLISHED", ticketTypes: { create: { name: "Entrée", priceMinor: 0, currency: "EUR", quantity: 50 } } }, include: { ticketTypes: true } });
+    const event = await db.event.create({
+      data: {
+        organizationId: org.id,
+        slug: `fete-${id}`,
+        publicCode: id.toUpperCase().slice(0, 8),
+        title: `Fête ${id}`,
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        startsAt: new Date(Date.now() + 4 * 86_400_000),
+        status: "PUBLISHED",
+        ticketTypes: { create: { name: "Entrée", priceMinor: 0, currency: "EUR", quantity: 50 } },
+      },
+      include: { ticketTypes: true },
+    });
     const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" });
     await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: true });
     orderId = r.orderId;
@@ -24,7 +56,15 @@ async function setup(opts: { withTickets?: boolean; subscription?: "active" | "c
   const ctxOf = async (userId: string) => ({ ...(await findOrgContext(userId, org.slug))!, user: { id: userId } }) as unknown as OrgContext;
   return { id, org, owner: owner!, admin: admin!, ctxOf, orderId };
 }
-const base = (id: string) => ({ name: `Asso ${id}`, type: "ASSOCIATION" as const, country: "BE", currency: "EUR", locale: "fr" as const, timezone: "Europe/Brussels", vatRegistered: true });
+const base = (id: string) => ({
+  name: `Asso ${id}`,
+  type: "ASSOCIATION" as const,
+  country: "BE",
+  currency: "EUR",
+  locale: "fr" as const,
+  timezone: "Europe/Brussels",
+  vatRegistered: true,
+});
 
 describe("paramètres et suppression de l'organisation (section 9.3)", () => {
   it("paramètres : TVA normalisée, site complété, devise bloquée après la première vente", async () => {

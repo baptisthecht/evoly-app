@@ -15,10 +15,15 @@
     "db:generate": "pnpm --filter @evoly/db generate",
     "db:migrate": "pnpm --filter @evoly/db migrate:dev",
     "db:migrate:deploy": "pnpm --filter @evoly/db migrate:deploy",
-    "db:seed": "pnpm --filter @evoly/db seed"
+    "db:seed": "pnpm --filter @evoly/db seed",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "simple-git-hooks"
   },
   "devDependencies": {
+    "lint-staged": "^17.6.0",
     "prettier": "^3.6.2",
+    "simple-git-hooks": "^2.14.0",
     "turbo": "^2.5.8",
     "typescript": "^5.9.3"
   },
@@ -32,5 +37,11 @@
       "deepmerge-ts@<8.0.0": ">=8.0.0",
       "mysql2@<=3.23.0": ">=3.23.1"
     }
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
   }
 }

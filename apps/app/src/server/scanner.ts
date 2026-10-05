@@ -1,6 +1,18 @@
 import "server-only";
 import { createHash, createHmac } from "node:crypto";
-import { attendance, CoreError, decideCheckIn, earliestWins, effectiveEnd, humanCode, normalizeShortCode, trustedScanTime, utcToZonedLocal, zonedLocalToUtc, type ScanOutcome } from "@evoly/core";
+import {
+  attendance,
+  CoreError,
+  decideCheckIn,
+  earliestWins,
+  effectiveEnd,
+  humanCode,
+  normalizeShortCode,
+  trustedScanTime,
+  utcToZonedLocal,
+  zonedLocalToUtc,
+  type ScanOutcome,
+} from "@evoly/core";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { audit } from "./audit";
@@ -14,7 +26,9 @@ const PERSONAL = "member:"; // préfixe du libellé d'un lien personnel de membr
 /** Jeton d'un lien bénévole, dérivé d'un secret serveur : réaffichable, jamais stocké en clair. */
 export function scannerToken(linkId: string): string {
   const e = env();
-  return createHmac("sha256", e.ORDER_TOKEN_SECRET ?? e.BETTER_AUTH_SECRET).update(`evoly-scanner:${linkId}`).digest("base64url");
+  return createHmac("sha256", e.ORDER_TOKEN_SECRET ?? e.BETTER_AUTH_SECRET)
+    .update(`evoly-scanner:${linkId}`)
+    .digest("base64url");
 }
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 
@@ -41,13 +55,33 @@ function expiryFor(duration: LinkDuration, event: { startsAt: Date; endsAt: Date
 }
 
 /** US-SCN-01 : lien temporaire pour un bénévole, sans compte Evoly. */
-export async function createScannerLink(ctx: OrgContext, eventId: string, input: { label: string; duration: LinkDuration; expiresAtLocal?: string | null; allowManualSearch: boolean }, now = new Date()) {
+export async function createScannerLink(
+  ctx: OrgContext,
+  eventId: string,
+  input: { label: string; duration: LinkDuration; expiresAtLocal?: string | null; allowManualSearch: boolean },
+  now = new Date(),
+) {
   const event = await findEvent(ctx, eventId);
   const id = `c${humanCode(24, ID_ALPHABET)}`;
   const link = await db.scannerLink.create({
-    data: { id, eventId, tokenHash: sha256(scannerToken(id)), label: input.label.trim(), allowManualSearch: input.allowManualSearch, expiresAt: expiryFor(input.duration, event, now, input.expiresAtLocal), createdById: ctx.user.id },
+    data: {
+      id,
+      eventId,
+      tokenHash: sha256(scannerToken(id)),
+      label: input.label.trim(),
+      allowManualSearch: input.allowManualSearch,
+      expiresAt: expiryFor(input.duration, event, now, input.expiresAtLocal),
+      createdById: ctx.user.id,
+    },
   });
-  await audit({ action: "scanner_link.created", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "ScannerLink", targetId: link.id, metadata: { label: link.label } });
+  await audit({
+    action: "scanner_link.created",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "ScannerLink",
+    targetId: link.id,
+    metadata: { label: link.label },
+  });
   return link;
 }
 
@@ -58,7 +92,17 @@ export async function personalScannerLink(ctx: OrgContext, eventId: string, now 
   const existing = await db.scannerLink.findFirst({ where: { eventId, label, revokedAt: null, expiresAt: { gt: now } }, orderBy: { createdAt: "desc" } });
   if (existing) return existing;
   const id = `c${humanCode(24, ID_ALPHABET)}`;
-  return db.scannerLink.create({ data: { id, eventId, tokenHash: sha256(scannerToken(id)), label, allowManualSearch: true, expiresAt: expiryFor("EVENT_DAY", event, now), createdById: ctx.user.id } });
+  return db.scannerLink.create({
+    data: {
+      id,
+      eventId,
+      tokenHash: sha256(scannerToken(id)),
+      label,
+      allowManualSearch: true,
+      expiresAt: expiryFor("EVENT_DAY", event, now),
+      createdById: ctx.user.id,
+    },
+  });
 }
 
 export async function revokeScannerLink(ctx: OrgContext, eventId: string, linkId: string) {
@@ -71,8 +115,17 @@ export async function revokeScannerLink(ctx: OrgContext, eventId: string, linkId
 
 export async function listScannerLinks(ctx: OrgContext, eventId: string) {
   await findEvent(ctx, eventId);
-  const links = await db.scannerLink.findMany({ where: { eventId }, orderBy: { createdAt: "desc" }, include: { _count: { select: { checkIns: true } }, createdBy: { select: { name: true } } } });
-  return links.map((l) => ({ ...l, personal: l.label.startsWith(PERSONAL), displayLabel: l.label.startsWith(PERSONAL) ? l.createdBy.name : l.label, url: scannerUrl(l.id) }));
+  const links = await db.scannerLink.findMany({
+    where: { eventId },
+    orderBy: { createdAt: "desc" },
+    include: { _count: { select: { checkIns: true } }, createdBy: { select: { name: true } } },
+  });
+  return links.map((l) => ({
+    ...l,
+    personal: l.label.startsWith(PERSONAL),
+    displayLabel: l.label.startsWith(PERSONAL) ? l.createdBy.name : l.label,
+    url: scannerUrl(l.id),
+  }));
 }
 
 /** Libellé affiché d'une entrée : le nom du membre pour un lien personnel. */
@@ -86,7 +139,12 @@ export type LinkState = "OK" | "EXPIRED" | "REVOKED";
 /** RG-SCN-05 : un lien expiré ou révoqué ne donne plus accès à rien. */
 export async function resolveScannerLink(token: string, now = new Date()) {
   if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
-  const link = await db.scannerLink.findUnique({ where: { tokenHash: sha256(token) }, include: { event: { select: { id: true, title: true, startsAt: true, endsAt: true, timezone: true, locationName: true, city: true, organizationId: true } } } });
+  const link = await db.scannerLink.findUnique({
+    where: { tokenHash: sha256(token) },
+    include: {
+      event: { select: { id: true, title: true, startsAt: true, endsAt: true, timezone: true, locationName: true, city: true, organizationId: true } },
+    },
+  });
   if (!link) return null;
   const state: LinkState = link.revokedAt ? "REVOKED" : link.expiresAt <= now ? "EXPIRED" : "OK";
   return { link, state };
@@ -98,14 +156,30 @@ export type ResolvedLink = NonNullable<Awaited<ReturnType<typeof resolveScannerL
 export async function scannerManifest(link: ResolvedLink) {
   const tickets = await db.ticket.findMany({
     where: { eventId: link.eventId },
-    select: { id: true, code: true, shortCode: true, status: true, checkedInAt: true, voidReason: true, holderFirstName: true, holderLastName: true, ticketType: { select: { name: true } }, order: { select: { buyerFirstName: true, buyerLastName: true, buyerEmail: true } } },
+    select: {
+      id: true,
+      code: true,
+      shortCode: true,
+      status: true,
+      checkedInAt: true,
+      voidReason: true,
+      holderFirstName: true,
+      holderLastName: true,
+      ticketType: { select: { name: true } },
+      order: { select: { buyerFirstName: true, buyerLastName: true, buyerEmail: true } },
+    },
     orderBy: { createdAt: "asc" },
   });
   const salt = link.id;
   return {
     serverTime: new Date().toISOString(),
     salt,
-    event: { title: link.event.title, startsAt: link.event.startsAt.toISOString(), timezone: link.event.timezone, place: link.event.locationName ?? link.event.city },
+    event: {
+      title: link.event.title,
+      startsAt: link.event.startsAt.toISOString(),
+      timezone: link.event.timezone,
+      place: link.event.locationName ?? link.event.city,
+    },
     link: { label: await gateLabel(link), allowManualSearch: link.allowManualSearch, expiresAt: link.expiresAt.toISOString() },
     tickets: tickets.map((t) => ({
       id: t.id,
@@ -145,7 +219,11 @@ export interface ScanResult {
  */
 export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt = new Date()): Promise<ScanResult> {
   if (input.method === "LIST" && !link.allowManualSearch) throw new CoreError("MANUAL_SEARCH_DISABLED");
-  const include = { ticketType: { select: { name: true } }, order: { select: { buyerFirstName: true, buyerLastName: true } }, event: { select: { title: true } } } as const;
+  const include = {
+    ticketType: { select: { name: true } },
+    order: { select: { buyerFirstName: true, buyerLastName: true } },
+    event: { select: { title: true } },
+  } as const;
   const ticket = input.code
     ? await db.ticket.findUnique({ where: { code: input.code.trim() }, include })
     : input.shortCode
@@ -173,7 +251,8 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
   if (ticket && result === "VALID") {
     // passage et journal dans la même transaction : un scan concurrent attend, puis trouve ce premier passage
     const won = await db.$transaction(async (tx) => {
-      const n = await tx.$executeRaw`UPDATE "Ticket" SET status = 'CHECKED_IN', "checkedInAt" = ${at}, "updatedAt" = now() WHERE id = ${ticket.id} AND status = 'VALID'`;
+      const n =
+        await tx.$executeRaw`UPDATE "Ticket" SET status = 'CHECKED_IN', "checkedInAt" = ${at}, "updatedAt" = now() WHERE id = ${ticket.id} AND status = 'VALID'`;
       if (n === 1) await tx.checkIn.create({ data: logData("VALID") });
       return n === 1;
     });
@@ -187,7 +266,8 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
     }
   } else if (ticket && result === "ALREADY_USED" && input.offline && earliestWins(ticket.checkedInAt, at).winner) {
     // RG-SCN-03 : un scan hors ligne plus ancien l'emporte, le billet prend son heure
-    const earlier = await db.$executeRaw`UPDATE "Ticket" SET "checkedInAt" = ${at}, "updatedAt" = now() WHERE id = ${ticket.id} AND status = 'CHECKED_IN' AND "checkedInAt" > ${at}`;
+    const earlier =
+      await db.$executeRaw`UPDATE "Ticket" SET "checkedInAt" = ${at}, "updatedAt" = now() WHERE id = ${ticket.id} AND status = 'CHECKED_IN' AND "checkedInAt" > ${at}`;
     if (earlier === 1) {
       result = "VALID";
       checkedInAt = at;
@@ -195,17 +275,31 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
   }
   if (!logged) await db.checkIn.create({ data: logData(result) });
   if (logged && ticket) await cancelListingsForTicket(ticket.id); // billet utilisé : son annonce de revente est retirée (RG-RSL-01)
-  if (!link.lastUsedAt || receivedAt.getTime() - link.lastUsedAt.getTime() > 60_000) await db.scannerLink.update({ where: { id: link.id }, data: { lastUsedAt: receivedAt } });
+  if (!link.lastUsedAt || receivedAt.getTime() - link.lastUsedAt.getTime() > 60_000)
+    await db.scannerLink.update({ where: { id: link.id }, data: { lastUsedAt: receivedAt } });
   let firstScan: ScanResult["firstScan"] = null;
   if (result === "ALREADY_USED" && ticket) {
-    const first = await db.checkIn.findFirst({ where: { ticketId: ticket.id, result: "VALID" }, orderBy: { scannedAt: "asc" }, select: { scannedAt: true, gate: true } });
+    const first = await db.checkIn.findFirst({
+      where: { ticketId: ticket.id, result: "VALID" },
+      orderBy: { scannedAt: "asc" },
+      select: { scannedAt: true, gate: true },
+    });
     firstScan = { at: (first?.scannedAt ?? checkedInAt ?? at).toISOString(), gate: first?.gate ?? null };
   }
   const sameEvent = ticket && ticket.eventId === link.eventId;
   return {
     result,
     ticket: sameEvent
-      ? { id: ticket.id, holder: ticket.holderFirstName ? `${ticket.holderFirstName} ${ticket.holderLastName ?? ""}`.trim() : `${ticket.order.buyerFirstName} ${ticket.order.buyerLastName}`.trim(), typeName: ticket.ticketType.name, status: result === "VALID" ? "CHECKED_IN" : ticket.status, checkedInAt: checkedInAt?.toISOString() ?? null, voidReason: ticket.voidReason }
+      ? {
+          id: ticket.id,
+          holder: ticket.holderFirstName
+            ? `${ticket.holderFirstName} ${ticket.holderLastName ?? ""}`.trim()
+            : `${ticket.order.buyerFirstName} ${ticket.order.buyerLastName}`.trim(),
+          typeName: ticket.ticketType.name,
+          status: result === "VALID" ? "CHECKED_IN" : ticket.status,
+          checkedInAt: checkedInAt?.toISOString() ?? null,
+          voidReason: ticket.voidReason,
+        }
       : null,
     firstScan,
     otherEvent: result === "WRONG_EVENT" && ticket ? ticket.event.title : null,
@@ -225,12 +319,38 @@ export async function attendanceStats(eventId: string) {
   const [tickets, byGate, recent] = await Promise.all([
     db.ticket.findMany({ where: { eventId }, select: { status: true, ticketType: { select: { name: true } } } }),
     db.checkIn.groupBy({ by: ["gate"], where: { eventId, result: "VALID" }, _count: { _all: true } }),
-    db.checkIn.findMany({ where: { eventId }, orderBy: { receivedAt: "desc" }, take: 20, include: { ticket: { select: { holderFirstName: true, holderLastName: true, ticketType: { select: { name: true } }, order: { select: { buyerFirstName: true, buyerLastName: true } } } } } }),
+    db.checkIn.findMany({
+      where: { eventId },
+      orderBy: { receivedAt: "desc" },
+      take: 20,
+      include: {
+        ticket: {
+          select: {
+            holderFirstName: true,
+            holderLastName: true,
+            ticketType: { select: { name: true } },
+            order: { select: { buyerFirstName: true, buyerLastName: true } },
+          },
+        },
+      },
+    }),
   ]);
   return {
     ...attendance(tickets.map((t) => ({ ticketTypeName: t.ticketType.name, status: t.status }))),
     byGate: byGate.map((g) => ({ gate: g.gate ?? "-", count: g._count._all })).sort((a, b) => b.count - a.count),
-    recent: recent.map((c) => ({ id: c.id, at: c.scannedAt, result: c.result, gate: c.gate, offline: c.offline, holder: c.ticket ? (c.ticket.holderFirstName ? `${c.ticket.holderFirstName} ${c.ticket.holderLastName ?? ""}`.trim() : `${c.ticket.order.buyerFirstName} ${c.ticket.order.buyerLastName}`.trim()) : null, typeName: c.ticket?.ticketType.name ?? null })),
+    recent: recent.map((c) => ({
+      id: c.id,
+      at: c.scannedAt,
+      result: c.result,
+      gate: c.gate,
+      offline: c.offline,
+      holder: c.ticket
+        ? c.ticket.holderFirstName
+          ? `${c.ticket.holderFirstName} ${c.ticket.holderLastName ?? ""}`.trim()
+          : `${c.ticket.order.buyerFirstName} ${c.ticket.order.buyerLastName}`.trim()
+        : null,
+      typeName: c.ticket?.ticketType.name ?? null,
+    })),
   };
 }
 
@@ -239,14 +359,34 @@ export async function attendanceStats(eventId: string) {
  * Le journal reste immuable : l'annulation y est ajoutée (REVERTED), le billet redevient valable.
  */
 export async function revertCheckIn(ctx: OrgContext, ticketId: string, note: string) {
-  const ticket = await db.ticket.findFirst({ where: { id: ticketId, event: { organizationId: ctx.organization.id } }, select: { id: true, eventId: true, status: true } });
+  const ticket = await db.ticket.findFirst({
+    where: { id: ticketId, event: { organizationId: ctx.organization.id } },
+    select: { id: true, eventId: true, status: true },
+  });
   if (!ticket) throw new CoreError("NOT_FOUND");
   const reason = note.trim().slice(0, 300);
   if (reason.length < 3) throw new CoreError("CHECKIN_REVERT_REASON");
   await db.$transaction(async (tx) => {
     const done = await tx.ticket.updateMany({ where: { id: ticket.id, status: "CHECKED_IN" }, data: { status: "VALID", checkedInAt: null } });
     if (done.count === 0) throw new CoreError("CHECKIN_NOT_REVERTIBLE");
-    await tx.checkIn.create({ data: { eventId: ticket.eventId, ticketId: ticket.id, userId: ctx.user.id, result: "REVERTED", method: "MANUAL_CODE", scannedAt: new Date(), note: reason } });
+    await tx.checkIn.create({
+      data: {
+        eventId: ticket.eventId,
+        ticketId: ticket.id,
+        userId: ctx.user.id,
+        result: "REVERTED",
+        method: "MANUAL_CODE",
+        scannedAt: new Date(),
+        note: reason,
+      },
+    });
   });
-  await audit({ action: "checkin.reverted", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Ticket", targetId: ticket.id, metadata: { reason } });
+  await audit({
+    action: "checkin.reverted",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Ticket",
+    targetId: ticket.id,
+    metadata: { reason },
+  });
 }

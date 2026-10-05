@@ -12,7 +12,12 @@ export function LookupForm({ sub }: { sub: string }) {
   const [sent, setSent] = useState(false);
   const [invalid, setInvalid] = useState(false);
   const [busy, setBusy] = useState(false);
-  if (sent) return <p role="status" className="rounded-md bg-success-soft px-4 py-3 text-success">{t("lookupSent")}</p>;
+  if (sent)
+    return (
+      <p role="status" className="rounded-md bg-success-soft px-4 py-3 text-success">
+        {t("lookupSent")}
+      </p>
+    );
   return (
     <form
       className="grid gap-4"

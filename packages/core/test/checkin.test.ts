@@ -36,7 +36,15 @@ describe("scanner (section 9.17)", () => {
       { ticketTypeName: "VIP", status: "CHECKED_IN" },
       { ticketTypeName: "VIP", status: "REFUNDED" },
     ]);
-    expect(s).toEqual({ present: 2, total: 3, rateBps: 6667, byType: [{ name: "Fosse", present: 1, total: 2 }, { name: "VIP", present: 1, total: 1 }] });
+    expect(s).toEqual({
+      present: 2,
+      total: 3,
+      rateBps: 6667,
+      byType: [
+        { name: "Fosse", present: 1, total: 2 },
+        { name: "VIP", present: 1, total: 1 },
+      ],
+    });
     expect(attendance([]).rateBps).toBe(0);
   });
 });

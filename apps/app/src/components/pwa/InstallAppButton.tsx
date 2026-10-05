@@ -32,7 +32,12 @@ export function InstallAppButton({ label, iosHint }: { label: string; iosHint: s
   };
   return (
     <div className="grid gap-1">
-      <button type="button" onClick={onClick} aria-expanded={mode === "ios" ? hint : undefined} className="h-10 w-full rounded-full px-4 text-left text-sm font-semibold whitespace-nowrap text-creme/80 hover:bg-blanc/10 hover:text-creme">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-expanded={mode === "ios" ? hint : undefined}
+        className="h-10 w-full rounded-full px-4 text-left text-sm font-semibold whitespace-nowrap text-creme/80 hover:bg-blanc/10 hover:text-creme"
+      >
         {label}
       </button>
       {hint && <p className="px-4 text-xs text-creme/70">{iosHint}</p>}

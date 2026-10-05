@@ -11,7 +11,8 @@ test("billets dans Apple Wallet et Google Wallet depuis la page des billets (US-
   await expect(google).toHaveCount(1);
   // le client HTTP de Playwright ne résout pas *.localhost : requête sur localhost avec l'hôte de la billetterie
   const host = new URL(page.url()).host;
-  const viaHost = (href: string, opts: { maxRedirects?: number } = {}) => page.request.get(`http://localhost:${new URL(page.url()).port}${href}`, { headers: { host }, ...opts });
+  const viaHost = (href: string, opts: { maxRedirects?: number } = {}) =>
+    page.request.get(`http://localhost:${new URL(page.url()).port}${href}`, { headers: { host }, ...opts });
   const pkpass = await viaHost((await apple.getAttribute("href"))!);
   expect(pkpass.status()).toBe(200);
   expect(pkpass.headers()["content-type"]).toBe("application/vnd.apple.pkpass");

@@ -10,7 +10,17 @@ import { publicListings } from "@/server/resale";
 import { formatMoney } from "@evoly/i18n";
 
 /** Page de vente (section 9.10) : informations à gauche, billets à droite ; billets en premier sur téléphone. */
-export async function EventPublicView({ org, data, preview = false, seatMap = null }: { org: PublicOrganization; data: PublicEventData; preview?: boolean; seatMap?: PublicSeatMap | null }) {
+export async function EventPublicView({
+  org,
+  data,
+  preview = false,
+  seatMap = null,
+}: {
+  org: PublicOrganization;
+  data: PublicEventData;
+  preview?: boolean;
+  seatMap?: PublicSeatMap | null;
+}) {
   const { event, ticketTypes, salesOpen } = data;
   const t = await getTranslations("public");
   const locale = (await getLocale()) as Locale;
@@ -31,7 +41,10 @@ export async function EventPublicView({ org, data, preview = false, seatMap = nu
           : "CLOSED";
   const resale = !preview && event.resaleEnabled && event.showResaleSection ? await publicListings(event.id) : [];
   const resaleCard = resale.length ? (
-    <section aria-labelledby="resale-title" className={`grid gap-3 rounded-[var(--r-panel)] p-5 ring-1 ring-line ${data.soldOut ? "bg-surface-accent" : "bg-surface-raised"}`}>
+    <section
+      aria-labelledby="resale-title"
+      className={`grid gap-3 rounded-[var(--r-panel)] p-5 ring-1 ring-line ${data.soldOut ? "bg-surface-accent" : "bg-surface-raised"}`}
+    >
       <h2 id="resale-title" className="font-display text-xl tracking-[-0.03em]">
         {t("resaleTitle")}
       </h2>
@@ -39,37 +52,56 @@ export async function EventPublicView({ org, data, preview = false, seatMap = nu
       <ul className="grid gap-2">
         {resale.map((g) => (
           <li key={g.ticketTypeId}>
-            <a href={`/revente/${g.listings[0]!.linkCode}`} className="flex items-center justify-between gap-3 rounded-lg bg-surface px-4 py-3 ring-1 ring-line hover:ring-ink">
+            <a
+              href={`/revente/${g.listings[0]!.linkCode}`}
+              className="flex items-center justify-between gap-3 rounded-lg bg-surface px-4 py-3 ring-1 ring-line hover:ring-ink"
+            >
               <span>
                 <span className="font-semibold">{g.ticketTypeName}</span>
                 <span className="text-sm text-ink-muted"> · {t("resaleCount", { count: g.count })}</span>
               </span>
-              <span className="font-display text-lg tabular-nums">{g.fromMinor === 0 ? t("free") : t("resaleFrom", { price: formatMoney(g.fromMinor, event.currency, locale, { trimZeroCents: true }) })}</span>
+              <span className="font-display text-lg tabular-nums">
+                {g.fromMinor === 0 ? t("free") : t("resaleFrom", { price: formatMoney(g.fromMinor, event.currency, locale, { trimZeroCents: true }) })}
+              </span>
             </a>
           </li>
         ))}
       </ul>
     </section>
   ) : null;
-  const tickets = ticketTypes.map((tt) => ({ ...tt, onSale: preview ? tt.remaining > 0 : tt.onSale, next: tt.next ? { priceMinor: tt.next.priceMinor, startsAt: tt.next.startsAt.toISOString() } : null }));
+  const tickets = ticketTypes.map((tt) => ({
+    ...tt,
+    onSale: preview ? tt.remaining > 0 : tt.onSale,
+    next: tt.next ? { priceMinor: tt.next.priceMinor, startsAt: tt.next.startsAt.toISOString() } : null,
+  }));
 
   return (
     <article className="pb-28 lg:pb-12">
       <header className="relative overflow-hidden bg-[var(--accent-panel,var(--evoly-charbon))] text-[var(--accent-panel-ink,var(--evoly-creme))]">
-        {event.coverImageUrl ? <img src={event.coverImageUrl} alt="" className="absolute inset-0 size-full object-cover opacity-45" /> : <OMark className="pointer-events-none absolute -right-20 -bottom-24 size-[26rem] opacity-15" />}
+        {event.coverImageUrl ? (
+          <img src={event.coverImageUrl} alt="" className="absolute inset-0 size-full object-cover opacity-45" />
+        ) : (
+          <OMark className="pointer-events-none absolute -right-20 -bottom-24 size-[26rem] opacity-15" />
+        )}
         <div className="relative mx-auto grid max-w-6xl gap-4 px-5 pt-10 pb-12 sm:px-8 lg:pt-16 lg:pb-16">
           <p className="w-fit rounded-full bg-[var(--accent)] px-3 py-1 font-label text-xs font-bold text-[var(--accent-ink)]">
             {formatDate(event.startsAt, event.timezone, locale)}
           </p>
           <h1 className="max-w-4xl font-display text-[clamp(2.3rem,7vw,4.6rem)] leading-[0.95] tracking-[-0.05em] break-words">{event.title}</h1>
           <p className="text-lg opacity-85">
-            {[formatTime(event.startsAt, event.timezone, locale), event.locationType === "ONLINE" ? t("online") : event.city ?? event.locationName].filter(Boolean).join(" · ")}
+            {[formatTime(event.startsAt, event.timezone, locale), event.locationType === "ONLINE" ? t("online") : (event.city ?? event.locationName)]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         </div>
       </header>
 
-      {event.status === "CANCELLED" ? <p className="mx-auto mt-6 max-w-6xl rounded-lg bg-danger-soft px-5 py-4 font-semibold text-danger sm:mx-8 lg:mx-auto">{t("cancelled")}</p> : null}
-      {event.status === "ENDED" ? <p className="mx-auto mt-6 max-w-6xl rounded-lg bg-surface-sunken px-5 py-4 font-semibold sm:mx-8 lg:mx-auto">{t("ended")}</p> : null}
+      {event.status === "CANCELLED" ? (
+        <p className="mx-auto mt-6 max-w-6xl rounded-lg bg-danger-soft px-5 py-4 font-semibold text-danger sm:mx-8 lg:mx-auto">{t("cancelled")}</p>
+      ) : null}
+      {event.status === "ENDED" ? (
+        <p className="mx-auto mt-6 max-w-6xl rounded-lg bg-surface-sunken px-5 py-4 font-semibold sm:mx-8 lg:mx-auto">{t("ended")}</p>
+      ) : null}
 
       <div className="mx-auto grid max-w-6xl gap-8 px-5 pt-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:gap-12">
         <section id="billets" aria-labelledby="tickets-title" className="grid scroll-mt-24 gap-4 lg:sticky lg:top-6 lg:order-2 lg:self-start">
@@ -78,7 +110,28 @@ export async function EventPublicView({ org, data, preview = false, seatMap = nu
             <h2 id="tickets-title" className="font-display text-2xl tracking-[-0.03em]">
               {t("tickets")}
             </h2>
-            {tickets.length || event.status === "PUBLISHED" ? <TicketPicker tickets={tickets} currency={event.currency} timeZone={event.timezone} maxPerOrder={event.maxTicketsPerOrder} state={state} checkout={preview ? undefined : { eventId: event.id, organizationName: org.brand?.displayName ?? org.name, requirePhone: event.requireBuyerPhone, publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null }} seatMap={seatMap} /> : <p className="text-ink-muted">{t("noTickets")}</p>}
+            {tickets.length || event.status === "PUBLISHED" ? (
+              <TicketPicker
+                tickets={tickets}
+                currency={event.currency}
+                timeZone={event.timezone}
+                maxPerOrder={event.maxTicketsPerOrder}
+                state={state}
+                checkout={
+                  preview
+                    ? undefined
+                    : {
+                        eventId: event.id,
+                        organizationName: org.brand?.displayName ?? org.name,
+                        requirePhone: event.requireBuyerPhone,
+                        publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null,
+                      }
+                }
+                seatMap={seatMap}
+              />
+            ) : (
+              <p className="text-ink-muted">{t("noTickets")}</p>
+            )}
             {!preview ? (
               <a href="/billets" className="justify-self-center text-sm text-ink-muted underline underline-offset-4">
                 {t("findTickets")}

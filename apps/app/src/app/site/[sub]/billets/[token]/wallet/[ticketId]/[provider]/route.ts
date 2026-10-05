@@ -16,7 +16,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ sub: str
   if (provider === "apple") {
     const creds = appleCredentials();
     if (!creds) return new Response("Apple Wallet n’est pas configuré", { status: 404 });
-    return new Response(Buffer.from(buildPkpass(ticket, creds)), { headers: { ...headers, "content-type": "application/vnd.apple.pkpass", "content-disposition": `attachment; filename="billet-${ticket.shortCode}.pkpass"` } });
+    return new Response(Buffer.from(buildPkpass(ticket, creds)), {
+      headers: {
+        ...headers,
+        "content-type": "application/vnd.apple.pkpass",
+        "content-disposition": `attachment; filename="billet-${ticket.shortCode}.pkpass"`,
+      },
+    });
   }
   if (provider === "google") {
     const creds = googleCredentials();

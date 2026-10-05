@@ -55,7 +55,14 @@ export async function createOrganization(userId: string, input: CreateOrganizati
     return created;
   });
 
-  await audit({ action: "organization.created", organizationId: org.id, actorUserId: userId, targetType: "Organization", targetId: org.id, metadata: { country: country.code } });
+  await audit({
+    action: "organization.created",
+    organizationId: org.id,
+    actorUserId: userId,
+    targetType: "Organization",
+    targetId: org.id,
+    metadata: { country: country.code },
+  });
   // section 9.22 : organisation parrainée (code mémorisé à l'arrivée sur l'app)
   try {
     const { cookies } = await import("next/headers");

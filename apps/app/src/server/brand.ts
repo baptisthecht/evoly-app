@@ -20,7 +20,12 @@ export async function uploadImage(ctx: OrgContext, kind: UploadKind, bytes: Uint
     const sharp = (await import("sharp")).default;
     const width = kind === "favicon" ? 256 : kind === "logo" ? 1024 : kind === "campaign" ? 1200 : 1600;
     try {
-      bytes = new Uint8Array(await sharp(Buffer.from(bytes), { density: 300, limitInputPixels: 40_000_000 }).resize({ width, fit: "inside", withoutEnlargement: false }).png().toBuffer());
+      bytes = new Uint8Array(
+        await sharp(Buffer.from(bytes), { density: 300, limitInputPixels: 40_000_000 })
+          .resize({ width, fit: "inside", withoutEnlargement: false })
+          .png()
+          .toBuffer(),
+      );
     } catch {
       throw new CoreError("UPLOAD_TYPE");
     }
@@ -34,18 +39,42 @@ export async function uploadImage(ctx: OrgContext, kind: UploadKind, bytes: Uint
     if (!event) throw new CoreError("NOT_FOUND");
     const sharp = (await import("sharp")).default;
     try {
-      bytes = new Uint8Array(await sharp(Buffer.from(bytes), { limitInputPixels: 60_000_000 }).rotate().resize({ width: 1600, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82 }).toBuffer());
+      bytes = new Uint8Array(
+        await sharp(Buffer.from(bytes), { limitInputPixels: 60_000_000 })
+          .rotate()
+          .resize({ width: 1600, fit: "inside", withoutEnlargement: true })
+          .jpeg({ quality: 82 })
+          .toBuffer(),
+      );
     } catch {
       throw new CoreError("UPLOAD_TYPE");
     }
-    return putPublicFile(`events/${event.id}/view-${secretToken(9).toLowerCase().replace(/[^a-z0-9]/g, "")}.jpg`, bytes, "image/jpeg");
+    return putPublicFile(
+      `events/${event.id}/view-${secretToken(9)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")}.jpg`,
+      bytes,
+      "image/jpeg",
+    );
   }
   if (kind === "cover") {
     const event = await db.event.findFirst({ where: { id: eventId ?? "", organizationId: ctx.organization.id }, select: { id: true } });
     if (!event) throw new CoreError("NOT_FOUND");
-    return putPublicFile(`events/${event.id}/cover-${secretToken(9).toLowerCase().replace(/[^a-z0-9]/g, "")}.${ext}`, bytes, type);
+    return putPublicFile(
+      `events/${event.id}/cover-${secretToken(9)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")}.${ext}`,
+      bytes,
+      type,
+    );
   }
-  return putPublicFile(`orgs/${ctx.organization.id}/${kind}-${secretToken(9).toLowerCase().replace(/[^a-z0-9]/g, "")}.${ext}`, bytes, type);
+  return putPublicFile(
+    `orgs/${ctx.organization.id}/${kind}-${secretToken(9)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")}.${ext}`,
+    bytes,
+    type,
+  );
 }
 
 export interface BrandInput {
@@ -62,7 +91,8 @@ export interface BrandInput {
 /** US-BRD-01, US-BRD-02 (Pro) : configurateur de marque. Le contraste du texte est choisi automatiquement à l'affichage (RG-BRD-01). */
 export async function saveBrand(ctx: OrgContext, input: BrandInput) {
   if (!hasFeature(ctx.features, "BRANDING")) throw new CoreError("PRO_REQUIRED");
-  const own = (u?: string | null) => (!u ? null : u.startsWith(env().R2_PUBLIC_URL ?? "\u0000") || u.startsWith(`${env().NEXT_PUBLIC_APP_URL}/files/`) ? u : null);
+  const own = (u?: string | null) =>
+    !u ? null : u.startsWith(env().R2_PUBLIC_URL ?? "\u0000") || u.startsWith(`${env().NEXT_PUBLIC_APP_URL}/files/`) ? u : null;
   const colors = { primaryColor: normalizeHexColor(input.primaryColor), accentColor: normalizeHexColor(input.accentColor) };
   if ((input.primaryColor && !colors.primaryColor) || (input.accentColor && !colors.accentColor)) throw new CoreError("BRAND_COLOR_INVALID");
   const before = await db.organizationBrand.findUnique({ where: { organizationId: ctx.organization.id } });
@@ -75,7 +105,11 @@ export async function saveBrand(ctx: OrgContext, input: BrandInput) {
     emailReplyTo: input.emailReplyTo?.trim().toLowerCase() || null,
     hideEvolyBranding: hasFeature(ctx.features, "REMOVE_EVOLY_BRANDING") ? input.hideEvolyBranding : false,
   };
-  const brand = await db.organizationBrand.upsert({ where: { organizationId: ctx.organization.id }, create: { organizationId: ctx.organization.id, ...data }, update: data });
+  const brand = await db.organizationBrand.upsert({
+    where: { organizationId: ctx.organization.id },
+    create: { organizationId: ctx.organization.id, ...data },
+    update: data,
+  });
   if (before?.logoUrl && before.logoUrl !== brand.logoUrl) await deletePublicFile(before.logoUrl);
   if (before?.faviconUrl && before.faviconUrl !== brand.faviconUrl) await deletePublicFile(before.faviconUrl);
   await audit({ action: "brand.updated", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "OrganizationBrand", targetId: brand.id });
@@ -89,9 +123,15 @@ export async function subdomainAvailable(value: string, opts: { organizationId?:
   const check = checkSubdomain(value);
   if (!check.ok) return { ok: false as const, reason: check.reason };
   const [org, event, redirect] = await Promise.all([
-    db.organization.findFirst({ where: { subdomain: check.value, ...(opts.organizationId ? { id: { not: opts.organizationId } } : {}) }, select: { id: true } }),
+    db.organization.findFirst({
+      where: { subdomain: check.value, ...(opts.organizationId ? { id: { not: opts.organizationId } } : {}) },
+      select: { id: true },
+    }),
     db.event.findFirst({ where: { subdomain: check.value, ...(opts.eventId ? { id: { not: opts.eventId } } : {}) }, select: { id: true } }),
-    db.hostRedirect.findFirst({ where: { host: host(check.value), expiresAt: { gt: new Date() }, ...(opts.organizationId ? { organizationId: { not: opts.organizationId } } : {}) }, select: { id: true } }),
+    db.hostRedirect.findFirst({
+      where: { host: host(check.value), expiresAt: { gt: new Date() }, ...(opts.organizationId ? { organizationId: { not: opts.organizationId } } : {}) },
+      select: { id: true },
+    }),
   ]);
   if (org || event || redirect) return { ok: false as const, reason: "TAKEN" as const };
   return { ok: true as const, value: check.value };
@@ -107,9 +147,24 @@ export async function changeOrganizationSubdomain(ctx: OrgContext, value: string
   await db.$transaction([
     db.organization.update({ where: { id: ctx.organization.id }, data: { subdomain: available.value } }),
     db.hostRedirect.deleteMany({ where: { host: host(available.value), organizationId: ctx.organization.id } }), // reprise d'une ancienne adresse
-    ...(org.subdomain ? [db.hostRedirect.upsert({ where: { host: host(org.subdomain) }, create: { host: host(org.subdomain), organizationId: ctx.organization.id, expiresAt }, update: { organizationId: ctx.organization.id, eventId: null, expiresAt } })] : []),
+    ...(org.subdomain
+      ? [
+          db.hostRedirect.upsert({
+            where: { host: host(org.subdomain) },
+            create: { host: host(org.subdomain), organizationId: ctx.organization.id, expiresAt },
+            update: { organizationId: ctx.organization.id, eventId: null, expiresAt },
+          }),
+        ]
+      : []),
   ]);
-  await audit({ action: "organization.subdomain_changed", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Organization", targetId: ctx.organization.id, metadata: { from: org.subdomain, to: available.value } });
+  await audit({
+    action: "organization.subdomain_changed",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Organization",
+    targetId: ctx.organization.id,
+    metadata: { from: org.subdomain, to: available.value },
+  });
   await ensurePaymentDomains(ctx.organization.id).catch(() => undefined);
 }
 

@@ -7,7 +7,16 @@ import { FormError, SubmitButton, useActionForm, useFieldError } from "@/compone
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
-import { deleteRoleAction, invitationCommandAction, inviteAction, leaveAction, memberRoleAction, removeMemberAction, saveRoleAction, transferAction } from "./actions";
+import {
+  deleteRoleAction,
+  invitationCommandAction,
+  inviteAction,
+  leaveAction,
+  memberRoleAction,
+  removeMemberAction,
+  saveRoleAction,
+  transferAction,
+} from "./actions";
 
 type RoleOption = { id: string; label: string };
 
@@ -34,7 +43,11 @@ export function InviteForm({ orgSlug, roles }: { orgSlug: string; roles: RoleOpt
       </SubmitButton>
       <div className="sm:col-span-3">
         <FormError state={state} />
-        {state?.ok ? <p className="text-sm text-success" role="status">{t("invited")}</p> : null}
+        {state?.ok ? (
+          <p className="text-sm text-success" role="status">
+            {t("invited")}
+          </p>
+        ) : null}
       </div>
     </form>
   );
@@ -45,7 +58,14 @@ export function MemberRole({ orgSlug, memberId, roleId, roles }: { orgSlug: stri
   const [state, action, pending] = useActionState(memberRoleAction.bind(null, orgSlug, memberId), null);
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
-      <Select name="roleId" defaultValue={roleId} aria-label={t("role")} className="w-auto min-w-[10rem]" onChange={(e) => e.currentTarget.form?.requestSubmit()} disabled={pending}>
+      <Select
+        name="roleId"
+        defaultValue={roleId}
+        aria-label={t("role")}
+        className="w-auto min-w-[10rem]"
+        onChange={(e) => e.currentTarget.form?.requestSubmit()}
+        disabled={pending}
+      >
         {roles.map((r) => (
           <option key={r.id} value={r.id}>
             {r.label}
@@ -96,7 +116,11 @@ export function TransferOwnership({ orgSlug, members }: { orgSlug: string; membe
   const { state, pending, formProps } = useActionForm(transferAction.bind(null, orgSlug), null);
   if (members.length === 0) return <p className="text-sm text-ink-muted">{t("transferNobody")}</p>;
   return (
-    <form {...formProps} onSubmit={(e) => (window.confirm(t("confirmTransfer")) ? formProps.onSubmit(e) : e.preventDefault())} className="flex flex-wrap items-end gap-2">
+    <form
+      {...formProps}
+      onSubmit={(e) => (window.confirm(t("confirmTransfer")) ? formProps.onSubmit(e) : e.preventDefault())}
+      className="flex flex-wrap items-end gap-2"
+    >
       <Field label={t("transferTo")} htmlFor="transfer-to">
         <Select id="transfer-to" name="memberId">
           {members.map((m) => (
@@ -128,7 +152,15 @@ export function LeaveOrganization({ orgSlug }: { orgSlug: string }) {
 }
 
 /** US-ORG-03 : éditeur de rôle personnalisé, permissions groupées ; celles que l'on n'a pas sont grisées (anti-escalade). */
-export function RoleEditor({ orgSlug, role, allowed }: { orgSlug: string; role: { id: string; name: string; description: string; permissions: Permission[] } | null; allowed: Permission[] }) {
+export function RoleEditor({
+  orgSlug,
+  role,
+  allowed,
+}: {
+  orgSlug: string;
+  role: { id: string; name: string; description: string; permissions: Permission[] } | null;
+  allowed: Permission[];
+}) {
   const t = useTranslations("team");
   const tp = useTranslations("permissions");
   const [open, setOpen] = useState(!role ? false : false);
@@ -159,7 +191,14 @@ export function RoleEditor({ orgSlug, role, allowed }: { orgSlug: string; role: 
             <div className="grid gap-2 sm:grid-cols-2">
               {g.permissions.map((p) => (
                 <label key={p} className={`flex items-center gap-3 text-sm ${allowed.includes(p) ? "" : "opacity-50"}`}>
-                  <input type="checkbox" name="permissions" value={p} defaultChecked={role?.permissions.includes(p)} disabled={!allowed.includes(p)} className="size-5 accent-[var(--ink)]" />
+                  <input
+                    type="checkbox"
+                    name="permissions"
+                    value={p}
+                    defaultChecked={role?.permissions.includes(p)}
+                    disabled={!allowed.includes(p)}
+                    className="size-5 accent-[var(--ink)]"
+                  />
                   {tp(p)}
                 </label>
               ))}

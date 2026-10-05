@@ -17,7 +17,10 @@ export default async function ScannerHome() {
         <h1 className="font-display text-3xl tracking-[-0.04em]">{t("homeTitle")}</h1>
         <p className="opacity-80">{t("homeBody")}</p>
         {/* US-SCN-06 : un membre de l'équipe se connecte à l'app, puis ouvre le scanner avec son lien personnel */}
-        <a href={`${env().NEXT_PUBLIC_APP_URL}/acces-scanner`} className="mt-2 rounded-full bg-[var(--evoly-rose)] px-6 py-3 font-semibold text-[var(--evoly-charbon)]">
+        <a
+          href={`${env().NEXT_PUBLIC_APP_URL}/acces-scanner`}
+          className="mt-2 rounded-full bg-[var(--evoly-rose)] px-6 py-3 font-semibold text-[var(--evoly-charbon)]"
+        >
           {t("homeMember")}
         </a>
       </div>

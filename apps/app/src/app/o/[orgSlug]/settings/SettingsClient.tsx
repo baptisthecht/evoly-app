@@ -29,7 +29,21 @@ export interface SettingsValues {
 }
 
 /** Page Paramètres (section 9.3) : identité, contact, région, adresse et TVA des relevés. */
-export function OrganizationSettingsForm({ orgSlug, values, countries, currencies, currencyLocked, readOnly }: { orgSlug: string; values: SettingsValues; countries: Array<{ code: string; name: string }>; currencies: string[]; currencyLocked: boolean; readOnly: boolean }) {
+export function OrganizationSettingsForm({
+  orgSlug,
+  values,
+  countries,
+  currencies,
+  currencyLocked,
+  readOnly,
+}: {
+  orgSlug: string;
+  values: SettingsValues;
+  countries: Array<{ code: string; name: string }>;
+  currencies: string[];
+  currencyLocked: boolean;
+  readOnly: boolean;
+}) {
   const t = useTranslations("orgSettings");
   const { state, pending, formProps } = useActionForm(saveSettingsAction.bind(null, orgSlug), null);
   const error = useFieldError(state);
@@ -60,7 +74,14 @@ export function OrganizationSettingsForm({ orgSlug, values, countries, currencie
           </Field>
         </div>
         <Field label={t("description")} htmlFor="org-desc">
-          <textarea id="org-desc" name="description" defaultValue={values.description} rows={3} maxLength={500} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+          <textarea
+            id="org-desc"
+            name="description"
+            defaultValue={values.description}
+            rows={3}
+            maxLength={500}
+            className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+          />
         </Field>
       </fieldset>
 
@@ -100,7 +121,11 @@ export function OrganizationSettingsForm({ orgSlug, values, countries, currencie
           </Field>
           <Field label={t("locale")} htmlFor="org-locale" hint={t("localeHint")}>
             <Select id="org-locale" name="locale" defaultValue={values.locale}>
-              {LOCALES.map((l) => <option key={l} value={l}>{LOCALE_NAMES[l]}</option>)}
+              {LOCALES.map((l) => (
+                <option key={l} value={l}>
+                  {LOCALE_NAMES[l]}
+                </option>
+              ))}
             </Select>
           </Field>
           <Field label={t("timezone")} htmlFor="org-tz">
@@ -142,7 +167,11 @@ export function OrganizationSettingsForm({ orgSlug, values, countries, currencie
           </label>
         </div>
       </fieldset>
-      {state?.ok ? <p className="text-sm text-success" role="status">{t("saved")}</p> : null}
+      {state?.ok ? (
+        <p className="text-sm text-success" role="status">
+          {t("saved")}
+        </p>
+      ) : null}
       {!readOnly ? (
         <SubmitButton pending={pending} className="w-full sm:w-auto sm:justify-self-start">
           {t("save")}
@@ -172,7 +201,13 @@ export function DeleteOrganization({ orgSlug, name, blockers }: { orgSlug: strin
     <form {...formProps} className="grid gap-4" noValidate>
       <FormError state={state} />
       <label className="flex items-start gap-3 text-sm">
-        <input type="checkbox" name="understood" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--ink)]" />
+        <input
+          type="checkbox"
+          name="understood"
+          checked={understood}
+          onChange={(e) => setUnderstood(e.target.checked)}
+          className="mt-0.5 size-5 shrink-0 accent-[var(--ink)]"
+        />
         {t("deleteUnderstand")}
       </label>
       {understood ? (

@@ -28,7 +28,15 @@ export default async function SeatingPage({ params }: { params: Promise<{ orgSlu
   return (
     <div className="grid gap-4">
       <p className="max-w-3xl text-ink-muted">{t("intro")}</p>
-      <SeatingEditor orgSlug={orgSlug} eventId={eventId} state={state} layouts={layouts} heat={heat} photoEnabled={Boolean(env().ANTHROPIC_API_KEY)} readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly} />
+      <SeatingEditor
+        orgSlug={orgSlug}
+        eventId={eventId}
+        state={state}
+        layouts={layouts}
+        heat={heat}
+        photoEnabled={Boolean(env().ANTHROPIC_API_KEY)}
+        readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly}
+      />
     </div>
   );
 }

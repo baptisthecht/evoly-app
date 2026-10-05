@@ -49,7 +49,14 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
             </div>
             <p className="font-display text-3xl tabular-nums">{Math.round(stats.rateBps / 100)} %</p>
           </div>
-          <div className="h-3 overflow-hidden rounded-full bg-surface-sunken" role="progressbar" aria-valuenow={Math.round(stats.rateBps / 100)} aria-valuemin={0} aria-valuemax={100} aria-label={t("present")}>
+          <div
+            className="h-3 overflow-hidden rounded-full bg-surface-sunken"
+            role="progressbar"
+            aria-valuenow={Math.round(stats.rateBps / 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={t("present")}
+          >
             <div className="h-full rounded-full bg-success" style={{ width: `${stats.rateBps / 100}%` }} />
           </div>
           <ul className="grid gap-2">
@@ -115,7 +122,11 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
                       {l.lastUsedAt ? ` · ${t("lastUsed", { time: time(l.lastUsedAt) })}` : ""}
                       {!l.allowManualSearch ? ` · ${t("noManualSearch")}` : ""}
                     </p>
-                    {status === "ACTIVE" ? <p className="min-w-0 truncate rounded-md bg-surface-sunken px-3 py-2 font-mono text-xs" data-testid="scanner-url">{l.url}</p> : null}
+                    {status === "ACTIVE" ? (
+                      <p className="min-w-0 truncate rounded-md bg-surface-sunken px-3 py-2 font-mono text-xs" data-testid="scanner-url">
+                        {l.url}
+                      </p>
+                    ) : null}
                     <LinkActions orgSlug={orgSlug} eventId={eventId} linkId={l.id} url={l.url} qrSvg={qrs[i]!} active={status === "ACTIVE"} />
                   </Card>
                 </li>

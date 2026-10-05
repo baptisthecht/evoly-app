@@ -9,7 +9,11 @@ export async function POST(req: Request) {
   const secret = env().RESEND_WEBHOOK_SECRET;
   if (!secret) return new Response("Webhook non configuré", { status: 503 });
   const body = await req.text();
-  const ok = verifyResendSignature(secret, { id: req.headers.get("svix-id"), timestamp: req.headers.get("svix-timestamp"), signature: req.headers.get("svix-signature") }, body);
+  const ok = verifyResendSignature(
+    secret,
+    { id: req.headers.get("svix-id"), timestamp: req.headers.get("svix-timestamp"), signature: req.headers.get("svix-signature") },
+    body,
+  );
   if (!ok) return new Response("Signature invalide", { status: 400 });
   try {
     return Response.json({ outcome: await applyResendEvent(JSON.parse(body)) });

@@ -2,9 +2,13 @@ import { expect, test } from "@playwright/test";
 import * as OTPAuth from "otpauth";
 import { appUrl, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
-const code = (secret: string, label: string) => new OTPAuth.TOTP({ issuer: "Evoly", label, algorithm: "SHA1", digits: 6, period: 30, secret: OTPAuth.Secret.fromBase32(secret) }).generate();
+const code = (secret: string, label: string) =>
+  new OTPAuth.TOTP({ issuer: "Evoly", label, algorithm: "SHA1", digits: 6, period: 30, secret: OTPAuth.Secret.fromBase32(secret) }).generate();
 
-test("back-office : double authentification, recherche, consultation, suspension ; 2FA d'un organisateur (section 9.24, US-AUTH-06)", async ({ page, browser }) => {
+test("back-office : double authentification, recherche, consultation, suspension ; 2FA d'un organisateur (section 9.24, US-AUTH-06)", async ({
+  page,
+  browser,
+}) => {
   const { id, slug } = await organizer(page);
   sql(`update "User" set "platformRole" = 'ADMIN' where email = 'orga${id}@exemple.be'`);
 
@@ -28,13 +32,20 @@ test("back-office : double authentification, recherche, consultation, suspension
   // recherche, fiche, consultation en lecture seule (journalisée)
   await page.getByLabel("Rechercher").fill(`Orga ${b.id}`);
   await page.getByRole("button", { name: "Rechercher" }).click();
-  await page.getByRole("link", { name: `Orga ${b.id}` }).first().click();
+  await page
+    .getByRole("link", { name: `Orga ${b.id}` })
+    .first()
+    .click();
   await page.getByRole("button", { name: /Consulter l’app en lecture seule/ }).click();
   await page.waitForURL(new RegExp(`/o/${b.slug}$`));
   await expect(page.getByText("Consultation support Evoly en lecture seule", { exact: false })).toBeVisible();
   await page.getByRole("link", { name: "Quitter la consultation" }).click();
   await page.waitForURL(/\/admin$/);
-  expect(sql(`select count(*) from "AuditLog" where action = 'platform.support_view_started' and "organizationId" = (select id from "Organization" where slug = '${b.slug}')`)).toBe("1");
+  expect(
+    sql(
+      `select count(*) from "AuditLog" where action = 'platform.support_view_started' and "organizationId" = (select id from "Organization" where slug = '${b.slug}')`,
+    ),
+  ).toBe("1");
 
   // suspension : page publique fermée, puis réactivation
   const orgB = sql(`select id from "Organization" where slug = '${b.slug}'`);

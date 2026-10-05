@@ -40,7 +40,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
@@ -61,14 +63,20 @@ body {
   body {
     overflow-wrap: break-word;
   }
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     overflow-wrap: anywhere; /* un titre peut rétrécir sous la largeur de son plus long mot (dans une rangée flexible) */
     hyphens: auto;
   }
-  input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea {
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]),
+  select,
+  textarea {
     font-size: 1rem;
   }
-  input[type="date"], input[type="time"], input[type="datetime-local"] {
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"] {
     -webkit-appearance: none;
     appearance: none;
     min-width: 0;
@@ -102,4 +110,3 @@ body {
     touch-action: pan-x pan-y;
   }
 }
-

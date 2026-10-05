@@ -13,7 +13,14 @@ export async function subdomainAvailability(input: string, exceptOrganizationId?
   const [org, event, redirect] = await Promise.all([
     db.organization.findFirst({ where: { subdomain: value, NOT: exceptOrganizationId ? { id: exceptOrganizationId } : undefined }, select: { id: true } }),
     db.event.findFirst({ where: { subdomain: value }, select: { id: true } }),
-    db.hostRedirect.findFirst({ where: { host: `${value}.${env().NEXT_PUBLIC_BASE_DOMAIN}`, expiresAt: { gt: new Date() }, NOT: exceptOrganizationId ? { organizationId: exceptOrganizationId } : undefined }, select: { id: true } }),
+    db.hostRedirect.findFirst({
+      where: {
+        host: `${value}.${env().NEXT_PUBLIC_BASE_DOMAIN}`,
+        expiresAt: { gt: new Date() },
+        NOT: exceptOrganizationId ? { organizationId: exceptOrganizationId } : undefined,
+      },
+      select: { id: true },
+    }),
   ]);
   if (org || event || redirect) return { ok: false, reason: "TAKEN" };
   return { ok: true, value };

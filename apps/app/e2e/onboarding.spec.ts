@@ -38,7 +38,10 @@ test("connexion bloquée après 5 échecs (RG-AUTH-05)", async ({ page }) => {
   const attempt = async (password: string) => {
     await page.getByLabel("Adresse e-mail").fill(email);
     await page.getByLabel("Mot de passe").fill(password);
-    await Promise.all([page.waitForResponse((r) => r.request().method() === "POST" && r.url().includes("/login")), page.getByRole("button", { name: "Se connecter" }).click()]);
+    await Promise.all([
+      page.waitForResponse((r) => r.request().method() === "POST" && r.url().includes("/login")),
+      page.getByRole("button", { name: "Se connecter" }).click(),
+    ]);
   };
   for (let i = 0; i < 5; i++) {
     await attempt("mauvais-mot-de-passe");

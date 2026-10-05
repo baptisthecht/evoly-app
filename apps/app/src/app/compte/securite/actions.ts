@@ -34,7 +34,8 @@ export async function disableAction(_: State, form: FormData): Promise<State> {
   try {
     await disableTwoFactor({ id: s.user.id, email: s.user.email }, code(form));
   } catch (err) {
-    if (err instanceof CoreError) return { error: err.code === "TWO_FACTOR_REQUIRED_FOR_STAFF" ? "staffRequired" : err.code === "RATE_LIMITED" ? "tooMany" : "wrong" };
+    if (err instanceof CoreError)
+      return { error: err.code === "TWO_FACTOR_REQUIRED_FOR_STAFF" ? "staffRequired" : err.code === "RATE_LIMITED" ? "tooMany" : "wrong" };
     throw err;
   }
   revalidatePath("/compte/securite");

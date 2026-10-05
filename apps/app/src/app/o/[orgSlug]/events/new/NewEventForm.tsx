@@ -9,7 +9,21 @@ import { Field, Input } from "@/components/ui/Field";
 import { createEventAction } from "../actions";
 import { PriceFields } from "../[eventId]/tickets/PriceFields";
 
-export function NewEventForm({ orgSlug, timezone, country, defaultStart, currencySymbol, terms }: { orgSlug: string; timezone: string; country: string; defaultStart: string; currencySymbol: string; terms: FeeTerms }) {
+export function NewEventForm({
+  orgSlug,
+  timezone,
+  country,
+  defaultStart,
+  currencySymbol,
+  terms,
+}: {
+  orgSlug: string;
+  timezone: string;
+  country: string;
+  defaultStart: string;
+  currencySymbol: string;
+  terms: FeeTerms;
+}) {
   const [price, setPrice] = useState("0");
   const t = useTranslations("events");
   const { state, pending, formProps } = useActionForm(createEventAction.bind(null, orgSlug), null);
@@ -18,7 +32,20 @@ export function NewEventForm({ orgSlug, timezone, country, defaultStart, currenc
     <form {...formProps} className="grid gap-10" noValidate>
       <FormError state={state} />
       <EventFields
-        values={{ title: "", summary: "", startsAtLocal: defaultStart, endsAtLocal: "", timezone, locationType: "PHYSICAL", locationName: "", addressLine1: "", postalCode: "", city: "", country, onlineUrl: "" }}
+        values={{
+          title: "",
+          summary: "",
+          startsAtLocal: defaultStart,
+          endsAtLocal: "",
+          timezone,
+          locationType: "PHYSICAL",
+          locationName: "",
+          addressLine1: "",
+          postalCode: "",
+          city: "",
+          country,
+          onlineUrl: "",
+        }}
         error={error}
       />
       <fieldset className="grid gap-5">
@@ -32,9 +59,20 @@ export function NewEventForm({ orgSlug, timezone, country, defaultStart, currenc
             <Input id="ticketQuantity" name="ticketQuantity" type="number" min={1} inputMode="numeric" />
           </Field>
         </div>
-        <PriceFields id="ticketPrice" name="ticketPrice" label={`${t("ticketPrice")} (${currencySymbol})`} hint={t("ticketPriceHint")} error={error("ticketPrice")} price={price} onPrice={setPrice} terms={terms} />
+        <PriceFields
+          id="ticketPrice"
+          name="ticketPrice"
+          label={`${t("ticketPrice")} (${currencySymbol})`}
+          hint={t("ticketPriceHint")}
+          error={error("ticketPrice")}
+          price={price}
+          onPrice={setPrice}
+          terms={terms}
+        />
       </fieldset>
-      <SubmitButton pending={pending} className="w-full sm:w-auto sm:justify-self-start">{t("createDraft")}</SubmitButton>
+      <SubmitButton pending={pending} className="w-full sm:w-auto sm:justify-self-start">
+        {t("createDraft")}
+      </SubmitButton>
     </form>
   );
 }

@@ -19,10 +19,20 @@ export default async function ScannerAccessPage() {
   const t = await getTranslations("scannerAccess");
   const locale = (await getLocale()) as Locale;
   const now = new Date();
-  const members = await db.organizationMember.findMany({ where: { userId: session.user.id, status: "ACTIVE", organization: { status: "ACTIVE", deletedAt: null } }, include: { role: true, organization: { select: { slug: true, name: true, timezone: true } } } });
-  const allowed = members.filter((m) => can({ status: m.status, systemRole: m.role.systemKey as SystemRole | null, permissions: m.role.permissions as Permission[] }, "CHECKIN_SCAN"));
+  const members = await db.organizationMember.findMany({
+    where: { userId: session.user.id, status: "ACTIVE", organization: { status: "ACTIVE", deletedAt: null } },
+    include: { role: true, organization: { select: { slug: true, name: true, timezone: true } } },
+  });
+  const allowed = members.filter((m) =>
+    can({ status: m.status, systemRole: m.role.systemKey as SystemRole | null, permissions: m.role.permissions as Permission[] }, "CHECKIN_SCAN"),
+  );
   const events = await db.event.findMany({
-    where: { organizationId: { in: allowed.map((m) => m.organizationId) }, deletedAt: null, status: { in: ["PUBLISHED", "SALES_PAUSED", "ENDED"] }, startsAt: { lt: new Date(now.getTime() + 7 * 86_400_000), gt: new Date(now.getTime() - 3 * 86_400_000) } },
+    where: {
+      organizationId: { in: allowed.map((m) => m.organizationId) },
+      deletedAt: null,
+      status: { in: ["PUBLISHED", "SALES_PAUSED", "ENDED"] },
+      startsAt: { lt: new Date(now.getTime() + 7 * 86_400_000), gt: new Date(now.getTime() - 3 * 86_400_000) },
+    },
     select: { id: true, title: true, startsAt: true, endsAt: true, timezone: true, organizationId: true },
     orderBy: { startsAt: "asc" },
   });

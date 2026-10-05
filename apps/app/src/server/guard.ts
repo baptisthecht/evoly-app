@@ -8,10 +8,7 @@ import { getSession } from "./session";
 
 export type ActionError = "INVALID_INPUT" | "UNAUTHENTICATED" | "NOT_FOUND" | "FORBIDDEN" | "PRO_REQUIRED" | "READ_ONLY" | (string & {});
 
-export type ActionState<T = unknown> =
-  | { ok: true; data: T }
-  | { ok: false; error: ActionError; fields?: Record<string, string> }
-  | null;
+export type ActionState<T = unknown> = { ok: true; data: T } | { ok: false; error: ActionError; fields?: Record<string, string> } | null;
 
 /** Transforme un FormData en objet simple pour Zod. */
 export function formToObject(form: FormData): Record<string, string> {

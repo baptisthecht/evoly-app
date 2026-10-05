@@ -42,7 +42,10 @@ export async function saveSettingsAction(orgSlug: string, _: ActionState, form: 
 
 /** RG-ORG-06 : suppression par le propriétaire, confirmée deux fois (case cochée, nom saisi). */
 export async function deleteOrganizationAction(orgSlug: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const schema = z.object({ understood: z.literal("on", { message: "validation.required" }), confirmation: z.string().trim().min(1, { message: "validation.required" }).max(120) });
+  const schema = z.object({
+    understood: z.literal("on", { message: "validation.required" }),
+    confirmation: z.string().trim().min(1, { message: "validation.required" }).max(120),
+  });
   const r = await runOrgAction(orgSlug, formToObject(form), { schema, write: false }, async (d, ctx) => {
     await deleteOrganization(ctx, d.confirmation);
     return null;

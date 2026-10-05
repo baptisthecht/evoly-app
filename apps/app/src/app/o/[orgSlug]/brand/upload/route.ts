@@ -14,7 +14,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ orgSlug
   const file = form?.get("file");
   const kind = String(form?.get("kind") ?? "") as UploadKind;
   if (!(file instanceof File) || !["logo", "favicon", "cover", "campaign"].includes(kind)) return Response.json({ error: "UPLOAD_INVALID" }, { status: 400 });
-  const allowed = kind === "cover" ? can(ctx.membership, "EVENTS_EDIT") : kind === "campaign" ? can(ctx.membership, "MARKETING_MANAGE") && hasFeature(ctx.features, "EMAIL_MARKETING") : can(ctx.membership, "BRAND_EDIT") && hasFeature(ctx.features, "BRANDING");
+  const allowed =
+    kind === "cover"
+      ? can(ctx.membership, "EVENTS_EDIT")
+      : kind === "campaign"
+        ? can(ctx.membership, "MARKETING_MANAGE") && hasFeature(ctx.features, "EMAIL_MARKETING")
+        : can(ctx.membership, "BRAND_EDIT") && hasFeature(ctx.features, "BRANDING");
   if (!allowed || ctx.readOnly) return Response.json({ error: "FORBIDDEN" }, { status: 403 });
   try {
     const url = await uploadImage(ctx, kind, new Uint8Array(await file.arrayBuffer()), String(form?.get("eventId") ?? "") || null);

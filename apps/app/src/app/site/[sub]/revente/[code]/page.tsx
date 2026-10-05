@@ -49,7 +49,13 @@ export default async function ResaleListingPage({ params }: { params: Promise<{ 
           </div>
           <p className="text-sm text-ink-muted">{t("pageExplain")}</p>
           {available ? (
-            <ResaleBuy linkCode={listing.linkCode} label={t("buy", { price })} organizationName={org.brand?.displayName ?? org.name} requirePhone={e.requireBuyerPhone} publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null} />
+            <ResaleBuy
+              linkCode={listing.linkCode}
+              label={t("buy", { price })}
+              organizationName={org.brand?.displayName ?? org.name}
+              requirePhone={e.requireBuyerPhone}
+              publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null}
+            />
           ) : (
             <p className="rounded-md bg-surface-sunken px-4 py-3 text-sm">{t(listing.status === "RESERVED" ? "unavailable_RESERVED" : "unavailable_GONE")}</p>
           )}

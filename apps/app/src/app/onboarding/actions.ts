@@ -34,7 +34,12 @@ export async function createOrganizationAction(_: ActionState, form: FormData): 
   if (!parsed.success) return { ok: false, error: "INVALID_INPUT", fields: zodFields(parsed.error) };
   let slug: string;
   try {
-    const org = await createOrganization(session.user.id, { name: parsed.data.name, subdomain: parsed.data.subdomain, country: parsed.data.country, type: parsed.data.type });
+    const org = await createOrganization(session.user.id, {
+      name: parsed.data.name,
+      subdomain: parsed.data.subdomain,
+      country: parsed.data.country,
+      type: parsed.data.type,
+    });
     slug = org.slug;
   } catch (e) {
     if (e instanceof CoreError) {

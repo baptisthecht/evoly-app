@@ -11,8 +11,28 @@ describe("éditeur du plan de salle (section 9.9)", () => {
   it("déplacer, restructurer, protéger les places vendues, modifier places et catégories, ajouter et supprimer un bloc", async () => {
     const id = rid();
     const user = await db.user.create({ data: { name: "Camille", email: `own.${id}@exemple.be`, emailVerified: true } });
-    const org = await db.organization.create({ data: { name: `Salle ${id}`, slug: `salle-${id}`, subdomain: `salle-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-    const event = await db.event.create({ data: { organizationId: org.id, slug: `bal-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Bal ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 9 * 86_400_000), status: "PUBLISHED", ticketTypes: { create: [{ name: "Adulte", priceMinor: 0, currency: "EUR", quantity: 400, sortOrder: 0 }, { name: "Enfant", priceMinor: 0, currency: "EUR", quantity: 400, sortOrder: 1 }] } }, include: { ticketTypes: { orderBy: { sortOrder: "asc" } } } });
+    const org = await db.organization.create({
+      data: { name: `Salle ${id}`, slug: `salle-${id}`, subdomain: `salle-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    });
+    const event = await db.event.create({
+      data: {
+        organizationId: org.id,
+        slug: `bal-${id}`,
+        publicCode: id.toUpperCase().slice(0, 8),
+        title: `Bal ${id}`,
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        startsAt: new Date(Date.now() + 9 * 86_400_000),
+        status: "PUBLISHED",
+        ticketTypes: {
+          create: [
+            { name: "Adulte", priceMinor: 0, currency: "EUR", quantity: 400, sortOrder: 0 },
+            { name: "Enfant", priceMinor: 0, currency: "EUR", quantity: 400, sortOrder: 1 },
+          ],
+        },
+      },
+      include: { ticketTypes: { orderBy: { sortOrder: "asc" } } },
+    });
     const ctx = { organization: { id: org.id }, user: { id: user.id }, features: (await getPlans()).pro.features } as unknown as OrgContext;
     await applySeatingTemplate(ctx, event.id, "hall", { rows: 4, seatsFirst: 6, seatsLast: 6, centerAisle: false, categories: 1 });
     let st = await seatingEditor(ctx, event.id);
@@ -56,7 +76,14 @@ describe("éditeur du plan de salle (section 9.9)", () => {
     expect(st.ticketTypes.find((t) => t.id === event.ticketTypes[1]!.id)!.categoryId).toBeNull();
 
     // nouveau bloc puis suppression ; point focal qui suit la scène
-    const tables = await saveSeatingBlock(ctx, event.id, { kind: "TABLE_ROUND", name: "Tables", x: 0, y: 400, rotation: 0, params: { tables: 2, seats: 6, perRow: 2, tableGap: 30, labelStart: 1, category: cat.id } });
+    const tables = await saveSeatingBlock(ctx, event.id, {
+      kind: "TABLE_ROUND",
+      name: "Tables",
+      x: 0,
+      y: 400,
+      rotation: 0,
+      params: { tables: 2, seats: 6, perRow: 2, tableGap: 30, labelStart: 1, category: cat.id },
+    });
     expect(await db.seat.count({ where: { row: { blockId: tables } } })).toBe(12);
     await deleteSeatingBlock(ctx, event.id, tables);
     expect(await db.seat.count({ where: { row: { blockId: tables } } })).toBe(0);

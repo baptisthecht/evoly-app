@@ -30,7 +30,11 @@ describe("règles du catalogue", () => {
     const now = new Date("2026-10-20T12:00:00Z");
     const later = new Date("2026-11-14T20:00:00Z");
     expect(publicationBlockers({ activeTicketTypes: 1, hasPaidTicketTypes: true, stripeChargesEnabled: true, startsAt: later, now })).toEqual([]);
-    expect(publicationBlockers({ activeTicketTypes: 0, hasPaidTicketTypes: true, stripeChargesEnabled: false, startsAt: now, now })).toEqual(["NO_TICKET_TYPE", "STRIPE_REQUIRED", "IN_THE_PAST"]);
+    expect(publicationBlockers({ activeTicketTypes: 0, hasPaidTicketTypes: true, stripeChargesEnabled: false, startsAt: now, now })).toEqual([
+      "NO_TICKET_TYPE",
+      "STRIPE_REQUIRED",
+      "IN_THE_PAST",
+    ]);
     expect(publicationBlockers({ activeTicketTypes: 2, hasPaidTicketTypes: false, stripeChargesEnabled: false, startsAt: later, now })).toEqual([]);
   });
 });

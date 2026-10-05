@@ -7,7 +7,11 @@ import { env } from "@/lib/env";
 let client: AwsClient | null | undefined;
 function r2(): AwsClient | null {
   const e = env();
-  if (client === undefined) client = e.R2_ACCOUNT_ID && e.R2_ACCESS_KEY_ID && e.R2_SECRET_ACCESS_KEY ? new AwsClient({ accessKeyId: e.R2_ACCESS_KEY_ID, secretAccessKey: e.R2_SECRET_ACCESS_KEY, service: "s3", region: "auto" }) : null;
+  if (client === undefined)
+    client =
+      e.R2_ACCOUNT_ID && e.R2_ACCESS_KEY_ID && e.R2_SECRET_ACCESS_KEY
+        ? new AwsClient({ accessKeyId: e.R2_ACCESS_KEY_ID, secretAccessKey: e.R2_SECRET_ACCESS_KEY, service: "s3", region: "auto" })
+        : null;
   return client;
 }
 const localDir = () => env().UPLOADS_DIR ?? "/tmp/evoly-uploads";
@@ -24,7 +28,11 @@ export async function putPublicFile(key: string, bytes: Uint8Array, contentType:
   const c = r2();
   if (c) {
     const e = env();
-    const res = await c.fetch(`https://${e.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${e.R2_BUCKET}/${key}`, { method: "PUT", body: new Blob([new Uint8Array(bytes)]), headers: { "content-type": contentType, "cache-control": "public, max-age=31536000, immutable" } });
+    const res = await c.fetch(`https://${e.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${e.R2_BUCKET}/${key}`, {
+      method: "PUT",
+      body: new Blob([new Uint8Array(bytes)]),
+      headers: { "content-type": contentType, "cache-control": "public, max-age=31536000, immutable" },
+    });
     if (!res.ok) throw new Error(`dépôt R2 refusé (${res.status})`);
   } else {
     const file = path.join(localDir(), key);

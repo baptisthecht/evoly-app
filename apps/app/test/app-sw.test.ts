@@ -5,13 +5,26 @@ import { GET } from "@/app/app-sw.js/route";
 async function load(language: string, network: (url: string) => Promise<Response>) {
   const js = await GET().text();
   const handlers: Record<string, (e: unknown) => void> = {};
-  const self = { navigator: { language }, location: { origin: "https://app.evoly.me" }, addEventListener: (t: string, f: (e: unknown) => void) => { handlers[t] = f; }, skipWaiting() {}, clients: { claim: async () => {} } };
+  const self = {
+    navigator: { language },
+    location: { origin: "https://app.evoly.me" },
+    addEventListener: (t: string, f: (e: unknown) => void) => {
+      handlers[t] = f;
+    },
+    skipWaiting() {},
+    clients: { claim: async () => {} },
+  };
   new Function("self", "fetch", "Response", js)(self, (r: { url: string }) => network(r.url), Response);
   return {
     js,
     navigate: async (url: string, mode = "navigate", method = "GET") => {
       let responded: Promise<Response> | undefined;
-      handlers.fetch!({ request: { mode, method, url }, respondWith: (p: Promise<Response>) => { responded = p; } });
+      handlers.fetch!({
+        request: { mode, method, url },
+        respondWith: (p: Promise<Response>) => {
+          responded = p;
+        },
+      });
       return responded;
     },
   };
@@ -20,7 +33,11 @@ const offline = () => Promise.reject(new TypeError("Failed to fetch"));
 
 describe("service worker de l'app installable", () => {
   it("sans réseau : page « hors ligne » dans la langue de l'appareil (anglais par défaut)", async () => {
-    for (const [lang, title, retry] of [["fr-BE", "Vous êtes hors ligne", "Réessayer"], ["de-DE", "Sie sind offline", "Erneut versuchen"], ["ja-JP", "You're offline", "Try again"]] as const) {
+    for (const [lang, title, retry] of [
+      ["fr-BE", "Vous êtes hors ligne", "Réessayer"],
+      ["de-DE", "Sie sind offline", "Erneut versuchen"],
+      ["ja-JP", "You're offline", "Try again"],
+    ] as const) {
       const sw = await load(lang, offline);
       const res = (await sw.navigate("https://app.evoly.me/o/asso/events"))!;
       expect(res.status, lang).toBe(503);

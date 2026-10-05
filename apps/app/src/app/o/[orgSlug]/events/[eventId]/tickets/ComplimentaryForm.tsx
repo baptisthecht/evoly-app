@@ -20,7 +20,13 @@ export function ComplimentaryForm({ orgSlug, eventId, ticketTypes }: { orgSlug: 
       <form {...formProps} className="grid gap-4" noValidate>
         <FormError state={state} />
         <Field label={t("recipients")} htmlFor="comp-recipients" hint={t("recipientsHint")}>
-          <textarea id="comp-recipients" name="recipients" rows={5} className="block w-full rounded-md bg-surface-raised px-4 py-3 font-mono text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" placeholder={"lea@exemple.be\nTom Dubois <tom@exemple.be>\nines@exemple.be;Inès;Benali"} />
+          <textarea
+            id="comp-recipients"
+            name="recipients"
+            rows={5}
+            className="block w-full rounded-md bg-surface-raised px-4 py-3 font-mono text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+            placeholder={"lea@exemple.be\nTom Dubois <tom@exemple.be>\nines@exemple.be;Inès;Benali"}
+          />
         </Field>
         <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <Field label={t("ticketType")} htmlFor="comp-type">
@@ -43,13 +49,17 @@ export function ComplimentaryForm({ orgSlug, eventId, ticketTypes }: { orgSlug: 
       {data ? (
         <div className="grid gap-2 rounded-md bg-surface-sunken p-4 text-sm" role="status">
           <p className="font-semibold">{t("sent", { count: sent })}</p>
-          {data.results.filter((r) => !r.ok).map((r) => (
-            <p key={r.email} className="text-danger">
-              {r.email} : {!r.ok && tf.has(r.error) ? tf(r.error) : t("failed")}
-            </p>
-          ))}
+          {data.results
+            .filter((r) => !r.ok)
+            .map((r) => (
+              <p key={r.email} className="text-danger">
+                {r.email} : {!r.ok && tf.has(r.error) ? tf(r.error) : t("failed")}
+              </p>
+            ))}
           {data.invalid.map((l) => (
-            <p key={l.line} className="text-danger">{t("invalidLine", { line: l.line, value: l.value })}</p>
+            <p key={l.line} className="text-danger">
+              {t("invalidLine", { line: l.line, value: l.value })}
+            </p>
           ))}
           {data.tooMany ? <p className="text-warning">{t("tooMany")}</p> : null}
         </div>

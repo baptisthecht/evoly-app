@@ -27,7 +27,23 @@ export interface PickerTicket {
 }
 
 /** Choix des billets (US-PUB-02). Les prix affichés sont les prix finaux (RG-PUB-03). */
-export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerOrder, state, checkout, seatMap = null }: { tickets: PickerTicket[]; currency: string; timeZone: string; maxPerOrder: number; state: "OPEN" | "NOT_STARTED" | "PAUSED" | "CLOSED" | "PREVIEW"; checkout?: { eventId: string; organizationName: string; requirePhone: boolean; publishableKey: string | null }; seatMap?: PublicSeatMap | null }) {
+export function TicketPicker({
+  tickets: baseTickets,
+  currency,
+  timeZone,
+  maxPerOrder,
+  state,
+  checkout,
+  seatMap = null,
+}: {
+  tickets: PickerTicket[];
+  currency: string;
+  timeZone: string;
+  maxPerOrder: number;
+  state: "OPEN" | "NOT_STARTED" | "PAUSED" | "CLOSED" | "PREVIEW";
+  checkout?: { eventId: string; organizationName: string; requirePhone: boolean; publishableKey: string | null };
+  seatMap?: PublicSeatMap | null;
+}) {
   const t = useTranslations("public");
   const locale = useLocale() as Locale;
   const tc = useTranslations("checkout");
@@ -43,7 +59,18 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
   const tickets = useMemo(() => [...baseTickets, ...(promo?.unlocked ?? []).filter((u) => !baseTickets.some((b) => b.id === u.id))], [baseTickets, promo]);
   const discounted = (tt: PickerTicket) =>
     promo && (promo.ticketTypeIds.length === 0 || promo.ticketTypeIds.includes(tt.id))
-      ? tt.priceMinor - unitDiscount(tt.priceMinor, { id: "", eventId: "", code: promo.code, discountType: promo.discountType, percentOffBps: promo.percentOffBps, amountOffMinor: promo.amountOffMinor, ticketTypeIds: promo.ticketTypeIds, usedCount: 0, isActive: true })
+      ? tt.priceMinor -
+        unitDiscount(tt.priceMinor, {
+          id: "",
+          eventId: "",
+          code: promo.code,
+          discountType: promo.discountType,
+          percentOffBps: promo.percentOffBps,
+          amountOffMinor: promo.amountOffMinor,
+          ticketTypeIds: promo.ticketTypeIds,
+          usedCount: 0,
+          isActive: true,
+        })
       : tt.priceMinor;
   const applyPromo = async () => {
     if (!checkout || !promoInput.trim()) return;
@@ -76,12 +103,18 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
   }, [checkout]);
   const needed: Record<string, number> = {};
   // fosse, zone debout : billets sans place, pas de choix sur le plan
-  if (seatMap) for (const [ticketTypeId, n] of Object.entries(qty)) { const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(ticketTypeId)); if (c && !c.standing && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n; }
+  if (seatMap)
+    for (const [ticketTypeId, n] of Object.entries(qty)) {
+      const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(ticketTypeId));
+      if (c && !c.standing && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n;
+    }
   const reserve = async () => {
     if (!checkout || count === 0) return;
     setPending(true);
     setError(null);
-    const lines = Object.entries(qty).filter(([, n]) => n > 0).map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
+    const lines = Object.entries(qty)
+      .filter(([, n]) => n > 0)
+      .map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
     // meilleures places attribuées tout de suite (ou près de l'ami) ; l'acheteur peut les voir et les changer ensuite
     const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null);
     setPending(false);
@@ -89,30 +122,55 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
   };
   if (reservation && checkout) {
-    return <CheckoutPanel reservation={reservation} seatMap={seatMap} friendName={friend?.firstName ?? null} organizationName={checkout.organizationName} requirePhone={checkout.requirePhone} publishableKey={checkout.publishableKey} onCancel={() => { setReservation(null); setQty({}); }} />;
+    return (
+      <CheckoutPanel
+        reservation={reservation}
+        seatMap={seatMap}
+        friendName={friend?.firstName ?? null}
+        organizationName={checkout.organizationName}
+        requirePhone={checkout.requirePhone}
+        publishableKey={checkout.publishableKey}
+        onCancel={() => {
+          setReservation(null);
+          setQty({});
+        }}
+      />
+    );
   }
   return (
     <div className="grid gap-4">
-      {friend ? <p role="status" className="rounded-md bg-lilas/50 px-4 py-3 text-sm">{tseat("friendBanner", { name: friend.firstName })}</p> : null}
+      {friend ? (
+        <p role="status" className="rounded-md bg-lilas/50 px-4 py-3 text-sm">
+          {tseat("friendBanner", { name: friend.firstName })}
+        </p>
+      ) : null}
       <ul className="grid gap-3">
         {tickets.map((tt) => {
           const availability = availabilityDisplay(tt.remaining, tt.quantity);
           const n = qty[tt.id] ?? 0;
           const selectable = tt.onSale && (state === "OPEN" || state === "PREVIEW");
           return (
-            <li key={tt.id} className={cn("grid gap-3 rounded-lg p-4 ring-1 ring-line", availability.kind === "SOLD_OUT" ? "bg-surface-sunken" : "bg-surface-raised")}>
+            <li
+              key={tt.id}
+              className={cn("grid gap-3 rounded-lg p-4 ring-1 ring-line", availability.kind === "SOLD_OUT" ? "bg-surface-sunken" : "bg-surface-raised")}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="grid min-w-0 gap-1">
                   <p className="font-semibold">{tt.name}</p>
                   {tt.description ? <p className="text-sm text-ink-muted">{tt.description}</p> : null}
                   <div className="flex flex-wrap gap-2 text-sm">
                     {tt.tierName ? <span className="rounded-full bg-surface-accent px-2 py-0.5 font-label text-xs font-bold">{tt.tierName}</span> : null}
-                    {availability.kind === "FEW_LEFT" ? <span className="font-semibold text-warning">{t("fewLeft", { count: availability.remaining })}</span> : null}
+                    {availability.kind === "FEW_LEFT" ? (
+                      <span className="font-semibold text-warning">{t("fewLeft", { count: availability.remaining })}</span>
+                    ) : null}
                     {availability.kind === "SOLD_OUT" ? <span className="font-semibold text-ink-muted">{t("soldOut")}</span> : null}
                   </div>
                   {tt.next ? (
                     <p className="text-xs text-ink-muted">
-                      {t("nextTier", { price: money(tt.next.priceMinor), date: new Intl.DateTimeFormat(locale, { timeZone, day: "numeric", month: "long" }).format(new Date(tt.next.startsAt)) })}
+                      {t("nextTier", {
+                        price: money(tt.next.priceMinor),
+                        date: new Intl.DateTimeFormat(locale, { timeZone, day: "numeric", month: "long" }).format(new Date(tt.next.startsAt)),
+                      })}
                     </p>
                   ) : null}
                 </div>
@@ -129,13 +187,28 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
               </div>
               {selectable ? (
                 <div className="flex items-center justify-end gap-2" role="group" aria-label={t("quantityFor", { name: tt.name })}>
-                  <Button type="button" variant="secondary" size="sm" className="size-10 px-0 text-lg" onClick={() => set(tt, n - 1)} disabled={n === 0} aria-label={t("less", { name: tt.name })}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="size-10 px-0 text-lg"
+                    onClick={() => set(tt, n - 1)}
+                    disabled={n === 0}
+                    aria-label={t("less", { name: tt.name })}
+                  >
                     −
                   </Button>
                   <output className="w-8 text-center font-display text-lg tabular-nums" aria-live="polite">
                     {n}
                   </output>
-                  <Button type="button" variant="dark" size="sm" className="size-10 px-0 text-lg" onClick={() => set(tt, n + 1)} aria-label={t("more", { name: tt.name })}>
+                  <Button
+                    type="button"
+                    variant="dark"
+                    size="sm"
+                    className="size-10 px-0 text-lg"
+                    onClick={() => set(tt, n + 1)}
+                    aria-label={t("more", { name: tt.name })}
+                  >
                     +
                   </Button>
                 </div>
@@ -155,7 +228,15 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
         ) : promoOpen ? (
           <div className="grid gap-2">
             <div className="flex gap-2">
-              <Input aria-label={tc("promoLabel")} placeholder={tc("promoLabel")} value={promoInput} onChange={(e) => setPromoInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && applyPromo()} className="uppercase" autoCapitalize="characters" />
+              <Input
+                aria-label={tc("promoLabel")}
+                placeholder={tc("promoLabel")}
+                value={promoInput}
+                onChange={(e) => setPromoInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyPromo()}
+                className="uppercase"
+                autoCapitalize="characters"
+              />
               <Button type="button" variant="dark" onClick={applyPromo}>
                 {tc("promoApply")}
               </Button>
@@ -183,7 +264,14 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
               {error}
             </p>
           ) : null}
-          <Button type="button" size="lg" disabled={state !== "OPEN" || !checkout || count === 0 || pending} aria-busy={pending} className="w-full" onClick={reserve}>
+          <Button
+            type="button"
+            size="lg"
+            disabled={state !== "OPEN" || !checkout || count === 0 || pending}
+            aria-busy={pending}
+            className="w-full"
+            onClick={reserve}
+          >
             {pending ? tc("processing") : t("continue")}
           </Button>
           {state === "PREVIEW" ? <p className="text-center text-xs text-ink-muted">{t("previewNoPurchase")}</p> : null}

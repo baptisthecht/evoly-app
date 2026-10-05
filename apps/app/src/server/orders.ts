@@ -25,11 +25,20 @@ export function ticketsUrl(org: { subdomain: string | null; slug: string }, orde
 export async function sendOrderConfirmation(orderId: string): Promise<void> {
   const order = await db.order.findUniqueOrThrow({
     where: { id: orderId },
-    include: { event: true, organization: { select: { name: true, subdomain: true, slug: true } }, items: { include: { ticketType: { select: { name: true } } } }, tickets: { include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } }, orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }] } },
+    include: {
+      event: true,
+      organization: { select: { name: true, subdomain: true, slug: true } },
+      items: { include: { ticketType: { select: { name: true } } } },
+      tickets: {
+        include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } },
+        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
+      },
+    },
   });
   const locale = (order.buyerLocale === "en" ? "en" : "fr") as Locale;
   const e = order.event;
-  const where = e.locationType === "ONLINE" ? null : [e.locationName, e.addressLine1, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  const where =
+    e.locationType === "ONLINE" ? null : [e.locationName, e.addressLine1, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
   const brand = await emailBrandFor(order.organizationId);
   const email = orderConfirmationEmail({
     brand,
@@ -64,36 +73,114 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
 }
 
 const PDF_LABELS = {
-  fr: { ticket: (i: number, n: number) => `Billet ${i} sur ${n}`, holder: "Titulaire", reference: "Commande", entrance: "Présentez ce billet à l’entrée, imprimé ou sur votre téléphone. Chaque QR code n’est accepté qu’une fois : ne le partagez pas.", poweredBy: "Billetterie Evoly" },
-  en: { ticket: (i: number, n: number) => `Ticket ${i} of ${n}`, holder: "Holder", reference: "Order", entrance: "Show this ticket at the entrance, printed or on your phone. Each QR code is accepted only once: don’t share it.", poweredBy: "Evoly ticketing" },
-  es: { ticket: (i: number, n: number) => `Entrada ${i} de ${n}`, holder: "Titular", reference: "Pedido", entrance: "Presenta esta entrada en el acceso, impresa o en tu móvil. Cada código QR solo se acepta una vez: no lo compartas.", poweredBy: "Venta de entradas Evoly" },
-  de: { ticket: (i: number, n: number) => `Ticket ${i} von ${n}`, holder: "Inhaber", reference: "Bestellung", entrance: "Zeigen Sie dieses Ticket am Eingang vor, ausgedruckt oder auf dem Handy. Jeder QR-Code wird nur einmal akzeptiert: Geben Sie ihn nicht weiter.", poweredBy: "Ticketing von Evoly" },
-  it: { ticket: (i: number, n: number) => `Biglietto ${i} di ${n}`, holder: "Titolare", reference: "Ordine", entrance: "Mostra questo biglietto all’ingresso, stampato o sul telefono. Ogni codice QR viene accettato una sola volta: non condividerlo.", poweredBy: "Biglietteria Evoly" },
-  pt: { ticket: (i: number, n: number) => `Bilhete ${i} de ${n}`, holder: "Titular", reference: "Encomenda", entrance: "Apresente este bilhete à entrada, impresso ou no telemóvel. Cada código QR só é aceite uma vez: não o partilhe.", poweredBy: "Bilheteira Evoly" },
-  nl: { ticket: (i: number, n: number) => `Ticket ${i} van ${n}`, holder: "Houder", reference: "Bestelling", entrance: "Toon dit ticket aan de ingang, afgedrukt of op je telefoon. Elke QR-code wordt maar één keer aanvaard: deel hem niet.", poweredBy: "Ticketverkoop door Evoly" },
+  fr: {
+    ticket: (i: number, n: number) => `Billet ${i} sur ${n}`,
+    holder: "Titulaire",
+    reference: "Commande",
+    entrance: "Présentez ce billet à l’entrée, imprimé ou sur votre téléphone. Chaque QR code n’est accepté qu’une fois : ne le partagez pas.",
+    poweredBy: "Billetterie Evoly",
+  },
+  en: {
+    ticket: (i: number, n: number) => `Ticket ${i} of ${n}`,
+    holder: "Holder",
+    reference: "Order",
+    entrance: "Show this ticket at the entrance, printed or on your phone. Each QR code is accepted only once: don’t share it.",
+    poweredBy: "Evoly ticketing",
+  },
+  es: {
+    ticket: (i: number, n: number) => `Entrada ${i} de ${n}`,
+    holder: "Titular",
+    reference: "Pedido",
+    entrance: "Presenta esta entrada en el acceso, impresa o en tu móvil. Cada código QR solo se acepta una vez: no lo compartas.",
+    poweredBy: "Venta de entradas Evoly",
+  },
+  de: {
+    ticket: (i: number, n: number) => `Ticket ${i} von ${n}`,
+    holder: "Inhaber",
+    reference: "Bestellung",
+    entrance: "Zeigen Sie dieses Ticket am Eingang vor, ausgedruckt oder auf dem Handy. Jeder QR-Code wird nur einmal akzeptiert: Geben Sie ihn nicht weiter.",
+    poweredBy: "Ticketing von Evoly",
+  },
+  it: {
+    ticket: (i: number, n: number) => `Biglietto ${i} di ${n}`,
+    holder: "Titolare",
+    reference: "Ordine",
+    entrance: "Mostra questo biglietto all’ingresso, stampato o sul telefono. Ogni codice QR viene accettato una sola volta: non condividerlo.",
+    poweredBy: "Biglietteria Evoly",
+  },
+  pt: {
+    ticket: (i: number, n: number) => `Bilhete ${i} de ${n}`,
+    holder: "Titular",
+    reference: "Encomenda",
+    entrance: "Apresente este bilhete à entrada, impresso ou no telemóvel. Cada código QR só é aceite uma vez: não o partilhe.",
+    poweredBy: "Bilheteira Evoly",
+  },
+  nl: {
+    ticket: (i: number, n: number) => `Ticket ${i} van ${n}`,
+    holder: "Houder",
+    reference: "Bestelling",
+    entrance: "Toon dit ticket aan de ingang, afgedrukt of op je telefoon. Elke QR-code wordt maar één keer aanvaard: deel hem niet.",
+    poweredBy: "Ticketverkoop door Evoly",
+  },
 } as const;
 
 /** PDF des billets d'une commande payée (une page par billet). */
 export async function ticketsPdfFor(
-  order: { reference: string; organizationId?: string; organization: { name: string }; event: { title: string; startsAt: Date; timezone: string; locationType: string; locationName: string | null; addressLine1: string | null; postalCode: string | null; city: string | null }; tickets: Array<{ code: string; shortCode: string; holderFirstName: string | null; holderLastName: string | null; ticketType: { name: string }; status?: string; voidReason?: string | null; seat?: { label: string; row: { name: string } } | null }> },
+  order: {
+    reference: string;
+    organizationId?: string;
+    organization: { name: string };
+    event: {
+      title: string;
+      startsAt: Date;
+      timezone: string;
+      locationType: string;
+      locationName: string | null;
+      addressLine1: string | null;
+      postalCode: string | null;
+      city: string | null;
+    };
+    tickets: Array<{
+      code: string;
+      shortCode: string;
+      holderFirstName: string | null;
+      holderLastName: string | null;
+      ticketType: { name: string };
+      status?: string;
+      voidReason?: string | null;
+      seat?: { label: string; row: { name: string } } | null;
+    }>;
+  },
   locale: Locale,
 ): Promise<Uint8Array> {
   const e = order.event;
   const brand = order.organizationId ? await emailBrandFor(order.organizationId) : null;
   const input: Parameters<typeof buildTicketsPdf>[0] = {
-    brand: brand ? { primary: brand.primary, primaryInk: brand.primaryInk, logo: await logoBytes(brand.logoUrl), showPoweredBy: brand.showPoweredBy } : undefined,
+    brand: brand
+      ? { primary: brand.primary, primaryInk: brand.primaryInk, logo: await logoBytes(brand.logoUrl), showPoweredBy: brand.showPoweredBy }
+      : undefined,
     organizationName: order.organization.name,
     eventTitle: e.title,
     when: formatDateTime(e.startsAt, e.timezone, locale),
     where: e.locationType === "ONLINE" ? null : [e.locationName, e.addressLine1, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
     reference: order.reference,
-    tickets: order.tickets.map((t) => ({ code: t.code, shortCode: t.shortCode, typeName: t.seat ? `${t.ticketType.name} · ${locale === "en" ? "Row" : "Rang"} ${t.seat.row.name} · ${locale === "en" ? "Seat" : "Place"} ${t.seat.label}` : t.ticketType.name, holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : null , invalidLabel: t.status && !["VALID", "CHECKED_IN"].includes(t.status) ? invalidTicketLabel(t.voidReason ?? t.status, locale) : null })),
+    tickets: order.tickets.map((t) => ({
+      code: t.code,
+      shortCode: t.shortCode,
+      typeName: t.seat
+        ? `${t.ticketType.name} · ${locale === "en" ? "Row" : "Rang"} ${t.seat.row.name} · ${locale === "en" ? "Seat" : "Place"} ${t.seat.label}`
+        : t.ticketType.name,
+      holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : null,
+      invalidLabel: t.status && !["VALID", "CHECKED_IN"].includes(t.status) ? invalidTicketLabel(t.voidReason ?? t.status, locale) : null,
+    })),
     labels: pick(PDF_LABELS, locale),
   };
   // RG-FILE-02 : PDF gardé en mémoire, indexé par l'empreinte de tout ce qui le compose (marque, logo, événement,
   // billets, langue) : un billet revendu, un titulaire changé ou un événement déplacé donnent un nouveau PDF
   const logoHash = input.brand?.logo ? createHash("sha256").update(input.brand.logo.bytes).digest("hex") : null;
-  const key = createHash("sha256").update(JSON.stringify({ ...input, brand: input.brand ? { ...input.brand, logo: logoHash } : null, labels: locale })).digest("hex");
+  const key = createHash("sha256")
+    .update(JSON.stringify({ ...input, brand: input.brand ? { ...input.brand, logo: logoHash } : null, labels: locale }))
+    .digest("hex");
   const hit = pdfCache.get(key);
   if (hit) {
     pdfCache.delete(key);
@@ -155,7 +242,12 @@ export async function stripeFeesForCharge(chargeId: string): Promise<boolean> {
  */
 export async function fillMissingStripeFees(now = new Date()): Promise<number> {
   const orders = await db.order.findMany({
-    where: { status: { in: ["PAID", "PARTIALLY_REFUNDED"] }, stripeChargeId: { not: null }, paymentFeeMinor: null, paidAt: { gte: new Date(now.getTime() - 3 * 86_400_000) } },
+    where: {
+      status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
+      stripeChargeId: { not: null },
+      paymentFeeMinor: null,
+      paidAt: { gte: new Date(now.getTime() - 3 * 86_400_000) },
+    },
     select: { id: true, stripeChargeId: true },
     orderBy: { paidAt: "desc" },
     take: 10,
@@ -170,7 +262,10 @@ export async function sendTicketsLookup(organizationId: string, email: string, l
   const now = new Date();
   const orders = await db.order.findMany({
     where: { organizationId, buyerEmail: email.trim().toLowerCase(), status: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
-    include: { event: { select: { title: true, startsAt: true, endsAt: true, timezone: true } }, organization: { select: { name: true, subdomain: true, slug: true } } },
+    include: {
+      event: { select: { title: true, startsAt: true, endsAt: true, timezone: true } },
+      organization: { select: { name: true, subdomain: true, slug: true } },
+    },
     orderBy: { createdAt: "desc" },
     take: 20,
   });
@@ -178,8 +273,25 @@ export async function sendTicketsLookup(organizationId: string, email: string, l
   if (upcoming.length === 0) return;
   const first = upcoming[0]!;
   const brand = await emailBrandFor(organizationId);
-  const mail = ticketsLookupEmail({ brand, locale, organizationName: first.organization.name, orders: upcoming.map((o) => ({ eventTitle: o.event.title, when: formatDateTime(o.event.startsAt, o.event.timezone, locale), url: ticketsUrl(o.organization, o.id, o.accessTokenVersion) })) });
-  await sendEmail({ ...mail, to: first.buyerEmail, template: "order.lookup", category: "TRANSACTIONAL", organizationId, fromName: brand.fromName, replyTo: brand.replyTo });
+  const mail = ticketsLookupEmail({
+    brand,
+    locale,
+    organizationName: first.organization.name,
+    orders: upcoming.map((o) => ({
+      eventTitle: o.event.title,
+      when: formatDateTime(o.event.startsAt, o.event.timezone, locale),
+      url: ticketsUrl(o.organization, o.id, o.accessTokenVersion),
+    })),
+  });
+  await sendEmail({
+    ...mail,
+    to: first.buyerEmail,
+    template: "order.lookup",
+    category: "TRANSACTIONAL",
+    organizationId,
+    fromName: brand.fromName,
+    replyTo: brand.replyTo,
+  });
 }
 
 /** Validation, puis effets de bord hors transaction : e-mail, ou remboursement d'un paiement non honoré. */
@@ -188,8 +300,21 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
   await sendOrderConfirmation(orderId).catch((err) => console.error("confirmation non envoyée", orderId, err));
   await settleResale(orderId).catch((err) => console.error("revente à régler", orderId, err));
   // section 9.20 : nouvelle commande (hors revente, signalée à part) et paliers de jauge
-  const o = await db.order.findUnique({ where: { id: orderId }, select: { id: true, reference: true, source: true, totalMinor: true, organizationId: true, eventId: true, event: { select: { title: true } }, _count: { select: { tickets: true } } } });
-  if (o && o.source === "ONLINE") { // billets offerts et reventes : pas de notification de vente
+  const o = await db.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      reference: true,
+      source: true,
+      totalMinor: true,
+      organizationId: true,
+      eventId: true,
+      event: { select: { title: true } },
+      _count: { select: { tickets: true } },
+    },
+  });
+  if (o && o.source === "ONLINE") {
+    // billets offerts et reventes : pas de notification de vente
     await notifyNewOrder(o.organizationId, { id: o.id, reference: o.reference, eventTitle: o.event.title, tickets: o._count.tickets });
     if (o.totalMinor > 0) await qualifyReferral(o.organizationId).catch((err) => console.error("parrainage", err instanceof Error ? err.message : "erreur"));
     await notifySalesMilestone(o.eventId);
@@ -199,7 +324,8 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
 export async function completeOrder(orderId: string, payment?: Parameters<typeof finalizeOrder>[1]): Promise<FinalizeOutcome> {
   const outcome = await finalizeOrder(orderId, payment);
   // frais réels relevés d'abord : le remboursement du vendeur en dépend (RG-FEE-51)
-  if (outcome === "PAID" && payment?.chargeId) await recordStripeFees(orderId, payment.chargeId).catch((err) => console.error("frais Stripe à relever", orderId, err));
+  if (outcome === "PAID" && payment?.chargeId)
+    await recordStripeFees(orderId, payment.chargeId).catch((err) => console.error("frais Stripe à relever", orderId, err));
   if (outcome === "PAID") await afterOrderPaid(orderId);
   if (outcome === "REFUND_REQUIRED") await refundUnfulfilledPayment(orderId).catch((err) => console.error("remboursement à reprendre", orderId, err));
   return outcome;
@@ -214,7 +340,13 @@ export async function syncPaymentFromStripe(orderId: string): Promise<void> {
   if (!account) return;
   const pi = await s.paymentIntents.retrieve(order.stripePaymentIntentId, {}, { stripeAccount: account.stripeAccountId });
   if (pi.status !== "succeeded") return;
-  await completeOrder(orderId, { paymentIntentId: pi.id, amountMinor: pi.amount_received, currency: pi.currency, chargeId: typeof pi.latest_charge === "string" ? pi.latest_charge : (pi.latest_charge?.id ?? null), paymentMethodType: pi.payment_method_types[0] ?? null });
+  await completeOrder(orderId, {
+    paymentIntentId: pi.id,
+    amountMinor: pi.amount_received,
+    currency: pi.currency,
+    chargeId: typeof pi.latest_charge === "string" ? pi.latest_charge : (pi.latest_charge?.id ?? null),
+    paymentMethodType: pi.payment_method_types[0] ?? null,
+  });
 }
 
 export async function getBuyerOrder(orderId: string) {
@@ -224,19 +356,57 @@ export async function getBuyerOrder(orderId: string) {
       event: true,
       organization: { select: { subdomain: true, slug: true } },
       items: { include: { ticketType: { select: { name: true } }, priceTier: { select: { name: true } } } },
-      tickets: { include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } }, orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }] },
+      tickets: {
+        include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } },
+        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
+      },
     },
   });
 }
 
 const INVALID_TICKET = {
-  fr: { RESOLD: "BILLET REVENDU · NON VALABLE", REFUNDED: "BILLET REMBOURSÉ · NON VALABLE", EVENT_CANCELLED: "ÉVÉNEMENT ANNULÉ · NON VALABLE", other: "BILLET NON VALABLE" },
-  en: { RESOLD: "TICKET RESOLD · NOT VALID", REFUNDED: "TICKET REFUNDED · NOT VALID", EVENT_CANCELLED: "EVENT CANCELLED · NOT VALID", other: "TICKET NOT VALID" },
-  es: { RESOLD: "ENTRADA REVENDIDA · NO VÁLIDA", REFUNDED: "ENTRADA REEMBOLSADA · NO VÁLIDA", EVENT_CANCELLED: "EVENTO CANCELADO · NO VÁLIDA", other: "ENTRADA NO VÁLIDA" },
-  de: { RESOLD: "TICKET WEITERVERKAUFT · UNGÜLTIG", REFUNDED: "TICKET ERSTATTET · UNGÜLTIG", EVENT_CANCELLED: "VERANSTALTUNG ABGESAGT · UNGÜLTIG", other: "TICKET UNGÜLTIG" },
-  it: { RESOLD: "BIGLIETTO RIVENDUTO · NON VALIDO", REFUNDED: "BIGLIETTO RIMBORSATO · NON VALIDO", EVENT_CANCELLED: "EVENTO ANNULLATO · NON VALIDO", other: "BIGLIETTO NON VALIDO" },
-  pt: { RESOLD: "BILHETE REVENDIDO · NÃO VÁLIDO", REFUNDED: "BILHETE REEMBOLSADO · NÃO VÁLIDO", EVENT_CANCELLED: "EVENTO CANCELADO · NÃO VÁLIDO", other: "BILHETE NÃO VÁLIDO" },
-  nl: { RESOLD: "TICKET DOORVERKOCHT · NIET GELDIG", REFUNDED: "TICKET TERUGBETAALD · NIET GELDIG", EVENT_CANCELLED: "EVENEMENT GEANNULEERD · NIET GELDIG", other: "TICKET NIET GELDIG" },
+  fr: {
+    RESOLD: "BILLET REVENDU · NON VALABLE",
+    REFUNDED: "BILLET REMBOURSÉ · NON VALABLE",
+    EVENT_CANCELLED: "ÉVÉNEMENT ANNULÉ · NON VALABLE",
+    other: "BILLET NON VALABLE",
+  },
+  en: {
+    RESOLD: "TICKET RESOLD · NOT VALID",
+    REFUNDED: "TICKET REFUNDED · NOT VALID",
+    EVENT_CANCELLED: "EVENT CANCELLED · NOT VALID",
+    other: "TICKET NOT VALID",
+  },
+  es: {
+    RESOLD: "ENTRADA REVENDIDA · NO VÁLIDA",
+    REFUNDED: "ENTRADA REEMBOLSADA · NO VÁLIDA",
+    EVENT_CANCELLED: "EVENTO CANCELADO · NO VÁLIDA",
+    other: "ENTRADA NO VÁLIDA",
+  },
+  de: {
+    RESOLD: "TICKET WEITERVERKAUFT · UNGÜLTIG",
+    REFUNDED: "TICKET ERSTATTET · UNGÜLTIG",
+    EVENT_CANCELLED: "VERANSTALTUNG ABGESAGT · UNGÜLTIG",
+    other: "TICKET UNGÜLTIG",
+  },
+  it: {
+    RESOLD: "BIGLIETTO RIVENDUTO · NON VALIDO",
+    REFUNDED: "BIGLIETTO RIMBORSATO · NON VALIDO",
+    EVENT_CANCELLED: "EVENTO ANNULLATO · NON VALIDO",
+    other: "BIGLIETTO NON VALIDO",
+  },
+  pt: {
+    RESOLD: "BILHETE REVENDIDO · NÃO VÁLIDO",
+    REFUNDED: "BILHETE REEMBOLSADO · NÃO VÁLIDO",
+    EVENT_CANCELLED: "EVENTO CANCELADO · NÃO VÁLIDO",
+    other: "BILHETE NÃO VÁLIDO",
+  },
+  nl: {
+    RESOLD: "TICKET DOORVERKOCHT · NIET GELDIG",
+    REFUNDED: "TICKET TERUGBETAALD · NIET GELDIG",
+    EVENT_CANCELLED: "EVENEMENT GEANNULEERD · NIET GELDIG",
+    other: "TICKET NIET GELDIG",
+  },
 };
 
 /** Mention d'un billet qui n'est plus valable, dans le PDF (section 9.12). */

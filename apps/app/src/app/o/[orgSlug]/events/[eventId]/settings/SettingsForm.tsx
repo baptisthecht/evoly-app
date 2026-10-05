@@ -49,9 +49,12 @@ export function SettingsForm({ orgSlug, eventId, values, readOnly }: { orgSlug: 
       setDirty(false);
     }, 1000);
   };
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
 
   const status = pending ? tc("saving") : dirty ? t("unsaved") : state?.ok ? tc("saved") : state && !state.ok ? t("notSaved") : "";
   // RG-EVT-10 : version suivie d'une sauvegarde à l'autre ; avertissement si un autre membre a enregistré entre-temps
@@ -60,7 +63,11 @@ export function SettingsForm({ orgSlug, eventId, values, readOnly }: { orgSlug: 
   return (
     <form ref={form} onChange={schedule} onSubmit={(e) => e.preventDefault()} className="grid gap-10" noValidate aria-describedby="save-status">
       <input type="hidden" name="version" value={version ?? ""} />
-      {concurrent ? <p role="alert" className="rounded-lg bg-warning-soft px-5 py-4 text-sm font-semibold text-warning">{t("concurrentEdit")}</p> : null}
+      {concurrent ? (
+        <p role="alert" className="rounded-lg bg-warning-soft px-5 py-4 text-sm font-semibold text-warning">
+          {t("concurrentEdit")}
+        </p>
+      ) : null}
       <div className="sticky top-[calc(env(safe-area-inset-top)+4.5rem)] z-10 -mb-6 flex justify-end lg:top-4">
         <p id="save-status" role="status" className="rounded-full bg-surface-raised px-3 py-1 text-sm font-semibold shadow-sm ring-1 ring-line">
           {status || t("autosave")}
@@ -97,8 +104,20 @@ export function SettingsForm({ orgSlug, eventId, values, readOnly }: { orgSlug: 
             </Select>
           </Field>
           {visibility === "PRIVATE" ? (
-            <Field label={t("accessCode")} htmlFor="accessCode" hint={values.hasAccessCode ? t("accessCodeKeep") : t("accessCodeHint")} error={error("accessCode")}>
-              <Input id="accessCode" name="accessCode" autoComplete="off" className="font-mono uppercase" maxLength={32} placeholder={values.hasAccessCode ? "••••••" : "GALA2026"} />
+            <Field
+              label={t("accessCode")}
+              htmlFor="accessCode"
+              hint={values.hasAccessCode ? t("accessCodeKeep") : t("accessCodeHint")}
+              error={error("accessCode")}
+            >
+              <Input
+                id="accessCode"
+                name="accessCode"
+                autoComplete="off"
+                className="font-mono uppercase"
+                maxLength={32}
+                placeholder={values.hasAccessCode ? "••••••" : "GALA2026"}
+              />
             </Field>
           ) : null}
         </fieldset>
@@ -106,7 +125,12 @@ export function SettingsForm({ orgSlug, eventId, values, readOnly }: { orgSlug: 
         <fieldset className="grid gap-5">
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionRefunds")}</legend>
           <Field label={t("refundPolicy")} htmlFor="refundPolicy">
-            <Select id="refundPolicy" name="refundPolicy" value={refundPolicy} onChange={(e) => setRefundPolicy(e.target.value as SettingsValues["refundPolicy"])}>
+            <Select
+              id="refundPolicy"
+              name="refundPolicy"
+              value={refundPolicy}
+              onChange={(e) => setRefundPolicy(e.target.value as SettingsValues["refundPolicy"])}
+            >
               {(["ON_REQUEST", "UNTIL_DEADLINE", "ALWAYS", "NON_REFUNDABLE"] as const).map((p) => (
                 <option key={p} value={p}>
                   {t(`refund_${p}`)}
@@ -124,7 +148,13 @@ export function SettingsForm({ orgSlug, eventId, values, readOnly }: { orgSlug: 
         <fieldset className="grid gap-5">
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionResale")}</legend>
           <label className="flex items-center gap-3">
-            <input type="checkbox" name="resaleEnabled" checked={resaleEnabled} onChange={(e) => setResaleEnabled(e.target.checked)} className="size-5 accent-[var(--ink)]" />
+            <input
+              type="checkbox"
+              name="resaleEnabled"
+              checked={resaleEnabled}
+              onChange={(e) => setResaleEnabled(e.target.checked)}
+              className="size-5 accent-[var(--ink)]"
+            />
             {t("resaleEnabled")}
           </label>
           <input type="hidden" name="resaleCutoffMinutes" value={values.resaleCutoffHours * 60} />

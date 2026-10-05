@@ -21,9 +21,14 @@ export default async function OrgHome({ params }: { params: Promise<{ orgSlug: s
   const since = new Date(Date.now() - 30 * 86_400_000);
   const [events, paid] = await Promise.all([
     db.event.count({ where: { organizationId: ctx.organization.id, status: { in: ["PUBLISHED", "SALES_PAUSED"] }, deletedAt: null } }),
-    db.order.aggregate({ where: { organizationId: ctx.organization.id, status: { in: ["PAID", "PARTIALLY_REFUNDED"] }, paidAt: { gte: since } }, _sum: { totalMinor: true, applicationFeeMinor: true, paymentFeeMinor: true, refundedMinor: true } }),
+    db.order.aggregate({
+      where: { organizationId: ctx.organization.id, status: { in: ["PAID", "PARTIALLY_REFUNDED"] }, paidAt: { gte: since } },
+      _sum: { totalMinor: true, applicationFeeMinor: true, paymentFeeMinor: true, refundedMinor: true },
+    }),
   ]);
-  const tickets = await db.ticket.count({ where: { event: { organizationId: ctx.organization.id }, status: { in: ["VALID", "CHECKED_IN"] }, createdAt: { gte: since } } });
+  const tickets = await db.ticket.count({
+    where: { event: { organizationId: ctx.organization.id }, status: { in: ["VALID", "CHECKED_IN"] }, createdAt: { gte: since } },
+  });
   const s = paid._sum;
   const net = (s.totalMinor ?? 0) - (s.refundedMinor ?? 0) - (s.applicationFeeMinor ?? 0) - (s.paymentFeeMinor ?? 0);
   const showMoney = can(ctx.membership, "FINANCE_VIEW");

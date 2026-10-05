@@ -22,9 +22,15 @@ export default async function EventsPage({ params }: { params: Promise<{ orgSlug
   const events = await listEvents(ctx.organization.id);
   const now = Date.now();
   const groups = [
-    { key: "upcoming", items: events.filter((e) => e.status !== "DRAFT" && e.startsAt.getTime() >= now && !["ENDED", "ARCHIVED", "CANCELLED"].includes(e.status)) },
+    {
+      key: "upcoming",
+      items: events.filter((e) => e.status !== "DRAFT" && e.startsAt.getTime() >= now && !["ENDED", "ARCHIVED", "CANCELLED"].includes(e.status)),
+    },
     { key: "drafts", items: events.filter((e) => e.status === "DRAFT") },
-    { key: "past", items: events.filter((e) => e.status !== "DRAFT" && (e.startsAt.getTime() < now || ["ENDED", "ARCHIVED", "CANCELLED"].includes(e.status))).reverse() },
+    {
+      key: "past",
+      items: events.filter((e) => e.status !== "DRAFT" && (e.startsAt.getTime() < now || ["ENDED", "ARCHIVED", "CANCELLED"].includes(e.status))).reverse(),
+    },
   ] as const;
   const canCreate = can(ctx.membership, "EVENTS_CREATE") && !ctx.readOnly;
   return (
@@ -34,7 +40,16 @@ export default async function EventsPage({ params }: { params: Promise<{ orgSlug
         {canCreate ? <ButtonLink href={`/o/${orgSlug}/events/new`}>{t("newEvent")}</ButtonLink> : null}
       </header>
       {events.length === 0 ? (
-        <EmptyState title={t("emptyTitle")} action={canCreate ? <ButtonLink href={`/o/${orgSlug}/events/new`} size="lg">{t("newEvent")}</ButtonLink> : null}>
+        <EmptyState
+          title={t("emptyTitle")}
+          action={
+            canCreate ? (
+              <ButtonLink href={`/o/${orgSlug}/events/new`} size="lg">
+                {t("newEvent")}
+              </ButtonLink>
+            ) : null
+          }
+        >
           {t("emptyBody")}
         </EmptyState>
       ) : (
@@ -60,7 +75,9 @@ export default async function EventsPage({ params }: { params: Promise<{ orgSlug
                             {e.city ? ` · ${e.city}` : e.locationType === "ONLINE" ? ` · ${t("locationType_ONLINE")}` : ""}
                           </p>
                         </div>
-                        <p className="font-label text-sm font-bold tabular-nums sm:text-right">{e.total != null ? t("soldOf", { sold: e.sold, total: e.total }) : t("soldCount", { sold: e.sold })}</p>
+                        <p className="font-label text-sm font-bold tabular-nums sm:text-right">
+                          {e.total != null ? t("soldOf", { sold: e.sold, total: e.total }) : t("soldCount", { sold: e.sold })}
+                        </p>
                       </Card>
                     </Link>
                   </li>

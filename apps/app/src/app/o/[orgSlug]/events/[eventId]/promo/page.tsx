@@ -22,9 +22,15 @@ export default async function PromoPage({ params }: { params: Promise<{ orgSlug:
   const locale = (await getLocale()) as Locale;
   const manage = can(ctx.membership, "PROMO_MANAGE") && !ctx.readOnly && hasFeature(ctx.features, "PROMO_CODES");
   const names = new Map(event.ticketTypes.map((tt) => [tt.id, tt.name]));
-  const symbol = new Intl.NumberFormat("fr-BE", { style: "currency", currency: event.currency }).formatToParts(0).find((p) => p.type === "currency")?.value ?? event.currency;
+  const symbol =
+    new Intl.NumberFormat("fr-BE", { style: "currency", currency: event.currency }).formatToParts(0).find((p) => p.type === "currency")?.value ??
+    event.currency;
   const value = (p: (typeof promos)[number]) =>
-    p.discountType === "FREE" ? t("type_FREE") : p.discountType === "PERCENT" ? `−${(p.percentOffBps ?? 0) / 100} %` : `−${formatMoney(p.amountOffMinor ?? 0, event.currency, locale, { trimZeroCents: true })} ${t("perTicket")}`;
+    p.discountType === "FREE"
+      ? t("type_FREE")
+      : p.discountType === "PERCENT"
+        ? `−${(p.percentOffBps ?? 0) / 100} %`
+        : `−${formatMoney(p.amountOffMinor ?? 0, event.currency, locale, { trimZeroCents: true })} ${t("perTicket")}`;
   return (
     <div className="grid max-w-4xl gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
@@ -49,7 +55,13 @@ export default async function PromoPage({ params }: { params: Promise<{ orgSlug:
               </div>
               {manage ? (
                 <div className="flex flex-wrap gap-2">
-                  <PromoCommand orgSlug={orgSlug} eventId={eventId} promoId={p.id} command={p.isActive ? "deactivate" : "activate"} label={p.isActive ? t("deactivate") : t("activate")} />
+                  <PromoCommand
+                    orgSlug={orgSlug}
+                    eventId={eventId}
+                    promoId={p.id}
+                    command={p.isActive ? "deactivate" : "activate"}
+                    label={p.isActive ? t("deactivate") : t("activate")}
+                  />
                   {p.usedCount === 0 ? <PromoCommand orgSlug={orgSlug} eventId={eventId} promoId={p.id} command="delete" label={t("delete")} /> : null}
                 </div>
               ) : null}
@@ -57,7 +69,14 @@ export default async function PromoPage({ params }: { params: Promise<{ orgSlug:
           </li>
         ))}
       </ul>
-      {manage ? <PromoForm orgSlug={orgSlug} eventId={eventId} ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name, codeOnly: tt.visibility === "CODE_ONLY" }))} currencySymbol={symbol} /> : null}
+      {manage ? (
+        <PromoForm
+          orgSlug={orgSlug}
+          eventId={eventId}
+          ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name, codeOnly: tt.visibility === "CODE_ONLY" }))}
+          currencySymbol={symbol}
+        />
+      ) : null}
     </div>
   );
 }

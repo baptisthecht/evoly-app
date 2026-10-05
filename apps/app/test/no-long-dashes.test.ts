@@ -11,9 +11,15 @@ const BINARY = /\.(png|jpe?g|webp|gif|ico|woff2?|ttf|otf|pdf|zip|gz|pkpass|mp4|w
 
 describe("typographie", () => {
   it("aucun tiret long ni moyen : uniquement des tirets normaux", () => {
-    const files = execSync("git ls-files", { cwd: ROOT, encoding: "utf-8" }).split("\n").filter((p) => p && !p.startsWith("legacy/") && !p.includes("/prisma/migrations/") && !BINARY.test(p));
+    const files = execSync("git ls-files", { cwd: ROOT, encoding: "utf-8" })
+      .split("\n")
+      .filter((p) => p && !p.startsWith("legacy/") && !p.includes("/prisma/migrations/") && !BINARY.test(p));
     const found = files.filter((p) => {
-      try { return /[\u2013\u2014]/.test(readFileSync(`${ROOT}/${p}`, "utf-8")); } catch { return false; }
+      try {
+        return /[\u2013\u2014]/.test(readFileSync(`${ROOT}/${p}`, "utf-8"));
+      } catch {
+        return false;
+      }
     });
     expect(found, "remplacer par un tiret normal (-)").toEqual([]);
   });

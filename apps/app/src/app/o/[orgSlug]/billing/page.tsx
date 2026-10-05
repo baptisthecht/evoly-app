@@ -15,7 +15,17 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("billing") };
 }
 
-const COMPARED: PlanFeature[] = ["DYNAMIC_PRICING", "BRANDING", "REMOVE_EVOLY_BRANDING", "TEAM_MEMBERS", "CUSTOM_ROLES", "MULTI_ORGANIZATIONS", "EMAIL_MARKETING", "CUSTOM_DOMAINS", "EVENT_SUBDOMAINS"];
+const COMPARED: PlanFeature[] = [
+  "DYNAMIC_PRICING",
+  "BRANDING",
+  "REMOVE_EVOLY_BRANDING",
+  "TEAM_MEMBERS",
+  "CUSTOM_ROLES",
+  "MULTI_ORGANIZATIONS",
+  "EMAIL_MARKETING",
+  "CUSTOM_DOMAINS",
+  "EVENT_SUBDOMAINS",
+];
 
 /** Section 9.21 : offre actuelle, statut, essai, portail client, rappel des effets d'un retour en Free. */
 export default async function BillingPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ checkout?: string }> }) {
@@ -33,9 +43,17 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
   const status = !sub || !isPro ? "FREE" : sub.cancelAtPeriodEnd || sub.status === "CANCELED" ? "ENDING" : sub.status;
   const statusLine =
     status === "TRIALING" && sub?.trialEndsAt
-      ? t("statusTrial", { date: formatDate(sub.trialEndsAt, tz, locale), price: money(state.prices[sub.interval ?? "MONTH"]), interval: t(`per_${sub.interval ?? "MONTH"}`) })
+      ? t("statusTrial", {
+          date: formatDate(sub.trialEndsAt, tz, locale),
+          price: money(state.prices[sub.interval ?? "MONTH"]),
+          interval: t(`per_${sub.interval ?? "MONTH"}`),
+        })
       : status === "ACTIVE" && sub?.currentPeriodEnd
-        ? t("statusActive", { date: formatDate(sub.currentPeriodEnd, tz, locale), price: money(state.prices[sub.interval ?? "MONTH"]), interval: t(`per_${sub.interval ?? "MONTH"}`) })
+        ? t("statusActive", {
+            date: formatDate(sub.currentPeriodEnd, tz, locale),
+            price: money(state.prices[sub.interval ?? "MONTH"]),
+            interval: t(`per_${sub.interval ?? "MONTH"}`),
+          })
         : (status === "PAST_DUE" || status === "UNPAID") && state.daysBeforeDowngrade != null
           ? t("statusPastDue", { count: state.daysBeforeDowngrade })
           : status === "ENDING" && sub?.currentPeriodEnd
@@ -44,14 +62,24 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
   return (
     <div className="grid max-w-4xl gap-6">
       <h1 className="page-title">{t("title")}</h1>
-      {checkout === "success" ? <p className="rounded-lg bg-success-soft px-5 py-4 text-success" role="status">{t("checkoutSuccess")}</p> : null}
-      {checkout === "cancel" ? <p className="rounded-lg bg-surface-sunken px-5 py-4" role="status">{t("checkoutCancel")}</p> : null}
+      {checkout === "success" ? (
+        <p className="rounded-lg bg-success-soft px-5 py-4 text-success" role="status">
+          {t("checkoutSuccess")}
+        </p>
+      ) : null}
+      {checkout === "cancel" ? (
+        <p className="rounded-lg bg-surface-sunken px-5 py-4" role="status">
+          {t("checkoutCancel")}
+        </p>
+      ) : null}
       {ctx.readOnly ? <p className="rounded-lg bg-warning-soft px-5 py-4 text-warning">{t("readOnlyNotice")}</p> : null}
 
       <Card className="grid gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <h2 className="font-display text-3xl tracking-[-0.04em]">{isPro ? "Pro" : "Free"}</h2>
-          <Badge tone={status === "FREE" ? "neutral" : status === "PAST_DUE" || status === "UNPAID" ? "danger" : status === "ENDING" ? "warning" : "success"}>{t(`badge_${status}`)}</Badge>
+          <Badge tone={status === "FREE" ? "neutral" : status === "PAST_DUE" || status === "UNPAID" ? "danger" : status === "ENDING" ? "warning" : "success"}>
+            {t(`badge_${status}`)}
+          </Badge>
         </div>
         <p>{statusLine}</p>
         {manage ? (
@@ -85,8 +113,12 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
                 <th scope="col" className="pb-2 font-label text-xs font-bold">
                   <span className="sr-only">{t("feature")}</span>
                 </th>
-                <th scope="col" className="pb-2 text-center font-label text-xs font-bold">Free</th>
-                <th scope="col" className="pb-2 text-center font-label text-xs font-bold">Pro</th>
+                <th scope="col" className="pb-2 text-center font-label text-xs font-bold">
+                  Free
+                </th>
+                <th scope="col" className="pb-2 text-center font-label text-xs font-bold">
+                  Pro
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -121,7 +153,7 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
         </div>
         <p className="text-xs text-ink-muted">{t("pricesTtc")}</p>
       </Card>
-      {can(ctx.membership, "BILLING_MANAGE") ? <ReferralCard {...(await referralLink(ctx.organization.id))} /> : null}
+      {can(ctx.membership, "BILLING_MANAGE") ? <ReferralCard {...await referralLink(ctx.organization.id)} /> : null}
     </div>
   );
 }

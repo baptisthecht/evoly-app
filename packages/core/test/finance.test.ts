@@ -16,7 +16,15 @@ describe("finances (US-FIN-01)", () => {
   it("revente neutre pour l'organisateur (RG-RSL-12)", () => {
     // acheteur : 2000 payés, commission 45, frais 55 ; vendeur remboursé 2000 − 45 − 55 = 1900 sur sa commande d'origine
     const buyer = { eventId: "a", status: "PAID", totalMinor: 2000, refundedMinor: 0, applicationFeeMinor: 45, paymentFeeMinor: 55, tickets: 1 };
-    const sellerRefundOnly = { eventId: "a", status: "PARTIALLY_REFUNDED", totalMinor: 0, refundedMinor: 1900, applicationFeeMinor: 0, paymentFeeMinor: 0, tickets: 0 };
+    const sellerRefundOnly = {
+      eventId: "a",
+      status: "PARTIALLY_REFUNDED",
+      totalMinor: 0,
+      refundedMinor: 1900,
+      applicationFeeMinor: 0,
+      paymentFeeMinor: 0,
+      tickets: 0,
+    };
     expect(financeTotals([buyer, sellerRefundOnly]).netMinor).toBe(0);
   });
   it("regroupement par événement", () => {

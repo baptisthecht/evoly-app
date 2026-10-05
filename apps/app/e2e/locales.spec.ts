@@ -10,7 +10,10 @@ test("acheteur espagnol : page d'événement, commande et confirmation en espagn
   await expect(guest.locator("html")).toHaveAttribute("lang", "es");
   const tickets = guest.locator("#billets");
   await expect(tickets.getByRole("heading", { name: "Entradas" })).toBeVisible();
-  await tickets.getByRole("button", { name: /^Una entrada .+ más$/ }).first().click();
+  await tickets
+    .getByRole("button", { name: /^Una entrada .+ más$/ })
+    .first()
+    .click();
   await tickets.getByRole("button", { name: "Continuar" }).click();
   await expect(tickets.getByLabel("Dirección de e-mail")).toBeVisible({ timeout: 20_000 }); // réservation côté serveur : plus lente sous charge
   await tickets.getByLabel("Nombre", { exact: true }).fill("Ana");

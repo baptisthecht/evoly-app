@@ -9,5 +9,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgSlug
   const ctx = await orgContextFromSession(orgSlug);
   if (!ctx) return new Response("Introuvable", { status: 404 });
   if (!can(ctx.membership, "CONTACTS_EXPORT")) return new Response("Accès refusé", { status: 403 });
-  return new Response(await contactsCsv(ctx), { headers: { "content-type": "text/csv; charset=utf-8", "content-disposition": `attachment; filename="contacts-${ctx.organization.slug}.csv"`, "cache-control": "private, no-store" } });
+  return new Response(await contactsCsv(ctx), {
+    headers: {
+      "content-type": "text/csv; charset=utf-8",
+      "content-disposition": `attachment; filename="contacts-${ctx.organization.slug}.csv"`,
+      "cache-control": "private, no-store",
+    },
+  });
 }

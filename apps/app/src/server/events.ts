@@ -10,7 +10,9 @@ import {
   publicationBlockers,
   slugify,
   uniqueSlug,
-  zonedLocalToUtc, normalizeAccessCode } from "@evoly/core";
+  zonedLocalToUtc,
+  normalizeAccessCode,
+} from "@evoly/core";
 import { Prisma } from "@evoly/db";
 import { currencyExponent } from "@evoly/i18n";
 import { db } from "@/lib/db";
@@ -206,13 +208,23 @@ export async function updateEventSettings(ctx: OrgContext, eventId: string, inpu
   }
   if (majorChange) {
     // Les e-mails aux acheteurs (anciennes et nouvelles valeurs) partiront avec la file d'envoi (étape 6).
-    await audit({ action: "event.major_change", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Event", targetId: event.id, metadata: { previousStartsAt: event.startsAt.toISOString(), startsAt: startsAt.toISOString() } });
+    await audit({
+      action: "event.major_change",
+      organizationId: ctx.organization.id,
+      actorUserId: ctx.user.id,
+      targetType: "Event",
+      targetId: event.id,
+      metadata: { previousStartsAt: event.startsAt.toISOString(), startsAt: startsAt.toISOString() },
+    });
   }
   return Object.assign(updated, { concurrent });
 }
 
 async function blockersFor(ctx: OrgContext, eventId: string, startsAt: Date) {
-  const active = await db.ticketType.findMany({ where: { eventId, status: "ACTIVE" }, select: { priceMinor: true, priceTiers: { select: { priceMinor: true } } } });
+  const active = await db.ticketType.findMany({
+    where: { eventId, status: "ACTIVE" },
+    select: { priceMinor: true, priceTiers: { select: { priceMinor: true } } },
+  });
   return publicationBlockers({
     activeTicketTypes: active.length,
     hasPaidTicketTypes: active.some((t) => t.priceMinor > 0 || t.priceTiers.some((p) => p.priceMinor > 0)),
@@ -234,7 +246,13 @@ export async function publishEvent(ctx: OrgContext, eventId: string) {
   const blockers = await blockersFor(ctx, eventId, event.startsAt);
   if (blockers.length > 0) throw new CoreError(`PUBLISH_${blockers[0]}`);
   await db.event.update({ where: { id: event.id }, data: { status: "PUBLISHED", publishedAt: event.publishedAt ?? new Date() } });
-  await audit({ action: event.status === "DRAFT" ? "event.published" : "event.sales_resumed", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Event", targetId: event.id });
+  await audit({
+    action: event.status === "DRAFT" ? "event.published" : "event.sales_resumed",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Event",
+    targetId: event.id,
+  });
 }
 
 export async function pauseSales(ctx: OrgContext, eventId: string) {
@@ -314,12 +332,28 @@ export async function duplicateEvent(ctx: OrgContext, eventId: string) {
               isNominative: t.isNominative,
               requireHolderEmail: t.requireHolderEmail,
               resaleAllowed: t.resaleAllowed,
-              priceTiers: { create: t.priceTiers.map((p) => ({ name: p.name, priceMinor: p.priceMinor, startsAt: p.startsAt, endsAt: p.endsAt, quantityLimit: p.quantityLimit, sortOrder: p.sortOrder })) },
+              priceTiers: {
+                create: t.priceTiers.map((p) => ({
+                  name: p.name,
+                  priceMinor: p.priceMinor,
+                  startsAt: p.startsAt,
+                  endsAt: p.endsAt,
+                  quantityLimit: p.quantityLimit,
+                  sortOrder: p.sortOrder,
+                })),
+              },
             })),
           },
         },
       });
-      await audit({ action: "event.duplicated", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Event", targetId: copy.id, metadata: { sourceId: source.id } });
+      await audit({
+        action: "event.duplicated",
+        organizationId: ctx.organization.id,
+        actorUserId: ctx.user.id,
+        targetType: "Event",
+        targetId: copy.id,
+        metadata: { sourceId: source.id },
+      });
       return copy;
     } catch (err) {
       if (!isUniqueViolation(err) || attempt === 4) throw err;
@@ -334,13 +368,31 @@ export async function deleteDraft(ctx: OrgContext, eventId: string) {
   if (event.status !== "DRAFT") throw new CoreError("ONLY_DRAFTS_CAN_BE_DELETED");
   if ((await db.order.count({ where: { eventId } })) > 0) throw new CoreError("EVENT_HAS_ORDERS");
   await db.event.delete({ where: { id: event.id } });
-  await audit({ action: "event.deleted", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Event", targetId: event.id, metadata: { title: event.title } });
+  await audit({
+    action: "event.deleted",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Event",
+    targetId: event.id,
+    metadata: { title: event.title },
+  });
 }
 
 export async function listEvents(organizationId: string) {
   const events = await db.event.findMany({
     where: { organizationId, deletedAt: null },
-    select: { id: true, title: true, slug: true, status: true, startsAt: true, timezone: true, capacity: true, city: true, locationType: true, ticketTypes: { select: { quantitySold: true, quantity: true } } },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      status: true,
+      startsAt: true,
+      timezone: true,
+      capacity: true,
+      city: true,
+      locationType: true,
+      ticketTypes: { select: { quantitySold: true, quantity: true } },
+    },
     orderBy: { startsAt: "asc" },
   });
   return events.map((e) => ({

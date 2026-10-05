@@ -6,8 +6,20 @@ import { attachReferral, qualifyReferral, referralLink } from "@/server/referral
 const rid = () => Math.random().toString(36).slice(2, 10);
 async function orgOwnedBy(userId: string, label: string) {
   const id = rid();
-  const org = await db.organization.create({ data: { name: `${label} ${id}`, slug: `${label}-${id}`, subdomain: `${label}-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-  await db.organizationMember.create({ data: { organizationId: org.id, userId, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id } });
+  const org = await db.organization.create({
+    data: {
+      name: `${label} ${id}`,
+      slug: `${label}-${id}`,
+      subdomain: `${label}-${id}`,
+      country: "BE",
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      locale: "fr",
+    },
+  });
+  await db.organizationMember.create({
+    data: { organizationId: org.id, userId, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id },
+  });
   return org;
 }
 const user = (n: string) => db.user.create({ data: { name: n, email: `${n}.${rid()}@exemple.be`, emailVerified: true } });

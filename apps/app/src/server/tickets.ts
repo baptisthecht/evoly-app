@@ -1,5 +1,15 @@
 import "server-only";
-import { canDeleteTicketType, canEditBasePrice, canEditTierPrice, canSetQuantity, CoreError, hasFeature, tierCalendarIssues, zonedLocalToUtc, type TierIssue } from "@evoly/core";
+import {
+  canDeleteTicketType,
+  canEditBasePrice,
+  canEditTierPrice,
+  canSetQuantity,
+  CoreError,
+  hasFeature,
+  tierCalendarIssues,
+  zonedLocalToUtc,
+  type TierIssue,
+} from "@evoly/core";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
@@ -128,14 +138,27 @@ export async function deleteTicketType(ctx: OrgContext, eventId: string, ticketT
   const tt = await findTicketType(eventId, ticketTypeId);
   if (!canDeleteTicketType(tt)) throw new CoreError("TICKET_TYPE_HAS_SALES");
   await db.ticketType.delete({ where: { id: tt.id } });
-  await audit({ action: "ticket_type.deleted", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "TicketType", targetId: tt.id, metadata: { name: tt.name } });
+  await audit({
+    action: "ticket_type.deleted",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "TicketType",
+    targetId: tt.id,
+    metadata: { name: tt.name },
+  });
 }
 
 export async function setTicketTypeStatus(ctx: OrgContext, eventId: string, ticketTypeId: string, status: "ACTIVE" | "PAUSED" | "ARCHIVED") {
   await editableEvent(ctx, eventId);
   const tt = await findTicketType(eventId, ticketTypeId);
   await db.ticketType.update({ where: { id: tt.id }, data: { status } });
-  await audit({ action: `ticket_type.${status.toLowerCase()}`, organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "TicketType", targetId: tt.id });
+  await audit({
+    action: `ticket_type.${status.toLowerCase()}`,
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "TicketType",
+    targetId: tt.id,
+  });
 }
 
 /** RG-TKT-04 : ordre d'affichage (monter ou descendre d'un cran). */
@@ -178,11 +201,31 @@ export async function saveTiers(ctx: OrgContext, eventId: string, ticketTypeId: 
     db.priceTier.deleteMany({ where: { ticketTypeId, id: { notIn: [...keptIds] } } }),
     ...rows.map((r) =>
       r.id
-        ? db.priceTier.update({ where: { id: r.id }, data: { name: r.name, priceMinor: r.priceMinor, startsAt: r.startsAt, endsAt: r.endsAt, quantityLimit: r.quantityLimit, sortOrder: r.sortOrder } })
-        : db.priceTier.create({ data: { ticketTypeId, name: r.name, priceMinor: r.priceMinor, startsAt: r.startsAt, endsAt: r.endsAt, quantityLimit: r.quantityLimit, sortOrder: r.sortOrder } }),
+        ? db.priceTier.update({
+            where: { id: r.id },
+            data: { name: r.name, priceMinor: r.priceMinor, startsAt: r.startsAt, endsAt: r.endsAt, quantityLimit: r.quantityLimit, sortOrder: r.sortOrder },
+          })
+        : db.priceTier.create({
+            data: {
+              ticketTypeId,
+              name: r.name,
+              priceMinor: r.priceMinor,
+              startsAt: r.startsAt,
+              endsAt: r.endsAt,
+              quantityLimit: r.quantityLimit,
+              sortOrder: r.sortOrder,
+            },
+          }),
     ),
   ]);
-  await audit({ action: "ticket_type.tiers_saved", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "TicketType", targetId: ticketTypeId, metadata: { count: rows.length } });
+  await audit({
+    action: "ticket_type.tiers_saved",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "TicketType",
+    targetId: ticketTypeId,
+    metadata: { count: rows.length },
+  });
   const saved = await db.priceTier.findMany({ where: { ticketTypeId } });
   return { issues: tierCalendarIssues(saved) };
 }

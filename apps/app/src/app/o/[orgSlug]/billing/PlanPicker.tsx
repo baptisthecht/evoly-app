@@ -8,7 +8,17 @@ import { cn } from "@/components/ui/cn";
 import { checkoutAction, portalAction } from "./actions";
 
 /** Free : choix mensuel ou annuel, puis Stripe Checkout (RG-SUB-02). */
-export function PlanPicker({ orgSlug, prices, currency, trial }: { orgSlug: string; prices: { MONTH: number; YEAR: number }; currency: string; trial: boolean }) {
+export function PlanPicker({
+  orgSlug,
+  prices,
+  currency,
+  trial,
+}: {
+  orgSlug: string;
+  prices: { MONTH: number; YEAR: number };
+  currency: string;
+  trial: boolean;
+}) {
   const t = useTranslations("billing");
   const locale = useLocale() as Locale;
   const [interval, setInterval] = useState<"MONTH" | "YEAR">("YEAR");
@@ -20,11 +30,19 @@ export function PlanPicker({ orgSlug, prices, currency, trial }: { orgSlug: stri
     <form action={action} className="grid gap-4">
       <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label={t("interval")}>
         {(["MONTH", "YEAR"] as const).map((i) => (
-          <label key={i} className={cn("grid cursor-pointer gap-1 rounded-lg p-4 ring-1 ring-line-strong", "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:ring-0")}>
+          <label
+            key={i}
+            className={cn(
+              "grid cursor-pointer gap-1 rounded-lg p-4 ring-1 ring-line-strong",
+              "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:ring-0",
+            )}
+          >
             <input type="radio" name="interval" value={i} checked={interval === i} onChange={() => setInterval(i)} className="sr-only" />
             <span className="flex items-center justify-between gap-2 font-semibold">
               {t(`interval_${i}`)}
-              {i === "YEAR" ? <span className="rounded-full bg-[var(--evoly-rose)] px-2 py-0.5 text-xs font-bold text-[var(--evoly-charbon)]">−{saving} %</span> : null}
+              {i === "YEAR" ? (
+                <span className="rounded-full bg-[var(--evoly-rose)] px-2 py-0.5 text-xs font-bold text-[var(--evoly-charbon)]">−{saving} %</span>
+              ) : null}
             </span>
             <span className="font-display text-2xl tabular-nums">{money(prices[i])}</span>
             <span className="text-sm opacity-80">{i === "MONTH" ? t("perMonth") : t("perYear", { perMonth: money(perMonth) })}</span>

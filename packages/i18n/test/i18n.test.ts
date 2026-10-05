@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { currencyExponent, flattenKeys, formatBps, formatDate, formatDateTime, formatMoney, formatTime, fromMinor, isLocale, MESSAGES, negotiateLocale, timeZoneLabel, PARTIAL_MESSAGES } from "../src";
+import {
+  currencyExponent,
+  flattenKeys,
+  formatBps,
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  formatTime,
+  fromMinor,
+  isLocale,
+  MESSAGES,
+  negotiateLocale,
+  timeZoneLabel,
+  PARTIAL_MESSAGES,
+} from "../src";
 
 const nbsp = (s: string) => s.replace(/[\u00a0\u202f]/g, " ");
 
@@ -60,8 +74,14 @@ describe("messages", () => {
     const fr = new Set(flattenKeys(MESSAGES.fr));
     for (const [locale, own] of Object.entries(PARTIAL_MESSAGES)) {
       const keys = new Set(flattenKeys(own));
-      expect([...keys].filter((k) => !fr.has(k)), `${locale} : clés inconnues`).toEqual([]);
-      expect([...fr].filter((k) => !keys.has(k)), `${locale} : clés à traduire`).toEqual([]);
+      expect(
+        [...keys].filter((k) => !fr.has(k)),
+        `${locale} : clés inconnues`,
+      ).toEqual([]);
+      expect(
+        [...fr].filter((k) => !keys.has(k)),
+        `${locale} : clés à traduire`,
+      ).toEqual([]);
     }
   });
   it("aucun message vide", () => {

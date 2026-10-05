@@ -8,17 +8,39 @@ export type LockedFeature = "SEATING_MAPS" | "EMAIL_MARKETING";
  * Fonction Pro montrée en offre gratuite : nom, bénéfice, aperçu grisé et non interactif, et accès à l'abonnement
  * (ou invitation à demander au propriétaire). Une fonction cachée ne se découvre pas ; une fonction grisée se vend.
  */
-export async function ProLocked({ orgSlug, feature, canUpgrade, preview }: { orgSlug: string; feature: LockedFeature; canUpgrade: boolean; preview?: ReactNode }) {
+export async function ProLocked({
+  orgSlug,
+  feature,
+  canUpgrade,
+  preview,
+}: {
+  orgSlug: string;
+  feature: LockedFeature;
+  canUpgrade: boolean;
+  preview?: ReactNode;
+}) {
   const t = await getTranslations("proLocked");
   const id = `pro-${feature.toLowerCase()}`;
   return (
     <section aria-labelledby={id} className="grid gap-4 rounded-[var(--r-card)] border border-dashed border-line-strong bg-surface-raised p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
           <rect x="5" y="11" width="14" height="10" rx="2" />
           <path d="M8 11V8a4 4 0 0 1 8 0v3" />
         </svg>
-        <h2 id={id} className="font-display text-xl tracking-[var(--tracking-title)]">{t(`${feature}.title`)}</h2>
+        <h2 id={id} className="font-display text-xl tracking-[var(--tracking-title)]">
+          {t(`${feature}.title`)}
+        </h2>
         <span className="rounded-full bg-lilas px-2 py-0.5 font-label text-xs font-bold text-charbon">{t("badge")}</span>
       </div>
       <p className="-mt-2 text-ink-muted">{t(`${feature}.body`)}</p>
@@ -29,7 +51,10 @@ export async function ProLocked({ orgSlug, feature, canUpgrade, preview }: { org
       ) : null}
       {canUpgrade ? (
         <div className="flex flex-wrap items-center gap-3">
-          <Link href={`/o/${orgSlug}/billing`} className="inline-flex min-h-11 items-center rounded-full bg-surface-inverse px-5 font-label font-bold text-ink-inverse">
+          <Link
+            href={`/o/${orgSlug}/billing`}
+            className="inline-flex min-h-11 items-center rounded-full bg-surface-inverse px-5 font-label font-bold text-ink-inverse"
+          >
             {t("cta")}
           </Link>
           <span className="text-sm text-ink-muted">{t("trial")}</span>

@@ -7,7 +7,9 @@ export type CampaignBlock =
   | { type: "divider" }
   | { type: "event"; eventId: string };
 
-export type CampaignSegment = { kind: "ALL_CONSENTING"; locale?: "fr" | "en" | null } | { kind: "EVENTS"; eventIds: string[]; ticketTypeIds?: string[]; attendance?: "ANY" | "PRESENT" | "ABSENT"; locale?: "fr" | "en" | null };
+export type CampaignSegment =
+  | { kind: "ALL_CONSENTING"; locale?: "fr" | "en" | null }
+  | { kind: "EVENTS"; eventIds: string[]; ticketTypeIds?: string[]; attendance?: "ANY" | "PRESENT" | "ABSENT"; locale?: "fr" | "en" | null };
 
 const SAFE_URL = /^https?:\/\/[^\s<>"']+$/i;
 
@@ -17,7 +19,8 @@ export function validateBlocks(input: unknown): CampaignBlock[] | null {
   const out: CampaignBlock[] = [];
   for (const raw of input) {
     const b = raw as Record<string, unknown>;
-    const str = (k: string, max: number) => (typeof b[k] === "string" && (b[k] as string).trim().length > 0 && (b[k] as string).length <= max ? (b[k] as string).trim() : null);
+    const str = (k: string, max: number) =>
+      typeof b[k] === "string" && (b[k] as string).trim().length > 0 && (b[k] as string).length <= max ? (b[k] as string).trim() : null;
     switch (b?.type) {
       case "heading":
       case "text": {
@@ -59,10 +62,22 @@ export function validateSegment(input: unknown): CampaignSegment | null {
   const s = input as Record<string, unknown>;
   const locale = s?.locale === "fr" || s?.locale === "en" ? s.locale : null;
   if (s?.kind === "ALL_CONSENTING") return { kind: "ALL_CONSENTING", locale };
-  if (s?.kind === "EVENTS" && Array.isArray(s.eventIds) && s.eventIds.length > 0 && s.eventIds.length <= 50 && s.eventIds.every((e) => typeof e === "string" && e.length <= 40)) {
+  if (
+    s?.kind === "EVENTS" &&
+    Array.isArray(s.eventIds) &&
+    s.eventIds.length > 0 &&
+    s.eventIds.length <= 50 &&
+    s.eventIds.every((e) => typeof e === "string" && e.length <= 40)
+  ) {
     const attendance = s.attendance === "PRESENT" || s.attendance === "ABSENT" ? s.attendance : "ANY";
     // filtre par tarif (section 9.18) : facultatif, uniquement des identifiants
-    const ticketTypeIds = Array.isArray(s.ticketTypeIds) && s.ticketTypeIds.length > 0 && s.ticketTypeIds.length <= 100 && s.ticketTypeIds.every((t) => typeof t === "string" && t.length <= 40) ? [...new Set(s.ticketTypeIds as string[])] : undefined;
+    const ticketTypeIds =
+      Array.isArray(s.ticketTypeIds) &&
+      s.ticketTypeIds.length > 0 &&
+      s.ticketTypeIds.length <= 100 &&
+      s.ticketTypeIds.every((t) => typeof t === "string" && t.length <= 40)
+        ? [...new Set(s.ticketTypeIds as string[])]
+        : undefined;
     return { kind: "EVENTS", eventIds: [...new Set(s.eventIds as string[])], ...(ticketTypeIds ? { ticketTypeIds } : {}), attendance, locale };
   }
   return null;

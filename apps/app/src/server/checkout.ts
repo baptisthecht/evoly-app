@@ -19,7 +19,10 @@ import {
   type PromoError,
   type PromoInput,
   type TicketTypeForSale,
-  validatePromo, answerFor, questionsForOrder } from "@evoly/core";
+  validatePromo,
+  answerFor,
+  questionsForOrder,
+} from "@evoly/core";
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -52,7 +55,9 @@ export class PromoRejected extends Error {
  */
 export function orderAccessToken(orderId: string, version: number): string {
   const e = env();
-  return createHmac("sha256", e.ORDER_TOKEN_SECRET ?? e.BETTER_AUTH_SECRET).update(`evoly-order:${orderId}:${version}`).digest("base64url");
+  return createHmac("sha256", e.ORDER_TOKEN_SECRET ?? e.BETTER_AUTH_SECRET)
+    .update(`evoly-order:${orderId}:${version}`)
+    .digest("base64url");
 }
 
 export async function findOrderIdByToken(token: string): Promise<string | null> {
@@ -78,7 +83,8 @@ async function releaseExpiredInTx(tx: Tx, eventId: string, now: Date) {
   const expired = await tx.order.findMany({ where: { eventId, status: "PENDING", holdExpiresAt: { lt: now } }, include: { items: true } });
   for (const o of expired) {
     if (o.source === "RESALE") {
-      if (o.resaleListingId) await tx.resaleListing.updateMany({ where: { id: o.resaleListingId, status: "RESERVED" }, data: { status: "ACTIVE", reservedUntil: null } });
+      if (o.resaleListingId)
+        await tx.resaleListing.updateMany({ where: { id: o.resaleListingId, status: "RESERVED" }, data: { status: "ACTIVE", reservedUntil: null } });
     } else {
       await releaseItems(tx, o.items);
       await releaseSeats(tx, o.id);
@@ -100,7 +106,11 @@ async function cancelPaymentIntents(organizationId: string, intents: Array<{ pay
 
 /** Tâche planifiée : libère toutes les réservations expirées, événement par événement. */
 export async function releaseExpiredHolds(now = new Date()): Promise<number> {
-  const events = await db.order.findMany({ where: { status: "PENDING", holdExpiresAt: { lt: now } }, select: { eventId: true, organizationId: true }, distinct: ["eventId"] });
+  const events = await db.order.findMany({
+    where: { status: "PENDING", holdExpiresAt: { lt: now } },
+    select: { eventId: true, organizationId: true },
+    distinct: ["eventId"],
+  });
   let count = 0;
   for (const e of events) {
     const released = await db.$transaction(async (tx) => ((await lockEvent(tx, e.eventId)) ? releaseExpiredInTx(tx, e.eventId, now) : []), TX_OPTIONS);
@@ -120,7 +130,16 @@ export interface Reservation {
   isFree: boolean;
   discountMinor: number;
   promoCode: string | null;
-  lines: Array<{ orderItemId: string; ticketTypeId: string; name: string; tierName: string | null; quantity: number; unitPriceMinor: number; nominative: boolean; holderEmail?: boolean }>;
+  lines: Array<{
+    orderItemId: string;
+    ticketTypeId: string;
+    name: string;
+    tierName: string | null;
+    quantity: number;
+    unitPriceMinor: number;
+    nominative: boolean;
+    holderEmail?: boolean;
+  }>;
   /** US-QST-01 : questions posées pour cette commande (par commande, et par billet pour chaque ligne). */
   questions: { order: PublicQuestion[]; perLine: Record<string, PublicQuestion[]> };
   stripeAccountId: string | null;
@@ -130,7 +149,10 @@ export interface Reservation {
  * RG-BUY-01 : réservation atomique. La ligne de l'événement est verrouillée (jauge commune),
  * puis chaque incrément est conditionnel : la survente est impossible, même sous forte concurrence.
  */
-export async function reserveOrder(input: { eventId: string; lines: CartRequestLine[]; locale: string; promoCode?: string | null; seatIds?: string[] | null; nearCode?: string | null }, now = new Date()): Promise<Reservation> {
+export async function reserveOrder(
+  input: { eventId: string; lines: CartRequestLine[]; locale: string; promoCode?: string | null; seatIds?: string[] | null; nearCode?: string | null },
+  now = new Date(),
+): Promise<Reservation> {
   const orderId = `c${humanCode(24, ID_ALPHABET)}`;
   const token = orderAccessToken(orderId, 1);
   const accessTokenHash = await sha256Hex(token);
@@ -143,7 +165,10 @@ export async function reserveOrder(input: { eventId: string; lines: CartRequestL
     const released = await releaseExpiredInTx(tx, input.eventId, now);
     const event = await tx.event.findUniqueOrThrow({
       where: { id: input.eventId },
-      include: { ticketTypes: { include: { priceTiers: true } }, organization: { select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } } },
+      include: {
+        ticketTypes: { include: { priceTiers: true } },
+        organization: { select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } },
+      },
     });
     const types: TicketTypeForSale[] = event.ticketTypes.map((t) => ({ ...t, tiers: t.priceTiers }));
     let promo: PromoInput | null = null;
@@ -159,7 +184,17 @@ export async function reserveOrder(input: { eventId: string; lines: CartRequestL
       promo = row;
     }
     const errors = checkCart(
-      { id: event.id, status: event.status, capacity: event.capacity, soldTotal: types.reduce((n, t) => n + t.quantitySold, 0), heldTotal: types.reduce((n, t) => n + t.quantityHeld, 0), salesStartAt: event.salesStartAt, salesEndAt: event.salesEndAt, maxTicketsPerOrder: event.maxTicketsPerOrder, startsAt: event.startsAt },
+      {
+        id: event.id,
+        status: event.status,
+        capacity: event.capacity,
+        soldTotal: types.reduce((n, t) => n + t.quantitySold, 0),
+        heldTotal: types.reduce((n, t) => n + t.quantityHeld, 0),
+        salesStartAt: event.salesStartAt,
+        salesEndAt: event.salesEndAt,
+        maxTicketsPerOrder: event.maxTicketsPerOrder,
+        startsAt: event.startsAt,
+      },
       types,
       input.lines,
       now,
@@ -175,18 +210,29 @@ export async function reserveOrder(input: { eventId: string; lines: CartRequestL
     const perType = new Map<string, number>();
     for (const l of priced.lines) perType.set(l.ticketTypeId, (perType.get(l.ticketTypeId) ?? 0) + l.quantity);
     for (const [id, n] of perType) {
-      const ok = await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${n})`;
+      const ok =
+        await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${n})`;
       if (ok !== 1) throw new CartRejected([{ code: "NOT_ENOUGH_STOCK", ticketTypeId: id, available: 0 }]);
     }
     for (const l of priced.lines) {
       if (!l.tierId) continue;
-      const ok = await tx.$executeRaw`UPDATE "PriceTier" SET "quantityHeld" = "quantityHeld" + ${l.quantity} WHERE id = ${l.tierId} AND ("quantityLimit" IS NULL OR "quantityLimit" - "quantitySold" - "quantityHeld" >= ${l.quantity})`;
+      const ok =
+        await tx.$executeRaw`UPDATE "PriceTier" SET "quantityHeld" = "quantityHeld" + ${l.quantity} WHERE id = ${l.tierId} AND ("quantityLimit" IS NULL OR "quantityLimit" - "quantitySold" - "quantityHeld" >= ${l.quantity})`;
       if (ok !== 1) throw new CartRejected([{ code: "NOT_ENOUGH_STOCK", ticketTypeId: l.ticketTypeId, available: 0 }]);
     }
     // RG-SEAT-01 : placement numéroté, meilleures places retenues avec le panier
     // « à côté de mes amis » : meilleures places cherchées près des places de l'ami
-    const near = event.seatingMode === "ASSIGNED" && input.nearCode ? (await friendSeats(event.id, input.nearCode))?.center ?? null : null;
-    if (event.seatingMode === "ASSIGNED") await holdSeats(tx, orderId, priced.lines, event.ticketTypes, new Date(now.getTime() + event.checkoutHoldMinutes * 60_000), event.allowSeatChoice ? input.seatIds : null, near);
+    const near = event.seatingMode === "ASSIGNED" && input.nearCode ? ((await friendSeats(event.id, input.nearCode))?.center ?? null) : null;
+    if (event.seatingMode === "ASSIGNED")
+      await holdSeats(
+        tx,
+        orderId,
+        priced.lines,
+        event.ticketTypes,
+        new Date(now.getTime() + event.checkoutHoldMinutes * 60_000),
+        event.allowSeatChoice ? input.seatIds : null,
+        near,
+      );
     const order = await tx.order.create({
       data: {
         id: orderId,
@@ -207,15 +253,37 @@ export async function reserveOrder(input: { eventId: string; lines: CartRequestL
         feeSnapshot: priced.feeSnapshot as unknown as Prisma.InputJsonValue,
         holdExpiresAt: new Date(now.getTime() + event.checkoutHoldMinutes * 60_000),
         accessTokenHash,
-        items: { create: priced.lines.map((l) => ({ ticketTypeId: l.ticketTypeId, priceTierId: l.tierId, quantity: l.quantity, unitPriceMinor: l.unitPriceMinor, unitDiscountMinor: l.unitDiscountMinor, unitFeeMinor: l.unitFeeMinor })) },
+        items: {
+          create: priced.lines.map((l) => ({
+            ticketTypeId: l.ticketTypeId,
+            priceTierId: l.tierId,
+            quantity: l.quantity,
+            unitPriceMinor: l.unitPriceMinor,
+            unitDiscountMinor: l.unitDiscountMinor,
+            unitFeeMinor: l.unitFeeMinor,
+          })),
+        },
       },
       include: { items: true },
     });
-    const names = new Map(event.ticketTypes.map((t) => [t.id, { name: t.name, nominative: t.isNominative, holderEmail: t.isNominative && t.requireHolderEmail, tiers: new Map(t.priceTiers.map((p) => [p.id, p.name])) }]));
+    const names = new Map(
+      event.ticketTypes.map((t) => [
+        t.id,
+        {
+          name: t.name,
+          nominative: t.isNominative,
+          holderEmail: t.isNominative && t.requireHolderEmail,
+          tiers: new Map(t.priceTiers.map((p) => [p.id, p.name])),
+        },
+      ]),
+    );
     return { order, event, released, names };
   }, TX_OPTIONS);
   await cancelPaymentIntents(event.organizationId, released);
-  const account = order.totalMinor > 0 ? await db.stripeAccount.findUnique({ where: { organizationId: event.organizationId }, select: { stripeAccountId: true, chargesEnabled: true } }) : null;
+  const account =
+    order.totalMinor > 0
+      ? await db.stripeAccount.findUnique({ where: { organizationId: event.organizationId }, select: { stripeAccountId: true, chargesEnabled: true } })
+      : null;
   return {
     orderId,
     token,
@@ -226,8 +294,20 @@ export async function reserveOrder(input: { eventId: string; lines: CartRequestL
     isFree: order.totalMinor === 0,
     discountMinor: order.discountMinor,
     promoCode: input.promoCode ? normalizePromoCode(input.promoCode) : null,
-    lines: order.items.map((i) => ({ orderItemId: i.id, ticketTypeId: i.ticketTypeId, name: names.get(i.ticketTypeId)?.name ?? "", tierName: i.priceTierId ? (names.get(i.ticketTypeId)?.tiers.get(i.priceTierId) ?? null) : null, quantity: i.quantity, unitPriceMinor: i.unitPriceMinor - i.unitDiscountMinor, nominative: names.get(i.ticketTypeId)?.nominative ?? false, holderEmail: names.get(i.ticketTypeId)?.holderEmail ?? false })),
-    questions: questionsForOrder(await publicQuestions(order.eventId), order.items.map((i) => ({ orderItemId: i.id, ticketTypeId: i.ticketTypeId }))),
+    lines: order.items.map((i) => ({
+      orderItemId: i.id,
+      ticketTypeId: i.ticketTypeId,
+      name: names.get(i.ticketTypeId)?.name ?? "",
+      tierName: i.priceTierId ? (names.get(i.ticketTypeId)?.tiers.get(i.priceTierId) ?? null) : null,
+      quantity: i.quantity,
+      unitPriceMinor: i.unitPriceMinor - i.unitDiscountMinor,
+      nominative: names.get(i.ticketTypeId)?.nominative ?? false,
+      holderEmail: names.get(i.ticketTypeId)?.holderEmail ?? false,
+    })),
+    questions: questionsForOrder(
+      await publicQuestions(order.eventId),
+      order.items.map((i) => ({ orderItemId: i.id, ticketTypeId: i.ticketTypeId })),
+    ),
     stripeAccountId: account?.chargesEnabled ? account.stripeAccountId : null,
   };
 }
@@ -243,7 +323,8 @@ export async function cancelReservation(token: string): Promise<void> {
     const o = await tx.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true } });
     if (o.status !== "PENDING") return false;
     if (o.source === "RESALE") {
-      if (o.resaleListingId) await tx.resaleListing.updateMany({ where: { id: o.resaleListingId, status: "RESERVED" }, data: { status: "ACTIVE", reservedUntil: null } });
+      if (o.resaleListingId)
+        await tx.resaleListing.updateMany({ where: { id: o.resaleListingId, status: "RESERVED" }, data: { status: "ACTIVE", reservedUntil: null } });
       await tx.order.update({ where: { id: orderId }, data: { status: "CANCELLED", cancelledAt: new Date(), resaleListingId: null } });
       return true;
     }
@@ -278,7 +359,11 @@ export async function submitBuyer(token: string, buyer: BuyerInput, now = new Da
   if (!orderId) throw new CoreError("ORDER_NOT_FOUND");
   const order = await db.order.findUniqueOrThrow({
     where: { id: orderId },
-    include: { event: { select: { title: true, requireBuyerPhone: true } }, promoCode: { select: { id: true, maxUsesPerEmail: true } }, items: { include: { ticketType: { select: { isNominative: true, requireHolderEmail: true } } } } },
+    include: {
+      event: { select: { title: true, requireBuyerPhone: true } },
+      promoCode: { select: { id: true, maxUsesPerEmail: true } },
+      items: { include: { ticketType: { select: { isNominative: true, requireHolderEmail: true } } } },
+    },
   });
   if (order.status === "PAID") return { kind: "PAID" };
   if (order.status !== "PENDING" || !order.holdExpiresAt || order.holdExpiresAt <= now) throw new CoreError("HOLD_EXPIRED");
@@ -292,7 +377,11 @@ export async function submitBuyer(token: string, buyer: BuyerInput, now = new Da
     if (!item.ticketType.isNominative) continue;
     // RG-QST-01 : prénom et nom de chaque titulaire, et son e-mail si le tarif le demande
     const needEmail = item.ticketType.requireHolderEmail;
-    const holders = (buyer.holders?.[item.id] ?? []).map((h) => ({ firstName: h.firstName.trim(), lastName: h.lastName.trim(), ...(needEmail ? { email: (h.email ?? "").trim().toLowerCase() } : {}) }));
+    const holders = (buyer.holders?.[item.id] ?? []).map((h) => ({
+      firstName: h.firstName.trim(),
+      lastName: h.lastName.trim(),
+      ...(needEmail ? { email: (h.email ?? "").trim().toLowerCase() } : {}),
+    }));
     if (holders.length !== item.quantity || holders.some((h) => !h.firstName || !h.lastName)) throw new CoreError("HOLDERS_REQUIRED");
     if (needEmail && holders.some((h) => !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(h.email ?? ""))) throw new CoreError("HOLDER_EMAIL_REQUIRED");
     await db.orderItem.update({ where: { id: item.id }, data: { holders } });
@@ -301,14 +390,27 @@ export async function submitBuyer(token: string, buyer: BuyerInput, now = new Da
   if (order.source === "ONLINE") {
     const limit = (await db.event.findUniqueOrThrow({ where: { id: order.eventId }, select: { maxTicketsPerBuyer: true } })).maxTicketsPerBuyer;
     if (limit) {
-      const already = await db.ticket.count({ where: { eventId: order.eventId, status: { in: ["VALID", "CHECKED_IN"] }, order: { buyerEmail: email, status: { in: ["PAID", "PARTIALLY_REFUNDED"] }, id: { not: order.id } } } });
+      const already = await db.ticket.count({
+        where: {
+          eventId: order.eventId,
+          status: { in: ["VALID", "CHECKED_IN"] },
+          order: { buyerEmail: email, status: { in: ["PAID", "PARTIALLY_REFUNDED"] }, id: { not: order.id } },
+        },
+      });
       if (already + order.items.reduce((n, i) => n + i.quantity, 0) > limit) throw new CoreError("BUYER_LIMIT_REACHED");
     }
   }
   if (order.source !== "RESALE") await saveAnswers(order.id, order.eventId, order.items, buyer.answers ?? {});
   await db.order.update({
     where: { id: orderId },
-    data: { buyerFirstName: buyer.firstName, buyerLastName: buyer.lastName, buyerEmail: email, buyerPhone: buyer.phone || null, marketingOptIn: buyer.marketingOptIn, termsVersion: BUYER_TERMS_VERSION },
+    data: {
+      buyerFirstName: buyer.firstName,
+      buyerLastName: buyer.lastName,
+      buyerEmail: email,
+      buyerPhone: buyer.phone || null,
+      marketingOptIn: buyer.marketingOptIn,
+      termsVersion: BUYER_TERMS_VERSION,
+    },
   });
   if (order.totalMinor === 0) {
     const outcome = await finalizeOrder(orderId); // RG-BUY-04 : commande gratuite validée immédiatement
@@ -321,7 +423,10 @@ export async function submitBuyer(token: string, buyer: BuyerInput, now = new Da
     return { kind: "PAID" };
   }
   const s = stripe();
-  const account = await db.stripeAccount.findUnique({ where: { organizationId: order.organizationId }, select: { stripeAccountId: true, chargesEnabled: true } });
+  const account = await db.stripeAccount.findUnique({
+    where: { organizationId: order.organizationId },
+    select: { stripeAccountId: true, chargesEnabled: true },
+  });
   if (!s || !account?.chargesEnabled) throw new CoreError("PAYMENTS_UNAVAILABLE");
   const options = { stripeAccount: account.stripeAccountId };
   if (order.stripePaymentIntentId) {
@@ -357,12 +462,27 @@ class NoStockLeft extends Error {}
  * Revente, étape 4 (section 9.13), dans la transaction de validation : l'ancien billet passe VOID (RESOLD),
  * un nouveau billet avec un nouveau code est créé pour l'acheteur, l'annonce passe SOLD. Aucune place n'est vendue en plus.
  */
-async function resaleTransfer(tx: Tx, order: { id: string; eventId: string; resaleListingId: string | null; buyerFirstName: string; buyerLastName: string; items: Array<{ id: string; ticketTypeId: string; unitPriceMinor: number; unitDiscountMinor: number }> }, now: Date) {
+async function resaleTransfer(
+  tx: Tx,
+  order: {
+    id: string;
+    eventId: string;
+    resaleListingId: string | null;
+    buyerFirstName: string;
+    buyerLastName: string;
+    items: Array<{ id: string; ticketTypeId: string; unitPriceMinor: number; unitDiscountMinor: number }>;
+  },
+  now: Date,
+) {
   if (!order.resaleListingId) throw new NoStockLeft();
   await tx.$queryRaw`SELECT id FROM "ResaleListing" WHERE id = ${order.resaleListingId} FOR UPDATE`;
-  const listing = await tx.resaleListing.findUnique({ where: { id: order.resaleListingId }, include: { ticket: { include: { ticketType: { select: { isNominative: true } } } } } });
+  const listing = await tx.resaleListing.findUnique({
+    where: { id: order.resaleListingId },
+    include: { ticket: { include: { ticketType: { select: { isNominative: true } } } } },
+  });
   if (!listing || (listing.status !== "RESERVED" && listing.status !== "ACTIVE")) throw new NoStockLeft();
-  const voided = await tx.$executeRaw`UPDATE "Ticket" SET status = 'VOID', "voidReason" = 'RESOLD', "voidedAt" = ${now}, "updatedAt" = now() WHERE id = ${listing.ticketId} AND status = 'VALID'`;
+  const voided =
+    await tx.$executeRaw`UPDATE "Ticket" SET status = 'VOID', "voidReason" = 'RESOLD', "voidedAt" = ${now}, "updatedAt" = now() WHERE id = ${listing.ticketId} AND status = 'VALID'`;
   if (voided !== 1) throw new NoStockLeft();
   const item = order.items[0]!;
   await tx.ticket.create({
@@ -385,7 +505,11 @@ async function resaleTransfer(tx: Tx, order: { id: string; eventId: string; resa
  * RG-BUY-07 : validation d'une commande, une seule fois. Réservé → vendu, billets créés, contact à jour.
  * Paiement arrivé après expiration (RG-BUY-02) : honoré si les places sont encore libres, sinon remboursement.
  */
-export async function finalizeOrder(orderId: string, payment?: { paymentIntentId: string; amountMinor: number; currency: string; chargeId?: string | null; paymentMethodType?: string | null }, now = new Date()): Promise<FinalizeOutcome> {
+export async function finalizeOrder(
+  orderId: string,
+  payment?: { paymentIntentId: string; amountMinor: number; currency: string; chargeId?: string | null; paymentMethodType?: string | null },
+  now = new Date(),
+): Promise<FinalizeOutcome> {
   const head = await db.order.findUnique({ where: { id: orderId }, select: { eventId: true } });
   if (!head) return "IGNORED";
   try {
@@ -394,65 +518,118 @@ export async function finalizeOrder(orderId: string, payment?: { paymentIntentId
       const order = await tx.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true, event: { select: { capacity: true } } } });
       if (order.status === "PAID") return "ALREADY_PAID" as const;
       if (!["PENDING", "EXPIRED", "FAILED"].includes(order.status)) return "IGNORED" as const;
-      if (payment && (payment.amountMinor !== order.totalMinor || payment.currency.toUpperCase() !== order.currency)) throw new CoreError("PAYMENT_AMOUNT_MISMATCH");
+      if (payment && (payment.amountMinor !== order.totalMinor || payment.currency.toUpperCase() !== order.currency))
+        throw new CoreError("PAYMENT_AMOUNT_MISMATCH");
       if (order.source === "RESALE") await resaleTransfer(tx, order, now);
       else {
-      if (order.status === "PENDING") {
-        for (const it of order.items) {
-          await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" - ${it.quantity}, "quantitySold" = "quantitySold" + ${it.quantity}, "priceLockedAt" = COALESCE("priceLockedAt", ${now}) WHERE id = ${it.ticketTypeId}`;
-          if (it.priceTierId) await tx.$executeRaw`UPDATE "PriceTier" SET "quantityHeld" = "quantityHeld" - ${it.quantity}, "quantitySold" = "quantitySold" + ${it.quantity}, "lockedAt" = COALESCE("lockedAt", ${now}) WHERE id = ${it.priceTierId}`;
-        }
-      } else {
-        // la réservation a été libérée : on reprend des places seulement si elles sont encore disponibles
-        const count = order.items.reduce((n, it) => n + it.quantity, 0);
-        if (order.event.capacity != null) {
-          const totals = await tx.ticketType.aggregate({ where: { eventId: order.eventId }, _sum: { quantitySold: true, quantityHeld: true } });
-          if ((totals._sum.quantitySold ?? 0) + (totals._sum.quantityHeld ?? 0) + count > order.event.capacity) throw new NoStockLeft();
-        }
-        for (const it of order.items) {
-          const ok = await tx.$executeRaw`UPDATE "TicketType" SET "quantitySold" = "quantitySold" + ${it.quantity}, "priceLockedAt" = COALESCE("priceLockedAt", ${now}) WHERE id = ${it.ticketTypeId} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${it.quantity})`;
-          if (ok !== 1) throw new NoStockLeft();
-          if (it.priceTierId) {
-            const okTier = await tx.$executeRaw`UPDATE "PriceTier" SET "quantitySold" = "quantitySold" + ${it.quantity}, "lockedAt" = COALESCE("lockedAt", ${now}) WHERE id = ${it.priceTierId} AND ("quantityLimit" IS NULL OR "quantityLimit" - "quantitySold" - "quantityHeld" >= ${it.quantity})`;
-            if (okTier !== 1) throw new NoStockLeft();
+        if (order.status === "PENDING") {
+          for (const it of order.items) {
+            await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" - ${it.quantity}, "quantitySold" = "quantitySold" + ${it.quantity}, "priceLockedAt" = COALESCE("priceLockedAt", ${now}) WHERE id = ${it.ticketTypeId}`;
+            if (it.priceTierId)
+              await tx.$executeRaw`UPDATE "PriceTier" SET "quantityHeld" = "quantityHeld" - ${it.quantity}, "quantitySold" = "quantitySold" + ${it.quantity}, "lockedAt" = COALESCE("lockedAt", ${now}) WHERE id = ${it.priceTierId}`;
+          }
+        } else {
+          // la réservation a été libérée : on reprend des places seulement si elles sont encore disponibles
+          const count = order.items.reduce((n, it) => n + it.quantity, 0);
+          if (order.event.capacity != null) {
+            const totals = await tx.ticketType.aggregate({ where: { eventId: order.eventId }, _sum: { quantitySold: true, quantityHeld: true } });
+            if ((totals._sum.quantitySold ?? 0) + (totals._sum.quantityHeld ?? 0) + count > order.event.capacity) throw new NoStockLeft();
+          }
+          for (const it of order.items) {
+            const ok =
+              await tx.$executeRaw`UPDATE "TicketType" SET "quantitySold" = "quantitySold" + ${it.quantity}, "priceLockedAt" = COALESCE("priceLockedAt", ${now}) WHERE id = ${it.ticketTypeId} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${it.quantity})`;
+            if (ok !== 1) throw new NoStockLeft();
+            if (it.priceTierId) {
+              const okTier =
+                await tx.$executeRaw`UPDATE "PriceTier" SET "quantitySold" = "quantitySold" + ${it.quantity}, "lockedAt" = COALESCE("lockedAt", ${now}) WHERE id = ${it.priceTierId} AND ("quantityLimit" IS NULL OR "quantityLimit" - "quantitySold" - "quantityHeld" >= ${it.quantity})`;
+              if (okTier !== 1) throw new NoStockLeft();
+            }
           }
         }
-      }
-      if (order.promoCodeId) {
-        // RG-PRM-03 : compteur incrémenté au paiement, sans jamais dépasser la limite
-        const counted = await tx.$executeRaw`UPDATE "PromoCode" SET "usedCount" = "usedCount" + 1 WHERE id = ${order.promoCodeId} AND ("maxUses" IS NULL OR "usedCount" < "maxUses")`;
-        if (counted !== 1 && order.status !== "PENDING") throw new NoStockLeft();
-      }
-      // section 9.9 : sièges retenus attribués aux billets, dans l'ordre du plan
-      const seatsBy = await seatsForTickets(tx, order.id);
-      const seatCategory = seatsBy.size ? new Map((await tx.ticketType.findMany({ where: { id: { in: order.items.map((i) => i.ticketTypeId) } }, select: { id: true, seatingCategoryId: true } })).map((t) => [t.id, t.seatingCategoryId])) : new Map<string, string | null>();
-      const nextSeat = (ticketTypeId: string) => { const c = seatCategory.get(ticketTypeId); return c ? seatsBy.get(c)?.shift() ?? null : null; };
-      const created = await tx.ticket.createManyAndReturn({
-        select: { id: true, orderItemId: true },
-        data: order.items.flatMap((it) => {
-          const holders = Array.isArray(it.holders) ? (it.holders as Array<{ firstName?: string; lastName?: string; email?: string }>) : [];
-          return Array.from({ length: it.quantity }, (_, i) => ({ eventId: order.eventId, orderId: order.id, orderItemId: it.id, ticketTypeId: it.ticketTypeId, code: secretToken(24), shortCode: ticketShortCode(), faceValueMinor: it.unitPriceMinor - it.unitDiscountMinor, holderFirstName: holders[i]?.firstName ?? null, holderLastName: holders[i]?.lastName ?? null, holderEmail: holders[i]?.email ?? null, seatId: nextSeat(it.ticketTypeId) }));
-        }),
-      });
-      if (seatsBy.size) await markSeatsSold(tx, order.id);
-      // réponses par billet : rattachées aux billets créés, dans l'ordre de leur ligne
-      const pending = await tx.questionAnswer.findMany({ where: { orderId: order.id, ticketId: null }, select: { id: true, value: true } });
-      for (const a of pending) {
-        const v = a.value as { item?: string; index?: number };
-        if (!v?.item || v.index == null) continue;
-        const ticket = created.filter((t) => t.orderItemId === v.item)[v.index];
-        if (ticket) await tx.questionAnswer.update({ where: { id: a.id }, data: { ticketId: ticket.id } });
-      }
+        if (order.promoCodeId) {
+          // RG-PRM-03 : compteur incrémenté au paiement, sans jamais dépasser la limite
+          const counted =
+            await tx.$executeRaw`UPDATE "PromoCode" SET "usedCount" = "usedCount" + 1 WHERE id = ${order.promoCodeId} AND ("maxUses" IS NULL OR "usedCount" < "maxUses")`;
+          if (counted !== 1 && order.status !== "PENDING") throw new NoStockLeft();
+        }
+        // section 9.9 : sièges retenus attribués aux billets, dans l'ordre du plan
+        const seatsBy = await seatsForTickets(tx, order.id);
+        const seatCategory = seatsBy.size
+          ? new Map(
+              (
+                await tx.ticketType.findMany({ where: { id: { in: order.items.map((i) => i.ticketTypeId) } }, select: { id: true, seatingCategoryId: true } })
+              ).map((t) => [t.id, t.seatingCategoryId]),
+            )
+          : new Map<string, string | null>();
+        const nextSeat = (ticketTypeId: string) => {
+          const c = seatCategory.get(ticketTypeId);
+          return c ? (seatsBy.get(c)?.shift() ?? null) : null;
+        };
+        const created = await tx.ticket.createManyAndReturn({
+          select: { id: true, orderItemId: true },
+          data: order.items.flatMap((it) => {
+            const holders = Array.isArray(it.holders) ? (it.holders as Array<{ firstName?: string; lastName?: string; email?: string }>) : [];
+            return Array.from({ length: it.quantity }, (_, i) => ({
+              eventId: order.eventId,
+              orderId: order.id,
+              orderItemId: it.id,
+              ticketTypeId: it.ticketTypeId,
+              code: secretToken(24),
+              shortCode: ticketShortCode(),
+              faceValueMinor: it.unitPriceMinor - it.unitDiscountMinor,
+              holderFirstName: holders[i]?.firstName ?? null,
+              holderLastName: holders[i]?.lastName ?? null,
+              holderEmail: holders[i]?.email ?? null,
+              seatId: nextSeat(it.ticketTypeId),
+            }));
+          }),
+        });
+        if (seatsBy.size) await markSeatsSold(tx, order.id);
+        // réponses par billet : rattachées aux billets créés, dans l'ordre de leur ligne
+        const pending = await tx.questionAnswer.findMany({ where: { orderId: order.id, ticketId: null }, select: { id: true, value: true } });
+        for (const a of pending) {
+          const v = a.value as { item?: string; index?: number };
+          if (!v?.item || v.index == null) continue;
+          const ticket = created.filter((t) => t.orderItemId === v.item)[v.index];
+          if (ticket) await tx.questionAnswer.update({ where: { id: a.id }, data: { ticketId: ticket.id } });
+        }
       }
       const ticketCount = order.items.reduce((n, it) => n + it.quantity, 0);
       const contact = await tx.contact.upsert({
         where: { organizationId_email: { organizationId: order.organizationId, email: order.buyerEmail } },
-        create: { organizationId: order.organizationId, email: order.buyerEmail, firstName: order.buyerFirstName, lastName: order.buyerLastName, locale: order.buyerLocale, ordersCount: 1, ticketsCount: ticketCount, totalSpentMinor: order.totalMinor, lastOrderAt: now, ...(order.marketingOptIn ? { marketingConsent: true, consentAt: now, consentSource: "CHECKOUT" as const } : {}) },
-        update: { firstName: order.buyerFirstName, lastName: order.buyerLastName, ordersCount: { increment: 1 }, ticketsCount: { increment: ticketCount }, totalSpentMinor: { increment: order.totalMinor }, lastOrderAt: now, ...(order.marketingOptIn ? { marketingConsent: true, consentAt: now, consentSource: "CHECKOUT" as const, unsubscribedAt: null } : {}) },
+        create: {
+          organizationId: order.organizationId,
+          email: order.buyerEmail,
+          firstName: order.buyerFirstName,
+          lastName: order.buyerLastName,
+          locale: order.buyerLocale,
+          ordersCount: 1,
+          ticketsCount: ticketCount,
+          totalSpentMinor: order.totalMinor,
+          lastOrderAt: now,
+          ...(order.marketingOptIn ? { marketingConsent: true, consentAt: now, consentSource: "CHECKOUT" as const } : {}),
+        },
+        update: {
+          firstName: order.buyerFirstName,
+          lastName: order.buyerLastName,
+          ordersCount: { increment: 1 },
+          ticketsCount: { increment: ticketCount },
+          totalSpentMinor: { increment: order.totalMinor },
+          lastOrderAt: now,
+          ...(order.marketingOptIn ? { marketingConsent: true, consentAt: now, consentSource: "CHECKOUT" as const, unsubscribedAt: null } : {}),
+        },
       });
       await tx.order.update({
         where: { id: order.id },
-        data: { status: "PAID", paidAt: now, holdExpiresAt: null, contactId: contact.id, ...(payment ? { stripePaymentIntentId: payment.paymentIntentId, stripeChargeId: payment.chargeId ?? null, paymentMethodType: payment.paymentMethodType ?? null } : {}) },
+        data: {
+          status: "PAID",
+          paidAt: now,
+          holdExpiresAt: null,
+          contactId: contact.id,
+          ...(payment
+            ? { stripePaymentIntentId: payment.paymentIntentId, stripeChargeId: payment.chargeId ?? null, paymentMethodType: payment.paymentMethodType ?? null }
+            : {}),
+        },
       });
       return "PAID" as const;
     }, TX_OPTIONS);
@@ -471,7 +648,15 @@ export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
   const order = await db.order.findUnique({ where: { id: orderId }, select: { stripePaymentIntentId: true, organizationId: true, totalMinor: true } });
   const account = order ? await db.stripeAccount.findUnique({ where: { organizationId: order.organizationId }, select: { stripeAccountId: true } }) : null;
   if (!s || !order?.stripePaymentIntentId || !account) return;
-  await s.refunds.create({ payment_intent: order.stripePaymentIntentId, refund_application_fee: true, reason: "requested_by_customer", metadata: { orderId, cause: "SOLD_OUT_AFTER_HOLD_EXPIRY" } }, { stripeAccount: account.stripeAccountId, idempotencyKey: `order:${orderId}:unfulfilled-refund` });
+  await s.refunds.create(
+    {
+      payment_intent: order.stripePaymentIntentId,
+      refund_application_fee: true,
+      reason: "requested_by_customer",
+      metadata: { orderId, cause: "SOLD_OUT_AFTER_HOLD_EXPIRY" },
+    },
+    { stripeAccount: account.stripeAccountId, idempotencyKey: `order:${orderId}:unfulfilled-refund` },
+  );
   await db.order.update({ where: { id: orderId }, data: { status: "REFUNDED", refundedMinor: order.totalMinor } });
 }
 
@@ -491,8 +676,16 @@ export async function updateTicketHolder(token: string, ticketId: string, holder
  * US-QST-01 : réponses vérifiées côté serveur (les contrôles du navigateur ne suffisent pas), puis enregistrées.
  * Réponses par billet : gardées avec leur position, rattachées au billet dès sa création.
  */
-async function saveAnswers(orderId: string, eventId: string, items: ReadonlyArray<{ id: string; ticketTypeId: string; quantity: number }>, answers: AnswersInput) {
-  const { order: forOrder, perLine } = questionsForOrder(await publicQuestions(eventId), items.map((i) => ({ orderItemId: i.id, ticketTypeId: i.ticketTypeId })));
+async function saveAnswers(
+  orderId: string,
+  eventId: string,
+  items: ReadonlyArray<{ id: string; ticketTypeId: string; quantity: number }>,
+  answers: AnswersInput,
+) {
+  const { order: forOrder, perLine } = questionsForOrder(
+    await publicQuestions(eventId),
+    items.map((i) => ({ orderItemId: i.id, ticketTypeId: i.ticketTypeId })),
+  );
   const rows: Array<{ questionId: string; orderId: string; value: { value: string | number | boolean | string[]; item?: string; index?: number } }> = [];
   for (const q of forOrder) {
     const r = answerFor(q, answers.order?.[q.id]);
@@ -513,7 +706,10 @@ async function saveAnswers(orderId: string, eventId: string, items: ReadonlyArra
 
 /** Places retenues par une réservation (affichées à l'acheteur : « vos places »). */
 export async function reservationSeats(orderId: string) {
-  const seats = await db.seat.findMany({ where: { holdOrderId: orderId, status: "HELD" }, select: { id: true, label: true, sortOrder: true, row: { select: { name: true, sortOrder: true } } } });
+  const seats = await db.seat.findMany({
+    where: { holdOrderId: orderId, status: "HELD" },
+    select: { id: true, label: true, sortOrder: true, row: { select: { name: true, sortOrder: true } } },
+  });
   return seats.sort((a, b) => a.row.sortOrder - b.row.sortOrder || a.sortOrder - b.sortOrder).map((s) => ({ id: s.id, row: s.row.name, label: s.label }));
 }
 
@@ -529,7 +725,10 @@ export async function changeReservationSeats(token: string, seatIds: string[], n
   if (!head) throw new CoreError("NOT_FOUND");
   await db.$transaction(async (tx) => {
     await lockEvent(tx, head.eventId);
-    const order = await tx.order.findUniqueOrThrow({ where: { id: orderId }, include: { items: true, event: { select: { seatingMode: true, allowSeatChoice: true, ticketTypes: { select: { id: true, seatingCategoryId: true } } } } } });
+    const order = await tx.order.findUniqueOrThrow({
+      where: { id: orderId },
+      include: { items: true, event: { select: { seatingMode: true, allowSeatChoice: true, ticketTypes: { select: { id: true, seatingCategoryId: true } } } } },
+    });
     if (order.status !== "PENDING" || !order.holdExpiresAt || order.holdExpiresAt < now) throw new CoreError("RESERVATION_EXPIRED");
     if (order.event.seatingMode !== "ASSIGNED" || !order.event.allowSeatChoice) throw new CoreError("SEAT_CHOICE_DISABLED");
     await tx.seat.updateMany({ where: { holdOrderId: order.id, status: "HELD" }, data: { status: "AVAILABLE", holdOrderId: null, holdExpiresAt: null } });
@@ -538,4 +737,3 @@ export async function changeReservationSeats(token: string, seatIds: string[], n
   }, TX_OPTIONS);
   return reservationSeats(orderId);
 }
-

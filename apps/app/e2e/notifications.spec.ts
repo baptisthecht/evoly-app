@@ -14,11 +14,17 @@ test("notifications : cloche, ouverture de l'élément, annulation d'une entrée
   await expect(page.getByTestId("unread-count")).toHaveCount(0);
 
   // RG-SCN-02 : entrée annulée avec motif, le billet redevient valable
-  sql(`update "Ticket" set status = 'CHECKED_IN', "checkedInAt" = now() where "orderId" = (select id from "Order" where "buyerEmail" = 'lea.${id}@exemple.be')`);
+  sql(
+    `update "Ticket" set status = 'CHECKED_IN', "checkedInAt" = now() where "orderId" = (select id from "Order" where "buyerEmail" = 'lea.${id}@exemple.be')`,
+  );
   await page.reload();
   await page.getByRole("button", { name: "Annuler l’entrée" }).click();
   await page.getByLabel("Motif de l’annulation").fill("Scanné par erreur");
   await page.getByRole("button", { name: "Annuler l’entrée" }).click();
   await expect(page.getByText("Valide", { exact: true })).toBeVisible();
-  expect(sql(`select note from "CheckIn" where result = 'REVERTED' and "ticketId" = (select id from "Ticket" where "orderId" = (select id from "Order" where "buyerEmail" = 'lea.${id}@exemple.be'))`)).toBe("Scanné par erreur");
+  expect(
+    sql(
+      `select note from "CheckIn" where result = 'REVERTED' and "ticketId" = (select id from "Ticket" where "orderId" = (select id from "Order" where "buyerEmail" = 'lea.${id}@exemple.be'))`,
+    ),
+  ).toBe("Scanné par erreur");
 });

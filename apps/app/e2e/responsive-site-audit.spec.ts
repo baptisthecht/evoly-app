@@ -14,7 +14,10 @@ const AUDIT = () => {
     for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
       const s = getComputedStyle(p);
       if (s.position === "fixed") return true;
-      if (/(auto|scroll|hidden|clip)/.test(s.overflowX)) { const r = p.getBoundingClientRect(); if (r.right <= vw + 1 && r.left >= -1) return true; }
+      if (/(auto|scroll|hidden|clip)/.test(s.overflowX)) {
+        const r = p.getBoundingClientRect();
+        if (r.right <= vw + 1 && r.left >= -1) return true;
+      }
     }
     return false;
   };
@@ -31,7 +34,10 @@ const AUDIT = () => {
     return !clipped(el);
   });
   const set = new Set(off);
-  const outer = off.filter((el) => { for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p as HTMLElement)) return false; return true; });
+  const outer = off.filter((el) => {
+    for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p as HTMLElement)) return false;
+    return true;
+  });
   const text = all.filter((el) => {
     if (el instanceof SVGElement) return false; // mesures de débordement non fiables pour le SVG
     if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent!.trim())) return false;
@@ -39,10 +45,19 @@ const AUDIT = () => {
     if (cs.overflowX !== "visible" || cs.display === "inline" || !el.clientWidth) return false;
     return el.scrollWidth > el.clientWidth + 4; // tolérance : mots décoratifs inclinés (.script)
   });
-  const small = [...document.querySelectorAll("input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]), select, textarea")]
+  const small = [
+    ...document.querySelectorAll(
+      "input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]), select, textarea",
+    ),
+  ]
     .filter((el) => el.getBoundingClientRect().width > 0 && parseFloat(getComputedStyle(el).fontSize) < 16)
     .map((el) => `${el.tagName.toLowerCase()}[${(el as HTMLInputElement).type || ""}] ${Math.round(parseFloat(getComputedStyle(el).fontSize))}px`);
-  return { docOverflow: Math.max(0, document.documentElement.scrollWidth - vw), offenders: outer.slice(0, 6).map(describe), textOverflow: text.slice(0, 6).map(describe), smallInputs: [...new Set(small)] };
+  return {
+    docOverflow: Math.max(0, document.documentElement.scrollWidth - vw),
+    offenders: outer.slice(0, 6).map(describe),
+    textOverflow: text.slice(0, 6).map(describe),
+    smallInputs: [...new Set(small)],
+  };
 };
 
 const pages = (dir: string, base = ""): string[] =>

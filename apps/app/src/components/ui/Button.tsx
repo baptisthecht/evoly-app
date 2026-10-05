@@ -27,7 +27,13 @@ export function buttonClass(variant: Variant = "primary", size: Size = "md", ext
   return cn(base, variants[variant], sizes[size], extra);
 }
 
-export function Button({ variant = "primary", size = "md", className, children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; children: ReactNode }) {
+export function Button({
+  variant = "primary",
+  size = "md",
+  className,
+  children,
+  ...rest
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; children: ReactNode }) {
   return (
     <button className={buttonClass(variant, size, className)} {...rest}>
       {children}
@@ -35,7 +41,19 @@ export function Button({ variant = "primary", size = "md", className, children, 
   );
 }
 
-export function ButtonLink({ href, variant = "primary", size = "md", className, children }: { href: string; variant?: Variant; size?: Size; className?: string; children: ReactNode }) {
+export function ButtonLink({
+  href,
+  variant = "primary",
+  size = "md",
+  className,
+  children,
+}: {
+  href: string;
+  variant?: Variant;
+  size?: Size;
+  className?: string;
+  children: ReactNode;
+}) {
   return (
     <Link href={href} className={buttonClass(variant, size, className)}>
       {children}

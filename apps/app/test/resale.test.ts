@@ -13,11 +13,35 @@ const buyerB = (id: string) => ({ firstName: "Tom", lastName: "Dubois", email: `
 /** Événement publié et un billet acheté par Léa : gratuit (priceMinor 0) ou payé (paiement simulé). */
 async function setup(priceMinor: number, opts: { nominative?: boolean } = {}) {
   const id = rid();
-  const org = await db.organization.create({ data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
-  if (priceMinor > 0) await db.stripeAccount.create({ data: { organizationId: org.id, stripeAccountId: `acct_${id}`, country: "BE", defaultCurrency: "EUR", status: "ACTIVE", chargesEnabled: true, payoutsEnabled: true, detailsSubmitted: true } });
+  const org = await db.organization.create({
+    data: { name: `Test ${id}`, slug: `test-${id}`, subdomain: `test-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
+  if (priceMinor > 0)
+    await db.stripeAccount.create({
+      data: {
+        organizationId: org.id,
+        stripeAccountId: `acct_${id}`,
+        country: "BE",
+        defaultCurrency: "EUR",
+        status: "ACTIVE",
+        chargesEnabled: true,
+        payoutsEnabled: true,
+        detailsSubmitted: true,
+      },
+    });
   const startsAt = new Date(Date.now() + 3 * 86_400_000);
   const event = await db.event.create({
-    data: { organizationId: org.id, slug: `concert-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Concert ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt, status: "PUBLISHED", ticketTypes: { create: { name: "Fosse", priceMinor, currency: "EUR", quantity: 100, isNominative: opts.nominative ?? false } } },
+    data: {
+      organizationId: org.id,
+      slug: `concert-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: `Concert ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt,
+      status: "PUBLISHED",
+      ticketTypes: { create: { name: "Fosse", priceMinor, currency: "EUR", quantity: 100, isNominative: opts.nominative ?? false } },
+    },
     include: { ticketTypes: true },
   });
   const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" });
@@ -25,7 +49,15 @@ async function setup(priceMinor: number, opts: { nominative?: boolean } = {}) {
   if (priceMinor === 0) await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false, holders });
   else {
     await db.order.update({ where: { id: r.orderId }, data: { buyerFirstName: "Léa", buyerLastName: "Martin", buyerEmail: `lea.${id}@exemple.be` } });
-    expect(await finalizeOrder(r.orderId, { paymentIntentId: `pi_${id}`, amountMinor: priceMinor, currency: "eur", chargeId: `ch_${id}`, paymentMethodType: "card" })).toBe("PAID");
+    expect(
+      await finalizeOrder(r.orderId, {
+        paymentIntentId: `pi_${id}`,
+        amountMinor: priceMinor,
+        currency: "eur",
+        chargeId: `ch_${id}`,
+        paymentMethodType: "card",
+      }),
+    ).toBe("PAID");
   }
   const ticket = await db.ticket.findFirstOrThrow({ where: { orderId: r.orderId } });
   return { id, org, event, ticketType: event.ticketTypes[0]!, sellerToken: r.token, sellerOrderId: r.orderId, ticket, startsAt };
@@ -87,7 +119,9 @@ describe("achat d'une place en revente (section 9.13)", () => {
     const order = await db.order.findUniqueOrThrow({ where: { id: r.orderId } });
     expect(order).toMatchObject({ source: "RESALE", totalMinor: 2000, applicationFeeMinor: ticketCommission(2000, (await getPlans()).free.terms.EUR!) });
     await db.order.update({ where: { id: r.orderId }, data: { buyerFirstName: "Tom", buyerLastName: "Dubois", buyerEmail: `tom.${s.id}@exemple.be` } });
-    expect(await finalizeOrder(r.orderId, { paymentIntentId: `pi_b_${s.id}`, amountMinor: 2000, currency: "eur", chargeId: null, paymentMethodType: "card" })).toBe("PAID");
+    expect(
+      await finalizeOrder(r.orderId, { paymentIntentId: `pi_b_${s.id}`, amountMinor: 2000, currency: "eur", chargeId: null, paymentMethodType: "card" }),
+    ).toBe("PAID");
     await afterOrderPaid(r.orderId);
     expect(await db.resaleListing.findUniqueOrThrow({ where: { id: listing.id } })).toMatchObject({ status: "FAILED", sellerRefundMinor: null });
     expect((await db.ticket.findFirstOrThrow({ where: { orderId: r.orderId } })).status).toBe("VALID");
@@ -100,7 +134,16 @@ describe("fermeture des annonces (RG-RSL-08, RG-RSL-09)", () => {
     const a = await setup(0);
     const la = await createListing(a.sellerToken, a.ticket.id, "0");
     const user = await db.user.create({ data: { name: "Camille", email: `cam.${a.id}@exemple.be`, emailVerified: true } });
-    const link = await db.scannerLink.create({ data: { id: `c${a.id}scan0000000000000`, eventId: a.event.id, tokenHash: "x", label: "Porte", expiresAt: new Date(Date.now() + 86_400_000), createdById: user.id } });
+    const link = await db.scannerLink.create({
+      data: {
+        id: `c${a.id}scan0000000000000`,
+        eventId: a.event.id,
+        tokenHash: "x",
+        label: "Porte",
+        expiresAt: new Date(Date.now() + 86_400_000),
+        createdById: user.id,
+      },
+    });
     const { createHash } = await import("node:crypto");
     await db.scannerLink.update({ where: { id: link.id }, data: { tokenHash: createHash("sha256").update(scannerToken(link.id)).digest("hex") } });
     const resolved = await resolveScannerLink(scannerToken(link.id));

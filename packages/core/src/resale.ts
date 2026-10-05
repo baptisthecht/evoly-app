@@ -84,7 +84,11 @@ const REFUND_WINDOW_DAYS = 175;
  * RG-RSL-05 : le paiement d'origine peut-il encore être remboursé au vendeur ?
  * Billet gratuit : toujours (transfert). Sinon : moyen de paiement remboursable, paiement récent, commande non remboursée en entier.
  */
-export function originalPaymentRefundable(order: { totalMinor: Minor; refundedMinor: Minor; paymentMethodType: string | null; paidAt: Date | null; status: string }, faceValueMinor: Minor, now: Date): boolean {
+export function originalPaymentRefundable(
+  order: { totalMinor: Minor; refundedMinor: Minor; paymentMethodType: string | null; paidAt: Date | null; status: string },
+  faceValueMinor: Minor,
+  now: Date,
+): boolean {
   if (faceValueMinor === 0 || order.totalMinor === 0) return true;
   if (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED") return false;
   if (order.paymentMethodType && NON_REFUNDABLE_METHODS.has(order.paymentMethodType)) return false;

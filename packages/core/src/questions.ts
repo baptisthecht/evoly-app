@@ -12,7 +12,15 @@ export interface QuestionDef {
 const TYPES: QuestionType[] = ["TEXT", "TEXTAREA", "SELECT", "MULTI_SELECT", "CHECKBOX", "NUMBER", "DATE", "PHONE", "EMAIL"];
 
 /** US-QST-01 : définition d'une question (libellé, type, choix pour les listes : 2 à 30, sans doublon). */
-export function validateQuestion(input: { label?: unknown; type?: unknown; options?: unknown; required?: unknown; scope?: unknown; ticketTypeIds?: unknown; helpText?: unknown }) {
+export function validateQuestion(input: {
+  label?: unknown;
+  type?: unknown;
+  options?: unknown;
+  required?: unknown;
+  scope?: unknown;
+  ticketTypeIds?: unknown;
+  helpText?: unknown;
+}) {
   const label = typeof input.label === "string" ? input.label.trim() : "";
   if (label.length < 2 || label.length > 200) return { ok: false as const, code: "QUESTION_LABEL" };
   if (!TYPES.includes(input.type as QuestionType)) return { ok: false as const, code: "QUESTION_TYPE" };
@@ -23,17 +31,37 @@ export function validateQuestion(input: { label?: unknown; type?: unknown; optio
     options = [...new Set(raw.map((o) => String(o).trim()).filter(Boolean))].map((o) => o.slice(0, 100));
     if (options.length < 2 || options.length > 30) return { ok: false as const, code: "QUESTION_OPTIONS" };
   }
-  const ticketTypeIds = Array.isArray(input.ticketTypeIds) ? [...new Set(input.ticketTypeIds.filter((t): t is string => typeof t === "string" && t.length <= 40))] : [];
+  const ticketTypeIds = Array.isArray(input.ticketTypeIds)
+    ? [...new Set(input.ticketTypeIds.filter((t): t is string => typeof t === "string" && t.length <= 40))]
+    : [];
   const helpText = typeof input.helpText === "string" && input.helpText.trim() ? input.helpText.trim().slice(0, 300) : null;
-  return { ok: true as const, value: { label, type, options, required: input.required === true, scope: input.scope === "TICKET" ? ("TICKET" as const) : ("ORDER" as const), ticketTypeIds, helpText } };
+  return {
+    ok: true as const,
+    value: {
+      label,
+      type,
+      options,
+      required: input.required === true,
+      scope: input.scope === "TICKET" ? ("TICKET" as const) : ("ORDER" as const),
+      ticketTypeIds,
+      helpText,
+    },
+  };
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE = /^\+?[0-9 ().\-/]{6,24}$/;
 
 /** Réponse normalisée à une question, ou code d'erreur. Réponse vide non obligatoire : null (rien n'est enregistré). */
-export function answerFor(q: Pick<QuestionDef, "type" | "required" | "options">, raw: unknown): { ok: true; value: string | number | boolean | string[] | null } | { ok: false; code: "REQUIRED" | "INVALID" } {
-  const empty = raw == null || (typeof raw === "string" && raw.trim() === "") || (Array.isArray(raw) && raw.length === 0) || (q.type === "CHECKBOX" && raw !== true && raw !== "true" && raw !== "on");
+export function answerFor(
+  q: Pick<QuestionDef, "type" | "required" | "options">,
+  raw: unknown,
+): { ok: true; value: string | number | boolean | string[] | null } | { ok: false; code: "REQUIRED" | "INVALID" } {
+  const empty =
+    raw == null ||
+    (typeof raw === "string" && raw.trim() === "") ||
+    (Array.isArray(raw) && raw.length === 0) ||
+    (q.type === "CHECKBOX" && raw !== true && raw !== "true" && raw !== "on");
   if (empty) return q.required ? { ok: false, code: "REQUIRED" } : { ok: true, value: null };
   const s = typeof raw === "string" ? raw.trim() : raw;
   switch (q.type) {
@@ -71,7 +99,10 @@ const applies = (q: Pick<QuestionDef, "ticketTypeIds">, ticketTypeId: string) =>
 export function questionsForOrder<Q extends QuestionDef>(questions: readonly Q[], lines: ReadonlyArray<{ orderItemId: string; ticketTypeId: string }>) {
   return {
     order: questions.filter((q) => q.scope === "ORDER" && lines.some((l) => applies(q, l.ticketTypeId))),
-    perLine: Object.fromEntries(lines.map((l) => [l.orderItemId, questions.filter((q) => q.scope === "TICKET" && applies(q, l.ticketTypeId))])) as Record<string, Q[]>,
+    perLine: Object.fromEntries(lines.map((l) => [l.orderItemId, questions.filter((q) => q.scope === "TICKET" && applies(q, l.ticketTypeId))])) as Record<
+      string,
+      Q[]
+    >,
   };
 }
 

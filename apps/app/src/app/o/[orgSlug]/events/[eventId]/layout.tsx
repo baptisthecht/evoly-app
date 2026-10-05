@@ -10,7 +10,10 @@ import { EventTabs } from "./Tabs";
 export default async function EventLayout({ children, params }: { children: ReactNode; params: Promise<{ orgSlug: string; eventId: string }> }) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
-  const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null }, select: { title: true, status: true, startsAt: true, timezone: true } });
+  const event = await db.event.findFirst({
+    where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null },
+    select: { title: true, status: true, startsAt: true, timezone: true },
+  });
   if (!event) notFound();
   const t = await getTranslations("events");
   const locale = (await getLocale()) as Locale;

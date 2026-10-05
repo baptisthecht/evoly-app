@@ -68,5 +68,10 @@ export function attendance(tickets: readonly AttendanceTicket[]) {
     byType.set(t.ticketTypeName, row);
   }
   const present = live.filter((t) => t.status === "CHECKED_IN").length;
-  return { present, total: live.length, rateBps: live.length ? Math.round((present * 10_000) / live.length) : 0, byType: [...byType].map(([name, v]) => ({ name, ...v })) };
+  return {
+    present,
+    total: live.length,
+    rateBps: live.length ? Math.round((present * 10_000) / live.length) : 0,
+    byType: [...byType].map(([name, v]) => ({ name, ...v })),
+  };
 }
