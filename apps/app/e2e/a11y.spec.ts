@@ -31,7 +31,7 @@ test("accessibilité des pages clés (WCAG 2.1 AA)", async ({ page, browser }) =
   const box = guest.locator("#billets");
   await box.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box.getByRole("button", { name: "Continuer" }).click();
-  await expect(box.getByLabel("Adresse e-mail")).toBeVisible();
+  await expect(box.getByLabel("Adresse e-mail")).toBeVisible({ timeout: 20_000 }); // réservation côté serveur : plus lente sous charge
   found.push(...(await audit(guest, "formulaire d'achat")));
   await box.getByLabel("Prénom").first().fill("Léa");
   await box.getByLabel("Nom", { exact: true }).fill("Martin");

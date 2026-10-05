@@ -66,7 +66,7 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
             autoCapitalize="none"
             spellCheck={false}
             aria-invalid={!!subError || undefined}
-            className="h-12 min-w-0 flex-1 bg-surface-raised px-4 text-[0.95rem] outline-none"
+            className="h-12 min-w-0 flex-1 bg-surface-raised px-4 text-base outline-none"
             required
           />
           <span className="flex items-center bg-surface-sunken px-3 text-sm text-ink-muted">.{baseDomain}</span>

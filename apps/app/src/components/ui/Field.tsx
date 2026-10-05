@@ -2,7 +2,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react
 import { cn } from "./cn";
 
 const control =
-  "block w-full h-12 rounded-md bg-surface-raised px-4 text-[0.95rem] text-ink placeholder:text-ink-subtle " +
+  "block w-full h-12 rounded-md bg-surface-raised px-4 text-base text-ink placeholder:text-ink-subtle " +
   "shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none transition-shadow focus:shadow-[inset_0_0_0_2px_var(--ink),0_0_0_4px_color-mix(in_srgb,var(--focus-halo)_70%,transparent)] " +
   "aria-[invalid=true]:shadow-[inset_0_0_0_2px_var(--color-danger)]";
 

@@ -58,7 +58,7 @@ export function QuestionField({ q, id, value, onChange, error }: { q: PublicQues
           ))}
         </Select>
       ) : q.type === "TEXTAREA" ? (
-        <textarea id={id} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} rows={3} maxLength={2000} aria-invalid={!!error} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-[0.95rem] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+        <textarea id={id} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} rows={3} maxLength={2000} aria-invalid={!!error} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
       ) : (
         <Input
           id={id}

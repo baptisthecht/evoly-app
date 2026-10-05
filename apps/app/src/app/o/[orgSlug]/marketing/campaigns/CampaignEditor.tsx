@@ -14,7 +14,7 @@ import { uploadFile } from "@/app/o/[orgSlug]/brand/BrandClient";
 type EventOption = { id: string; title: string };
 type Values = { name: string; subject: string; previewText: string; blocks: CampaignBlock[]; segment: CampaignSegment };
 
-const textarea = "block w-full rounded-md bg-surface-raised px-4 py-3 text-[0.95rem] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]";
+const textarea = "block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]";
 
 /** US-MKT-03 : éditeur par blocs, destinataires, aperçu, test, envoi immédiat ou programmé. */
 export function CampaignEditor({ orgSlug, id, status, scheduledAt, initial, events, ticketTypes = [], userEmail }: { orgSlug: string; id: string | null; status: string; scheduledAt: string | null; initial: Values; events: EventOption[]; ticketTypes?: Array<{ id: string; name: string; eventId: string }>; userEmail: string }) {

@@ -36,7 +36,7 @@ function QuestionForm({ orgSlug, eventId, q, ticketTypes, onDone }: { orgSlug: s
       </div>
       {type === "SELECT" || type === "MULTI_SELECT" ? (
         <Field label={t("options")} htmlFor={`qo-${q?.id ?? "new"}`} hint={t("optionsHint")}>
-          <textarea id={`qo-${q?.id ?? "new"}`} name="options" defaultValue={(q?.options ?? []).join("\n")} rows={4} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-[0.95rem] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+          <textarea id={`qo-${q?.id ?? "new"}`} name="options" defaultValue={(q?.options ?? []).join("\n")} rows={4} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
         </Field>
       ) : null}
       <Field label={t("helpText")} htmlFor={`qh-${q?.id ?? "new"}`} hint={t("optional")}>

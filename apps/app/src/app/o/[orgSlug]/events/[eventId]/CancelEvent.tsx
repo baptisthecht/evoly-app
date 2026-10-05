@@ -25,7 +25,7 @@ export function CancelEvent({ orgSlug, eventId, title, paidOrders }: { orgSlug: 
       <p className="font-semibold text-danger">{t("cancelWarning", { count: paidOrders })}</p>
       <FormError state={state} />
       <Field label={t("cancelReason")} htmlFor="cancel-reason" hint={t("cancelReasonHint")} error={error("reason")}>
-        <textarea id="cancel-reason" name="reason" rows={3} maxLength={500} required className="block w-full rounded-md bg-surface-raised px-4 py-3 text-[0.95rem] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+        <textarea id="cancel-reason" name="reason" rows={3} maxLength={500} required className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
       </Field>
       <Field label={t("cancelConfirmLabel", { title })} htmlFor="cancel-confirm" error={error("confirmation")}>
         <Input id="cancel-confirm" name="confirmation" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />

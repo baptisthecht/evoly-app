@@ -58,7 +58,7 @@ export function EventFields({ values, error }: { values: EventFieldValues; error
             defaultValue={values.summary}
             maxLength={280}
             rows={3}
-            className="block w-full rounded-md bg-surface-raised px-4 py-3 text-[0.95rem] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+            className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
           />
         </Field>
       </fieldset>

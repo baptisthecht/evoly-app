@@ -60,7 +60,7 @@ export function OrganizationSettingsForm({ orgSlug, values, countries, currencie
           </Field>
         </div>
         <Field label={t("description")} htmlFor="org-desc">
-          <textarea id="org-desc" name="description" defaultValue={values.description} rows={3} maxLength={500} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-[0.95rem] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+          <textarea id="org-desc" name="description" defaultValue={values.description} rows={3} maxLength={500} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
         </Field>
       </fieldset>
 

@@ -26,7 +26,7 @@ function AutomationForm({ orgSlug, eventId, a }: { orgSlug: string; eventId: str
         <Input id={`${a.type}-subject`} name="subject" defaultValue={a.subject} maxLength={150} />
       </Field>
       <Field label={t("message")} htmlFor={`${a.type}-message`} hint={t("messageHint")} error={error("message")}>
-        <textarea id={`${a.type}-message`} name="message" defaultValue={a.message} rows={4} maxLength={4000} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-[0.95rem] shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
+        <textarea id={`${a.type}-message`} name="message" defaultValue={a.message} rows={4} maxLength={4000} className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]" />
       </Field>
       {state?.ok ? <p className="text-sm text-success" role="status">{t("saved")}</p> : null}
       <SubmitButton pending={pending} variant="secondary" className="w-full sm:w-auto sm:justify-self-start">

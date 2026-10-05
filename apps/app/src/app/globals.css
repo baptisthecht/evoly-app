@@ -45,3 +45,39 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Responsive mobile (audit d'octobre 2026). Couche « base » : toute classe utilitaire (grid-cols-*, text-*…) reste prioritaire.
+ * 1. Une grille sans colonnes déclarées a une seule colonne, contrainte à la largeur disponible : un contenu qui ne se coupe pas
+ *    (texte tronqué, champ, adresse e-mail) ne l'élargit plus au-delà de l'écran.
+ * 2. Un mot trop long pour son cadre (adresse, clé, mot composé allemand) passe à la ligne ; césure dans les titres.
+ * 3. Champs à 16 px au moins : en dessous, Safari sur iPhone zoome au toucher et reste zoomé.
+ * 4. Champs date et heure sans le style natif d'iOS, qui ignorait la bordure et débordait de la colonne.
+ */
+@layer base {
+  :where(.grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body {
+    overflow-wrap: break-word;
+  }
+  h1, h2, h3 {
+    overflow-wrap: anywhere; /* un titre peut rétrécir sous la largeur de son plus long mot (dans une rangée flexible) */
+    hyphens: auto;
+  }
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), select, textarea {
+    font-size: 1rem;
+  }
+  input[type="date"], input[type="time"], input[type="datetime-local"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+  }
+  input[type="date"]::-webkit-date-and-time-value,
+  input[type="time"]::-webkit-date-and-time-value,
+  input[type="datetime-local"]::-webkit-date-and-time-value {
+    text-align: start;
+    min-height: 1.5em;
+  }
+}
+
