@@ -289,7 +289,7 @@ export async function complimentaryAction(orgSlug: string, eventId: string, _: A
   return result;
 }
 
-// —— plan de salle (section 9.9, Pro) ——
+// -- plan de salle (section 9.9, Pro) --
 const SEATING = { permission: "TICKETS_MANAGE", feature: "SEATING_MAPS" } as const;
 const seatingDone = (orgSlug: string, eventId: string) => {
   revalidatePath(`${eventPath(orgSlug, eventId)}/seating`);
@@ -310,7 +310,7 @@ export async function seatingCommandAction(orgSlug: string, eventId: string, com
   return r;
 }
 
-// —— éditeur visuel du plan de salle ——
+// -- éditeur visuel du plan de salle --
 export async function seatingTemplateAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState> {
   const schema = z.object({
     template: z.enum(SEATING_TEMPLATES),

@@ -8,7 +8,7 @@ test("référencement des billetteries : aperçus de liens, données structurée
   const viaHost = (url: string) => { const u = new URL(url); return request.get(`http://localhost:${u.port}${u.pathname}`, { headers: { host: u.host } }); };
   const html = await (await viaHost(siteUrl(slug, `/festival-${id}`))).text();
   const meta = (attr: string, key: string) => html.match(new RegExp(`<meta ${attr}="${key}" content="([^"]*)"`))?.[1] ?? null;
-  expect(html).toMatch(new RegExp(`<title>Festival ${id} · .+ — Billets \\| `));
+  expect(html).toMatch(new RegExp(`<title>Festival ${id} · .+ - Billets \\| `));
   expect(meta("name", "twitter:card")).toBe("summary_large_image");
   expect(meta("property", "og:site_name")).toBeTruthy();
   const og = meta("property", "og:image")!;

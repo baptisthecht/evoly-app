@@ -75,11 +75,11 @@
     "privateSubmit": "Zur Veranstaltung",
     "privateWrong": "Falscher Code.",
     "privateTooMany": "Zu viele Versuche. Versuchen Sie es in ein paar Minuten erneut.",
-    "seoTitle": "{title} · {date}{city, select, other {, {city}}} — Tickets | {org}",
+    "seoTitle": "{title} · {date}{city, select, other {, {city}}} - Tickets | {org}",
     "seoDescription": "Tickets für {title}: {date}, {place}. {price}Sichere Online-Buchung, E-Ticket auf dem Handy. Offizielles Ticketing von {org}.",
     "seoFrom": "Ab {price}. ",
     "seoFree": "Eintritt frei. ",
-    "seoOrgTitle": "{org} — Offizielles Ticketing, Veranstaltungen und Tickets",
+    "seoOrgTitle": "{org} - Offizielles Ticketing, Veranstaltungen und Tickets",
     "seoOrgDescription": "Alle Veranstaltungen von {org}: Online-Tickets, sichere Zahlung, E-Tickets auf dem Handy und Weiterverkauf unter Gästen."
   },
   "checkout": {

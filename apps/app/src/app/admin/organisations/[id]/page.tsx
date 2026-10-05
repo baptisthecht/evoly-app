@@ -6,7 +6,7 @@ import { organizationSheet, requireStaff } from "@/server/platform";
 import { assignPlanAction, extendTrialAction, featureFlagAction, reactivateAction, resendOrderAction, retryResaleAction, suspendAction, supportViewAction } from "../../actions";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Organisation — Back-office Evoly", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Organisation - Back-office Evoly", robots: { index: false, follow: false } };
 
 const card = "rounded-2xl bg-surface-raised p-5 ring-1 ring-line";
 const input = "h-11 rounded-xl bg-surface-raised px-3 ring-1 ring-line-strong";

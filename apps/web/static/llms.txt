@@ -2,7 +2,7 @@
 
 > Evoly is an online ticketing platform for event organisers (associations, theatres, concerts, parties, galas, sports clubs, conferences). Organisers create an event and start selling tickets in about 60 seconds. Pricing is transparent: free tickets carry no commission; paid tickets carry a commission of 0.29 € + 2 % per ticket, capped at 2.50 € on the Free plan and 1 € on Pro (29 € per month), excluding payment fees (Stripe, charged at cost with no markup). Buyers always pay exactly the displayed price: fees are never added at checkout.
 
-Evoly — billetterie en ligne : créez votre événement en 60 secondes ; prix affiché, prix payé ; commission de 0,29 € + 2 % plafonnée (2,50 € en Free, 1 € en Pro), hors frais de paiement ; billets gratuits sans commission.
+Evoly - billetterie en ligne : créez votre événement en 60 secondes ; prix affiché, prix payé ; commission de 0,29 € + 2 % plafonnée (2,50 € en Free, 1 € en Pro), hors frais de paiement ; billets gratuits sans commission.
 
 ## Key facts
 - Buyers pay in one tap with Apple Pay, Google Pay, cards, PayPal, Klarna and local payment methods; payouts go directly to the organiser's own Stripe account.

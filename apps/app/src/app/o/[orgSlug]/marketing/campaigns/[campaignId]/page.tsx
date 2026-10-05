@@ -50,7 +50,7 @@ export default async function CampaignPage({ params, searchParams }: { params: P
       ? { name: chosen.name, subject: chosen.subject, previewText: chosen.previewText ?? "", blocks: chosen.content as CampaignBlock[], segment: { kind: "ALL_CONSENTING", locale: null } as CampaignSegment }
       : { name: tt(`${tpl}Name`), subject: tt(`${tpl}Subject`), previewText: "", blocks: starters[tpl], segment: { kind: "ALL_CONSENTING", locale: null } as CampaignSegment };
   const locked = campaign && ["SENDING", "SENT", "CANCELLED", "FAILED"].includes(campaign.status);
-  const rate = (n: number) => (campaign?.deliveredCount ? `${Math.round((n / campaign.deliveredCount) * 100)} %` : "—");
+  const rate = (n: number) => (campaign?.deliveredCount ? `${Math.round((n / campaign.deliveredCount) * 100)} %` : "-");
   return (
     <div className="grid gap-6">
       <header className="grid gap-2">

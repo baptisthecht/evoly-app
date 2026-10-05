@@ -374,7 +374,7 @@ export function reminderEmail(o: { brand?: EmailBrand | null; locale: Locale; ty
 <tr><td style="padding-bottom:24px"><a href="${escapeHtml(o.ticketsUrl)}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:14px 22px;border-radius:999px">${escapeHtml(c.cta)}</a></td></tr>
 <tr><td style="border-top:1px solid #eee;padding-top:16px;font-size:12px;line-height:1.6;color:#555">${footer}</td></tr>
 </table></td></tr></table></body></html>`;
-  const text = [o.organizationName, "", c.hello(o.firstName), c.body(o.tickets), "", `${c.when} : ${o.when}`, o.where ? `${c.where} : ${o.where}` : "", "", `${c.cta} : ${o.ticketsUrl}`, "", "—", c.reason(o.organizationName, o.eventTitle), `${c.unsubscribe} : ${o.unsubscribeEventUrl}`].filter((l) => l !== undefined).join("\n");
+  const text = [o.organizationName, "", c.hello(o.firstName), c.body(o.tickets), "", `${c.when} : ${o.when}`, o.where ? `${c.where} : ${o.where}` : "", "", `${c.cta} : ${o.ticketsUrl}`, "", "-", c.reason(o.organizationName, o.eventTitle), `${c.unsubscribe} : ${o.unsubscribeEventUrl}`].filter((l) => l !== undefined).join("\n");
   return { subject, html, text };
 }
 

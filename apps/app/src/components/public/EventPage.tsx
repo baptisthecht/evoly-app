@@ -31,7 +31,7 @@ export async function eventMetadata(org: PublicOrganization, data: PublicEventDa
   // événement privé verrouillé : rien de son contenu dans les aperçus de liens
   const orgName = org.brand?.displayName ?? org.name;
   if (!(await eventUnlocked(e.id))) {
-    const title = `${(await getTranslations("public"))("privateTitle")} — ${orgName}`;
+    const title = `${(await getTranslations("public"))("privateTitle")} - ${orgName}`;
     return { title: { absolute: title }, robots: { index: false, follow: false }, openGraph: { type: "website", title, siteName: orgName }, twitter: { card: "summary", title } };
   }
   const t = await getTranslations("public");
@@ -44,7 +44,7 @@ export async function eventMetadata(org: PublicOrganization, data: PublicEventDa
   const min = data.ticketTypes.length ? Math.min(...data.ticketTypes.map((tt) => tt.priceMinor)) : null;
   const price = min === null ? "" : min === 0 ? t("seoFree") : t("seoFrom", { price: formatMoney(min, e.currency, locale, { trimZeroCents: true }) });
   const title = t("seoTitle", { title: e.title, date, city: e.city ?? "", org: orgName });
-  const description = (e.summary?.trim() ? `${e.summary.trim()} ` : "") + t("seoDescription", { title: e.title, date, place: place || "—", price, org: orgName });
+  const description = (e.summary?.trim() ? `${e.summary.trim()} ` : "") + t("seoDescription", { title: e.title, date, place: place || "-", price, org: orgName });
   const image = e.coverImageUrl ? { url: e.coverImageUrl, alt: e.title } : { url: eventOgImageUrl(e.id, e.updatedAt), width: 1200, height: 630, alt: e.title };
   return {
     title: { absolute: title },

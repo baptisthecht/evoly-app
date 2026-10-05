@@ -58,7 +58,7 @@ export async function financeOverview(ctx: OrgContext, opts: { period: Period; e
     range,
     currency: ctx.organization.currency,
     totals: financeTotals(orders.map(toFinance)),
-    byEvent: [...grouped].map(([eventId, totals]) => ({ eventId, title: titles.get(eventId)?.title ?? "—", startsAt: titles.get(eventId)?.startsAt ?? null, ...totals })).sort((a, b) => b.grossMinor - a.grossMinor),
+    byEvent: [...grouped].map(([eventId, totals]) => ({ eventId, title: titles.get(eventId)?.title ?? "-", startsAt: titles.get(eventId)?.startsAt ?? null, ...totals })).sort((a, b) => b.grossMinor - a.grossMinor),
   };
 }
 

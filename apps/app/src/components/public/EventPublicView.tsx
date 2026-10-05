@@ -97,7 +97,7 @@ export async function EventPublicView({ org, data, preview = false, seatMap = nu
                 {!event.endsAt
                   ? formatTime(event.startsAt, event.timezone, locale)
                   : sameDay
-                    ? `${formatTime(event.startsAt, event.timezone, locale)} – ${formatTime(end, event.timezone, locale)}`
+                    ? `${formatTime(event.startsAt, event.timezone, locale)} - ${formatTime(end, event.timezone, locale)}`
                     : `${formatTime(event.startsAt, event.timezone, locale)} → ${formatDate(end, event.timezone, locale)}, ${formatTime(end, event.timezone, locale)}`}{" "}
                 <span className="text-sm text-ink-muted">({timeZoneLabel(event.startsAt, event.timezone, locale)})</span>
               </p>

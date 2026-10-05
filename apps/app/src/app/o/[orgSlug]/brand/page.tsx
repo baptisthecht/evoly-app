@@ -89,7 +89,7 @@ export default async function BrandPage({ params }: { params: Promise<{ orgSlug:
               key={d.id}
               orgSlug={orgSlug}
               planOk={pro.domains}
-              d={{ id: d.id, domain: d.domain, status: d.status, dnsTarget: d.dnsTarget, lastError: d.lastError, checksStopped: !!d.checksStoppedAt, target: d.scope === "EVENT" ? t("scopeEvent", { title: d.event?.title ?? "—" }) : t("scopeOrganization") }}
+              d={{ id: d.id, domain: d.domain, status: d.status, dnsTarget: d.dnsTarget, lastError: d.lastError, checksStopped: !!d.checksStoppedAt, target: d.scope === "EVENT" ? t("scopeEvent", { title: d.event?.title ?? "-" }) : t("scopeOrganization") }}
             />
           ))}
           {pro.domains ? domains.length < MAX_CUSTOM_DOMAINS ? <Card><AddDomain orgSlug={orgSlug} events={events} /></Card> : <p className="text-sm text-ink-muted">{t("domainsLimit", { max: MAX_CUSTOM_DOMAINS })}</p> : null}

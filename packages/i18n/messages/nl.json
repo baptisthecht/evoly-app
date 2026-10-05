@@ -75,11 +75,11 @@
     "privateSubmit": "Naar het evenement",
     "privateWrong": "Onjuiste code.",
     "privateTooMany": "Te veel pogingen. Probeer het over enkele minuten opnieuw.",
-    "seoTitle": "{title} · {date}{city, select, other {, {city}}} — Tickets | {org}",
+    "seoTitle": "{title} · {date}{city, select, other {, {city}}} - Tickets | {org}",
     "seoDescription": "Tickets voor {title}: {date}, {place}. {price}Veilig online reserveren, e-ticket op je telefoon. Officiële ticketverkoop van {org}.",
     "seoFrom": "Vanaf {price}. ",
     "seoFree": "Gratis toegang. ",
-    "seoOrgTitle": "{org} — Officiële ticketverkoop, evenementen en tickets",
+    "seoOrgTitle": "{org} - Officiële ticketverkoop, evenementen en tickets",
     "seoOrgDescription": "Alle evenementen van {org}: online tickets, veilig betalen, e-tickets op je telefoon en doorverkoop tussen bezoekers."
   },
   "checkout": {

@@ -14,7 +14,7 @@ import { getSession } from "./session";
 import { twoFactorSatisfied } from "./twoFactor";
 export { decryptSecret, encryptSecret, totpFor } from "./twoFactor";
 
-// —— accès : équipe Evoly, double authentification obligatoire (module commun twoFactor.ts) ——
+// -- accès : équipe Evoly, double authentification obligatoire (module commun twoFactor.ts) --
 
 const SUPPORT_COOKIE = "evoly_support_view";
 const sign = (purpose: string, value: string) => createHmac("sha256", `${purpose}:${env().BETTER_AUTH_SECRET}`).update(value).digest("base64url");
@@ -40,7 +40,7 @@ export async function requireStaff(level: "SUPPORT" | "ADMIN" = "SUPPORT"): Prom
   return st;
 }
 
-// —— recherche, fiches, tableau de bord ——
+// -- recherche, fiches, tableau de bord --
 
 /** Recherche : organisations, utilisateurs, événements, commandes, billets, annonces de revente. */
 export async function platformSearch(q: string) {
@@ -113,7 +113,7 @@ export async function platformDashboard(now = new Date()) {
   return { grossMinor: sales30._sum.totalMinor ?? 0, commissionMinor: sales30._sum.applicationFeeMinor ?? 0, orders30: sales30._count, activeOrganizations: active.length, subscriptions: { pro, trialing, pastDue }, disputeRate: ratePercent(disputes90, paid90), refundRate: ratePercent(refunded90, paid90), risky };
 }
 
-// —— actions (ADMIN), toutes journalisées ——
+// -- actions (ADMIN), toutes journalisées --
 
 const log = (st: Staff, action: string, organizationId: string | null, metadata?: Record<string, string | number | boolean | null>) => audit({ action, organizationId, actorType: "ADMIN", actorUserId: st.user.id, targetType: "Organization", targetId: organizationId ?? st.user.id, metadata });
 
@@ -184,7 +184,7 @@ export async function featureEnabled(key: string, organizationId: string): Promi
   return (flags.find((f) => f.organizationId === organizationId) ?? flags.find((f) => f.organizationId === null))?.enabled ?? false;
 }
 
-// —— consultation en lecture seule de l'app d'un organisateur, journalisée ——
+// -- consultation en lecture seule de l'app d'un organisateur, journalisée --
 
 export async function startSupportView(st: Staff, organizationId: string): Promise<string> {
   const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { id: true, slug: true } });

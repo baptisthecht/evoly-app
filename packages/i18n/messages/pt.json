@@ -75,11 +75,11 @@
     "privateSubmit": "Aceder ao evento",
     "privateWrong": "Código incorreto.",
     "privateTooMany": "Demasiadas tentativas. Tente de novo dentro de alguns minutos.",
-    "seoTitle": "{title} · {date}{city, select, other {, {city}}} — Bilhetes | {org}",
+    "seoTitle": "{title} · {date}{city, select, other {, {city}}} - Bilhetes | {org}",
     "seoDescription": "Bilhetes para {title}: {date}, {place}. {price}Reserva online segura, bilhete eletrónico no telemóvel. Bilheteira oficial de {org}.",
     "seoFrom": "Desde {price}. ",
     "seoFree": "Entrada gratuita. ",
-    "seoOrgTitle": "{org} — Bilheteira oficial, eventos e bilhetes",
+    "seoOrgTitle": "{org} - Bilheteira oficial, eventos e bilhetes",
     "seoOrgDescription": "Todos os eventos de {org}: bilhetes online, pagamento seguro, bilhetes eletrónicos no telemóvel e revenda entre espectadores."
   },
   "checkout": {

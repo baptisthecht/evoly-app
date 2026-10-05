@@ -30,10 +30,10 @@ export default async function OrgHome({ params }: { params: Promise<{ orgSlug: s
   const firstName = ctx.user.name.split(" ")[0] ?? ctx.user.name;
 
   const kpis = [
-    { label: t("kpiNet"), value: showMoney ? formatMoney(net, ctx.organization.currency, locale) : "—" },
+    { label: t("kpiNet"), value: showMoney ? formatMoney(net, ctx.organization.currency, locale) : "-" },
     { label: t("kpiTickets"), value: String(tickets) },
     { label: t("kpiEvents"), value: String(events) },
-    { label: t("kpiCheckin"), value: "—" },
+    { label: t("kpiCheckin"), value: "-" },
   ];
 
   return (

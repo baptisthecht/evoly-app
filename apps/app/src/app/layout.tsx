@@ -9,7 +9,7 @@ import { PwaRegister } from "@/components/pwa/PwaRegister";
 import { isAppHost } from "@/lib/pwa";
 
 const BASE: Metadata = {
-  title: { default: "Evoly", template: "%s — Evoly" },
+  title: { default: "Evoly", template: "%s - Evoly" },
   description: "Ton prochain souvenir t'attend.",
   robots: { index: false, follow: false },
 };

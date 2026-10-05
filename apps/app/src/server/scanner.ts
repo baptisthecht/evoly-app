@@ -229,7 +229,7 @@ export async function attendanceStats(eventId: string) {
   ]);
   return {
     ...attendance(tickets.map((t) => ({ ticketTypeName: t.ticketType.name, status: t.status }))),
-    byGate: byGate.map((g) => ({ gate: g.gate ?? "—", count: g._count._all })).sort((a, b) => b.count - a.count),
+    byGate: byGate.map((g) => ({ gate: g.gate ?? "-", count: g._count._all })).sort((a, b) => b.count - a.count),
     recent: recent.map((c) => ({ id: c.id, at: c.scannedAt, result: c.result, gate: c.gate, offline: c.offline, holder: c.ticket ? (c.ticket.holderFirstName ? `${c.ticket.holderFirstName} ${c.ticket.holderLastName ?? ""}`.trim() : `${c.ticket.order.buyerFirstName} ${c.ticket.order.buyerLastName}`.trim()) : null, typeName: c.ticket?.ticketType.name ?? null })),
   };
 }

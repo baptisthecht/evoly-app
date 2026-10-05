@@ -79,9 +79,9 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
                 <dt className="text-ink-muted">{t("commission")}</dt>
                 <dd className="text-right tabular-nums">{money(order.applicationFeeMinor)}</dd>
                 <dt className="text-ink-muted">{t("stripeFees")}</dt>
-                <dd className="text-right tabular-nums">{order.paymentFeeMinor != null ? money(order.paymentFeeMinor) : "—"}</dd>
+                <dd className="text-right tabular-nums">{order.paymentFeeMinor != null ? money(order.paymentFeeMinor) : "-"}</dd>
                 <dt className="text-ink-muted">{t("net")}</dt>
-                <dd className="text-right tabular-nums">{order.netMinor != null ? money(order.netMinor) : "—"}</dd>
+                <dd className="text-right tabular-nums">{order.netMinor != null ? money(order.netMinor) : "-"}</dd>
               </>
             ) : null}
             {order.refundedMinor > 0 ? (

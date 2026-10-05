@@ -16,7 +16,7 @@ const schema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   ORDER_TOKEN_SECRET: z.string().min(32).optional(), // liens magiques des commandes ; BETTER_AUTH_SECRET à défaut
   CRON_SECRET: z.string().min(16).optional(), // tâches planifiées (libération des réservations expirées)
-  EVOLY_LEGAL_NAME: z.string().default("Baptist Hecht — Evoly Solutions"), // émetteur des relevés de commissions
+  EVOLY_LEGAL_NAME: z.string().default("Baptist Hecht - Evoly Solutions"), // émetteur des relevés de commissions
   R2_ACCOUNT_ID: z.string().optional(), // fichiers importés (logos, images) ; à défaut, dossier local UPLOADS_DIR
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),

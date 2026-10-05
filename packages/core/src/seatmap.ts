@@ -46,7 +46,7 @@ export interface GenRow { label: string; category: string; seats: GenSeat[] }
 
 const r2 = (v: number) => Math.round(v * 100) / 100;
 
-// —— numérotations ——
+// -- numérotations --
 
 /** Libellés des places d'un rang, de gauche à droite (vu depuis la salle, face à la scène). */
 export function seatNumbers(n: number, mode: SeatNumbering, start = 1): string[] {
@@ -79,7 +79,7 @@ export function rowLabel(i: number, labeling: RowLabeling): string {
   }
 }
 
-// —— géométrie ——
+// -- géométrie --
 
 function place(block: BlockBase, lx: number, ly: number): { x: number; y: number } {
   const t = (block.rotation * Math.PI) / 180;
@@ -170,7 +170,7 @@ export function generateBlock(block: BlockSpec): GenRow[] {
   }
 }
 
-// —— modèles de salles ——
+// -- modèles de salles --
 
 export const SEATING_TEMPLATES = ["theatre", "hall", "gala", "pit", "church", "cabaret", "conference", "arena", "stadium", "blank"] as const;
 export type SeatingTemplate = (typeof SEATING_TEMPLATES)[number];
@@ -258,7 +258,7 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
   }
 }
 
-// —— meilleures places et sièges isolés ——
+// -- meilleures places et sièges isolés --
 
 export interface PlanSeat { id: string; rowId: string; order: number; x: number; y: number; available: boolean }
 

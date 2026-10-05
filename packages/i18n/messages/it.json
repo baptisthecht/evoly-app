@@ -75,11 +75,11 @@
     "privateSubmit": "Accedi all’evento",
     "privateWrong": "Codice errato.",
     "privateTooMany": "Troppi tentativi. Riprova tra qualche minuto.",
-    "seoTitle": "{title} · {date}{city, select, other {, {city}}} — Biglietti | {org}",
+    "seoTitle": "{title} · {date}{city, select, other {, {city}}} - Biglietti | {org}",
     "seoDescription": "Biglietti per {title}: {date}, {place}. {price}Prenotazione online sicura, biglietto elettronico sul telefono. Biglietteria ufficiale di {org}.",
     "seoFrom": "Da {price}. ",
     "seoFree": "Ingresso gratuito. ",
-    "seoOrgTitle": "{org} — Biglietteria ufficiale, eventi e biglietti",
+    "seoOrgTitle": "{org} - Biglietteria ufficiale, eventi e biglietti",
     "seoOrgDescription": "Tutti gli eventi di {org}: biglietti online, pagamento sicuro, biglietti elettronici sul telefono e rivendita tra spettatori."
   },
   "checkout": {

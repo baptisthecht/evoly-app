@@ -38,7 +38,7 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
   const tiersSold = new Map<string, Array<{ name: string; sold: number }>>();
   for (const r of tierRows) {
     const list = tiersSold.get(r.ticketTypeId) ?? [];
-    list.push({ name: r.priceTierId ? (tierNames.get(r.priceTierId) ?? "—") : t("basePrice"), sold: r._sum.quantity ?? 0 });
+    list.push({ name: r.priceTierId ? (tierNames.get(r.priceTierId) ?? "-") : t("basePrice"), sold: r._sum.quantity ?? 0 });
     tiersSold.set(r.ticketTypeId, list);
   }
   const gross = event.ticketTypes.reduce((n, tt) => n + tt.quantitySold * tt.priceMinor, 0);

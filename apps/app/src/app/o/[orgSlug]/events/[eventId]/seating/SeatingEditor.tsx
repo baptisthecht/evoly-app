@@ -194,7 +194,7 @@ function maxY(state: SeatingEditorState) {
   return ys.length ? Math.max(...ys) : 0;
 }
 
-// —— plan ——
+// -- plan --
 
 function PlanCanvas({ state, selection, readOnly, onSelect, onMove }: { state: SeatingEditorState; selection: Selection; readOnly: boolean; onSelect: (s: Selection) => void; onMove: (b: Block, dx: number, dy: number) => void }) {
   const t = useTranslations("seatingEditor");
@@ -317,7 +317,7 @@ function PlanCanvas({ state, selection, readOnly, onSelect, onMove }: { state: S
   );
 }
 
-// —— panneaux ——
+// -- panneaux --
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   const id = `panel-${title.replace(/\W+/g, "-").toLowerCase()}`;
@@ -640,7 +640,7 @@ function Modes({ state, readOnly, onMode, onChoice }: { state: SeatingEditorStat
   );
 }
 
-// —— modèles ——
+// -- modèles --
 
 function TemplatePicker({ pending, error, canCancel, hasSales, layouts: initialLayouts, onSearch, onCancel, onApply, onApplyLayout, onDeleteLayout, photo }: { pending: boolean; error: string | null; canCancel: boolean; hasSales: boolean; layouts: SeatingLayoutItem[]; onSearch: (q: string) => Promise<SeatingLayoutItem[] | null>; onCancel: () => void; onApply: (t: SeatingTemplate, o: TemplateOptions) => void; onApplyLayout: (id: string) => void; onDeleteLayout: (id: string) => Promise<boolean>; photo: { analyse: (form: FormData) => Promise<Result>; apply: (plan: StoredPlan) => void } | null }) {
   const t = useTranslations("seatingEditor");
@@ -735,7 +735,7 @@ function TemplatePicker({ pending, error, canCancel, hasSales, layouts: initialL
   );
 }
 
-// —— plan d'après une photo ——
+// -- plan d'après une photo --
 
 function PhotoPlan({ photo, pending, hasSales }: { photo: { analyse: (form: FormData) => Promise<Result>; apply: (plan: StoredPlan) => void } | null; pending: boolean; hasSales: boolean }) {
   const t = useTranslations("seatingEditor");
@@ -792,7 +792,7 @@ function PhotoPlan({ photo, pending, hasSales }: { photo: { analyse: (form: Form
   );
 }
 
-// —— carte de chaleur des ventes ——
+// -- carte de chaleur des ventes --
 
 /** Couleur d'une place vendue : charbon (vendue la première) → rose → crème (la dernière). */
 function heatColor(h: number) {

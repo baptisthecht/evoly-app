@@ -230,7 +230,7 @@ TIERS_HTML = '\n'.join(tiers_html)
 
 # ------------------------------------------------------------------ comparatif
 YES = f'<span class="yes">{CHECK}<span class="vh">Oui</span></span>'
-NO = '<span class="no"><span aria-hidden="true">—</span><span class="vh">Non</span></span>'
+NO = '<span class="no"><span aria-hidden="true">-</span><span class="vh">Non</span></span>'
 ROWS = [
     ('Commission plafonnée, même sur les billets chers', '2,50 € maximum', '1 € maximum', 'Rare'),
     ('Revente intégrée, sans passer par un site tiers', YES, YES, 'Rare'),
@@ -794,7 +794,7 @@ else:
 # ------------------------------------------------------------------ référencement (titre, aperçus de liens, données structurées)
 import json as _json, re as _re
 SITE = 'https://evoly.me'
-SEO_TITLE = 'Evoly — Billetterie en ligne : prix affiché, prix payé'
+SEO_TITLE = 'Evoly - Billetterie en ligne : prix affiché, prix payé'
 OG_VERSION = '2'  # à incrémenter quand les images d'aperçu changent (caches de Facebook, WhatsApp, LinkedIn)
 SEO_DESC = 'Vendez vos billets en ligne en 60 secondes : paiement en un tap (Apple Pay, Google Pay), revente en un lien, plan de salle, statistiques en direct. Commission plafonnée, et vos participants paient le prix affiché.'
 _strip = lambda t: _re.sub(r'<[^>]+>', '', t).replace('\u202f', ' ').strip()

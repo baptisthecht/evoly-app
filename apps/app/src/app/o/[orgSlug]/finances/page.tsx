@@ -140,9 +140,9 @@ export default async function FinancesPage({ params, searchParams }: { params: P
                     </th>
                     <td className="py-2 text-right tabular-nums">{r.tickets}</td>
                     <td className="py-2 text-right tabular-nums">{money(r.grossMinor)}</td>
-                    <td className="py-2 text-right tabular-nums">{r.refundedMinor ? `−${money(r.refundedMinor)}` : "—"}</td>
-                    <td className="py-2 text-right tabular-nums">{r.commissionMinor ? `−${money(r.commissionMinor)}` : "—"}</td>
-                    <td className="py-2 text-right tabular-nums">{r.bankFeeMinor ? `−${money(r.bankFeeMinor)}` : "—"}</td>
+                    <td className="py-2 text-right tabular-nums">{r.refundedMinor ? `−${money(r.refundedMinor)}` : "-"}</td>
+                    <td className="py-2 text-right tabular-nums">{r.commissionMinor ? `−${money(r.commissionMinor)}` : "-"}</td>
+                    <td className="py-2 text-right tabular-nums">{r.bankFeeMinor ? `−${money(r.bankFeeMinor)}` : "-"}</td>
                     <td className="py-2 text-right font-semibold tabular-nums">{money(r.netMinor)}</td>
                   </tr>
                 ))}

@@ -84,7 +84,7 @@ Les boutons « Ajouter à Apple Wallet » et « Ajouter à Google Wallet » n'ap
 **Apple** (compte Apple Developer, 99 $ par an)
 1. Certificates, Identifiers & Profiles → Identifiers → Pass Type IDs : créer `pass.me.evoly.ticket` (`APPLE_PASS_TYPE_ID`). L'identifiant d'équipe est `APPLE_TEAM_ID`.
 2. Créer le certificat de ce Pass Type ID (demande de signature générée avec `openssl req -new -newkey rsa:2048 -nodes -keyout pass.key -out pass.csr`), télécharger `pass.cer`, puis `openssl x509 -inform DER -in pass.cer -out pass.pem`.
-3. Télécharger le certificat intermédiaire « Apple Worldwide Developer Relations — G4 », puis `openssl x509 -inform DER -in AppleWWDRCAG4.cer -out wwdr.pem`.
+3. Télécharger le certificat intermédiaire « Apple Worldwide Developer Relations - G4 », puis `openssl x509 -inform DER -in AppleWWDRCAG4.cer -out wwdr.pem`.
 4. Variables, en base64 sur une ligne : `APPLE_PASS_CERT_PEM=$(base64 -w0 pass.pem)`, `APPLE_PASS_KEY_PEM=$(base64 -w0 pass.key)`, `APPLE_WWDR_PEM=$(base64 -w0 wwdr.pem)` ; `APPLE_PASS_KEY_PASSPHRASE` si la clé est chiffrée.
 5. Le certificat expire au bout d'un an : prévoir son renouvellement.
 

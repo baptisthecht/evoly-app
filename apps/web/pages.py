@@ -35,7 +35,7 @@ def cta(title, text, button):
 
 PAGES = {
     'seating': {
-        'title': 'Plan de salle et placement numéroté en ligne — Evoly',
+        'title': 'Plan de salle et placement numéroté en ligne - Evoly',
         'desc': 'Créez votre plan de salle en quelques minutes : théâtre, gala, église, conférence ou stade. Les meilleures places sont attribuées automatiquement et vos participants peuvent les changer en un geste.',
         'crumb': 'Plan de salle',
         'faq': [
@@ -66,7 +66,7 @@ PAGES = {
         ),
     },
     'associations': {
-        'title': 'Billetterie en ligne pour associations, sans abonnement — Evoly',
+        'title': 'Billetterie en ligne pour associations, sans abonnement - Evoly',
         'desc': 'La billetterie en ligne des associations : 0 % de commission sur les billets gratuits, aucun don suggéré à vos participants, une commission plafonnée sur les billets payants et des bénévoles qui scannent sans compte.',
         'crumb': 'Associations',
         'faq': [
@@ -91,7 +91,7 @@ PAGES = {
         ),
     },
     'eventbrite': {
-        'title': 'Evoly ou Eventbrite : comparatif des frais et des fonctions — Evoly',
+        'title': 'Evoly ou Eventbrite : comparatif des frais et des fonctions - Evoly',
         'desc': 'Evoly ou Eventbrite ? Comparez les frais de plateforme billet par billet : la commission d’Evoly est plafonnée, les frais de service d’Eventbrite augmentent avec le prix. Grille publique d’Eventbrite pour la France, consultée en octobre 2026.',
         'crumb': 'Evoly ou Eventbrite',
         'faq': [],
@@ -116,7 +116,7 @@ PAGES = {
         ),
     },
     'about': {
-        'title': 'Qui sommes-nous — Evoly',
+        'title': 'Qui sommes-nous - Evoly',
         'desc': 'Evoly est une billetterie en ligne indépendante, conçue en Belgique par Evoly Solutions : une commission simple et plafonnée, un prix affiché qui est le prix payé, et des outils pensés pour les organisateurs.',
         'crumb': 'Qui sommes-nous',
         'faq': [],

@@ -75,11 +75,11 @@
     "privateSubmit": "Acceder al evento",
     "privateWrong": "Código incorrecto.",
     "privateTooMany": "Demasiados intentos. Vuelve a intentarlo en unos minutos.",
-    "seoTitle": "{title} · {date}{city, select, other {, {city}}} — Entradas | {org}",
+    "seoTitle": "{title} · {date}{city, select, other {, {city}}} - Entradas | {org}",
     "seoDescription": "Entradas para {title}: {date}, {place}. {price}Reserva online segura, entrada electrónica en tu móvil. Venta oficial de entradas de {org}.",
     "seoFrom": "Desde {price}. ",
     "seoFree": "Entrada gratuita. ",
-    "seoOrgTitle": "{org} — Venta oficial de entradas, eventos y entradas",
+    "seoOrgTitle": "{org} - Venta oficial de entradas, eventos y entradas",
     "seoOrgDescription": "Todos los eventos de {org}: entradas online, pago seguro, entradas electrónicas en tu móvil y reventa entre asistentes."
   },
   "checkout": {

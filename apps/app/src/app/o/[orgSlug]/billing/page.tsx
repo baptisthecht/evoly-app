@@ -111,7 +111,7 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
                   </th>
                   {(["free", "pro"] as const).map((p) => (
                     <td key={p} className="py-2 text-center" aria-label={plans[p].features.includes(f) ? t("included") : t("notIncluded")}>
-                      {plans[p].features.includes(f) ? "✓" : "—"}
+                      {plans[p].features.includes(f) ? "✓" : "-"}
                     </td>
                   ))}
                 </tr>

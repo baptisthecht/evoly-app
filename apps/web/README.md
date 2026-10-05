@@ -1,4 +1,4 @@
-# Evoly — landing organisateurs
+# Evoly - landing organisateurs
 
 Page d'accueil statique, en un seul fichier HTML, pour la billetterie Evoly.
 

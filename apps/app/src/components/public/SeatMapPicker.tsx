@@ -74,7 +74,7 @@ export function SeatMapPicker({ map, needed, chosen, friend = null, ownSeatIds =
     return [...groups].map(([row, labels]) => t("rowSeats", { row, seats: labels.join(", ") })).join(" · ");
   };
 
-  // —— vue : zoom à deux doigts, déplacement à un doigt, boutons ——
+  // -- vue : zoom à deux doigts, déplacement à un doigt, boutons --
   const bounds = useMemo(() => {
     const boxes = [...map.blocks.map((b) => blockBounds(b, seats)), ...seats.filter((s) => !s.blockId).map((s) => ({ x1: s.x - 16, y1: s.y - 16, x2: s.x + 16, y2: s.y + 16 }))];
     if (!boxes.length) return { x: -200, y: -150, w: 400, h: 300 };

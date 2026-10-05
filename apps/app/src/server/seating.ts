@@ -109,7 +109,7 @@ export async function publicSeatMap(eventId: string, allowChoice = true) {
 }
 export type PublicSeatMap = NonNullable<Awaited<ReturnType<typeof publicSeatMap>>>;
 
-// —— réservation (appelé sous le verrou de l'événement) ——
+// -- réservation (appelé sous le verrou de l'événement) --
 
 /**
  * RG-SEAT-01 : sièges retenus avec le panier, jusqu'à son expiration. Places choisies par l'acheteur : nombre exact
@@ -235,7 +235,7 @@ function withCategoryIds(b: { kind: string; params: object }, cats: Map<string, 
 }
 export { mapFor as seatingMapFor };
 
-// —— « Réserver à côté de mes amis » ——
+// -- « Réserver à côté de mes amis » --
 
 /** Code d'invitation d'une commande avec places, créé à la demande (lien partagé par l'acheteur). */
 export async function friendCodeFor(orderId: string): Promise<string | null> {

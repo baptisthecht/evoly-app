@@ -66,4 +66,4 @@ Les présentes conditions sont soumises au droit belge. À défaut de solution a
 
 ## 16. Contact
 
-hello@evoly.me — rue du Bilemont 376, 7700 Mouscron, Belgique.
+hello@evoly.me - rue du Bilemont 376, 7700 Mouscron, Belgique.

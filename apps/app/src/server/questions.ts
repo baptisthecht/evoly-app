@@ -84,7 +84,7 @@ export async function answersCsv(ctx: OrgContext, eventId: string): Promise<stri
   return "\ufeff" + [head, ...lines].map((l) => l.map(cell).join(";")).join("\r\n") + "\r\n";
 }
 
-// —— événements privés (RG-PUB-06) ——
+// -- événements privés (RG-PUB-06) --
 
 const secret = () => env().ORDER_TOKEN_SECRET ?? env().BETTER_AUTH_SECRET;
 export const accessCodeHash = (eventId: string, code: string) => createHmac("sha256", `access:${secret()}`).update(`${eventId}:${code}`).digest("hex");

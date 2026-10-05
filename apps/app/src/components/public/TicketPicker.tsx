@@ -176,7 +176,7 @@ export function TicketPicker({ tickets: baseTickets, currency, timeZone, maxPerO
         <div className="grid gap-3 border-t border-line pt-4">
           <div className="flex items-baseline justify-between">
             <span className="font-semibold">{t("total")}</span>
-            <span className="font-display text-2xl tracking-[-0.03em] tabular-nums">{count === 0 ? "—" : money(total)}</span>
+            <span className="font-display text-2xl tracking-[-0.03em] tabular-nums">{count === 0 ? "-" : money(total)}</span>
           </div>
           {error ? (
             <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">

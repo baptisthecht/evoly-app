@@ -44,7 +44,7 @@ export function passJson(t: WalletTicket, creds: Pick<AppleCredentials, "passTyp
     teamIdentifier: creds.teamIdentifier,
     serialNumber: t.ticketId,
     organizationName: t.organizationName,
-    description: `${t.title} — ${t.typeName}`,
+    description: `${t.title} - ${t.typeName}`,
     logoText: t.organizationName,
     backgroundColor: rgb(t.background),
     foregroundColor: rgb(t.foreground),

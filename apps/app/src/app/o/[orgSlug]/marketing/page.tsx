@@ -145,7 +145,7 @@ export default async function MarketingPage({ params, searchParams }: { params: 
                 <div className="grid min-w-0 gap-1">
                   <p className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{[c.firstName, c.lastName].filter(Boolean).join(" ") || c.email}</span>
-                    {c.unsubscribedAt ? <Badge tone="neutral">{t("unsubscribed", { date: formatDate(c.unsubscribedAt, ctx.organization.timezone, locale) })}</Badge> : c.marketingConsent ? <Badge tone="success">{t("consent", { date: c.consentAt ? formatDate(c.consentAt, ctx.organization.timezone, locale) : "—" })}</Badge> : <Badge>{t("noConsent")}</Badge>}
+                    {c.unsubscribedAt ? <Badge tone="neutral">{t("unsubscribed", { date: formatDate(c.unsubscribedAt, ctx.organization.timezone, locale) })}</Badge> : c.marketingConsent ? <Badge tone="success">{t("consent", { date: c.consentAt ? formatDate(c.consentAt, ctx.organization.timezone, locale) : "-" })}</Badge> : <Badge>{t("noConsent")}</Badge>}
                   </p>
                   <p className="truncate text-sm text-ink-muted">{c.email}</p>
                 </div>

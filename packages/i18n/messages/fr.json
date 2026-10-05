@@ -1038,11 +1038,11 @@
     "privateSubmit": "Accéder à l’événement",
     "privateWrong": "Code incorrect.",
     "privateTooMany": "Trop de tentatives. Réessayez dans quelques minutes.",
-    "seoTitle": "{title} · {date}{city, select, other {, {city}}} — Billets | {org}",
+    "seoTitle": "{title} · {date}{city, select, other {, {city}}} - Billets | {org}",
     "seoDescription": "Billets pour {title} : {date}, {place}. {price}Réservation en ligne sécurisée, e-billet sur votre téléphone. Billetterie officielle de {org}.",
     "seoFrom": "Dès {price}. ",
     "seoFree": "Entrée gratuite. ",
-    "seoOrgTitle": "{org} — Billetterie officielle, événements et billets",
+    "seoOrgTitle": "{org} - Billetterie officielle, événements et billets",
     "seoOrgDescription": "Tous les événements de {org} : billets en ligne, paiement sécurisé, e-billets sur votre téléphone et revente entre spectateurs."
   },
   "promo": {

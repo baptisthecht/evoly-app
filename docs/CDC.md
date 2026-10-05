@@ -1,4 +1,4 @@
-# Evoly — Cahier des charges v2
+# Evoly - Cahier des charges v2
 
 > Document de référence pour la reconstruction de l'app organisateurs, de la billetterie publique et du scanner.
 > Toute décision d'implémentation doit être cohérente avec ce document. Toute évolution doit y être reportée.
@@ -32,11 +32,11 @@
 15. [Reprise de la v1](#15-reprise-de-la-v1)
 16. [Plan de réalisation](#16-plan-de-réalisation)
 17. [Décisions à valider](#17-décisions-à-valider)
-- [Annexe A — Glossaire](#annexe-a--glossaire)
-- [Annexe B — Rôles système et permissions](#annexe-b--rôles-système-et-permissions)
-- [Annexe C — Calculs de référence](#annexe-c--calculs-de-référence)
-- [Annexe D — Liens et textes de référence](#annexe-d--liens-et-textes-de-référence)
-- [Annexe E — Sort des fonctionnalités de la v1](#annexe-e--sort-des-fonctionnalités-de-la-v1)
+- [Annexe A - Glossaire](#annexe-a--glossaire)
+- [Annexe B - Rôles système et permissions](#annexe-b--rôles-système-et-permissions)
+- [Annexe C - Calculs de référence](#annexe-c--calculs-de-référence)
+- [Annexe D - Liens et textes de référence](#annexe-d--liens-et-textes-de-référence)
+- [Annexe E - Sort des fonctionnalités de la v1](#annexe-e--sort-des-fonctionnalités-de-la-v1)
 
 ---
 
@@ -126,7 +126,7 @@ Le détail des conditions par pays (devise, part fixe de la commission, moyens d
 | | Free | Pro |
 |---|---|---|
 | Abonnement | 0 €, sans carte bancaire | 29 € par mois, ou 295,80 € par an (soit 24,65 € par mois, −15 %) |
-| Essai | — | 14 jours, carte bancaire requise |
+| Essai | - | 14 jours, carte bancaire requise |
 | Billets gratuits | 0 %, sans limite | 0 %, sans limite |
 | Commission par billet payant | 0,15 € + 1,5 %, plafonnée à 1 € | 0,15 € + 1,5 %, plafonnée à 0,70 € |
 | Frais bancaires | Au coût réel, prélevés par Stripe | Au coût réel, prélevés par Stripe |
@@ -238,16 +238,16 @@ Le simulateur du site compare les frais d'Evoly (commission + frais d'une carte 
 | Relevés et factures de commission | Oui | Oui | P0 |
 | Billets offerts | Oui | Oui | P1 |
 | Apple Wallet et Google Wallet | Oui | Oui | P1 |
-| Prix dynamiques (paliers par date ou quantité) | — | Oui | P0 |
-| Rappels automatiques J-7, J-1, jour J | — | Oui | P0 |
-| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | — | Oui | P0 |
-| Couleurs et logo | — | Oui | P0 |
-| Aucune mention d'Evoly | — | Oui | P0 |
-| Domaine personnalisé avec SSL | — | Oui | P0 |
-| Sous-domaine dédié par événement | — | Oui | P1 |
-| Membres, rôles système et rôles personnalisés | — | Oui | P0 |
+| Prix dynamiques (paliers par date ou quantité) | - | Oui | P0 |
+| Rappels automatiques J-7, J-1, jour J | - | Oui | P0 |
+| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | - | Oui | P0 |
+| Couleurs et logo | - | Oui | P0 |
+| Aucune mention d'Evoly | - | Oui | P0 |
+| Domaine personnalisé avec SSL | - | Oui | P0 |
+| Sous-domaine dédié par événement | - | Oui | P1 |
+| Membres, rôles système et rôles personnalisés | - | Oui | P0 |
 | Plusieurs organisations sur un compte | Une seule | Oui | P0 |
-| Plan de salle et placement numéroté | — | Oui | P2 ⚠ |
+| Plan de salle et placement numéroté | - | Oui | P2 ⚠ |
 | Parrainage | Oui | Oui | P2 |
 | Espace participant avec compte | Oui | Oui | P2 |
 
@@ -257,7 +257,7 @@ Le contrôle d'accès aux fonctionnalités passe par une fonction unique `hasFea
 
 ## 5. Périmètre et priorités
 
-### 5.1 P0 — lancement
+### 5.1 P0 - lancement
 
 - Comptes (e-mail et mot de passe, Google, Apple), vérification d'e-mail, réinitialisation, onboarding.
 - Organisations, sous-domaine Evoly, membres et rôles (Pro), plusieurs organisations (Pro).
@@ -1449,7 +1449,7 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 
 ---
 
-## Annexe A — Glossaire
+## Annexe A - Glossaire
 
 - **Organisateur** : client d'Evoly qui vend des billets.
 - **Participant, acheteur** : personne qui achète ou détient un billet.
@@ -1468,7 +1468,7 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 
 ---
 
-## Annexe B — Rôles système et permissions
+## Annexe B - Rôles système et permissions
 
 | Permission | Propriétaire | Administrateur | Gestion des événements | Billetterie | Contrôle des entrées | Lecture seule |
 |---|---|---|---|---|---|---|
@@ -1501,7 +1501,7 @@ Actions réservées au propriétaire, en plus de ses permissions : transférer l
 
 ---
 
-## Annexe C — Calculs de référence
+## Annexe C - Calculs de référence
 
 Toutes les fonctions vivent dans `packages/core`. Montants en unités mineures (entiers).
 
@@ -1559,7 +1559,7 @@ function sellerRefund(resalePriceMinor: number, resaleCommissionMinor: number, r
 
 ---
 
-## Annexe D — Liens et textes de référence
+## Annexe D - Liens et textes de référence
 
 | Élément | Valeur |
 |---|---|
@@ -1578,7 +1578,7 @@ function sellerRefund(resalePriceMinor: number, resaleCommissionMinor: number, r
 
 ---
 
-## Annexe E — Sort des fonctionnalités de la v1
+## Annexe E - Sort des fonctionnalités de la v1
 
 | Fonctionnalité v1 | v2 |
 |---|---|

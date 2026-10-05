@@ -46,7 +46,7 @@ export function renderCampaign(o: { subject: string; previewText?: string | null
         break;
       case "divider":
         html.push(`<tr><td style="padding:8px 0 20px"><div style="border-top:1px solid #eee"></div></td></tr>`);
-        text.push("—", "");
+        text.push("-", "");
         break;
       case "event": {
         const e = o.events.get(b.eventId);
@@ -68,6 +68,6 @@ export function renderCampaign(o: { subject: string; previewText?: string | null
 ${html.join("\n")}
 <tr><td style="border-top:1px solid #eee;padding-top:16px;font-size:12px;line-height:1.6;color:#555">${footer}</td></tr>
 </table></td></tr></table></body></html>`;
-  text.push("—", c.reason(o.organizationName), `${c.unsubscribe} : ${o.unsubscribeUrl}`);
+  text.push("-", c.reason(o.organizationName), `${c.unsubscribe} : ${o.unsubscribeUrl}`);
   return { subject: tag(o.subject), html: page, text: text.join("\n") };
 }

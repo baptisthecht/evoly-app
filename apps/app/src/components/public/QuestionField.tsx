@@ -50,7 +50,7 @@ export function QuestionField({ q, id, value, onChange, error }: { q: PublicQues
       {label}
       {q.type === "SELECT" ? (
         <Select id={id} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} aria-invalid={!!error}>
-          <option value="">—</option>
+          <option value="">-</option>
           {(q.options ?? []).map((o) => (
             <option key={o} value={o}>
               {o}

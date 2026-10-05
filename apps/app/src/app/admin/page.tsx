@@ -4,7 +4,7 @@ import Link from "next/link";
 import { platformDashboard, platformSearch, requireStaff } from "@/server/platform";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Back-office — Evoly", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Back-office - Evoly", robots: { index: false, follow: false } };
 
 const RISK: Record<string, string> = { NEW_ORG_HIGH_PRICE: "Nouvelle organisation, billet à prix élevé", HIGH_DISPUTE_RATE: "Taux de litiges anormal", MANY_REFUNDS: "Nombreux remboursements" };
 const card = "rounded-2xl bg-surface-raised p-5 ring-1 ring-line";
