@@ -64,7 +64,7 @@
     menuOpen = true;
     menu.classList.add('is-open'); menu.removeAttribute('inert');
     menuBtn.setAttribute('aria-expanded', 'true');
-    $('.vh', menuBtn).textContent = 'Fermer le menu';
+    $('.vh', menuBtn).textContent = T('menuClose', {}, 'Fermer le menu');
     lock(true);
     if (anim) G.fromTo($$('.menu__links li', menu), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .8, stagger: .06, ease: 'expo.out', delay: .12 });
     if (kb) setTimeout(() => $('a', menu)?.focus({ preventScroll: true }), 160);
@@ -74,7 +74,7 @@
     menuOpen = false;
     menu.classList.remove('is-open'); menu.setAttribute('inert', '');
     menuBtn.setAttribute('aria-expanded', 'false');
-    $('.vh', menuBtn).textContent = 'Ouvrir le menu';
+    $('.vh', menuBtn).textContent = T('menuOpen', {}, 'Ouvrir le menu');
     lock(false);
   }
   menuBtn.addEventListener('click', (e) => (menuOpen ? closeMenu() : openMenu(e.detail === 0)));
@@ -351,7 +351,7 @@
       sold = true;
       const kb = e.detail === 0;
       rsBuy.disabled = true;
-      rsBuy.textContent = 'Achat simulé';
+      rsBuy.textContent = T('resaleBought', {}, 'Achat simulé');
       oldFig.classList.add('is-void');
       fx.punch();
       newFig.classList.add('is-in');
@@ -384,7 +384,7 @@
     const upd = () => {
       const v = +day.value, left = 30 - v, t = tierOf(v);
       fill(day);
-      whenEl.innerHTML = left === 0 ? 'pour un achat le jour J' : `pour un achat à <span class="nw">J-${left}</span>`;
+      whenEl.innerHTML = left === 0 ? T('buyOnDay', {}, 'pour un achat le jour J') : T('buyAt', { d: `<span class="nw">${T('dayMinus', { n: left }, 'J-{n}')}</span>` }, 'pour un achat à {d}');
       day.setAttribute('aria-valuetext', `${left === 0 ? T('dayJ', {}, 'Jour J') : T('dayMinus', { n: left }, 'J-{n}')}\u00a0: ${tiers[t].name.toLowerCase()}, ${eur0(tiers[t].price)}`);
       if (t === curT) return;
       curT = t;
@@ -521,7 +521,7 @@
     fileIn.addEventListener('change', () => {
       const f = fileIn.files && fileIn.files[0];
       if (!f) return;
-      if (!/^image\//.test(f.type) || f.size > 5e6) { hint.textContent = 'Choisissez une image de moins de 5 Mo.'; return; }
+      if (!/^image\//.test(f.type) || f.size > 5e6) { hint.textContent = T('logoTooBig', {}, 'Choisissez une image de moins de 5 Mo.'); return; }
       const rd = new FileReader();
       rd.onload = () => {
         const img = new Image();
@@ -534,12 +534,12 @@
           logo.appendChild(im);
           let p = null;
           try { p = palette(img); } catch (e) { p = null; }
-          if (p) { c1.value = p[0]; c2.value = p[1]; hint.textContent = 'Couleurs tirées de votre logo. Ajustez-les si besoin.'; }
-          else hint.textContent = 'Logo importé. Choisissez vos couleurs ci-dessous.';
+          if (p) { c1.value = p[0]; c2.value = p[1]; hint.textContent = T('logoColors', {}, 'Couleurs tirées de votre logo. Ajustez-les si besoin.'); }
+          else hint.textContent = T('logoImported', {}, 'Logo importé. Choisissez vos couleurs ci-dessous.');
           paint();
           if (anim) G.fromTo('.bpv__page', { scale: .98 }, { scale: 1, duration: .6, ease: 'elastic.out(1,.5)' });
         };
-        img.onerror = () => { hint.textContent = 'Ce fichier ne ressemble pas à une image. Essayez un PNG, un JPG ou un SVG.'; };
+        img.onerror = () => { hint.textContent = T('logoInvalid', {}, 'Ce fichier ne ressemble pas à une image. Essayez un PNG, un JPG ou un SVG.'); };
         img.src = rd.result;
       };
       rd.readAsDataURL(f);
@@ -592,7 +592,7 @@
           G.from($$('.bars i', dash), { scaleY: 0, transformOrigin: '50% 100%', duration: .9, stagger: .06, ease: 'back.out(1.6)' });
         }
       });
-      const ages = ['à l’instant', 'il y a 1 min', 'il y a 3 min'];
+      const ages = [T('feedNow', {}, 'à l’instant'), T('feedMin', { n: 1 }, 'il y a {n} min'), T('feedMin', { n: 3 }, 'il y a {n} min')];
       const sale = () => {
         if (st.sold >= CAP - 1) return;
         const vip = Math.random() < .25, k = vip ? 1 : (Math.random() < .3 ? 2 : 1);
@@ -600,7 +600,7 @@
         st.rev += (vip ? 45 : 24) * k;
         paint();
         const li = d.createElement('li');
-        li.innerHTML = `<b>${vip ? 'Balcon VIP' : 'Fosse'}</b><span>${k > 1 ? k + ' billets' : '1 billet'}</span><em></em>`;
+        li.innerHTML = `<b>${vip ? T('feedVip', {}, 'Balcon VIP') : T('feedPit', {}, 'Fosse')}</b><span>${k > 1 ? T('feedMany', { n: k }, '{n} billets') : T('feedOne', {}, '1 billet')}</span><em></em>`;
         feed.prepend(li);
         while (feed.children.length > 3) feed.lastElementChild.remove();
         $$('em', feed).forEach((em, i) => { em.textContent = ages[i] || ages[2]; });

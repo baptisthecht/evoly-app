@@ -12,7 +12,7 @@ LANGS = [  # (code, nom dans sa langue, locale Open Graph, locale des nombres)
 ]
 X_DEFAULT = 'en'
 LEGAL = ['cgu', 'conditions-de-vente', 'privacy', 'cookies', 'legal', 'sous-traitance']
-TEXT_ATTRS = ('alt', 'aria-label', 'title', 'placeholder', 'data-toast', 'aria-valuetext')
+TEXT_ATTRS = ('alt', 'aria-label', 'title', 'placeholder', 'data-toast', 'aria-valuetext', 'value')
 META_TEXT = ('description', 'og:title', 'og:description', 'og:image:alt', 'twitter:title', 'twitter:description', 'twitter:image:alt')
 # textes affichés par le script de la page (gabarits {n}, {p}…)
 JS = {
@@ -25,6 +25,21 @@ JS = {
     'resaleToast': 'Achat simulé\u00a0: le billet de Thomas est désactivé, celui de Léa est parti par e-mail.',
     'dayJ': 'Jour J', 'dayMinus': 'J-{n}', 'tierPresale': 'Prévente', 'tierNormal': 'Normal', 'tierDay': 'Jour J',
     'yearly': 'Soit 295,80\u202f€ facturés une fois par an', 'monthly': 'Facturé chaque mois',
+    'menuOpen': 'Ouvrir le menu',
+    'menuClose': 'Fermer le menu',
+    'resaleBought': 'Achat simulé',
+    'buyOnDay': 'pour un achat le jour J',
+    'buyAt': 'pour un achat à {d}',
+    'logoTooBig': 'Choisissez une image de moins de 5 Mo.',
+    'logoColors': 'Couleurs tirées de votre logo. Ajustez-les si besoin.',
+    'logoImported': 'Logo importé. Choisissez vos couleurs ci-dessous.',
+    'logoInvalid': 'Ce fichier ne ressemble pas à une image. Essayez un PNG, un JPG ou un SVG.',
+    'feedNow': 'à l’instant',
+    'feedMin': 'il y a {n} min',
+    'feedVip': 'Balcon VIP',
+    'feedPit': 'Fosse',
+    'feedOne': '1 billet',
+    'feedMany': '{n} billets',
 }
 
 key = lambda s: hashlib.sha1(s.encode('utf-8')).hexdigest()[:8]
