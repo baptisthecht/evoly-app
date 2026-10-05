@@ -45,7 +45,8 @@ export async function putPublicFile(key: string, bytes: Uint8Array, contentType:
 
 /** Lecture d'un fichier du dossier local (développement, tests). */
 export async function readLocalFile(key: string): Promise<{ bytes: Buffer; contentType: string } | null> {
-  if (r2() || !SAFE_KEY.test(key) || key.includes("..")) return null;
+  // servi même quand R2 est configuré : les fichiers importés avant le passage au bucket restent accessibles
+  if (!SAFE_KEY.test(key) || key.includes("..")) return null;
   const file = path.join(localDir(), key);
   try {
     return { bytes: await readFile(file), contentType: (await readFile(`${file}.type`, "utf8")).trim() };
