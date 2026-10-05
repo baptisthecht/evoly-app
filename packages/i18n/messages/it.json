@@ -2210,5 +2210,13 @@
   },
   "platform": {
     "suspendedBanner": "Organizzazione sospesa da Evoly: le vendite sono interrotte e non si può modificare nulla. Contatta il supporto per saperne di più."
+  },
+  "pwa": {
+    "description": "Biglietteria online: vendi i biglietti, segui le vendite e scansiona gli ingressi.",
+    "install": "Installa l’app",
+    "iosHint": "Su iPhone e iPad: tocca Condividi, poi «Aggiungi alla schermata Home».",
+    "offlineTitle": "Sei offline",
+    "offlineBody": "Evoly ha bisogno di una connessione per mostrare questa pagina. Controlla la rete e riprova.",
+    "offlineRetry": "Riprova"
   }
 }

@@ -2210,5 +2210,13 @@
   },
   "platform": {
     "suspendedBanner": "Organización suspendida por Evoly: las ventas están interrumpidas y no se puede modificar nada. Ponte en contacto con el soporte para saber más."
+  },
+  "pwa": {
+    "description": "Venta de entradas online: vende tus entradas, sigue tus ventas y escanea los accesos.",
+    "install": "Instalar la aplicación",
+    "iosHint": "En iPhone y iPad: toca Compartir y luego «Añadir a pantalla de inicio».",
+    "offlineTitle": "No tienes conexión",
+    "offlineBody": "Evoly necesita conexión para mostrar esta página. Revisa tu red e inténtalo de nuevo.",
+    "offlineRetry": "Reintentar"
   }
 }

@@ -2210,5 +2210,13 @@
     "seat": "Seat",
     "holder": "Holder",
     "status": "Status"
+  },
+  "pwa": {
+    "description": "Online ticketing: sell your tickets, track your sales and scan entries.",
+    "install": "Install the app",
+    "iosHint": "On iPhone and iPad: tap Share, then “Add to Home Screen”.",
+    "offlineTitle": "You're offline",
+    "offlineBody": "Evoly needs a connection to show this page. Check your network, then try again.",
+    "offlineRetry": "Try again"
   }
 }

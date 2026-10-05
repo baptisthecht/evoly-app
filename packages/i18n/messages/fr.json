@@ -2210,5 +2210,13 @@
     "seat": "Place",
     "holder": "Titulaire",
     "status": "État"
+  },
+  "pwa": {
+    "description": "Billetterie en ligne : vendez vos billets, suivez vos ventes et scannez les entrées.",
+    "install": "Installer l'application",
+    "iosHint": "Sur iPhone et iPad : touchez Partager, puis « Sur l'écran d'accueil ».",
+    "offlineTitle": "Vous êtes hors ligne",
+    "offlineBody": "Evoly a besoin d'une connexion pour afficher cette page. Vérifiez votre réseau, puis réessayez.",
+    "offlineRetry": "Réessayer"
   }
 }

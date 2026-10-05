@@ -2210,5 +2210,13 @@
   },
   "platform": {
     "suspendedBanner": "Organisation von Evoly gesperrt: Die Verkäufe sind unterbrochen und nichts kann geändert werden. Wenden Sie sich an den Support, um mehr zu erfahren."
+  },
+  "pwa": {
+    "description": "Online-Ticketing: Verkaufen Sie Tickets, verfolgen Sie Ihre Verkäufe und scannen Sie den Einlass.",
+    "install": "App installieren",
+    "iosHint": "Auf iPhone und iPad: Tippen Sie auf Teilen und dann auf „Zum Home-Bildschirm“.",
+    "offlineTitle": "Sie sind offline",
+    "offlineBody": "Evoly braucht eine Verbindung, um diese Seite anzuzeigen. Prüfen Sie Ihr Netz und versuchen Sie es erneut.",
+    "offlineRetry": "Erneut versuchen"
   }
 }

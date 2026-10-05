@@ -2210,5 +2210,13 @@
   },
   "platform": {
     "suspendedBanner": "Organisatie geschorst door Evoly: de verkoop is onderbroken en niets kan gewijzigd worden. Neem contact op met de support voor meer informatie."
+  },
+  "pwa": {
+    "description": "Online ticketverkoop: verkoop je tickets, volg je verkoop en scan de toegang.",
+    "install": "App installeren",
+    "iosHint": "Op iPhone en iPad: tik op Deel en daarna op ‘Zet op beginscherm’.",
+    "offlineTitle": "Je bent offline",
+    "offlineBody": "Evoly heeft een verbinding nodig om deze pagina te tonen. Controleer je netwerk en probeer het opnieuw.",
+    "offlineRetry": "Opnieuw proberen"
   }
 }

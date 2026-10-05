@@ -2210,5 +2210,13 @@
   },
   "platform": {
     "suspendedBanner": "Organização suspensa pela Evoly: as vendas estão interrompidas e nada pode ser alterado. Contacte o suporte para saber mais."
+  },
+  "pwa": {
+    "description": "Bilheteira online: venda os seus bilhetes, acompanhe as vendas e leia as entradas.",
+    "install": "Instalar a aplicação",
+    "iosHint": "No iPhone e no iPad: toque em Partilhar e depois em «Adicionar ao ecrã principal».",
+    "offlineTitle": "Está offline",
+    "offlineBody": "A Evoly precisa de ligação para mostrar esta página. Verifique a rede e tente de novo.",
+    "offlineRetry": "Tentar de novo"
   }
 }
