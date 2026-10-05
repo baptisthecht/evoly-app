@@ -1197,6 +1197,7 @@ model ScannerLink {
   tokenHash         String    @unique // hachage du jeton de l'URL, dérivé par HMAC (le jeton lui-même n'est jamais stocké)
   label             String // nom du bénévole ou de l'entrée
   allowManualSearch Boolean   @default(true)
+  checkOnly         Boolean   @default(false) // vérification seule : le scan contrôle le billet sans valider l'entrée
   expiresAt         DateTime
   revokedAt         DateTime?
   lastUsedAt        DateTime?

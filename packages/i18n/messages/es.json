@@ -508,7 +508,15 @@
     "error_INVALID_INPUT": "Código ilegible.",
     "homeTitle": "Escáner Evoly",
     "homeBody": "Abre el enlace que te ha enviado el organizador para empezar a escanear las entradas.",
-    "homeMember": "Formo parte del equipo"
+    "homeMember": "Formo parte del equipo",
+    "result_CHECKED": "Entrada válida",
+    "notValidated": "acceso no validado",
+    "modeLabel": "Modo del escáner",
+    "modeEntry": "Acceso",
+    "modeCheck": "Verificación",
+    "checkBanner": "Solo verificación: las entradas se comprueban sin validarse.",
+    "check": "Verificar",
+    "checkConfirm": "¿Verificar la entrada de {name}?"
   },
   "scannerAccess": {
     "title": "Escanear las entradas",
@@ -2044,7 +2052,9 @@
     "showQr": "Código QR",
     "confirmRevoke": "¿Revocar este enlace? El escáner se bloqueará de inmediato.",
     "revoke": "Revocar",
-    "qrLabel": "Código QR del enlace para voluntarios"
+    "qrLabel": "Código QR del enlace para voluntarios",
+    "checkOnly": "Solo verificación: comprobar las entradas sin validar el acceso (control de perímetro, verificación)",
+    "checkOnlyBadge": "solo verificación"
   },
   "resaleAdmin": {
     "statActive": "A la venta",

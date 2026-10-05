@@ -58,7 +58,7 @@ function expiryFor(duration: LinkDuration, event: { startsAt: Date; endsAt: Date
 export async function createScannerLink(
   ctx: OrgContext,
   eventId: string,
-  input: { label: string; duration: LinkDuration; expiresAtLocal?: string | null; allowManualSearch: boolean },
+  input: { label: string; duration: LinkDuration; expiresAtLocal?: string | null; allowManualSearch: boolean; checkOnly?: boolean },
   now = new Date(),
 ) {
   const event = await findEvent(ctx, eventId);
@@ -70,6 +70,7 @@ export async function createScannerLink(
       tokenHash: sha256(scannerToken(id)),
       label: input.label.trim(),
       allowManualSearch: input.allowManualSearch,
+      checkOnly: !!input.checkOnly,
       expiresAt: expiryFor(input.duration, event, now, input.expiresAtLocal),
       createdById: ctx.user.id,
     },
@@ -180,7 +181,7 @@ export async function scannerManifest(link: ResolvedLink) {
       timezone: link.event.timezone,
       place: link.event.locationName ?? link.event.city,
     },
-    link: { label: await gateLabel(link), allowManualSearch: link.allowManualSearch, expiresAt: link.expiresAt.toISOString() },
+    link: { label: await gateLabel(link), allowManualSearch: link.allowManualSearch, checkOnly: link.checkOnly, expiresAt: link.expiresAt.toISOString() },
     tickets: tickets.map((t) => ({
       id: t.id,
       codeHash: sha256(`${salt}:${t.code}`),
@@ -204,6 +205,8 @@ export interface ScanInput {
   scannedAt?: string | null;
   deviceId?: string | null;
   offline?: boolean;
+  /** Vérification seule : le billet est contrôlé, rien n'est enregistré (ni entrée, ni journal). */
+  verify?: boolean;
 }
 
 export interface ScanResult {
@@ -211,6 +214,8 @@ export interface ScanResult {
   ticket: { id: string; holder: string; typeName: string; status: string; checkedInAt: string | null; voidReason: string | null } | null;
   firstScan: { at: string; gate: string | null } | null;
   otherEvent: string | null;
+  /** Vrai si le scan n'a fait que vérifier le billet (lien en vérification seule, ou mode choisi dans le scanner). */
+  checkOnly: boolean;
 }
 
 /**
@@ -219,6 +224,7 @@ export interface ScanResult {
  */
 export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt = new Date()): Promise<ScanResult> {
   if (input.method === "LIST" && !link.allowManualSearch) throw new CoreError("MANUAL_SEARCH_DISABLED");
+  const checkOnly = !!input.verify || link.checkOnly; // vérification seule : aucune écriture, même diagnostic
   const include = {
     ticketType: { select: { name: true } },
     order: { select: { buyerFirstName: true, buyerLastName: true } },
@@ -248,7 +254,7 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
   let result = decideCheckIn(ticket, link.eventId);
   let checkedInAt = ticket?.checkedInAt ?? null;
   let logged = false;
-  if (ticket && result === "VALID") {
+  if (ticket && result === "VALID" && !checkOnly) {
     // passage et journal dans la même transaction : un scan concurrent attend, puis trouve ce premier passage
     const won = await db.$transaction(async (tx) => {
       const n =
@@ -264,7 +270,7 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
       result = decideCheckIn({ eventId: ticket.eventId, status: fresh.status }, link.eventId);
       checkedInAt = fresh.checkedInAt;
     }
-  } else if (ticket && result === "ALREADY_USED" && input.offline && earliestWins(ticket.checkedInAt, at).winner) {
+  } else if (ticket && result === "ALREADY_USED" && input.offline && !checkOnly && earliestWins(ticket.checkedInAt, at).winner) {
     // RG-SCN-03 : un scan hors ligne plus ancien l'emporte, le billet prend son heure
     const earlier =
       await db.$executeRaw`UPDATE "Ticket" SET "checkedInAt" = ${at}, "updatedAt" = now() WHERE id = ${ticket.id} AND status = 'CHECKED_IN' AND "checkedInAt" > ${at}`;
@@ -273,7 +279,7 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
       checkedInAt = at;
     }
   }
-  if (!logged) await db.checkIn.create({ data: logData(result) });
+  if (!logged && !checkOnly) await db.checkIn.create({ data: logData(result) });
   if (logged && ticket) await cancelListingsForTicket(ticket.id); // billet utilisé : son annonce de revente est retirée (RG-RSL-01)
   if (!link.lastUsedAt || receivedAt.getTime() - link.lastUsedAt.getTime() > 60_000)
     await db.scannerLink.update({ where: { id: link.id }, data: { lastUsedAt: receivedAt } });
@@ -296,13 +302,14 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
             ? `${ticket.holderFirstName} ${ticket.holderLastName ?? ""}`.trim()
             : `${ticket.order.buyerFirstName} ${ticket.order.buyerLastName}`.trim(),
           typeName: ticket.ticketType.name,
-          status: result === "VALID" ? "CHECKED_IN" : ticket.status,
+          status: result === "VALID" && !checkOnly ? "CHECKED_IN" : ticket.status,
           checkedInAt: checkedInAt?.toISOString() ?? null,
           voidReason: ticket.voidReason,
         }
       : null,
     firstScan,
     otherEvent: result === "WRONG_EVENT" && ticket ? ticket.event.title : null,
+    checkOnly,
   };
 }
 

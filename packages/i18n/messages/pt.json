@@ -508,7 +508,15 @@
     "error_INVALID_INPUT": "Código ilegível.",
     "homeTitle": "Leitor Evoly",
     "homeBody": "Abra o link que o organizador lhe enviou para começar a ler os bilhetes.",
-    "homeMember": "Faço parte da equipa"
+    "homeMember": "Faço parte da equipa",
+    "result_CHECKED": "Bilhete válido",
+    "notValidated": "entrada não validada",
+    "modeLabel": "Modo do leitor",
+    "modeEntry": "Entrada",
+    "modeCheck": "Verificação",
+    "checkBanner": "Só verificação: os bilhetes são verificados sem serem validados.",
+    "check": "Verificar",
+    "checkConfirm": "Verificar o bilhete de {name}?"
   },
   "scannerAccess": {
     "title": "Ler os bilhetes",
@@ -2044,7 +2052,9 @@
     "showQr": "Código QR",
     "confirmRevoke": "Revogar este link? O leitor será bloqueado de imediato.",
     "revoke": "Revogar",
-    "qrLabel": "Código QR do link para voluntários"
+    "qrLabel": "Código QR do link para voluntários",
+    "checkOnly": "Só verificação: verificar os bilhetes sem validar a entrada (controlo de perímetro, verificação)",
+    "checkOnlyBadge": "só verificação"
   },
   "resaleAdmin": {
     "statActive": "À venda",

@@ -38,4 +38,5 @@ export const scanSchema = z.object({
   method: z.enum(["QR", "MANUAL_CODE", "LIST"]),
   scannedAt: z.string().max(40).nullish(),
   deviceId: z.string().max(64).nullish(),
+  verify: z.boolean().optional(), // vérification seule : rien n'est enregistré
 });

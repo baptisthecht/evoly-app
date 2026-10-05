@@ -21,7 +21,7 @@ interface Manifest {
   serverTime: string;
   salt: string;
   event: { title: string; startsAt: string; timezone: string; place: string | null };
-  link: { label: string; allowManualSearch: boolean; expiresAt: string };
+  link: { label: string; allowManualSearch: boolean; checkOnly?: boolean; expiresAt: string };
   tickets: LocalTicket[];
 }
 interface PendingScan {
@@ -32,7 +32,7 @@ interface PendingScan {
   method: "QR" | "MANUAL_CODE" | "LIST";
   scannedAt: string;
 }
-type Kind = "VALID" | "ALREADY_USED" | "VOID" | "WRONG_EVENT" | "INVALID";
+type Kind = "VALID" | "CHECKED" | "ALREADY_USED" | "VOID" | "WRONG_EVENT" | "INVALID";
 interface Feedback {
   kind: Kind;
   title: string;
@@ -85,12 +85,17 @@ function beep(kind: Kind) {
     const tones =
       kind === "VALID"
         ? [[1400, 0, 0.12]]
-        : kind === "ALREADY_USED"
+        : kind === "CHECKED"
           ? [
-              [420, 0, 0.14],
-              [420, 0.22, 0.14],
+              [1100, 0, 0.07],
+              [1100, 0.11, 0.07],
             ]
-          : [[300, 0, 0.35]];
+          : kind === "ALREADY_USED"
+            ? [
+                [420, 0, 0.14],
+                [420, 0.22, 0.14],
+              ]
+            : [[300, 0, 0.35]];
     for (const [freq, delay, duration] of tones) {
       const osc = audio.createOscillator();
       const gain = audio.createGain();
@@ -112,6 +117,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
   const key = `evoly-scan:${token.slice(0, 16)}`;
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [pending, setPending] = useState<PendingScan[]>([]);
+  const [checkMode, setCheckMode] = useState(false); // vérification seule choisie dans le scanner
   const [online, setOnline] = useState(true);
   const [dead, setDead] = useState<Dead | null>(gone ?? null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -120,6 +126,8 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
   const [query, setQuery] = useState("");
   const [emailHash, setEmailHash] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<LocalTicket | null>(null);
+  // vérification seule : imposée par le lien, ou choisie ici ; le billet est contrôlé sans être validé
+  const verify = !!manifest?.link.checkOnly || checkMode;
   const pendingRef = useRef(pending);
   const busy = useRef(false);
   pendingRef.current = pending;
@@ -248,7 +256,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       const res = await fetch(`/api/scanner/${token}/scan`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ...input, scannedAt, deviceId }),
+        body: JSON.stringify({ ...input, scannedAt, deviceId, verify }),
         signal: AbortSignal.timeout(4000),
       });
       if (res.status === 404 || res.status === 410) return kill(((await res.json().catch(() => ({}))) as { error?: Dead }).error ?? "UNKNOWN_LINK");
@@ -259,7 +267,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       if (r.ticket) setLocal(r.ticket.id, r.ticket.status, r.ticket.checkedInAt);
       const detail =
         r.result === "VALID" && r.ticket
-          ? `${r.ticket.holder} · ${r.ticket.typeName}`
+          ? `${r.ticket.holder} · ${r.ticket.typeName}${verify ? ` · ${t("notValidated")}` : ""}`
           : r.result === "ALREADY_USED" && r.firstScan
             ? t(r.firstScan.gate ? "alreadyAtGate" : "alreadyAt", { time: time(r.firstScan.at), gate: r.firstScan.gate ?? "" })
             : r.result === "VOID" && r.ticket
@@ -267,16 +275,25 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
               : r.result === "WRONG_EVENT"
                 ? (r.otherEvent ?? undefined)
                 : undefined;
+      const checked = verify && r.result === "VALID";
       show({
-        kind: r.result,
-        title: t(`result_${r.result}`),
+        kind: checked ? "CHECKED" : r.result,
+        title: t(checked ? "result_CHECKED" : `result_${r.result}`),
         detail: r.result === "ALREADY_USED" && r.ticket ? `${detail} · ${r.ticket.holder}` : detail,
         offline: false,
       });
     } catch {
       // RG-SCN-03 : validation locale, scan mis en file
       setOnline(false);
-      const kind: Kind = !local ? "INVALID" : local.status === "VALID" ? "VALID" : local.status === "CHECKED_IN" ? "ALREADY_USED" : "VOID";
+      const kind: Kind = !local
+        ? "INVALID"
+        : local.status === "VALID"
+          ? verify
+            ? "CHECKED"
+            : "VALID"
+          : local.status === "CHECKED_IN"
+            ? "ALREADY_USED"
+            : "VOID";
       if (kind === "VALID" && local) {
         setLocal(local.id, "CHECKED_IN", scannedAt);
         setPending((p) => [...p, { clientId: uid(), ...input, ticketId: local!.id, scannedAt }]);
@@ -286,7 +303,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
           ? t("alreadyAt", { time: time(local.checkedInAt) })
           : kind === "VOID"
             ? voidLabel(local.voidReason, local.status)
-            : `${local.holder} · ${local.typeName}`
+            : `${local.holder} · ${local.typeName}${kind === "CHECKED" ? ` · ${t("notValidated")}` : ""}`
         : t("unknownOffline");
       show({ kind, title: t(`result_${kind}`), detail, offline: true });
     }
@@ -328,6 +345,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     : [];
   const tone: Record<Kind, string> = {
     VALID: "bg-[var(--evoly-signal-ok)]",
+    CHECKED: "bg-[#1d4ed8]",
     ALREADY_USED: "bg-[var(--evoly-signal-warn)]",
     VOID: "bg-[var(--evoly-signal-ko)]",
     WRONG_EVENT: "bg-[var(--evoly-signal-ko)]",
@@ -341,6 +359,31 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
           <div className="min-w-0">
             <p className="truncate font-display text-lg tracking-[-0.03em]">{manifest.event.title}</p>
             <p className="truncate text-sm opacity-75">{manifest.link.label}</p>
+            {manifest.link.checkOnly ? null : (
+              <div role="group" aria-label={t("modeLabel")} className="mt-2 inline-flex rounded-full bg-[var(--evoly-creme)]/10 p-1 text-sm font-semibold">
+                <button
+                  type="button"
+                  aria-pressed={!checkMode}
+                  onClick={() => setCheckMode(false)}
+                  className={`rounded-full px-3 py-1.5 ${checkMode ? "" : "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]"}`}
+                >
+                  {t("modeEntry")}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={checkMode}
+                  onClick={() => setCheckMode(true)}
+                  className={`rounded-full px-3 py-1.5 ${checkMode ? "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]" : ""}`}
+                >
+                  {t("modeCheck")}
+                </button>
+              </div>
+            )}
+            {verify && (
+              <p role="status" className="mt-2 rounded-xl bg-[#1d4ed8] px-3 py-2 text-sm font-semibold text-white">
+                {t("checkBanner")}
+              </p>
+            )}
           </div>
           <p
             role="status"
@@ -398,7 +441,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
               className="h-12 min-w-0 rounded-full bg-blanc px-5 font-mono text-lg tracking-[0.15em] text-[var(--evoly-charbon)] uppercase outline-none focus:ring-4 focus:ring-[var(--evoly-rose)]"
             />
             <button type="submit" className="h-12 rounded-full bg-[var(--evoly-rose)] px-5 font-semibold text-[var(--evoly-charbon)]">
-              {t("validate")}
+              {verify ? t("check") : t("validate")}
             </button>
           </form>
         </section>
@@ -430,7 +473,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
                     onClick={() => setConfirm(tk)}
                     className="shrink-0 rounded-full bg-[var(--evoly-rose)] px-4 py-2 text-sm font-semibold text-[var(--evoly-charbon)]"
                   >
-                    {t("checkInButton")}
+                    {t(verify ? "check" : "checkInButton")}
                   </button>
                 ) : (
                   <span className="shrink-0 text-sm opacity-80">
@@ -453,7 +496,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
         >
           <div className="grid w-full max-w-sm gap-4 rounded-[var(--r-panel)] bg-[var(--evoly-creme)] p-5 text-[var(--evoly-charbon)]">
             <p id="confirm-title" className="font-display text-xl tracking-[-0.03em]">
-              {t("confirmTitle", { name: confirm.holder })}
+              {t(verify ? "checkConfirm" : "confirmTitle", { name: confirm.holder })}
             </p>
             <p className="text-sm">{t("confirmBody", { type: confirm.typeName, code: confirm.shortCode })}</p>
             <div className="grid grid-cols-2 gap-2">

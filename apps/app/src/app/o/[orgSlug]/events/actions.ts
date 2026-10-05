@@ -252,6 +252,7 @@ const scannerLinkSchema = z.object({
   duration: z.enum(["EVENT_DAY", "24H", "48H", "CUSTOM"]),
   expiresAtLocal: optionalLocalDate,
   allowManualSearch: checkbox,
+  checkOnly: checkbox,
 });
 
 /** US-SCN-01 : lien bénévole, sans compte. */

@@ -597,7 +597,15 @@
     "error_INVALID_INPUT": "Unreadable code.",
     "homeTitle": "Evoly scanner",
     "homeBody": "Open the link the organiser sent you to start scanning tickets.",
-    "homeMember": "I’m part of the team"
+    "homeMember": "I’m part of the team",
+    "result_CHECKED": "Valid ticket",
+    "notValidated": "entry not validated",
+    "modeLabel": "Scanner mode",
+    "modeEntry": "Entry",
+    "modeCheck": "Check",
+    "checkBanner": "Check only: tickets are checked without being validated.",
+    "check": "Check",
+    "checkConfirm": "Check {name}'s ticket?"
   },
   "plans": {
     "free": "Free",
@@ -1125,7 +1133,9 @@
     "showQr": "QR code",
     "confirmRevoke": "Revoke this link? The scanner will be blocked immediately.",
     "revoke": "Revoke",
-    "qrLabel": "Volunteer link QR code"
+    "qrLabel": "Volunteer link QR code",
+    "checkOnly": "Check only: check tickets without validating entry (perimeter control, verification)",
+    "checkOnlyBadge": "check only"
   },
   "resaleAdmin": {
     "statActive": "Listed",

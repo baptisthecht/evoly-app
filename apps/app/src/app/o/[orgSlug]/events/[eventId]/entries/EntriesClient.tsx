@@ -65,6 +65,10 @@ export function NewScannerLink({ orgSlug, eventId }: { orgSlug: string; eventId:
           <input type="checkbox" name="allowManualSearch" defaultChecked className="size-5 accent-[var(--ink)]" />
           {t("allowManualSearch")}
         </label>
+        <label className="flex items-center gap-3 text-sm">
+          <input type="checkbox" name="checkOnly" className="size-5 accent-[var(--ink)]" />
+          {t("checkOnly")}
+        </label>
         <div className="flex flex-wrap gap-3">
           <SubmitButton pending={pending} className="w-full sm:w-auto">
             {t("createLink")}

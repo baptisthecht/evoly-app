@@ -508,7 +508,15 @@
     "error_INVALID_INPUT": "Code nicht lesbar.",
     "homeTitle": "Evoly-Scanner",
     "homeBody": "Öffnen Sie den Link, den Ihnen der Veranstalter geschickt hat, um mit dem Scannen der Tickets zu beginnen.",
-    "homeMember": "Ich gehöre zum Team"
+    "homeMember": "Ich gehöre zum Team",
+    "result_CHECKED": "Gültiges Ticket",
+    "notValidated": "Einlass nicht bestätigt",
+    "modeLabel": "Scanner-Modus",
+    "modeEntry": "Einlass",
+    "modeCheck": "Prüfung",
+    "checkBanner": "Nur Prüfung: Tickets werden geprüft, ohne entwertet zu werden.",
+    "check": "Prüfen",
+    "checkConfirm": "Ticket von {name} prüfen?"
   },
   "scannerAccess": {
     "title": "Tickets scannen",
@@ -2044,7 +2052,9 @@
     "showQr": "QR-Code",
     "confirmRevoke": "Diesen Link widerrufen? Der Scanner wird sofort gesperrt.",
     "revoke": "Widerrufen",
-    "qrLabel": "QR-Code des Helfer-Links"
+    "qrLabel": "QR-Code des Helfer-Links",
+    "checkOnly": "Nur Prüfung: Tickets prüfen, ohne den Einlass zu bestätigen (Kontrolle am Gelände, Überprüfung)",
+    "checkOnlyBadge": "nur Prüfung"
   },
   "resaleAdmin": {
     "statActive": "Im Verkauf",

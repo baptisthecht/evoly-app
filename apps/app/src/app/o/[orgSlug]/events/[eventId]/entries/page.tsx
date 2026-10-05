@@ -121,6 +121,7 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
                       {t("expires", { date: formatDateTime(l.expiresAt, event.timezone, locale, "short") })} · {t("scans", { count: l._count.checkIns })}
                       {l.lastUsedAt ? ` · ${t("lastUsed", { time: time(l.lastUsedAt) })}` : ""}
                       {!l.allowManualSearch ? ` · ${t("noManualSearch")}` : ""}
+                      {l.checkOnly ? ` · ${t("checkOnlyBadge")}` : ""}
                     </p>
                     {status === "ACTIVE" ? (
                       <p className="min-w-0 truncate rounded-md bg-surface-sunken px-3 py-2 font-mono text-xs" data-testid="scanner-url">

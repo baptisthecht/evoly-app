@@ -597,7 +597,15 @@
     "error_INVALID_INPUT": "Code illisible.",
     "homeTitle": "Scanner Evoly",
     "homeBody": "Ouvrez le lien que l’organisateur vous a envoyé pour commencer à scanner les billets.",
-    "homeMember": "Je fais partie de l’équipe"
+    "homeMember": "Je fais partie de l’équipe",
+    "result_CHECKED": "Billet valable",
+    "notValidated": "entrée non validée",
+    "modeLabel": "Mode du scanner",
+    "modeEntry": "Entrée",
+    "modeCheck": "Vérification",
+    "checkBanner": "Vérification seule : les billets sont contrôlés sans être validés.",
+    "check": "Vérifier",
+    "checkConfirm": "Vérifier le billet de {name} ?"
   },
   "plans": {
     "free": "Free",
@@ -1125,7 +1133,9 @@
     "showQr": "QR code",
     "confirmRevoke": "Révoquer ce lien ? Le scanner sera bloqué immédiatement.",
     "revoke": "Révoquer",
-    "qrLabel": "QR code du lien bénévole"
+    "qrLabel": "QR code du lien bénévole",
+    "checkOnly": "Vérification seule : contrôler les billets sans valider l'entrée (contrôle au périmètre, vérification)",
+    "checkOnlyBadge": "vérification seule"
   },
   "resaleAdmin": {
     "statActive": "En vente",

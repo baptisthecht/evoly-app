@@ -508,7 +508,15 @@
     "error_INVALID_INPUT": "Codice illeggibile.",
     "homeTitle": "Scanner Evoly",
     "homeBody": "Apri il link che ti ha inviato l’organizzatore per iniziare a scansionare i biglietti.",
-    "homeMember": "Faccio parte del team"
+    "homeMember": "Faccio parte del team",
+    "result_CHECKED": "Biglietto valido",
+    "notValidated": "ingresso non convalidato",
+    "modeLabel": "Modalità dello scanner",
+    "modeEntry": "Ingresso",
+    "modeCheck": "Verifica",
+    "checkBanner": "Solo verifica: i biglietti vengono controllati senza essere convalidati.",
+    "check": "Verifica",
+    "checkConfirm": "Verificare il biglietto di {name}?"
   },
   "scannerAccess": {
     "title": "Scansiona i biglietti",
@@ -2044,7 +2052,9 @@
     "showQr": "Codice QR",
     "confirmRevoke": "Revocare questo link? Lo scanner verrà bloccato subito.",
     "revoke": "Revoca",
-    "qrLabel": "Codice QR del link per volontari"
+    "qrLabel": "Codice QR del link per volontari",
+    "checkOnly": "Solo verifica: controllare i biglietti senza convalidare l'ingresso (controllo perimetrale, verifica)",
+    "checkOnlyBadge": "solo verifica"
   },
   "resaleAdmin": {
     "statActive": "In vendita",

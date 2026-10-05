@@ -508,7 +508,15 @@
     "error_INVALID_INPUT": "Code onleesbaar.",
     "homeTitle": "Evoly-scanner",
     "homeBody": "Open de link die de organisator je stuurde om tickets te beginnen scannen.",
-    "homeMember": "Ik hoor bij het team"
+    "homeMember": "Ik hoor bij het team",
+    "result_CHECKED": "Geldig ticket",
+    "notValidated": "toegang niet bevestigd",
+    "modeLabel": "Scannermodus",
+    "modeEntry": "Toegang",
+    "modeCheck": "Controle",
+    "checkBanner": "Alleen controle: tickets worden gecontroleerd zonder te worden gevalideerd.",
+    "check": "Controleren",
+    "checkConfirm": "Ticket van {name} controleren?"
   },
   "scannerAccess": {
     "title": "Tickets scannen",
@@ -2044,7 +2052,9 @@
     "showQr": "QR-code",
     "confirmRevoke": "Deze link intrekken? De scanner wordt meteen geblokkeerd.",
     "revoke": "Intrekken",
-    "qrLabel": "QR-code van de vrijwilligerslink"
+    "qrLabel": "QR-code van de vrijwilligerslink",
+    "checkOnly": "Alleen controle: tickets controleren zonder de toegang te bevestigen (controle aan de omheining, verificatie)",
+    "checkOnlyBadge": "alleen controle"
   },
   "resaleAdmin": {
     "statActive": "Te koop",
