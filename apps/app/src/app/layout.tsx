@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const [locale, messages, appHost] = await Promise.all([getLocale(), getMessages(), isAppHost()]);
   return (
-    <html lang={locale}>
+    <html lang={locale} className={appHost ? "app-host" : undefined}>
       <body className="min-h-dvh">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}

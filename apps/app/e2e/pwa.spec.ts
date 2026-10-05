@@ -29,11 +29,28 @@ test("application installable sur app.evoly.me : manifeste, icônes, service wor
   // la page « hors ligne » est vérifiée par test/app-sw.test.ts : la coupure réseau simulée par Playwright
   // n'atteint pas les requêtes du service worker lui-même
 
+  // comportement d'app : pas d'étirement au-delà des bords ; zoom conservé dans le navigateur (accessibilité)
+  await expect(page.locator("html")).toHaveClass(/app-host/);
+  expect(await page.evaluate(() => getComputedStyle(document.body).overscrollBehaviorY)).toBe("none");
+  expect(await page.locator('meta[name="viewport"]').getAttribute("content")).not.toContain("user-scalable");
+
+  // app installée (affichage « standalone » simulé) : plus de zoom à deux doigts
+  const installed = await browser.newContext();
+  await installed.addInitScript(() => {
+    const original = window.matchMedia.bind(window);
+    window.matchMedia = (q: string) => (q.includes("display-mode: standalone") ? ({ matches: true, media: q, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false } as MediaQueryList) : original(q));
+  });
+  const app = await installed.newPage();
+  await app.goto(appUrl("/login"));
+  await expect(app.locator('meta[name="viewport"]')).toHaveAttribute("content", /maximum-scale=1, user-scalable=no/);
+  await installed.close();
+
   // billetterie d'un organisateur : ni manifeste ni service worker (ses acheteurs ne doivent pas installer « Evoly »)
   const { slug } = await organizer(page);
   const guest = await (await browser.newContext()).newPage();
   await guest.goto(siteUrl(slug));
   await expect(guest.locator('link[rel="manifest"]')).toHaveCount(0);
+  await expect(guest.locator("html")).not.toHaveClass(/app-host/); // page web normale : étirement et zoom habituels
   // depuis la page de la billetterie (Node ne résout pas les sous-domaines de localhost, le navigateur si)
   const statuses = await guest.evaluate(async () => Promise.all(["/app.webmanifest", "/app-sw.js"].map(async (u) => (await fetch(u)).status)));
   expect(statuses).toEqual([404, 404]);

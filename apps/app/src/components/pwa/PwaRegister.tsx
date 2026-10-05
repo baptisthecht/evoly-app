@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-/** Enregistre le service worker de l'app et garde l'invitation à installer pour le bouton du menu (hôte de l'app seulement). */
+/** Enregistre le service worker de l'app, garde l'invitation à installer pour le bouton du menu, et bloque le zoom dans l'app installée (hôte de l'app seulement). */
 export function PwaRegister() {
   useEffect(() => {
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/app-sw.js", { scope: "/" }).catch(() => undefined);
@@ -26,9 +26,21 @@ export function PwaRegister() {
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
+
+    // App installée : pas de zoom à deux doigts, comme une app native (en plus de touch-action dans globals.css).
+    // Safari : ses gestes de zoom (gesturestart…) sont annulés et la page déclare user-scalable=no. Les plans de salle
+    // gèrent leur propre zoom par événements de pointeur : ils ne sont pas concernés.
+    const installed = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const stopZoom = (e: Event) => e.preventDefault();
+    if (installed) {
+      const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+      if (meta && !meta.content.includes("user-scalable")) meta.content = `${meta.content}, maximum-scale=1, user-scalable=no`;
+      for (const type of ["gesturestart", "gesturechange"]) document.addEventListener(type, stopZoom, { passive: false });
+    }
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
+      for (const type of ["gesturestart", "gesturechange"]) document.removeEventListener(type, stopZoom);
     };
   }, []);
   return null;
