@@ -78,7 +78,7 @@ PAGES = {
             + block('Pensée pour les associations', items([
                 '0 % de commission sur les billets gratuits, toujours, et sans limite.',
                 'Aucun pourboire ni don pré-coché : vos participants paient exactement le prix affiché.',
-                'Vous fixez ce que vous voulez toucher, le prix se calcule tout seul.',
+                'Vous fixez le montant que vous voulez percevoir, le prix se calcule tout seul.',
                 'Vos bénévoles scannent les entrées depuis leur téléphone, avec un simple lien, sans créer de compte.',
                 'Un participant empêché revend sa place en un lien : plus de remboursements à gérer.',
                 'Codes promo pour vos membres, questions personnalisées à l’inscription et statistiques en direct.',
@@ -106,13 +106,13 @@ PAGES = {
             + block('Ce qui change avec Evoly', items([
                 'Une commission plafonnée : 2,50 € maximum par billet en Free, 1 € en Pro. Chez Eventbrite, les frais suivent le prix du billet.',
                 'Le prix affiché est le prix payé : vos participants ne découvrent aucun frais au moment de payer.',
-                'Vous fixez ce que vous voulez toucher, le prix se calcule tout seul.',
+                'Vous fixez le montant que vous voulez percevoir, le prix se calcule tout seul.',
                 'La revente entre participants, intégrée à toutes les offres.',
                 'Le plan de salle, avec les meilleures places choisies automatiquement (offre Pro).',
                 'Des données hébergées dans l’Union européenne.',
             ]), dark=True)
             + block('Ce qu’Eventbrite fait bien', '<p class="pg__p">Eventbrite est une place de marché très connue, où un large public découvre des événements. Si votre priorité est d’être trouvé par des gens qui ne vous connaissent pas encore, c’est un vrai atout. Si vous vendez surtout à votre propre public, vos frais et votre marque comptent davantage.</p>')
-            + cta('Faites le calcul avec vos propres billets.', 'Créez votre événement gratuitement et voyez ce que vous touchez, billet par billet.', 'Créer mon événement')
+            + cta('Faites le calcul avec vos propres billets.', 'Créez votre événement gratuitement et voyez ce que vous percevez, billet par billet.', 'Créer mon événement')
         ),
     },
     'about': {

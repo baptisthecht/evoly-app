@@ -228,7 +228,7 @@
     "priceHint": "Prix final payé par l’acheteur. Les frais sont inclus.",
     "quantity": "Quantité",
     "unlimited": "Illimitée",
-    "youReceive": "Vous touchez environ {amount} par billet",
+    "youReceive": "Vous percevez environ {amount} par billet",
     "feesDetail": "Commission Evoly {commission}, frais bancaires estimés {bankFee}",
     "nominative": "Billets nominatifs",
     "resaleAllowed": "Revente autorisée",
@@ -274,11 +274,11 @@
     "requireHolderEmail": "Demander aussi l’e-mail de chaque titulaire",
     "seatingMoved": "Le plan de salle se gère désormais dans son propre onglet.",
     "seatingLink": "Ouvrir le plan de salle",
-    "youGet": "Vous touchez",
+    "youGet": "Vous percevez",
     "youGetHint": "Ce que vous voulez recevoir par billet : le prix se calcule tout seul.",
     "pricePaid": "Prix payé par le participant",
     "roundTo": "Prix ronds :",
-    "roundOption": "{price} · vous touchez {net}"
+    "roundOption": "{price} · vous percevez {net}"
   },
   "checkout": {
     "tickets": "Billets",

@@ -56,7 +56,7 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
   await page.getByRole("button", { name: "+ Ajouter un tarif" }).click();
   await page.getByLabel("Nom du tarif").last().fill("VIP");
   await page.getByLabel("Prix").last().fill("45");
-  await expect(page.getByText(/Vous touchez environ 42,88/)).toBeVisible();
+  await expect(page.getByText(/Vous percevez environ 42,88/)).toBeVisible();
   await page.getByRole("button", { name: "Ajouter un tarif" }).last().click();
   await expect(page.getByText("Connectez un compte Stripe actif pour vendre des billets payants.")).toBeVisible();
 });

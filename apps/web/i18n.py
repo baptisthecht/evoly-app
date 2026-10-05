@@ -18,7 +18,7 @@ META_TEXT = ('description', 'og:title', 'og:description', 'og:image:alt', 'twitt
 JS = {
     'paidOne': 'Payé en un tap : le billet part par e-mail.',
     'paidMany': 'Payé en un tap : vos {n} billets partent par e-mail.',
-    'calcLive': 'Pour {n} billets à {p} : {free} de commission avec Evoly Free, {pro} avec Evoly Pro abonnement compris. Vous touchez {net}.',
+    'calcLive': 'Pour {n} billets à {p} : {free} de commission avec Evoly Free, {pro} avec Evoly Pro abonnement compris. Vous percevez {net}.',
     'calcProSaves': 'Le Pro vous fait économiser {x} à ce volume.',
     'calcProFrom': 'Le Pro devient rentable dès {n} billets à ce prix.',
     'calcFreeBest': 'À ce prix, l’offre Free est la plus avantageuse.',
@@ -141,16 +141,22 @@ def switcher(code, label, pid='home'):
     opts = ''.join(f'<option value="{path_of(c, pid)}" lang="{c}"{" selected" if c == code else ""}>{name}</option>' for c, name, *_ in LANGS)
     return f'<label class="lang-switch"><span class="sr-only">{label}</span><select aria-label="{label}" onchange="location.href=this.value">{opts}</select></label>'
 
+def menu_langs(code, label, pid='home'):
+    """Langues dans le menu mobile (le sélecteur de l'en-tête y est masqué) : liens directs, faciles à toucher."""
+    links = ''.join(f'<a href="{path_of(c, pid)}" hreflang="{c}" lang="{c}"{' aria-current="page"' if c == code else ''}>{name}</a>' for c, name, *_ in LANGS)
+    return f'<nav class="menu__langs" aria-label="{label}">{links}</nav>'
+
 def footer_links(code, pid='home'):
     return '<nav class="lang-links" aria-label="Languages">' + ' · '.join(f'<a href="{path_of(c, pid)}" hreflang="{c}" lang="{c}"{" aria-current=\"page\"" if c == code else ""}>{name}</a>' for c, name, *_ in LANGS) + '</nav>'
 
-LANG_CSS = '.lang-switch select{appearance:none;background:transparent;color:inherit;border:1.5px solid currentColor;border-radius:999px;padding:.45em 1.9em .45em .9em;font:inherit;font-size:.85em;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 13px) 55%,calc(100% - 9px) 55%;background-size:4px 4px;background-repeat:no-repeat}.lang-switch select option{color:#222}.lang-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4em;padding:1.2em 1em 2em;font-size:.85em;opacity:.8}.lang-links a{color:inherit}@media (max-width:760px){.nav__actions .lang-switch{display:none}}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
+LANG_CSS = '.lang-switch select{appearance:none;background:transparent;color:inherit;border:1.5px solid currentColor;border-radius:999px;padding:.45em 1.9em .45em .9em;font:inherit;font-size:.85em;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 13px) 55%,calc(100% - 9px) 55%;background-size:4px 4px;background-repeat:no-repeat}.lang-switch select option{color:#222}.lang-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4em;padding:1.2em 1em 2em;font-size:.85em;opacity:.8}.lang-links a{color:inherit}@media (max-width:760px){.nav__actions .lang-switch{display:none}}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.menu__langs{display:flex;flex-wrap:wrap;gap:8px}.menu__langs a{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,246,240,.35);color:inherit;text-decoration:none;font-size:.9rem}.menu__langs a[aria-current]{background:var(--rose);border-color:var(--rose);color:var(--charbon);font-weight:600}'
 
 def decorate(page, code, table, pid='home'):
     label = table.get(key('Langue'), 'Langue') if code != 'fr' else 'Langue'
     js = {k: table.get(key(v), v) for k, v in JS.items()} if code != 'fr' else JS
     locale = next(n for c, _, _, n in LANGS if c == code)
     page = page.replace('<a class="nav__login"', switcher(code, label, pid) + '<a class="nav__login"', 1)
+    page = page.replace('<div class="menu__foot">', '<div class="menu__foot">' + menu_langs(code, label, pid), 1)
     page = page.replace('</style>', LANG_CSS + '</style>', 1)
     page = page.replace('</body>', footer_links(code, pid) + '</body>', 1)
     return page.replace('<script>\n', f'<script>window.EVOLY_I18N={json.dumps({"locale": locale, "t": js}, ensure_ascii=False)};\n', 1)

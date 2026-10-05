@@ -251,7 +251,7 @@ def plan_items(items):
 
 
 FREE_LIST = plan_items(['0 % sur les billets gratuits, sans limite', '0,29 € + 2 % par billet payant, 2,50 € maximum', 'Frais de paiement au coût réel, sans marge',
-                        'Frais inclus dans votre prix : rien n’est ajouté à l’acheteur', ('Fixez ce que vous voulez toucher, le prix se calcule tout seul', True), ('Revente sécurisée entre participants', True),
+                        'Frais inclus dans votre prix : rien n’est ajouté à l’acheteur', ('Fixez le montant que vous voulez percevoir, le prix se calcule tout seul', True), ('Revente sécurisée entre participants', True),
                         'Statistiques en direct', 'Codes promo et questions personnalisées', 'Sous-domaine Evoly inclus', 'Check-in QR inclus', 'E-mails transactionnels'])
 PRO_LIST = plan_items(['Tout le plan Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), ('Plan de salle et placement numéroté', True), 'E-mail marketing et automatisations',
                        'Domaine personnalisé avec SSL', 'Vos couleurs et votre logo', 'Sous-domaines dédiés par événement', 'Multi-orgs et rôles', 'Sans branding Evoly'])
@@ -346,7 +346,7 @@ BODY = f'''
       </h1>
       <div class="hero__copy">
         <p class="lede hero__lede">Créez votre événement en 60 secondes. Vos participants achètent en un tap, avec Apple Pay, Google Pay ou leur carte, et paient le prix affiché, sans frais ajoutés.</p>
-        <div class="hero__ctas"><a class="btn btn--pink" href="{REGISTER}" {EXT}>Créer mon premier événement</a><a class="link" href="#economies">Calculer ce que je touche</a></div>
+        <div class="hero__ctas"><a class="btn btn--pink" href="{REGISTER}" {EXT}>Créer mon premier événement</a><a class="link" href="#economies">Calculer ce que je perçois</a></div>
         <ul class="trust" aria-label="Garanties">
           <li>{CHECK}Paiement sécurisé par Stripe</li><li>{CHECK}Données hébergées en UE</li><li>{CHECK}Conforme au RGPD</li><li>{CHECK}Gratuit, sans engagement</li>
         </ul>
@@ -383,8 +383,8 @@ BODY = f'''
 
   <section class="calc" id="economies" aria-labelledby="calc-title">
     <div class="calc__head">
-      <h2 class="h2" id="calc-title">calculez ce que vous <span class="script">touchez</span>.</h2>
-      <p class="lede">Ce que vous touchez avec Evoly, commission déduite, en Free et en Pro.</p>
+      <h2 class="h2" id="calc-title">calculez ce que vous <span class="script">percevez</span>.</h2>
+      <p class="lede">Ce que vous percevez avec Evoly, commission déduite, en Free et en Pro.</p>
     </div>
     <div class="calc__body">
       <div class="ctrl">
@@ -392,7 +392,7 @@ BODY = f'''
         <div class="ctrl__row"><label for="calc-p"><span>Prix du billet</span><output id="calc-p-out" for="calc-p">30 €</output></label><input class="range" id="calc-p" type="range" min="1" max="150" step="1" value="30"></div>
         <div class="ctrl__sum">
           <div><span>Chiffre d’affaires</span><b id="calc-gross">6 000 €</b></div>
-          <div class="ctrl__net"><span>Vous touchez avec Evoly <em id="calc-plan">Free</em></span><b id="calc-net">5 740 €</b></div>
+          <div class="ctrl__net"><span>Vous percevez avec Evoly <em id="calc-plan">Free</em></span><b id="calc-net">5 740 €</b></div>
           <p class="ctrl__more" id="calc-more">À ce prix, l’offre Free est la plus avantageuse.</p>
         </div>
       </div>

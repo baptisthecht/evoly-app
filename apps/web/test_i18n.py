@@ -27,7 +27,7 @@ def check():
     sitemap = open(os.path.join(HERE, 'dist', 'sitemap.xml'), encoding='utf-8').read()
     if sitemap.count('<loc>') != (1 + len(SLUGS)) * len(i18n.LANGS) + len(i18n.LEGAL): errors.append('sitemap : nombre de pages')
     # liens internes vers la bonne langue (hors sélecteur de langue et liens entre versions, qui mènent exprès aux autres langues)
-    strip = lambda h: re.sub(r'<nav class="lang-links".*?</nav>|<select.*?</select>', '', h, flags=re.S)
+    strip = lambda h: re.sub(r'<nav class="(?:lang-links|menu__langs)".*?</nav>|<select.*?</select>', '', h, flags=re.S)
     for code in [c for c, *_ in i18n.LANGS if c != 'fr']:
         for pid in ['home', *SLUGS]:
             body = strip(open(i18n.file_of(os.path.join(HERE, 'dist'), code, pid), encoding='utf-8').read())

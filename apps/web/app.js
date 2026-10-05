@@ -305,7 +305,7 @@
     };
     const announce = () => {
       const r = compute();
-      live.textContent = T('calcLive', { n: nf0.format(r.n), p: eur0(r.p), free: eur0(r.commFree), pro: eur0(r.pro), net: eur0(r.net) }, 'Pour {n} billets à {p} : {free} de commission avec Evoly Free, {pro} avec Evoly Pro abonnement compris. Vous touchez {net}.');
+      live.textContent = T('calcLive', { n: nf0.format(r.n), p: eur0(r.p), free: eur0(r.commFree), pro: eur0(r.pro), net: eur0(r.net) }, 'Pour {n} billets à {p} : {free} de commission avec Evoly Free, {pro} avec Evoly Pro abonnement compris. Vous percevez {net}.');
     };
     [cN, cP].forEach((i) => { i.addEventListener('input', () => render(false)); i.addEventListener('change', announce); });
     render(true);
