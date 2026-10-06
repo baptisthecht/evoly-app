@@ -63,6 +63,7 @@
   function openMenu(kb) {
     menuOpen = true;
     menu.classList.add('is-open'); menu.removeAttribute('inert');
+    $('.nav').classList.add('is-menu');
     menuBtn.setAttribute('aria-expanded', 'true');
     $('.vh', menuBtn).textContent = T('menuClose', {}, 'Fermer le menu');
     lock(true);
@@ -73,6 +74,7 @@
     if (!menuOpen) return;
     menuOpen = false;
     menu.classList.remove('is-open'); menu.setAttribute('inert', '');
+    $('.nav').classList.remove('is-menu');
     menuBtn.setAttribute('aria-expanded', 'false');
     $('.vh', menuBtn).textContent = T('menuOpen', {}, 'Ouvrir le menu');
     lock(false);
