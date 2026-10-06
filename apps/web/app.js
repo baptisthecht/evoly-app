@@ -49,8 +49,11 @@
   /* ---------- navigation ---------- */
   const nav = $('.nav');
   let lastY = scrollY, menuOpen = false;
+  // barre collée en haut de l'écran dès qu'on a défilé : elle prend sa pilule claire
+  nav.classList.toggle('is-stuck', scrollY > 8);
   addEventListener('scroll', () => {
     const y = scrollY;
+    nav.classList.toggle('is-stuck', y > 8);
     if (menuOpen) { nav.classList.remove('is-hidden'); lastY = y; return; }
     if (y > lastY + 4 && y > 160) nav.classList.add('is-hidden');
     else if (y < lastY - 4 || y < 160) nav.classList.remove('is-hidden');
