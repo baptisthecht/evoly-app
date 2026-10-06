@@ -40,6 +40,7 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
   const sub = state.sub;
   const manage = can(ctx.membership, "BILLING_MANAGE");
   const isPro = state.plan === "pro";
+  const isPartner = state.plan === "partner"; // offre Partenaire, attribuée par Evoly
   const status = !sub || !isPro ? "FREE" : sub.cancelAtPeriodEnd || sub.status === "CANCELED" ? "ENDING" : sub.status;
   const statusLine =
     status === "TRIALING" && sub?.trialEndsAt
@@ -76,13 +77,20 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
 
       <Card className="grid gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="font-display text-3xl tracking-[-0.04em]">{isPro ? "Pro" : "Free"}</h2>
-          <Badge tone={status === "FREE" ? "neutral" : status === "PAST_DUE" || status === "UNPAID" ? "danger" : status === "ENDING" ? "warning" : "success"}>
-            {t(`badge_${status}`)}
-          </Badge>
+          <h2 className="font-display text-3xl tracking-[-0.04em]">{isPartner ? t("planPartner") : isPro ? "Pro" : "Free"}</h2>
+          {isPartner ? <Badge tone="success">{t("badge_PARTNER")}</Badge> : null}
+          {isPartner ? null : (
+            <Badge tone={status === "FREE" ? "neutral" : status === "PAST_DUE" || status === "UNPAID" ? "danger" : status === "ENDING" ? "warning" : "success"}>
+              {t(`badge_${status}`)}
+            </Badge>
+          )}
         </div>
-        <p>{statusLine}</p>
-        {manage ? (
+        <p>
+          {isPartner
+            ? `${t("partnerBody")}${sub?.currentPeriodEnd ? ` ${t("partnerUntil", { date: formatDate(sub.currentPeriodEnd, tz, locale) })}` : ""}`
+            : statusLine}
+        </p>
+        {isPartner ? null : manage ? (
           isPro && sub?.stripeCustomerId ? (
             <div className="grid gap-4">
               <ManageSubscription orgSlug={orgSlug} />

@@ -40,7 +40,12 @@ export async function extendTrialAction(id: string, form: FormData) {
 
 export async function assignPlanAction(id: string, form: FormData) {
   const until = text(form, "until", 10);
-  await assignPlan(await requireStaff("ADMIN"), id, form.get("plan") === "free" ? "free" : "pro", until ? new Date(`${until}T23:59:59Z`) : null);
+  await assignPlan(
+    await requireStaff("ADMIN"),
+    id,
+    form.get("plan") === "free" ? "free" : form.get("plan") === "partner" ? "partner" : "pro",
+    until ? new Date(`${until}T23:59:59Z`) : null,
+  );
   revalidatePath(orgPath(id));
 }
 

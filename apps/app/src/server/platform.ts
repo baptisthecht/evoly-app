@@ -275,15 +275,16 @@ export async function extendTrial(st: Staff, id: string, days: number, now = new
 }
 
 /** Offre attribuée par Evoly (sans abonnement Stripe) : Pro jusqu'à une date, ou sans limite ; ou retour en Free. */
-export async function assignPlan(st: Staff, id: string, planId: "pro" | "free", until: Date | null) {
+/** Offre attribuée par un administrateur : Free, Pro offert, ou Partenaire (Pro sans commission), avec date de fin facultative. */
+export async function assignPlan(st: Staff, id: string, planId: "pro" | "free" | "partner", until: Date | null) {
   const sub = await db.subscription.findUnique({ where: { organizationId: id } });
   if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"].includes(sub.status)) throw new CoreError("PLAN_MANAGED_BY_STRIPE");
   const data =
     planId === "free"
       ? { planId: "free", status: "NONE" as const, currentPeriodEnd: null }
       : until
-        ? { planId: "pro", status: "CANCELED" as const, currentPeriodEnd: until, cancelAtPeriodEnd: true }
-        : { planId: "pro", status: "ACTIVE" as const, currentPeriodEnd: null };
+        ? { planId, status: "CANCELED" as const, currentPeriodEnd: until, cancelAtPeriodEnd: true }
+        : { planId, status: "ACTIVE" as const, currentPeriodEnd: null };
   await db.subscription.upsert({ where: { organizationId: id }, create: { organizationId: id, ...data }, update: data });
   await log(st, "platform.plan_assigned", id, { planId, until: until?.toISOString() ?? null });
 }

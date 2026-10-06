@@ -93,10 +93,17 @@ async function main() {
     create: { id: "pro", name: "Pro", feeRateBps: 200, trialDays: 14, features: PRO_FEATURES, sortOrder: 1 },
     update: { feeRateBps: 200, trialDays: 14, features: PRO_FEATURES },
   });
+  // offre Partenaire : Pro offert par Evoly, sans commission, attribuée par les administrateurs (non publique)
+  await prisma.plan.upsert({
+    where: { id: "partner" },
+    create: { id: "partner", name: "Partenaire", feeRateBps: 0, trialDays: 0, features: PRO_FEATURES, isPublic: false, sortOrder: 2 },
+    update: { feeRateBps: 0, trialDays: 0, features: PRO_FEATURES, isPublic: false },
+  });
 
   const terms = [
     { planId: "free", currency: "EUR", feeFixedMinor: 29, feeCapMinor: 250, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
     { planId: "pro", currency: "EUR", feeFixedMinor: 29, feeCapMinor: 100, monthlyPriceMinor: 2900, yearlyPriceMinor: 29580 },
+    { planId: "partner", currency: "EUR", feeFixedMinor: 0, feeCapMinor: 0, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
   ];
   for (const t of terms) {
     await prisma.planCurrencyTerms.upsert({

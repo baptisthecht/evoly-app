@@ -125,3 +125,20 @@ describe("abonnement Pro (RG-SUB-01 à 08)", () => {
     expect(sub).toMatchObject({ status: "ACTIVE", pastDueSince: null });
   });
 });
+
+describe("offre Partenaire", () => {
+  it("Pro offert : fonctionnalités Pro, et aucune commission Evoly sur les billets vendus", async () => {
+    const s = await setup();
+    expect(await s.fee()).toBeGreaterThan(0); // Free : commission
+    await db.subscription.upsert({
+      where: { organizationId: s.org.id },
+      create: { organizationId: s.org.id, planId: "partner", status: "ACTIVE" },
+      update: { planId: "partner", status: "ACTIVE", currentPeriodEnd: null },
+    });
+    expect(await s.fee()).toBe(0);
+    const ctx = (await findOrgContext(s.owner.id, s.org.slug))!;
+    expect(ctx.plan).toBe("partner");
+    expect(ctx.features).toEqual(expect.arrayContaining(["EMAIL_MARKETING", "DYNAMIC_PRICING", "CUSTOM_DOMAINS", "REMOVE_EVOLY_BRANDING"]));
+    expect(ctx.readOnly).toBe(false);
+  });
+});

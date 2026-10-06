@@ -28,3 +28,18 @@ test("abonnement : Free, essai en cours, impayé (section 9.21)", async ({ page 
   await page.goto(appUrl(`/o/${slug}`));
   await expect(page.getByRole("alert").filter({ hasText: "Le paiement de votre abonnement Pro a échoué." })).toContainText("retour en Free dans 5 jours");
 });
+
+test("offre Partenaire : Pro offert, sans commission, sans bouton d'abonnement", async ({ page }) => {
+  const { slug } = await organizer(page);
+  const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
+  sql(
+    `insert into "Subscription" (id, "organizationId", "planId", status, "updatedAt") values ('s_${orgId}', '${orgId}', 'partner', 'ACTIVE', now()) on conflict ("organizationId") do update set "planId" = 'partner', status = 'ACTIVE', "currentPeriodEnd" = null`,
+  );
+  await page.goto(appUrl(`/o/${slug}/billing`));
+  await expect(page.getByRole("heading", { name: "Partenaire", exact: true })).toBeVisible();
+  await expect(page.getByText("Offerte par Evoly", { exact: true })).toBeVisible();
+  await expect(page.getByText(/sans commission Evoly sur vos billets/)).toBeVisible();
+  await expect(page.getByRole("button", { name: /Essayer Pro/ })).toHaveCount(0);
+  await page.goto(appUrl(`/o/${slug}/settings/payments`));
+  await expect(page.getByText(/Evoly ne prélève aucune commission sur vos billets/)).toBeVisible();
+});

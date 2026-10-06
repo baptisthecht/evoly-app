@@ -933,7 +933,8 @@
     "stripeNotConfiguredBody": "This environment has no Stripe key. Connecting an account is turned off.",
     "feesTitle": "Your fees",
     "feesBodyFree": "€0.29 + 2% per paid ticket, capped at €2.50 per ticket, excluding payment fees. It’s included in your ticket price: your attendees pay the displayed price. Stripe’s payment fees apply at cost.",
-    "feesBodyPro": "€0.29 + 2% per paid ticket, capped at €1 per ticket on Pro, excluding payment fees. It’s included in your ticket price: your attendees pay the displayed price. Stripe’s payment fees apply at cost."
+    "feesBodyPro": "€0.29 + 2% per paid ticket, capped at €1 per ticket on Pro, excluding payment fees. It’s included in your ticket price: your attendees pay the displayed price. Stripe’s payment fees apply at cost.",
+    "feesBodyPartner": "With the Partner plan, Evoly charges no fee on your tickets. Only Stripe’s payment fees apply, at cost."
   },
   "upsell": {
     "marketing": "Automatic reminders one week, one day and on the day, a thank-you email after the event and targeted campaigns, with their stats.",
@@ -1443,7 +1444,11 @@
     "included": "Included",
     "notIncluded": "Not included",
     "pricesTtc": "Prices include VAT. Free tickets carry no fee, on both plans.",
-    "pastDueBanner": "{count, plural, =0 {Your Pro subscription payment failed. Update your payment method: back to Free today.} one {Your Pro subscription payment failed. Update your payment method: back to Free in # day.} other {Your Pro subscription payment failed. Update your payment method: back to Free in # days.}}"
+    "pastDueBanner": "{count, plural, =0 {Your Pro subscription payment failed. Update your payment method: back to Free today.} one {Your Pro subscription payment failed. Update your payment method: back to Free in # day.} other {Your Pro subscription payment failed. Update your payment method: back to Free in # days.}}",
+    "planPartner": "Partner",
+    "badge_PARTNER": "Provided by Evoly",
+    "partnerBody": "All Pro features, with no Evoly fee on your tickets. Only Stripe’s payment fees apply.",
+    "partnerUntil": "Provided until {date}."
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Edit organisation settings",

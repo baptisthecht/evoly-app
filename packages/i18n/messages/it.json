@@ -1450,7 +1450,11 @@
     "included": "Incluso",
     "notIncluded": "Non incluso",
     "pricesTtc": "Prezzi comprensivi di tutte le tasse. Biglietti gratuiti senza commissione, in entrambi i piani.",
-    "pastDueBanner": "{count, plural, =0 {Il pagamento del tuo abbonamento Pro non è riuscito. Aggiorna il metodo di pagamento: ritorno a Free oggi.} one {Il pagamento del tuo abbonamento Pro non è riuscito. Aggiorna il metodo di pagamento: ritorno a Free tra # giorno.} other {Il pagamento del tuo abbonamento Pro non è riuscito. Aggiorna il metodo di pagamento: ritorno a Free tra # giorni.}}"
+    "pastDueBanner": "{count, plural, =0 {Il pagamento del tuo abbonamento Pro non è riuscito. Aggiorna il metodo di pagamento: ritorno a Free oggi.} one {Il pagamento del tuo abbonamento Pro non è riuscito. Aggiorna il metodo di pagamento: ritorno a Free tra # giorno.} other {Il pagamento del tuo abbonamento Pro non è riuscito. Aggiorna il metodo di pagamento: ritorno a Free tra # giorni.}}",
+    "planPartner": "Partner",
+    "badge_PARTNER": "Offerta da Evoly",
+    "partnerBody": "Tutte le funzionalità Pro, senza commissione Evoly sui tuoi biglietti. Si applicano solo i costi di pagamento di Stripe.",
+    "partnerUntil": "Offerta fino al {date}."
   },
   "brand": {
     "sloganStart": "il tuo prossimo",
@@ -1641,7 +1645,8 @@
     "stripeNotConfiguredBody": "Questo ambiente non ha una chiave Stripe. Il collegamento di un account è disattivato.",
     "feesTitle": "I tuoi costi",
     "feesBodyFree": "Commissione: 0,29 € + 2% per biglietto a pagamento, con un tetto di 2,50 € a biglietto, esclusi i costi di pagamento. È inclusa nel prezzo dei tuoi biglietti: i partecipanti pagano il prezzo mostrato. I costi di pagamento di Stripe si applicano al costo reale.",
-    "feesBodyPro": "Commissione: 0,29 € + 2% per biglietto a pagamento, con un tetto di 1 € a biglietto con il piano Pro, esclusi i costi di pagamento. È inclusa nel prezzo dei tuoi biglietti: i partecipanti pagano il prezzo mostrato. I costi di pagamento di Stripe si applicano al costo reale."
+    "feesBodyPro": "Commissione: 0,29 € + 2% per biglietto a pagamento, con un tetto di 1 € a biglietto con il piano Pro, esclusi i costi di pagamento. È inclusa nel prezzo dei tuoi biglietti: i partecipanti pagano il prezzo mostrato. I costi di pagamento di Stripe si applicano al costo reale.",
+    "feesBodyPartner": "Con l’offerta Partner, Evoly non trattiene alcuna commissione sui tuoi biglietti. Si applicano solo i costi di pagamento di Stripe, al prezzo di costo."
   },
   "orgSettings": {
     "identity": "Identità",

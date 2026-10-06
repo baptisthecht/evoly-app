@@ -61,7 +61,7 @@ export default async function PaymentsPage({ params, searchParams }: { params: P
       </Card>
       <Card className="grid gap-3">
         <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("feesTitle")}</h2>
-        <p className="text-[0.95rem] text-ink-muted">{t(ctx.plan === "pro" ? "feesBodyPro" : "feesBodyFree")}</p>
+        <p className="text-[0.95rem] text-ink-muted">{t(ctx.plan === "partner" ? "feesBodyPartner" : ctx.plan === "pro" ? "feesBodyPro" : "feesBodyFree")}</p>
       </Card>
     </div>
   );

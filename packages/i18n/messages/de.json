@@ -1450,7 +1450,11 @@
     "included": "Enthalten",
     "notIncluded": "Nicht enthalten",
     "pricesTtc": "Preise inklusive aller Steuern. Kostenlose Tickets ohne Gebühr, in beiden Tarifen.",
-    "pastDueBanner": "{count, plural, =0 {Die Zahlung Ihres Pro-Abos ist fehlgeschlagen. Aktualisieren Sie Ihr Zahlungsmittel: Rückkehr zu Free heute.} one {Die Zahlung Ihres Pro-Abos ist fehlgeschlagen. Aktualisieren Sie Ihr Zahlungsmittel: Rückkehr zu Free in # Tag.} other {Die Zahlung Ihres Pro-Abos ist fehlgeschlagen. Aktualisieren Sie Ihr Zahlungsmittel: Rückkehr zu Free in # Tagen.}}"
+    "pastDueBanner": "{count, plural, =0 {Die Zahlung Ihres Pro-Abos ist fehlgeschlagen. Aktualisieren Sie Ihr Zahlungsmittel: Rückkehr zu Free heute.} one {Die Zahlung Ihres Pro-Abos ist fehlgeschlagen. Aktualisieren Sie Ihr Zahlungsmittel: Rückkehr zu Free in # Tag.} other {Die Zahlung Ihres Pro-Abos ist fehlgeschlagen. Aktualisieren Sie Ihr Zahlungsmittel: Rückkehr zu Free in # Tagen.}}",
+    "planPartner": "Partner",
+    "badge_PARTNER": "Angeboten von Evoly",
+    "partnerBody": "Alle Pro-Funktionen, ohne Evoly-Gebühr auf Ihre Tickets. Es fallen nur die Zahlungsgebühren von Stripe an.",
+    "partnerUntil": "Angeboten bis {date}."
   },
   "brand": {
     "sloganStart": "deine nächste",
@@ -1641,7 +1645,8 @@
     "stripeNotConfiguredBody": "Diese Umgebung hat keinen Stripe-Schlüssel. Das Verbinden eines Kontos ist deaktiviert.",
     "feesTitle": "Ihre Gebühren",
     "feesBodyFree": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, höchstens 2,50 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen den angezeigten Preis. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis.",
-    "feesBodyPro": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, im Pro-Tarif höchstens 1 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen den angezeigten Preis. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis."
+    "feesBodyPro": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, im Pro-Tarif höchstens 1 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen den angezeigten Preis. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis.",
+    "feesBodyPartner": "Mit dem Partner-Tarif berechnet Evoly keine Gebühr auf Ihre Tickets. Es fallen nur die Zahlungsgebühren von Stripe zum Selbstkostenpreis an."
   },
   "orgSettings": {
     "identity": "Identität",

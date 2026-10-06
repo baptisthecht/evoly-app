@@ -1450,7 +1450,11 @@
     "included": "Incluido",
     "notIncluded": "No incluido",
     "pricesTtc": "Precios con todos los impuestos incluidos. Entradas gratuitas sin comisión, en los dos planes.",
-    "pastDueBanner": "{count, plural, =0 {El pago de tu suscripción Pro ha fallado. Actualiza tu método de pago: vuelves a Free hoy.} one {El pago de tu suscripción Pro ha fallado. Actualiza tu método de pago: vuelves a Free dentro de # día.} other {El pago de tu suscripción Pro ha fallado. Actualiza tu método de pago: vuelves a Free dentro de # días.}}"
+    "pastDueBanner": "{count, plural, =0 {El pago de tu suscripción Pro ha fallado. Actualiza tu método de pago: vuelves a Free hoy.} one {El pago de tu suscripción Pro ha fallado. Actualiza tu método de pago: vuelves a Free dentro de # día.} other {El pago de tu suscripción Pro ha fallado. Actualiza tu método de pago: vuelves a Free dentro de # días.}}",
+    "planPartner": "Partner",
+    "badge_PARTNER": "Ofrecida por Evoly",
+    "partnerBody": "Todas las funciones Pro, sin comisión de Evoly en tus entradas. Solo se aplican los gastos de pago de Stripe.",
+    "partnerUntil": "Ofrecida hasta el {date}."
   },
   "brand": {
     "sloganStart": "tu próximo",
@@ -1641,7 +1645,8 @@
     "stripeNotConfiguredBody": "Este entorno no tiene clave de Stripe. La conexión de una cuenta está desactivada.",
     "feesTitle": "Tus gastos",
     "feesBodyFree": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 2,50 € por entrada, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes pagan el precio mostrado. Los gastos de pago de Stripe se aplican a precio de coste.",
-    "feesBodyPro": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 1 € por entrada con el plan Pro, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes pagan el precio mostrado. Los gastos de pago de Stripe se aplican a precio de coste."
+    "feesBodyPro": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 1 € por entrada con el plan Pro, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes pagan el precio mostrado. Los gastos de pago de Stripe se aplican a precio de coste.",
+    "feesBodyPartner": "Con la oferta Partner, Evoly no cobra ninguna comisión por tus entradas. Solo se aplican los gastos de pago de Stripe, a precio de coste."
   },
   "orgSettings": {
     "identity": "Identidad",

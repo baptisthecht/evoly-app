@@ -120,6 +120,7 @@ export default async function OrganizationSheetPage({ params }: { params: Promis
               <select name="plan" aria-label="Offre attribuée" className={input}>
                 <option value="pro">Pro</option>
                 <option value="free">Free</option>
+                <option value="partner">Partenaire (Pro offert, sans commission)</option>
               </select>
               <input name="until" type="date" aria-label="Jusqu’au" className={input} />
               <button type="submit" className={btn}>

@@ -103,6 +103,19 @@ describe("back-office Evoly (section 9.24)", () => {
     await expect(assignPlan(s.st, s.org.id, "free", null)).rejects.toThrow("PLAN_MANAGED_BY_STRIPE");
   });
 
+  it("offre Partenaire attribuée par un administrateur, avec ou sans date de fin", async () => {
+    const s = await setup();
+    await assignPlan(s.st, s.org.id, "partner", null);
+    expect(effectivePlan((await sub(s.org.id))!, new Date())).toBe("partner");
+    const until = new Date(Date.now() + 30 * 86_400_000);
+    await assignPlan(s.st, s.org.id, "partner", until);
+    const assigned = (await sub(s.org.id))!;
+    expect(effectivePlan(assigned, new Date())).toBe("partner");
+    expect(effectivePlan(assigned, new Date(until.getTime() + 60_000))).toBe("free");
+    await assignPlan(s.st, s.org.id, "free", null);
+    expect(effectivePlan((await sub(s.org.id))!, new Date())).toBe("free");
+  });
+
   it("fonctionnalités par organisation ou globales ; signal de risque ; consultation support en lecture seule", async () => {
     const s = await setup(20_000);
     const key = `essai_${s.id}`;

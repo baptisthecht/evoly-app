@@ -210,7 +210,7 @@ export async function applyTimedDowngrades(now = new Date()): Promise<number> {
   });
   let n = 0;
   for (const s of candidates) {
-    if (effectivePlan(s, now) === "free" && effectivePlan(s, new Date(now.getTime() - 3_600_000)) === "pro") {
+    if (effectivePlan(s, now) === "free" && effectivePlan(s, new Date(now.getTime() - 3_600_000)) !== "free") {
       n += 1;
       await notifyOwner(s.organizationId, "ENDED");
     }

@@ -19,7 +19,8 @@ export const PLAN_FEATURES = [
 ] as const;
 
 export type PlanFeature = (typeof PLAN_FEATURES)[number];
-export type PlanId = "free" | "pro";
+/** « partner » : offre Partenaire, Pro offert par Evoly sans commission, attribuée par les administrateurs. */
+export type PlanId = "free" | "pro" | "partner";
 export type SubscriptionStatus = "NONE" | "TRIALING" | "ACTIVE" | "PAST_DUE" | "UNPAID" | "CANCELED" | "INCOMPLETE";
 
 export interface SubscriptionInput {
@@ -34,19 +35,20 @@ export const PAST_DUE_GRACE_DAYS = 7;
 
 /**
  * Offre réellement en vigueur pour une organisation.
- * Pro si essai ou abonnement actif, ou impayé depuis moins de 7 jours, ou résilié mais période payée en cours.
+ * Pro (ou Partenaire) si essai ou abonnement actif, ou impayé depuis moins de 7 jours, ou résilié mais période payée en cours.
  */
 export function effectivePlan(sub: SubscriptionInput | null | undefined, now: Date): PlanId {
-  if (!sub || sub.planId !== "pro") return "free";
+  if (!sub || (sub.planId !== "pro" && sub.planId !== "partner")) return "free";
+  const paid: PlanId = sub.planId; // Pro, ou Partenaire (mêmes règles de période)
   switch (sub.status) {
     case "TRIALING":
     case "ACTIVE":
-      return "pro";
+      return paid;
     case "PAST_DUE":
-      if (!sub.pastDueSince) return "pro";
-      return now.getTime() - sub.pastDueSince.getTime() < PAST_DUE_GRACE_DAYS * 86_400_000 ? "pro" : "free";
+      if (!sub.pastDueSince) return paid;
+      return now.getTime() - sub.pastDueSince.getTime() < PAST_DUE_GRACE_DAYS * 86_400_000 ? paid : "free";
     case "CANCELED":
-      return sub.currentPeriodEnd && sub.currentPeriodEnd.getTime() > now.getTime() ? "pro" : "free";
+      return sub.currentPeriodEnd && sub.currentPeriodEnd.getTime() > now.getTime() ? paid : "free";
     default:
       return "free";
   }

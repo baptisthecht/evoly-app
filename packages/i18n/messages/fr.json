@@ -933,7 +933,8 @@
     "stripeNotConfiguredBody": "Cet environnement n’a pas de clé Stripe. La connexion d’un compte y est désactivée.",
     "feesTitle": "Vos frais",
     "feesBodyFree": "0,29 € + 2 % par billet payant, plafonnée à 2,50 € par billet, hors frais de paiement. Elle est incluse dans le prix de vos billets : vos participants paient le prix affiché. Les frais de paiement de Stripe s’appliquent au coût réel.",
-    "feesBodyPro": "0,29 € + 2 % par billet payant, plafonnée à 1 € par billet avec l’offre Pro, hors frais de paiement. Elle est incluse dans le prix de vos billets : vos participants paient le prix affiché. Les frais de paiement de Stripe s’appliquent au coût réel."
+    "feesBodyPro": "0,29 € + 2 % par billet payant, plafonnée à 1 € par billet avec l’offre Pro, hors frais de paiement. Elle est incluse dans le prix de vos billets : vos participants paient le prix affiché. Les frais de paiement de Stripe s’appliquent au coût réel.",
+    "feesBodyPartner": "Avec l’offre Partenaire, Evoly ne prélève aucune commission sur vos billets. Seuls les frais de paiement de Stripe s’appliquent, au coût réel."
   },
   "upsell": {
     "marketing": "Rappels automatiques J-7, J-1 et jour J, e-mail après l’événement et campagnes ciblées, avec leurs statistiques.",
@@ -1443,7 +1444,11 @@
     "included": "Inclus",
     "notIncluded": "Non inclus",
     "pricesTtc": "Prix toutes taxes comprises. Billets gratuits sans commission, dans les deux offres.",
-    "pastDueBanner": "{count, plural, =0 {Le paiement de votre abonnement Pro a échoué. Mettez à jour votre moyen de paiement : retour en Free aujourd’hui.} one {Le paiement de votre abonnement Pro a échoué. Mettez à jour votre moyen de paiement : retour en Free dans # jour.} other {Le paiement de votre abonnement Pro a échoué. Mettez à jour votre moyen de paiement : retour en Free dans # jours.}}"
+    "pastDueBanner": "{count, plural, =0 {Le paiement de votre abonnement Pro a échoué. Mettez à jour votre moyen de paiement : retour en Free aujourd’hui.} one {Le paiement de votre abonnement Pro a échoué. Mettez à jour votre moyen de paiement : retour en Free dans # jour.} other {Le paiement de votre abonnement Pro a échoué. Mettez à jour votre moyen de paiement : retour en Free dans # jours.}}",
+    "planPartner": "Partenaire",
+    "badge_PARTNER": "Offerte par Evoly",
+    "partnerBody": "Toutes les fonctionnalités Pro, sans commission Evoly sur vos billets. Seuls les frais de paiement de Stripe s’appliquent.",
+    "partnerUntil": "Offerte jusqu’au {date}."
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Modifier les paramètres de l’organisation",

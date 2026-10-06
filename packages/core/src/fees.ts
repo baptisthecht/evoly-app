@@ -14,9 +14,10 @@ export interface FeeTerms {
  * Conditions de référence en euros (grille d'octobre 2026) : 0,29 € + 2 % par billet payant, plafonnée à 2,50 € en Free
  * et à 1 € en Pro. Frais de paiement Stripe en sus, à la charge de l'organisateur : l'acheteur paie le prix affiché.
  */
-export const EUR_TERMS: Readonly<Record<"free" | "pro", FeeTerms>> = {
+export const EUR_TERMS: Readonly<Record<"free" | "pro" | "partner", FeeTerms>> = {
   free: { planId: "free", currency: "EUR", fixedMinor: 29, rateBps: 200, capMinor: 250 },
   pro: { planId: "pro", currency: "EUR", fixedMinor: 29, rateBps: 200, capMinor: 100 },
+  partner: { planId: "partner", currency: "EUR", fixedMinor: 0, rateBps: 0, capMinor: 0 }, // offre Partenaire : aucune commission
 };
 
 /**
