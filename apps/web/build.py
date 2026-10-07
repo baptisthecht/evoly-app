@@ -634,6 +634,22 @@ BODY = f'''
     <div class="seat__links"><a class="btn btn--pink" href="/plan-de-salle/">Découvrir le plan de salle</a><span class="pg__note">Inclus dans l’offre Pro.</span></div>
   </section>
 
+  <section class="field" id="terrain" aria-labelledby="field-title">
+    <h2 class="h2" id="field-title">conçue pour le <span class="script">terrain</span>.</h2>
+    <p class="lede">Les détails qui comptent le jour de l’événement, inclus dans toutes les offres, y compris l’offre gratuite.</p>
+    <ul class="field__grid" role="list">
+      <li class="field__card"><h3 class="h3 field__t">Un scanner qui fonctionne sans réseau</h3><p>Dans une cave ou en plein champ, le scanner continue de contrôler les billets. Les entrées se synchronisent dès que le réseau revient.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Contrôler sans valider</h3><p>Le mode vérification contrôle un billet sans le valider, par exemple à l’entrée du site : il reste valable pour l’entrée de la salle.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Sept langues</h3><p>La page de vente, les billets et les e-mails s’affichent dans la langue de chaque acheteur : français, anglais, néerlandais, allemand, espagnol, italien ou portugais.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Le billet dans le téléphone</h3><p>Vos participants ajoutent leur billet à Apple Wallet ou à Google Wallet, et le retrouvent sans chercher dans leurs e-mails.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Un billet par personne</h3><p>Chaque billet est au nom de son titulaire et lui est envoyé à sa propre adresse e-mail.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Des invitations</h3><p>Envoyez des places offertes depuis votre espace : elles arrivent par e-mail et se scannent comme les autres billets.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Vos consignes dans chaque billet</h3><p>Ajoutez vos informations pratiques (accès, parking, horaires) aux e-mails des billets et des rappels.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Un espace pour vos participants</h3><p>Ils retrouvent leurs billets à tout moment grâce à un lien de connexion, sans mot de passe.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Votre billetterie dans la poche</h3><p>Votre espace organisateur s’installe comme une application sur votre téléphone.</p></li>
+    </ul>
+  </section>
+
   <section class="cmp" id="comparatif" aria-labelledby="cmp-title">
     <div class="cmp__head">
       <h2 class="h2" id="cmp-title">ce qui nous<span class="script">distingue</span>.</h2>

@@ -935,4 +935,11 @@ p{margin:0}
 .hero{margin-top:0;min-height:calc(100svh - var(--gutter) - 86px);padding-top:clamp(48px,7vh,88px)}
 html{scroll-padding-top:16px}
 @media (max-width:760px){.hero{padding-top:40px}}
+/* Section « conçue pour le terrain » : les fonctions du jour J, incluses dans toutes les offres */
+.field{max-width:var(--maxw);margin:0 auto;padding:clamp(56px,7vw,110px) var(--pad) clamp(8px,2vw,24px)}
+.field__grid{list-style:none;margin:clamp(28px,4vw,44px) 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:14px}
+.field__card{background:var(--soft-a);color:var(--on-soft);border-radius:22px;padding:24px 24px 26px}
+.field__card:nth-child(even){background:var(--soft-b)}
+.field__t{font-size:clamp(1.18rem,1.5vw,1.32rem);line-height:1.2;margin-bottom:10px}
+.field__card p{margin:0;color:var(--on-soft-2);line-height:1.55;font-size:.98rem}
 
