@@ -248,7 +248,7 @@ def plan_items(items):
 
 
 FREE_LIST = plan_items(['0,29 € + 2 % par billet payant, 2,50 € maximum', '0 % sur les billets gratuits, sans limite', 'Frais inclus dans votre prix : rien n’est ajouté à l’acheteur', ('Revente sécurisée entre participants', True), 'Check-in QR inclus'])
-PRO_LIST = plan_items(['Tout le contenu de l’offre Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), ('Plan de salle et placement numéroté', True), 'E-mail marketing et automatisations', 'Vos couleurs et votre logo'])
+PRO_LIST = plan_items(['Tout le contenu de l’offre Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), ('Plan de salle et placement numéroté', True), 'E-mail marketing et automatisations', 'Vos couleurs et votre logo, sans mention d’Evoly', 'Votre propre domaine et un sous-domaine par événement', 'Plusieurs organisations et rôles d’équipe'])
 
 # ------------------------------------------------------------------ FAQ (brouillon à valider)
 FAQ = [
