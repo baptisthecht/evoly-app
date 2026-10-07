@@ -247,28 +247,17 @@ def plan_items(items):
     return ''.join(out)
 
 
-FREE_LIST = plan_items(['0 % sur les billets gratuits, sans limite', '0,29 € + 2 % par billet payant, 2,50 € maximum', 'Frais de paiement au coût réel, sans marge',
-                        'Frais inclus dans votre prix : rien n’est ajouté à l’acheteur', ('Indiquez le montant que vous souhaitez percevoir : le prix de vente est calculé automatiquement', True), ('Revente sécurisée entre participants', True),
-                        'Statistiques en direct', 'Codes promo et questions personnalisées', 'Sous-domaine Evoly inclus', 'Check-in QR inclus', 'E-mails transactionnels'])
-PRO_LIST = plan_items(['Tout le contenu de l’offre Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), ('Plan de salle et placement numéroté', True), 'E-mail marketing et automatisations',
-                       'Domaine personnalisé avec SSL', 'Vos couleurs et votre logo', 'Sous-domaines dédiés par événement', 'Plusieurs organisations et rôles d’équipe', 'Sans mention d’Evoly'])
+FREE_LIST = plan_items(['0,29 € + 2 % par billet payant, 2,50 € maximum', '0 % sur les billets gratuits, sans limite', 'Frais inclus dans votre prix : rien n’est ajouté à l’acheteur', ('Revente sécurisée entre participants', True), 'Check-in QR inclus'])
+PRO_LIST = plan_items(['Tout le contenu de l’offre Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), ('Plan de salle et placement numéroté', True), 'E-mail marketing et automatisations', 'Vos couleurs et votre logo'])
 
 # ------------------------------------------------------------------ FAQ (brouillon à valider)
 FAQ = [
     ('Comment fonctionne la commission ?', 'Evoly prélève 0,29 € + 2 % par billet payant, plafonnée à 2,50 € par billet en Free et à 1 € en Pro. Les frais de paiement de Stripe s’ajoutent, au coût réel et sans marge. Tout est déduit automatiquement de vos ventes : vos participants paient le prix affiché, sans frais ajoutés. Les billets gratuits restent à 0 %.'),
-    ('Les billets gratuits sont-ils vraiment sans commission ?', 'Oui. 0 % sur les billets à 0 €, toujours et sans limite de volume, dans les deux offres. Aucun don pré-coché n’est ajouté au panier de vos participants.'),
-    ('Quels moyens de paiement acceptez-vous ?', 'Apple Pay, Google Pay, Visa, Mastercard, American Express, PayPal, Klarna et les moyens de paiement locaux comme Bancontact, iDEAL | Wero, Cartes Bancaires, TWINT, BLIK ou Swish. Les paiements passent par Stripe, et les frais bancaires vous sont facturés au coût réel.'),
     ('Comment fonctionne la revente de billets ?', 'Un participant qui ne peut plus venir génère un lien de revente et le partage où il le souhaite. Sa place apparaît aussi dans la section « Revente » de votre page de vente. Dès que le premier acheteur a payé, l’ancien billet est désactivé et le nouveau lui est envoyé par e-mail. La revente est incluse dans toutes les offres.'),
-    ('Comment fonctionnent les prix dynamiques ?', 'Avec l’offre Pro, vous définissez des paliers de prix, par exemple une prévente, un tarif normal et un tarif du jour J. Le prix change automatiquement selon la date d’achat ou le nombre de places vendues, sans intervention de votre part.'),
-    ('Que comprend l’offre Pro ?', 'Des fonctionnalités supplémentaires : prix dynamiques, e-mail marketing et automatisations, domaine personnalisé, vos couleurs et votre logo, plusieurs organisations et rôles d’équipe, sans mention d’Evoly. La commission est aussi plafonnée à 1 € par billet, au lieu de 2,50 € avec l’offre Free.'),
     ('Quand est-ce que je reçois mon argent ?', 'Les paiements passent par Stripe. Les recettes de vos ventes sont versées sur votre compte bancaire via votre compte Stripe, selon son calendrier de versement.'),
-    ('Comment fonctionne l’essai Pro 14 jours ?', 'Vous accédez à toutes les fonctionnalités Pro pendant 14 jours. Une carte bancaire est demandée au démarrage. Sans résiliation avant la fin de l’essai, l’abonnement passe à 29 € par mois.'),
-    ('Puis-je annuler à tout moment ?', 'Oui. L’offre Free est gratuite et sans engagement, et l’offre Pro se résilie quand vous voulez depuis votre espace. Vous repassez alors sur l’offre Free.'),
-    ('Comment configurer mon propre domaine ?', 'Avec l’offre Pro, ajoutez votre domaine (par exemple tickets.monsite.com) depuis votre espace, puis faites-le pointer vers Evoly chez votre fournisseur de nom de domaine. Le certificat SSL est activé automatiquement.'),
-    ('Comment fonctionne le check-in QR ?', 'Chaque billet porte un QR code. Le jour J, vous scannez les entrées avec le scanner intégré, installable sur mobile, qui vibre à chaque scan. Vos bénévoles reçoivent un lien temporaire et scannent sans créer de compte. La saisie manuelle des codes et les statistiques sont incluses.'),
+    ('Comment fonctionne le check-in QR ?', 'Chaque billet porte un QR code. Le jour J, vous scannez les entrées avec le scanner intégré, installable sur mobile, qui vibre à chaque scan. Vos bénévoles reçoivent un lien temporaire et scannent sans créer de compte. La saisie manuelle des codes et les statistiques sont incluses.'),
     ('Que se passe-t-il si j’annule un événement ?', 'Vous annulez depuis votre espace et vos participants sont prévenus par e-mail. Les billets payés sont remboursés via Stripe.'),
     ('Quelle différence avec HelloAsso ?', 'HelloAsso est réservé aux associations et se finance grâce à une contribution volontaire proposée à vos participants au moment du paiement. Evoly s’adresse à tous les organisateurs, partout, avec une commission simple, plafonnée et incluse dans le prix.'),
-    ('Evoly est-il conforme au RGPD ?', 'Oui. Les données sont hébergées dans l’Union européenne et traitées conformément au RGPD. Les paiements sont gérés par Stripe.'),
 ]
 FAQ_HTML = ''.join(f'<details class="qa"><summary><span>{q}</span><span class="qa__plus" aria-hidden="true">{icon("i-plus", 24, 24)}</span></summary><div class="qa__a"><p>{a}</p></div></details>' for q, a in FAQ)
 
@@ -287,7 +276,7 @@ SWATCHES = ''.join('<button type="button" data-c="%s" data-ink="%s" aria-pressed
 MAILS = [
     ('J-7', 'Plus qu’une semaine avant la Nuit Électrique', 'Votre billet vous attend. Il reste quelques places en fosse : c’est le moment d’inviter vos amis.', 'Voir mon billet', 'Envoi automatique, 7 jours avant'),
     ('J-1', 'C’est demain : votre billet est prêt', 'Les portes ouvrent à 21 h. Gardez votre QR code à portée de main pour entrer en quelques secondes.', 'Ouvrir mon billet', 'Envoi automatique, la veille'),
-    ('Jour J', 'Ce soir, c’est la Nuit Électrique', 'Entrée par le Hall 7. Votre billet est accessible directement depuis cet e-mail.', 'Afficher mon QR code', 'Envoi automatique, le jour même'),
+    ('Jour J', 'Ce soir, c’est la Nuit Électrique', 'Entrée par le Hall 7. Votre billet est accessible directement depuis cet e-mail.', 'Afficher mon QR code', 'Envoi automatique, le jour même'),
     ('Après', 'Merci d’être venus !', 'Les photos arrivent bientôt. Et la prochaine date est déjà en prévente.', 'Réserver la prochaine', 'Envoi automatique, le lendemain'),
 ]
 MAIL_TABS = ''.join('<button type="button" role="tab" id="mt-%d" aria-controls="mp-%d" aria-selected="%s" tabindex="%d">%s</button>' % (i, i, 'true' if i == 0 else 'false', 0 if i == 0 else -1, t) for i, (t, *_rest) in enumerate(MAILS))
@@ -364,7 +353,7 @@ BODY = f'''
               </dl>
               <button class="buy__pay" type="button" aria-describedby="buy-hint"><span class="buy__lbl">Acheter</span><span class="buy__spin" aria-hidden="true">{icon('i-o', 100, 100)}</span><span class="buy__ok" aria-hidden="true">{CHECK}Payé</span></button>
               <ul class="buy__methods" aria-label="Moyens de paiement">
-                <li>{icon('i-phone', 24, 24)}Apple Pay</li><li>{icon('i-phone', 24, 24)}Google Pay</li><li>{icon('i-card', 24, 24)}Carte</li><li><a href="#paiements">Et d’autres</a></li>
+                <li>{icon('i-phone', 24, 24)}Apple Pay</li><li>{icon('i-phone', 24, 24)}Google Pay</li><li>{icon('i-card', 24, 24)}Carte</li><li><a href="#fonctionnement">Et d’autres</a></li>
               </ul>
             </div>
           </div>
@@ -411,7 +400,7 @@ BODY = f'''
         <ol class="steps">
           <li class="step is-active" aria-current="step"><span class="step__num">Étape 1</span><h3 class="h3">Vous créez.</h3><p>Un assistant en trois étapes : informations, lieu et récapitulatif. Vos modifications sont enregistrées automatiquement.</p></li>
           <li class="step"><span class="step__num">Étape 2</span><h3 class="h3">Vous vendez.</h3><p>Votre événement dispose de sa propre page de vente, sur votre sous-domaine. Vos participants paient avec Apple Pay, Google Pay, leur carte ou le moyen de paiement de leur pays.</p></li>
-          <li class="step"><span class="step__num">Le jour J</span><h3 class="h3">Vous scannez.</h3><p>Le scanner de QR codes fonctionne sur n’importe quel téléphone. Vos bénévoles reçoivent un lien temporaire et scannent les billets sans créer de compte.</p></li>
+          <li class="step"><span class="step__num">Le jour J</span><h3 class="h3">Vous scannez.</h3><p>Le scanner de QR codes fonctionne sur n’importe quel téléphone. Vos bénévoles reçoivent un lien temporaire et scannent les billets sans créer de compte.</p></li>
         </ol>
         <div class="steps__dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
         <div class="flow__device">
@@ -452,19 +441,7 @@ BODY = f'''
         </div>
       </div>
     </div>
-  </section>
-
-  <section class="panel panel--soft-b pay" id="paiements" aria-labelledby="pay-title">
-    <div class="pay__head">
-      <h2 class="h2" id="pay-title">un paiement<span class="script">simple</span>et sécurisé.</h2>
-      <p class="lede">Vos participants paient comme ils en ont l’habitude, où qu’ils soient : Apple Pay, Google Pay, cartes et moyens de paiement locaux.</p>
-    </div>
-    <ul class="paywall" aria-label="Moyens de paiement acceptés">{PAYWALL}</ul>
-    <ul class="payfacts">
-      <li><b>Sans saisie</b><span>Avec Apple Pay et Google Pay, aucun numéro de carte à saisir.</span></li>
-      <li><b>Le moyen de paiement local</b><span>Bancontact en Belgique, iDEAL | Wero aux Pays-Bas, TWINT en Suisse, BLIK en Pologne, Swish en Suède.</span></li>
-      <li><b>Au coût réel</b><span>Les frais bancaires sont facturés par Stripe, sans aucune marge d’Evoly.</span></li>
-    </ul>
+    <ul class="paywall flow__paywall" aria-label="Moyens de paiement acceptés">{PAYWALL}</ul>
   </section>
 
   <section class="panel panel--dark events resale" id="revente" aria-labelledby="rs-title">
@@ -515,138 +492,27 @@ BODY = f'''
     </div>
   </section>
 
-  <section class="panel panel--soft-a dyn" id="prix-dynamiques" aria-labelledby="dyn-title">
-    <div class="dyn__grid">
-      <div class="dyn__text">
-        <h2 class="h2" id="dyn-title">le bon prix, <span class="script">au bon</span> moment.</h2>
-        <p class="lede">Prévente, tarif normal, puis tarif du jour J : le prix de vos billets évolue automatiquement selon la date d’achat ou le nombre de places vendues.</p>
-        <p class="plan-tag">Inclus dans l’offre Pro</p>
-      </div>
-      <div class="dyn__widget">
-        <div class="stack" aria-hidden="true">
-{TIERS_HTML}
-        </div>
-        <div class="dyn__ctrl">
-          <p class="dyn__now"><b class="dyn__price">18 €</b><span><strong class="dyn__tier">Prévente</strong><span class="dyn__when">pour un achat à J-21</span></span></p>
-          <label class="dyn__label" for="dyn-day">Faites glisser le jour de l’achat</label>
-          <input class="range range--ink" id="dyn-day" type="range" min="0" max="30" step="1" value="9">
-          <div class="dyn__ticks" aria-hidden="true"><span style="left:0%">J-30</span><span style="left:50%">J-15</span><span style="left:76.67%">J-7</span><span style="left:100%">Jour J</span></div>
-        </div>
-      </div>
-      <ul class="olist">
-        <li>{icon('i-o', 100, 100)}<span><strong>Lancez les ventes</strong> avec un tarif de prévente.</span></li>
-        <li>{icon('i-o', 100, 100)}<span><strong>Le prix change automatiquement</strong> à la date prévue.</span></li>
-        <li>{icon('i-o', 100, 100)}<span><strong>Vos participants voient</strong> toujours le prix en vigueur.</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="mkt" id="marketing" aria-labelledby="mkt-title">
-    <div class="mkt__head">
-      <h2 class="h2" id="mkt-title">faites parler <span class="script">de vous</span>.</h2>
-      <div class="mkt__side"><p class="lede">Une billetterie à vos couleurs et des e-mails envoyés automatiquement : vos participants gardent le lien avec vous et reviennent à vos prochains événements.</p><p class="plan-tag">Inclus dans l’offre Pro</p></div>
-    </div>
-    <div class="mkt__grid">
-      <article class="mcard mcard--brand" aria-labelledby="mk-brand">
-        <div class="mcard__text">
-          <h3 class="h3" id="mk-brand">Votre marque, partout.</h3>
-          <ul class="olist">
-            <li>{icon('i-o', 100, 100)}<span><strong>Vos couleurs et votre logo</strong> sur votre page de vente.</span></li>
-            <li>{icon('i-o', 100, 100)}<span><strong>Votre propre domaine</strong>, avec SSL automatique.</span></li>
-            <li>{icon('i-o', 100, 100)}<span><strong>Aucune mention d’Evoly</strong> sur votre page.</span></li>
-          </ul>
-          <div class="bf">
-            <p class="bf__title">Essayez avec votre marque</p>
-            <label class="bf__field" for="bf-name"><span>Nom de votre organisation</span><input id="bf-name" type="text" value="Les Soirées Lumière" maxlength="40" autocomplete="off"></label>
-            <label class="bf__field" for="bf-domain"><span>Votre domaine</span><input id="bf-domain" type="text" value="billets.soireeslumiere.com" maxlength="60" autocomplete="off" spellcheck="false" inputmode="url"></label>
-            <div class="bf__logo">
-              <input class="bf__file" id="bf-file" type="file" accept="image/*">
-              <label class="btn btn--line bf__upload" for="bf-file">{icon('i-upload', 24, 24)}Importer votre logo</label>
-              <p class="bf__hint" id="bf-hint">Les couleurs sont extraites de votre logo, directement sur votre appareil : aucun fichier n’est envoyé.</p>
-            </div>
-            <div class="bf__colors">
-              <label class="bf__color" for="bf-c1"><input id="bf-c1" type="color" value="#5b3df5"><span>Couleur principale</span></label>
-              <label class="bf__color" for="bf-c2"><input id="bf-c2" type="color" value="#ffd23f"><span>Couleur d’accent</span></label>
-            </div>
-          </div>
-        </div>
-        <div class="bpv" role="img" aria-label="Aperçu de votre page de vente" style="--b1:#5b3df5;--b1-ink:#FFFFFF;--b2:#ffd23f;--b2-ink:#222222">
-          <div class="bpv__bar"><span class="bm__dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="bpv__url">{icon('i-lock', 24, 24)}<span id="bpv-domain">billets.soireeslumiere.com</span></span></div>
-          <div class="bpv__page">
-            <div class="bpv__top"><span class="bpv__logo" id="bpv-logo">SL</span><b class="bpv__name" id="bpv-name">Les Soirées Lumière</b><span class="bpv__nav"><span>Événements</span><span>Mes billets</span></span></div>
-            <div class="bpv__hero">
-              <span class="bpv__deco" aria-hidden="true">{icon('i-o', 100, 100)}</span>
-              <p class="bpv__kicker">Samedi 14 novembre, 21:00</p>
-              <p class="bpv__title">Nuit Électrique</p>
-              <p class="bpv__place">Hall 7, Paris</p>
-              <span class="bpv__cta">Acheter des billets</span>
-            </div>
-            <div class="bpv__body">
-              <div class="bpv__col"><p class="bpv__h">Billets</p><p class="bpv__row"><span>Fosse</span><b>24 €</b></p><p class="bpv__row"><span>Balcon VIP</span><b>45 €</b></p></div>
-              <div class="bpv__col bpv__col--rs"><p class="bpv__h"><span class="bpv__tag">Revente</span></p><p class="bpv__row"><span>Fosse, 2 places</span><b>24 €</b></p></div>
-            </div>
-            <p class="bpv__foot">© <span id="bpv-foot">Les Soirées Lumière</span></p>
-          </div>
-        </div>
-      </article>
-      <article class="mcard mcard--mail" aria-labelledby="mk-mail">
-        <div class="mcard__text">
-          <h3 class="h3" id="mk-mail">Des e-mails envoyés automatiquement.</h3>
-          <ul class="olist">
-            <li>{icon('i-o', 100, 100)}<span><strong>Des rappels automatiques</strong> à J-7, J-1 et le jour J.</span></li>
-            <li>{icon('i-o', 100, 100)}<span><strong>Un message de remerciement après l’événement</strong>, avec la prochaine date.</span></li>
-            <li>{icon('i-o', 100, 100)}<span><strong>Des campagnes ciblées</strong>, avec les statistiques d’ouverture.</span></li>
-          </ul>
-        </div>
-        <div class="mailmock">
-          <div class="mm__tabs" role="tablist" aria-label="Automatisations">{MAIL_TABS}</div>
-          <div class="mm__panels">{MAIL_PANELS}</div>
-        </div>
-      </article>
-    </div>
-  </section>
-
-  <section class="panel panel--dark stats" id="stats" aria-labelledby="stats-title">
-    <div class="stats__grid">
-      <div class="stats__text">
-        <h2 class="h2" id="stats-title">vos chiffres, <span class="script">en direct</span>.</h2>
-        <p class="lede">Ventes, recette et taux de remplissage se mettent à jour en temps réel, sur ordinateur comme sur téléphone, tout comme les entrées le jour J.</p>
-        <ul class="olist">
-          <li>{icon('i-o', 100, 100)}<span><strong>Chaque vente</strong>s’affiche instantanément.</span></li>
-          <li>{icon('i-o', 100, 100)}<span><strong>Le jour J</strong>, suivez les entrées scannées en direct.</span></li>
-          <li>{icon('i-o', 100, 100)}<span><strong>Avec l’offre Pro, chaque membre de l’équipe</strong> accède aux chiffres selon son rôle.</span></li>
-        </ul>
-      </div>
-      <div class="dash" role="img" aria-label="Aperçu du tableau de bord : 842 billets vendus sur 900 pour Nuit Électrique, 20 208 euros de recette">
-        <div class="dash__head"><div><b>Nuit Électrique</b><span>sam. 14 nov., Hall 7</span></div><span class="live"><i></i>en direct</span></div>
-        <div class="dash__big"><b class="js-sold">842</b><span>billets vendus<br>sur 900</span></div>
-        <div class="meter"><i></i></div>
-        <div class="chart"><p>Ventes des 7 derniers jours</p><div class="bars">{BARS}</div><div class="days"><span>Lu</span><span>Ma</span><span>Me</span><span>Je</span><span>Ve</span><span>Sa</span><span>Di</span></div></div>
-        <div class="dash__stats"><div><span>Recette</span><b class="js-rev">20 208 €</b></div><div><span>Remplissage</span><b class="js-fill">94 %</b></div><div><span>Revendus</span><b>23</b></div></div>
-        <ul class="feed" aria-hidden="true"><li><b>Fosse</b><span>2 billets</span><em>il y a 1 min</em></li><li><b>Balcon VIP</b><span>1 billet</span><em>il y a 3 min</em></li></ul>
-      </div>
-    </div>
-  </section>
-
-  <section class="seat" id="plan-de-salle" aria-labelledby="seat-title">
-    <h2 class="h2" id="seat-title">le plan de salle, <span class="script">enfin simple</span>.</h2>
-    <p class="lede">Théâtre, gala ou stade : dessinez votre salle en quelques minutes. Les meilleures places disponibles sont attribuées automatiquement, et vos participants peuvent choisir les leurs sur le plan.</p>
-    <div class="seat__links"><a class="btn btn--pink" href="/plan-de-salle/">Découvrir le plan de salle</a><span class="pg__note">Inclus dans l’offre Pro.</span></div>
+  <section class="pro" id="pro" aria-labelledby="pro-title">
+    <h2 class="h2" id="pro-title">allez plus loin avec <span class="script">Pro</span>.</h2>
+    <p class="lede">Trois outils de l’offre Pro, à essayer gratuitement pendant 14 jours.</p>
+    <ul class="pro__grid" role="list">
+      <li class="pro__card"><h3 class="h3 pro__t">Prix dynamiques</h3><p>Prévente, tarif normal, puis tarif du jour J : le prix de vos billets évolue automatiquement selon la date d’achat ou le nombre de places vendues.</p></li>
+      <li class="pro__card"><h3 class="h3 pro__t">Votre marque, partout.</h3><p>Une billetterie à vos couleurs et des e-mails envoyés automatiquement : vos participants gardent le lien avec vous et reviennent à vos prochains événements.</p></li>
+      <li class="pro__card"><h3 class="h3 pro__t">Plan de salle</h3><p>Théâtre, gala ou stade : dessinez votre salle en quelques minutes. Les meilleures places disponibles sont attribuées automatiquement, et vos participants peuvent choisir les leurs sur le plan.</p><a class="btn btn--pink pro__cta" href="/plan-de-salle/">Découvrir le plan de salle</a></li>
+    </ul>
   </section>
 
   <section class="field" id="terrain" aria-labelledby="field-title">
     <h2 class="h2" id="field-title">conçue pour le <span class="script">terrain</span>.</h2>
     <p class="lede">Les détails qui comptent le jour de l’événement, inclus dans toutes les offres, y compris l’offre gratuite.</p>
     <ul class="field__grid" role="list">
-      <li class="field__card"><h3 class="h3 field__t">Un scanner qui fonctionne sans réseau</h3><p>Dans une cave ou en plein champ, le scanner continue de contrôler les billets. Les entrées se synchronisent dès que le réseau revient.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Contrôler sans valider</h3><p>Le mode vérification contrôle un billet sans le valider, par exemple à l’entrée du site : il reste valable pour l’entrée de la salle.</p></li>
+      <li class="field__card field__card--big">{icon('i-o', 100, 100)}<h3 class="h3 field__t">Un scanner qui fonctionne sans réseau</h3><p>Dans une cave ou en plein champ, le scanner continue de contrôler les billets. Les entrées se synchronisent dès que le réseau revient.</p></li>
+      <li class="field__card field__card--wide"><h3 class="h3 field__t">Contrôler sans valider</h3><p>Le mode vérification contrôle un billet sans le valider, par exemple à l’entrée du site : il reste valable pour l’entrée de la salle.</p></li>
       <li class="field__card"><h3 class="h3 field__t">Sept langues</h3><p>La page de vente, les billets et les e-mails s’affichent dans la langue de chaque acheteur : français, anglais, néerlandais, allemand, espagnol, italien ou portugais.</p></li>
+      <li class="field__card"><h3 class="h3 field__t">Vos chiffres en direct</h3><p>Ventes, recette et taux de remplissage se mettent à jour en temps réel, sur ordinateur comme sur téléphone, tout comme les entrées le jour J.</p></li>
       <li class="field__card"><h3 class="h3 field__t">Le billet dans le téléphone</h3><p>Vos participants ajoutent leur billet à Apple Wallet ou à Google Wallet, et le retrouvent sans chercher dans leurs e-mails.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Un billet par personne</h3><p>Chaque billet est au nom de son titulaire et lui est envoyé à sa propre adresse e-mail.</p></li>
       <li class="field__card"><h3 class="h3 field__t">Des invitations</h3><p>Envoyez des places offertes depuis votre espace : elles arrivent par e-mail et se scannent comme les autres billets.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Vos consignes dans chaque billet</h3><p>Ajoutez vos informations pratiques (accès, parking, horaires) aux e-mails des billets et des rappels.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Un espace pour vos participants</h3><p>Ils retrouvent leurs billets à tout moment grâce à un lien de connexion, sans mot de passe.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Votre billetterie dans la poche</h3><p>Votre espace organisateur s’installe comme une application sur votre téléphone.</p></li>
+      <li class="field__card field__card--wide"><h3 class="h3 field__t">Vos consignes dans chaque billet</h3><p>Ajoutez vos informations pratiques (accès, parking, horaires) aux e-mails des billets et des rappels.</p></li>
     </ul>
   </section>
 
