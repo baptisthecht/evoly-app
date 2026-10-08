@@ -987,6 +987,7 @@ html{scroll-padding-top:16px}
 main>section:not(.hero):not(.panel){padding-top:var(--v4-gap)}
 main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 .v4-eyebrow{display:inline-block;margin:0 0 18px;padding:6px 14px;border-radius:999px;background:var(--rose);color:#222;font-family:var(--f-label,inherit);font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.h2[data-eyebrow]::before{content:attr(data-eyebrow);content:attr(data-eyebrow) / "";display:block;width:fit-content;margin:0 0 18px;padding:6px 14px;border-radius:999px;background:var(--rose);color:#222;font-family:var(--f-label,inherit);font-size:.76rem;font-weight:600;font-style:normal;letter-spacing:.14em;line-height:1.4;text-transform:uppercase}
 .v4-js .v4-reveal{opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
 .v4-js .v4-reveal.is-in{opacity:1;transform:none}
 .v4-draw path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.6s cubic-bezier(.65,0,.35,1)}
@@ -1199,7 +1200,7 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 
   <section class="calc" id="economies" aria-labelledby="calc-title">
     <div class="calc__head">
-      <p class="v4-eyebrow v4-reveal">Calculateur</p><h2 class="h2" id="calc-title">calculez ce que vous <span class="script">percevez</span>.</h2>
+      <h2 data-eyebrow="Calculateur" class="h2" id="calc-title">calculez ce que vous <span class="script">percevez</span>.</h2>
       <p class="lede">Ce que vous percevez avec Evoly, commission déduite, en Free et en Pro.</p>
     </div>
     <div class="calc__body">
@@ -1223,7 +1224,7 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 
   <section class="flow" id="fonctionnement" aria-labelledby="flow-title">
     <div class="flow__head">
-      <p class="v4-eyebrow v4-reveal">Comment ça marche</p><h2 class="h2" id="flow-title">créez, vendez, <span class="script">scannez</span>.</h2>
+      <h2 data-eyebrow="Comment ça marche" class="h2" id="flow-title">créez, vendez, <span class="script">scannez</span>.</h2>
       <p class="lede">Votre événement est en ligne en quelques minutes, sans formation ni configuration complexe.</p>
     </div>
     <div class="flow__track">
@@ -1277,7 +1278,7 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 
   <section class="panel panel--dark events resale" id="revente" aria-labelledby="rs-title">
     <div class="events__head">
-      <p class="v4-eyebrow v4-reveal">Revente</p><h2 class="h2" id="rs-title">la revente<span class="script">simplifiée</span>.</h2>
+      <h2 data-eyebrow="Revente" class="h2" id="rs-title">la revente<span class="script">simplifiée</span>.</h2>
       <div class="events__side"><p class="lede">Un participant ne peut plus venir ? Il partage un lien de revente. Le premier acheteur obtient la place : l’ancien billet est désactivé et le nouveau est envoyé automatiquement par <span class="nw">e-mail</span>. La revente est incluse dans toutes les offres.</p></div>
     </div>
     <ol class="rsteps">
@@ -1364,12 +1365,12 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
   </section>
 
   <section class="pro v4-pro" id="pro" aria-labelledby="pro-title">
-    <p class="v4-eyebrow v4-reveal">Offre Pro</p><h2 class="h2" id="pro-title">allez plus loin avec <span class="script">Pro</span>.</h2>
+    <h2 data-eyebrow="Offre Pro" class="h2" id="pro-title">allez plus loin avec <span class="script">Pro</span>.</h2>
     <p class="lede">Trois outils de l’offre Pro, à essayer gratuitement pendant 14 jours.</p>
     <div class="v4-pro__stage"><svg class="v4-draw v4-pro__line" viewBox="0 0 1200 300" fill="none" aria-hidden="true" preserveAspectRatio="none"><path pathLength="1" d="M-10 230 C 160 300, 260 40, 470 110 S 760 290, 930 170 S 1120 30, 1210 70" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg><ul class="v4-pro__grid" role="list"><li class="v4-reveal"><a class="v4-pc" href="/v4/prix-dynamiques/"><span class="v4-pc__vis" aria-hidden="true"><span class="v4-tier"><span class="v4-mono">prévente</span><b>12 €</b></span><span class="v4-tier v4-tier--on"><span class="v4-mono">normal</span><b>15 €</b></span><span class="v4-tier"><span class="v4-mono">jour J</span><b>18 €</b></span></span><h3 class="v4-pc__t">Prix dynamiques</h3><p>Prévente, tarif normal, puis tarif du jour J : le prix de vos billets évolue automatiquement selon la date d’achat ou le nombre de places vendues.</p><span class="v4-pc__go" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li><li class="v4-reveal"><a class="v4-pc" href="/v4/votre-marque/"><span class="v4-pc__vis" aria-hidden="true"><span class="v4-sw" style="background:#1d4ed8"></span><span class="v4-sw" style="background:#ffb8e8"></span><span class="v4-sw" style="background:#222"></span><span class="v4-logo">votre logo</span></span><h3 class="v4-pc__t">Votre marque, partout.</h3><p>Une billetterie à vos couleurs et des <span class="nw">e-mails</span> envoyés automatiquement : vos participants gardent le lien avec vous et reviennent à vos prochains événements.</p><span class="v4-pc__go" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li><li class="v4-reveal"><a class="v4-pc" href="/plan-de-salle/"><span class="v4-pc__vis" aria-hidden="true"><span class="v4-seats"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><h3 class="v4-pc__t">Plan de salle</h3><p>Théâtre, gala ou stade : dessinez votre salle en quelques minutes. Les meilleures places disponibles sont attribuées automatiquement, et vos participants peuvent choisir les leurs sur le plan.</p><span class="v4-pc__go" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li></ul></div></section>
 
   <section class="field" id="terrain" aria-labelledby="field-title">
-    <p class="v4-eyebrow v4-reveal">Le jour J</p><h2 class="h2" id="field-title">conçue pour le <span class="script">terrain</span>.</h2>
+    <h2 data-eyebrow="Le jour J" class="h2" id="field-title">conçue pour le <span class="script">terrain</span>.</h2>
     <svg class="v4-draw v4-arc" viewBox="0 0 400 400" fill="none" aria-hidden="true" preserveAspectRatio="none"><path pathLength="1" d="M380 10 C 300 60, 250 160, 270 250 S 360 380, 160 392" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg><p class="lede">Les détails qui comptent le jour de l’événement, inclus dans toutes les offres, y compris l’offre gratuite.</p>
     <ul class="field__grid" role="list"><li class="field__card field__card--big"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg><h3 class="h3 field__t">Un scanner qui fonctionne sans réseau</h3><p>Dans une cave ou en plein champ, le scanner continue de contrôler les billets. Les entrées se synchronisent dès que le réseau revient.</p></li>
 <li class="field__card field__card--wide v4-b v4-b--lilas v4-reveal"><p class="v4-mono">[ mode vérification ]</p><div class="v4-scan" aria-hidden="true"><span class="v4-status v4-status--check">Billet valable · entrée non validée</span><span class="v4-status v4-status--ok">✓ Entrée validée</span></div><h3 class="h3 field__t">Contrôler sans valider</h3><p>Le mode vérification contrôle un billet sans le valider, par exemple à l’entrée du site : il reste valable pour l’entrée de la salle.</p></li>
@@ -1382,7 +1383,7 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 
   <section class="cmp" id="comparatif" aria-labelledby="cmp-title">
     <div class="cmp__head">
-      <p class="v4-eyebrow v4-reveal">Comparatif</p><h2 class="h2" id="cmp-title">ce qui nous<span class="script">distingue</span>.</h2>
+      <h2 data-eyebrow="Comparatif" class="h2" id="cmp-title">ce qui nous<span class="script">distingue</span>.</h2>
       <p class="lede">Comparaison avec 9 billetteries en libre-service parmi les plus utilisées.</p>
     </div>
     <div class="cmp__wrap">
@@ -1398,7 +1399,7 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 
   <section class="panel panel--soft-b pricing" id="tarifs" aria-labelledby="pr-title">
     <div class="pricing__head">
-      <p class="v4-eyebrow v4-reveal">Tarifs</p><h2 class="h2" id="pr-title">une tarification<span class="script">transparente</span>.</h2>
+      <h2 data-eyebrow="Tarifs" class="h2" id="pr-title">une tarification<span class="script">transparente</span>.</h2>
       <div class="pricing__side">
         <p class="lede">Une commission simple : <span class="nw">0,29 € + 2 %</span> par billet payant, plafonnée à 2,50 € en Free et à 1 € en Pro.</p>
         <div class="bill" role="group" aria-label="Facturation"><button type="button" data-bill="month" aria-pressed="true">Mensuel</button><button type="button" data-bill="year" aria-pressed="false">Annuel<span class="off">−15 %</span></button></div>
@@ -1426,7 +1427,7 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
   <section class="faq" id="faq" aria-labelledby="faq-title">
     <div class="faq__grid">
       <div class="faq__head">
-        <p class="v4-eyebrow v4-reveal">Questions</p><h2 class="h2" id="faq-title">vos <span class="script">questions</span>.</h2>
+        <h2 data-eyebrow="Questions" class="h2" id="faq-title">vos <span class="script">questions</span>.</h2>
         <p class="lede">Une autre question ? Écrivez-nous à <a class="link" href="mailto:hello@evoly.me">hello@evoly.me</a>.</p>
       </div>
       <div class="faq__list"><details class="qa"><summary><span>Comment fonctionne la commission ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Evoly prélève <span class="nw">0,29 € + 2 %</span> par billet payant, plafonnée à 2,50 € par billet en Free et à 1 € en Pro. Les frais de paiement de Stripe s’ajoutent, au coût réel et sans marge. Tout est déduit automatiquement de vos ventes : vos participants paient le prix affiché, sans frais ajoutés. Les billets gratuits restent à 0 %.</p></div></details><details class="qa"><summary><span>Comment fonctionne la revente de billets ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Un participant qui ne peut plus venir génère un lien de revente et le partage où il le souhaite. Sa place apparaît aussi dans la section « Revente » de votre page de vente. Dès que le premier acheteur a payé, l’ancien billet est désactivé et le nouveau lui est envoyé par <span class="nw">e-mail</span>. La revente est incluse dans toutes les offres.</p></div></details><details class="qa"><summary><span>Quand est-ce que je reçois mon argent ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Les paiements passent par Stripe. Les recettes de vos ventes sont versées sur votre compte bancaire via votre compte Stripe, selon son calendrier de versement.</p></div></details><details class="qa"><summary><span>Comment fonctionne le <span class="nw">check-in</span> QR ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Chaque billet porte un QR code. Le jour J, vous scannez les entrées avec le scanner intégré, installable sur mobile, qui vibre à chaque scan. Vos bénévoles reçoivent un lien temporaire et scannent sans créer de compte. La saisie manuelle des codes et les statistiques sont incluses.</p></div></details><details class="qa"><summary><span>Que se passe-t-il si j’annule un événement ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Vous annulez depuis votre espace et vos participants sont prévenus par <span class="nw">e-mail</span>. Les billets payés sont remboursés via Stripe.</p></div></details><details class="qa"><summary><span>Quelle différence avec HelloAsso ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>HelloAsso est réservé aux associations et se finance grâce à une contribution volontaire proposée à vos participants au moment du paiement. Evoly s’adresse à tous les organisateurs, partout, avec une commission simple, plafonnée et incluse dans le prix.</p></div></details></div>

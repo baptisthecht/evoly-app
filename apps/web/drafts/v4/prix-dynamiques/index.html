@@ -987,6 +987,7 @@ html{scroll-padding-top:16px}
 main>section:not(.hero):not(.panel){padding-top:var(--v4-gap)}
 main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 .v4-eyebrow{display:inline-block;margin:0 0 18px;padding:6px 14px;border-radius:999px;background:var(--rose);color:#222;font-family:var(--f-label,inherit);font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.h2[data-eyebrow]::before{content:attr(data-eyebrow);content:attr(data-eyebrow) / "";display:block;width:fit-content;margin:0 0 18px;padding:6px 14px;border-radius:999px;background:var(--rose);color:#222;font-family:var(--f-label,inherit);font-size:.76rem;font-weight:600;font-style:normal;letter-spacing:.14em;line-height:1.4;text-transform:uppercase}
 .v4-js .v4-reveal{opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
 .v4-js .v4-reveal.is-in{opacity:1;transform:none}
 .v4-draw path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.6s cubic-bezier(.65,0,.35,1)}
