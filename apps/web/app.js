@@ -327,6 +327,7 @@
     dots.forEach((dd, k) => dd.classList.toggle('is-on', k <= i));
   }
   function onFlow() {
+    if (!track) return; // section absente (pages autres que l'accueil)
     const r = track.getBoundingClientRect();
     const total = Math.max(1, r.height - innerHeight);
     const p = Math.min(1, Math.max(0, -r.top / total));

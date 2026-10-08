@@ -3,7 +3,7 @@
 <head><meta name="robots" content="noindex, nofollow">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ébauche v3 · Evoly - Billetterie en ligne : prix affiché, prix payé</title>
+<title>Ébauche v4 · Evoly, la billetterie au prix affiché</title>
 <meta name="description" content="Vendez vos billets en ligne en quelques minutes : paiement mobile avec Apple Pay et Google Pay, revente entre participants, plan de salle et statistiques en direct. La commission est plafonnée et vos participants paient le prix affiché.">
 
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
@@ -983,45 +983,97 @@ html{scroll-padding-top:16px}
 .flow__paywall{max-width:var(--maxw);margin:clamp(24px,4vw,48px) auto 0;padding:0 var(--pad)}
 .page{padding:clamp(120px,14vw,170px) var(--pad) var(--pad);display:grid;gap:clamp(18px,3vw,32px)}.pg__hero,.pg__block,.pg__cta{max-width:var(--maxw,1180px);margin:0 auto;width:100%}.pg__hero{display:grid;gap:22px;padding-bottom:clamp(10px,3vw,30px)}.pg__ctas{display:flex;flex-wrap:wrap;gap:12px}.pg__note{font-size:.9rem;opacity:.75;max-width:46rem}.pg__note a{color:inherit}.pg__block{background:var(--lilas);color:var(--charbon);border-radius:var(--r-panel);padding:clamp(24px,4.5vw,56px);display:grid;gap:22px}.pg__block--dark{background:var(--charbon);color:var(--creme)}.pg__h{font-family:var(--f-display);font-size:clamp(1.6rem,3.6vw,2.6rem);line-height:1;letter-spacing:-.03em}.pg__p{font-size:clamp(1rem,1.25vw,1.15rem);line-height:1.65;max-width:46rem}.pg__list{list-style:none;display:grid;gap:14px;padding:0;margin:0}.pg__list li{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start;font-size:clamp(1rem,1.2vw,1.1rem);line-height:1.55}.pg__check{width:24px;height:24px;color:var(--rose);margin-top:1px}.pg__block:not(.pg__block--dark) .pg__check{color:var(--charbon)}.pg__table{overflow-x:auto}.pg__table table{border-collapse:collapse;width:100%;font-size:1rem}.pg__table--wide table{min-width:600px}.pg__table th,.pg__table td{text-align:left;padding:12px 14px;border-bottom:1px solid currentColor;border-color:rgba(255,246,240,.2)}.pg__block:not(.pg__block--dark) .pg__table th,.pg__block:not(.pg__block--dark) .pg__table td{border-color:rgba(34,34,34,.15)}.pg__table th{font-family:var(--f-label);font-weight:800}.pg__faq{display:grid;gap:10px}.pg__faq details{background:rgba(255,246,240,.6);border-radius:18px;padding:16px 20px}.pg__faq summary{cursor:pointer;font-weight:700}.pg__faq p{margin-top:10px;line-height:1.6}.pg__cta{background:var(--rose);color:var(--charbon);border-radius:var(--r-panel);padding:clamp(28px,5vw,64px);display:grid;gap:16px;justify-items:start}.pg__cta .btn--pink{--bg:var(--charbon);--fg:var(--creme)}.seat{max-width:var(--maxw,1180px);margin:0 auto clamp(40px,6vw,80px);padding:0 var(--pad);display:grid;gap:20px}.seat__links{display:flex;flex-wrap:wrap;gap:14px;align-items:center}.lang-switch select{appearance:none;background:transparent;color:inherit;border:1.5px solid currentColor;border-radius:999px;padding:.45em 1.9em .45em .9em;font:inherit;font-size:.85em;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 13px) 55%,calc(100% - 9px) 55%;background-size:4px 4px;background-repeat:no-repeat}.lang-switch select option{color:#222}.lang-links{display:flex;flex-wrap:wrap;justify-content:center;gap:.4em;padding:1.2em 1em 2em;font-size:.85em;opacity:.8}.lang-links a{color:inherit}@media (max-width:760px){.nav__actions .lang-switch{display:none}}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.menu__langs{display:flex;flex-wrap:wrap;gap:8px}.menu__langs a{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(255,246,240,.35);color:inherit;text-decoration:none;font-size:.9rem}.menu__langs a[aria-current]{background:var(--rose);border-color:var(--rose);color:var(--charbon);font-weight:600}</style>
 <style>
-.d-sec{max-width:var(--maxw);margin:0 auto;padding:clamp(56px,7vw,110px) var(--pad) 0}
-.d3-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:clamp(28px,4vw,44px)}
-.d3-tile{background:var(--soft-a);color:var(--on-soft);border-radius:24px;padding:20px 20px 22px;display:flex;flex-direction:column;gap:16px}
-.d3-tile--b{background:var(--soft-b)}.d3-tile--dark{background:var(--ink);color:var(--page)}
-.d3-tile h3{font-family:var(--f-display);font-weight:400;font-size:clamp(1.15rem,1.5vw,1.35rem);line-height:1.15;margin:auto 0 0}
-.d3-vis{min-height:150px;border-radius:16px;background:rgba(255,255,255,.45);padding:16px;display:flex;flex-direction:column;justify-content:center;gap:10px}
-.d3-tile--dark .d3-vis{background:rgba(255,255,255,.08)}
-.d3-chip{display:inline-block;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;border-radius:999px;padding:3px 9px;margin-right:10px;background:rgba(0,0,0,.08);vertical-align:middle}
-.d3-tag{margin:0;font-family:var(--f-display);font-size:1.7rem;line-height:1.1}
-.d3-tag s,.d3-tag em{display:block;font-family:var(--f-body,inherit);font-size:.85rem;font-style:normal;margin-top:4px}
-.d3-tag--them{opacity:.55}.d3-tag--them s{color:#b4234a;text-decoration-thickness:2px}
-.d3-tag--us .d3-chip{background:var(--rose);color:#222}
-.d3-bars{flex-direction:row;align-items:flex-end;justify-content:space-around;gap:6px}
-.d3-bar{display:grid;grid-template-columns:auto auto;align-items:end;gap:3px;justify-items:center}
-.d3-bar i{display:block;width:12px;border-radius:4px 4px 0 0}
-.d3-bar__them{background:rgba(0,0,0,.25)}.d3-bar__us{background:var(--ink)}
-.d3-bar span{grid-column:1/-1;font-size:.72rem;margin-top:4px;opacity:.75}
-.d3-legend{margin:-6px 0 0;font-size:.74rem;line-height:1.4;opacity:.8;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
-.d3-dot{width:9px;height:9px;border-radius:50%;display:inline-block}.d3-dot--them{background:rgba(0,0,0,.25)}.d3-dot--us{background:var(--ink)}.d3-li{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;margin-right:8px}
-.d3-resale{flex-direction:column;align-items:center;justify-content:center;gap:6px}
-.d3-ticket{border:1.5px dashed currentColor;border-radius:10px;padding:10px 12px;font-size:.88rem;white-space:nowrap}
-.d3-ticket--off{opacity:.45;text-decoration:line-through}
-.d3-ticket:not(.d3-ticket--off){background:var(--rose);color:#222;border-style:solid;border-color:var(--rose)}
-.d3-arrow{font-size:1.3rem}
-.d3-scan{align-items:flex-start}
-.d3-offline{font-size:.78rem;border-radius:999px;padding:4px 10px;background:rgba(0,0,0,.08)}
-.d3-ok{font-family:var(--f-display);font-size:1.35rem;background:#1f8a4c;color:#fff;border-radius:12px;padding:12px 14px}
-@media (max-width:1060px){.d3-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:560px){.d3-grid{grid-template-columns:minmax(0,1fr)}.d3-vis{min-height:120px}}
-.d-vs__grid{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;margin-top:clamp(28px,4vw,48px)}.d-vs__vs{align-self:center;justify-self:center;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--rose);color:#222;font-family:var(--f-display);font-size:1.15rem}.d-vs__col:not(.d-vs__col--us){opacity:.8}.d-vs__col--us{box-shadow:0 22px 44px -26px rgba(34,34,34,.55)}.d-vs__h{display:flex;align-items:center;gap:12px}.d-vs__logo{height:42px;width:auto;color:var(--page)}
-.d-vs__col{border-radius:24px;padding:clamp(22px,3vw,30px);background:var(--soft-a);color:var(--on-soft)}
-.d-vs__col--us{background:var(--ink);color:var(--page)}
-.d-vs__h{font-family:var(--f-display);font-size:1.6rem;margin:0 0 18px}
-.d-vs__col ul{list-style:none;margin:0;padding:0;display:grid;gap:12px}
-.d-vs__col li{display:flex;gap:12px;font-size:1.04rem;line-height:1.4;padding-bottom:12px;border-bottom:1px solid rgba(127,127,127,.25)}
-.d-vs__col li:last-child{border-bottom:0;padding-bottom:0}
-.d-vs__col b{width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:.8rem;background:rgba(127,127,127,.2)}
-.d-vs__col--us b{background:var(--rose);color:#222}
-@media (max-width:760px){.d-vs__grid{grid-template-columns:minmax(0,1fr)}.d-vs__vs{margin:-4px 0}}
+:root{--v4-gap:clamp(128px,13vw,210px);--v4-mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}
+main>section:not(.hero):not(.panel){padding-top:var(--v4-gap)}
+main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
+.v4-eyebrow{display:inline-block;margin:0 0 18px;padding:6px 14px;border-radius:999px;background:var(--rose);color:#222;font-family:var(--f-label,inherit);font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.v4-js .v4-reveal{opacity:0;transform:translateY(22px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+.v4-js .v4-reveal.is-in{opacity:1;transform:none}
+.v4-draw path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 2.6s cubic-bezier(.65,0,.35,1)}
+.v4-draw.is-in path{stroke-dashoffset:0}
+.v4-mono,.field__card .v4-mono,.v4-pc .v4-mono{font-family:var(--v4-mono);font-size:.78rem;letter-spacing:.02em}
+/* bento varié */
+.field{position:relative;overflow-x:clip}
+.field__card:not(.field__card--big){position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.field__card:not(.field__card--big):hover{transform:translateY(-4px)}
+.field__card:not(.field__card--big) .field__t{margin:auto 0 0}
+.v4-b--lilas{background:var(--lilas);color:#222}.v4-b--rose{background:var(--rose);color:#222}
+.v4-b--paper{background:var(--page);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.v4-b--graphite{background:#2b2b2b;color:#fff6f0}.v4-b--creme{background:#fff6f0;color:#222}
+.v4-b--lilas p,.v4-b--rose p,.v4-b--creme p{color:#222;opacity:.78}.v4-b--graphite p{color:#fff6f0;opacity:.75}.v4-b--paper p{color:var(--ink-2)}
+.v4-b--lilas .field__t,.v4-b--rose .field__t,.v4-b--creme .field__t{color:#222}.v4-b--graphite .field__t{color:#fff6f0}
+.v4-scan{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.v4-status{border-radius:999px;padding:7px 12px;font-size:.82rem;font-weight:600}
+.v4-status--check{background:#1d4ed8;color:#fff}.v4-status--ok{background:#1f8a4c;color:#fff}
+.field__card .v4-hello{font-family:var(--f-script);font-size:clamp(2.4rem,3.6vw,3.2rem);line-height:1;margin:6px 0 0;transition:opacity .22s,transform .22s;transform-origin:left}
+.field__card .v4-hello:not(.is-on){opacity:0;transform:translateY(6px)}
+.v4-langs{display:flex;flex-wrap:wrap;gap:5px}.v4-langs span{border:1.5px solid #222;border-radius:6px;padding:1px 6px}
+.field__card .v4-live{display:flex;align-items:center;gap:8px;margin:0}.v4-live i{width:9px;height:9px;border-radius:50%;background:#1f8a4c;animation:v4pulse 1.6s infinite}
+@keyframes v4pulse{0%{box-shadow:0 0 0 0 rgba(31,138,76,.5)}70%{box-shadow:0 0 0 9px rgba(31,138,76,0)}100%{box-shadow:0 0 0 0 rgba(31,138,76,0)}}
+.field__card .v4-count{font-family:var(--f-display);font-size:clamp(2.6rem,4vw,3.4rem);line-height:1;margin:0}
+.v4-spark{width:100%;height:46px;color:#1f8a4c}
+.v4-ticket{background:#fff6f0;color:#222;border-radius:18px;padding:14px 16px;position:relative}
+.v4-ticket::before,.v4-ticket::after{content:"";position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:#2b2b2b;transform:translateY(-50%)}
+.v4-ticket::before{left:-8px}.v4-ticket::after{right:-8px}
+.v4-ticket__top{display:flex;justify-content:space-between;gap:8px;color:#c0265f}.field__card .v4-ticket p{opacity:1;color:#222}.field__card .v4-ticket .v4-ticket__top,.field__card .v4-ticket .v4-ticket__t{color:#c0265f}.field__card .v4-ticket p:last-child{opacity:.65}
+.field__card .v4-ticket__t{font-family:var(--f-display);font-style:italic;font-size:1.55rem;line-height:1.05;margin:8px 0 6px;color:#c0265f;letter-spacing:-.02em}
+.v4-chat{display:grid;gap:8px}
+.field__card .v4-bubble{display:flex;align-items:center;gap:8px;margin:0;font-family:var(--v4-mono);font-size:.8rem}
+.v4-bubble span{border-radius:12px;padding:9px 12px;background:#222;color:#fff6f0}
+.v4-bubble--out{justify-content:flex-end}.v4-bubble--out span{background:var(--rose);color:#222}
+.v4-bubble b{width:28px;height:28px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:.62rem;background:var(--lilas);color:#222}
+.v4-mail{background:#fff6f0;color:#222;border-radius:16px;padding:14px 16px;position:relative;max-width:440px}
+.field__card .v4-mail__l{margin:6px 0;font-weight:600;font-size:.92rem}
+.field__card .v4-mail__note{margin:0;border-radius:10px;padding:8px 10px;background:var(--lilas);font-size:.86rem}
+.v4-arc{position:absolute;right:-60px;top:-20px;width:min(420px,40vw);height:auto;color:var(--lilas);pointer-events:none;z-index:0}
+.field>.h2,.field>.lede,.field>.v4-eyebrow,.field__grid{position:relative;z-index:1}
+/* Pro : cartes cliquables inclinées sur un trait dessiné */
+.v4-pro{position:relative;overflow-x:clip}
+.v4-pro__stage{position:relative;margin-top:clamp(36px,5vw,64px)}
+.v4-pro__line{position:absolute;left:-6%;top:8%;width:112%;height:84%;color:var(--rose);z-index:0;pointer-events:none}
+.v4-pro__grid{position:relative;z-index:1;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,2.5vw,34px)}
+.v4-pc{display:flex;flex-direction:column;gap:14px;height:100%;border-radius:26px;padding:22px;text-decoration:none;color:#222;border:5px solid #fff6f0;box-shadow:0 26px 50px -30px rgba(34,34,34,.55);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s}
+.v4-pro__grid li:nth-child(1) .v4-pc{background:var(--lilas);transform:rotate(-2deg)}
+.v4-pro__grid li:nth-child(2) .v4-pc{background:var(--rose);transform:rotate(1.6deg) translateY(18px)}
+.v4-pro__grid li:nth-child(3) .v4-pc{background:#222;color:#fff6f0;transform:rotate(-1deg)}
+.v4-pc:hover,.v4-pc:focus-visible{transform:rotate(0) translateY(-6px)!important;box-shadow:0 34px 60px -30px rgba(34,34,34,.6)}
+.v4-pc__vis{border-radius:16px;background:rgba(255,255,255,.5);padding:16px;min-height:118px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.v4-pro__grid li:nth-child(3) .v4-pc__vis{background:rgba(255,255,255,.08)}
+.v4-pc__t{font-family:var(--f-display);font-size:clamp(1.4rem,2vw,1.8rem);line-height:1.05;margin:4px 0 0}
+.v4-pc p{margin:0;line-height:1.5;opacity:.8;font-size:.97rem}
+.v4-pc__go{margin-top:auto;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#fff6f0;color:#222}
+.v4-pro__grid li:nth-child(3) .v4-pc__go{background:var(--rose)}
+.v4-pc__go svg{width:20px;height:20px}
+.v4-tier{border-radius:12px;background:#fff6f0;padding:8px 10px;text-align:center;line-height:1.2}
+.v4-tier b{display:block;font-family:var(--f-display);font-size:1.15rem;font-weight:400}
+.v4-tier--on{background:#222;color:#fff6f0}
+.v4-sw{width:34px;height:34px;border-radius:50%;box-shadow:0 0 0 3px #fff6f0}
+.v4-logo{border:2px dashed #222;border-radius:12px;padding:10px 12px;font-family:var(--v4-mono);font-size:.74rem}
+.v4-seats{display:grid;grid-template-columns:repeat(9,12px);gap:6px}
+.v4-seats i{width:12px;height:12px;border-radius:4px;background:rgba(255,255,255,.28)}.v4-seats i.on{background:var(--rose)}
+/* appel final, façon carte sombre au trait rose */
+.v4-final{max-width:var(--maxw);margin:0 auto;padding:var(--v4-gap) var(--pad) clamp(40px,6vw,80px)}
+.v4-final__card{position:relative;overflow:hidden;border-radius:34px;background:#1d1d1d;color:#fff6f0;padding:clamp(170px,19vw,260px) clamp(28px,6vw,80px) clamp(40px,6vw,72px)}
+.v4-final__card .h2{color:#fff6f0;max-width:14ch}.v4-final__card .lede{color:rgba(255,246,240,.75);max-width:34rem}
+.v4-final__line{position:absolute;left:-2%;top:-10%;width:104%;height:auto;color:var(--rose);pointer-events:none}
+.v4-final__ctas{display:flex;flex-wrap:wrap;align-items:center;gap:18px 26px;margin-top:clamp(28px,4vw,44px)}
+.v4-cta{display:inline-flex;align-items:center;gap:4px;text-decoration:none}
+.v4-cta__pill{border-radius:999px;padding:18px 34px;background:#fff6f0;color:#222;font-weight:700;font-size:1.05rem}
+.v4-cta__round{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:var(--rose);color:#222;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.v4-cta__round svg{width:22px;height:22px}.v4-cta:hover .v4-cta__round{transform:rotate(45deg)}
+.v4-link{color:#fff6f0;text-underline-offset:5px}
+/* pages dédiées */
+.v4-phero{max-width:var(--maxw);margin:0 auto;padding:clamp(150px,16vw,220px) var(--pad) clamp(40px,5vw,72px)}
+.v4-phero h1{font-family:var(--f-display);font-weight:400;font-size:clamp(3rem,8vw,6.6rem);line-height:.95;letter-spacing:-.03em;margin:0 0 22px}
+.v4-steps{max-width:var(--maxw);margin:0 auto;padding:var(--v4-gap) var(--pad) 0}
+.v4-steps ol{list-style:none;margin:clamp(28px,4vw,48px) 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.v4-steps li{border-radius:24px;padding:24px;background:var(--soft-a);color:var(--on-soft)}
+.v4-steps li:nth-child(2){background:var(--rose);color:#222}.v4-steps li:nth-child(3){background:var(--lilas);color:#222}
+.v4-steps li span{font-family:var(--v4-mono);font-size:.8rem;opacity:.7}
+.v4-steps h3{font-family:var(--f-display);font-weight:400;font-size:1.45rem;margin:14px 0 8px}
+.v4-steps p{margin:0;line-height:1.55;opacity:.85}
+@media (max-width:900px){.v4-pro__grid{grid-template-columns:minmax(0,1fr)}.v4-pro__grid li .v4-pc{transform:rotate(0)!important}.v4-steps ol{grid-template-columns:minmax(0,1fr)}.v4-arc{display:none}}
+@media (prefers-reduced-motion:reduce){.v4-draw path{transition:none;stroke-dashoffset:0}.v4-live i{animation:none}.v4-pc,.field__card{transition:none}}
 </style></head>
 <body>
 
@@ -1145,30 +1197,9 @@ html{scroll-padding-top:16px}
 
   <div class="band" aria-hidden="true"><div class="band__track"><span class="band__item">SANS FRAIS CACHÉS.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">PRIX AFFICHÉ, PRIX PAYÉ.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">APPLE PAY ET GOOGLE PAY.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">REVENTE ENTRE PARTICIPANTS.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">COMMISSION PLAFONNÉE.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">STATISTIQUES EN DIRECT.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">0 % SUR LES BILLETS GRATUITS.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">SANS FRAIS CACHÉS.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">PRIX AFFICHÉ, PRIX PAYÉ.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">APPLE PAY ET GOOGLE PAY.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">REVENTE ENTRE PARTICIPANTS.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">COMMISSION PLAFONNÉE.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">STATISTIQUES EN DIRECT.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span><span class="band__item">0 % SUR LES BILLETS GRATUITS.<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></span></div></div>
 
-  <section class="d-sec d3-pain" id="constat" aria-labelledby="d3-pain-t">
-  <h2 class="h2" id="d3-pain-t">vendre des billets ne devrait pas être <span class="script">compliqué</span>.</h2>
-  <div class="d3-grid">
-    <article class="d3-tile">
-      <div class="d3-vis d3-price"><p class="d3-tag d3-tag--them"><span class="d3-chip">ailleurs</span>15 €<s>+ 1,50 € de frais</s></p><p class="d3-tag d3-tag--us"><span class="d3-chip">Evoly</span>15 €<em>payés, rien de plus</em></p></div>
-      <h3>Le prix affiché est le prix payé</h3>
-    </article>
-    <article class="d3-tile d3-tile--b">
-      <div class="d3-vis d3-bars" aria-hidden="true"><div class="d3-bar"><i class="d3-bar__them" style="height:9.600000000000001px"></i><i class="d3-bar__us" style="height:11.200000000000001px"></i><span>10 €</span></div><div class="d3-bar"><i class="d3-bar__them" style="height:25.6px"></i><i class="d3-bar__us" style="height:20.8px"></i><span>30 €</span></div><div class="d3-bar"><i class="d3-bar__them" style="height:49.6px"></i><i class="d3-bar__us" style="height:32.0px"></i><span>60 €</span></div><div class="d3-bar"><i class="d3-bar__them" style="height:83.2px"></i><i class="d3-bar__us" style="height:32.0px"></i><span>100 €</span></div></div>
-      <p class="d3-legend"><span class="d3-li"><span class="d3-dot d3-dot--them"></span>commission en %</span><span class="d3-li"><span class="d3-dot d3-dot--us"></span>Evoly Pro, 1 € au maximum</span></p>
-      <h3>Une commission plafonnée</h3>
-    </article>
-    <article class="d3-tile d3-tile--dark">
-      <div class="d3-vis d3-resale"><span class="d3-ticket d3-ticket--off">Billet de Thomas</span><span class="d3-arrow" aria-hidden="true">↓</span><span class="d3-ticket">Billet de Léa</span></div>
-      <h3>Revente intégrée, aucun remboursement</h3>
-    </article>
-    <article class="d3-tile d3-tile--b">
-      <div class="d3-vis d3-scan"><span class="d3-offline">hors connexion</span><span class="d3-ok">✓ Entrée validée</span></div>
-      <h3>Un scanner qui marche sans réseau</h3>
-    </article>
-  </div>
-</section><section class="calc" id="economies" aria-labelledby="calc-title">
+  <section class="calc" id="economies" aria-labelledby="calc-title">
     <div class="calc__head">
-      <h2 class="h2" id="calc-title">calculez ce que vous <span class="script">percevez</span>.</h2>
+      <p class="v4-eyebrow v4-reveal">Calculateur</p><h2 class="h2" id="calc-title">calculez ce que vous <span class="script">percevez</span>.</h2>
       <p class="lede">Ce que vous percevez avec Evoly, commission déduite, en Free et en Pro.</p>
     </div>
     <div class="calc__body">
@@ -1192,7 +1223,7 @@ html{scroll-padding-top:16px}
 
   <section class="flow" id="fonctionnement" aria-labelledby="flow-title">
     <div class="flow__head">
-      <h2 class="h2" id="flow-title">créez, vendez, <span class="script">scannez</span>.</h2>
+      <p class="v4-eyebrow v4-reveal">Comment ça marche</p><h2 class="h2" id="flow-title">créez, vendez, <span class="script">scannez</span>.</h2>
       <p class="lede">Votre événement est en ligne en quelques minutes, sans formation ni configuration complexe.</p>
     </div>
     <div class="flow__track">
@@ -1246,7 +1277,7 @@ html{scroll-padding-top:16px}
 
   <section class="panel panel--dark events resale" id="revente" aria-labelledby="rs-title">
     <div class="events__head">
-      <h2 class="h2" id="rs-title">la revente<span class="script">simplifiée</span>.</h2>
+      <p class="v4-eyebrow v4-reveal">Revente</p><h2 class="h2" id="rs-title">la revente<span class="script">simplifiée</span>.</h2>
       <div class="events__side"><p class="lede">Un participant ne peut plus venir ? Il partage un lien de revente. Le premier acheteur obtient la place : l’ancien billet est désactivé et le nouveau est envoyé automatiquement par <span class="nw">e-mail</span>. La revente est incluse dans toutes les offres.</p></div>
     </div>
     <ol class="rsteps">
@@ -1332,35 +1363,42 @@ html{scroll-padding-top:16px}
     </div>
   </section>
 
-  <section class="pro" id="pro" aria-labelledby="pro-title">
-    <h2 class="h2" id="pro-title">allez plus loin avec <span class="script">Pro</span>.</h2>
+  <section class="pro v4-pro" id="pro" aria-labelledby="pro-title">
+    <p class="v4-eyebrow v4-reveal">Offre Pro</p><h2 class="h2" id="pro-title">allez plus loin avec <span class="script">Pro</span>.</h2>
     <p class="lede">Trois outils de l’offre Pro, à essayer gratuitement pendant 14 jours.</p>
-    <ul class="pro__grid" role="list">
-      <li class="pro__card"><h3 class="h3 pro__t">Prix dynamiques</h3><p>Prévente, tarif normal, puis tarif du jour J : le prix de vos billets évolue automatiquement selon la date d’achat ou le nombre de places vendues.</p></li>
-      <li class="pro__card"><h3 class="h3 pro__t">Votre marque, partout.</h3><p>Une billetterie à vos couleurs et des <span class="nw">e-mails</span> envoyés automatiquement : vos participants gardent le lien avec vous et reviennent à vos prochains événements.</p></li>
-      <li class="pro__card"><h3 class="h3 pro__t">Plan de salle</h3><p>Théâtre, gala ou stade : dessinez votre salle en quelques minutes. Les meilleures places disponibles sont attribuées automatiquement, et vos participants peuvent choisir les leurs sur le plan.</p><a class="btn btn--pink pro__cta" href="/plan-de-salle/">Découvrir le plan de salle</a></li>
-    </ul>
-  </section>
+    <div class="v4-pro__stage"><svg class="v4-draw v4-pro__line" viewBox="0 0 1200 300" fill="none" aria-hidden="true" preserveAspectRatio="none"><path pathLength="1" d="M-10 230 C 160 300, 260 40, 470 110 S 760 290, 930 170 S 1120 30, 1210 70" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg><ul class="v4-pro__grid" role="list"><li class="v4-reveal"><a class="v4-pc" href="/v4/prix-dynamiques/"><span class="v4-pc__vis" aria-hidden="true"><span class="v4-tier"><span class="v4-mono">prévente</span><b>12 €</b></span><span class="v4-tier v4-tier--on"><span class="v4-mono">normal</span><b>15 €</b></span><span class="v4-tier"><span class="v4-mono">jour J</span><b>18 €</b></span></span><h3 class="v4-pc__t">Prix dynamiques</h3><p>Prévente, tarif normal, puis tarif du jour J : le prix de vos billets évolue automatiquement selon la date d’achat ou le nombre de places vendues.</p><span class="v4-pc__go" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li><li class="v4-reveal"><a class="v4-pc" href="/v4/votre-marque/"><span class="v4-pc__vis" aria-hidden="true"><span class="v4-sw" style="background:#1d4ed8"></span><span class="v4-sw" style="background:#ffb8e8"></span><span class="v4-sw" style="background:#222"></span><span class="v4-logo">votre logo</span></span><h3 class="v4-pc__t">Votre marque, partout.</h3><p>Une billetterie à vos couleurs et des <span class="nw">e-mails</span> envoyés automatiquement : vos participants gardent le lien avec vous et reviennent à vos prochains événements.</p><span class="v4-pc__go" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li><li class="v4-reveal"><a class="v4-pc" href="/plan-de-salle/"><span class="v4-pc__vis" aria-hidden="true"><span class="v4-seats"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></span><h3 class="v4-pc__t">Plan de salle</h3><p>Théâtre, gala ou stade : dessinez votre salle en quelques minutes. Les meilleures places disponibles sont attribuées automatiquement, et vos participants peuvent choisir les leurs sur le plan.</p><span class="v4-pc__go" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a></li></ul></div></section>
 
   <section class="field" id="terrain" aria-labelledby="field-title">
-    <h2 class="h2" id="field-title">conçue pour le <span class="script">terrain</span>.</h2>
-    <p class="lede">Les détails qui comptent le jour de l’événement, inclus dans toutes les offres, y compris l’offre gratuite.</p>
-    <ul class="field__grid" role="list">
-      <li class="field__card field__card--big"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg><h3 class="h3 field__t">Un scanner qui fonctionne sans réseau</h3><p>Dans une cave ou en plein champ, le scanner continue de contrôler les billets. Les entrées se synchronisent dès que le réseau revient.</p></li>
-      <li class="field__card field__card--wide"><h3 class="h3 field__t">Contrôler sans valider</h3><p>Le mode vérification contrôle un billet sans le valider, par exemple à l’entrée du site : il reste valable pour l’entrée de la salle.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Sept langues</h3><p>La page de vente, les billets et les <span class="nw">e-mails</span> s’affichent dans la langue de chaque acheteur : français, anglais, néerlandais, allemand, espagnol, italien ou portugais.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Vos chiffres en direct</h3><p>Ventes, recette et taux de remplissage se mettent à jour en temps réel, sur ordinateur comme sur téléphone, tout comme les entrées le jour J.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Le billet dans le téléphone</h3><p>Vos participants ajoutent leur billet à Apple Wallet ou à Google Wallet, et le retrouvent sans chercher dans leurs <span class="nw">e-mails</span>.</p></li>
-      <li class="field__card"><h3 class="h3 field__t">Des invitations</h3><p>Envoyez des places offertes depuis votre espace : elles arrivent par <span class="nw">e-mail</span> et se scannent comme les autres billets.</p></li>
-      <li class="field__card field__card--wide"><h3 class="h3 field__t">Vos consignes dans chaque billet</h3><p>Ajoutez vos informations pratiques (accès, parking, horaires) aux <span class="nw">e-mails</span> des billets et des rappels.</p></li>
-    </ul>
+    <p class="v4-eyebrow v4-reveal">Le jour J</p><h2 class="h2" id="field-title">conçue pour le <span class="script">terrain</span>.</h2>
+    <svg class="v4-draw v4-arc" viewBox="0 0 400 400" fill="none" aria-hidden="true" preserveAspectRatio="none"><path pathLength="1" d="M380 10 C 300 60, 250 160, 270 250 S 360 380, 160 392" stroke="currentColor" stroke-width="5" stroke-linecap="round"/></svg><p class="lede">Les détails qui comptent le jour de l’événement, inclus dans toutes les offres, y compris l’offre gratuite.</p>
+    <ul class="field__grid" role="list"><li class="field__card field__card--big"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg><h3 class="h3 field__t">Un scanner qui fonctionne sans réseau</h3><p>Dans une cave ou en plein champ, le scanner continue de contrôler les billets. Les entrées se synchronisent dès que le réseau revient.</p></li>
+<li class="field__card field__card--wide v4-b v4-b--lilas v4-reveal"><p class="v4-mono">[ mode vérification ]</p><div class="v4-scan" aria-hidden="true"><span class="v4-status v4-status--check">Billet valable · entrée non validée</span><span class="v4-status v4-status--ok">✓ Entrée validée</span></div><h3 class="h3 field__t">Contrôler sans valider</h3><p>Le mode vérification contrôle un billet sans le valider, par exemple à l’entrée du site : il reste valable pour l’entrée de la salle.</p></li>
+<li class="field__card v4-b v4-b--rose v4-reveal"><p class="v4-hello" data-words="Bonjour|Hello|Hallo|Hola|Ciao|Olá|Hoi" aria-hidden="true">Bonjour</p><p class="v4-langs v4-mono" aria-hidden="true"><span>FR</span><span>EN</span><span>NL</span><span>DE</span><span>ES</span><span>IT</span><span>PT</span></p><h3 class="h3 field__t">Sept langues</h3><p>La page de vente, les billets et les <span class="nw">e-mails</span> s’affichent dans la langue de chaque acheteur : français, anglais, néerlandais, allemand, espagnol, italien ou portugais.</p></li>
+<li class="field__card v4-b v4-b--paper v4-reveal"><p class="v4-live v4-mono"><i></i>en direct</p><p class="v4-count" data-count="842">842</p><p class="v4-mono" style="margin:-6px 0 0">billets vendus</p><svg class="v4-draw v4-spark" viewBox="0 0 200 46" fill="none" aria-hidden="true" preserveAspectRatio="none"><path pathLength="1" d="M2 40 C 30 38, 40 30, 62 31 S 96 18, 118 20 S 150 8, 172 10 S 190 4, 198 3" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><h3 class="h3 field__t">Vos chiffres en direct</h3><p>Ventes, recette et taux de remplissage se mettent à jour en temps réel, sur ordinateur comme sur téléphone, tout comme les entrées le jour J.</p></li>
+<li class="field__card v4-b v4-b--graphite v4-reveal"><div class="v4-ticket" aria-hidden="true"><p class="v4-ticket__top v4-mono"><span>14 nov.</span><span>21:00</span></p><p class="v4-ticket__t">Nuit Électrique</p><p class="v4-mono" style="margin:0;opacity:.7">Fosse · billet de Léa</p></div><h3 class="h3 field__t">Le billet dans le téléphone</h3><p>Vos participants ajoutent leur billet à Apple Wallet ou à Google Wallet, et le retrouvent sans chercher dans leurs <span class="nw">e-mails</span>.</p></li>
+<li class="field__card v4-b v4-b--creme v4-reveal"><div class="v4-chat" aria-hidden="true"><p class="v4-bubble"><b>MA</b><span>Tu viens samedi ?</span></p><p class="v4-bubble v4-bubble--out"><span>Invitation reçue !</span><b>LÉ</b></p></div><h3 class="h3 field__t">Des invitations</h3><p>Envoyez des places offertes depuis votre espace : elles arrivent par <span class="nw">e-mail</span> et se scannent comme les autres billets.</p></li>
+<li class="field__card field__card--wide v4-b v4-b--rose v4-reveal"><div class="v4-mail" aria-hidden="true"><p class="v4-mono" style="margin:0;opacity:.6">[ e-mail de vos billets ]</p><p class="v4-mail__l">Votre billet pour Nuit Électrique</p><p class="v4-mail__note">Entrée par le Hall 7 · Parking P2 gratuit · Portes à 21 h</p></div><h3 class="h3 field__t">Vos consignes dans chaque billet</h3><p>Ajoutez vos informations pratiques (accès, parking, horaires) aux <span class="nw">e-mails</span> des billets et des rappels.</p></li></ul>
   </section>
 
-  <section class="d-sec d-vs" id="comparatif" aria-labelledby="d-vs-t"><h2 class="h2" id="d-vs-t">ne vous contentez pas de <span class="script">moins</span>.</h2><div class="d-vs__grid"><div class="d-vs__col"><p class="d-vs__h">Ailleurs, souvent</p><ul role="list"><li><b aria-hidden="true">×</b>Des frais ajoutés au moment de payer</li><li><b aria-hidden="true">×</b>Une commission qui suit le prix du billet</li><li><b aria-hidden="true">×</b>La revente en supplément, ou absente</li><li><b aria-hidden="true">×</b>Des frais même sur les billets gratuits</li><li><b aria-hidden="true">×</b>Un abonnement ou un engagement</li></ul></div><span class="d-vs__vs" aria-hidden="true">vs</span><div class="d-vs__col d-vs__col--us"><p class="d-vs__h">Avec <svg class="d-vs__logo" viewBox="10 4 380 286" role="img" aria-label="Evoly"><use href="#logo"/></svg></p><ul role="list"><li><b aria-hidden="true">✓</b>Le prix affiché est le prix payé</li><li><b aria-hidden="true">✓</b>Une commission plafonnée à 2,50 €, 1 € avec Pro</li><li><b aria-hidden="true">✓</b>La revente incluse dans toutes les offres</li><li><b aria-hidden="true">✓</b>0 % sur les billets gratuits</li><li><b aria-hidden="true">✓</b>Gratuit et sans engagement</li></ul></div></div></section>
+  <section class="cmp" id="comparatif" aria-labelledby="cmp-title">
+    <div class="cmp__head">
+      <p class="v4-eyebrow v4-reveal">Comparatif</p><h2 class="h2" id="cmp-title">ce qui nous<span class="script">distingue</span>.</h2>
+      <p class="lede">Comparaison avec 9 billetteries en libre-service parmi les plus utilisées.</p>
+    </div>
+    <div class="cmp__wrap">
+      <table>
+        <caption class="vh">Comparaison entre Evoly Free, Evoly Pro et 9 billetteries concurrentes</caption>
+        <colgroup><col class="c-label"><col><col><col></colgroup>
+        <thead><tr><th scope="col"><span class="vh">Critère</span></th><th scope="col">Evoly Free</th><th scope="col" class="p">Evoly Pro</th><th scope="col" class="eb">Concurrents</th></tr></thead>
+        <tbody><tr><th scope="row">Commission plafonnée, même sur les billets chers</th><td>2,50 € maximum</td><td class="p">1 € maximum</td><td class="eb">Rare</td></tr><tr><th scope="row">Revente intégrée, sans passer par un site tiers</th><td><span class="yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" width="24" height="24"/></svg><span class="vh">Oui</span></span></td><td class="p"><span class="yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" width="24" height="24"/></svg><span class="vh">Oui</span></span></td><td class="eb">Rare</td></tr><tr><th scope="row">Prix affiché sans frais ajoutés à l’acheteur</th><td><span class="yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" width="24" height="24"/></svg><span class="vh">Oui</span></span></td><td class="p"><span class="yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" width="24" height="24"/></svg><span class="vh">Oui</span></span></td><td class="eb">Une partie</td></tr><tr><th scope="row">Billets gratuits sans commission ni limite</th><td><span class="yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" width="24" height="24"/></svg><span class="vh">Oui</span></span></td><td class="p"><span class="yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" width="24" height="24"/></svg><span class="vh">Oui</span></span></td><td class="eb">Fréquent</td></tr><tr><th scope="row">E-mails automatiques et campagnes intégrés</th><td><span class="no"><span aria-hidden="true">-</span><span class="vh">Non</span></span></td><td class="p"><span class="yes"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" width="24" height="24"/></svg><span class="vh">Oui</span></span></td><td class="eb">Fréquent</td></tr></tbody>
+      </table>
+      <p class="cmp__note">Concurrents : Billetweb, Yurplan, Weezevent, PassPass, Eventbrite, Ticket Tailor, Weeztix, Billetto et Luma. « Rare » : 1 ou 2 sur 9. « Une partie » : 3 à 5. « Fréquent » : 6 à 8. Tarifs et fonctionnalités publics relevés en septembre 2026, revente et <span class="nw">e-mails</span> via un outil externe non comptés.</p>
+    </div>
+  </section>
 
   <section class="panel panel--soft-b pricing" id="tarifs" aria-labelledby="pr-title">
     <div class="pricing__head">
-      <h2 class="h2" id="pr-title">une tarification<span class="script">transparente</span>.</h2>
+      <p class="v4-eyebrow v4-reveal">Tarifs</p><h2 class="h2" id="pr-title">une tarification<span class="script">transparente</span>.</h2>
       <div class="pricing__side">
         <p class="lede">Une commission simple : <span class="nw">0,29 € + 2 %</span> par billet payant, plafonnée à 2,50 € en Free et à 1 € en Pro.</p>
         <div class="bill" role="group" aria-label="Facturation"><button type="button" data-bill="month" aria-pressed="true">Mensuel</button><button type="button" data-bill="year" aria-pressed="false">Annuel<span class="off">−15 %</span></button></div>
@@ -1388,28 +1426,14 @@ html{scroll-padding-top:16px}
   <section class="faq" id="faq" aria-labelledby="faq-title">
     <div class="faq__grid">
       <div class="faq__head">
-        <h2 class="h2" id="faq-title">vos <span class="script">questions</span>.</h2>
+        <p class="v4-eyebrow v4-reveal">Questions</p><h2 class="h2" id="faq-title">vos <span class="script">questions</span>.</h2>
         <p class="lede">Une autre question ? Écrivez-nous à <a class="link" href="mailto:hello@evoly.me">hello@evoly.me</a>.</p>
       </div>
       <div class="faq__list"><details class="qa"><summary><span>Comment fonctionne la commission ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Evoly prélève <span class="nw">0,29 € + 2 %</span> par billet payant, plafonnée à 2,50 € par billet en Free et à 1 € en Pro. Les frais de paiement de Stripe s’ajoutent, au coût réel et sans marge. Tout est déduit automatiquement de vos ventes : vos participants paient le prix affiché, sans frais ajoutés. Les billets gratuits restent à 0 %.</p></div></details><details class="qa"><summary><span>Comment fonctionne la revente de billets ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Un participant qui ne peut plus venir génère un lien de revente et le partage où il le souhaite. Sa place apparaît aussi dans la section « Revente » de votre page de vente. Dès que le premier acheteur a payé, l’ancien billet est désactivé et le nouveau lui est envoyé par <span class="nw">e-mail</span>. La revente est incluse dans toutes les offres.</p></div></details><details class="qa"><summary><span>Quand est-ce que je reçois mon argent ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Les paiements passent par Stripe. Les recettes de vos ventes sont versées sur votre compte bancaire via votre compte Stripe, selon son calendrier de versement.</p></div></details><details class="qa"><summary><span>Comment fonctionne le <span class="nw">check-in</span> QR ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Chaque billet porte un QR code. Le jour J, vous scannez les entrées avec le scanner intégré, installable sur mobile, qui vibre à chaque scan. Vos bénévoles reçoivent un lien temporaire et scannent sans créer de compte. La saisie manuelle des codes et les statistiques sont incluses.</p></div></details><details class="qa"><summary><span>Que se passe-t-il si j’annule un événement ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>Vous annulez depuis votre espace et vos participants sont prévenus par <span class="nw">e-mail</span>. Les billets payés sont remboursés via Stripe.</p></div></details><details class="qa"><summary><span>Quelle différence avec HelloAsso ?</span><span class="qa__plus" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-plus" width="24" height="24"/></svg></span></summary><div class="qa__a"><p>HelloAsso est réservé aux associations et se finance grâce à une contribution volontaire proposée à vos participants au moment du paiement. Evoly s’adresse à tous les organisateurs, partout, avec une commission simple, plafonnée et incluse dans le prix.</p></div></details></div>
     </div>
   </section>
 
-  <section class="panel panel--dark final" aria-labelledby="final-title">
-    <div class="hero__bg" aria-hidden="true">
-      <div class="bigo bigo--c"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></div>
-      <div class="bigo bigo--d"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></div>
-    </div>
-    <div class="final__inner">
-      <h2 class="h2 final__title" id="final-title">à vous de <span class="script">jouer</span>.</h2>
-      <p class="lede">Créez votre compte gratuitement, sans carte bancaire. Votre premier événement peut être en ligne en quelques minutes.</p>
-      <div class="final__ctas">
-        <a class="btn btn--pink" href="https://app.evoly.me/register" target="_blank" rel="noopener">Créer mon premier événement</a>
-        <a class="btn btn--line" href="https://app.evoly.me/register?plan=pro" target="_blank" rel="noopener">Essayer Pro 14 jours</a>
-      </div>
-    </div>
-    <div class="final__wrap"><div class="final__logo"><svg viewBox="10 4 380 286" role="img" aria-label="Evoly live"><g fill="currentColor"><path d="M 46.03 108.9 L 10.54 108.9 L 10.54 104.81 L 42.46 104.81 L 42.46 87.28 L 46.03 87.28 Z M 46.03 80.87 L 10.54 80.87 L 10.54 76.78 L 46.03 76.78 Z M 46.03 57.12 L 10.54 70.53 L 10.54 66.12 L 36 56.67 C 36.55 56.46 37.18 56.24 37.89 56 C 38.59 55.75 39.27 55.5 39.95 55.26 C 40.63 55.02 41.24 54.82 41.78 54.64 L 41.78 54.28 C 41.27 54.11 40.68 53.91 40.01 53.67 C 39.34 53.42 38.64 53.18 37.93 52.93 C 37.23 52.7 36.6 52.47 36.04 52.26 L 10.54 42.9 L 10.54 38.61 L 46.03 52.06 Z M 46.03 32.31 L 10.54 32.31 L 10.54 5.14 L 14.06 5.14 L 14.06 28.22 L 26.06 28.22 L 26.06 7.42 L 29.62 7.42 L 29.62 28.22 L 42.51 28.22 L 42.51 4.84 L 46.03 4.84 Z"/><path d="M 84.58 10.3 L 187.19 10.3 L 187.19 38.75 L 122.69 38.75 L 122.69 55.14 L 177.88 55.14 L 177.88 82.39 L 122.69 82.39 L 122.69 100.5 L 188.41 100.5 L 188.41 128.95 L 84.58 128.95 Z"/><path d="M 233.55 128.95 L 191.47 10.3 L 232.17 10.3 L 255.97 89.63 L 256.66 89.63 L 280.63 10.3 L 319.61 10.3 L 277.7 128.95 Z"/><path d="M 155.58 216.89 C 158.02 230.89 155.8 244.09 148.92 256.51 C 142.04 268.94 132.02 277.82 118.86 283.18 L 107.04 254.1 C 113.35 251.53 118.16 247.27 121.46 241.3 C 124.77 235.34 125.83 229 124.66 222.29 Z M 106.37 286.75 C 92.37 289.16 79.17 286.91 66.76 280 C 54.35 273.1 45.48 263.06 40.16 249.9 L 69.25 238.12 C 71.81 244.45 76.07 249.26 82.02 252.58 C 87.98 255.89 94.32 256.97 101.04 255.82 Z M 36.61 237.39 C 34.22 223.39 36.5 210.2 43.43 197.8 C 50.36 185.41 60.41 176.56 73.59 171.26 L 85.3 200.38 C 78.98 202.92 74.15 207.17 70.82 213.12 C 67.5 219.07 66.41 225.41 67.55 232.12 Z M 85.63 167.81 C 99.62 165.35 112.83 167.54 125.27 174.4 C 137.7 181.26 146.61 191.26 151.98 204.4 L 122.93 216.29 C 120.35 209.98 116.07 205.18 110.11 201.89 C 104.14 198.6 97.8 197.54 91.09 198.73 Z"/><path d="M 175.98 165.52 L 214.09 165.52 L 214.09 253.82 L 274.98 253.82 L 274.98 284.18 L 175.98 284.18 Z"/><path d="M 343.09 284.18 L 304.98 284.18 L 304.98 238.13 L 257.89 165.52 L 301.7 165.52 L 324.47 205.02 L 325.16 205.02 L 347.92 165.52 L 389.48 165.52 L 343.09 238.13 Z"/></g></svg></div></div>
-  </section>
+  <section class="v4-final" aria-labelledby="final-title"><div class="v4-final__card"><svg class="v4-draw v4-final__line" viewBox="0 0 1000 260" fill="none" aria-hidden="true" preserveAspectRatio="none"><path pathLength="1" d="M-10 210 C 120 230, 260 220, 300 150 C 330 90, 250 40, 200 70 C 150 100, 210 160, 330 160 C 560 160, 860 120, 1010 20" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg><h2 class="h2" id="final-title">à vous de <span class="script">jouer</span>.</h2><p class="lede">Créez votre compte gratuitement, sans carte bancaire. Votre premier événement peut être en ligne en quelques minutes.</p><div class="v4-final__ctas"><a class="v4-cta" href="https://app.evoly.me/register" target="_blank" rel="noopener"><span class="v4-cta__pill">Créer mon premier événement</span><span class="v4-cta__round" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a><a class="v4-link" href="https://app.evoly.me/register?plan=pro" target="_blank" rel="noopener">Essayer Pro 14 jours</a></div></div></section>
 </main>
 
 <footer class="footer">
@@ -1756,6 +1780,7 @@ html{scroll-padding-top:16px}
     dots.forEach((dd, k) => dd.classList.toggle('is-on', k <= i));
   }
   function onFlow() {
+    if (!track) return; // section absente (pages autres que l'accueil)
     const r = track.getBoundingClientRect();
     const total = Math.max(1, r.height - innerHeight);
     const p = Math.min(1, Math.max(0, -r.top / total));
@@ -2062,5 +2087,9 @@ html{scroll-padding-top:16px}
 })();
 
 </script>
-<nav class="lang-links" aria-label="Languages"><a href="/" hreflang="fr" lang="fr" aria-current="page">Français</a> · <a href="/en/" hreflang="en" lang="en">English</a> · <a href="/es/" hreflang="es" lang="es">Español</a> · <a href="/de/" hreflang="de" lang="de">Deutsch</a> · <a href="/it/" hreflang="it" lang="it">Italiano</a> · <a href="/pt/" hreflang="pt" lang="pt">Português</a> · <a href="/nl/" hreflang="nl" lang="nl">Nederlands</a></nav></body>
+<nav class="lang-links" aria-label="Languages"><a href="/" hreflang="fr" lang="fr" aria-current="page">Français</a> · <a href="/en/" hreflang="en" lang="en">English</a> · <a href="/es/" hreflang="es" lang="es">Español</a> · <a href="/de/" hreflang="de" lang="de">Deutsch</a> · <a href="/it/" hreflang="it" lang="it">Italiano</a> · <a href="/pt/" hreflang="pt" lang="pt">Português</a> · <a href="/nl/" hreflang="nl" lang="nl">Nederlands</a></nav><script>(()=>{document.documentElement.classList.add('v4-js');const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const count=(el)=>{const to=+el.dataset.count;if(reduce){el.textContent=to.toLocaleString('fr-FR');return}const t0=performance.now();const step=(t)=>{const p=Math.min(1,(t-t0)/1500);el.textContent=Math.round(to*(1-Math.pow(1-p,3))).toLocaleString('fr-FR');if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)};
+const io=new IntersectionObserver((es)=>es.forEach((e)=>{if(!e.isIntersecting)return;e.target.classList.add('is-in');if(e.target.dataset.count)count(e.target);io.unobserve(e.target)}),{threshold:.3});
+document.querySelectorAll('.v4-draw,.v4-reveal,[data-count]').forEach((el)=>reduce?(el.classList.add('is-in'),el.dataset.count&&count(el)):io.observe(el));
+const h=document.querySelector('.v4-hello');if(h){h.classList.add('is-on');if(!reduce){const w=h.dataset.words.split('|');let i=0;setInterval(()=>{i=(i+1)%w.length;h.classList.remove('is-on');setTimeout(()=>{h.textContent=w[i];h.classList.add('is-on')},230)},1800)}}})();</script></body>
 </html>

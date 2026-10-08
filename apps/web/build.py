@@ -744,4 +744,8 @@ if not TEST:
 if not TEST and os.path.isdir(os.path.join(HERE, 'drafts')):
     import shutil
     shutil.copytree(os.path.join(HERE, 'drafts'), os.path.join(HERE, 'dist'), dirs_exist_ok=True)
+    # retirer du site généré les anciennes ébauches (v2, v3…) qui n'existent plus dans drafts/
+    for _d in os.listdir(os.path.join(HERE, 'dist')):
+        if re.fullmatch(r'v\d+', _d) and not os.path.isdir(os.path.join(HERE, 'drafts', _d)):
+            shutil.rmtree(os.path.join(HERE, 'dist', _d))
 
