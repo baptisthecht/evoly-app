@@ -1012,7 +1012,7 @@ html{scroll-padding-top:16px}
 .d3-ok{font-family:var(--f-display);font-size:1.35rem;background:#1f8a4c;color:#fff;border-radius:12px;padding:12px 14px}
 @media (max-width:1060px){.d3-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.d3-grid{grid-template-columns:minmax(0,1fr)}.d3-vis{min-height:120px}}
-.d-vs__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:clamp(28px,4vw,48px)}
+.d-vs__grid{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;margin-top:clamp(28px,4vw,48px)}.d-vs__vs{align-self:center;justify-self:center;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--rose);color:#222;font-family:var(--f-display);font-size:1.15rem}.d-vs__col:not(.d-vs__col--us){opacity:.8}.d-vs__col--us{box-shadow:0 22px 44px -26px rgba(34,34,34,.55)}.d-vs__h{display:flex;align-items:center;gap:12px}.d-vs__logo{height:42px;width:auto;color:var(--page)}
 .d-vs__col{border-radius:24px;padding:clamp(22px,3vw,30px);background:var(--soft-a);color:var(--on-soft)}
 .d-vs__col--us{background:var(--ink);color:var(--page)}
 .d-vs__h{font-family:var(--f-display);font-size:1.6rem;margin:0 0 18px}
@@ -1021,7 +1021,7 @@ html{scroll-padding-top:16px}
 .d-vs__col li:last-child{border-bottom:0;padding-bottom:0}
 .d-vs__col b{width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:.8rem;background:rgba(127,127,127,.2)}
 .d-vs__col--us b{background:var(--rose);color:#222}
-@media (max-width:760px){.d-vs__grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.d-vs__grid{grid-template-columns:minmax(0,1fr)}.d-vs__vs{margin:-4px 0}}
 </style></head>
 <body>
 
@@ -1356,7 +1356,7 @@ html{scroll-padding-top:16px}
     </ul>
   </section>
 
-  <section class="d-sec d-vs" id="comparatif" aria-labelledby="d-vs-t"><h2 class="h2" id="d-vs-t">ne vous contentez pas de <span class="script">moins</span>.</h2><div class="d-vs__grid"><div class="d-vs__col"><p class="d-vs__h">Ailleurs, souvent</p><ul role="list"><li><b aria-hidden="true">×</b>Des frais ajoutés au moment de payer</li><li><b aria-hidden="true">×</b>Une commission qui suit le prix du billet</li><li><b aria-hidden="true">×</b>La revente en supplément, ou absente</li><li><b aria-hidden="true">×</b>Des frais même sur les billets gratuits</li><li><b aria-hidden="true">×</b>Un abonnement ou un engagement</li></ul></div><div class="d-vs__col d-vs__col--us"><p class="d-vs__h">Avec Evoly</p><ul role="list"><li><b aria-hidden="true">✓</b>Le prix affiché est le prix payé</li><li><b aria-hidden="true">✓</b>Une commission plafonnée à 2,50 €, 1 € avec Pro</li><li><b aria-hidden="true">✓</b>La revente incluse dans toutes les offres</li><li><b aria-hidden="true">✓</b>0 % sur les billets gratuits</li><li><b aria-hidden="true">✓</b>Gratuit et sans engagement</li></ul></div></div></section>
+  <section class="d-sec d-vs" id="comparatif" aria-labelledby="d-vs-t"><h2 class="h2" id="d-vs-t">ne vous contentez pas de <span class="script">moins</span>.</h2><div class="d-vs__grid"><div class="d-vs__col"><p class="d-vs__h">Ailleurs, souvent</p><ul role="list"><li><b aria-hidden="true">×</b>Des frais ajoutés au moment de payer</li><li><b aria-hidden="true">×</b>Une commission qui suit le prix du billet</li><li><b aria-hidden="true">×</b>La revente en supplément, ou absente</li><li><b aria-hidden="true">×</b>Des frais même sur les billets gratuits</li><li><b aria-hidden="true">×</b>Un abonnement ou un engagement</li></ul></div><span class="d-vs__vs" aria-hidden="true">vs</span><div class="d-vs__col d-vs__col--us"><p class="d-vs__h">Avec <svg class="d-vs__logo" viewBox="10 4 380 286" role="img" aria-label="Evoly"><use href="#logo"/></svg></p><ul role="list"><li><b aria-hidden="true">✓</b>Le prix affiché est le prix payé</li><li><b aria-hidden="true">✓</b>Une commission plafonnée à 2,50 €, 1 € avec Pro</li><li><b aria-hidden="true">✓</b>La revente incluse dans toutes les offres</li><li><b aria-hidden="true">✓</b>0 % sur les billets gratuits</li><li><b aria-hidden="true">✓</b>Gratuit et sans engagement</li></ul></div></div></section>
 
   <section class="panel panel--soft-b pricing" id="tarifs" aria-labelledby="pr-title">
     <div class="pricing__head">
