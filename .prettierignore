@@ -18,3 +18,4 @@ legacy
 apps/web/styles.css
 apps/web/app.js
 apps/web/drafts
+apps/web/partials

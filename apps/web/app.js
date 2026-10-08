@@ -632,3 +632,10 @@
 
   if (hasG && d.fonts && d.fonts.ready) d.fonts.ready.then(() => ST.refresh());
 })();
+
+/* Refonte : apparitions, tracés, compteur, salutations, soulignement du haut de page */
+(()=>{document.documentElement.classList.add('v4-js');const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const count=(el)=>{const to=+el.dataset.count;if(reduce){el.textContent=to.toLocaleString('fr-FR');return}const t0=performance.now();const step=(t)=>{const p=Math.min(1,(t-t0)/1500);el.textContent=Math.round(to*(1-Math.pow(1-p,3))).toLocaleString('fr-FR');if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)};
+const io=new IntersectionObserver((es)=>es.forEach((e)=>{if(!e.isIntersecting)return;e.target.classList.add('is-in');if(e.target.dataset.count)count(e.target);io.unobserve(e.target)}),{threshold:.3});
+document.querySelectorAll('.v4-draw,.v4-reveal,[data-count]').forEach((el)=>reduce?(el.classList.add('is-in'),el.dataset.count&&count(el)):io.observe(el));
+const hl=document.querySelector('.hero .hl svg path');if(hl&&!reduce){const L=hl.closest('svg').getBoundingClientRect().width*1.04;hl.style.strokeDasharray=L;hl.style.strokeDashoffset=L;setTimeout(()=>{hl.style.transition='stroke-dashoffset 1.6s cubic-bezier(.65,0,.35,1)';hl.style.strokeDashoffset='0'},650)}const h=document.querySelector('.v4-hello');if(h){h.classList.add('is-on');if(!reduce){const w=h.dataset.words.split('|');let i=0;setInterval(()=>{i=(i+1)%w.length;h.classList.remove('is-on');setTimeout(()=>{h.textContent=w[i];h.classList.add('is-on')},230)},1800)}}})();

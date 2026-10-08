@@ -12,7 +12,7 @@ LANGS = [  # (code, nom dans sa langue, locale Open Graph, locale des nombres)
 ]
 X_DEFAULT = 'en'
 LEGAL = ['cgu', 'conditions-de-vente', 'privacy', 'cookies', 'legal', 'sous-traitance']
-TEXT_ATTRS = ('alt', 'aria-label', 'title', 'placeholder', 'data-toast', 'aria-valuetext', 'value')
+TEXT_ATTRS = ('alt', 'aria-label', 'title', 'placeholder', 'data-toast', 'aria-valuetext', 'value', 'data-eyebrow')
 META_TEXT = ('description', 'og:title', 'og:description', 'og:image:alt', 'twitter:title', 'twitter:description', 'twitter:image:alt')
 # textes affichés par le script de la page (gabarits {n}, {p}…)
 JS = {

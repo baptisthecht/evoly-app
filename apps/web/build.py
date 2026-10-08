@@ -736,16 +736,20 @@ if not TEST:
 if not TEST:
     import i18n
     home = open(os.path.join(HERE, 'dist', 'evoly-billetterie.html'), encoding='utf-8').read()
+    import refonte
+    home = refonte.transform_home(home)
+    open(os.path.join(HERE, 'dist', 'evoly-billetterie.html'), 'w', encoding='utf-8').write(home)
     subpages = pages.build(home, lambda s: nowrap(fr_attr(fr_typo(s))))   # plan de salle, associations, comparatif, qui sommes-nous
     total, done = i18n.build_all({'home': home, **subpages}, os.path.join(HERE, 'dist'))
     print('langues :', ', '.join(f'{c} {n}/{total}' for c, n in done.items()))
 
-# Ébauches de test, non indexées et absentes du plan du site : apps/web/drafts/<nom>/ est copié dans dist/<nom>/
-if not TEST and os.path.isdir(os.path.join(HERE, 'drafts')):
+# Ébauches de test, non indexées et absentes du plan du site : apps/web/drafts/<nom>/ est copié dans dist/<nom>/ ;
+# les anciennes ébauches (v2, v3…) qui n'existent plus dans drafts/ sont retirées du site généré
+if not TEST:
     import shutil
-    shutil.copytree(os.path.join(HERE, 'drafts'), os.path.join(HERE, 'dist'), dirs_exist_ok=True)
-    # retirer du site généré les anciennes ébauches (v2, v3…) qui n'existent plus dans drafts/
+    _drafts = os.path.join(HERE, 'drafts')
     for _d in os.listdir(os.path.join(HERE, 'dist')):
-        if re.fullmatch(r'v\d+', _d) and not os.path.isdir(os.path.join(HERE, 'drafts', _d)):
+        if re.fullmatch(r'v\d+', _d) and not os.path.isdir(os.path.join(_drafts, _d)):
             shutil.rmtree(os.path.join(HERE, 'dist', _d))
-
+    if os.path.isdir(_drafts):
+        shutil.copytree(_drafts, os.path.join(HERE, 'dist'), dirs_exist_ok=True)

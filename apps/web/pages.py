@@ -1,6 +1,7 @@
 """Pages du site vitrine en plus de l'accueil : plan de salle, associations, comparatif Eventbrite, qui sommes-nous.
 Chaque page reprend le cadre de l'accueil (en-tête, menu, pied de page, styles) avec son propre contenu et ses
 métadonnées ; i18n.py la traduit ensuite dans toutes les langues, à son adresse propre."""
+import refonte
 import json, re
 
 SITE = 'https://evoly.me'
@@ -8,6 +9,8 @@ REGISTER = 'https://app.evoly.me/register'
 
 # adresse de chaque page dans chaque langue
 SLUGS = {
+    'dynamic': {'fr': 'prix-dynamiques', 'en': 'dynamic-pricing', 'es': 'precios-dinamicos', 'de': 'dynamische-preise', 'it': 'prezzi-dinamici', 'pt': 'precos-dinamicos', 'nl': 'dynamische-prijzen'},
+    'brand': {'fr': 'votre-marque', 'en': 'your-brand', 'es': 'tu-marca', 'de': 'ihre-marke', 'it': 'il-tuo-marchio', 'pt': 'a-sua-marca', 'nl': 'jouw-merk'},
     'seating': {'fr': 'plan-de-salle', 'en': 'seating-plan', 'es': 'plano-de-sala', 'de': 'saalplan', 'it': 'mappa-dei-posti', 'pt': 'planta-da-sala', 'nl': 'zaalplan'},
     'associations': {'fr': 'associations', 'en': 'nonprofits', 'es': 'asociaciones', 'de': 'vereine', 'it': 'associazioni', 'pt': 'associacoes', 'nl': 'verenigingen'},
     'eventbrite': {'fr': 'evoly-ou-eventbrite', 'en': 'evoly-vs-eventbrite', 'es': 'evoly-o-eventbrite', 'de': 'evoly-oder-eventbrite', 'it': 'evoly-o-eventbrite', 'pt': 'evoly-ou-eventbrite', 'nl': 'evoly-of-eventbrite'},
@@ -34,6 +37,42 @@ def cta(title, text, button):
     return f'<section class="pg__cta"><h2 class="pg__h">{title}</h2><p>{text}</p><a class="btn btn--pink" href="{REGISTER}" target="_blank" rel="noopener">{button}</a></section>'
 
 PAGES = {
+    'dynamic': {
+        'title': 'Prix dynamiques pour vos billets - Evoly',
+        'desc': 'Prévente, tarif normal, tarif du jour J : faites évoluer automatiquement le prix de vos billets selon la date d’achat ou le nombre de places vendues.',
+        'crumb': 'Prix dynamiques',
+        'faq': [
+            ('Les prix dynamiques sont-ils inclus dans l’offre gratuite ?', 'Non, ils font partie de l’offre Pro, que vous pouvez essayer gratuitement pendant 14 jours.'),
+            ('Quel prix paie un participant ?', 'Celui du palier en vigueur au moment de sa commande : la page de vente affiche toujours le prix actuel.'),
+        ],
+        'main_class': 'page spaced',
+        'raw': lambda: {'demo': refonte.partial('prix-dynamiques'), 'final': refonte.FINAL_HTML},
+        'main': lambda p: (
+            refonte.page_hero('prix <span class="script">dynamiques</span>.', 'Prévente, tarif normal, tarif du jour J : le prix de vos billets évolue automatiquement selon la date d’achat ou le nombre de places vendues. Vos participants voient toujours le prix en vigueur.')
+            + '<!--RAW-demo-->'
+            + refonte.page_steps([('Définissez vos paliers', 'Pour chaque tarif, choisissez un prix et une date de fin ou un nombre de places.'), ('Le prix change seul', 'À la date prévue ou quand le quota est atteint, le palier suivant s’applique, sans intervention.'), ('Vos participants suivent', 'La page de vente affiche toujours le prix en vigueur au moment de l’achat.')])
+            + block('Questions fréquentes', faq(p['faq']))
+            + '<!--RAW-final-->'
+        ),
+    },
+    'brand': {
+        'title': 'Billetterie à vos couleurs et e-mails automatiques - Evoly',
+        'desc': 'Vos couleurs, votre logo et votre domaine sur votre billetterie, des e-mails envoyés automatiquement à vos participants, sans mention d’Evoly.',
+        'crumb': 'Votre marque',
+        'faq': [
+            ('Puis-je retirer la mention d’Evoly de ma billetterie ?', 'Oui, avec l’offre Pro : votre page de vente n’affiche que vos couleurs et votre logo.'),
+            ('Puis-je utiliser mon propre nom de domaine ?', 'Oui, avec l’offre Pro. Le certificat SSL est installé automatiquement.'),
+        ],
+        'main_class': 'page spaced',
+        'raw': lambda: {'demo': refonte.partial('votre-marque'), 'final': refonte.FINAL_HTML},
+        'main': lambda p: (
+            refonte.page_hero('votre marque, <span class="script">partout</span>.', 'Vos couleurs et votre logo sur votre page de vente, votre propre domaine, des e-mails envoyés automatiquement à vos participants, et aucune mention d’Evoly.')
+            + '<!--RAW-demo-->'
+            + refonte.page_steps([('Importez votre logo', 'Les couleurs de votre page sont tirées de votre logo, et vous pouvez les ajuster.'), ('Branchez votre domaine', 'Votre billetterie s’affiche sur votre propre adresse, avec un certificat SSL automatique.'), ('Restez en contact', 'Rappels avant l’événement, remerciement après, campagnes avec statistiques d’ouverture.')])
+            + block('Questions fréquentes', faq(p['faq']))
+            + '<!--RAW-final-->'
+        ),
+    },
     'seating': {
         'title': 'Plan de salle et placement numéroté en ligne - Evoly',
         'desc': 'Créez votre plan de salle en quelques minutes : théâtre, gala, église, conférence ou stade. Les meilleures places sont attribuées automatiquement et vos participants peuvent choisir les leurs sur le plan.',
@@ -173,8 +212,11 @@ def build(home, typo):
     out = {}
     for pid, p in PAGES.items():
         h = home
-        i, j = h.index('<main id="main">'), h.index('</main>') + len('</main>')
-        h = h[:i] + f'<main id="main" class="page">{typo(p["main"](p))}</main>' + h[j:]
+        i, j = re.search(r'<main id="main"[^>]*>', h).start(), h.index('</main>') + len('</main>')
+        main = typo(p["main"](p))
+        for k, v in (p['raw']() if 'raw' in p else {}).items():  # contenu déjà mis en forme (démonstrations, fin de page)
+            main = main.replace(f'<!--RAW-{k}-->', v)
+        h = h[:i] + f'<main id="main" class="{p.get("main_class", "page")}">{main}</main>' + h[j:]
         # menus et pied de page : ancres de l'accueil (liens <a> seulement : les icônes <use href="#…"> restent internes)
         h = re.sub(r'(<a\b[^>]*?\bhref=")#(?!main")([\w-]+)"', r'\1/#\2"', h)
         h = re.sub(r'<title>.*?</title>', f'<title>{p["title"]}</title>', h, count=1, flags=re.S)
