@@ -17,3 +17,4 @@ legacy
 # Site vitrine : feuille de style et script volontairement compacts, intégrés tels quels dans chaque page
 apps/web/styles.css
 apps/web/app.js
+apps/web/drafts

@@ -739,3 +739,9 @@ if not TEST:
     subpages = pages.build(home, lambda s: nowrap(fr_attr(fr_typo(s))))   # plan de salle, associations, comparatif, qui sommes-nous
     total, done = i18n.build_all({'home': home, **subpages}, os.path.join(HERE, 'dist'))
     print('langues :', ', '.join(f'{c} {n}/{total}' for c, n in done.items()))
+
+# Ébauches de test, non indexées et absentes du plan du site : apps/web/drafts/<nom>/ est copié dans dist/<nom>/
+if not TEST and os.path.isdir(os.path.join(HERE, 'drafts')):
+    import shutil
+    shutil.copytree(os.path.join(HERE, 'drafts'), os.path.join(HERE, 'dist'), dirs_exist_ok=True)
+
