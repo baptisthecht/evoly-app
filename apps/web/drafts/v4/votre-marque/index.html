@@ -1073,6 +1073,43 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 .v4-steps li span{font-family:var(--v4-mono);font-size:.8rem;opacity:.7}
 .v4-steps h3{font-family:var(--f-display);font-weight:400;font-size:1.45rem;margin:14px 0 8px}
 .v4-steps p{margin:0;line-height:1.55;opacity:.85}
+.field__card .v4-hello{margin-top:0}
+.v4-flags{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.v4-flag{width:30px;height:21px;border-radius:5px;overflow:hidden;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.14)}
+.v4-flag svg{width:100%;height:100%;display:block}
+.field__card .v4-count{margin:0}.field__card .v4-sub{margin:-4px 0 0;font-size:.84rem;color:var(--ink-2)}
+.v4-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;align-items:end;height:92px;margin-top:4px}
+.v4-bars span{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;height:100%;gap:6px}
+.v4-bars i{display:block;height:var(--h);border-radius:7px 7px 3px 3px;background:var(--ink);transform:scaleY(.04);transform-origin:bottom;transition:transform .9s cubic-bezier(.2,.8,.2,1) var(--d)}
+.v4-bars span:last-child i{background:var(--rose)}
+.v4-bars em{font-style:normal;font-size:.7rem;text-align:center;color:var(--ink-2)}
+.is-in .v4-bars i,html:not(.v4-js) .v4-bars i{transform:scaleY(1)}
+.field__card.v4-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(18px,3vw,36px);align-items:center}
+.v4-split__txt{display:flex;flex-direction:column;gap:10px}.v4-split__txt .field__t{margin:0}
+.v4-gates{display:flex;align-items:center;gap:10px}
+.v4-gate{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.v4-gate i{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:#fff6f0;color:#222}
+.v4-gate i svg{width:24px;height:24px}
+.v4-gate--ok i{background:#222;color:var(--rose)}
+.v4-gate b{font-size:.88rem;font-weight:600}.v4-gate em{font-style:normal;font-size:.8rem;opacity:.7}
+.v4-gates__path{flex:1;min-width:28px;height:2px;margin-bottom:38px;background:repeating-linear-gradient(90deg,#222 0 7px,transparent 7px 13px);opacity:.45}
+.field__card .v4-ticket__k{display:flex;align-items:center;gap:6px;margin:0;font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#222;opacity:1}
+.v4-ticket__k svg{width:12px;height:12px}
+.field__card .v4-ticket .v4-ticket__t{font-family:var(--f-display);font-style:normal;font-size:1.6rem;line-height:.95;letter-spacing:-.01em;text-transform:uppercase;margin:8px 0;color:#222}
+.field__card .v4-ticket .v4-ticket__d{margin:0;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#222;opacity:.7}
+.field__card .v4-bubble{font-family:inherit;font-size:.86rem}
+.v4-info{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.v4-info li{display:flex;align-items:center;gap:10px;font-size:.9rem;border-radius:12px;padding:9px 11px;background:#fff;color:#222}
+.v4-info i{width:28px;height:28px;flex:none;border-radius:8px;display:grid;place-items:center;background:var(--rose);color:#222}
+.v4-info i svg{width:17px;height:17px}
+.v4-mail{max-width:none}
+.v4-arc{right:-30px;top:calc(var(--v4-gap) - 70px);width:min(340px,28vw)}
+main>section.panel.final{margin-top:var(--gutter)}
+.final{position:relative;overflow:hidden}
+.final .v4-final__line{position:absolute;left:-3%;top:clamp(-90px,-6vw,-30px);width:106%;height:auto;color:var(--rose);pointer-events:none;z-index:1}
+.final .bigo--d{left:auto!important;right:-12%!important;bottom:-14%!important;opacity:.55}
+.v4-final__ctas{align-items:center;gap:18px 26px!important}
+@media (max-width:760px){.field__card.v4-split{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:900px){.v4-pro__grid{grid-template-columns:minmax(0,1fr)}.v4-pro__grid li .v4-pc{transform:rotate(0)!important}.v4-steps ol{grid-template-columns:minmax(0,1fr)}.v4-arc{display:none}}
 @media (prefers-reduced-motion:reduce){.v4-draw path{transition:none;stroke-dashoffset:0}.v4-live i{animation:none}.v4-pc,.field__card{transition:none}}
 </style></head>
@@ -1194,7 +1231,16 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
         </div>
       </article>
     </div>
-  </section><section class="v4-steps"><p class="v4-eyebrow v4-reveal">Comment ça marche</p><h2 class="h2">en trois <span class="script">étapes</span>.</h2><ol><li><span>01</span><h3>Importez votre logo</h3><p>Les couleurs de votre page sont tirées de votre logo, et vous pouvez les ajuster.</p></li><li><span>02</span><h3>Branchez votre domaine</h3><p>Votre billetterie s’affiche sur votre propre adresse, avec un certificat SSL automatique.</p></li><li><span>03</span><h3>Restez en contact</h3><p>Rappels avant l’événement, remerciement après, campagnes avec statistiques d’ouverture.</p></li></ol></section><section class="v4-final" aria-labelledby="final-title"><div class="v4-final__card"><svg class="v4-draw v4-final__line" viewBox="0 0 1000 260" fill="none" aria-hidden="true" preserveAspectRatio="none"><path pathLength="1" d="M-10 210 C 120 230, 260 220, 300 150 C 330 90, 250 40, 200 70 C 150 100, 210 160, 330 160 C 560 160, 860 120, 1010 20" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg><h2 class="h2" id="final-title">à vous de <span class="script">jouer</span>.</h2><p class="lede">Créez votre compte gratuitement, sans carte bancaire. Votre premier événement peut être en ligne en quelques minutes.</p><div class="v4-final__ctas"><a class="v4-cta" href="https://app.evoly.me/register" target="_blank" rel="noopener"><span class="v4-cta__pill">Créer mon premier événement</span><span class="v4-cta__round" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a><a class="v4-link" href="https://app.evoly.me/register?plan=pro" target="_blank" rel="noopener">Essayer Pro 14 jours</a></div></div></section></main>
+  </section><section class="v4-steps"><p class="v4-eyebrow v4-reveal">Comment ça marche</p><h2 class="h2">en trois <span class="script">étapes</span>.</h2><ol><li><span>01</span><h3>Importez votre logo</h3><p>Les couleurs de votre page sont tirées de votre logo, et vous pouvez les ajuster.</p></li><li><span>02</span><h3>Branchez votre domaine</h3><p>Votre billetterie s’affiche sur votre propre adresse, avec un certificat SSL automatique.</p></li><li><span>03</span><h3>Restez en contact</h3><p>Rappels avant l’événement, remerciement après, campagnes avec statistiques d’ouverture.</p></li></ol></section><section class="panel panel--dark final" aria-labelledby="final-title"><svg class="v4-draw v4-final__line" viewBox="0 0 1000 200" fill="none" aria-hidden="true" preserveAspectRatio="none"><path pathLength="1" d="M-10 150 C 120 170, 250 165, 290 110 C 320 65, 250 30, 205 52 C 160 75, 215 122, 330 122 C 560 122, 850 90, 1010 12" stroke="currentColor" stroke-width="7" stroke-linecap="round"/></svg>
+    <div class="hero__bg" aria-hidden="true">
+      <div class="bigo bigo--d"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg></div>
+    </div>
+    <div class="final__inner">
+      <h2 class="h2 final__title" id="final-title">à vous de <span class="script">jouer</span>.</h2>
+      <p class="lede">Créez votre compte gratuitement, sans carte bancaire. Votre premier événement peut être en ligne en quelques minutes.</p>
+      <div class="final__ctas v4-final__ctas"><a class="v4-cta" href="https://app.evoly.me/register" target="_blank" rel="noopener"><span class="v4-cta__pill">Créer mon premier événement</span><span class="v4-cta__round" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a><a class="v4-link" href="https://app.evoly.me/register?plan=pro" target="_blank" rel="noopener">Essayer Pro 14 jours</a></div>
+    </div>
+  </section></main>
 
 <footer class="footer">
   <div class="footer__brand"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#i-o" width="100" height="100"/></svg><span>Votre prochain souvenir vous attend.</span></div>
@@ -1851,5 +1897,5 @@ main>section.panel:not(.hero){margin-top:calc(var(--v4-gap)*.62)}
 const count=(el)=>{const to=+el.dataset.count;if(reduce){el.textContent=to.toLocaleString('fr-FR');return}const t0=performance.now();const step=(t)=>{const p=Math.min(1,(t-t0)/1500);el.textContent=Math.round(to*(1-Math.pow(1-p,3))).toLocaleString('fr-FR');if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)};
 const io=new IntersectionObserver((es)=>es.forEach((e)=>{if(!e.isIntersecting)return;e.target.classList.add('is-in');if(e.target.dataset.count)count(e.target);io.unobserve(e.target)}),{threshold:.3});
 document.querySelectorAll('.v4-draw,.v4-reveal,[data-count]').forEach((el)=>reduce?(el.classList.add('is-in'),el.dataset.count&&count(el)):io.observe(el));
-const h=document.querySelector('.v4-hello');if(h){h.classList.add('is-on');if(!reduce){const w=h.dataset.words.split('|');let i=0;setInterval(()=>{i=(i+1)%w.length;h.classList.remove('is-on');setTimeout(()=>{h.textContent=w[i];h.classList.add('is-on')},230)},1800)}}})();</script></body>
+const hl=document.querySelector('.hero .hl svg path');if(hl&&!reduce){const L=hl.closest('svg').getBoundingClientRect().width*1.04;hl.style.strokeDasharray=L;hl.style.strokeDashoffset=L;setTimeout(()=>{hl.style.transition='stroke-dashoffset 1.6s cubic-bezier(.65,0,.35,1)';hl.style.strokeDashoffset='0'},650)}const h=document.querySelector('.v4-hello');if(h){h.classList.add('is-on');if(!reduce){const w=h.dataset.words.split('|');let i=0;setInterval(()=>{i=(i+1)%w.length;h.classList.remove('is-on');setTimeout(()=>{h.textContent=w[i];h.classList.add('is-on')},230)},1800)}}})();</script></body>
 </html>
