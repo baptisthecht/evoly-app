@@ -89,7 +89,7 @@ jobs:
           npx playwright install --with-deps chromium
           (npx next start -p 3001 &) && npx wait-on -t 60000 http://localhost:3001/api/health
           npx playwright test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: playwright-traces
