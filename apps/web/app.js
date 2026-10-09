@@ -639,3 +639,25 @@ const count=(el)=>{const to=+el.dataset.count;if(reduce){el.textContent=to.toLoc
 const io=new IntersectionObserver((es)=>es.forEach((e)=>{if(!e.isIntersecting)return;e.target.classList.add('is-in');if(e.target.dataset.count)count(e.target);io.unobserve(e.target)}),{threshold:.3});
 document.querySelectorAll('.v4-draw,.v4-reveal,[data-count]').forEach((el)=>reduce?(el.classList.add('is-in'),el.dataset.count&&count(el)):io.observe(el));
 const hl=document.querySelector('.hero .hl svg path');if(hl&&!reduce){const L=hl.closest('svg').getBoundingClientRect().width*1.04;hl.style.strokeDasharray=L;hl.style.strokeDashoffset=L;setTimeout(()=>{hl.style.transition='stroke-dashoffset 1.6s cubic-bezier(.65,0,.35,1)';hl.style.strokeDashoffset='0'},650)}const h=document.querySelector('.v4-hello');if(h){h.classList.add('is-on');if(!reduce){const w=h.dataset.words.split('|');let i=0;setInterval(()=>{i=(i+1)%w.length;h.classList.remove('is-on');setTimeout(()=>{h.textContent=w[i];h.classList.add('is-on')},230)},1800)}}})();
+/* Traits à épaisseur constante (.v4-wave) : longueur mesurée à l'écran pour l'animation de tracé, recalculée au redimensionnement */
+(() => {
+  const lines = [...document.querySelectorAll('.v4-wave')];
+  if (!lines.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const len = (p) => {
+    const m = p.getScreenCTM(); if (!m) return 0;
+    const T = p.getTotalLength(), N = 180; let L = 0, prev = null;
+    for (let i = 0; i <= N; i++) { const q = p.getPointAtLength((T * i) / N).matrixTransform(m); if (prev) L += Math.hypot(q.x - prev.x, q.y - prev.y); prev = q; }
+    return Math.ceil(L) + 4;
+  };
+  const setup = (svg) => { const p = svg.querySelector('path'), L = len(p); p.style.transition = 'none'; p.style.strokeDasharray = L; p.style.strokeDashoffset = svg.dataset.drawn ? 0 : L; };
+  lines.forEach(setup);
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (!e.isIntersecting) return;
+    const p = e.target.querySelector('path'); e.target.dataset.drawn = '1';
+    requestAnimationFrame(() => { p.style.transition = 'stroke-dashoffset 2.8s cubic-bezier(.65,0,.35,1)'; p.style.strokeDashoffset = '0'; });
+    io.unobserve(e.target);
+  }), { threshold: 0.2 });
+  lines.forEach((s) => io.observe(s));
+  let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => lines.forEach(setup), 150); });
+})();
+
