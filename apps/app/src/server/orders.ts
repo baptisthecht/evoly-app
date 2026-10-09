@@ -24,7 +24,7 @@ export function ticketsUrl(org: { subdomain: string | null; slug: string }, orde
 }
 
 /** E-mail de confirmation avec le lien magique vers les billets (section 9.12). */
-export async function sendOrderConfirmation(orderId: string): Promise<void> {
+export async function sendOrderConfirmation(orderId: string, template = "order.confirmation"): Promise<void> {
   const order = await db.order.findUniqueOrThrow({
     where: { id: orderId },
     include: {
@@ -62,7 +62,7 @@ export async function sendOrderConfirmation(orderId: string): Promise<void> {
   await sendEmail({
     ...email,
     to: order.buyerEmail,
-    template: "order.confirmation",
+    template,
     category: "TRANSACTIONAL",
     organizationId: order.organizationId,
     orderId: order.id,

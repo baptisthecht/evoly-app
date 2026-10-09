@@ -1232,3 +1232,75 @@ export function salesOpenEmail(o: {
   ].join("\n");
   return { subject: c.subject(o.eventTitle), html, text };
 }
+
+const LATE_COPY = {
+  fr: {
+    subject: (e: string) => `${e} : votre paiement est remboursé`,
+    title: "Votre paiement est remboursé",
+    body: (e: string, a: string) =>
+      `Votre paiement pour ${e} est arrivé après la fin de votre réservation, et les places n’étaient plus disponibles. Nous vous avons remboursé ${a} : le montant apparaîtra sur votre compte sous quelques jours.`,
+    outro: "Aucune action n’est nécessaire de votre part.",
+  },
+  en: {
+    subject: (e: string) => `${e}: your payment has been refunded`,
+    title: "Your payment has been refunded",
+    body: (e: string, a: string) =>
+      `Your payment for ${e} arrived after your reservation ended, and the tickets were no longer available. We have refunded ${a}: it will appear on your account within a few days.`,
+    outro: "You don’t need to do anything.",
+  },
+  es: {
+    subject: (e: string) => `${e}: tu pago ha sido reembolsado`,
+    title: "Tu pago ha sido reembolsado",
+    body: (e: string, a: string) =>
+      `Tu pago para ${e} llegó después del final de tu reserva y las entradas ya no estaban disponibles. Te hemos reembolsado ${a}: aparecerá en tu cuenta en unos días.`,
+    outro: "No tienes que hacer nada.",
+  },
+  de: {
+    subject: (e: string) => `${e}: Ihre Zahlung wurde erstattet`,
+    title: "Ihre Zahlung wurde erstattet",
+    body: (e: string, a: string) =>
+      `Ihre Zahlung für ${e} ist nach Ablauf Ihrer Reservierung eingegangen, und die Tickets waren nicht mehr verfügbar. Wir haben Ihnen ${a} erstattet: Der Betrag erscheint in wenigen Tagen auf Ihrem Konto.`,
+    outro: "Sie müssen nichts tun.",
+  },
+  it: {
+    subject: (e: string) => `${e}: il tuo pagamento è stato rimborsato`,
+    title: "Il tuo pagamento è stato rimborsato",
+    body: (e: string, a: string) =>
+      `Il tuo pagamento per ${e} è arrivato dopo la fine della prenotazione e i biglietti non erano più disponibili. Ti abbiamo rimborsato ${a}: comparirà sul tuo conto entro pochi giorni.`,
+    outro: "Non devi fare nulla.",
+  },
+  pt: {
+    subject: (e: string) => `${e}: o seu pagamento foi reembolsado`,
+    title: "O seu pagamento foi reembolsado",
+    body: (e: string, a: string) =>
+      `O seu pagamento para ${e} chegou depois do fim da sua reserva e os bilhetes já não estavam disponíveis. Reembolsámos ${a}: o valor aparecerá na sua conta dentro de alguns dias.`,
+    outro: "Não precisa de fazer nada.",
+  },
+  nl: {
+    subject: (e: string) => `${e}: je betaling is terugbetaald`,
+    title: "Je betaling is terugbetaald",
+    body: (e: string, a: string) =>
+      `Je betaling voor ${e} kwam binnen na het einde van je reservering en de tickets waren niet meer beschikbaar. We hebben ${a} terugbetaald: het bedrag staat binnen enkele dagen op je rekening.`,
+    outro: "Je hoeft niets te doen.",
+  },
+};
+
+/** `order.late_payment_refunded` (section 10) : paiement arrivé après l'expiration de la réservation, places épuisées, remboursement intégral. */
+export function latePaymentRefundEmail(o: {
+  brand?: EmailBrand | null;
+  locale: Locale;
+  organizationName: string;
+  eventTitle: string;
+  amount: string;
+}): RenderedEmail {
+  const c = pick(LATE_COPY, o.locale);
+  const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
+<tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
+<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(c.title)}</td></tr>
+<tr><td style="font-size:15px;line-height:1.6;padding-bottom:12px">${escapeHtml(c.body(o.eventTitle, o.amount))}</td></tr>
+<tr><td style="font-size:13px;color:#777">${escapeHtml(c.outro)}</td></tr>
+</table></td></tr></table></body></html>`;
+  return { subject: c.subject(o.eventTitle), html, text: [o.organizationName, c.title, "", c.body(o.eventTitle, o.amount), "", c.outro].join("\n") };
+}

@@ -32,6 +32,8 @@ sonde() {
 sonde holds "Libération des places" "* * * * *" 300 "Libère les places des paniers abandonnés, chaque minute. Sans elle, des places restent bloquées."
 sonde publications "Publications programmées" "* * * * *" 300 "Prévient les organisateurs quand un événement programmé devient public, chaque minute."
 sonde webhooks "Relance des webhooks" "*/5 * * * *" 600 "Rejoue les webhooks Stripe en échec, jusqu'à 10 tentatives sur 3 jours (section 11)."
+sonde maintenance "Maintenance" "17 * * * *" 3600 "Jetons et redirections expirés, agrégats quotidiens des événements (section 11)."
+sonde retention "Conservation des données" "20 4 * * *" 7200 "Anonymisation au-delà des durées de conservation (RG-RGPD-02)."
 sonde campaigns "Campagnes" "*/5 * * * *" 600 "Envoie les campagnes programmées."
 sonde emails "E-mails" "*/5 * * * *" 600 "Relance les e-mails en attente."
 sonde domains "Domaines" "*/10 * * * *" 1200 "Vérifie le DNS des domaines personnalisés."

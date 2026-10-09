@@ -117,7 +117,8 @@ export async function correctBuyerEmail(ctx: OrgContext, orderId: string, email:
     targetId: order.id,
     metadata: { from: order.buyerEmail, to: next },
   });
-  if (order.status === "PAID" || order.status === "PARTIALLY_REFUNDED") await sendOrderConfirmation(order.id);
+  // section 10 : order.email_changed, les billets envoyés à la nouvelle adresse (l'ancien lien ne fonctionne plus)
+  if (order.status === "PAID" || order.status === "PARTIALLY_REFUNDED") await sendOrderConfirmation(order.id, "order.email_changed");
 }
 
 /** US-ORD-02 : correction du nom d'un titulaire par l'organisateur. */

@@ -27,6 +27,7 @@ Les e-mails marketing des organisateurs (campagnes, e-mails automatiques) contie
 - Commandes et relevés : durée légale de conservation des pièces comptables (sept ans en Belgique) ; à la suppression d'une organisation, les commandes sont anonymisées.
 - Contacts marketing : jusqu'à la désinscription ou la suppression de l'organisation.
 - Journaux de sécurité : 12 mois.
+- Journaux d’envoi des e-mails : 12 mois, puis l’adresse du destinataire est anonymisée.
 
 ## 4. Sous-traitants
 

@@ -31,6 +31,11 @@ import { getPlans } from "./plans";
 import { salesOpeningAt } from "@evoly/core";
 import { presaleCodeFor } from "./presale";
 import { hasFeature } from "@evoly/core";
+import { latePaymentRefundEmail } from "./email/templates";
+import { emailBrandFor } from "./email/brand";
+import { sendEmail } from "./email/send";
+import { safeError } from "@/lib/redact";
+import { formatMoney, toLocale } from "@evoly/i18n";
 
 type Tx = Prisma.TransactionClient;
 
@@ -668,7 +673,19 @@ export async function finalizeOrder(
 /** Paiement tardif sans place disponible : remboursement intégral, commission comprise (Evoly n'a rien vendu). */
 export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
   const s = stripe();
-  const order = await db.order.findUnique({ where: { id: orderId }, select: { stripePaymentIntentId: true, organizationId: true, totalMinor: true } });
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: {
+      stripePaymentIntentId: true,
+      organizationId: true,
+      totalMinor: true,
+      currency: true,
+      buyerEmail: true,
+      buyerLocale: true,
+      event: { select: { title: true } },
+      organization: { select: { name: true } },
+    },
+  });
   const account = order ? await db.stripeAccount.findUnique({ where: { organizationId: order.organizationId }, select: { stripeAccountId: true } }) : null;
   if (!s || !order?.stripePaymentIntentId || !account) return;
   await s.refunds.create(
@@ -681,6 +698,26 @@ export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
     { stripeAccount: account.stripeAccountId, idempotencyKey: `order:${orderId}:unfulfilled-refund` },
   );
   await db.order.update({ where: { id: orderId }, data: { status: "REFUNDED", refundedMinor: order.totalMinor } });
+  // section 10 : order.late_payment_refunded, pour que l'acheteur comprenne le débit puis le remboursement
+  const locale = toLocale(order.buyerLocale);
+  const mail = latePaymentRefundEmail({
+    brand: await emailBrandFor(order.organizationId).catch(() => null),
+    locale,
+    organizationName: order.organization.name,
+    eventTitle: order.event.title,
+    amount: formatMoney(order.totalMinor, order.currency, locale),
+  });
+  await sendEmail({
+    to: order.buyerEmail,
+    subject: mail.subject,
+    html: mail.html,
+    text: mail.text,
+    category: "SERVICE",
+    template: "order.late_payment_refunded",
+    organizationId: order.organizationId,
+    orderId,
+    fromName: order.organization.name,
+  }).catch((err) => console.error("e-mail de paiement tardif", orderId, safeError(err)));
 }
 
 /** RG-QST-02 : l'acheteur modifie le titulaire d'un billet jusqu'au début de l'événement, sauf interdiction de l'organisateur. */
