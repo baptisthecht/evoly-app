@@ -76,7 +76,7 @@ export async function startCheckout(ctx: OrgContext, interval: "MONTH" | "YEAR")
   if (state.sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID", "INCOMPLETE"].includes(state.sub.status))
     throw new CoreError("ALREADY_SUBSCRIBED");
   const customer = await ensureCustomer(s, ctx);
-  const priceId = interval === "MONTH" ? env().STRIPE_PRICE_PRO_MONTH : env().STRIPE_PRICE_PRO_YEAR;
+  const priceId = await proPriceId(state.currency, interval);
   const trialDays = state.trialEligible ? ((await db.plan.findUnique({ where: { id: "pro" }, select: { trialDays: true } }))?.trialDays ?? 14) : 0;
   const session = await s.checkout.sessions.create({
     mode: "subscription",
@@ -265,4 +265,48 @@ export async function invoicePaid(subscriptionId: string | null) {
   const row = await db.subscription.findFirst({ where: { stripeSubscriptionId: subscriptionId } });
   if (row && (row.pastDueSince || row.status === "PAST_DUE" || row.status === "UNPAID"))
     await db.subscription.update({ where: { id: row.id }, data: { pastDueSince: null, status: "ACTIVE" } });
+}
+
+/** Prix Stripe de Pro dans la devise de l'organisation : celui des conditions tarifaires, sinon (euro) celui de la configuration, sinon aucun (prix créé à la volée). */
+async function proPriceId(currency: string, interval: "MONTH" | "YEAR") {
+  const terms = await db.planCurrencyTerms.findUnique({
+    where: { planId_currency: { planId: "pro", currency } },
+    select: { stripePriceIdMonthly: true, stripePriceIdYearly: true },
+  });
+  const stored = interval === "MONTH" ? terms?.stripePriceIdMonthly : terms?.stripePriceIdYearly;
+  if (stored) return stored;
+  if (currency !== "EUR") return null;
+  return (interval === "MONTH" ? env().STRIPE_PRICE_PRO_MONTH : env().STRIPE_PRICE_PRO_YEAR) ?? null;
+}
+
+/** RG-SUB-05 : passage du mensuel à l'annuel (ou l'inverse) depuis l'app, crédit au prorata calculé par Stripe. */
+export async function switchInterval(ctx: OrgContext, interval: "MONTH" | "YEAR") {
+  const s = stripe();
+  if (!s) throw new CoreError("BILLING_UNAVAILABLE");
+  const state = await billingState(ctx);
+  const subId = state.sub?.stripeSubscriptionId;
+  if (!subId || !["TRIALING", "ACTIVE"].includes(state.sub!.status)) throw new CoreError("NOT_SUBSCRIBED");
+  const sub = await s.subscriptions.retrieve(subId);
+  const item = sub.items.data[0];
+  if (!item) throw new CoreError("NOT_SUBSCRIBED");
+  if ((item.price.recurring?.interval === "year") === (interval === "YEAR")) return;
+  const priceId = await proPriceId(state.currency, interval);
+  const product = typeof item.price.product === "string" ? item.price.product : item.price.product.id;
+  await s.subscriptions.update(subId, {
+    items: [
+      priceId
+        ? { id: item.id, price: priceId }
+        : {
+            id: item.id,
+            price_data: {
+              currency: state.currency.toLowerCase(),
+              product,
+              unit_amount: state.prices[interval],
+              tax_behavior: "inclusive",
+              recurring: { interval: interval === "MONTH" ? "month" : "year" },
+            },
+          },
+    ],
+    proration_behavior: "create_prorations",
+  });
 }

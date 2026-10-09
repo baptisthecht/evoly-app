@@ -1498,7 +1498,11 @@
     "badge_PARTNER": "Ofrecida por Evoly",
     "partnerBody": "Todas las funciones Pro, sin comisión de Evoly en tus entradas. Solo se aplican los gastos de pago de Stripe.",
     "partnerUntil": "Ofrecida hasta el {date}.",
-    "feature_PRESALE_CODES": "Preventa privada con códigos"
+    "feature_PRESALE_CODES": "Preventa privada con códigos",
+    "switchToYear": "Pasar al anual: {price} al año (−15 %)",
+    "switchToMonth": "Pasar al mensual: {price} al mes",
+    "switchDone": "Hecho. Stripe tiene en cuenta el prorrateo en tu próxima factura.",
+    "switchError": "No se pudo hacer el cambio. Inténtalo de nuevo o usa «Gestionar mi suscripción»."
   },
   "brand": {
     "sloganStart": "tu próximo",

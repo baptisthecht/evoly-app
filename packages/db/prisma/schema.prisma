@@ -175,8 +175,8 @@ model PlanCurrencyTerms {
   id                   String  @id @default(cuid())
   planId               String
   currency             String  @db.Char(3)
-  feeFixedMinor        Int // part fixe de la commission par billet payant : 15 = 0,15
-  feeCapMinor          Int // plafond de la commission par billet : 100 (Free), 70 (Pro)
+  feeFixedMinor        Int // part fixe de la commission par billet payant : 29 = 0,29 €
+  feeCapMinor          Int // plafond de la commission par billet : 250 (Free), 100 (Pro), en euros
   monthlyPriceMinor    Int // prix de l'abonnement mensuel
   yearlyPriceMinor     Int // prix de l'abonnement annuel (−15 %)
   pricesIncludeTax     Boolean @default(true) // ⚠ à valider avec le comptable

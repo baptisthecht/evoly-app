@@ -105,6 +105,13 @@ async function main() {
     { planId: "free", currency: "EUR", feeFixedMinor: 29, feeCapMinor: 250, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
     { planId: "pro", currency: "EUR", feeFixedMinor: 29, feeCapMinor: 100, monthlyPriceMinor: 2900, yearlyPriceMinor: 29580 },
     { planId: "partner", currency: "EUR", feeFixedMinor: 0, feeCapMinor: 0, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
+    // livre : équivalent de l'euro (1 € ≈ 0,855 £, été 2026) ; franc suisse : mêmes montants qu'en euros
+    { planId: "free", currency: "GBP", feeFixedMinor: 25, feeCapMinor: 215, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
+    { planId: "pro", currency: "GBP", feeFixedMinor: 25, feeCapMinor: 85, monthlyPriceMinor: 2500, yearlyPriceMinor: 25500 },
+    { planId: "partner", currency: "GBP", feeFixedMinor: 0, feeCapMinor: 0, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
+    { planId: "free", currency: "CHF", feeFixedMinor: 29, feeCapMinor: 250, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
+    { planId: "pro", currency: "CHF", feeFixedMinor: 29, feeCapMinor: 100, monthlyPriceMinor: 2900, yearlyPriceMinor: 29580 },
+    { planId: "partner", currency: "CHF", feeFixedMinor: 0, feeCapMinor: 0, monthlyPriceMinor: 0, yearlyPriceMinor: 0 },
   ];
   for (const t of terms) {
     await prisma.planCurrencyTerms.upsert({

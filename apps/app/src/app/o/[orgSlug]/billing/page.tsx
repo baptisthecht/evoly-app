@@ -9,6 +9,7 @@ import { referralLink } from "@/server/referrals";
 import { ReferralCard } from "./ReferralCard";
 import { getPlans } from "@/server/plans";
 import { ManageSubscription, PlanPicker } from "./PlanPicker";
+import { SwitchInterval } from "./SwitchInterval";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -94,6 +95,17 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
           isPro && sub?.stripeCustomerId ? (
             <div className="grid gap-4">
               <ManageSubscription orgSlug={orgSlug} />
+              {sub.status === "TRIALING" || sub.status === "ACTIVE" ? (
+                <SwitchInterval
+                  orgSlug={orgSlug}
+                  target={sub.interval === "YEAR" ? "MONTH" : "YEAR"}
+                  label={
+                    sub.interval === "YEAR" ? t("switchToMonth", { price: money(state.prices.MONTH) }) : t("switchToYear", { price: money(state.prices.YEAR) })
+                  }
+                  done={t("switchDone")}
+                  error={t("switchError")}
+                />
+              ) : null}
               <div className="rounded-md bg-surface-sunken p-4 text-sm">
                 <p className="font-semibold">{t("downgradeTitle")}</p>
                 <ul className="mt-2 grid list-disc gap-1 pl-5">

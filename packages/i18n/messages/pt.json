@@ -1498,7 +1498,11 @@
     "badge_PARTNER": "Oferecida pela Evoly",
     "partnerBody": "Todas as funcionalidades Pro, sem comissão Evoly nos seus bilhetes. Aplicam-se apenas as taxas de pagamento da Stripe.",
     "partnerUntil": "Oferecida até {date}.",
-    "feature_PRESALE_CODES": "Pré-venda privada com códigos"
+    "feature_PRESALE_CODES": "Pré-venda privada com códigos",
+    "switchToYear": "Mudar para anual: {price} por ano (−15 %)",
+    "switchToMonth": "Mudar para mensal: {price} por mês",
+    "switchDone": "Feito. A Stripe tem em conta o rateio na sua próxima fatura.",
+    "switchError": "Não foi possível fazer a alteração. Tente novamente ou use «Gerir a subscrição»."
   },
   "brand": {
     "sloganStart": "a sua próxima",

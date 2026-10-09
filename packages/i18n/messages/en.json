@@ -1488,7 +1488,11 @@
     "badge_PARTNER": "Provided by Evoly",
     "partnerBody": "All Pro features, with no Evoly fee on your tickets. Only Stripe’s payment fees apply.",
     "partnerUntil": "Provided until {date}.",
-    "feature_PRESALE_CODES": "Private presale with codes"
+    "feature_PRESALE_CODES": "Private presale with codes",
+    "switchToYear": "Switch to yearly: {price} per year (−15%)",
+    "switchToMonth": "Switch to monthly: {price} per month",
+    "switchDone": "Done. Stripe accounts for the proration on your next invoice.",
+    "switchError": "The change couldn’t be made. Try again or use “Manage my subscription”."
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Edit organisation settings",

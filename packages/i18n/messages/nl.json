@@ -1498,7 +1498,11 @@
     "badge_PARTNER": "Aangeboden door Evoly",
     "partnerBody": "Alle Pro-functies, zonder Evoly-commissie op je tickets. Alleen de betaalkosten van Stripe zijn van toepassing.",
     "partnerUntil": "Aangeboden tot {date}.",
-    "feature_PRESALE_CODES": "Privévoorverkoop met codes"
+    "feature_PRESALE_CODES": "Privévoorverkoop met codes",
+    "switchToYear": "Overstappen op jaarlijks: {price} per jaar (−15%)",
+    "switchToMonth": "Overstappen op maandelijks: {price} per maand",
+    "switchDone": "Klaar. Stripe verrekent het pro rata op je volgende factuur.",
+    "switchError": "De wijziging lukte niet. Probeer opnieuw of gebruik ‘Abonnement beheren’."
   },
   "brand": {
     "sloganStart": "je volgende",

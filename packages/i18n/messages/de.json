@@ -1498,7 +1498,11 @@
     "badge_PARTNER": "Angeboten von Evoly",
     "partnerBody": "Alle Pro-Funktionen, ohne Evoly-Gebühr auf Ihre Tickets. Es fallen nur die Zahlungsgebühren von Stripe an.",
     "partnerUntil": "Angeboten bis {date}.",
-    "feature_PRESALE_CODES": "Privater Vorverkauf mit Codes"
+    "feature_PRESALE_CODES": "Privater Vorverkauf mit Codes",
+    "switchToYear": "Zu jährlich wechseln: {price} pro Jahr (−15 %)",
+    "switchToMonth": "Zu monatlich wechseln: {price} pro Monat",
+    "switchDone": "Erledigt. Stripe berücksichtigt die anteilige Verrechnung auf Ihrer nächsten Rechnung.",
+    "switchError": "Die Änderung war nicht möglich. Bitte erneut versuchen oder „Abo verwalten“ nutzen."
   },
   "brand": {
     "sloganStart": "deine nächste",

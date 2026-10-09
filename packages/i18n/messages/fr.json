@@ -1488,7 +1488,11 @@
     "badge_PARTNER": "Offerte par Evoly",
     "partnerBody": "Toutes les fonctionnalités Pro, sans commission Evoly sur vos billets. Seuls les frais de paiement de Stripe s’appliquent.",
     "partnerUntil": "Offerte jusqu’au {date}.",
-    "feature_PRESALE_CODES": "Prévente privée par codes"
+    "feature_PRESALE_CODES": "Prévente privée par codes",
+    "switchToYear": "Passer à l’annuel : {price} par an (−15 %)",
+    "switchToMonth": "Passer au mensuel : {price} par mois",
+    "switchDone": "C’est fait. Stripe tient compte du prorata sur votre prochaine facture.",
+    "switchError": "Le changement n’a pas pu être fait. Réessayez ou passez par « Gérer mon abonnement »."
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Modifier les paramètres de l’organisation",
