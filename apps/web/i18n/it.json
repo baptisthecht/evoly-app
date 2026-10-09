@@ -687,7 +687,7 @@
   "c6e92500": "Confronto",
   "9a1fc173": "Domande",
   "a7b69aab": "Prezzi dinamici per i tuoi biglietti - Evoly",
-  "06cd72d5": "Prevendita, tariffa normale, tariffa del giorno dell’evento: fai evolvere automaticamente il prezzo dei tuoi biglietti in base alla data di acquisto o al numero di posti venduti.",
+  "06cd72d5": "Prevendita, tariffa normale, giorno dell’evento: il prezzo dei biglietti cambia in automatico secondo la data d’acquisto o i posti venduti.",
   "3b7c8196": "I prezzi dinamici sono inclusi nell’offerta gratuita?",
   "94a9a209": "No, fanno parte dell’offerta Pro, che puoi provare gratis per 14 giorni.",
   "417f2544": "Quale prezzo paga un partecipante?",
@@ -762,5 +762,11 @@
   "f183365e": ". I tuoi codici di prevendita aprono l’acquisto prima.",
   "6b6390a4": "LinkedIn",
   "5721bbef": "Instagram",
-  "ee3935f2": "Evoly Solutions"
+  "ee3935f2": "Evoly Solutions",
+  "c1de471b": "Biglietteria online al prezzo indicato: commissione con tetto, 0 % sui biglietti gratuiti, rivendita integrata e controllo accessi con codice QR.",
+  "99b25d52": "Programma il lancio, crea attesa con un annuncio e un conto alla rovescia, avvisa gli interessati e apri una prevendita privata con codici.",
+  "f5691f4d": "Crea la tua mappa dei posti in pochi minuti: teatro, gala o stadio. I posti migliori vengono assegnati in automatico o scelti sulla mappa.",
+  "f094aa52": "Biglietteria online per associazioni e club: 0 % sui biglietti gratuiti, nessuna donazione suggerita ai partecipanti e commissione con tetto.",
+  "2cd51805": "Evoly o Eventbrite? Confronta i costi biglietto per biglietto: la commissione di Evoly ha un tetto e i partecipanti pagano il prezzo indicato.",
+  "2ec70055": "Evoly è una biglietteria online indipendente, nata in Belgio da Evoly Solutions: commissione con tetto e prezzo indicato, senza costi aggiunti."
 }

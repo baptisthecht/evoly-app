@@ -677,7 +677,7 @@ import json as _json, re as _re
 SITE = 'https://evoly.me'
 SEO_TITLE = 'Evoly - Billetterie en ligne : prix affiché, prix payé'
 OG_VERSION = '2'  # à incrémenter quand les images d'aperçu changent (caches de Facebook, WhatsApp, LinkedIn)
-SEO_DESC = 'Vendez vos billets en ligne en quelques minutes : paiement mobile avec Apple Pay et Google Pay, revente entre participants, plan de salle et statistiques en direct. La commission est plafonnée et vos participants paient le prix affiché.'
+SEO_DESC = 'Billetterie en ligne au prix affiché : commission plafonnée, 0 % sur les billets gratuits, revente intégrée et contrôle des entrées par QR code.'
 _strip = lambda t: _re.sub(r'<[^>]+>', '', t).replace('\u202f', ' ').strip()
 LD = {
   '@context': 'https://schema.org',

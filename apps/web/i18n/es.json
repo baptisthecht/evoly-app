@@ -687,7 +687,7 @@
   "c6e92500": "Comparativa",
   "9a1fc173": "Preguntas",
   "a7b69aab": "Precios dinámicos para tus entradas - Evoly",
-  "06cd72d5": "Preventa, tarifa normal, tarifa del día del evento: haz que el precio de tus entradas cambie automáticamente según la fecha de compra o el número de plazas vendidas.",
+  "06cd72d5": "Preventa, tarifa normal, día del evento: el precio de tus entradas cambia solo según la fecha de compra o las plazas vendidas.",
   "3b7c8196": "¿Los precios dinámicos están incluidos en la oferta gratuita?",
   "94a9a209": "No, forman parte de la oferta Pro, que puedes probar gratis durante 14 días.",
   "417f2544": "¿Qué precio paga un asistente?",
@@ -762,5 +762,11 @@
   "f183365e": ". Tus códigos de preventa abren la compra antes.",
   "6b6390a4": "LinkedIn",
   "5721bbef": "Instagram",
-  "ee3935f2": "Evoly Solutions"
+  "ee3935f2": "Evoly Solutions",
+  "c1de471b": "Venta de entradas online al precio anunciado: comisión con tope, 0 % en entradas gratuitas, reventa integrada y control de acceso con código QR.",
+  "99b25d52": "Programa la publicación, crea expectación con un anuncio y una cuenta atrás, avisa a los interesados y abre una preventa privada con códigos.",
+  "f5691f4d": "Crea tu plano de sala en pocos minutos: teatro, gala o estadio. Las mejores plazas se asignan automáticamente o se eligen en el plano.",
+  "f094aa52": "Venta de entradas online para asociaciones y clubes: 0 % en entradas gratuitas, sin donativo sugerido a los asistentes y comisión con tope.",
+  "2cd51805": "¿Evoly o Eventbrite? Compara los gastos entrada por entrada: la comisión de Evoly tiene tope y tus asistentes pagan el precio anunciado.",
+  "2ec70055": "Evoly es una plataforma independiente de venta de entradas creada en Bélgica por Evoly Solutions: comisión con tope y precio anunciado, sin recargos."
 }

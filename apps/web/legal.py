@@ -8,6 +8,15 @@ import pathlib
 import re
 
 ROOT = pathlib.Path(__file__).parent
+LEGAL_DESC = {
+    "cgu": "Conditions d’utilisation d’Evoly pour les organisateurs : compte, commission, paiements, revente et responsabilités.",
+    "conditions-de-vente": "Conditions de vente des billets achetés sur Evoly : paiement, envoi des billets, annulation, remboursement et revente entre participants.",
+    "sous-traitance": "Accord de sous-traitance des données entre Evoly et les organisateurs, au sens de l’article 28 du RGPD.",
+    "privacy": "Politique de confidentialité d’Evoly : données collectées, finalités, hébergement dans l’Union européenne, durées de conservation et droits.",
+    "cookies": "Les cookies utilisés sur Evoly, à quoi ils servent et comment les gérer.",
+    "legal": "Mentions légales d’Evoly : éditeur Evoly Solutions, numéro d’entreprise 1043.315.766, hébergement et contact."
+}
+
 DOCS = [
     ("cgu", "Conditions d'utilisation des organisateurs"),
     ("conditions-de-vente", "Conditions de vente des participants"),
@@ -69,7 +78,7 @@ def render(md: str) -> str:
 
 PAGE = """<!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{title} - Evoly</title><meta name="robots" content="index, follow"><link rel="canonical" href="{canonical}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>{title} - Evoly</title><meta name="description" content="{desc}"><meta name="robots" content="index, follow"><link rel="canonical" href="{canonical}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -102,7 +111,7 @@ def build(out_dir: pathlib.Path | None = None) -> list[pathlib.Path]:
         target.parent.mkdir(parents=True, exist_ok=True)
         # typographie française : espace insécable avant ; : ! ? (hors adresses web)
         body = re.sub(r" ([;:!?])(?!//)", "\u00a0\\1", render(src))
-        target.write_text(PAGE.format(title=html.escape(typo(title)), canonical=f"https://evoly.me/{slug}/", version=VERSION, body=body, links=links.replace("'", "\u2019")), encoding="utf-8")
+        target.write_text(PAGE.format(title=html.escape(typo(title)), desc=html.escape(LEGAL_DESC[slug]), canonical=f"https://evoly.me/{slug}/", version=VERSION, body=body, links=links.replace("'", "\u2019")), encoding="utf-8")
         written.append(target)
     return written
 

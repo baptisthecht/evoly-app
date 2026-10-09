@@ -687,7 +687,7 @@
   "c6e92500": "Comparação",
   "9a1fc173": "Perguntas",
   "a7b69aab": "Preços dinâmicos para os seus bilhetes - Evoly",
-  "06cd72d5": "Pré-venda, tarifa normal, tarifa do próprio dia: faça o preço dos seus bilhetes evoluir automaticamente consoante a data de compra ou o número de lugares vendidos.",
+  "06cd72d5": "Pré-venda, tarifa normal, dia do evento: o preço dos bilhetes muda automaticamente consoante a data de compra ou os lugares vendidos.",
   "3b7c8196": "Os preços dinâmicos estão incluídos na oferta gratuita?",
   "94a9a209": "Não, fazem parte da oferta Pro, que pode experimentar grátis durante 14 dias.",
   "417f2544": "Que preço paga um participante?",
@@ -762,5 +762,11 @@
   "f183365e": ". Os seus códigos de pré-venda abrem a compra mais cedo.",
   "6b6390a4": "LinkedIn",
   "5721bbef": "Instagram",
-  "ee3935f2": "Evoly Solutions"
+  "ee3935f2": "Evoly Solutions",
+  "c1de471b": "Bilheteira online ao preço anunciado: comissão com teto, 0 % nos bilhetes gratuitos, revenda integrada e controlo de entradas por código QR.",
+  "99b25d52": "Programe o lançamento, crie expectativa com um anúncio e uma contagem, avise os interessados e abra uma pré-venda privada com códigos.",
+  "f5691f4d": "Crie a planta da sua sala em poucos minutos: teatro, gala ou estádio. Os melhores lugares são atribuídos automaticamente ou escolhidos.",
+  "f094aa52": "Bilheteira online para associações e clubes: 0 % nos bilhetes gratuitos, nenhum donativo sugerido aos participantes e comissão com teto.",
+  "2cd51805": "Evoly ou Eventbrite? Compare os custos bilhete a bilhete: a comissão da Evoly tem teto e os participantes pagam o preço anunciado.",
+  "2ec70055": "A Evoly é uma bilheteira online independente, criada na Bélgica pela Evoly Solutions: comissão com teto e preço anunciado, sem custos adicionais."
 }
