@@ -662,4 +662,6 @@ const hl=document.querySelector('.hero .hl svg path');if(hl&&!reduce){const L=hl
   lines.forEach((s) => io.observe(s));
   let t; addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => lines.forEach(setup), 150); });
 })();
+/* Pied de page : année courante, même si le site n'a pas été redéployé depuis le 1er janvier */
+document.querySelectorAll('.footer__year').forEach((el) => { el.textContent = String(new Date().getFullYear()); });
 

@@ -6,6 +6,7 @@
 import math, random, base64, sys, os, re, html as H
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+YEAR = __import__('datetime').date.today().year  # année du pied de page, mise à jour par le navigateur (app.js)
 exec(open(os.path.join(HERE, 'paths.py'), encoding='utf-8').read())  # E, V, L, Y, OLOGO, LIVE, O
 TEST = '--test' in sys.argv
 
@@ -594,7 +595,7 @@ BODY = f'''
     <div class="footer__col"><a href="https://evoly.me/cgu/" {EXT}>CGU</a><a href="https://evoly.me/privacy/" {EXT}>Confidentialité</a><a href="https://evoly.me/legal/" {EXT}>Mentions légales</a><a href="https://evoly.me/cookies/" {EXT}>Cookies</a></div>
     <div class="footer__col"><a href="https://www.linkedin.com/company/evoly-tickets/" {EXT}>LinkedIn</a><a href="https://www.instagram.com/evoly.me/" {EXT}>Instagram</a></div>
   </nav>
-  <p class="footer__copy">© 2026 Evoly Solutions</p>
+  <p class="footer__copy">© <span class="footer__year">{YEAR}</span> Evoly Solutions</p>
 </footer>
 
 <div class="toast-wrap" role="status" aria-live="polite"><div class="toast">{icon('i-check', 24, 24)}<span class="toast__msg"></span></div></div>
