@@ -30,6 +30,7 @@ import { stripe } from "@/lib/stripe";
 import { getPlans } from "./plans";
 import { salesOpeningAt } from "@evoly/core";
 import { presaleCodeFor } from "./presale";
+import { hasFeature } from "@evoly/core";
 
 type Tx = Prisma.TransactionClient;
 
@@ -195,6 +196,8 @@ export async function reserveOrder(
     }
     // RG-PRV-02 : un code de prévente valable ouvre l\'achat avant l\'ouverture publique (dates d\'ouverture ignorées, pas les quotas ni les fermetures)
     const opening = salesOpeningAt(event);
+    if (input.presaleCode && opening && opening > now && !hasFeature(plans[effectivePlan(event.organization.subscription, now)].features, "PRESALE_CODES"))
+      throw new CoreError("PRESALE_INVALID"); // RG-PRV-03 : réservée à Pro
     const presale = input.presaleCode && opening && opening > now ? await presaleCodeFor(tx, event, input.presaleCode, now) : null;
     const errors = checkCart(
       {

@@ -861,6 +861,10 @@
     "EMAIL_MARKETING": {
       "title": "Automatische Marketing-E-Mails",
       "body": "Dankeschön nach der Veranstaltung mit dem nächsten Termin, Hinweis auf „letzte Plätze“: automatisch an Ihre Kontakte mit Einwilligung verschickt."
+    },
+    "PRESALE_CODES": {
+      "title": "Privater Vorverkauf",
+      "body": "Erstellen Sie Codes, die den Kauf vor dem öffentlichen Verkaufsstart freischalten, für Mitglieder, Partner oder die Presse: einmalig in großer Zahl, geteilt oder mehrfach nutzbar."
     }
   },
   "upsell": {
@@ -1493,7 +1497,8 @@
     "planPartner": "Partner",
     "badge_PARTNER": "Angeboten von Evoly",
     "partnerBody": "Alle Pro-Funktionen, ohne Evoly-Gebühr auf Ihre Tickets. Es fallen nur die Zahlungsgebühren von Stripe an.",
-    "partnerUntil": "Angeboten bis {date}."
+    "partnerUntil": "Angeboten bis {date}.",
+    "feature_PRESALE_CODES": "Privater Vorverkauf mit Codes"
   },
   "brand": {
     "sloganStart": "deine nächste",

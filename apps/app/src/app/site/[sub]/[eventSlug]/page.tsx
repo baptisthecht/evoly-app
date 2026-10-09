@@ -13,7 +13,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const { sub, eventSlug } = await params;
   const site = await resolveSite(sub);
   if (site?.kind !== "ORG" && site?.kind !== "EVENT") return {};
-  const data = await loadEventForVisitor({ organizationId: site.org.id, slug: eventSlug });
+  const data = await loadEventForVisitor(site.org, { organizationId: site.org.id, slug: eventSlug });
   return data ? eventRouteMetadata(site.org, data, await searchParams) : {};
 }
 
@@ -21,7 +21,7 @@ export default async function PublicEventRoute({ params, searchParams }: Props) 
   const { sub, eventSlug } = await params;
   const site = await siteGate(sub, `/${eventSlug}`);
   if (site.kind === "DISABLED") return <DisabledSite fallback={site.fallback} />;
-  const data = await loadEventForVisitor({ organizationId: site.org.id, slug: eventSlug });
+  const data = await loadEventForVisitor(site.org, { organizationId: site.org.id, slug: eventSlug });
   if (!data) notFound();
   return <EventRouteView org={site.org} data={data} homeHref="/" query={await searchParams} />;
 }

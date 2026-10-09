@@ -35,7 +35,8 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
   const emailBlocks = await eventEmailBlocks(eventId);
   const canPublish = can(ctx.membership, "EVENTS_PUBLISH");
   const waiting = canPublish ? await waitingAlerts(eventId) : 0;
-  const presale = canPublish ? await presaleOverview(eventId) : null;
+  const presaleOn = hasFeature(ctx.features, "PRESALE_CODES");
+  const presale = canPublish && presaleOn ? await presaleOverview(eventId) : null;
   const tp = await getTranslations("publication");
   const when = e.publishAt ? formatDateTime(e.publishAt, e.timezone, toLocale(await getLocale())) : null;
   const publicationStatus = e.publishAt && when ? tp(e.publishAt > new Date() ? "statusScheduled" : "statusLive", { date: when }) : null;
@@ -99,6 +100,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
           readOnly={ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)}
         />
       ) : null}
+      {canPublish && !presaleOn ? <ProLocked orgSlug={orgSlug} feature="PRESALE_CODES" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} /> : null}
       {!readOnly ? <EventEmailBlocks orgSlug={orgSlug} eventId={eventId} ticket={emailBlocks.ticket} reminder={emailBlocks.reminder} /> : null}
       {!readOnly && can(ctx.membership, "MARKETING_MANAGE") ? (
         <EventReminders

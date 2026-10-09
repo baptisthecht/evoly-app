@@ -151,6 +151,7 @@ enum PlanFeature {
   MULTI_ORGANIZATIONS // plusieurs organisations sur un compte
   SEATING_MAPS // placement numéroté
   WALLET_PASSES // Apple Wallet et Google Wallet
+  PRESALE_CODES // prévente privée par codes (Pro)
 }
 
 model Plan {

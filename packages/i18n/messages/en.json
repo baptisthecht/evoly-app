@@ -1487,7 +1487,8 @@
     "planPartner": "Partner",
     "badge_PARTNER": "Provided by Evoly",
     "partnerBody": "All Pro features, with no Evoly fee on your tickets. Only Stripe’s payment fees apply.",
-    "partnerUntil": "Provided until {date}."
+    "partnerUntil": "Provided until {date}.",
+    "feature_PRESALE_CODES": "Private presale with codes"
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Edit organisation settings",
@@ -2041,6 +2042,10 @@
     "EMAIL_MARKETING": {
       "title": "Automated marketing emails",
       "body": "Thank-you email after the event with the next date, “last seats” reminder: sent automatically to your consenting contacts."
+    },
+    "PRESALE_CODES": {
+      "title": "Private presale",
+      "body": "Create codes that unlock purchases before tickets go on sale to the public, for your members, partners or the press: single-use in bulk, shared, or multi-use."
     }
   },
   "seatingEditor": {

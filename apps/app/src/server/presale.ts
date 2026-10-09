@@ -1,9 +1,19 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { CoreError, PRESALE_ALPHABET, humanCode, isValidCustomPresaleCode, normalizePresaleCode, zonedLocalToUtc } from "@evoly/core";
+import {
+  CoreError,
+  PRESALE_ALPHABET,
+  effectivePlan,
+  hasFeature,
+  humanCode,
+  isValidCustomPresaleCode,
+  normalizePresaleCode,
+  zonedLocalToUtc,
+} from "@evoly/core";
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import type { OrgContext } from "./context";
+import { getPlans } from "./plans";
 
 const cookieName = (eventId: string) => `evoly_presale_${eventId}`;
 const MAX_CODES_PER_EVENT = 20_000;
@@ -41,8 +51,15 @@ export async function presaleCookie(eventId: string) {
 
 /** Déverrouillage par le visiteur, depuis le formulaire ou un lien « ?prevente=CODE ». */
 export async function unlockPresale(eventId: string, input: string, now = new Date()) {
-  const event = await db.event.findFirst({ where: { id: eventId, deletedAt: null, status: "PUBLISHED" }, select: { id: true, presaleStartsAt: true } });
-  if (!event) throw new CoreError("PRESALE_INVALID");
+  const event = await db.event.findFirst({
+    where: { id: eventId, deletedAt: null, status: "PUBLISHED" },
+    select: {
+      id: true,
+      presaleStartsAt: true,
+      organization: { select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } },
+    },
+  });
+  if (!event || !(await presaleIncluded(event.organization.subscription, now))) throw new CoreError("PRESALE_INVALID");
   await presaleCodeFor(db, event, input, now);
   (await cookies()).set(cookieName(event.id), normalizePresaleCode(input), {
     httpOnly: true,
@@ -53,7 +70,17 @@ export async function unlockPresale(eventId: string, input: string, now = new Da
   });
 }
 
+/** La prévente est réservée à Pro (et Partenaire) : une organisation revenue en Free ne peut plus utiliser ses codes. */
+export async function presaleIncluded(
+  subscription: { planId: string; status: string; currentPeriodEnd: Date | null; pastDueSince: Date | null } | null,
+  now = new Date(),
+) {
+  const plans = await getPlans();
+  return hasFeature(plans[effectivePlan(subscription as never, now)].features, "PRESALE_CODES");
+}
+
 async function ownEvent(ctx: OrgContext, eventId: string) {
+  if (!hasFeature(ctx.features, "PRESALE_CODES")) throw new CoreError("PRO_REQUIRED");
   const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null } });
   if (!event) throw new CoreError("NOT_FOUND");
   return event;

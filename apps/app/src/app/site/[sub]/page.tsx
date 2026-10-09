@@ -20,7 +20,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const { sub } = await params;
   const site = await resolveSite(sub);
   if (site?.kind === "EVENT") {
-    const data = await loadEventForVisitor({ id: site.eventId });
+    const data = await loadEventForVisitor(site.org, { id: site.eventId });
     return data ? eventRouteMetadata(site.org, data, await searchParams) : {};
   }
   if (site?.kind !== "ORG") return {};
@@ -46,7 +46,7 @@ export default async function OrganizationPublicPage({ params, searchParams }: P
   if (site.kind === "DISABLED") return <DisabledSite fallback={site.fallback} />;
   if (site.kind === "EVENT") {
     // hôte dédié à un événement (sous-domaine d'événement ou domaine personnalisé) : la page de l'événement
-    const data = await loadEventForVisitor({ id: site.eventId });
+    const data = await loadEventForVisitor(site.org, { id: site.eventId });
     if (!data) notFound();
     return <EventRouteView org={site.org} data={data} homeHref={await canonicalOrgUrl(site.org)} query={await searchParams} />;
   }

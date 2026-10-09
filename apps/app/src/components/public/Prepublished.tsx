@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { salesOpeningAt } from "@evoly/core";
+import { hasFeature, salesOpeningAt } from "@evoly/core";
 import { formatDateTime, toLocale } from "@evoly/i18n";
 import { env } from "@/lib/env";
 import { calendarTitle, googleCalendarUrl } from "@/server/calendar";
@@ -159,9 +159,9 @@ export async function SalesCountdown({
 type Query = { apercu?: string; prevente?: string };
 
 /** Chargement pour un visiteur : avec un code de prévente mémorisé et valable, la vente lui est ouverte (RG-PRV-02). */
-export async function loadEventForVisitor(where: { organizationId: string; slug: string } | { id: string }) {
+export async function loadEventForVisitor(org: PublicOrganization, where: { organizationId: string; slug: string } | { id: string }) {
   const data = await loadPublicEvent(where);
-  if (!data || (!data.prepublished && data.salesOpen)) return data;
+  if (!data || (!data.prepublished && data.salesOpen) || !hasFeature(org.features, "PRESALE_CODES")) return data;
   const code = await presaleCookie(data.event.id);
   if (!code) return data;
   const unlocked = await loadPublicEvent(where, { presaleCode: code });

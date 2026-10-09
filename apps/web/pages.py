@@ -9,6 +9,7 @@ REGISTER = 'https://app.evoly.me/register'
 
 # adresse de chaque page dans chaque langue
 SLUGS = {
+    'launch': {'fr': 'ouverture-des-ventes', 'en': 'ticket-launch', 'es': 'apertura-de-la-venta', 'de': 'verkaufsstart', 'it': 'apertura-vendite', 'pt': 'abertura-de-vendas', 'nl': 'verkoopstart'},
     'dynamic': {'fr': 'prix-dynamiques', 'en': 'dynamic-pricing', 'es': 'precios-dinamicos', 'de': 'dynamische-preise', 'it': 'prezzi-dinamici', 'pt': 'precos-dinamicos', 'nl': 'dynamische-prijzen'},
     'brand': {'fr': 'votre-marque', 'en': 'your-brand', 'es': 'tu-marca', 'de': 'ihre-marke', 'it': 'il-tuo-marchio', 'pt': 'a-sua-marca', 'nl': 'jouw-merk'},
     'seating': {'fr': 'plan-de-salle', 'en': 'seating-plan', 'es': 'plano-de-sala', 'de': 'saalplan', 'it': 'mappa-dei-posti', 'pt': 'planta-da-sala', 'nl': 'zaalplan'},
@@ -37,6 +38,25 @@ def cta(title, text, button):
     return f'<section class="pg__cta"><h2 class="pg__h">{title}</h2><p>{text}</p><a class="btn btn--pink" href="{REGISTER}" target="_blank" rel="noopener">{button}</a></section>'
 
 PAGES = {
+    'launch': {
+        'title': 'Ouverture des ventes programmée, décompte et prévente privée - Evoly',
+        'desc': 'Programmez la publication de votre événement, faites patienter avec une page d’annonce et un décompte, prévenez les intéressés et ouvrez une prévente privée par codes.',
+        'crumb': 'Ouverture des ventes',
+        'faq': [
+            ('Que voient les visiteurs avant la publication ?', 'Au choix : rien, ils sont redirigés vers la page de votre organisation, ou une page d’annonce floutée avec votre texte et un décompte. Le titre, la description et l’affiche ne sont jamais révélés.'),
+            ('La prévente privée est-elle incluse dans l’offre gratuite ?', 'Non, elle fait partie de l’offre Pro, que vous pouvez essayer gratuitement pendant 14 jours. La publication programmée, le décompte et « Prévenez-moi » sont inclus dans toutes les offres.'),
+            ('Comment les acheteurs utilisent-ils un code de prévente ?', 'Ils le saisissent sur la page de l’événement, ou cliquent sur le lien personnel que vous leur envoyez : l’achat s’ouvre aussitôt, même si l’événement n’est pas encore public.'),
+        ],
+        'main_class': 'page spaced',
+        'raw': lambda: {'final': refonte.FINAL_HTML},
+        'main': lambda p: (
+            refonte.page_hero('ouvrez les ventes au <span class="script">bon moment</span>.', 'Programmez la publication de votre événement, faites patienter avec une page d’annonce et un décompte, prévenez les intéressés et ouvrez une prévente privée à vos fidèles.', 'Nouveau')
+            + refonte.launch_bento()
+            + refonte.page_steps([('Programmez', 'Choisissez la date et l’heure de publication, et ce que voient les visiteurs avant.'), ('Faites patienter', 'Votre page d’annonce affiche un décompte, et les intéressés s’inscrivent pour être prévenus.'), ('Ouvrez les ventes', 'À l’heure dite, la page devient publique et les inscrits reçoivent un e-mail. Vos codes de prévente ouvrent l’achat plus tôt.')])
+            + block('Questions fréquentes', faq(p['faq']))
+            + '<!--RAW-final-->'
+        ),
+    },
     'dynamic': {
         'title': 'Prix dynamiques pour vos billets - Evoly',
         'desc': 'Prévente, tarif normal, tarif du jour J : faites évoluer automatiquement le prix de vos billets selon la date d’achat ou le nombre de places vendues.',

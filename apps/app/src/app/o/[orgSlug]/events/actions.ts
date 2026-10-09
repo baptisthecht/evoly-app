@@ -662,7 +662,7 @@ const presaleGenerateSchema = z.object({
 
 /** Prévente privée (RG-PRV-01) : N codes utilisables X fois chacun. */
 export async function generatePresaleCodesAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<number>> {
-  const r = await runOrgAction(orgSlug, input, { schema: presaleGenerateSchema, permission: "EVENTS_PUBLISH" }, async (d, ctx) =>
+  const r = await runOrgAction(orgSlug, input, { schema: presaleGenerateSchema, permission: "EVENTS_PUBLISH", feature: "PRESALE_CODES" }, async (d, ctx) =>
     generatePresaleCodes(ctx, eventId, d),
   );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
@@ -673,7 +673,7 @@ export async function setPresaleCodeActiveAction(orgSlug: string, eventId: strin
   const r = await runOrgAction(
     orgSlug,
     { codeId, active },
-    { schema: z.object({ codeId: z.string().max(40), active: z.boolean() }), permission: "EVENTS_PUBLISH" },
+    { schema: z.object({ codeId: z.string().max(40), active: z.boolean() }), permission: "EVENTS_PUBLISH", feature: "PRESALE_CODES" },
     async (d, ctx) => {
       await setPresaleCodeActive(ctx, eventId, d.codeId, d.active);
     },
@@ -694,6 +694,7 @@ export async function savePresaleStartAction(orgSlug: string, eventId: string, s
           .nullable(),
       }),
       permission: "EVENTS_PUBLISH",
+      feature: "PRESALE_CODES",
     },
     async (d, ctx) => {
       await savePresaleStart(ctx, eventId, d.startsLocal);

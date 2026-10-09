@@ -19,6 +19,7 @@ const PRO_FEATURES: PlanFeature[] = [
   "CUSTOM_ROLES",
   "MULTI_ORGANIZATIONS",
   "SEATING_MAPS",
+  "PRESALE_CODES",
 ];
 
 const ALL: Permission[] = [

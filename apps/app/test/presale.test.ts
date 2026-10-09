@@ -10,11 +10,12 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 const days = (n: number) => new Date(Date.now() + n * 86_400_000);
 const buyer = (email: string) => ({ firstName: "Léa", lastName: "Martin", email, marketingOptIn: false });
 
-async function setup(o: { publishAt?: Date | null; mode?: "HIDDEN" | "TEASER"; salesStartAt?: Date | null } = {}) {
+async function setup(o: { publishAt?: Date | null; mode?: "HIDDEN" | "TEASER"; salesStartAt?: Date | null; plan?: "free" | "pro" } = {}) {
   const id = rid();
   const org = await db.organization.create({
     data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
   });
+  if (o.plan !== "free") await db.subscription.create({ data: { organizationId: org.id, planId: "pro", status: "ACTIVE", currentPeriodEnd: days(60) } });
   const event = await db.event.create({
     data: {
       organizationId: org.id,
@@ -33,7 +34,8 @@ async function setup(o: { publishAt?: Date | null; mode?: "HIDDEN" | "TEASER"; s
     },
     include: { ticketTypes: true },
   });
-  return { org, event, ctx: { organization: org } as unknown as OrgContext };
+  const features = o.plan === "free" ? [] : ["PRESALE_CODES"];
+  return { org, event, ctx: { organization: org, features } as unknown as OrgContext };
 }
 const reserve = (eventId: string, ticketTypeId: string, presaleCode?: string) =>
   reserveOrder({ eventId, lines: [{ ticketTypeId, quantity: 1 }], locale: "fr", presaleCode: presaleCode ?? null });
@@ -98,5 +100,14 @@ describe("prévente privée (RG-PRV-01, RG-PRV-02)", () => {
     expect(vip!.salesOpen).toBe(true);
     expect(vip!.ticketTypes[0]!.onSale).toBe(true);
     expect(await presaleCsv(ctx, event.id, "https://club.evoly.me/gala")).toContain('"VIP","VIP","5","0","actif","https://club.evoly.me/gala?prevente=VIP"');
+  });
+
+  it("réservée à Pro : une organisation en Free ne crée pas de codes et n'achète pas avec un code existant", async () => {
+    const { event, ctx } = await setup({ plan: "free" });
+    await expect(generatePresaleCodes(ctx, event.id, { quantity: 1, usesPerCode: 5, customCode: "ANCIEN", label: null })).rejects.toMatchObject({
+      code: "PRO_REQUIRED",
+    });
+    await db.presaleCode.create({ data: { eventId: event.id, code: "ANCIEN", maxUses: 5 } });
+    await expect(reserve(event.id, event.ticketTypes[0]!.id, "ANCIEN")).rejects.toMatchObject({ code: "PRESALE_INVALID" });
   });
 });

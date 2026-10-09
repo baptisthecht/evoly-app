@@ -248,7 +248,7 @@ def plan_items(items):
 
 
 FREE_LIST = plan_items(['0,29 € + 2 % par billet payant, 2,50 € maximum', '0 % sur les billets gratuits, sans limite', 'Frais inclus dans votre prix : rien n’est ajouté à l’acheteur', ('Revente sécurisée entre participants', True), 'Check-in QR inclus'])
-PRO_LIST = plan_items(['Tout le contenu de l’offre Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), ('Plan de salle et placement numéroté', True), 'E-mail marketing et automatisations', 'Vos couleurs et votre logo, sans mention d’Evoly', 'Votre propre domaine et un sous-domaine par événement', 'Plusieurs organisations et rôles d’équipe'])
+PRO_LIST = plan_items(['Tout le contenu de l’offre Free', 'Commission plafonnée à 1 € par billet', ('Prix dynamiques', True), ('Plan de salle et placement numéroté', True), ('Prévente privée par codes', True), 'E-mail marketing et automatisations', 'Vos couleurs et votre logo, sans mention d’Evoly', 'Votre propre domaine et un sous-domaine par événement', 'Plusieurs organisations et rôles d’équipe'])
 
 # ------------------------------------------------------------------ FAQ (brouillon à valider)
 FAQ = [
@@ -589,7 +589,7 @@ BODY = f'''
 <footer class="footer">
   <div class="footer__brand">{icon('i-o', 100, 100)}<span>Votre prochain souvenir vous attend.</span></div>
   <nav aria-label="Pied de page">
-    <a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a><a href="/plan-de-salle/">Plan de salle</a><a href="/associations/">Associations</a><a href="/evoly-ou-eventbrite/">Evoly ou Eventbrite</a><a href="/a-propos/">Qui sommes-nous</a><a href="mailto:hello@evoly.me">Contact</a>
+    <a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a><a href="/plan-de-salle/">Plan de salle</a><a href="/prix-dynamiques/">Prix dynamiques</a><a href="/votre-marque/">Votre marque</a><a href="/ouverture-des-ventes/">Ouverture des ventes</a><a href="/associations/">Associations</a><a href="/evoly-ou-eventbrite/">Evoly ou Eventbrite</a><a href="/a-propos/">Qui sommes-nous</a><a href="mailto:hello@evoly.me">Contact</a>
     <a href="https://evoly.me/cgu" {EXT}>CGU</a><a href="https://evoly.me/privacy" {EXT}>Confidentialité</a><a href="https://evoly.me/legal" {EXT}>Mentions légales</a><a href="https://evoly.me/cookies" {EXT}>Cookies</a>
   </nav>
   <p class="footer__copy">© 2026 Evoly Solutions</p>

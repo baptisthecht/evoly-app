@@ -861,6 +861,10 @@
     "EMAIL_MARKETING": {
       "title": "Automatische marketingmails",
       "body": "Bedankje na het evenement met de volgende datum, herinnering ‘laatste plaatsen’: vanzelf verstuurd naar je contacten die toestemming gaven."
+    },
+    "PRESALE_CODES": {
+      "title": "Privévoorverkoop",
+      "body": "Maak codes die het kopen openzetten vóór de publieke verkoop, voor je leden, partners of de pers: eenmalig in grote aantallen, gedeeld of meermaals te gebruiken."
     }
   },
   "upsell": {
@@ -1493,7 +1497,8 @@
     "planPartner": "Partner",
     "badge_PARTNER": "Aangeboden door Evoly",
     "partnerBody": "Alle Pro-functies, zonder Evoly-commissie op je tickets. Alleen de betaalkosten van Stripe zijn van toepassing.",
-    "partnerUntil": "Aangeboden tot {date}."
+    "partnerUntil": "Aangeboden tot {date}.",
+    "feature_PRESALE_CODES": "Privévoorverkoop met codes"
   },
   "brand": {
     "sloganStart": "je volgende",

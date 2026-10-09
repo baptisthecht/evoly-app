@@ -62,10 +62,29 @@ def partial(name):
     return open(os.path.join(HERE, 'partials', name + '.html'), encoding='utf-8').read()
 
 
-def page_hero(h1, lede):
-    return f'<section class="v4-phero"><p class="v4-eyebrow">Offre Pro</p><h1>{h1}</h1><p class="lede">{lede}</p></section>'
+def page_hero(h1, lede, eyebrow='Offre Pro'):
+    return f'<section class="v4-phero"><p class="v4-eyebrow">{eyebrow}</p><h1>{h1}</h1><p class="lede">{lede}</p></section>'
 
 
 def page_steps(steps):
     li = ''.join(f'<li><span>{n:02d}</span><h3>{t}</h3><p>{d}</p></li>' for n, (t, d) in enumerate(steps, 1))
     return f'<section class="v4-steps"><p class="v4-eyebrow v4-reveal">Comment ça marche</p><h2 class="h2">en trois <span class="script">étapes</span>.</h2><ol>{li}</ol></section>'
+
+
+def launch_bento():
+    """Page « Ouverture des ventes » : publication programmée, « Prévenez-moi », prévente privée (Pro) et lien d'aperçu."""
+    return (
+        '<section class="field lx" aria-labelledby="lx-title">'
+        '<h2 class="h2" id="lx-title" data-eyebrow="Le lancement">un lancement <span class="script">réussi</span>.</h2>'
+        '<p class="lede">Annoncez votre événement, faites monter l’attente et ouvrez les ventes à la seconde près. La publication programmée, le décompte et « Prévenez-moi » sont inclus dans toutes les offres.</p>'
+        '<ul class="field__grid" role="list">'
+        '<li class="field__card field__card--big"><div class="lx-cd" aria-hidden="true"><span><b>03</b>jours</span><span><b>12</b>heures</span><span><b>45</b>minutes</span></div>'
+        '<h3 class="h3 field__t">Publication programmée</h3><p>Choisissez la date et l’heure : votre événement devient public à la seconde près. Avant, il reste invisible, ou s’annonce par une page floutée avec votre texte et un décompte.</p></li>'
+        '<li class="field__card v4-b v4-b--lilas"><div class="lx-input" aria-hidden="true"><span>lea@exemple.be</span><b>M’avertir</b></div>'
+        '<h3 class="h3 field__t">Prévenez-moi</h3><p>Les visiteurs laissent leur e-mail et reçoivent un message dès l’ouverture des ventes. Ils peuvent aussi l’ajouter à leur agenda.</p></li>'
+        '<li class="field__card v4-b v4-b--rose"><p class="lx-code" aria-hidden="true">MEMBRES2026</p>'
+        '<h3 class="h3 field__t">Prévente privée <span class="lx-pro">Pro</span></h3><p>Des codes qui ouvrent l’achat avant tout le monde, pour vos adhérents ou la presse : à usage unique, partagés ou à usages multiples.</p></li>'
+        '<li class="field__card field__card--wide v4-b v4-b--paper"><h3 class="h3 field__t">Lien d’aperçu</h3><p>Montrez la page complète à votre équipe, aux artistes ou à la presse avant sa publication, sans qu’on puisse acheter.</p></li>'
+        '</ul></section>'
+    )
+

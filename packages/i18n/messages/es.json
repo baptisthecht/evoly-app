@@ -861,6 +861,10 @@
     "EMAIL_MARKETING": {
       "title": "E-mails de marketing automáticos",
       "body": "Agradecimiento después del evento con la próxima fecha, aviso de «últimas plazas»: se envían solos a tus contactos que han dado su consentimiento."
+    },
+    "PRESALE_CODES": {
+      "title": "Preventa privada",
+      "body": "Crea códigos que abren la compra antes de la apertura pública de la venta, para tus socios, colaboradores o la prensa: de un solo uso en masa, compartidos o de varios usos."
     }
   },
   "upsell": {
@@ -1493,7 +1497,8 @@
     "planPartner": "Partner",
     "badge_PARTNER": "Ofrecida por Evoly",
     "partnerBody": "Todas las funciones Pro, sin comisión de Evoly en tus entradas. Solo se aplican los gastos de pago de Stripe.",
-    "partnerUntil": "Ofrecida hasta el {date}."
+    "partnerUntil": "Ofrecida hasta el {date}.",
+    "feature_PRESALE_CODES": "Preventa privada con códigos"
   },
   "brand": {
     "sloganStart": "tu próximo",
