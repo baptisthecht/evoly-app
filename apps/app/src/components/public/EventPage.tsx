@@ -72,7 +72,17 @@ export async function eventMetadata(org: PublicOrganization, data: PublicEventDa
 }
 
 /** Page de vente d'un événement, avec ses données structurées schema.org/Event. */
-export async function PublicEventPage({ org, data, homeHref }: { org: PublicOrganization; data: PublicEventData; homeHref: string }) {
+export async function PublicEventPage({
+  org,
+  data,
+  homeHref,
+  preview = false,
+}: {
+  org: PublicOrganization;
+  data: PublicEventData;
+  homeHref: string;
+  preview?: boolean;
+}) {
   const e = data.event;
   if (!(await eventUnlocked(e.id)))
     return (
@@ -123,7 +133,7 @@ export async function PublicEventPage({ org, data, homeHref }: { org: PublicOrga
   return (
     <PublicShell org={org} homeHref={homeHref}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <EventPublicView org={org} data={data} seatMap={await seatMapFor(e)} />
+      <EventPublicView org={org} data={data} seatMap={await seatMapFor(e)} preview={preview} />
     </PublicShell>
   );
 }

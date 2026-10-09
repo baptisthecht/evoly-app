@@ -80,7 +80,16 @@
     "seoFrom": "Ab {price}. ",
     "seoFree": "Eintritt frei. ",
     "seoOrgTitle": "{org} - Offizielles Ticketing, Veranstaltungen und Tickets",
-    "seoOrgDescription": "Alle Veranstaltungen von {org}: Online-Tickets, sichere Zahlung, E-Tickets auf dem Handy und Weiterverkauf unter Gästen."
+    "seoOrgDescription": "Alle Veranstaltungen von {org}: Online-Tickets, sichere Zahlung, E-Tickets auf dem Handy und Weiterverkauf unter Gästen.",
+    "teaserDefault": "Demnächst",
+    "teaserOpens": "Enthüllung am {date}",
+    "teaserSeeOrg": "Veranstaltungen von {org} ansehen",
+    "cdDays": "Tage",
+    "cdHours": "Stunden",
+    "cdMinutes": "Minuten",
+    "cdSeconds": "Sekunden",
+    "salesOpenOn": "Vorverkauf ab {date}",
+    "previewLinkBanner": "Private Vorschau: Diese Seite wird am {date} öffentlich. Käufe sind deaktiviert."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -337,7 +346,8 @@
     "CUTOFF_PASSED": "Der Weiterverkauf ist für diese Veranstaltung geschlossen.",
     "SUBDOMAIN_RESERVED": "Diese Adresse ist reserviert.",
     "SUBDOMAIN_FORMAT": "Nur Kleinbuchstaben, Ziffern und Bindestriche.",
-    "SUBDOMAIN_LENGTH": "Zwischen 3 und 50 Zeichen."
+    "SUBDOMAIN_LENGTH": "Zwischen 3 und 50 Zeichen.",
+    "PUBLISH_AFTER_START": "Die Veröffentlichung muss vor Beginn der Veranstaltung liegen."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -2314,5 +2324,32 @@
     "save": "Nachricht speichern",
     "saved": "Nachricht gespeichert.",
     "error": "Die Nachricht konnte nicht gespeichert werden."
+  },
+  "publication": {
+    "title": "Veröffentlichung",
+    "intro": "Legen Sie fest, wann Ihre Veranstaltung öffentlich wird und was Besucher vorher sehen.",
+    "whenLabel": "Veröffentlichen",
+    "optNow": "Sofort",
+    "optScheduled": "Zu einem bestimmten Zeitpunkt",
+    "dateLabel": "Datum und Uhrzeit ({tz})",
+    "beforeLabel": "Bis dahin",
+    "modeHidden": "Unsichtbar",
+    "modeHiddenHint": "Besucher werden auf die Seite Ihrer Organisation weitergeleitet.",
+    "modeTeaser": "Ankündigung",
+    "modeTeaserHint": "Eine unscharfe Seite mit Ihrem Text und einem Countdown, ohne Details zur Veranstaltung.",
+    "teaserLabel": "Text der Ankündigung",
+    "teaserPlaceholder": "Demnächst",
+    "salesHint": "Der Verkauf startet mit der Veröffentlichung oder später, wenn Sie einen Verkaufsstart festgelegt haben: Die Seite ist dann sichtbar und zeigt einen Countdown.",
+    "save": "Speichern",
+    "saved": "Gespeichert.",
+    "error": "Speichern nicht möglich. Bitte erneut versuchen.",
+    "statusScheduled": "Geplant: öffentlich am {date}.",
+    "statusLive": "Öffentlich seit {date}.",
+    "previewTitle": "Vorschaulink",
+    "previewIntro": "Ein geheimer Link, um die vollständige Seite vor der Veröffentlichung zu sehen, ohne Kaufmöglichkeit. Teilen Sie ihn mit Ihrem Team, Künstlern oder der Presse.",
+    "previewCreate": "Vorschaulink erstellen",
+    "previewCopy": "Kopieren",
+    "previewCopied": "Kopiert",
+    "previewRevoke": "Link deaktivieren"
   }
 }

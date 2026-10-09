@@ -639,7 +639,8 @@
     "CUTOFF_PASSED": "Resale is closed for this event.",
     "SUBDOMAIN_RESERVED": "This address is reserved.",
     "SUBDOMAIN_FORMAT": "Lowercase letters, numbers and hyphens only.",
-    "SUBDOMAIN_LENGTH": "Between 3 and 50 characters."
+    "SUBDOMAIN_LENGTH": "Between 3 and 50 characters.",
+    "PUBLISH_AFTER_START": "The event must go public before it starts."
   },
   "brand": {
     "sloganStart": "your next",
@@ -1052,7 +1053,16 @@
     "seoFrom": "From {price}. ",
     "seoFree": "Free entry. ",
     "seoOrgTitle": "{org} - Official tickets and events",
-    "seoOrgDescription": "All events by {org}: online tickets, secure payment, e-tickets on your phone and fan-to-fan resale."
+    "seoOrgDescription": "All events by {org}: online tickets, secure payment, e-tickets on your phone and fan-to-fan resale.",
+    "teaserDefault": "Coming soon",
+    "teaserOpens": "Revealed on {date}",
+    "teaserSeeOrg": "See events by {org}",
+    "cdDays": "days",
+    "cdHours": "hours",
+    "cdMinutes": "minutes",
+    "cdSeconds": "seconds",
+    "salesOpenOn": "Tickets on sale from {date}",
+    "previewLinkBanner": "Private preview: this page goes public on {date}. Purchases are disabled."
   },
   "promo": {
     "new": "New code",
@@ -2314,5 +2324,32 @@
     "save": "Save message",
     "saved": "Message saved.",
     "error": "The message couldn't be saved."
+  },
+  "publication": {
+    "title": "Publishing",
+    "intro": "Choose when your event goes public, and what visitors see before then.",
+    "whenLabel": "Go live",
+    "optNow": "Right away",
+    "optScheduled": "On a specific date",
+    "dateLabel": "Date and time ({tz})",
+    "beforeLabel": "Before then",
+    "modeHidden": "Hidden",
+    "modeHiddenHint": "Visitors are redirected to your organisation page.",
+    "modeTeaser": "Teaser",
+    "modeTeaserHint": "A blurred page with your text and a countdown, without any event details.",
+    "teaserLabel": "Teaser text",
+    "teaserPlaceholder": "Coming soon",
+    "salesHint": "Sales open when the event goes public, or later if you set a sales start date: the page is then visible and shows a countdown.",
+    "save": "Save",
+    "saved": "Saved.",
+    "error": "Couldn’t save. Please try again.",
+    "statusScheduled": "Scheduled: goes public on {date}.",
+    "statusLive": "Public since {date}.",
+    "previewTitle": "Preview link",
+    "previewIntro": "A secret link to see the full page before it goes public, with purchases disabled. Share it with your team, artists or the press.",
+    "previewCreate": "Create a preview link",
+    "previewCopy": "Copy",
+    "previewCopied": "Copied",
+    "previewRevoke": "Disable the link"
   }
 }

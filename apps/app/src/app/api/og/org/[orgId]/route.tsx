@@ -2,6 +2,7 @@ import { pick } from "@evoly/i18n";
 import { ImageResponse } from "next/og";
 import { db } from "@/lib/db";
 import { hasFeatureForOrg } from "@/server/og";
+import { publiclyVisible } from "@/server/publication";
 
 /** Image d'aperçu de la page d'accueil d'une billetterie : nom de l'organisation et ses prochains événements. */
 const ORG_OG = {
@@ -50,7 +51,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgId: 
       name: true,
       locale: true,
       brand: { select: { displayName: true, primaryColor: true, hideEvolyBranding: true } },
-      _count: { select: { events: { where: { visibility: "PUBLIC", status: "PUBLISHED", startsAt: { gte: new Date() } } } } },
+      _count: { select: { events: { where: { visibility: "PUBLIC", status: "PUBLISHED", startsAt: { gte: new Date() }, ...publiclyVisible() } } } },
     },
   });
   const c = pick(ORG_OG, org?.locale);

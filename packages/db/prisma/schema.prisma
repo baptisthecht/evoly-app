@@ -490,6 +490,12 @@ enum EventVisibility {
   PRIVATE // accessible avec un code d'accès
 }
 
+/// Avant la date de publication programmée : invisible (redirection vers la page de l'organisation) ou annonce floutée avec décompte
+enum PrePublishMode {
+  HIDDEN
+  TEASER
+}
+
 enum LocationType {
   PHYSICAL
   ONLINE
@@ -561,6 +567,11 @@ model Event {
   accentColor         String?
   subdomain           String?         @unique // Pro : nuit-electrique.evoly.me
   publishedAt         DateTime?
+  publishAt         DateTime? // publication programmée : avant cette date, invisible ou annonce, et aucun achat
+  prePublishMode    PrePublishMode @default(HIDDEN)
+  teaserText        String? // texte de l'annonce (« Événement à venir » par défaut)
+  previewToken      String? @unique // lien d'aperçu secret, avant la publication
+  publishNotifiedAt DateTime? // e-mail « événement publié » envoyé à l'organisation
   lastMajorChangeAt   DateTime? // date, heure ou lieu modifiés après publication (RG-EVT-05)
   cancelledAt         DateTime?
   cancellationReason  String?
@@ -1636,6 +1647,7 @@ enum NotificationType {
   EVENT_CANCELLED
   CAMPAIGN_SENT
   DISPUTE_OPENED
+  EVENT_PUBLISHED // événement programmé devenu public
 }
 
 model Notification {

@@ -80,7 +80,16 @@
     "seoFrom": "Da {price}. ",
     "seoFree": "Ingresso gratuito. ",
     "seoOrgTitle": "{org} - Biglietteria ufficiale, eventi e biglietti",
-    "seoOrgDescription": "Tutti gli eventi di {org}: biglietti online, pagamento sicuro, biglietti elettronici sul telefono e rivendita tra spettatori."
+    "seoOrgDescription": "Tutti gli eventi di {org}: biglietti online, pagamento sicuro, biglietti elettronici sul telefono e rivendita tra spettatori.",
+    "teaserDefault": "Prossimamente",
+    "teaserOpens": "Svelato il {date}",
+    "teaserSeeOrg": "Vedi gli eventi di {org}",
+    "cdDays": "giorni",
+    "cdHours": "ore",
+    "cdMinutes": "minuti",
+    "cdSeconds": "secondi",
+    "salesOpenOn": "Biglietti in vendita dal {date}",
+    "previewLinkBanner": "Anteprima privata: questa pagina sarà pubblica il {date}. Gli acquisti sono disattivati."
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -337,7 +346,8 @@
     "CUTOFF_PASSED": "La rivendita è chiusa per questo evento.",
     "SUBDOMAIN_RESERVED": "Questo indirizzo è riservato.",
     "SUBDOMAIN_FORMAT": "Solo lettere minuscole, cifre e trattini.",
-    "SUBDOMAIN_LENGTH": "Tra 3 e 50 caratteri."
+    "SUBDOMAIN_LENGTH": "Tra 3 e 50 caratteri.",
+    "PUBLISH_AFTER_START": "La pubblicazione deve avvenire prima dell’inizio dell’evento."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -2314,5 +2324,32 @@
     "save": "Salva il messaggio",
     "saved": "Messaggio salvato.",
     "error": "Non è stato possibile salvare il messaggio."
+  },
+  "publication": {
+    "title": "Pubblicazione",
+    "intro": "Scegli quando il tuo evento diventa pubblico e cosa vedono i visitatori prima.",
+    "whenLabel": "Messa online",
+    "optNow": "Subito",
+    "optScheduled": "In una data precisa",
+    "dateLabel": "Data e ora ({tz})",
+    "beforeLabel": "Prima di quella data",
+    "modeHidden": "Invisibile",
+    "modeHiddenHint": "I visitatori vengono reindirizzati alla pagina della tua organizzazione.",
+    "modeTeaser": "Annuncio",
+    "modeTeaserHint": "Una pagina sfocata con il tuo testo e un conto alla rovescia, senza alcun dettaglio dell’evento.",
+    "teaserLabel": "Testo dell’annuncio",
+    "teaserPlaceholder": "Prossimamente",
+    "salesHint": "Le vendite si aprono alla pubblicazione, o più tardi se hai scelto una data di apertura: la pagina, visibile, mostra allora un conto alla rovescia.",
+    "save": "Salva",
+    "saved": "Salvato.",
+    "error": "Impossibile salvare. Riprova.",
+    "statusScheduled": "Programmato: pubblico il {date}.",
+    "statusLive": "Pubblico dal {date}.",
+    "previewTitle": "Link di anteprima",
+    "previewIntro": "Un link segreto per vedere la pagina completa prima della pubblicazione, senza poter acquistare. Condividilo con il tuo team, gli artisti o la stampa.",
+    "previewCreate": "Crea un link di anteprima",
+    "previewCopy": "Copia",
+    "previewCopied": "Copiato",
+    "previewRevoke": "Disattiva il link"
   }
 }

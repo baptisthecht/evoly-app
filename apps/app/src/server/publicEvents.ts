@@ -6,6 +6,8 @@ import { getPlans } from "./plans";
 import { env } from "@/lib/env";
 import { organizationPublicUrl } from "./urls";
 import { effectivePlan, hasFeature } from "@evoly/core";
+import { isPrepublished, salesOpeningAt } from "@evoly/core";
+import { publiclyVisible } from "./publication";
 
 const VISIBLE_STATUSES = ["PUBLISHED", "SALES_PAUSED", "CANCELLED", "ENDED"] as const;
 
@@ -139,7 +141,8 @@ async function loadPublicEventUncached(
   const now = new Date();
   const totals = await db.ticketType.aggregate({ where: { eventId: event.id }, _sum: { quantitySold: true, quantityHeld: true } });
   const eventStock = { capacity: event.capacity, soldTotal: totals._sum.quantitySold ?? 0, heldTotal: totals._sum.quantityHeld ?? 0 };
-  const salesOpen = event.status === "PUBLISHED" && (!event.salesStartAt || event.salesStartAt <= now) && now < (event.salesEndAt ?? event.startsAt);
+  const opensAt = salesOpeningAt(event); // RG-PRG-02 : jamais avant la publication programmée
+  const salesOpen = event.status === "PUBLISHED" && (!opensAt || opensAt <= now) && now < (event.salesEndAt ?? event.startsAt);
   const ticketTypes: PublicTicketType[] = event.ticketTypes.map((t) => {
     const tiers = t.priceTiers.map(toTier);
     const price = effectivePrice(t.priceMinor, tiers, now);
@@ -160,7 +163,14 @@ async function loadPublicEventUncached(
       onSale: salesOpen && inWindow && remaining > 0,
     };
   });
-  return { event, ticketTypes, salesOpen, soldOut: ticketTypes.length > 0 && ticketTypes.every((t) => t.remaining <= 0) };
+  return {
+    event,
+    ticketTypes,
+    salesOpen,
+    salesOpensAt: opensAt,
+    prepublished: isPrepublished(event, now),
+    soldOut: ticketTypes.length > 0 && ticketTypes.every((t) => t.remaining <= 0),
+  };
 }
 
 export type PublicEventData = NonNullable<Awaited<ReturnType<typeof loadPublicEvent>>>;
@@ -169,7 +179,7 @@ export type PublicEventData = NonNullable<Awaited<ReturnType<typeof loadPublicEv
 export async function listPublicEvents(organizationId: string) {
   const now = new Date();
   const events = await db.event.findMany({
-    where: { organizationId, deletedAt: null, visibility: "PUBLIC", status: { in: ["PUBLISHED", "SALES_PAUSED", "ENDED"] } },
+    where: { organizationId, deletedAt: null, visibility: "PUBLIC", status: { in: ["PUBLISHED", "SALES_PAUSED", "ENDED"] }, ...publiclyVisible() },
     select: {
       id: true,
       slug: true,

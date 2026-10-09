@@ -8,6 +8,7 @@ import type { PublicSeatMap } from "@/server/seating";
 import { TicketPicker } from "./TicketPicker";
 import { publicListings } from "@/server/resale";
 import { formatMoney } from "@evoly/i18n";
+import { SalesCountdown } from "./Prepublished";
 
 /** Page de vente (section 9.10) : informations à gauche, billets à droite ; billets en premier sur téléphone. */
 export async function EventPublicView({
@@ -36,7 +37,7 @@ export async function EventPublicView({
       ? "PAUSED"
       : salesOpen
         ? "OPEN"
-        : event.salesStartAt && event.salesStartAt > now
+        : data.salesOpensAt && data.salesOpensAt > now
           ? "NOT_STARTED"
           : "CLOSED";
   const resale = !preview && event.resaleEnabled && event.showResaleSection ? await publicListings(event.id) : [];
@@ -110,6 +111,7 @@ export async function EventPublicView({
             <h2 id="tickets-title" className="font-display text-2xl tracking-[-0.03em]">
               {t("tickets")}
             </h2>
+            {state === "NOT_STARTED" && data.salesOpensAt ? <SalesCountdown opensAt={data.salesOpensAt} timeZone={event.timezone} now={now} /> : null}
             {tickets.length || event.status === "PUBLISHED" ? (
               <TicketPicker
                 tickets={tickets}

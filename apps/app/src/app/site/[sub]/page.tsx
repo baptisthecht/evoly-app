@@ -7,18 +7,22 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { PublicShell } from "@/components/public/PublicShell";
 import { DisabledSite } from "@/components/public/DisabledSite";
 import { PublicEventPage, eventMetadata } from "@/components/public/EventPage";
+import { PrepublishedEvent, prepublishedMetadata } from "@/components/public/Prepublished";
 import { canonicalOrgUrl } from "@/server/canonical";
 import { listPublicEvents, loadPublicEvent, resolveSite } from "@/server/publicEvents";
 import { siteGate } from "@/server/siteGuard";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: Promise<{ sub: string }> }): Promise<Metadata> {
+type Props = { params: Promise<{ sub: string }>; searchParams: Promise<{ apercu?: string }> };
+
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { sub } = await params;
   const site = await resolveSite(sub);
   if (site?.kind === "EVENT") {
     const data = await loadPublicEvent({ id: site.eventId });
-    return data ? eventMetadata(site.org, data) : {};
+    if (!data) return {};
+    return data.prepublished ? prepublishedMetadata(site.org, data, (await searchParams).apercu) : eventMetadata(site.org, data);
   }
   if (site?.kind !== "ORG") return {};
   const name = site.org.brand?.displayName ?? site.org.name;
@@ -37,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ sub: stri
 }
 
 /** RG-PUB-07 : la page de l'organisation liste ses événements publics à venir, puis passés. */
-export default async function OrganizationPublicPage({ params }: { params: Promise<{ sub: string }> }) {
+export default async function OrganizationPublicPage({ params, searchParams }: Props) {
   const { sub } = await params;
   const site = await siteGate(sub, "/");
   if (site.kind === "DISABLED") return <DisabledSite fallback={site.fallback} />;
@@ -45,7 +49,9 @@ export default async function OrganizationPublicPage({ params }: { params: Promi
     // hôte dédié à un événement (sous-domaine d'événement ou domaine personnalisé) : la page de l'événement
     const data = await loadPublicEvent({ id: site.eventId });
     if (!data) notFound();
-    return <PublicEventPage org={site.org} data={data} homeHref={await canonicalOrgUrl(site.org)} />;
+    const home = await canonicalOrgUrl(site.org);
+    if (data.prepublished) return <PrepublishedEvent org={site.org} data={data} homeHref={home} token={(await searchParams).apercu} />;
+    return <PublicEventPage org={site.org} data={data} homeHref={home} />;
   }
   const org = site.org;
   const { upcoming, past } = await listPublicEvents(org.id);

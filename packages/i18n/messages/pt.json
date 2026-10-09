@@ -80,7 +80,16 @@
     "seoFrom": "Desde {price}. ",
     "seoFree": "Entrada gratuita. ",
     "seoOrgTitle": "{org} - Bilheteira oficial, eventos e bilhetes",
-    "seoOrgDescription": "Todos os eventos de {org}: bilhetes online, pagamento seguro, bilhetes eletrónicos no telemóvel e revenda entre espectadores."
+    "seoOrgDescription": "Todos os eventos de {org}: bilhetes online, pagamento seguro, bilhetes eletrónicos no telemóvel e revenda entre espectadores.",
+    "teaserDefault": "Brevemente",
+    "teaserOpens": "Revelado a {date}",
+    "teaserSeeOrg": "Ver os eventos de {org}",
+    "cdDays": "dias",
+    "cdHours": "horas",
+    "cdMinutes": "minutos",
+    "cdSeconds": "segundos",
+    "salesOpenOn": "Bilhetes à venda a partir de {date}",
+    "previewLinkBanner": "Pré-visualização privada: esta página fica pública a {date}. As compras estão desativadas."
   },
   "checkout": {
     "tickets": "Bilhetes",
@@ -337,7 +346,8 @@
     "CUTOFF_PASSED": "A revenda está fechada para este evento.",
     "SUBDOMAIN_RESERVED": "Este endereço está reservado.",
     "SUBDOMAIN_FORMAT": "Apenas letras minúsculas, algarismos e hífenes.",
-    "SUBDOMAIN_LENGTH": "Entre 3 e 50 caracteres."
+    "SUBDOMAIN_LENGTH": "Entre 3 e 50 caracteres.",
+    "PUBLISH_AFTER_START": "A publicação tem de ocorrer antes do início do evento."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -2314,5 +2324,32 @@
     "save": "Guardar a mensagem",
     "saved": "Mensagem guardada.",
     "error": "Não foi possível guardar a mensagem."
+  },
+  "publication": {
+    "title": "Publicação",
+    "intro": "Escolha quando o seu evento fica público e o que os visitantes veem antes.",
+    "whenLabel": "Publicação",
+    "optNow": "Agora mesmo",
+    "optScheduled": "Numa data precisa",
+    "dateLabel": "Data e hora ({tz})",
+    "beforeLabel": "Antes dessa data",
+    "modeHidden": "Invisível",
+    "modeHiddenHint": "Os visitantes são redirecionados para a página da sua organização.",
+    "modeTeaser": "Anúncio",
+    "modeTeaserHint": "Uma página desfocada com o seu texto e uma contagem decrescente, sem nenhum detalhe do evento.",
+    "teaserLabel": "Texto do anúncio",
+    "teaserPlaceholder": "Brevemente",
+    "salesHint": "As vendas abrem com a publicação, ou mais tarde se escolheu uma data de abertura: a página, visível, mostra então uma contagem decrescente.",
+    "save": "Guardar",
+    "saved": "Guardado.",
+    "error": "Não foi possível guardar. Tente novamente.",
+    "statusScheduled": "Agendado: público a {date}.",
+    "statusLive": "Público desde {date}.",
+    "previewTitle": "Link de pré-visualização",
+    "previewIntro": "Um link secreto para ver a página completa antes da publicação, sem poder comprar. Partilhe-o com a sua equipa, os artistas ou a imprensa.",
+    "previewCreate": "Criar um link de pré-visualização",
+    "previewCopy": "Copiar",
+    "previewCopied": "Copiado",
+    "previewRevoke": "Desativar o link"
   }
 }

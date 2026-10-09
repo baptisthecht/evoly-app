@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { canonicalEventUrl, canonicalOrgUrl } from "./canonical";
 import type { SiteResolution } from "./publicEvents";
+import { publiclyVisible } from "./publication";
 
 /**
  * Référencement des billetteries : robots.txt (robots d'IA explicitement autorisés pour la visibilité dans les
@@ -43,6 +44,7 @@ export async function siteSitemap(site: SiteResolution): Promise<string> {
     where: {
       organizationId: org.id,
       visibility: "PUBLIC",
+      ...publiclyVisible(),
       status: { in: ["PUBLISHED", "SALES_PAUSED", "ENDED"] },
       ...(site.kind === "EVENT" ? { id: site.eventId } : {}),
     },

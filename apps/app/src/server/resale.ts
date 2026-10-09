@@ -28,6 +28,7 @@ import { resaleSellerEmail } from "./email/templates";
 import { emailBrandFor } from "./email/brand";
 import { getPlans } from "./plans";
 import { organizationPublicUrl } from "./urls";
+import { isPrepublished } from "@evoly/core";
 
 const ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const OPEN = ["ACTIVE", "RESERVED"] as const;
@@ -235,9 +236,9 @@ export async function reserveResale(linkCode: string, locale: string, now = new 
   const accessTokenHash = await sha256Hex(token);
   const head = await db.resaleListing.findUnique({
     where: { linkCode },
-    select: { eventId: true, currency: true, event: { select: { organizationId: true } } },
+    select: { eventId: true, currency: true, event: { select: { organizationId: true, publishAt: true } } },
   });
-  if (!head) throw new CoreError("NOT_FOUND");
+  if (!head || isPrepublished(head.event, now)) throw new CoreError("NOT_FOUND"); // RG-PRG-02
   const terms = await termsFor(head.event.organizationId, head.currency);
   const result = await db.$transaction(
     async (tx) => {

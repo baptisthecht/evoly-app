@@ -10,6 +10,7 @@ import { cancelListingByOrganizer } from "@/server/resale";
 import { cancelEvent } from "@/server/refunds";
 import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
 import { previewEventEmailBlock, saveEventEmailBlock } from "@/server/eventEmailBlocks";
+import { createPreviewToken, revokePreviewToken, savePublication } from "@/server/publication";
 import { moveQuestion, removeQuestion, saveQuestion } from "@/server/questions";
 import { sendComplimentaryTickets, type ComplimentaryResult } from "@/server/complimentary";
 import { applySeatingTemplate, deleteRow, saveCategory, setSeatChoice, setSeatingMode, toggleSeatBlocked } from "@/server/seating";
@@ -621,4 +622,32 @@ export async function previewEventEmailBlockAction(
   return runOrgAction(orgSlug, { kind, content }, { schema: emailBlockSchema, permission: "EVENTS_EDIT", write: false }, async (d, ctx) =>
     previewEventEmailBlock(ctx, eventId, d.kind, d.content),
   );
+}
+
+const publicationSchema = z.object({
+  publishLocal: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+    .nullable(),
+  mode: z.enum(["HIDDEN", "TEASER"]),
+  teaserText: z.string().max(160).nullable(),
+});
+
+/** Publication programmée (RG-PRG-01) : réservée aux membres qui peuvent publier. */
+export async function savePublicationAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState> {
+  const r = await runOrgAction(orgSlug, input, { schema: publicationSchema, permission: "EVENTS_PUBLISH" }, async (d, ctx) => {
+    await savePublication(ctx, eventId, d);
+  });
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
+  return r;
+}
+
+/** Lien d'aperçu secret (RG-PRG-03) : création ou désactivation. */
+export async function previewLinkAction(orgSlug: string, eventId: string, enable: boolean): Promise<ActionState> {
+  const r = await runOrgAction(orgSlug, { enable }, { schema: z.object({ enable: z.boolean() }), permission: "EVENTS_PUBLISH" }, async (d, ctx) => {
+    if (d.enable) await createPreviewToken(ctx, eventId);
+    else await revokePreviewToken(ctx, eventId);
+  });
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
+  return r;
 }

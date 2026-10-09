@@ -80,7 +80,16 @@
     "seoFrom": "Vanaf {price}. ",
     "seoFree": "Gratis toegang. ",
     "seoOrgTitle": "{org} - Officiële ticketverkoop, evenementen en tickets",
-    "seoOrgDescription": "Alle evenementen van {org}: online tickets, veilig betalen, e-tickets op je telefoon en doorverkoop tussen bezoekers."
+    "seoOrgDescription": "Alle evenementen van {org}: online tickets, veilig betalen, e-tickets op je telefoon en doorverkoop tussen bezoekers.",
+    "teaserDefault": "Binnenkort",
+    "teaserOpens": "Onthulling op {date}",
+    "teaserSeeOrg": "Bekijk de evenementen van {org}",
+    "cdDays": "dagen",
+    "cdHours": "uur",
+    "cdMinutes": "minuten",
+    "cdSeconds": "seconden",
+    "salesOpenOn": "Tickets te koop vanaf {date}",
+    "previewLinkBanner": "Privévoorbeeld: deze pagina wordt openbaar op {date}. Kopen is uitgeschakeld."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -337,7 +346,8 @@
     "CUTOFF_PASSED": "De doorverkoop is gesloten voor dit evenement.",
     "SUBDOMAIN_RESERVED": "Dit adres is gereserveerd.",
     "SUBDOMAIN_FORMAT": "Alleen kleine letters, cijfers en koppeltekens.",
-    "SUBDOMAIN_LENGTH": "Tussen 3 en 50 tekens."
+    "SUBDOMAIN_LENGTH": "Tussen 3 en 50 tekens.",
+    "PUBLISH_AFTER_START": "De publicatie moet vóór de start van het evenement plaatsvinden."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -2314,5 +2324,32 @@
     "save": "Bericht opslaan",
     "saved": "Bericht opgeslagen.",
     "error": "Het bericht kon niet worden opgeslagen."
+  },
+  "publication": {
+    "title": "Publicatie",
+    "intro": "Kies wanneer je evenement openbaar wordt en wat bezoekers daarvoor zien.",
+    "whenLabel": "Online zetten",
+    "optNow": "Meteen",
+    "optScheduled": "Op een bepaalde datum",
+    "dateLabel": "Datum en tijd ({tz})",
+    "beforeLabel": "Tot die tijd",
+    "modeHidden": "Onzichtbaar",
+    "modeHiddenHint": "Bezoekers worden doorgestuurd naar de pagina van je organisatie.",
+    "modeTeaser": "Aankondiging",
+    "modeTeaserHint": "Een vervaagde pagina met je tekst en een aftelling, zonder details over het evenement.",
+    "teaserLabel": "Tekst van de aankondiging",
+    "teaserPlaceholder": "Binnenkort",
+    "salesHint": "De verkoop opent bij de publicatie, of later als je een startdatum voor de verkoop hebt gekozen: de pagina is dan zichtbaar en toont een aftelling.",
+    "save": "Opslaan",
+    "saved": "Opgeslagen.",
+    "error": "Opslaan lukt niet. Probeer het opnieuw.",
+    "statusScheduled": "Gepland: openbaar op {date}.",
+    "statusLive": "Openbaar sinds {date}.",
+    "previewTitle": "Voorbeeldlink",
+    "previewIntro": "Een geheime link om de volledige pagina vóór de publicatie te bekijken, zonder te kunnen kopen. Deel hem met je team, artiesten of de pers.",
+    "previewCreate": "Voorbeeldlink maken",
+    "previewCopy": "Kopiëren",
+    "previewCopied": "Gekopieerd",
+    "previewRevoke": "Link uitschakelen"
   }
 }

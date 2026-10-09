@@ -5,6 +5,10 @@ import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { SettingsForm } from "./SettingsForm";
+import { EventPublication } from "./EventPublication";
+import { formatDateTime, toLocale } from "@evoly/i18n";
+import { getLocale } from "next-intl/server";
+import { eventPublicUrl } from "@/server/urls";
 import { EventAppearance } from "./EventAppearance";
 import { EventReminders } from "./EventReminders";
 import { eventEmailBlocks } from "@/server/eventEmailBlocks";
@@ -26,6 +30,10 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
   const local = (d: Date | null) => (d ? utcToZonedLocal(d, e.timezone) : "");
   const readOnly = !can(ctx.membership, "EVENTS_EDIT") || ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
   const emailBlocks = await eventEmailBlocks(eventId);
+  const canPublish = can(ctx.membership, "EVENTS_PUBLISH");
+  const tp = await getTranslations("publication");
+  const when = e.publishAt ? formatDateTime(e.publishAt, e.timezone, toLocale(await getLocale())) : null;
+  const publicationStatus = e.publishAt && when ? tp(e.publishAt > new Date() ? "statusScheduled" : "statusLive", { date: when }) : null;
   return (
     <div className="max-w-3xl">
       <SettingsForm
@@ -60,6 +68,19 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
           showResaleSection: e.showResaleSection,
         }}
       />
+      {canPublish ? (
+        <EventPublication
+          orgSlug={orgSlug}
+          eventId={eventId}
+          timezone={e.timezone}
+          publishLocal={e.publishAt ? local(e.publishAt) : null}
+          mode={e.prePublishMode}
+          teaserText={e.teaserText}
+          previewUrl={e.previewToken ? `${eventPublicUrl(ctx.organization, e)}?apercu=${e.previewToken}` : null}
+          status={publicationStatus}
+          readOnly={ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)}
+        />
+      ) : null}
       {!readOnly ? <EventEmailBlocks orgSlug={orgSlug} eventId={eventId} ticket={emailBlocks.ticket} reminder={emailBlocks.reminder} /> : null}
       {!readOnly && can(ctx.membership, "MARKETING_MANAGE") ? (
         <EventReminders

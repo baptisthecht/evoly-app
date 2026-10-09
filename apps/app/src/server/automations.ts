@@ -34,6 +34,7 @@ import { campaignBase, renderWithBase } from "./campaigns";
 import { renderEventBlock } from "./email/eventBlock";
 import { sanitizeEmailHtml } from "./email/sanitize";
 import { organizationPublicUrl } from "./urls";
+import { publiclyVisible } from "./publication";
 
 export const REMINDERS: ReminderType[] = ["REMINDER_J7", "REMINDER_J1", "REMINDER_J0"];
 
@@ -368,6 +369,7 @@ export async function runDueMarketingAutomations(now = new Date()): Promise<numb
           deletedAt: null,
           status: { in: ["PUBLISHED", "SALES_PAUSED"] },
           visibility: "PUBLIC",
+          ...publiclyVisible(now),
           startsAt: { gt: now },
         },
         orderBy: { startsAt: "asc" },

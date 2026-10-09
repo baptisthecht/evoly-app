@@ -28,6 +28,7 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { getPlans } from "./plans";
+import { salesOpeningAt } from "@evoly/core";
 
 type Tx = Prisma.TransactionClient;
 
@@ -190,7 +191,7 @@ export async function reserveOrder(
         capacity: event.capacity,
         soldTotal: types.reduce((n, t) => n + t.quantitySold, 0),
         heldTotal: types.reduce((n, t) => n + t.quantityHeld, 0),
-        salesStartAt: event.salesStartAt,
+        salesStartAt: salesOpeningAt(event), // RG-PRG-02 : pas d'achat avant la publication programmée
         salesEndAt: event.salesEndAt,
         maxTicketsPerOrder: event.maxTicketsPerOrder,
         startsAt: event.startsAt,

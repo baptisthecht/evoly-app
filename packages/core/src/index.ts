@@ -28,3 +28,4 @@ export * from "./recipients";
 export * from "./seating";
 export * from "./seatmap";
 export * from "./emailDoc";
+export * from "./publication";

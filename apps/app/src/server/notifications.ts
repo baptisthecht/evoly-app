@@ -20,9 +20,10 @@ const PERMISSION: Record<NotificationType, Permission> = {
   EVENT_CANCELLED: "ORDERS_VIEW",
   CAMPAIGN_SENT: "MARKETING_MANAGE",
   DISPUTE_OPENED: "FINANCE_VIEW",
+  EVENT_PUBLISHED: "EVENTS_PUBLISH",
 };
 /** RG-NTF-02 : notifications importantes, aussi envoyées par e-mail au propriétaire et aux administrateurs. */
-const IMPORTANT = new Set<NotificationType>(["STRIPE_ACTION_REQUIRED", "SUBSCRIPTION_PAYMENT_FAILED", "DISPUTE_OPENED", "REFUND_REQUESTED"]);
+const IMPORTANT = new Set<NotificationType>(["STRIPE_ACTION_REQUIRED", "SUBSCRIPTION_PAYMENT_FAILED", "DISPUTE_OPENED", "REFUND_REQUESTED", "EVENT_PUBLISHED"]);
 
 async function recipients(organizationId: string, type: NotificationType) {
   const members = await db.organizationMember.findMany({

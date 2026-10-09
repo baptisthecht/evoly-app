@@ -639,7 +639,8 @@
     "CUTOFF_PASSED": "La revente est fermée pour cet événement.",
     "SUBDOMAIN_RESERVED": "Cette adresse est réservée.",
     "SUBDOMAIN_FORMAT": "Lettres minuscules, chiffres et tirets uniquement.",
-    "SUBDOMAIN_LENGTH": "Entre 3 et 50 caractères."
+    "SUBDOMAIN_LENGTH": "Entre 3 et 50 caractères.",
+    "PUBLISH_AFTER_START": "La publication doit avoir lieu avant le début de l’événement."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -1052,7 +1053,16 @@
     "seoFrom": "Dès {price}. ",
     "seoFree": "Entrée gratuite. ",
     "seoOrgTitle": "{org} - Billetterie officielle, événements et billets",
-    "seoOrgDescription": "Tous les événements de {org} : billets en ligne, paiement sécurisé, e-billets sur votre téléphone et revente entre spectateurs."
+    "seoOrgDescription": "Tous les événements de {org} : billets en ligne, paiement sécurisé, e-billets sur votre téléphone et revente entre spectateurs.",
+    "teaserDefault": "Événement à venir",
+    "teaserOpens": "Dévoilement le {date}",
+    "teaserSeeOrg": "Voir les événements de {org}",
+    "cdDays": "jours",
+    "cdHours": "heures",
+    "cdMinutes": "minutes",
+    "cdSeconds": "secondes",
+    "salesOpenOn": "Ouverture des ventes le {date}",
+    "previewLinkBanner": "Aperçu privé : cette page sera publique le {date}. Les achats sont désactivés."
   },
   "promo": {
     "new": "Nouveau code",
@@ -2314,5 +2324,32 @@
     "save": "Enregistrer le message",
     "saved": "Message enregistré.",
     "error": "Le message n'a pas pu être enregistré."
+  },
+  "publication": {
+    "title": "Publication",
+    "intro": "Choisissez quand votre événement devient public, et ce que voient les visiteurs avant.",
+    "whenLabel": "Mise en ligne",
+    "optNow": "Dès maintenant",
+    "optScheduled": "À une date précise",
+    "dateLabel": "Date et heure ({tz})",
+    "beforeLabel": "Avant cette date",
+    "modeHidden": "Invisible",
+    "modeHiddenHint": "Les visiteurs sont redirigés vers la page de votre organisation.",
+    "modeTeaser": "Annonce",
+    "modeTeaserHint": "Une page floutée avec votre texte et un décompte, sans aucun détail de l’événement.",
+    "teaserLabel": "Texte de l’annonce",
+    "teaserPlaceholder": "Événement à venir",
+    "salesHint": "Les ventes ouvrent à la publication, ou plus tard si vous avez choisi une date d’ouverture des ventes : la page, visible, affiche alors un décompte.",
+    "save": "Enregistrer",
+    "saved": "Enregistré.",
+    "error": "Enregistrement impossible. Réessayez.",
+    "statusScheduled": "Programmé : public le {date}.",
+    "statusLive": "Public depuis le {date}.",
+    "previewTitle": "Lien d’aperçu",
+    "previewIntro": "Un lien secret pour voir la page complète avant sa publication, sans pouvoir acheter. Partagez-le avec votre équipe, les artistes ou la presse.",
+    "previewCreate": "Créer un lien d’aperçu",
+    "previewCopy": "Copier",
+    "previewCopied": "Copié",
+    "previewRevoke": "Désactiver le lien"
   }
 }
