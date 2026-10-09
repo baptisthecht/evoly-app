@@ -588,9 +588,11 @@ BODY = f'''
 
 <footer class="footer">
   <div class="footer__brand">{icon('i-o', 100, 100)}<span>Votre prochain souvenir vous attend.</span></div>
-  <nav aria-label="Pied de page">
-    <a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a><a href="/plan-de-salle/">Plan de salle</a><a href="/prix-dynamiques/">Prix dynamiques</a><a href="/votre-marque/">Votre marque</a><a href="/ouverture-des-ventes/">Ouverture des ventes</a><a href="/associations/">Associations</a><a href="/evoly-ou-eventbrite/">Evoly ou Eventbrite</a><a href="/a-propos/">Qui sommes-nous</a><a href="mailto:hello@evoly.me">Contact</a>
-    <a href="https://evoly.me/cgu/" {EXT}>CGU</a><a href="https://evoly.me/privacy/" {EXT}>Confidentialité</a><a href="https://evoly.me/legal/" {EXT}>Mentions légales</a><a href="https://evoly.me/cookies/" {EXT}>Cookies</a><a href="https://www.linkedin.com/company/evoly-tickets/" {EXT}>LinkedIn</a><a href="https://www.instagram.com/evoly.me/" {EXT}>Instagram</a>
+  <nav aria-label="Pied de page" class="footer__nav">
+    <div class="footer__col"><a href="#tarifs">Tarifs</a><a href="#faq">FAQ</a><a href="/plan-de-salle/">Plan de salle</a><a href="/prix-dynamiques/">Prix dynamiques</a><a href="/votre-marque/">Votre marque</a><a href="/ouverture-des-ventes/">Ouverture des ventes</a></div>
+    <div class="footer__col"><a href="/associations/">Associations</a><a href="/evoly-ou-eventbrite/">Evoly ou Eventbrite</a><a href="/a-propos/">Qui sommes-nous</a><a href="mailto:hello@evoly.me">Contact</a></div>
+    <div class="footer__col"><a href="https://evoly.me/cgu/" {EXT}>CGU</a><a href="https://evoly.me/privacy/" {EXT}>Confidentialité</a><a href="https://evoly.me/legal/" {EXT}>Mentions légales</a><a href="https://evoly.me/cookies/" {EXT}>Cookies</a></div>
+    <div class="footer__col"><a href="https://www.linkedin.com/company/evoly-tickets/" {EXT}>LinkedIn</a><a href="https://www.instagram.com/evoly.me/" {EXT}>Instagram</a></div>
   </nav>
   <p class="footer__copy">© 2026 Evoly Solutions</p>
 </footer>
