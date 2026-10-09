@@ -647,7 +647,9 @@ const hl=document.querySelector('.hero .hl svg path');if(hl&&!reduce){const L=hl
     const m = p.getScreenCTM(); if (!m) return 0;
     const T = p.getTotalLength(), N = 180; let L = 0, prev = null;
     for (let i = 0; i <= N; i++) { const q = p.getPointAtLength((T * i) / N).matrixTransform(m); if (prev) L += Math.hypot(q.x - prev.x, q.y - prev.y); prev = q; }
-    return Math.ceil(L) + 4;
+    // mesure faite à l'écran, après le zoom de la page (80 % sur ordinateur) ; le tracé, lui, se compte avant ce zoom
+    const z = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+    return Math.ceil(L / z) + 4;
   };
   const setup = (svg) => { const p = svg.querySelector('path'), L = len(p); p.style.transition = 'none'; p.style.strokeDasharray = L; p.style.strokeDashoffset = svg.dataset.drawn ? 0 : L; };
   lines.forEach(setup);
