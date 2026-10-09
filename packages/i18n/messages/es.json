@@ -105,7 +105,14 @@
     "alertUnsubText": "No te avisaremos de la apertura de la venta de {event} y tu dirección se eliminará.",
     "alertUnsubButton": "Eliminar mi aviso",
     "alertUnsubDone": "Tu aviso se ha eliminado.",
-    "alertUnsubGone": "Este aviso ya no existe."
+    "alertUnsubGone": "Este aviso ya no existe.",
+    "presaleAsk": "¿Tienes un código de preventa?",
+    "presaleCode": "Código de preventa",
+    "presaleSubmit": "Validar",
+    "presaleInvalid": "Este código de preventa no es válido.",
+    "presaleBanner": "Preventa privada: tienes acceso a las entradas antes de la apertura pública de la venta.",
+    "presaleUnlocking": "Abriendo tu acceso a la preventa…",
+    "presaleBack": "Ver el evento"
   },
   "checkout": {
     "tickets": "Entradas",
@@ -363,7 +370,13 @@
     "SUBDOMAIN_RESERVED": "Esta dirección está reservada.",
     "SUBDOMAIN_FORMAT": "Solo letras minúsculas, cifras y guiones.",
     "SUBDOMAIN_LENGTH": "Entre 3 y 50 caracteres.",
-    "PUBLISH_AFTER_START": "La publicación debe ser anterior al inicio del evento."
+    "PUBLISH_AFTER_START": "La publicación debe ser anterior al inicio del evento.",
+    "PRESALE_INVALID": "Este código de preventa no es válido.",
+    "PRESALE_EXHAUSTED": "Este código de preventa ya se ha usado todas las veces previstas.",
+    "PRESALE_CODE_TAKEN": "Este código ya existe para este evento.",
+    "PRESALE_CODE_FORMAT": "El código debe tener de 3 a 30 caracteres: letras, cifras o guiones.",
+    "PRESALE_LIMIT": "Un evento puede tener como máximo 20.000 códigos de preventa.",
+    "PRESALE_AFTER_START": "La preventa debe empezar antes del inicio del evento."
   },
   "validation": {
     "required": "Este campo es obligatorio.",
@@ -2368,5 +2381,37 @@
     "previewCopied": "Copiado",
     "previewRevoke": "Desactivar el enlace",
     "alertsWaiting": "{count, plural, one {# persona espera} other {# personas esperan}} la apertura de la venta."
+  },
+  "presale": {
+    "title": "Preventa privada",
+    "intro": "Códigos que abren la compra antes de la apertura pública de la venta, para tus socios, colaboradores o fieles. Un uso equivale a un pedido.",
+    "startLabel": "Inicio de la preventa ({tz})",
+    "startHint": "Opcional. La preventa termina sola con la apertura pública de la venta.",
+    "saveStart": "Guardar",
+    "generateTitle": "Crear códigos",
+    "quantityLabel": "Número de códigos",
+    "usesLabel": "Usos por código",
+    "customLabel": "Código personalizado",
+    "customHint": "Opcional: de 3 a 30 letras, cifras o guiones, por ejemplo SOCIOS2026.",
+    "labelLabel": "Etiqueta",
+    "labelHint": "Opcional, para orientarte: «Socios», «Prensa»…",
+    "summary": "{quantity, plural, one {Un código, utilizable {uses} veces.} other {# códigos, utilizables {uses} veces cada uno.}}",
+    "generate": "Crear los códigos",
+    "generated": "{count, plural, one {# código creado.} other {# códigos creados.}}",
+    "saved": "Guardado.",
+    "error": "No se pudo completar. Inténtalo de nuevo.",
+    "none": "Aún no hay códigos.",
+    "stats": "{count, plural, one {# código} other {# códigos}} · {used, plural, one {# uso} other {# usos}} de {capacity}",
+    "export": "Exportar todos los códigos (CSV)",
+    "colCode": "Código",
+    "colLabel": "Etiqueta",
+    "colUses": "Usos",
+    "colActions": "Acciones",
+    "copyLink": "Copiar el enlace",
+    "copied": "Copiado",
+    "disable": "Desactivar",
+    "enable": "Reactivar",
+    "disabled": "desactivado",
+    "latest": "Los 50 últimos códigos creados. La exportación contiene todos los códigos y sus enlaces."
   }
 }

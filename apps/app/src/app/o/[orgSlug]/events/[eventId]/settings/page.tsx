@@ -10,6 +10,8 @@ import { formatDateTime, toLocale } from "@evoly/i18n";
 import { getLocale } from "next-intl/server";
 import { eventPublicUrl } from "@/server/urls";
 import { waitingAlerts } from "@/server/alerts";
+import { presaleOverview } from "@/server/presale";
+import { EventPresale } from "./EventPresale";
 import { EventAppearance } from "./EventAppearance";
 import { EventReminders } from "./EventReminders";
 import { eventEmailBlocks } from "@/server/eventEmailBlocks";
@@ -33,6 +35,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
   const emailBlocks = await eventEmailBlocks(eventId);
   const canPublish = can(ctx.membership, "EVENTS_PUBLISH");
   const waiting = canPublish ? await waitingAlerts(eventId) : 0;
+  const presale = canPublish ? await presaleOverview(eventId) : null;
   const tp = await getTranslations("publication");
   const when = e.publishAt ? formatDateTime(e.publishAt, e.timezone, toLocale(await getLocale())) : null;
   const publicationStatus = e.publishAt && when ? tp(e.publishAt > new Date() ? "statusScheduled" : "statusLive", { date: when }) : null;
@@ -81,6 +84,18 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
           previewUrl={e.previewToken ? `${eventPublicUrl(ctx.organization, e)}?apercu=${e.previewToken}` : null}
           status={publicationStatus}
           waiting={waiting}
+          readOnly={ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)}
+        />
+      ) : null}
+      {canPublish && presale ? (
+        <EventPresale
+          orgSlug={orgSlug}
+          eventId={eventId}
+          timezone={e.timezone}
+          startsLocal={e.presaleStartsAt ? local(e.presaleStartsAt) : null}
+          overview={presale}
+          eventUrl={eventPublicUrl(ctx.organization, e)}
+          csvUrl={`/o/${orgSlug}/events/${eventId}/presale.csv`}
           readOnly={ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)}
         />
       ) : null}

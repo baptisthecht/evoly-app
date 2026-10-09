@@ -29,3 +29,4 @@ export * from "./seating";
 export * from "./seatmap";
 export * from "./emailDoc";
 export * from "./publication";
+export * from "./presale";

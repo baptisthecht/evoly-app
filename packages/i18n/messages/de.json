@@ -105,7 +105,14 @@
     "alertUnsubText": "Sie werden nicht über den Verkaufsstart von {event} informiert, und Ihre Adresse wird gelöscht.",
     "alertUnsubButton": "Benachrichtigung löschen",
     "alertUnsubDone": "Ihre Benachrichtigung wurde gelöscht.",
-    "alertUnsubGone": "Diese Benachrichtigung existiert nicht mehr."
+    "alertUnsubGone": "Diese Benachrichtigung existiert nicht mehr.",
+    "presaleAsk": "Haben Sie einen Vorverkaufscode?",
+    "presaleCode": "Vorverkaufscode",
+    "presaleSubmit": "Einlösen",
+    "presaleInvalid": "Dieser Vorverkaufscode ist nicht gültig.",
+    "presaleBanner": "Privater Vorverkauf: Sie haben Zugang zu den Tickets vor dem öffentlichen Verkaufsstart.",
+    "presaleUnlocking": "Ihr Vorverkaufszugang wird freigeschaltet…",
+    "presaleBack": "Zur Veranstaltung"
   },
   "checkout": {
     "tickets": "Tickets",
@@ -363,7 +370,13 @@
     "SUBDOMAIN_RESERVED": "Diese Adresse ist reserviert.",
     "SUBDOMAIN_FORMAT": "Nur Kleinbuchstaben, Ziffern und Bindestriche.",
     "SUBDOMAIN_LENGTH": "Zwischen 3 und 50 Zeichen.",
-    "PUBLISH_AFTER_START": "Die Veröffentlichung muss vor Beginn der Veranstaltung liegen."
+    "PUBLISH_AFTER_START": "Die Veröffentlichung muss vor Beginn der Veranstaltung liegen.",
+    "PRESALE_INVALID": "Dieser Vorverkaufscode ist nicht gültig.",
+    "PRESALE_EXHAUSTED": "Dieser Vorverkaufscode wurde bereits so oft wie vorgesehen genutzt.",
+    "PRESALE_CODE_TAKEN": "Dieser Code existiert für diese Veranstaltung bereits.",
+    "PRESALE_CODE_FORMAT": "Der Code muss 3 bis 30 Zeichen lang sein: Buchstaben, Ziffern oder Bindestriche.",
+    "PRESALE_LIMIT": "Eine Veranstaltung kann höchstens 20.000 Vorverkaufscodes haben.",
+    "PRESALE_AFTER_START": "Der Vorverkauf muss vor Beginn der Veranstaltung starten."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -2368,5 +2381,37 @@
     "previewCopied": "Kopiert",
     "previewRevoke": "Link deaktivieren",
     "alertsWaiting": "{count, plural, one {# Person wartet} other {# Personen warten}} auf den Verkaufsstart."
+  },
+  "presale": {
+    "title": "Privater Vorverkauf",
+    "intro": "Codes, die den Kauf vor dem öffentlichen Verkaufsstart freischalten, für Mitglieder, Partner oder Stammgäste. Eine Nutzung entspricht einer Bestellung.",
+    "startLabel": "Beginn des Vorverkaufs ({tz})",
+    "startHint": "Optional. Der Vorverkauf endet automatisch mit dem öffentlichen Verkaufsstart.",
+    "saveStart": "Speichern",
+    "generateTitle": "Codes erstellen",
+    "quantityLabel": "Anzahl der Codes",
+    "usesLabel": "Nutzungen pro Code",
+    "customLabel": "Eigener Code",
+    "customHint": "Optional: 3 bis 30 Buchstaben, Ziffern oder Bindestriche, zum Beispiel MITGLIEDER2026.",
+    "labelLabel": "Bezeichnung",
+    "labelHint": "Optional, zur Orientierung: „Mitglieder“, „Presse“…",
+    "summary": "{quantity, plural, one {Ein Code, {uses}-mal nutzbar.} other {# Codes, jeweils {uses}-mal nutzbar.}}",
+    "generate": "Codes erstellen",
+    "generated": "{count, plural, one {# Code erstellt.} other {# Codes erstellt.}}",
+    "saved": "Gespeichert.",
+    "error": "Das hat nicht funktioniert. Bitte erneut versuchen.",
+    "none": "Noch keine Codes.",
+    "stats": "{count, plural, one {# Code} other {# Codes}} · {used, plural, one {# Nutzung} other {# Nutzungen}} von {capacity}",
+    "export": "Alle Codes exportieren (CSV)",
+    "colCode": "Code",
+    "colLabel": "Bezeichnung",
+    "colUses": "Nutzungen",
+    "colActions": "Aktionen",
+    "copyLink": "Link kopieren",
+    "copied": "Kopiert",
+    "disable": "Deaktivieren",
+    "enable": "Aktivieren",
+    "disabled": "deaktiviert",
+    "latest": "Die 50 zuletzt erstellten Codes. Der Export enthält alle Codes mit ihren Links."
   }
 }

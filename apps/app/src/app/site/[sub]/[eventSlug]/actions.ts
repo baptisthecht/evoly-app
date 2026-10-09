@@ -24,6 +24,7 @@ import { hasEventAccess, unlockEvent } from "@/server/questions";
 import { getPublicOrganization, loadPublicEvent, type PublicTicketType } from "@/server/publicEvents";
 import { hit } from "@/server/rateLimit";
 import { subscribeAlert } from "@/server/alerts";
+import { presaleCookie, unlockPresale } from "@/server/presale";
 import { clientIp } from "@/server/requestInfo";
 
 export interface ReservationView {
@@ -112,6 +113,7 @@ export async function reserveAction(
       lines: parsed.data,
       locale: await getLocale(),
       promoCode: promoCode?.slice(0, 40) || null,
+      presaleCode: await presaleCookie(eventId),
       seatIds: seats,
       nearCode: typeof nearCode === "string" ? nearCode.slice(0, 16) : null,
     });
@@ -314,5 +316,17 @@ export async function subscribeAlertAction(eventId: string, email: unknown): Pro
     return { ok: true, data: null };
   } catch (err) {
     return { ok: false, error: err instanceof CoreError ? err.code : "ERROR" };
+  }
+}
+
+/** Prévente privée (RG-PRV-02) : code saisi ou reçu par lien, mémorisé pour ce visiteur s'il est valable ; limité contre les essais en série. */
+export async function unlockPresaleAction(eventId: string, code: unknown): Promise<Result<null>> {
+  if (typeof code !== "string" || !code.trim() || code.length > 60) return { ok: false, error: "PRESALE_INVALID" };
+  if ((await hit(`presale:ip:${await clientIp()}`, 3600)) > 40) return { ok: false, error: "RATE_LIMITED" };
+  try {
+    await unlockPresale(eventId.slice(0, 40), code);
+    return { ok: true, data: null };
+  } catch (err) {
+    return { ok: false, error: err instanceof CoreError ? err.code : "PRESALE_INVALID" };
   }
 }

@@ -640,7 +640,13 @@
     "SUBDOMAIN_RESERVED": "This address is reserved.",
     "SUBDOMAIN_FORMAT": "Lowercase letters, numbers and hyphens only.",
     "SUBDOMAIN_LENGTH": "Between 3 and 50 characters.",
-    "PUBLISH_AFTER_START": "The event must go public before it starts."
+    "PUBLISH_AFTER_START": "The event must go public before it starts.",
+    "PRESALE_INVALID": "This presale code isn’t valid.",
+    "PRESALE_EXHAUSTED": "This presale code has already been used as many times as allowed.",
+    "PRESALE_CODE_TAKEN": "This code already exists for this event.",
+    "PRESALE_CODE_FORMAT": "The code must be 3 to 30 characters: letters, digits or hyphens.",
+    "PRESALE_LIMIT": "An event can have at most 20,000 presale codes.",
+    "PRESALE_AFTER_START": "The presale must start before the event begins."
   },
   "brand": {
     "sloganStart": "your next",
@@ -1078,7 +1084,14 @@
     "alertUnsubText": "You won’t be told when tickets for {event} go on sale, and your address will be deleted.",
     "alertUnsubButton": "Delete my alert",
     "alertUnsubDone": "Your alert has been deleted.",
-    "alertUnsubGone": "This alert no longer exists."
+    "alertUnsubGone": "This alert no longer exists.",
+    "presaleAsk": "Have a presale code?",
+    "presaleCode": "Presale code",
+    "presaleSubmit": "Apply",
+    "presaleInvalid": "This presale code isn’t valid.",
+    "presaleBanner": "Private presale: you can buy tickets before they go on sale to the public.",
+    "presaleUnlocking": "Unlocking your presale access…",
+    "presaleBack": "See the event"
   },
   "promo": {
     "new": "New code",
@@ -2368,5 +2381,37 @@
     "previewCopied": "Copied",
     "previewRevoke": "Disable the link",
     "alertsWaiting": "{count, plural, one {# person is} other {# people are}} waiting for tickets to go on sale."
+  },
+  "presale": {
+    "title": "Private presale",
+    "intro": "Codes that unlock purchases before tickets go on sale to the public, for your members, partners or regulars. One use is one order.",
+    "startLabel": "Presale start ({tz})",
+    "startHint": "Optional. The presale ends on its own when tickets go on sale to the public.",
+    "saveStart": "Save",
+    "generateTitle": "Create codes",
+    "quantityLabel": "Number of codes",
+    "usesLabel": "Uses per code",
+    "customLabel": "Custom code",
+    "customHint": "Optional: 3 to 30 letters, digits or hyphens, for example MEMBERS2026.",
+    "labelLabel": "Label",
+    "labelHint": "Optional, to keep track: “Members”, “Press”…",
+    "summary": "{quantity, plural, one {One code, usable {uses} times.} other {# codes, each usable {uses} times.}}",
+    "generate": "Create the codes",
+    "generated": "{count, plural, one {# code created.} other {# codes created.}}",
+    "saved": "Saved.",
+    "error": "That didn’t work. Please try again.",
+    "none": "No codes yet.",
+    "stats": "{count, plural, one {# code} other {# codes}} · {used, plural, one {# use} other {# uses}} out of {capacity}",
+    "export": "Export all codes (CSV)",
+    "colCode": "Code",
+    "colLabel": "Label",
+    "colUses": "Uses",
+    "colActions": "Actions",
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "disable": "Disable",
+    "enable": "Enable",
+    "disabled": "disabled",
+    "latest": "The 50 most recent codes. The export contains every code and its link."
   }
 }

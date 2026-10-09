@@ -29,6 +29,7 @@ import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { getPlans } from "./plans";
 import { salesOpeningAt } from "@evoly/core";
+import { presaleCodeFor } from "./presale";
 
 type Tx = Prisma.TransactionClient;
 
@@ -151,7 +152,15 @@ export interface Reservation {
  * puis chaque incrément est conditionnel : la survente est impossible, même sous forte concurrence.
  */
 export async function reserveOrder(
-  input: { eventId: string; lines: CartRequestLine[]; locale: string; promoCode?: string | null; seatIds?: string[] | null; nearCode?: string | null },
+  input: {
+    eventId: string;
+    lines: CartRequestLine[];
+    locale: string;
+    promoCode?: string | null;
+    presaleCode?: string | null;
+    seatIds?: string[] | null;
+    nearCode?: string | null;
+  },
   now = new Date(),
 ): Promise<Reservation> {
   const orderId = `c${humanCode(24, ID_ALPHABET)}`;
@@ -184,6 +193,9 @@ export async function reserveOrder(
       }
       promo = row;
     }
+    // RG-PRV-02 : un code de prévente valable ouvre l\'achat avant l\'ouverture publique (dates d\'ouverture ignorées, pas les quotas ni les fermetures)
+    const opening = salesOpeningAt(event);
+    const presale = input.presaleCode && opening && opening > now ? await presaleCodeFor(tx, event, input.presaleCode, now) : null;
     const errors = checkCart(
       {
         id: event.id,
@@ -191,12 +203,12 @@ export async function reserveOrder(
         capacity: event.capacity,
         soldTotal: types.reduce((n, t) => n + t.quantitySold, 0),
         heldTotal: types.reduce((n, t) => n + t.quantityHeld, 0),
-        salesStartAt: salesOpeningAt(event), // RG-PRG-02 : pas d'achat avant la publication programmée
+        salesStartAt: presale ? null : salesOpeningAt(event), // RG-PRG-02 : pas d'achat avant la publication programmée
         salesEndAt: event.salesEndAt,
         maxTicketsPerOrder: event.maxTicketsPerOrder,
         startsAt: event.startsAt,
       },
-      types,
+      presale ? types.map((t) => ({ ...t, salesStartAt: null })) : types,
       input.lines,
       now,
       { unlocksHidden: !!promo?.unlocksHidden },
@@ -251,6 +263,7 @@ export async function reserveOrder(
         totalMinor: priced.totalMinor,
         applicationFeeMinor: priced.applicationFeeMinor,
         promoCodeId: promo?.id ?? null,
+        presaleCodeId: presale?.id ?? null,
         feeSnapshot: priced.feeSnapshot as unknown as Prisma.InputJsonValue,
         holdExpiresAt: new Date(now.getTime() + event.checkoutHoldMinutes * 60_000),
         accessTokenHash,
@@ -552,6 +565,12 @@ export async function finalizeOrder(
           const counted =
             await tx.$executeRaw`UPDATE "PromoCode" SET "usedCount" = "usedCount" + 1 WHERE id = ${order.promoCodeId} AND ("maxUses" IS NULL OR "usedCount" < "maxUses")`;
           if (counted !== 1 && order.status !== "PENDING") throw new NoStockLeft();
+        }
+        if (order.presaleCodeId) {
+          // RG-PRV-02 : compteur de la prévente incrémenté au paiement, sans jamais dépasser la limite
+          const presaleCounted =
+            await tx.$executeRaw`UPDATE "PresaleCode" SET "usedCount" = "usedCount" + 1 WHERE id = ${order.presaleCodeId} AND "usedCount" < "maxUses"`;
+          if (presaleCounted !== 1 && order.status !== "PENDING") throw new NoStockLeft();
         }
         // section 9.9 : sièges retenus attribués aux billets, dans l'ordre du plan
         const seatsBy = await seatsForTickets(tx, order.id);

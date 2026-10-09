@@ -105,7 +105,14 @@
     "alertUnsubText": "Não será avisado da abertura das vendas de {event} e o seu endereço será eliminado.",
     "alertUnsubButton": "Eliminar o meu aviso",
     "alertUnsubDone": "O seu aviso foi eliminado.",
-    "alertUnsubGone": "Este aviso já não existe."
+    "alertUnsubGone": "Este aviso já não existe.",
+    "presaleAsk": "Tem um código de pré-venda?",
+    "presaleCode": "Código de pré-venda",
+    "presaleSubmit": "Validar",
+    "presaleInvalid": "Este código de pré-venda não é válido.",
+    "presaleBanner": "Pré-venda privada: tem acesso aos bilhetes antes da abertura pública das vendas.",
+    "presaleUnlocking": "A abrir o seu acesso à pré-venda…",
+    "presaleBack": "Ver o evento"
   },
   "checkout": {
     "tickets": "Bilhetes",
@@ -363,7 +370,13 @@
     "SUBDOMAIN_RESERVED": "Este endereço está reservado.",
     "SUBDOMAIN_FORMAT": "Apenas letras minúsculas, algarismos e hífenes.",
     "SUBDOMAIN_LENGTH": "Entre 3 e 50 caracteres.",
-    "PUBLISH_AFTER_START": "A publicação tem de ocorrer antes do início do evento."
+    "PUBLISH_AFTER_START": "A publicação tem de ocorrer antes do início do evento.",
+    "PRESALE_INVALID": "Este código de pré-venda não é válido.",
+    "PRESALE_EXHAUSTED": "Este código de pré-venda já foi usado todas as vezes previstas.",
+    "PRESALE_CODE_TAKEN": "Este código já existe para este evento.",
+    "PRESALE_CODE_FORMAT": "O código deve ter 3 a 30 caracteres: letras, algarismos ou hífenes.",
+    "PRESALE_LIMIT": "Um evento pode ter no máximo 20 000 códigos de pré-venda.",
+    "PRESALE_AFTER_START": "A pré-venda tem de começar antes do início do evento."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -2368,5 +2381,37 @@
     "previewCopied": "Copiado",
     "previewRevoke": "Desativar o link",
     "alertsWaiting": "{count, plural, one {# pessoa espera} other {# pessoas esperam}} pela abertura das vendas."
+  },
+  "presale": {
+    "title": "Pré-venda privada",
+    "intro": "Códigos que abrem a compra antes da abertura pública das vendas, para os seus sócios, parceiros ou fiéis. Uma utilização corresponde a uma encomenda.",
+    "startLabel": "Início da pré-venda ({tz})",
+    "startHint": "Opcional. A pré-venda termina sozinha com a abertura pública das vendas.",
+    "saveStart": "Guardar",
+    "generateTitle": "Criar códigos",
+    "quantityLabel": "Número de códigos",
+    "usesLabel": "Utilizações por código",
+    "customLabel": "Código personalizado",
+    "customHint": "Opcional: 3 a 30 letras, algarismos ou hífenes, por exemplo SOCIOS2026.",
+    "labelLabel": "Etiqueta",
+    "labelHint": "Opcional, para se orientar: «Sócios», «Imprensa»…",
+    "summary": "{quantity, plural, one {Um código, utilizável {uses} vezes.} other {# códigos, utilizáveis {uses} vezes cada um.}}",
+    "generate": "Criar os códigos",
+    "generated": "{count, plural, one {# código criado.} other {# códigos criados.}}",
+    "saved": "Guardado.",
+    "error": "Não foi possível concluir. Tente novamente.",
+    "none": "Ainda não há códigos.",
+    "stats": "{count, plural, one {# código} other {# códigos}} · {used, plural, one {# utilização} other {# utilizações}} de {capacity}",
+    "export": "Exportar todos os códigos (CSV)",
+    "colCode": "Código",
+    "colLabel": "Etiqueta",
+    "colUses": "Utilizações",
+    "colActions": "Ações",
+    "copyLink": "Copiar o link",
+    "copied": "Copiado",
+    "disable": "Desativar",
+    "enable": "Reativar",
+    "disabled": "desativado",
+    "latest": "Os 50 últimos códigos criados. A exportação contém todos os códigos e os seus links."
   }
 }

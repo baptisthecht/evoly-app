@@ -105,7 +105,14 @@
     "alertUnsubText": "Non sarai avvisato dell’apertura delle vendite di {event} e il tuo indirizzo verrà eliminato.",
     "alertUnsubButton": "Elimina il mio avviso",
     "alertUnsubDone": "Il tuo avviso è stato eliminato.",
-    "alertUnsubGone": "Questo avviso non esiste più."
+    "alertUnsubGone": "Questo avviso non esiste più.",
+    "presaleAsk": "Hai un codice di prevendita?",
+    "presaleCode": "Codice di prevendita",
+    "presaleSubmit": "Conferma",
+    "presaleInvalid": "Questo codice di prevendita non è valido.",
+    "presaleBanner": "Prevendita privata: hai accesso ai biglietti prima dell’apertura pubblica delle vendite.",
+    "presaleUnlocking": "Apertura del tuo accesso alla prevendita…",
+    "presaleBack": "Vedi l’evento"
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -363,7 +370,13 @@
     "SUBDOMAIN_RESERVED": "Questo indirizzo è riservato.",
     "SUBDOMAIN_FORMAT": "Solo lettere minuscole, cifre e trattini.",
     "SUBDOMAIN_LENGTH": "Tra 3 e 50 caratteri.",
-    "PUBLISH_AFTER_START": "La pubblicazione deve avvenire prima dell’inizio dell’evento."
+    "PUBLISH_AFTER_START": "La pubblicazione deve avvenire prima dell’inizio dell’evento.",
+    "PRESALE_INVALID": "Questo codice di prevendita non è valido.",
+    "PRESALE_EXHAUSTED": "Questo codice di prevendita è già stato usato tutte le volte previste.",
+    "PRESALE_CODE_TAKEN": "Questo codice esiste già per questo evento.",
+    "PRESALE_CODE_FORMAT": "Il codice deve avere da 3 a 30 caratteri: lettere, cifre o trattini.",
+    "PRESALE_LIMIT": "Un evento può avere al massimo 20.000 codici di prevendita.",
+    "PRESALE_AFTER_START": "La prevendita deve iniziare prima dell’inizio dell’evento."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -2368,5 +2381,37 @@
     "previewCopied": "Copiato",
     "previewRevoke": "Disattiva il link",
     "alertsWaiting": "{count, plural, one {# persona aspetta} other {# persone aspettano}} l’apertura delle vendite."
+  },
+  "presale": {
+    "title": "Prevendita privata",
+    "intro": "Codici che aprono l’acquisto prima dell’apertura pubblica delle vendite, per i tuoi soci, partner o fedelissimi. Un utilizzo corrisponde a un ordine.",
+    "startLabel": "Inizio della prevendita ({tz})",
+    "startHint": "Facoltativo. La prevendita termina da sola all’apertura pubblica delle vendite.",
+    "saveStart": "Salva",
+    "generateTitle": "Crea codici",
+    "quantityLabel": "Numero di codici",
+    "usesLabel": "Utilizzi per codice",
+    "customLabel": "Codice personalizzato",
+    "customHint": "Facoltativo: da 3 a 30 lettere, cifre o trattini, ad esempio SOCI2026.",
+    "labelLabel": "Etichetta",
+    "labelHint": "Facoltativo, per orientarti: «Soci», «Stampa»…",
+    "summary": "{quantity, plural, one {Un codice, utilizzabile {uses} volte.} other {# codici, utilizzabili {uses} volte ciascuno.}}",
+    "generate": "Crea i codici",
+    "generated": "{count, plural, one {# codice creato.} other {# codici creati.}}",
+    "saved": "Salvato.",
+    "error": "Operazione non riuscita. Riprova.",
+    "none": "Ancora nessun codice.",
+    "stats": "{count, plural, one {# codice} other {# codici}} · {used, plural, one {# utilizzo} other {# utilizzi}} su {capacity}",
+    "export": "Esporta tutti i codici (CSV)",
+    "colCode": "Codice",
+    "colLabel": "Etichetta",
+    "colUses": "Utilizzi",
+    "colActions": "Azioni",
+    "copyLink": "Copia il link",
+    "copied": "Copiato",
+    "disable": "Disattiva",
+    "enable": "Riattiva",
+    "disabled": "disattivato",
+    "latest": "Gli ultimi 50 codici creati. L’esportazione contiene tutti i codici e i loro link."
   }
 }

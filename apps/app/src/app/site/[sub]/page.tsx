@@ -7,22 +7,21 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { PublicShell } from "@/components/public/PublicShell";
 import { DisabledSite } from "@/components/public/DisabledSite";
 import { PublicEventPage, eventMetadata } from "@/components/public/EventPage";
-import { PrepublishedEvent, prepublishedMetadata } from "@/components/public/Prepublished";
+import { EventRouteView, eventRouteMetadata, loadEventForVisitor } from "@/components/public/Prepublished";
 import { canonicalOrgUrl } from "@/server/canonical";
 import { listPublicEvents, loadPublicEvent, resolveSite } from "@/server/publicEvents";
 import { siteGate } from "@/server/siteGuard";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ sub: string }>; searchParams: Promise<{ apercu?: string }> };
+type Props = { params: Promise<{ sub: string }>; searchParams: Promise<{ apercu?: string; prevente?: string }> };
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { sub } = await params;
   const site = await resolveSite(sub);
   if (site?.kind === "EVENT") {
-    const data = await loadPublicEvent({ id: site.eventId });
-    if (!data) return {};
-    return data.prepublished ? prepublishedMetadata(site.org, data, (await searchParams).apercu) : eventMetadata(site.org, data);
+    const data = await loadEventForVisitor({ id: site.eventId });
+    return data ? eventRouteMetadata(site.org, data, await searchParams) : {};
   }
   if (site?.kind !== "ORG") return {};
   const name = site.org.brand?.displayName ?? site.org.name;
@@ -47,11 +46,9 @@ export default async function OrganizationPublicPage({ params, searchParams }: P
   if (site.kind === "DISABLED") return <DisabledSite fallback={site.fallback} />;
   if (site.kind === "EVENT") {
     // hôte dédié à un événement (sous-domaine d'événement ou domaine personnalisé) : la page de l'événement
-    const data = await loadPublicEvent({ id: site.eventId });
+    const data = await loadEventForVisitor({ id: site.eventId });
     if (!data) notFound();
-    const home = await canonicalOrgUrl(site.org);
-    if (data.prepublished) return <PrepublishedEvent org={site.org} data={data} homeHref={home} token={(await searchParams).apercu} />;
-    return <PublicEventPage org={site.org} data={data} homeHref={home} />;
+    return <EventRouteView org={site.org} data={data} homeHref={await canonicalOrgUrl(site.org)} query={await searchParams} />;
   }
   const org = site.org;
   const { upcoming, past } = await listPublicEvents(org.id);

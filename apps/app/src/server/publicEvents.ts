@@ -8,6 +8,7 @@ import { organizationPublicUrl } from "./urls";
 import { effectivePlan, hasFeature } from "@evoly/core";
 import { isPrepublished, salesOpeningAt } from "@evoly/core";
 import { publiclyVisible } from "./publication";
+import { presaleUsable } from "./presale";
 
 const VISIBLE_STATUSES = ["PUBLISHED", "SALES_PAUSED", "CANCELLED", "ENDED"] as const;
 
@@ -110,18 +111,21 @@ function toTier(t: {
 }
 
 /** Événement public : jamais un brouillon ni un événement supprimé (RG-EVT-03). */
-export function loadPublicEvent(where: { organizationId: string; slug: string } | { id: string }, options: { allowDraft?: boolean; codeOnly?: boolean } = {}) {
-  return loadPublicEventOnce(JSON.stringify(where), !!options.allowDraft, !!options.codeOnly);
+export function loadPublicEvent(
+  where: { organizationId: string; slug: string } | { id: string },
+  options: { allowDraft?: boolean; codeOnly?: boolean; presaleCode?: string | null } = {},
+) {
+  return loadPublicEventOnce(JSON.stringify(where), !!options.allowDraft, !!options.codeOnly, options.presaleCode ?? "");
 }
 
 // mis en commun le temps d'une visite (métadonnées et page) : aucune donnée gardée d'une visite à l'autre
-const loadPublicEventOnce = cache((where: string, allowDraft: boolean, codeOnly: boolean) =>
-  loadPublicEventUncached(JSON.parse(where), { allowDraft, codeOnly }),
+const loadPublicEventOnce = cache((where: string, allowDraft: boolean, codeOnly: boolean, presaleCode: string) =>
+  loadPublicEventUncached(JSON.parse(where), { allowDraft, codeOnly, presaleCode: presaleCode || null }),
 );
 
 async function loadPublicEventUncached(
   where: { organizationId: string; slug: string } | { id: string },
-  options: { allowDraft?: boolean; codeOnly?: boolean } = {},
+  options: { allowDraft?: boolean; codeOnly?: boolean; presaleCode?: string | null } = {},
 ) {
   const event = await db.event.findFirst({
     where: {
@@ -142,12 +146,14 @@ async function loadPublicEventUncached(
   const totals = await db.ticketType.aggregate({ where: { eventId: event.id }, _sum: { quantitySold: true, quantityHeld: true } });
   const eventStock = { capacity: event.capacity, soldTotal: totals._sum.quantitySold ?? 0, heldTotal: totals._sum.quantityHeld ?? 0 };
   const opensAt = salesOpeningAt(event); // RG-PRG-02 : jamais avant la publication programmée
-  const salesOpen = event.status === "PUBLISHED" && (!opensAt || opensAt <= now) && now < (event.salesEndAt ?? event.startsAt);
+  // RG-PRV-02 : un code de prévente valable ouvre la vente avant l\'ouverture publique, pour ce visiteur
+  const presale = !!options.presaleCode && !!opensAt && opensAt > now && event.status === "PUBLISHED" && (await presaleUsable(event, options.presaleCode, now));
+  const salesOpen = event.status === "PUBLISHED" && (presale || !opensAt || opensAt <= now) && now < (event.salesEndAt ?? event.startsAt);
   const ticketTypes: PublicTicketType[] = event.ticketTypes.map((t) => {
     const tiers = t.priceTiers.map(toTier);
     const price = effectivePrice(t.priceMinor, tiers, now);
     const upcoming = event.showNextPriceTier ? nextTier(tiers, now) : null;
-    const inWindow = (!t.salesStartAt || t.salesStartAt <= now) && (!t.salesEndAt || now < t.salesEndAt);
+    const inWindow = (presale || !t.salesStartAt || t.salesStartAt <= now) && (!t.salesEndAt || now < t.salesEndAt);
     const remaining = t.status === "SOLD_OUT" ? 0 : availableFor(t, eventStock);
     return {
       id: t.id,
@@ -168,6 +174,7 @@ async function loadPublicEventUncached(
     ticketTypes,
     salesOpen,
     salesOpensAt: opensAt,
+    presale,
     prepublished: isPrepublished(event, now),
     soldOut: ticketTypes.length > 0 && ticketTypes.every((t) => t.remaining <= 0),
   };

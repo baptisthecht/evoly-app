@@ -640,7 +640,13 @@
     "SUBDOMAIN_RESERVED": "Cette adresse est réservée.",
     "SUBDOMAIN_FORMAT": "Lettres minuscules, chiffres et tirets uniquement.",
     "SUBDOMAIN_LENGTH": "Entre 3 et 50 caractères.",
-    "PUBLISH_AFTER_START": "La publication doit avoir lieu avant le début de l’événement."
+    "PUBLISH_AFTER_START": "La publication doit avoir lieu avant le début de l’événement.",
+    "PRESALE_INVALID": "Ce code de prévente n’est pas valable.",
+    "PRESALE_EXHAUSTED": "Ce code de prévente a déjà servi autant de fois que prévu.",
+    "PRESALE_CODE_TAKEN": "Ce code existe déjà pour cet événement.",
+    "PRESALE_CODE_FORMAT": "Le code doit compter 3 à 30 caractères : lettres, chiffres ou tirets.",
+    "PRESALE_LIMIT": "Un événement compte au plus 20 000 codes de prévente.",
+    "PRESALE_AFTER_START": "La prévente doit commencer avant le début de l’événement."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -1078,7 +1084,14 @@
     "alertUnsubText": "Vous ne serez pas prévenu de l’ouverture des ventes de {event}, et votre adresse sera supprimée.",
     "alertUnsubButton": "Supprimer mon alerte",
     "alertUnsubDone": "Votre alerte est supprimée.",
-    "alertUnsubGone": "Cette alerte n’existe plus."
+    "alertUnsubGone": "Cette alerte n’existe plus.",
+    "presaleAsk": "Vous avez un code de prévente ?",
+    "presaleCode": "Code de prévente",
+    "presaleSubmit": "Valider",
+    "presaleInvalid": "Ce code de prévente n’est pas valable.",
+    "presaleBanner": "Prévente privée : vous avez accès aux billets avant l’ouverture publique des ventes.",
+    "presaleUnlocking": "Ouverture de votre accès à la prévente…",
+    "presaleBack": "Voir l’événement"
   },
   "promo": {
     "new": "Nouveau code",
@@ -2368,5 +2381,37 @@
     "previewCopied": "Copié",
     "previewRevoke": "Désactiver le lien",
     "alertsWaiting": "{count, plural, one {# personne attend} other {# personnes attendent}} l’ouverture des ventes."
+  },
+  "presale": {
+    "title": "Prévente privée",
+    "intro": "Des codes qui ouvrent l’achat avant l’ouverture publique des ventes, pour vos adhérents, vos partenaires ou vos fidèles. Une utilisation correspond à une commande.",
+    "startLabel": "Début de la prévente ({tz})",
+    "startHint": "Facultatif. La prévente s’arrête d’elle-même à l’ouverture publique des ventes.",
+    "saveStart": "Enregistrer",
+    "generateTitle": "Créer des codes",
+    "quantityLabel": "Nombre de codes",
+    "usesLabel": "Utilisations par code",
+    "customLabel": "Code personnalisé",
+    "customHint": "Facultatif : 3 à 30 lettres, chiffres ou tirets, par exemple MEMBRES2026.",
+    "labelLabel": "Libellé",
+    "labelHint": "Facultatif, pour vous y retrouver : « Adhérents », « Presse »…",
+    "summary": "{quantity, plural, one {Un code, utilisable {uses} fois.} other {# codes, utilisables {uses} fois chacun.}}",
+    "generate": "Créer les codes",
+    "generated": "{count, plural, one {# code créé.} other {# codes créés.}}",
+    "saved": "Enregistré.",
+    "error": "Action impossible. Réessayez.",
+    "none": "Aucun code pour l’instant.",
+    "stats": "{count, plural, one {# code} other {# codes}} · {used, plural, one {# utilisation} other {# utilisations}} sur {capacity}",
+    "export": "Exporter tous les codes (CSV)",
+    "colCode": "Code",
+    "colLabel": "Libellé",
+    "colUses": "Utilisations",
+    "colActions": "Actions",
+    "copyLink": "Copier le lien",
+    "copied": "Copié",
+    "disable": "Désactiver",
+    "enable": "Réactiver",
+    "disabled": "désactivé",
+    "latest": "Les 50 derniers codes créés. L’export contient tous les codes et leurs liens."
   }
 }

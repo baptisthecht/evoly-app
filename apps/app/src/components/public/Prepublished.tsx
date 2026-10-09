@@ -9,6 +9,10 @@ import type { PublicEventData, PublicOrganization } from "@/server/publicEvents"
 import { previewAllowed } from "@/server/publication";
 import { eventPublicUrl } from "@/server/urls";
 import { AlertForm } from "./AlertForm";
+import { PresaleAutoUnlock } from "./PresaleAutoUnlock";
+import { PresaleForm } from "./PresaleForm";
+import { loadPublicEvent } from "@/server/publicEvents";
+import { presaleCookie } from "@/server/presale";
 import { Countdown } from "./Countdown";
 import { PublicEventPage, eventMetadata } from "./EventPage";
 
@@ -114,6 +118,10 @@ async function OpeningExtras({ eventId, calendar }: { eventId: string; calendar:
           {t("calGoogle")}
         </a>
       </p>
+      <PresaleForm
+        eventId={eventId}
+        labels={{ ask: t("presaleAsk"), code: t("presaleCode"), submit: t("presaleSubmit"), invalid: t("presaleInvalid"), limited: t("alertLimited") }}
+      />
     </div>
   );
 }
@@ -146,4 +154,47 @@ export async function SalesCountdown({
       />
     </div>
   );
+}
+
+type Query = { apercu?: string; prevente?: string };
+
+/** Chargement pour un visiteur : avec un code de prévente mémorisé et valable, la vente lui est ouverte (RG-PRV-02). */
+export async function loadEventForVisitor(where: { organizationId: string; slug: string } | { id: string }) {
+  const data = await loadPublicEvent(where);
+  if (!data || (!data.prepublished && data.salesOpen)) return data;
+  const code = await presaleCookie(data.event.id);
+  if (!code) return data;
+  const unlocked = await loadPublicEvent(where, { presaleCode: code });
+  return unlocked?.presale ? unlocked : data;
+}
+
+/** Métadonnées : jamais indexé en prévente ni avant la publication. */
+export async function eventRouteMetadata(org: PublicOrganization, data: PublicEventData, query: Query): Promise<Metadata> {
+  if (data.presale) return { ...(await eventMetadata(org, data)), robots: { index: false, follow: false } };
+  if (data.prepublished) return prepublishedMetadata(org, data, query.apercu);
+  return eventMetadata(org, data);
+}
+
+/** Aiguillage d'une page d'événement : prévente, lien de prévente, pas encore publié, ou page normale. */
+export async function EventRouteView({ org, data, homeHref, query }: { org: PublicOrganization; data: PublicEventData; homeHref: string; query: Query }) {
+  const t = await getTranslations("public");
+  if (data.presale)
+    return (
+      <>
+        <p role="status" className="bg-info-soft px-4 py-3 text-center text-sm">
+          {t("presaleBanner")}
+        </p>
+        <PublicEventPage org={org} data={data} homeHref={homeHref} />
+      </>
+    );
+  if (query.prevente)
+    return (
+      <PresaleAutoUnlock
+        eventId={data.event.id}
+        code={query.prevente.slice(0, 60)}
+        labels={{ working: t("presaleUnlocking"), invalid: t("presaleInvalid"), back: t("presaleBack") }}
+      />
+    );
+  if (data.prepublished) return <PrepublishedEvent org={org} data={data} homeHref={homeHref} token={query.apercu} />;
+  return <PublicEventPage org={org} data={data} homeHref={homeHref} />;
 }

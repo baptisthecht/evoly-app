@@ -105,7 +105,14 @@
     "alertUnsubText": "Je wordt niet verwittigd wanneer de verkoop voor {event} start, en je adres wordt verwijderd.",
     "alertUnsubButton": "Mijn melding verwijderen",
     "alertUnsubDone": "Je melding is verwijderd.",
-    "alertUnsubGone": "Deze melding bestaat niet meer."
+    "alertUnsubGone": "Deze melding bestaat niet meer.",
+    "presaleAsk": "Heb je een voorverkoopcode?",
+    "presaleCode": "Voorverkoopcode",
+    "presaleSubmit": "Toepassen",
+    "presaleInvalid": "Deze voorverkoopcode is niet geldig.",
+    "presaleBanner": "Privévoorverkoop: je kunt tickets kopen vóór de publieke verkoop.",
+    "presaleUnlocking": "Je toegang tot de voorverkoop wordt geopend…",
+    "presaleBack": "Bekijk het evenement"
   },
   "checkout": {
     "tickets": "Tickets",
@@ -363,7 +370,13 @@
     "SUBDOMAIN_RESERVED": "Dit adres is gereserveerd.",
     "SUBDOMAIN_FORMAT": "Alleen kleine letters, cijfers en koppeltekens.",
     "SUBDOMAIN_LENGTH": "Tussen 3 en 50 tekens.",
-    "PUBLISH_AFTER_START": "De publicatie moet vóór de start van het evenement plaatsvinden."
+    "PUBLISH_AFTER_START": "De publicatie moet vóór de start van het evenement plaatsvinden.",
+    "PRESALE_INVALID": "Deze voorverkoopcode is niet geldig.",
+    "PRESALE_EXHAUSTED": "Deze voorverkoopcode is al zo vaak gebruikt als toegestaan.",
+    "PRESALE_CODE_TAKEN": "Deze code bestaat al voor dit evenement.",
+    "PRESALE_CODE_FORMAT": "De code moet 3 tot 30 tekens tellen: letters, cijfers of koppeltekens.",
+    "PRESALE_LIMIT": "Een evenement kan hoogstens 20.000 voorverkoopcodes hebben.",
+    "PRESALE_AFTER_START": "De voorverkoop moet vóór de start van het evenement beginnen."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -2368,5 +2381,37 @@
     "previewCopied": "Gekopieerd",
     "previewRevoke": "Link uitschakelen",
     "alertsWaiting": "{count, plural, one {# persoon wacht} other {# personen wachten}} op de start van de verkoop."
+  },
+  "presale": {
+    "title": "Privévoorverkoop",
+    "intro": "Codes die het kopen openzetten vóór de publieke verkoop, voor je leden, partners of vaste bezoekers. Eén gebruik is één bestelling.",
+    "startLabel": "Start van de voorverkoop ({tz})",
+    "startHint": "Optioneel. De voorverkoop stopt vanzelf bij de start van de publieke verkoop.",
+    "saveStart": "Opslaan",
+    "generateTitle": "Codes maken",
+    "quantityLabel": "Aantal codes",
+    "usesLabel": "Gebruik per code",
+    "customLabel": "Eigen code",
+    "customHint": "Optioneel: 3 tot 30 letters, cijfers of koppeltekens, bijvoorbeeld LEDEN2026.",
+    "labelLabel": "Label",
+    "labelHint": "Optioneel, om het overzicht te houden: ‘Leden’, ‘Pers’…",
+    "summary": "{quantity, plural, one {Eén code, {uses} keer te gebruiken.} other {# codes, elk {uses} keer te gebruiken.}}",
+    "generate": "Codes maken",
+    "generated": "{count, plural, one {# code gemaakt.} other {# codes gemaakt.}}",
+    "saved": "Opgeslagen.",
+    "error": "Dat lukte niet. Probeer het opnieuw.",
+    "none": "Nog geen codes.",
+    "stats": "{count, plural, one {# code} other {# codes}} · {used} van {capacity} keer gebruikt",
+    "export": "Alle codes exporteren (CSV)",
+    "colCode": "Code",
+    "colLabel": "Label",
+    "colUses": "Gebruik",
+    "colActions": "Acties",
+    "copyLink": "Link kopiëren",
+    "copied": "Gekopieerd",
+    "disable": "Uitschakelen",
+    "enable": "Inschakelen",
+    "disabled": "uitgeschakeld",
+    "latest": "De 50 laatst gemaakte codes. De export bevat alle codes en hun links."
   }
 }

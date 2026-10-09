@@ -11,6 +11,7 @@ import { cancelEvent } from "@/server/refunds";
 import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
 import { previewEventEmailBlock, saveEventEmailBlock } from "@/server/eventEmailBlocks";
 import { createPreviewToken, revokePreviewToken, savePublication } from "@/server/publication";
+import { generatePresaleCodes, savePresaleStart, setPresaleCodeActive } from "@/server/presale";
 import { moveQuestion, removeQuestion, saveQuestion } from "@/server/questions";
 import { sendComplimentaryTickets, type ComplimentaryResult } from "@/server/complimentary";
 import { applySeatingTemplate, deleteRow, saveCategory, setSeatChoice, setSeatingMode, toggleSeatBlocked } from "@/server/seating";
@@ -648,6 +649,56 @@ export async function previewLinkAction(orgSlug: string, eventId: string, enable
     if (d.enable) await createPreviewToken(ctx, eventId);
     else await revokePreviewToken(ctx, eventId);
   });
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
+  return r;
+}
+
+const presaleGenerateSchema = z.object({
+  quantity: z.number().int().min(1).max(5000),
+  usesPerCode: z.number().int().min(1).max(100000),
+  customCode: z.string().max(40).nullable(),
+  label: z.string().max(60).nullable(),
+});
+
+/** Prévente privée (RG-PRV-01) : N codes utilisables X fois chacun. */
+export async function generatePresaleCodesAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<number>> {
+  const r = await runOrgAction(orgSlug, input, { schema: presaleGenerateSchema, permission: "EVENTS_PUBLISH" }, async (d, ctx) =>
+    generatePresaleCodes(ctx, eventId, d),
+  );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
+  return r;
+}
+
+export async function setPresaleCodeActiveAction(orgSlug: string, eventId: string, codeId: string, active: boolean): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    { codeId, active },
+    { schema: z.object({ codeId: z.string().max(40), active: z.boolean() }), permission: "EVENTS_PUBLISH" },
+    async (d, ctx) => {
+      await setPresaleCodeActive(ctx, eventId, d.codeId, d.active);
+    },
+  );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
+  return r;
+}
+
+export async function savePresaleStartAction(orgSlug: string, eventId: string, startsLocal: string | null): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    { startsLocal },
+    {
+      schema: z.object({
+        startsLocal: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+          .nullable(),
+      }),
+      permission: "EVENTS_PUBLISH",
+    },
+    async (d, ctx) => {
+      await savePresaleStart(ctx, eventId, d.startsLocal);
+    },
+  );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
 }
