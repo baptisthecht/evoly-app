@@ -222,7 +222,7 @@ def ld_for(pid, p):
     page = {'@type': 'AboutPage' if pid == 'about' else 'WebPage', 'name': p['title'], 'description': p['desc'], 'url': f'{SITE}/{SLUGS[pid]["fr"]}/', 'inLanguage': 'fr', 'isPartOf': {'@id': f'{SITE}/#site'}}
     graph = [page, crumbs]
     if pid == 'about':
-        graph.append({'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'legalName': 'Evoly Solutions', 'url': f'{SITE}/', 'sameAs': ['https://www.linkedin.com/company/evoly-tickets/', 'https://www.instagram.com/evoly.me/'], 'email': 'hello@evoly.me', 'founder': {'@type': 'Person', 'name': 'Baptist Hecht'}, 'areaServed': 'Worldwide'})
+        graph.append({'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'legalName': 'Evoly Solutions', 'url': f'{SITE}/', 'sameAs': ['https://www.linkedin.com/company/evoly-tickets/', 'https://www.instagram.com/evoly.me/'], 'email': 'hello@evoly.me', 'founder': {'@type': 'Person', 'name': 'Baptist Hecht'}, 'address': {'@type': 'PostalAddress', 'addressLocality': 'Mouscron', 'postalCode': '7700', 'addressCountry': 'BE'}, 'identifier': {'@type': 'PropertyValue', 'propertyID': 'BCE', 'value': '1043.315.766'}, 'areaServed': 'Worldwide'})
     if p['faq']:
         graph.append({'@type': 'FAQPage', 'mainEntity': [{'@type': 'Question', 'name': q, 'acceptedAnswer': {'@type': 'Answer', 'text': a}} for q, a in p['faq']]})
     return {'@context': 'https://schema.org', '@graph': graph}

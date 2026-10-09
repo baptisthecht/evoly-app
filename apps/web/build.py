@@ -682,7 +682,7 @@ _strip = lambda t: _re.sub(r'<[^>]+>', '', t).replace('\u202f', ' ').strip()
 LD = {
   '@context': 'https://schema.org',
   '@graph': [
-    {'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'url': f'{SITE}/', 'logo': f'{SITE}/apple-touch-icon.png', 'description': SEO_DESC, 'sameAs': ['https://www.linkedin.com/company/evoly-tickets/', 'https://www.instagram.com/evoly.me/']},
+    {'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'url': f'{SITE}/', 'logo': f'{SITE}/apple-touch-icon.png', 'description': SEO_DESC, 'legalName': 'Evoly Solutions', 'email': 'hello@evoly.me', 'founder': {'@type': 'Person', 'name': 'Baptist Hecht'}, 'address': {'@type': 'PostalAddress', 'addressLocality': 'Mouscron', 'postalCode': '7700', 'addressCountry': 'BE'}, 'identifier': {'@type': 'PropertyValue', 'propertyID': 'BCE', 'value': '1043.315.766'}, 'sameAs': ['https://www.linkedin.com/company/evoly-tickets/', 'https://www.instagram.com/evoly.me/']},
     {'@type': 'WebSite', '@id': f'{SITE}/#site', 'name': 'Evoly', 'url': f'{SITE}/', 'inLanguage': 'fr', 'publisher': {'@id': f'{SITE}/#organisation'}},
     {'@type': 'SoftwareApplication', 'name': 'Evoly', 'applicationCategory': 'BusinessApplication', 'operatingSystem': 'Web, iOS, Android', 'url': 'https://app.evoly.me/register', 'description': SEO_DESC, 'publisher': {'@id': f'{SITE}/#organisation'},
      'offers': [
