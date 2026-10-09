@@ -37,9 +37,14 @@ services:
       UPLOADS_DIR: /data/uploads
     volumes:
       - uploads:/data/uploads
-    ports:
-      # joignable depuis le serveur seulement (tâches planifiées), jamais depuis Internet
-      - "127.0.0.1:3000:3000"
+    # pas de port publié : Caddy relaie, ce qui permet de faire tourner deux versions pendant une mise à jour (ops/deploy.sh)
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 4s
+      start_period: 60s
+      retries: 3
     depends_on:
       db:
         condition: service_healthy
@@ -54,6 +59,8 @@ services:
       - "80:80"
       - "443:443"
       - "443:443/udp"
+      # accès local à l\'app pour les tâches planifiées et la vérification du déploiement, jamais depuis Internet
+      - "127.0.0.1:3000:3000"
     volumes:
       - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
       - ./apps/web/dist:/srv/web:ro

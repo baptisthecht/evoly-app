@@ -8,12 +8,21 @@
 	}
 }
 
+# Relais vers l'app : pendant une mise à jour, la nouvelle version démarre à côté de l'ancienne (ops/deploy.sh) ;
+# si l'une ne répond pas, Caddy réessaie pendant 30 secondes au lieu d'afficher une erreur.
+(app) {
+	reverse_proxy app:3000 {
+		lb_try_duration 30s
+		lb_try_interval 250ms
+	}
+}
+
 # Site vitrine et documents légaux (apps/web/dist) ; liens courts d'événement (/e/…) et de revente (/r/…) servis par l'app
 {$SITE_DOMAIN} {
 	encode zstd gzip
 	@app path /e/* /r/*
 	handle @app {
-		reverse_proxy app:3000
+		import app
 	}
 	handle {
 		root * /srv/web
@@ -39,5 +48,10 @@ https:// {
 	}
 	encode zstd gzip
 	# Caddy transmet l'adresse réelle du visiteur (il ignore l'en-tête X-Forwarded-For envoyé par le client)
-	reverse_proxy app:3000
+	import app
+}
+
+# Accès local au serveur (tâches planifiées, vérification du déploiement) : publié sur 127.0.0.1:3000 seulement, jamais sur Internet
+http://:3000 {
+	import app
 }
