@@ -1093,7 +1093,7 @@ main.spaced>section.panel.final{margin-top:var(--gutter);min-height:clamp(480px,
 @media (max-width:900px){.v4-pro__grid{grid-template-columns:minmax(0,1fr)}.v4-pro__grid li .v4-pc{transform:rotate(0)!important}.v4-steps ol{grid-template-columns:minmax(0,1fr)}.v4-arc{display:none}}
 @media (prefers-reduced-motion:reduce){.v4-draw path{transition:none;stroke-dashoffset:0}.v4-live i{animation:none}.v4-pc,.field__card{transition:none}}
 /* trait du bento : traverse l'écran de droite à gauche en deux boucles, épaisseur constante */
-.v4-wave{position:absolute;left:calc(50% - max(50vw, 450px));top:calc(var(--v4-gap)*.06);width:max(100vw, 900px);max-width:none;height:calc(var(--v4-gap)*.84 + 40px);color:var(--lilas);pointer-events:none;z-index:0}
+.v4-wave{position:absolute;left:calc(50% - max(50vw, 450px));top:calc(var(--v4-gap) - 30px);width:max(100vw, 900px);max-width:none;height:calc(100% - var(--v4-gap) + 10px);color:var(--lilas);pointer-events:none;z-index:0}
 .v4-wave path{stroke-width:7px}
 @media (max-width:700px){.v4-wave path{stroke-width:5px}}
 
