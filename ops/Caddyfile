@@ -46,6 +46,9 @@ https:// {
 	tls {
 		on_demand
 	}
+	# l'app et le scanner ne sont pas faits pour Google (inscription, connexion, tableau de bord) ; les billetteries publiques restent indexables
+	@private host app.{$SITE_DOMAIN} scanner.{$SITE_DOMAIN}
+	header @private X-Robots-Tag "noindex, nofollow"
 	encode zstd gzip
 	# Caddy transmet l'adresse réelle du visiteur (il ignore l'en-tête X-Forwarded-For envoyé par le client)
 	import app

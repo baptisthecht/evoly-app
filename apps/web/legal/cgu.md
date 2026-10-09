@@ -54,7 +54,7 @@ Evoly fournit un outil technique et met en œuvre les moyens raisonnables pour e
 
 ## 13. Données personnelles
 
-Evoly est responsable du traitement des données des comptes des organisateurs. Pour les données des participants, l'Organisateur est responsable du traitement et Evoly agit comme sous-traitant, selon l'[accord de sous-traitance](/sous-traitance). Voir aussi la [politique de confidentialité](/privacy).
+Evoly est responsable du traitement des données des comptes des organisateurs. Pour les données des participants, l'Organisateur est responsable du traitement et Evoly agit comme sous-traitant, selon l'[accord de sous-traitance](/sous-traitance/). Voir aussi la [politique de confidentialité](/privacy/).
 
 ## 14. Durée, résiliation
 

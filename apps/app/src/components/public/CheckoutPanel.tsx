@@ -368,7 +368,7 @@ export function CheckoutPanel({
           organization: organizationName,
           sale: (c) => (
             <a
-              href={`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://evoly.me"}/conditions-de-vente`}
+              href={`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://evoly.me"}/conditions-de-vente/`}
               target="_blank"
               rel="noreferrer"
               className="underline underline-offset-4"
@@ -378,7 +378,7 @@ export function CheckoutPanel({
           ),
           privacy: (c) => (
             <a
-              href={`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://evoly.me"}/privacy`}
+              href={`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://evoly.me"}/privacy/`}
               target="_blank"
               rel="noreferrer"
               className="underline underline-offset-4"

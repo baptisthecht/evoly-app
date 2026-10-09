@@ -181,7 +181,7 @@ def sitemap():
         alt = ''.join(f'<xhtml:link rel="alternate" hreflang="{c}" href="{url_of(c, pid)}"/>' for c, *_ in LANGS) + f'<xhtml:link rel="alternate" hreflang="x-default" href="{url_of(X_DEFAULT, pid)}"/>'
         return ''.join(f'  <url><loc>{url_of(c, pid)}</loc>{alt}<priority>{prio}</priority></url>\n' for c, *_ in LANGS)
     body = group('home', '1.0') + ''.join(group(pid, '0.8') for pid in SLUGS)
-    legal = ''.join(f'  <url><loc>{SITE}/{p}</loc><priority>0.2</priority></url>\n' for p in LEGAL)
+    legal = ''.join(f'  <url><loc>{SITE}/{p}/</loc><priority>0.2</priority></url>\n' for p in LEGAL)
     return f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n{body}{legal}</urlset>\n'
 
 def load(code):

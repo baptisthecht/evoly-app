@@ -1,7 +1,7 @@
 ## 1. Qui est responsable ?
 
 - Pour les comptes des organisateurs, le site evoly.me et la facturation : Evoly (Baptist Hecht, entrepreneur indépendant exerçant sous le nom commercial Evoly Solutions, rue du Bilemont 376, 7700 Mouscron, Belgique, numéro d'entreprise BCE 1043.315.766) est responsable du traitement.
-- Pour les données des participants (commandes, billets, entrées) : chaque organisateur est responsable du traitement ; Evoly agit comme sous-traitant, selon l'[accord de sous-traitance](/sous-traitance).
+- Pour les données des participants (commandes, billets, entrées) : chaque organisateur est responsable du traitement ; Evoly agit comme sous-traitant, selon l'[accord de sous-traitance](/sous-traitance/).
 
 Contact pour vos données : hello@evoly.me.
 
@@ -45,4 +45,4 @@ Vous pouvez demander l'accès à vos données, leur rectification, leur effaceme
 
 ## 6. Cookies
 
-Voir la [politique cookies](/cookies).
+Voir la [politique cookies](/cookies/).

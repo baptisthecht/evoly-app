@@ -1,4 +1,4 @@
-Le présent accord, annexé aux [conditions d'utilisation des organisateurs](/cgu), encadre le traitement des données des participants par Evoly pour le compte de l'Organisateur, conformément à l'article 28 du règlement général sur la protection des données (RGPD).
+Le présent accord, annexé aux [conditions d'utilisation des organisateurs](/cgu/), encadre le traitement des données des participants par Evoly pour le compte de l'Organisateur, conformément à l'article 28 du règlement général sur la protection des données (RGPD).
 
 ## 1. Rôles
 
@@ -24,7 +24,7 @@ L'Organisateur est responsable du traitement des données des participants à se
 
 ## 4. Sous-traitants ultérieurs
 
-L'Organisateur autorise Evoly à recourir aux sous-traitants listés dans la [politique de confidentialité](/privacy). Evoly informe l'Organisateur de tout changement au moins 30 jours à l'avance ; l'Organisateur peut s'y opposer en résiliant son compte.
+L'Organisateur autorise Evoly à recourir aux sous-traitants listés dans la [politique de confidentialité](/privacy/). Evoly informe l'Organisateur de tout changement au moins 30 jours à l'avance ; l'Organisateur peut s'y opposer en résiliant son compte.
 
 ## 5. Transferts hors de l'Union européenne
 

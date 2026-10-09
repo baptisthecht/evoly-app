@@ -28,7 +28,7 @@ Si l'organisateur l'autorise, vous pouvez revendre votre billet sur la plateform
 
 ## 7. Données personnelles
 
-L'organisateur est responsable du traitement des données de votre commande ; Evoly les traite pour son compte. Si vous l'avez accepté, l'organisateur peut vous envoyer ses actualités ; chaque e-mail permet de vous désinscrire en un clic. Voir la [politique de confidentialité](/privacy).
+L'organisateur est responsable du traitement des données de votre commande ; Evoly les traite pour son compte. Si vous l'avez accepté, l'organisateur peut vous envoyer ses actualités ; chaque e-mail permet de vous désinscrire en un clic. Voir la [politique de confidentialité](/privacy/).
 
 ## 8. Réclamations
 
