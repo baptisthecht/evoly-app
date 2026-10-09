@@ -1,6 +1,7 @@
 import "server-only";
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
+import { safeError } from "@/lib/redact";
 
 type Outcome = "PROCESSED" | "IGNORED";
 
@@ -27,7 +28,7 @@ export async function processStripeEvent(event: Stripe.Event, handle: (event: St
   } catch (err) {
     await db.stripeWebhookEvent.update({
       where: { id: event.id },
-      data: { status: "FAILED", attempts: { increment: 1 }, lastError: String(err).slice(0, 1000) },
+      data: { status: "FAILED", attempts: { increment: 1 }, lastError: safeError(err) },
     });
     throw err;
   }

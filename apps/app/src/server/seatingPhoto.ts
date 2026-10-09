@@ -1,5 +1,5 @@
 import "server-only";
-import { CoreError, type BlockSpec } from "@evoly/core";
+import { CoreError, type BlockSpec, PALETTE } from "@evoly/core";
 import { z } from "zod";
 import { env } from "@/lib/env";
 import { blockSchema } from "@/lib/seatingSchemas";
@@ -27,7 +27,7 @@ const proposalSchema = z.object({
   categories: z.coerce.number().int().min(1).max(3).catch(1),
   blocks: z.array(z.record(z.string(), z.unknown())).min(1).max(40),
 });
-const COLORS = ["#FFB8E8", "#D9B8F0", "#A9C4F2"];
+const COLORS = [PALETTE.rose, PALETTE.catLilas, PALETTE.catBleu];
 
 /** Complète une proposition brute (valeurs par défaut, catégories c1 à c3) et la valide comme une saisie manuelle. */
 export function normalizePhotoPlan(raw: unknown): StoredPlan {

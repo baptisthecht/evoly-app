@@ -2057,7 +2057,16 @@
     "type_DOMAIN_ERROR": "Domein",
     "type_EVENT_CANCELLED": "Annulering",
     "type_CAMPAIGN_SENT": "Campagne",
-    "type_DISPUTE_OPENED": "Betwisting"
+    "type_DISPUTE_OPENED": "Betwisting",
+    "type_PAYOUT_FAILED": "Uitbetaling mislukt",
+    "prefsLink": "Voorkeuren",
+    "prefsTitle": "Meldingsvoorkeuren",
+    "prefsIntro": "Kies wat je ontvangt voor deze organisatie. E-mails gelden alleen voor belangrijke meldingen.",
+    "prefsType": "Melding",
+    "prefsInApp": "In de app",
+    "prefsEmail": "Per e-mail",
+    "prefsSave": "Opslaan",
+    "prefsSaved": "Voorkeuren opgeslagen."
   },
   "entries": {
     "result_VALID": "Toegang bevestigd",

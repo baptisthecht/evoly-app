@@ -1,6 +1,6 @@
 import { pick } from "@evoly/i18n";
 import "server-only";
-import { CoreError, generateBlock, type BlockSpec } from "@evoly/core";
+import { CoreError, generateBlock, type BlockSpec, PALETTE } from "@evoly/core";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
@@ -124,7 +124,7 @@ async function refreshFocus(mapId: string) {
 async function defaultCategory(mapId: string) {
   return (
     (await db.seatingCategory.findFirst({ where: { seatingMapId: mapId }, orderBy: { sortOrder: "asc" } })) ??
-    (await db.seatingCategory.create({ data: { seatingMapId: mapId, name: "Catégorie 1", color: "#FFB8E8", sortOrder: 0 } }))
+    (await db.seatingCategory.create({ data: { seatingMapId: mapId, name: "Catégorie 1", color: PALETTE.rose, sortOrder: 0 } }))
   );
 }
 

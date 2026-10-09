@@ -1882,7 +1882,16 @@
     "type_DOMAIN_ERROR": "Domain",
     "type_EVENT_CANCELLED": "Cancellation",
     "type_CAMPAIGN_SENT": "Campaign",
-    "type_DISPUTE_OPENED": "Dispute"
+    "type_DISPUTE_OPENED": "Dispute",
+    "type_PAYOUT_FAILED": "Payout failed",
+    "prefsLink": "Preferences",
+    "prefsTitle": "Notification preferences",
+    "prefsIntro": "Choose what you receive for this organisation. Emails only apply to important notifications.",
+    "prefsType": "Notification",
+    "prefsInApp": "In the app",
+    "prefsEmail": "By email",
+    "prefsSave": "Save",
+    "prefsSaved": "Preferences saved."
   },
   "scannerAccess": {
     "title": "Scan tickets",

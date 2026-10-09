@@ -32,6 +32,7 @@
   --color-danger-soft: var(--evoly-danger-soft);
   --color-info: var(--evoly-info);
   --color-info-soft: var(--evoly-info-soft);
+  --color-scan-checked: var(--evoly-scan-checked);
 
   --font-display: var(--type-display);
   --font-label: var(--type-label);

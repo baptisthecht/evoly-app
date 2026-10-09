@@ -2057,7 +2057,16 @@
     "type_DOMAIN_ERROR": "Dominio",
     "type_EVENT_CANCELLED": "Cancelación",
     "type_CAMPAIGN_SENT": "Campaña",
-    "type_DISPUTE_OPENED": "Disputa"
+    "type_DISPUTE_OPENED": "Disputa",
+    "type_PAYOUT_FAILED": "Transferencia fallida",
+    "prefsLink": "Preferencias",
+    "prefsTitle": "Preferencias de notificación",
+    "prefsIntro": "Elige lo que recibes para esta organización. Los e-mails solo se aplican a las notificaciones importantes.",
+    "prefsType": "Notificación",
+    "prefsInApp": "En la app",
+    "prefsEmail": "Por e-mail",
+    "prefsSave": "Guardar",
+    "prefsSaved": "Preferencias guardadas."
   },
   "entries": {
     "result_VALID": "Acceso validado",

@@ -35,6 +35,7 @@ import { renderEventBlock } from "./email/eventBlock";
 import { sanitizeEmailHtml } from "./email/sanitize";
 import { organizationPublicUrl } from "./urls";
 import { publiclyVisible } from "./publication";
+import { safeError } from "@/lib/redact";
 
 export const REMINDERS: ReminderType[] = ["REMINDER_J7", "REMINDER_J1", "REMINDER_J0"];
 
@@ -148,7 +149,7 @@ export async function runDueReminders(now = new Date()): Promise<number> {
           unsubscribeUrl: oneClickUnsubscribeUrl(o.buyerEmail, event.organizationId, event.id),
         })
           .then(() => (sent += 1))
-          .catch((err) => console.error("rappel non envoyé", automation.id, o.id, err));
+          .catch((err) => console.error("rappel non envoyé", automation.id, o.id, safeError(err)));
       }
     }
   }
@@ -310,7 +311,7 @@ async function sendAutomation(
       unsubscribeUrl: oneClickUnsubscribeUrl(r.email, organizationId, eventId),
     })
       .then(() => (sent += 1))
-      .catch((err) => console.error("automatisation marketing", a.id, r.id, err));
+      .catch((err) => console.error("automatisation marketing", a.id, r.id, safeError(err)));
   }
   return { sent, complete: pending.length <= quota };
 }

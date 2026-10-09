@@ -21,9 +21,17 @@ const PERMISSION: Record<NotificationType, Permission> = {
   CAMPAIGN_SENT: "MARKETING_MANAGE",
   DISPUTE_OPENED: "FINANCE_VIEW",
   EVENT_PUBLISHED: "EVENTS_PUBLISH",
+  PAYOUT_FAILED: "FINANCE_VIEW",
 };
 /** RG-NTF-02 : notifications importantes, aussi envoyées par e-mail au propriétaire et aux administrateurs. */
-const IMPORTANT = new Set<NotificationType>(["STRIPE_ACTION_REQUIRED", "SUBSCRIPTION_PAYMENT_FAILED", "DISPUTE_OPENED", "REFUND_REQUESTED", "EVENT_PUBLISHED"]);
+const IMPORTANT = new Set<NotificationType>([
+  "STRIPE_ACTION_REQUIRED",
+  "SUBSCRIPTION_PAYMENT_FAILED",
+  "DISPUTE_OPENED",
+  "REFUND_REQUESTED",
+  "EVENT_PUBLISHED",
+  "PAYOUT_FAILED",
+]);
 
 async function recipients(organizationId: string, type: NotificationType) {
   const members = await db.organizationMember.findMany({
@@ -44,8 +52,10 @@ export async function notify(
   opts: { email?: boolean } = {},
 ) {
   try {
-    const members = await recipients(organizationId, type);
-    if (members.length === 0) return;
+    // préférences de chaque membre (P1), indépendantes : types coupés dans l'app, e-mails coupés
+    const all = await recipients(organizationId, type);
+    if (all.length === 0) return;
+    const members = all.filter((m) => !m.mutedNotifications.includes(type));
     await db.notification.createMany({
       data: members.map((m) => ({
         organizationId,
@@ -59,7 +69,7 @@ export async function notify(
     if (IMPORTANT.has(type) && opts.email !== false) {
       const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { name: true, slug: true } });
       const url = `${env().NEXT_PUBLIC_APP_URL}/o/${org.slug}${content.link ?? "/notifications"}`;
-      for (const m of members.filter((x) => x.role.systemKey === "OWNER" || x.role.systemKey === "ADMIN"))
+      for (const m of all.filter((x) => (x.role.systemKey === "OWNER" || x.role.systemKey === "ADMIN") && !x.mutedEmails.includes(type)))
         await sendEmail({
           to: m.user.email,
           template: `notification.${type.toLowerCase()}`,
@@ -173,4 +183,23 @@ export async function alertSupport(subject: string, text: string) {
     text,
     html: `<pre style="font-family:monospace">${text.replace(/</g, "&lt;")}</pre>`,
   }).catch(() => undefined);
+}
+
+/** Préférences de notification du membre connecté (P1) : seulement les types qu'il a le droit de voir ; e-mails des types importants pour les propriétaires et administrateurs. */
+export async function notificationPreferences(organizationId: string, userId: string) {
+  const m = await db.organizationMember.findFirst({ where: { organizationId, userId, status: "ACTIVE" }, include: { role: true } });
+  if (!m) return null;
+  const input = { status: m.status, systemRole: m.role.systemKey as never, permissions: m.role.permissions };
+  const emails = m.role.systemKey === "OWNER" || m.role.systemKey === "ADMIN";
+  return (Object.keys(PERMISSION) as NotificationType[])
+    .filter((type) => can(input, PERMISSION[type]))
+    .map((type) => ({ type, inApp: !m.mutedNotifications.includes(type), email: emails && IMPORTANT.has(type) ? !m.mutedEmails.includes(type) : null }));
+}
+
+export async function saveNotificationPreferences(organizationId: string, userId: string, muted: NotificationType[], mutedEmails: NotificationType[]) {
+  const valid = new Set(Object.keys(PERMISSION));
+  await db.organizationMember.updateMany({
+    where: { organizationId, userId },
+    data: { mutedNotifications: [...new Set(muted.filter((t) => valid.has(t)))], mutedEmails: [...new Set(mutedEmails.filter((t) => valid.has(t)))] },
+  });
 }

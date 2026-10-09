@@ -6,6 +6,19 @@ on:
   pull_request:
 
 jobs:
+  audit:
+    # vulnérabilités connues des dépendances de production (CDC section 13.1) ; exclusions justifiées dans docs/SECURITE.md
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Vulnérabilités élevées et critiques
+        run: pnpm audit --prod --audit-level high
+
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 45

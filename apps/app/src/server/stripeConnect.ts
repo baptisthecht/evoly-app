@@ -9,6 +9,7 @@ import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
+import { safeError } from "@/lib/redact";
 
 type Status = "PENDING" | "ACTIVE" | "RESTRICTED" | "RESTRICTED_SOON" | "DISABLED";
 
@@ -161,6 +162,6 @@ export async function syncStripeAccount(account: Stripe.Account) {
       body: "Stripe demande des informations pour que les paiements et les virements continuent.",
       link: "/settings/payments",
     });
-  if (row) await ensurePaymentDomains(row.organizationId).catch((err) => console.error("domaines de paiement", err));
+  if (row) await ensurePaymentDomains(row.organizationId).catch((err) => console.error("domaines de paiement", safeError(err)));
   return result;
 }

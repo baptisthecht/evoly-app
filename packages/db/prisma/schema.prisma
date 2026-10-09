@@ -420,6 +420,8 @@ model OrganizationMember {
 
   @@unique([organizationId, userId])
   @@index([userId])
+  mutedNotifications NotificationType[] @default([]) // préférences (P1) : types coupés dans l'app
+  mutedEmails        NotificationType[] @default([]) // préférences (P1) : e-mails coupés (types importants)
 }
 
 enum InvitationStatus {
@@ -1655,6 +1657,7 @@ enum NotificationType {
   CAMPAIGN_SENT
   DISPUTE_OPENED
   EVENT_PUBLISHED // événement programmé devenu public
+  PAYOUT_FAILED // virement Stripe vers la banque de l'organisateur échoué
 }
 
 model Notification {

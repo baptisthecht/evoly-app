@@ -1,6 +1,6 @@
 "use client";
 
-import { bestSeats, createsOrphan, hasOrphanFreeChoice, type PlanSeat } from "@evoly/core";
+import { bestSeats, createsOrphan, hasOrphanFreeChoice, type PlanSeat, PALETTE } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { RowLabels, S, ShapeView, StandingView, Tables, blockBounds } from "@/components/seating/PlanParts";
@@ -274,7 +274,7 @@ export function SeatMapPicker({
             b.kind === "SHAPE" ? (
               <ShapeView key={b.id} block={b} />
             ) : b.kind === "STANDING" ? (
-              <StandingView key={b.id} block={b} color={colors.get(S(b, "category")) ?? "#FFB8E8"} />
+              <StandingView key={b.id} block={b} color={colors.get(S(b, "category")) ?? PALETTE.rose} />
             ) : b.kind === "TABLE_ROUND" || b.kind === "TABLE_RECT" ? (
               <Tables key={b.id} block={b} seats={seats} rows={map.rows} />
             ) : b.kind === "ROWS" ? (
@@ -288,7 +288,7 @@ export function SeatMapPicker({
           const can = selectable(s);
           const ours = (needed[s.categoryId] ?? 0) > 0;
           const friendSeat = friend?.seatIds.includes(s.id) ?? false;
-          const fill = mine ? "#222222" : friendSeat ? "#FFB8E8" : !s.available ? "#D3CCC7" : (colors.get(s.categoryId) ?? "#D9B8F0");
+          const fill = mine ? PALETTE.charbon : friendSeat ? PALETTE.rose : !s.available ? PALETTE.seatBlocked : (colors.get(s.categoryId) ?? PALETTE.catLilas);
           return (
             <g
               key={s.id}
@@ -310,18 +310,27 @@ export function SeatMapPicker({
                 : { "aria-hidden": true })}
               opacity={mine || friendSeat || !s.available || ours ? 1 : 0.35}
               style={{ cursor: can ? "pointer" : "default", outline: "none" }}
-              className="focus-visible:[&>rect]:stroke-[#3B5BDB] focus-visible:[&>rect]:[stroke-width:3px]"
+              className="focus-visible:[&>rect]:stroke-info focus-visible:[&>rect]:[stroke-width:3px]"
             >
-              <rect x={-11} y={-9.5} width={22} height={19} rx={5} fill={fill} stroke={mine ? "#FFB8E8" : friendSeat ? "#222222" : "none"} strokeWidth={2} />
+              <rect
+                x={-11}
+                y={-9.5}
+                width={22}
+                height={19}
+                rx={5}
+                fill={fill}
+                stroke={mine ? PALETTE.rose : friendSeat ? PALETTE.charbon : "none"}
+                strokeWidth={2}
+              />
               {friendSeat ? (
-                <text y={3.5} textAnchor="middle" fontSize={10} fontWeight={800} fill="#222222" style={{ pointerEvents: "none" }}>
+                <text y={3.5} textAnchor="middle" fontSize={10} fontWeight={800} fill={PALETTE.charbon} style={{ pointerEvents: "none" }}>
                   {friend!.firstName.charAt(0).toUpperCase()}
                 </text>
               ) : null}
               {mine ? (
-                <path d="M-5 0 l3.5 3.5 l6 -7" fill="none" stroke="#FFF6F0" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M-5 0 l3.5 3.5 l6 -7" fill="none" stroke={PALETTE.creme} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
               ) : s.accessible ? (
-                <circle r={4.5} fill="#FFFFFF" stroke="#222222" strokeWidth={1.5} />
+                <circle r={4.5} fill={PALETTE.blanc} stroke={PALETTE.charbon} strokeWidth={1.5} />
               ) : null}
             </g>
           );
@@ -329,21 +338,21 @@ export function SeatMapPicker({
       </svg>
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted" aria-label={t("legend")}>
         <li className="flex items-center gap-1.5">
-          <span className="size-3 rounded-sm bg-[#222222]" aria-hidden="true" />
+          <span className="size-3 rounded-sm bg-charbon" aria-hidden="true" />
           {t("legendSelected")}
         </li>
         {friend ? (
           <li className="flex items-center gap-1.5">
-            <span className="size-3 rounded-sm border-[1.5px] border-[#222222] bg-[#FFB8E8]" aria-hidden="true" />
+            <span className="size-3 rounded-sm border-[1.5px] border-charbon bg-rose" aria-hidden="true" />
             {t("legendFriend", { name: friend.firstName })}
           </li>
         ) : null}
         <li className="flex items-center gap-1.5">
-          <span className="size-3 rounded-sm bg-[#D3CCC7]" aria-hidden="true" />
+          <span className="size-3 rounded-sm" style={{ background: PALETTE.seatBlocked }} aria-hidden="true" />
           {t("legendTaken")}
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="size-3 rounded-full border-[1.5px] border-[#222222] bg-white" aria-hidden="true" />
+          <span className="size-3 rounded-full border-[1.5px] border-charbon bg-blanc" aria-hidden="true" />
           {t("legendAccessible")}
         </li>
       </ul>

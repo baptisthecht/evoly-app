@@ -17,6 +17,7 @@ import { settleResale } from "./resale";
 import { buildTicketsPdf } from "./ticketsPdf";
 import { emailBrandFor, logoBytes } from "./email/brand";
 import { organizationPublicUrl } from "./urls";
+import { safeError } from "@/lib/redact";
 
 export function ticketsUrl(org: { subdomain: string | null; slug: string }, orderId: string, version: number): string {
   return `${organizationPublicUrl(org.subdomain ?? org.slug)}/billets/${orderAccessToken(orderId, version)}`;
@@ -299,8 +300,8 @@ export async function sendTicketsLookup(organizationId: string, email: string, l
 /** Validation, puis effets de bord hors transaction : e-mail, ou remboursement d'un paiement non honoré. */
 /** Après la validation : e-mail de confirmation, puis règlement du vendeur s'il s'agit d'une revente. */
 export async function afterOrderPaid(orderId: string): Promise<void> {
-  await sendOrderConfirmation(orderId).catch((err) => console.error("confirmation non envoyée", orderId, err));
-  await settleResale(orderId).catch((err) => console.error("revente à régler", orderId, err));
+  await sendOrderConfirmation(orderId).catch((err) => console.error("confirmation non envoyée", orderId, safeError(err)));
+  await settleResale(orderId).catch((err) => console.error("revente à régler", orderId, safeError(err)));
   // section 9.20 : nouvelle commande (hors revente, signalée à part) et paliers de jauge
   const o = await db.order.findUnique({
     where: { id: orderId },
@@ -327,9 +328,10 @@ export async function completeOrder(orderId: string, payment?: Parameters<typeof
   const outcome = await finalizeOrder(orderId, payment);
   // frais réels relevés d'abord : le remboursement du vendeur en dépend (RG-FEE-51)
   if (outcome === "PAID" && payment?.chargeId)
-    await recordStripeFees(orderId, payment.chargeId).catch((err) => console.error("frais Stripe à relever", orderId, err));
+    await recordStripeFees(orderId, payment.chargeId).catch((err) => console.error("frais Stripe à relever", orderId, safeError(err)));
   if (outcome === "PAID") await afterOrderPaid(orderId);
-  if (outcome === "REFUND_REQUIRED") await refundUnfulfilledPayment(orderId).catch((err) => console.error("remboursement à reprendre", orderId, err));
+  if (outcome === "REFUND_REQUIRED")
+    await refundUnfulfilledPayment(orderId).catch((err) => console.error("remboursement à reprendre", orderId, safeError(err)));
   return outcome;
 }
 

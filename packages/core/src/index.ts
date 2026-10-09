@@ -30,3 +30,4 @@ export * from "./seatmap";
 export * from "./emailDoc";
 export * from "./publication";
 export * from "./presale";
+export * from "./palette";

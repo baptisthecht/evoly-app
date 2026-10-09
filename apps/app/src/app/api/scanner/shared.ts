@@ -2,6 +2,7 @@ import { CoreError } from "@evoly/core";
 import { z } from "zod";
 import { hit } from "@/server/rateLimit";
 import { resolveScannerLink } from "@/server/scanner";
+import { safeError } from "@/lib/redact";
 
 const noStore = { "cache-control": "no-store", "referrer-policy": "no-referrer" };
 
@@ -26,7 +27,7 @@ export async function rateLimited(linkId: string, deviceId: string | null | unde
 
 export function failure(err: unknown): Response {
   if (err instanceof CoreError) return json({ error: err.code }, 400);
-  console.error(err);
+  console.error("erreur", safeError(err));
   return json({ error: "UNKNOWN" }, 500);
 }
 

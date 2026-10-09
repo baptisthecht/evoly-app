@@ -2057,7 +2057,16 @@
     "type_DOMAIN_ERROR": "Dominio",
     "type_EVENT_CANCELLED": "Annullamento",
     "type_CAMPAIGN_SENT": "Campagna",
-    "type_DISPUTE_OPENED": "Contestazione"
+    "type_DISPUTE_OPENED": "Contestazione",
+    "type_PAYOUT_FAILED": "Bonifico non riuscito",
+    "prefsLink": "Preferenze",
+    "prefsTitle": "Preferenze di notifica",
+    "prefsIntro": "Scegli cosa ricevi per questa organizzazione. Le e-mail riguardano solo le notifiche importanti.",
+    "prefsType": "Notifica",
+    "prefsInApp": "Nell’app",
+    "prefsEmail": "Via e-mail",
+    "prefsSave": "Salva",
+    "prefsSaved": "Preferenze salvate."
   },
   "entries": {
     "result_VALID": "Ingresso convalidato",

@@ -1,0 +1,15 @@
+# Mises à jour mensuelles des dépendances (CDC section 13.1) : mineures et correctifs regroupés, majeures à part
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 10
+    groups:
+      mineures-et-correctifs:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

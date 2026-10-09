@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { hasFeature, salesOpeningAt } from "@evoly/core";
+import { hasFeature, salesOpeningAt, PALETTE } from "@evoly/core";
 import { formatDateTime, toLocale } from "@evoly/i18n";
 import { env } from "@/lib/env";
 import { calendarTitle, googleCalendarUrl } from "@/server/calendar";
@@ -62,8 +62,7 @@ export async function PrepublishedEvent({
         aria-hidden="true"
         className="absolute -inset-16 -z-10 opacity-80 blur-3xl"
         style={{
-          background:
-            "radial-gradient(36% 44% at 28% 32%, #ffb8e8 0%, transparent 72%), radial-gradient(38% 46% at 72% 66%, #c9b6ff 0%, transparent 72%), radial-gradient(28% 36% at 62% 18%, #fff6f0 0%, transparent 72%)",
+          background: `radial-gradient(36% 44% at 28% 32%, ${PALETTE.rose} 0%, transparent 72%), radial-gradient(38% 46% at 72% 66%, ${PALETTE.teaserViolet} 0%, transparent 72%), radial-gradient(28% 36% at 62% 18%, ${PALETTE.creme} 0%, transparent 72%)`,
         }}
       />
       <section className="grid max-w-2xl justify-items-center gap-6 text-center" aria-labelledby="teaser-title">

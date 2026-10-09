@@ -11,6 +11,7 @@ import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { sendEmail } from "./email/send";
 import { subscriptionEmail } from "./email/templates";
+import { safeError } from "@/lib/redact";
 
 const billingUrl = (slug: string) => `${env().NEXT_PUBLIC_APP_URL}/o/${slug}/billing`;
 
@@ -143,7 +144,7 @@ async function notifyOwner(organizationId: string, kind: "STARTED" | "TRIAL_ENDI
     url: billingUrl(org.slug),
   });
   await sendEmail({ ...mail, to: who.email, template: `subscription.${kind.toLowerCase()}`, category: "SERVICE", organizationId }).catch((err) =>
-    console.error("e-mail d'abonnement", organizationId, err),
+    console.error("e-mail d'abonnement", organizationId, safeError(err)),
   );
 }
 

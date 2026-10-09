@@ -29,6 +29,7 @@ import { inspectEmailHtml, sanitizeEmailHtml } from "./email/sanitize";
 import { sendEmail } from "./email/send";
 import { getPublicOrganization } from "./publicEvents";
 import { oneClickUnsubscribeUrl, unsubscribeUrl } from "./unsubscribe";
+import { safeError } from "@/lib/redact";
 
 const LOCKED = ["SENDING", "SENT", "CANCELLED", "FAILED"];
 
@@ -288,7 +289,7 @@ export async function processCampaigns(now = new Date(), batchSize = 200): Promi
         unsubscribeUrl: oneClickUnsubscribeUrl(r.email, c.organizationId, null, c.id),
       })
         .then(() => (sent += 1))
-        .catch((err) => console.error("campagne : envoi échoué", c.id, r.id, err));
+        .catch((err) => console.error("campagne : envoi échoué", c.id, r.id, safeError(err)));
     }
     const remaining = pending.length - Math.min(batchSize, quota);
     if (remaining <= 0) {

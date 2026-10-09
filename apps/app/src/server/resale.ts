@@ -29,6 +29,7 @@ import { emailBrandFor } from "./email/brand";
 import { getPlans } from "./plans";
 import { organizationPublicUrl } from "./urls";
 import { isPrepublished } from "@evoly/core";
+import { safeError } from "@/lib/redact";
 
 const ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const OPEN = ["ACTIVE", "RESERVED"] as const;
@@ -175,7 +176,7 @@ async function closeListings(where: Prisma.ResaleListingWhereInput, status: "CAN
       organizationId: l.event.organizationId,
       fromName: brand.fromName,
       replyTo: brand.replyTo,
-    }).catch((err) => console.error("e-mail vendeur", l.id, err));
+    }).catch((err) => console.error("e-mail vendeur", l.id, safeError(err)));
   }
   return listings.length;
 }
@@ -401,7 +402,7 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
     orderId: seller.id,
     fromName: brand.fromName,
     replyTo: brand.replyTo,
-  }).catch((err) => console.error("e-mail vendeur", listing.id, err));
+  }).catch((err) => console.error("e-mail vendeur", listing.id, safeError(err)));
   await notify(order.organizationId, "RESALE_SOLD", {
     title: listing.event.title,
     body: `Une place a été revendue${amounts.sellerRefundMinor > 0 ? `, vendeur remboursé de ${formatMoney(amounts.sellerRefundMinor, order.currency, locale)}` : ""}.`,

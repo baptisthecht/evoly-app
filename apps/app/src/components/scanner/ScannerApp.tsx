@@ -345,7 +345,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     : [];
   const tone: Record<Kind, string> = {
     VALID: "bg-[var(--evoly-signal-ok)]",
-    CHECKED: "bg-[#1d4ed8]",
+    CHECKED: "bg-scan-checked",
     ALREADY_USED: "bg-[var(--evoly-signal-warn)]",
     VOID: "bg-[var(--evoly-signal-ko)]",
     WRONG_EVENT: "bg-[var(--evoly-signal-ko)]",
@@ -380,7 +380,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
               </div>
             )}
             {verify && (
-              <p role="status" className="mt-2 rounded-xl bg-[#1d4ed8] px-3 py-2 text-sm font-semibold text-white">
+              <p role="status" className="mt-2 rounded-xl bg-scan-checked px-3 py-2 text-sm font-semibold text-white">
                 {t("checkBanner")}
               </p>
             )}

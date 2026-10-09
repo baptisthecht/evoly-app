@@ -13,6 +13,7 @@ import { emailBrandFor } from "./email/brand";
 import { findEvent } from "./events";
 import { cancelListingsForEvent, cancelListingsForTicket } from "./resale";
 import { cancelCampaignsForEvent } from "./campaigns";
+import { safeError } from "@/lib/redact";
 
 type Reason = "BUYER_REQUEST" | "EVENT_CANCELLED" | "EVENT_CHANGED" | "DUPLICATE" | "FRAUD" | "OTHER";
 
@@ -57,7 +58,7 @@ async function mailBuyer(orderId: string, kind: "PROCESSED" | "REJECTED" | "CANC
     fromName: brand.fromName,
     replyTo: brand.replyTo,
     orderId: o.id,
-  }).catch((err) => console.error("e-mail de remboursement", orderId, err));
+  }).catch((err) => console.error("e-mail de remboursement", orderId, safeError(err)));
 }
 
 /**

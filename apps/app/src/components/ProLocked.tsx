@@ -1,3 +1,4 @@
+import { PALETTE } from "@evoly/core";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -75,12 +76,12 @@ export function SeatingPreview() {
     for (let k = -n; k <= n; k++) {
       if (k === 0) continue;
       const a = k * (12 / r);
-      seats.push({ x: 240 + r * Math.sin(a), y: -70 + r * Math.cos(a), fill: i < 2 ? "#FFB8E8" : i < 4 ? "#D9B8F0" : "#A9C4F2" });
+      seats.push({ x: 240 + r * Math.sin(a), y: -70 + r * Math.cos(a), fill: i < 2 ? PALETTE.rose : i < 4 ? PALETTE.catLilas : PALETTE.catBleu });
     }
   });
   return (
     <svg viewBox="0 0 480 170" className="h-auto w-full max-w-xl" aria-hidden="true">
-      <rect x="170" y="6" width="140" height="22" rx="7" fill="#222222" />
+      <rect x="170" y="6" width="140" height="22" rx="7" fill={PALETTE.charbon} />
       {seats.map((s, i) => (
         <circle key={i} cx={s.x} cy={s.y} r="5" fill={s.fill} />
       ))}

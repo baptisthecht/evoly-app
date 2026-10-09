@@ -1882,7 +1882,16 @@
     "type_DOMAIN_ERROR": "Domaine",
     "type_EVENT_CANCELLED": "Annulation",
     "type_CAMPAIGN_SENT": "Campagne",
-    "type_DISPUTE_OPENED": "Litige"
+    "type_DISPUTE_OPENED": "Litige",
+    "type_PAYOUT_FAILED": "Virement échoué",
+    "prefsLink": "Préférences",
+    "prefsTitle": "Préférences de notification",
+    "prefsIntro": "Choisissez ce que vous recevez pour cette organisation. Les e-mails ne concernent que les notifications importantes.",
+    "prefsType": "Notification",
+    "prefsInApp": "Dans l’app",
+    "prefsEmail": "Par e-mail",
+    "prefsSave": "Enregistrer",
+    "prefsSaved": "Préférences enregistrées."
   },
   "scannerAccess": {
     "title": "Scanner les billets",

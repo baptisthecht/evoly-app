@@ -29,6 +29,26 @@
   --evoly-info: #3b5bdb;
   --evoly-info-soft: #e3e8fc;
 
+  /* plan de salle, scanner et annonce : couleurs de dessin (SVG), miroir dans packages/core/src/palette.ts */
+  --evoly-cat-lilas: #d9b8f0;
+  --evoly-cat-bleu: #a9c4f2;
+  --evoly-plan-entrance: #5c5552;
+  --evoly-seat-blocked: #d3ccc7;
+  --evoly-plan-hatch-dark: #b9afa9;
+  --evoly-plan-hatch-light: #efe9e5;
+  --evoly-scan-checked: #1d4ed8;
+  --evoly-seat-outline: #9a918c;
+  --evoly-plan-screen: #4a4441;
+  --evoly-plan-zone: #f1e7e1;
+  --evoly-plan-zone-line: #d8cbc2;
+  --evoly-teaser-violet: #c9b6ff;
+  --evoly-seat-held: #f5c38a;
+  --evoly-seat-in: #1f8a55;
+  --evoly-plan-pitch: #2f7a4f;
+  --evoly-plan-altar: #8a6d3b;
+  --evoly-plan-bar: #e5d8cf;
+  --evoly-seat-warning: #c2410c;
+
   /* Rôles sémantiques, mode clair */
   --surface: var(--evoly-creme); /* fond de page */
   --surface-raised: var(--evoly-blanc); /* cartes, panneaux */

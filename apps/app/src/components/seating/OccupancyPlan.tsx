@@ -1,12 +1,13 @@
 "use client";
 
+import { PALETTE } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { RowLabels, S, ShapeView, StandingView, Tables, blockBounds } from "@/components/seating/PlanParts";
 import type { SeatOccupancy } from "@/server/seatingEditor";
 
-const FILL = { FREE: "#FFFFFF", BLOCKED: "#D3CCC7", HELD: "#F5C38A", SOLD: "#222222", IN: "#1F8A55" } as const;
+const FILL = { FREE: PALETTE.blanc, BLOCKED: PALETTE.seatBlocked, HELD: PALETTE.seatHeld, SOLD: PALETTE.charbon, IN: PALETTE.seatIn } as const;
 
 /** Section 9.9 : plan d'occupation pour l'accueil, rafraîchi pendant le contrôle et imprimable avec la liste des places. */
 export function OccupancyPlan({ data }: { data: SeatOccupancy }) {
@@ -56,7 +57,7 @@ export function OccupancyPlan({ data }: { data: SeatOccupancy }) {
           b.kind === "SHAPE" ? (
             <ShapeView key={b.id} block={b} />
           ) : b.kind === "STANDING" ? (
-            <StandingView key={b.id} block={b} color={colors.get(S(b, "category")) ?? "#FFB8E8"} />
+            <StandingView key={b.id} block={b} color={colors.get(S(b, "category")) ?? PALETTE.rose} />
           ) : b.kind === "TABLE_ROUND" || b.kind === "TABLE_RECT" ? (
             <Tables key={b.id} block={b} seats={data.seats} rows={data.rows} />
           ) : (
@@ -72,10 +73,10 @@ export function OccupancyPlan({ data }: { data: SeatOccupancy }) {
               height={19}
               rx={5}
               fill={FILL[s.state]}
-              stroke={s.state === "FREE" ? (colors.get(s.categoryId) ?? "#9A918C") : "none"}
+              stroke={s.state === "FREE" ? (colors.get(s.categoryId) ?? PALETTE.seatOutline) : "none"}
               strokeWidth={2}
             />
-            {s.accessible && s.state === "FREE" ? <circle r={4} fill="none" stroke="#222222" strokeWidth={1.5} /> : null}
+            {s.accessible && s.state === "FREE" ? <circle r={4} fill="none" stroke={PALETTE.charbon} strokeWidth={1.5} /> : null}
           </g>
         ))}
       </svg>

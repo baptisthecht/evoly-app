@@ -38,7 +38,12 @@ export default async function NotificationsPage({ params, searchParams }: { para
   return (
     <div className="grid max-w-3xl gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="page-title">{t("title")}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="page-title">{t("title")}</h1>
+          <a href={`/o/${orgSlug}/notifications/preferences`} className="text-sm underline underline-offset-4">
+            {t("prefsLink")}
+          </a>
+        </div>
         {rows.some((n) => !n.readAt) ? (
           <form action={readAll}>
             <button type="submit" className={buttonClass("secondary", "md")}>

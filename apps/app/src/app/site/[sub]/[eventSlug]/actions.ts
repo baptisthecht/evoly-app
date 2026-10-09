@@ -26,6 +26,7 @@ import { hit } from "@/server/rateLimit";
 import { subscribeAlert } from "@/server/alerts";
 import { presaleCookie, unlockPresale } from "@/server/presale";
 import { clientIp } from "@/server/requestInfo";
+import { safeError } from "@/lib/redact";
 
 export interface ReservationView {
   token: string;
@@ -87,7 +88,7 @@ function failure(err: unknown): { ok: false; error: string; ticketTypeId?: strin
   }
   if (err instanceof PromoRejected) return { ok: false, error: `PROMO_${err.reason}` };
   if (err instanceof CoreError) return { ok: false, error: err.code };
-  console.error(err);
+  console.error("erreur", safeError(err));
   return { ok: false, error: "UNKNOWN" };
 }
 
@@ -212,7 +213,7 @@ export async function lookupTicketsAction(sub: string, email: unknown): Promise<
   const emailCount = await hit(`tickets:lookup:email:${parsed.data}`, 3600);
   const org = await getPublicOrganization(sub);
   if (org && ipCount <= 20 && emailCount <= 3)
-    await sendTicketsLookup(org.id, parsed.data, (await getLocale()) === "en" ? "en" : "fr").catch((err) => console.error("lookup", err));
+    await sendTicketsLookup(org.id, parsed.data, (await getLocale()) === "en" ? "en" : "fr").catch((err) => console.error("lookup", safeError(err)));
   return { ok: true, data: null };
 }
 

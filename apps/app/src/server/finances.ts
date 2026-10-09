@@ -20,6 +20,7 @@ import { stripe } from "@/lib/stripe";
 import type { OrgContext } from "./context";
 import { sendEmail } from "./email/send";
 import { notify } from "./notifications";
+import { safeError } from "@/lib/redact";
 
 export type Period = "THIS_MONTH" | "LAST_MONTH" | "LAST_30_DAYS" | "THIS_YEAR" | "ALL";
 const COUNTED = ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] as const;
@@ -453,7 +454,7 @@ export async function issueStatement(organizationId: string, period: string, cur
         },
       });
     });
-    await mailStatement(statement.id).catch((err) => console.error("relevé non envoyé", statement.id, err));
+    await mailStatement(statement.id).catch((err) => console.error("relevé non envoyé", statement.id, safeError(err)));
     return statement;
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")

@@ -1,6 +1,6 @@
 "use client";
 
-import { SEATING_TEMPLATES, generateBlock, type BlockSpec, type SeatingTemplate, type TemplateOptions } from "@evoly/core";
+import { SEATING_TEMPLATES, generateBlock, type BlockSpec, type SeatingTemplate, type TemplateOptions, PALETTE } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition, type PointerEvent as ReactPointerEvent } from "react";
@@ -573,8 +573,8 @@ function PlanCanvas({
       >
         <defs>
           <pattern id="seat-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <rect width="5" height="5" fill="#EFE9E5" />
-            <rect width="2.5" height="5" fill="#B9AFA9" />
+            <rect width="5" height="5" fill={PALETTE.planHatchLight} />
+            <rect width="2.5" height="5" fill={PALETTE.planHatchDark} />
           </pattern>
         </defs>
         {groups.map(({ block, seats }) => {
@@ -584,7 +584,7 @@ function PlanCanvas({
           return (
             <g key={block?.id ?? "legacy"} transform={offset} data-block={block?.id} style={{ cursor: block && !readOnly ? "move" : "default" }}>
               {block?.kind === "SHAPE" ? <ShapeView block={block} /> : null}
-              {block?.kind === "STANDING" ? <StandingView block={block} color={colors.get(S(block, "category")) ?? "#FFB8E8"} /> : null}
+              {block?.kind === "STANDING" ? <StandingView block={block} color={colors.get(S(block, "category")) ?? PALETTE.rose} /> : null}
               {block && (block.kind === "TABLE_ROUND" || block.kind === "TABLE_RECT") ? <Tables block={block} seats={seats} rows={state.rows} /> : null}
               {block?.kind === "ROWS" ? <RowLabels seats={seats} rows={state.rows.filter((r) => r.blockId === block.id)} /> : null}
               {seats.map((s) => (
@@ -595,18 +595,20 @@ function PlanCanvas({
                     width={22}
                     height={19}
                     rx={5}
-                    fill={s.status === "SOLD" ? "#4A4441" : s.status === "BLOCKED" ? "url(#seat-hatch)" : (colors.get(s.categoryId) ?? "#D9B8F0")}
-                    stroke={selection?.type === "seat" && selection.id === s.id ? "#3B5BDB" : s.status === "HELD" ? "#C2410C" : "none"}
+                    fill={
+                      s.status === "SOLD" ? PALETTE.planScreen : s.status === "BLOCKED" ? "url(#seat-hatch)" : (colors.get(s.categoryId) ?? PALETTE.catLilas)
+                    }
+                    stroke={selection?.type === "seat" && selection.id === s.id ? PALETTE.info : s.status === "HELD" ? PALETTE.seatWarning : "none"}
                     strokeWidth={selection?.type === "seat" && selection.id === s.id ? 3 : 2}
                   />
-                  {s.accessible ? <circle r={4.5} fill="#FFFFFF" stroke="#222222" strokeWidth={1.5} /> : null}
+                  {s.accessible ? <circle r={4.5} fill={PALETTE.blanc} stroke={PALETTE.charbon} strokeWidth={1.5} /> : null}
                   {showLabels && !s.accessible ? (
                     <text
                       y={3}
                       textAnchor="middle"
                       fontSize={8}
                       fontWeight={700}
-                      fill={s.status === "SOLD" ? "#FFFFFF" : "#222222"}
+                      fill={s.status === "SOLD" ? PALETTE.blanc : PALETTE.charbon}
                       style={{ pointerEvents: "none" }}
                     >
                       {s.label}
@@ -622,7 +624,7 @@ function PlanCanvas({
                   height={box.y2 - box.y1 + 12}
                   rx={12}
                   fill="none"
-                  stroke="#3B5BDB"
+                  stroke={PALETTE.info}
                   strokeWidth={2}
                   strokeDasharray="7 6"
                   style={{ pointerEvents: "none" }}
@@ -1282,7 +1284,7 @@ function Categories({
 }) {
   const t = useTranslations("seatingEditor");
   const [newName, setNewName] = useState("");
-  const [newColor, setNewColor] = useState("#A9C4F2");
+  const [newColor, setNewColor] = useState<string>(PALETTE.catBleu);
   return (
     <Panel title={t("categories")}>
       <p className="-mt-1 text-sm text-ink-muted">{t("categoriesHint")}</p>
@@ -1689,7 +1691,7 @@ function PhotoPlan({
   const preview = useMemo(() => {
     if (!plan) return null;
     const rows = plan.blocks.flatMap((b) => generateBlock(b as BlockSpec));
-    const seats = rows.flatMap((r) => r.seats.map((s) => ({ ...s, color: plan.categories.find((c) => c.key === r.category)?.color ?? "#D9B8F0" })));
+    const seats = rows.flatMap((r) => r.seats.map((s) => ({ ...s, color: plan.categories.find((c) => c.key === r.category)?.color ?? PALETTE.catLilas })));
     const xs = [...seats.map((s) => s.x), ...plan.blocks.map((b) => b.x)],
       ys = [...seats.map((s) => s.y), ...plan.blocks.map((b) => b.y)];
     const x1 = Math.min(...xs) - 60,
@@ -1825,8 +1827,8 @@ function SalesHeatmap({ heat }: { heat: SeatSalesHeat }) {
             height={19}
             rx={5}
             transform={`translate(${s.x} ${s.y}) rotate(${s.angle})`}
-            fill={s.blocked ? "#D3CCC7" : s.heat === null ? "#FFFFFF" : heatColor(s.heat)}
-            stroke={s.heat === null && !s.blocked ? "#B9AFA9" : "none"}
+            fill={s.blocked ? PALETTE.seatBlocked : s.heat === null ? PALETTE.blanc : heatColor(s.heat)}
+            stroke={s.heat === null && !s.blocked ? PALETTE.planHatchDark : "none"}
             strokeWidth={1.5}
           />
         ))}
@@ -1840,7 +1842,7 @@ function SalesHeatmap({ heat }: { heat: SeatSalesHeat }) {
         />
         <span>{t("heatLast")}</span>
         <span className="ms-3 inline-flex items-center gap-1">
-          <span aria-hidden="true" className="size-3 rounded-sm border border-[#B9AFA9] bg-white" />
+          <span aria-hidden="true" className="size-3 rounded-sm border bg-blanc" style={{ borderColor: PALETTE.planHatchDark }} />
           {t("heatUnsold")}
         </span>
       </div>

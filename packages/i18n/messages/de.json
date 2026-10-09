@@ -2057,7 +2057,16 @@
     "type_DOMAIN_ERROR": "Domain",
     "type_EVENT_CANCELLED": "Absage",
     "type_CAMPAIGN_SENT": "Kampagne",
-    "type_DISPUTE_OPENED": "Zahlungsstreit"
+    "type_DISPUTE_OPENED": "Zahlungsstreit",
+    "type_PAYOUT_FAILED": "Auszahlung fehlgeschlagen",
+    "prefsLink": "Einstellungen",
+    "prefsTitle": "Benachrichtigungseinstellungen",
+    "prefsIntro": "Wählen Sie, was Sie für diese Organisation erhalten. E-Mails betreffen nur wichtige Benachrichtigungen.",
+    "prefsType": "Benachrichtigung",
+    "prefsInApp": "In der App",
+    "prefsEmail": "Per E-Mail",
+    "prefsSave": "Speichern",
+    "prefsSaved": "Einstellungen gespeichert."
   },
   "entries": {
     "result_VALID": "Einlass bestätigt",

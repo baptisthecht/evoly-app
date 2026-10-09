@@ -1,8 +1,8 @@
 import type Stripe from "stripe";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
-import { invoiceFailed, invoicePaid, invoiceSubscriptionId, syncSubscription, trialEnding } from "@/server/billing";
 import { processStripeEvent } from "@/server/webhooks";
+import { handlePlatformEvent } from "@/server/stripePlatformEvents";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,30 +20,6 @@ export async function POST(req: Request) {
     return new Response("Signature invalide", { status: 400 });
   }
   // L'abonnement Pro (checkout.session.completed, customer.subscription.*, invoice.*) arrive à l'étape 7 du plan.
-  await processStripeEvent(event, async (e) => {
-    switch (e.type) {
-      case "checkout.session.completed": {
-        const session = e.data.object as Stripe.Checkout.Session;
-        if (session.mode !== "subscription" || !session.subscription) return "IGNORED";
-        const id = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
-        return (await syncSubscription(await s.subscriptions.retrieve(id))) ? "PROCESSED" : "IGNORED";
-      }
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-      case "customer.subscription.deleted":
-        return (await syncSubscription(e.data.object as Stripe.Subscription)) ? "PROCESSED" : "IGNORED";
-      case "customer.subscription.trial_will_end":
-        await trialEnding(e.data.object as Stripe.Subscription);
-        return "PROCESSED";
-      case "invoice.paid":
-        await invoicePaid(invoiceSubscriptionId(e.data.object as unknown as Parameters<typeof invoiceSubscriptionId>[0]));
-        return "PROCESSED";
-      case "invoice.payment_failed":
-        await invoiceFailed(invoiceSubscriptionId(e.data.object as unknown as Parameters<typeof invoiceSubscriptionId>[0]));
-        return "PROCESSED";
-      default:
-        return "IGNORED";
-    }
-  });
+  await processStripeEvent(event, handlePlatformEvent);
   return Response.json({ received: true });
 }

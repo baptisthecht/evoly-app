@@ -1,3 +1,4 @@
+import { PALETTE } from "@evoly/core";
 /** Dessin du plan de salle partagé par l'éditeur et l'acheteur : formes, zones debout, tables, noms des rangs. */
 
 export type PlanBlock = { id: string; kind: string; x: number; y: number; rotation: number; params: Record<string, unknown> };
@@ -9,22 +10,22 @@ export const P = (b: { params: Record<string, unknown> }, key: string, fallback:
 export const S = (b: { params: Record<string, unknown> }, key: string, fallback = "") =>
   typeof b.params[key] === "string" ? (b.params[key] as string) : fallback;
 export const SHAPE_FILL: Record<string, string> = {
-  stage: "#222222",
-  screen: "#4A4441",
-  pitch: "#2F7A4F",
-  altar: "#8A6D3B",
-  bar: "#E5D8CF",
+  stage: PALETTE.charbon,
+  screen: PALETTE.planScreen,
+  pitch: PALETTE.planPitch,
+  altar: PALETTE.planAltar,
+  bar: PALETTE.planBar,
   entrance: "transparent",
   label: "transparent",
 };
 export const SHAPE_TEXT: Record<string, string> = {
-  stage: "#FFF6F0",
-  screen: "#FFF6F0",
-  pitch: "#FFFFFF",
-  altar: "#FFF6F0",
-  bar: "#222222",
-  entrance: "#5C5552",
-  label: "#222222",
+  stage: PALETTE.creme,
+  screen: PALETTE.creme,
+  pitch: PALETTE.blanc,
+  altar: PALETTE.creme,
+  bar: PALETTE.charbon,
+  entrance: PALETTE.planEntrance,
+  label: PALETTE.charbon,
 };
 
 export function blockBounds(b: PlanBlock, seats: ReadonlyArray<PlanSeatPos & { blockId?: string | null }>) {
@@ -59,12 +60,12 @@ export function ShapeView({ block }: { block: PlanBlock }) {
         height={h}
         rx={shape === "pitch" ? 6 : 12}
         fill={SHAPE_FILL[shape]}
-        stroke={shape === "entrance" || shape === "label" ? "#9A918C" : "none"}
+        stroke={shape === "entrance" || shape === "label" ? PALETTE.seatOutline : "none"}
         strokeDasharray={shape === "entrance" ? "6 4" : undefined}
         strokeWidth={1.5}
       />
       {shape === "pitch" ? (
-        <g fill="none" stroke="#FFFFFF" strokeWidth={2} opacity={0.85} style={{ pointerEvents: "none" }}>
+        <g fill="none" stroke={PALETTE.blanc} strokeWidth={2} opacity={0.85} style={{ pointerEvents: "none" }}>
           <rect x={-w / 2 + 14} y={-h / 2 + 14} width={w - 28} height={h - 28} />
           <line x1={0} y1={-h / 2 + 14} x2={0} y2={h / 2 - 14} />
           <circle r={Math.min(w, h) * 0.13} />
@@ -92,11 +93,22 @@ export function StandingView({ block, color }: { block: PlanBlock; color: string
     h = P(block, "height", 160);
   return (
     <g transform={`translate(${block.x} ${block.y}) rotate(${block.rotation})`}>
-      <rect x={-w / 2} y={-h / 2} width={w} height={h} rx={14} fill={color} fillOpacity={0.35} stroke="#5C5552" strokeWidth={1.5} strokeDasharray="8 5" />
-      <text y={-2} textAnchor="middle" fontSize={15} fontWeight={800} fill="#222222" style={{ pointerEvents: "none" }}>
+      <rect
+        x={-w / 2}
+        y={-h / 2}
+        width={w}
+        height={h}
+        rx={14}
+        fill={color}
+        fillOpacity={0.35}
+        stroke={PALETTE.planEntrance}
+        strokeWidth={1.5}
+        strokeDasharray="8 5"
+      />
+      <text y={-2} textAnchor="middle" fontSize={15} fontWeight={800} fill={PALETTE.charbon} style={{ pointerEvents: "none" }}>
         {S(block, "label")}
       </text>
-      <text y={18} textAnchor="middle" fontSize={12} fill="#5C5552" style={{ pointerEvents: "none" }}>
+      <text y={18} textAnchor="middle" fontSize={12} fill={PALETTE.planEntrance} style={{ pointerEvents: "none" }}>
         {P(block, "capacity", 0)}
       </text>
     </g>
@@ -119,8 +131,8 @@ export function Tables({ block, seats, rows }: { block: PlanBlock; seats: Readon
                 cx={cx}
                 cy={cy}
                 r={Math.max(12, own.reduce((a, s) => a + Math.hypot(s.x - cx, s.y - cy), 0) / own.length - 16)}
-                fill="#F1E7E1"
-                stroke="#D8CBC2"
+                fill={PALETTE.planZone}
+                stroke={PALETTE.planZoneLine}
               />
             ) : (
               (() => {
@@ -133,8 +145,8 @@ export function Tables({ block, seats, rows }: { block: PlanBlock; seats: Readon
                     width={Math.max(10, Math.max(...xs) - Math.min(...xs) - 8)}
                     height={Math.max(10, Math.max(...ys) - Math.min(...ys) - 28)}
                     rx={6}
-                    fill="#F1E7E1"
-                    stroke="#D8CBC2"
+                    fill={PALETTE.planZone}
+                    stroke={PALETTE.planZoneLine}
                   />
                 );
               })()
@@ -142,7 +154,7 @@ export function Tables({ block, seats, rows }: { block: PlanBlock; seats: Readon
           return (
             <g key={r.id}>
               {shape}
-              <text x={cx} y={cy + 4} textAnchor="middle" fontSize={11} fontWeight={700} fill="#5C5552" style={{ pointerEvents: "none" }}>
+              <text x={cx} y={cy + 4} textAnchor="middle" fontSize={11} fontWeight={700} fill={PALETTE.planEntrance} style={{ pointerEvents: "none" }}>
                 {r.name}
               </text>
             </g>
@@ -166,7 +178,7 @@ export function RowLabels({ seats, rows }: { seats: ReadonlyArray<PlanSeatPos>; 
           y = own[own.length - 2]!;
         const len2 = Math.hypot(z.x - y.x, z.y - y.y) || 1;
         return (
-          <g key={r.id} fontSize={11} fontWeight={700} fill="#5C5552">
+          <g key={r.id} fontSize={11} fontWeight={700} fill={PALETTE.planEntrance}>
             <text x={a.x - ux * 22} y={a.y - uy * 22 + 4} textAnchor="middle">
               {r.name}
             </text>

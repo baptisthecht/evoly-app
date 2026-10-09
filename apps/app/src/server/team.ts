@@ -13,6 +13,7 @@ import {
   secretToken,
   sha256Hex,
   type Permission,
+  PALETTE,
 } from "@evoly/core";
 import { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
@@ -66,7 +67,7 @@ function invitationEmail(o: { orgName: string; inviter: string; role: string; ur
   return {
     subject,
     text: `${body}\n\n${cta} : ${o.url}\n\nEvoly`,
-    html: `<p>${body.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p><p><a href="${o.url}" style="display:inline-block;background:#FFB8E8;color:#222222;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:999px">${cta}</a></p><p style="color:#555;font-size:13px">${o.fr ? "Vous n’attendiez pas cette invitation ? Ignorez cet e-mail." : "Weren't expecting this? Ignore this email."}</p>`,
+    html: `<p>${body.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</p><p><a href="${o.url}" style="display:inline-block;background:${PALETTE.rose};color:${PALETTE.charbon};text-decoration:none;font-weight:600;padding:12px 20px;border-radius:999px">${cta}</a></p><p style="color:#555;font-size:13px">${o.fr ? "Vous n’attendiez pas cette invitation ? Ignorez cet e-mail." : "Weren't expecting this? Ignore this email."}</p>`,
   };
 }
 

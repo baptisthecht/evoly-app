@@ -1,5 +1,5 @@
 import "server-only";
-import { effectiveEnd } from "@evoly/core";
+import { effectiveEnd, PALETTE } from "@evoly/core";
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import { inkOn } from "@evoly/ui";
 import { db } from "@/lib/db";
@@ -56,7 +56,7 @@ export async function walletTicket(token: string, ticketId: string): Promise<Wal
   if (!t) return null;
   const brand = await emailBrandFor(t.order.organizationId);
   const locale = (t.order.buyerLocale === "en" ? "en" : "fr") as Locale;
-  const background = brand.primary ?? "#222222";
+  const background = brand.primary ?? PALETTE.charbon;
   return {
     ticketId: t.id,
     code: t.code,
