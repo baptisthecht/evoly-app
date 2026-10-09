@@ -144,6 +144,7 @@ Récupère le code, reconstruit l'image, applique les migrations, redémarre l'a
 
 ## 11. Surveillance et journaux
 
+- Journaux : `ops/logs.sh` suit tout en direct (app, Caddy, base, tâches planifiées, sauvegardes) ; `ops/logs.sh app`, `caddy` ou `db` pour un seul service, `ops/logs.sh taches`, `ops/logs.sh sauvegardes`, et `ops/logs.sh erreurs 24h` pour les seules erreurs d'une période. Taille limitée par Docker (20 Mo × 5 par conteneur, `/etc/docker/daemon.json`).
 - État : `docker compose ps` ; journaux de l'app : `docker compose logs -f app` ; de Caddy : `docker compose logs -f caddy`.
 - Tâches planifiées et sauvegardes : `journalctl -t evoly-cron`, `journalctl -t evoly-backup`.
 - Santé : `https://app.evoly.me/api/health` répond `{"status":"ok"}` (vérifie aussi la base). Le faire surveiller par un service externe (alerte si la page ne répond plus).
