@@ -1993,7 +1993,16 @@
     "tabs": "Contacten of campagnes",
     "tab_contacts": "Contacten",
     "tab_campaigns": "Campagnes",
-    "suspended": "Marketingverzending opgeschort: te veel ontvangers hebben je e-mails als spam gemeld. E-mails over aankopen en herinneringen gaan gewoon door. Neem contact met ons op om ze te herstellen."
+    "suspended": "Marketingverzending opgeschort: te veel ontvangers hebben je e-mails als spam gemeld. E-mails over aankopen en herinneringen gaan gewoon door. Neem contact met ons op om ze te herstellen.",
+    "importTitle": "Contacten importeren",
+    "importIntro": "CSV-bestand met minstens een e-mailkolom, en desgewenst voornaam, achternaam en taal. Tot 10.000 contacten. Uitgeschreven personen worden nooit opnieuw ingeschreven.",
+    "importFile": "CSV-bestand",
+    "importConsent": "Ik verklaar dat deze personen ermee instemden e-mails van mijn organisatie te ontvangen, en ik kan dat aantonen.",
+    "importSubmit": "Importeren",
+    "importDone": "Import voltooid: {created} toegevoegd, {updated} bijgewerkt, {unsubscribed} uitgeschreven ongewijzigd, {invalid} ongeldige adressen overgeslagen.",
+    "importConsentRequired": "Vink het vakje aan dat de toestemming van deze contacten bevestigt.",
+    "importTooLarge": "Bestand te groot: hoogstens 10.000 contacten per import.",
+    "importError": "Het importeren lukte niet. Controleer het bestand en probeer opnieuw."
   },
   "campaignTemplates": {
     "announceName": "Aankondiging van een evenement",

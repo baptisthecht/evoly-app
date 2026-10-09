@@ -10,6 +10,7 @@ import { Input, Select } from "@/components/ui/Field";
 import { searchContacts, type ContactFilter } from "@/server/contacts";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
+import { ImportContacts } from "./ImportContacts";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -136,6 +137,21 @@ export default async function MarketingPage({
           </Card>
         ))}
       </section>
+      {can(ctx.membership, "MARKETING_MANAGE") ? (
+        <ImportContacts
+          orgSlug={orgSlug}
+          labels={{
+            title: t("importTitle"),
+            intro: t("importIntro"),
+            file: t("importFile"),
+            consent: t("importConsent"),
+            submit: t("importSubmit"),
+            doneTemplate: t.raw("importDone") as string,
+            errors: { IMPORT_CONSENT_REQUIRED: t("importConsentRequired"), IMPORT_TOO_LARGE: t("importTooLarge") },
+            fallbackError: t("importError"),
+          }}
+        />
+      ) : null}
       <Card className="grid gap-2 bg-surface-accent">
         <p className="font-semibold">{t("remindersTitle")}</p>
         <p className="text-sm">{pro ? t("remindersPro") : t("remindersFree")}</p>

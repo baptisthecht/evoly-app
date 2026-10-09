@@ -1993,7 +1993,16 @@
     "tabs": "Kontakte oder Kampagnen",
     "tab_contacts": "Kontakte",
     "tab_campaigns": "Kampagnen",
-    "suspended": "Marketing-Versand ausgesetzt: Zu viele Empfänger haben Ihre E-Mails als Spam gemeldet. E-Mails zu Käufen und Erinnerungen laufen weiter. Kontaktieren Sie uns, um den Versand wiederherzustellen."
+    "suspended": "Marketing-Versand ausgesetzt: Zu viele Empfänger haben Ihre E-Mails als Spam gemeldet. E-Mails zu Käufen und Erinnerungen laufen weiter. Kontaktieren Sie uns, um den Versand wiederherzustellen.",
+    "importTitle": "Kontakte importieren",
+    "importIntro": "CSV-Datei mit mindestens einer E-Mail-Spalte, auf Wunsch auch Vorname, Nachname und Sprache. Bis zu 10.000 Kontakte. Abgemeldete Personen werden nie erneut angemeldet.",
+    "importFile": "CSV-Datei",
+    "importConsent": "Ich bestätige, dass diese Personen dem Empfang der E-Mails meiner Organisation zugestimmt haben, und kann dies nachweisen.",
+    "importSubmit": "Importieren",
+    "importDone": "Import abgeschlossen: {created} hinzugefügt, {updated} aktualisiert, {unsubscribed} Abgemeldete unverändert, {invalid} ungültige Adressen übersprungen.",
+    "importConsentRequired": "Kreuzen Sie das Feld an, das die Einwilligung dieser Kontakte bestätigt.",
+    "importTooLarge": "Datei zu groß: höchstens 10.000 Kontakte pro Import.",
+    "importError": "Der Import war nicht möglich. Prüfen Sie die Datei und versuchen Sie es erneut."
   },
   "campaignTemplates": {
     "announceName": "Ankündigung einer Veranstaltung",

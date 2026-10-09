@@ -1993,7 +1993,16 @@
     "tabs": "Contactos o campañas",
     "tab_contacts": "Contactos",
     "tab_campaigns": "Campañas",
-    "suspended": "Envíos de marketing suspendidos: demasiados destinatarios han marcado tus e-mails como spam. Los e-mails relacionados con las compras y los recordatorios siguen enviándose. Ponte en contacto con nosotros para restablecerlos."
+    "suspended": "Envíos de marketing suspendidos: demasiados destinatarios han marcado tus e-mails como spam. Los e-mails relacionados con las compras y los recordatorios siguen enviándose. Ponte en contacto con nosotros para restablecerlos.",
+    "importTitle": "Importar contactos",
+    "importIntro": "Archivo CSV con al menos una columna de e-mail y, si quieres, nombre, apellido e idioma. Hasta 10 000 contactos. Las personas dadas de baja nunca se vuelven a suscribir.",
+    "importFile": "Archivo CSV",
+    "importConsent": "Certifico que estas personas aceptaron recibir los e-mails de mi organización y puedo demostrarlo.",
+    "importSubmit": "Importar",
+    "importDone": "Importación terminada: {created} añadidos, {updated} actualizados, {unsubscribed} dados de baja sin cambios, {invalid} direcciones no válidas ignoradas.",
+    "importConsentRequired": "Marca la casilla que certifica el consentimiento de estos contactos.",
+    "importTooLarge": "Archivo demasiado grande: 10 000 contactos como máximo por importación.",
+    "importError": "No se pudo realizar la importación. Revisa el archivo e inténtalo de nuevo."
   },
   "campaignTemplates": {
     "announceName": "Anuncio de un evento",

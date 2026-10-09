@@ -1695,7 +1695,16 @@
     "tabs": "Contacts ou campagnes",
     "tab_contacts": "Contacts",
     "tab_campaigns": "Campagnes",
-    "suspended": "Envois marketing suspendus : trop de destinataires ont signalé vos e-mails comme indésirables. Les e-mails liés aux achats et les rappels continuent. Contactez-nous pour les rétablir."
+    "suspended": "Envois marketing suspendus : trop de destinataires ont signalé vos e-mails comme indésirables. Les e-mails liés aux achats et les rappels continuent. Contactez-nous pour les rétablir.",
+    "importTitle": "Importer des contacts",
+    "importIntro": "Fichier CSV avec au moins une colonne e-mail, et si vous voulez prénom, nom et langue. Jusqu’à 10 000 contacts. Les personnes désinscrites ne sont jamais réabonnées.",
+    "importFile": "Fichier CSV",
+    "importConsent": "Je certifie que ces personnes ont accepté de recevoir les e-mails de mon organisation, et je peux le prouver.",
+    "importSubmit": "Importer",
+    "importDone": "Import terminé : {created} ajoutés, {updated} mis à jour, {unsubscribed} désinscrits laissés tels quels, {invalid} adresses invalides ignorées.",
+    "importConsentRequired": "Cochez la case qui certifie le consentement de ces contacts.",
+    "importTooLarge": "Fichier trop volumineux : 10 000 contacts au maximum par import.",
+    "importError": "L’import n’a pas pu être fait. Vérifiez le fichier et réessayez."
   },
   "reminders": {
     "title": "Rappels aux participants",

@@ -1695,7 +1695,16 @@
     "tabs": "Contacts or campaigns",
     "tab_contacts": "Contacts",
     "tab_campaigns": "Campaigns",
-    "suspended": "Marketing emails suspended: too many recipients reported your emails as spam. Purchase emails and reminders continue. Contact us to restore them."
+    "suspended": "Marketing emails suspended: too many recipients reported your emails as spam. Purchase emails and reminders continue. Contact us to restore them.",
+    "importTitle": "Import contacts",
+    "importIntro": "CSV file with at least an email column, plus first name, last name and language if you like. Up to 10,000 contacts. Unsubscribed people are never resubscribed.",
+    "importFile": "CSV file",
+    "importConsent": "I certify that these people agreed to receive my organisation’s emails, and I can prove it.",
+    "importSubmit": "Import",
+    "importDone": "Import complete: {created} added, {updated} updated, {unsubscribed} unsubscribed left as they were, {invalid} invalid addresses skipped.",
+    "importConsentRequired": "Tick the box certifying these contacts’ consent.",
+    "importTooLarge": "File too large: up to 10,000 contacts per import.",
+    "importError": "The import couldn’t be done. Check the file and try again."
   },
   "reminders": {
     "title": "Attendee reminders",
