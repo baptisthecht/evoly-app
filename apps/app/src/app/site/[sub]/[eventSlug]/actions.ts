@@ -23,6 +23,7 @@ import { requestRefund } from "@/server/refunds";
 import { hasEventAccess, unlockEvent } from "@/server/questions";
 import { getPublicOrganization, loadPublicEvent, type PublicTicketType } from "@/server/publicEvents";
 import { hit } from "@/server/rateLimit";
+import { subscribeAlert } from "@/server/alerts";
 import { clientIp } from "@/server/requestInfo";
 
 export interface ReservationView {
@@ -297,5 +298,21 @@ export async function changeSeatsAction(token: string, seatIds: unknown): Promis
     return { ok: true, data: await changeReservationSeats(token, seatIds as string[]) };
   } catch (err) {
     return failure(err);
+  }
+}
+
+/** « Prévenez-moi » (RG-PRG-04) : inscription à l'e-mail d'ouverture des ventes, limitée contre les abus. */
+export async function subscribeAlertAction(eventId: string, email: unknown): Promise<Result<null>> {
+  const parsed = z
+    .email()
+    .max(200)
+    .safeParse(typeof email === "string" ? email.trim().toLowerCase() : email);
+  if (!parsed.success) return { ok: false, error: "INVALID_EMAIL" };
+  if ((await hit(`alert:ip:${await clientIp()}`, 3600)) > 30) return { ok: false, error: "RATE_LIMITED" };
+  try {
+    await subscribeAlert(eventId.slice(0, 40), parsed.data, await getLocale());
+    return { ok: true, data: null };
+  } catch (err) {
+    return { ok: false, error: err instanceof CoreError ? err.code : "ERROR" };
   }
 }

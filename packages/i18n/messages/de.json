@@ -89,7 +89,23 @@
     "cdMinutes": "Minuten",
     "cdSeconds": "Sekunden",
     "salesOpenOn": "Vorverkauf ab {date}",
-    "previewLinkBanner": "Private Vorschau: Diese Seite wird am {date} öffentlich. Käufe sind deaktiviert."
+    "previewLinkBanner": "Private Vorschau: Diese Seite wird am {date} öffentlich. Käufe sind deaktiviert.",
+    "alertTitle": "Benachrichtigen Sie mich",
+    "alertIntro": "Erhalten Sie eine E-Mail, sobald der Verkauf beginnt.",
+    "alertEmail": "Ihre E-Mail-Adresse",
+    "alertSubmit": "Benachrichtigen",
+    "alertConsent": "Ihre Adresse dient nur dazu, Sie über den Verkaufsstart dieser Veranstaltung zu informieren. Sie wird 30 Tage nach dem Versand gelöscht.",
+    "alertDone": "Notiert: Wir schreiben Ihnen, sobald der Verkauf beginnt.",
+    "alertError": "Anmeldung nicht möglich. Bitte erneut versuchen.",
+    "alertInvalid": "Ungültige E-Mail-Adresse.",
+    "alertLimited": "Zu viele Versuche. Bitte später erneut versuchen.",
+    "calAdd": "Zu meinem Kalender hinzufügen",
+    "calGoogle": "Google Kalender",
+    "alertUnsubTitle": "Benachrichtigung löschen",
+    "alertUnsubText": "Sie werden nicht über den Verkaufsstart von {event} informiert, und Ihre Adresse wird gelöscht.",
+    "alertUnsubButton": "Benachrichtigung löschen",
+    "alertUnsubDone": "Ihre Benachrichtigung wurde gelöscht.",
+    "alertUnsubGone": "Diese Benachrichtigung existiert nicht mehr."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -2350,6 +2366,7 @@
     "previewCreate": "Vorschaulink erstellen",
     "previewCopy": "Kopieren",
     "previewCopied": "Kopiert",
-    "previewRevoke": "Link deaktivieren"
+    "previewRevoke": "Link deaktivieren",
+    "alertsWaiting": "{count, plural, one {# Person wartet} other {# Personen warten}} auf den Verkaufsstart."
   }
 }

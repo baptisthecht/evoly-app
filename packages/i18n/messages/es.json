@@ -89,7 +89,23 @@
     "cdMinutes": "minutos",
     "cdSeconds": "segundos",
     "salesOpenOn": "Venta de entradas a partir del {date}",
-    "previewLinkBanner": "Vista previa privada: esta página será pública el {date}. Las compras están desactivadas."
+    "previewLinkBanner": "Vista previa privada: esta página será pública el {date}. Las compras están desactivadas.",
+    "alertTitle": "Avísame",
+    "alertIntro": "Recibe un e-mail en cuanto se abra la venta.",
+    "alertEmail": "Tu dirección de e-mail",
+    "alertSubmit": "Avisarme",
+    "alertConsent": "Tu dirección solo sirve para avisarte de la apertura de la venta de este evento. Se elimina 30 días después del envío.",
+    "alertDone": "Hecho: te escribiremos en cuanto se abra la venta.",
+    "alertError": "No se pudo completar la inscripción. Inténtalo de nuevo.",
+    "alertInvalid": "Dirección de e-mail no válida.",
+    "alertLimited": "Demasiados intentos. Inténtalo más tarde.",
+    "calAdd": "Añadir a mi calendario",
+    "calGoogle": "Google Calendar",
+    "alertUnsubTitle": "Eliminar tu aviso",
+    "alertUnsubText": "No te avisaremos de la apertura de la venta de {event} y tu dirección se eliminará.",
+    "alertUnsubButton": "Eliminar mi aviso",
+    "alertUnsubDone": "Tu aviso se ha eliminado.",
+    "alertUnsubGone": "Este aviso ya no existe."
   },
   "checkout": {
     "tickets": "Entradas",
@@ -2350,6 +2366,7 @@
     "previewCreate": "Crear un enlace de vista previa",
     "previewCopy": "Copiar",
     "previewCopied": "Copiado",
-    "previewRevoke": "Desactivar el enlace"
+    "previewRevoke": "Desactivar el enlace",
+    "alertsWaiting": "{count, plural, one {# persona espera} other {# personas esperan}} la apertura de la venta."
   }
 }

@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { salesOpeningAt } from "@evoly/core";
 import { formatDateTime, toLocale } from "@evoly/i18n";
+import { env } from "@/lib/env";
+import { calendarTitle, googleCalendarUrl } from "@/server/calendar";
 import type { PublicEventData, PublicOrganization } from "@/server/publicEvents";
 import { previewAllowed } from "@/server/publication";
+import { eventPublicUrl } from "@/server/urls";
+import { AlertForm } from "./AlertForm";
 import { Countdown } from "./Countdown";
 import { PublicEventPage, eventMetadata } from "./EventPage";
 
@@ -64,6 +69,14 @@ export async function PrepublishedEvent({
         </h1>
         <p className="text-ink-muted">{t("teaserOpens", { date: when })}</p>
         <Countdown target={e.publishAt!.toISOString()} serverNow={new Date().toISOString()} labels={await countdownLabels()} />
+        <OpeningExtras
+          eventId={e.id}
+          calendar={{
+            title: calendarTitle({ locale, prepublished: true, teaserText: e.teaserText, eventTitle: e.title, organizationName: name }),
+            start: salesOpeningAt(e) ?? e.publishAt!,
+            url: eventPublicUrl(org, e),
+          }}
+        />
         <a href={homeHref} className="text-sm underline underline-offset-4">
           {t("teaserSeeOrg", { org: name })}
         </a>
@@ -72,14 +85,65 @@ export async function PrepublishedEvent({
   );
 }
 
-/** Décompte jusqu'à l'ouverture des ventes, dans le bloc des billets. */
-export async function SalesCountdown({ opensAt, timeZone, now }: { opensAt: Date; timeZone: string; now: Date }) {
+/** « Prévenez-moi » et ajout à l'agenda (RG-PRG-04, RG-PRG-05), sous chaque décompte. */
+async function OpeningExtras({ eventId, calendar }: { eventId: string; calendar: { title: string; start: Date; url: string } }) {
+  const t = await getTranslations("public");
+  const locale = toLocale(await getLocale());
+  const ics = `${env().NEXT_PUBLIC_APP_URL}/api/events/${eventId}/opening.ics?lang=${locale}`;
+  return (
+    <div className="grid w-full justify-items-center gap-3">
+      <AlertForm
+        eventId={eventId}
+        labels={{
+          title: t("alertTitle"),
+          intro: t("alertIntro"),
+          email: t("alertEmail"),
+          submit: t("alertSubmit"),
+          consent: t("alertConsent"),
+          done: t("alertDone"),
+          error: t("alertError"),
+          invalid: t("alertInvalid"),
+          limited: t("alertLimited"),
+        }}
+      />
+      <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-sm">
+        <a href={ics} rel="nofollow" className="underline underline-offset-4">
+          {t("calAdd")}
+        </a>
+        <a href={googleCalendarUrl(calendar)} target="_blank" rel="noopener nofollow" className="underline underline-offset-4">
+          {t("calGoogle")}
+        </a>
+      </p>
+    </div>
+  );
+}
+
+/** Décompte jusqu'à l'ouverture des ventes, dans le bloc des billets, avec « Prévenez-moi » et l'ajout à l'agenda. */
+export async function SalesCountdown({
+  opensAt,
+  timeZone,
+  now,
+  eventId,
+  eventTitle,
+  url,
+}: {
+  opensAt: Date;
+  timeZone: string;
+  now: Date;
+  eventId: string;
+  eventTitle: string;
+  url: string;
+}) {
   const t = await getTranslations("public");
   const locale = toLocale(await getLocale());
   return (
     <div className="grid gap-3 rounded-xl bg-surface p-4 ring-1 ring-line">
       <p className="text-center text-sm font-medium">{t("salesOpenOn", { date: formatDateTime(opensAt, timeZone, locale) })}</p>
       <Countdown target={opensAt.toISOString()} serverNow={now.toISOString()} labels={await countdownLabels()} />
+      <OpeningExtras
+        eventId={eventId}
+        calendar={{ title: calendarTitle({ locale, prepublished: false, teaserText: null, eventTitle, organizationName: "" }), start: opensAt, url }}
+      />
     </div>
   );
 }

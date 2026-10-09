@@ -1062,7 +1062,23 @@
     "cdMinutes": "minutes",
     "cdSeconds": "secondes",
     "salesOpenOn": "Ouverture des ventes le {date}",
-    "previewLinkBanner": "Aperçu privé : cette page sera publique le {date}. Les achats sont désactivés."
+    "previewLinkBanner": "Aperçu privé : cette page sera publique le {date}. Les achats sont désactivés.",
+    "alertTitle": "Prévenez-moi",
+    "alertIntro": "Recevez un e-mail dès l’ouverture des ventes.",
+    "alertEmail": "Votre adresse e-mail",
+    "alertSubmit": "M’avertir",
+    "alertConsent": "Votre adresse sert uniquement à vous prévenir de l’ouverture des ventes de cet événement. Elle est supprimée 30 jours après l’envoi.",
+    "alertDone": "C’est noté : nous vous écrirons dès l’ouverture des ventes.",
+    "alertError": "Inscription impossible. Réessayez.",
+    "alertInvalid": "Adresse e-mail invalide.",
+    "alertLimited": "Trop de tentatives. Réessayez dans un moment.",
+    "calAdd": "Ajouter à mon agenda",
+    "calGoogle": "Google Agenda",
+    "alertUnsubTitle": "Supprimer votre alerte",
+    "alertUnsubText": "Vous ne serez pas prévenu de l’ouverture des ventes de {event}, et votre adresse sera supprimée.",
+    "alertUnsubButton": "Supprimer mon alerte",
+    "alertUnsubDone": "Votre alerte est supprimée.",
+    "alertUnsubGone": "Cette alerte n’existe plus."
   },
   "promo": {
     "new": "Nouveau code",
@@ -2350,6 +2366,7 @@
     "previewCreate": "Créer un lien d’aperçu",
     "previewCopy": "Copier",
     "previewCopied": "Copié",
-    "previewRevoke": "Désactiver le lien"
+    "previewRevoke": "Désactiver le lien",
+    "alertsWaiting": "{count, plural, one {# personne attend} other {# personnes attendent}} l’ouverture des ventes."
   }
 }

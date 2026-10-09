@@ -572,6 +572,7 @@ model Event {
   teaserText        String? // texte de l'annonce (« Événement à venir » par défaut)
   previewToken      String? @unique // lien d'aperçu secret, avant la publication
   publishNotifiedAt DateTime? // e-mail « événement publié » envoyé à l'organisation
+  alerts            EventAlert[]
   lastMajorChangeAt   DateTime? // date, heure ou lieu modifiés après publication (RG-EVT-05)
   cancelledAt         DateTime?
   cancellationReason  String?
@@ -1761,4 +1762,19 @@ model SeatingLayout {
 
   @@index([organizationId])
   @@index([shared])
+}
+
+/// « Prévenez-moi » (RG-PRG-04) : un e-mail à l'ouverture des ventes, avec l'accord explicite du visiteur ; supprimé 30 jours après l'envoi
+model EventAlert {
+  id         String    @id @default(cuid())
+  eventId    String
+  event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  email      String
+  locale     String    @default("fr")
+  token      String    @unique
+  createdAt  DateTime  @default(now())
+  notifiedAt DateTime?
+
+  @@unique([eventId, email])
+  @@index([eventId, notifiedAt])
 }

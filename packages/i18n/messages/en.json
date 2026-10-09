@@ -1062,7 +1062,23 @@
     "cdMinutes": "minutes",
     "cdSeconds": "seconds",
     "salesOpenOn": "Tickets on sale from {date}",
-    "previewLinkBanner": "Private preview: this page goes public on {date}. Purchases are disabled."
+    "previewLinkBanner": "Private preview: this page goes public on {date}. Purchases are disabled.",
+    "alertTitle": "Notify me",
+    "alertIntro": "Get an email as soon as tickets go on sale.",
+    "alertEmail": "Your email address",
+    "alertSubmit": "Notify me",
+    "alertConsent": "Your address is only used to tell you when tickets for this event go on sale. It is deleted 30 days after the email is sent.",
+    "alertDone": "Done: we’ll email you as soon as tickets go on sale.",
+    "alertError": "Couldn’t sign you up. Please try again.",
+    "alertInvalid": "Invalid email address.",
+    "alertLimited": "Too many attempts. Please try again later.",
+    "calAdd": "Add to my calendar",
+    "calGoogle": "Google Calendar",
+    "alertUnsubTitle": "Delete your alert",
+    "alertUnsubText": "You won’t be told when tickets for {event} go on sale, and your address will be deleted.",
+    "alertUnsubButton": "Delete my alert",
+    "alertUnsubDone": "Your alert has been deleted.",
+    "alertUnsubGone": "This alert no longer exists."
   },
   "promo": {
     "new": "New code",
@@ -2350,6 +2366,7 @@
     "previewCreate": "Create a preview link",
     "previewCopy": "Copy",
     "previewCopied": "Copied",
-    "previewRevoke": "Disable the link"
+    "previewRevoke": "Disable the link",
+    "alertsWaiting": "{count, plural, one {# person is} other {# people are}} waiting for tickets to go on sale."
   }
 }

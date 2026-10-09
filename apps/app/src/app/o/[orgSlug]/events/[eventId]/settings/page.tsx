@@ -9,6 +9,7 @@ import { EventPublication } from "./EventPublication";
 import { formatDateTime, toLocale } from "@evoly/i18n";
 import { getLocale } from "next-intl/server";
 import { eventPublicUrl } from "@/server/urls";
+import { waitingAlerts } from "@/server/alerts";
 import { EventAppearance } from "./EventAppearance";
 import { EventReminders } from "./EventReminders";
 import { eventEmailBlocks } from "@/server/eventEmailBlocks";
@@ -31,6 +32,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
   const readOnly = !can(ctx.membership, "EVENTS_EDIT") || ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
   const emailBlocks = await eventEmailBlocks(eventId);
   const canPublish = can(ctx.membership, "EVENTS_PUBLISH");
+  const waiting = canPublish ? await waitingAlerts(eventId) : 0;
   const tp = await getTranslations("publication");
   const when = e.publishAt ? formatDateTime(e.publishAt, e.timezone, toLocale(await getLocale())) : null;
   const publicationStatus = e.publishAt && when ? tp(e.publishAt > new Date() ? "statusScheduled" : "statusLive", { date: when }) : null;
@@ -78,6 +80,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
           teaserText={e.teaserText}
           previewUrl={e.previewToken ? `${eventPublicUrl(ctx.organization, e)}?apercu=${e.previewToken}` : null}
           status={publicationStatus}
+          waiting={waiting}
           readOnly={ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)}
         />
       ) : null}

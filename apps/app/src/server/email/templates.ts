@@ -1134,3 +1134,101 @@ export function seatChangedEmail(o: {
     text: [o.organizationName, "", c.hello(o.firstName), c.body(o.from, o.to), "", `${c.cta} : ${o.url}`].join("\n"),
   };
 }
+
+const ALERT_COPY = {
+  fr: {
+    subject: (e: string) => `${e} : les billets sont en vente`,
+    title: "Les ventes sont ouvertes",
+    intro: (e: string) => `Vous nous avez demandé de vous prévenir : les billets pour ${e} sont en vente.`,
+    cta: "Voir les billets",
+    outro:
+      "Vous recevez cet e-mail parce que vous avez demandé à être prévenu de l’ouverture des ventes de cet événement. Vous ne recevrez pas d’autre message à ce sujet.",
+    unsubscribe: "Supprimer mon alerte",
+  },
+  en: {
+    subject: (e: string) => `${e}: tickets are on sale`,
+    title: "Tickets are on sale",
+    intro: (e: string) => `You asked us to let you know: tickets for ${e} are now on sale.`,
+    cta: "See tickets",
+    outro:
+      "You are receiving this email because you asked to be notified when tickets for this event go on sale. You won’t receive any other message about it.",
+    unsubscribe: "Delete my alert",
+  },
+  es: {
+    subject: (e: string) => `${e}: las entradas ya están a la venta`,
+    title: "Las entradas ya están a la venta",
+    intro: (e: string) => `Nos pediste que te avisáramos: las entradas para ${e} ya están a la venta.`,
+    cta: "Ver las entradas",
+    outro: "Recibes este e-mail porque pediste que te avisáramos de la apertura de la venta de este evento. No recibirás ningún otro mensaje sobre ello.",
+    unsubscribe: "Eliminar mi aviso",
+  },
+  de: {
+    subject: (e: string) => `${e}: Tickets sind im Verkauf`,
+    title: "Der Verkauf hat begonnen",
+    intro: (e: string) => `Sie wollten benachrichtigt werden: Tickets für ${e} sind jetzt erhältlich.`,
+    cta: "Tickets ansehen",
+    outro:
+      "Sie erhalten diese E-Mail, weil Sie über den Verkaufsstart dieser Veranstaltung informiert werden wollten. Sie erhalten dazu keine weitere Nachricht.",
+    unsubscribe: "Meine Benachrichtigung löschen",
+  },
+  it: {
+    subject: (e: string) => `${e}: i biglietti sono in vendita`,
+    title: "I biglietti sono in vendita",
+    intro: (e: string) => `Ci hai chiesto di avvisarti: i biglietti per ${e} sono in vendita.`,
+    cta: "Vedi i biglietti",
+    outro: "Ricevi questa e-mail perché hai chiesto di essere avvisato dell’apertura delle vendite di questo evento. Non riceverai altri messaggi in merito.",
+    unsubscribe: "Elimina il mio avviso",
+  },
+  pt: {
+    subject: (e: string) => `${e}: os bilhetes estão à venda`,
+    title: "Os bilhetes estão à venda",
+    intro: (e: string) => `Pediu-nos para o avisar: os bilhetes para ${e} já estão à venda.`,
+    cta: "Ver os bilhetes",
+    outro: "Recebe este e-mail porque pediu para ser avisado da abertura das vendas deste evento. Não receberá outras mensagens sobre o assunto.",
+    unsubscribe: "Eliminar o meu aviso",
+  },
+  nl: {
+    subject: (e: string) => `${e}: tickets zijn te koop`,
+    title: "De verkoop is begonnen",
+    intro: (e: string) => `Je vroeg ons je te verwittigen: tickets voor ${e} zijn nu te koop.`,
+    cta: "Bekijk de tickets",
+    outro: "Je ontvangt deze e-mail omdat je wilde weten wanneer de verkoop voor dit evenement start. Je krijgt hierover geen ander bericht.",
+    unsubscribe: "Mijn melding verwijderen",
+  },
+};
+
+/** « Prévenez-moi » (RG-PRG-04) : l'unique e-mail envoyé à l'ouverture des ventes, aux couleurs de l'organisation. */
+export function salesOpenEmail(o: {
+  brand?: EmailBrand | null;
+  locale: Locale;
+  organizationName: string;
+  eventTitle: string;
+  when: string;
+  url: string;
+  unsubscribeUrl: string;
+}): RenderedEmail {
+  const c = pick(ALERT_COPY, o.locale);
+  const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
+<tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
+<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(c.title)}</td></tr>
+<tr><td style="font-size:15px;line-height:1.6;padding-bottom:6px">${escapeHtml(c.intro(o.eventTitle))}</td></tr>
+<tr><td style="font-size:14px;color:#555;padding-bottom:20px">${escapeHtml(o.when)}</td></tr>
+<tr><td><a href="${escapeHtml(o.url)}" style="display:inline-block;background:${palette.charbon};color:${palette.blanc};text-decoration:none;font-weight:600;border-radius:999px;padding:14px 26px">${escapeHtml(c.cta)}</a></td></tr>
+<tr><td style="font-size:12px;line-height:1.6;color:#777;padding-top:24px">${escapeHtml(c.outro)} <a href="${escapeHtml(o.unsubscribeUrl)}" style="color:#777">${escapeHtml(c.unsubscribe)}</a></td></tr>
+</table></td></tr></table></body></html>`;
+  const text = [
+    o.organizationName,
+    c.title,
+    "",
+    c.intro(o.eventTitle),
+    o.when,
+    "",
+    `${c.cta} : ${o.url}`,
+    "",
+    c.outro,
+    `${c.unsubscribe} : ${o.unsubscribeUrl}`,
+  ].join("\n");
+  return { subject: c.subject(o.eventTitle), html, text };
+}

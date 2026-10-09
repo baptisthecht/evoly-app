@@ -89,7 +89,23 @@
     "cdMinutes": "minuten",
     "cdSeconds": "seconden",
     "salesOpenOn": "Tickets te koop vanaf {date}",
-    "previewLinkBanner": "Privévoorbeeld: deze pagina wordt openbaar op {date}. Kopen is uitgeschakeld."
+    "previewLinkBanner": "Privévoorbeeld: deze pagina wordt openbaar op {date}. Kopen is uitgeschakeld.",
+    "alertTitle": "Verwittig mij",
+    "alertIntro": "Krijg een e-mail zodra de verkoop start.",
+    "alertEmail": "Je e-mailadres",
+    "alertSubmit": "Verwittig mij",
+    "alertConsent": "Je adres dient alleen om je te verwittigen wanneer de verkoop voor dit evenement start. Het wordt 30 dagen na de verzending verwijderd.",
+    "alertDone": "Genoteerd: we mailen je zodra de verkoop start.",
+    "alertError": "Inschrijven lukt niet. Probeer het opnieuw.",
+    "alertInvalid": "Ongeldig e-mailadres.",
+    "alertLimited": "Te veel pogingen. Probeer het later opnieuw.",
+    "calAdd": "Toevoegen aan mijn agenda",
+    "calGoogle": "Google Agenda",
+    "alertUnsubTitle": "Je melding verwijderen",
+    "alertUnsubText": "Je wordt niet verwittigd wanneer de verkoop voor {event} start, en je adres wordt verwijderd.",
+    "alertUnsubButton": "Mijn melding verwijderen",
+    "alertUnsubDone": "Je melding is verwijderd.",
+    "alertUnsubGone": "Deze melding bestaat niet meer."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -2350,6 +2366,7 @@
     "previewCreate": "Voorbeeldlink maken",
     "previewCopy": "Kopiëren",
     "previewCopied": "Gekopieerd",
-    "previewRevoke": "Link uitschakelen"
+    "previewRevoke": "Link uitschakelen",
+    "alertsWaiting": "{count, plural, one {# persoon wacht} other {# personen wachten}} op de start van de verkoop."
   }
 }

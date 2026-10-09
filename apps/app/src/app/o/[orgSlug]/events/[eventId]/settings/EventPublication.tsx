@@ -16,6 +16,7 @@ type Props = {
   teaserText: string | null;
   previewUrl: string | null;
   status: string | null;
+  waiting: number;
   readOnly: boolean;
 };
 
@@ -61,6 +62,7 @@ export function EventPublication(p: Props) {
         {p.status ? (
           <p role="status" className="rounded-md bg-info-soft px-3 py-2 text-sm">
             {p.status}
+            {p.waiting > 0 ? ` ${t("alertsWaiting", { count: p.waiting })}` : ""}
           </p>
         ) : null}
         <fieldset className="grid gap-2" disabled={p.readOnly}>
