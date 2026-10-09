@@ -646,7 +646,8 @@
     "PRESALE_CODE_TAKEN": "Ce code existe déjà pour cet événement.",
     "PRESALE_CODE_FORMAT": "Le code doit compter 3 à 30 caractères : lettres, chiffres ou tirets.",
     "PRESALE_LIMIT": "Un événement compte au plus 20 000 codes de prévente.",
-    "PRESALE_AFTER_START": "La prévente doit commencer avant le début de l’événement."
+    "PRESALE_AFTER_START": "La prévente doit commencer avant le début de l’événement.",
+    "BOT_CHECK_FAILED": "La vérification anti-robots a échoué. Rechargez la page et réessayez."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -2398,7 +2399,10 @@
     "previewCopy": "Copier",
     "previewCopied": "Copié",
     "previewRevoke": "Désactiver le lien",
-    "alertsWaiting": "{count, plural, one {# personne attend} other {# personnes attendent}} l’ouverture des ventes."
+    "alertsWaiting": "{count, plural, one {# personne attend} other {# personnes attendent}} l’ouverture des ventes.",
+    "botTitle": "Protection anti-robots",
+    "botHint": "Pour les ventes très demandées : avant de réserver, le navigateur de chaque acheteur résout un petit calcul, invisible pour une personne et très coûteux pour un robot qui réserve en masse. Sans captcha ni service tiers.",
+    "botSaved": "Enregistré."
   },
   "presale": {
     "title": "Prévente privée",

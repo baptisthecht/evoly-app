@@ -12,6 +12,7 @@ import { eventPublicUrl } from "@/server/urls";
 import { waitingAlerts } from "@/server/alerts";
 import { presaleOverview } from "@/server/presale";
 import { EventPresale } from "./EventPresale";
+import { BotProtection } from "./BotProtection";
 import { EventAppearance } from "./EventAppearance";
 import { EventReminders } from "./EventReminders";
 import { eventEmailBlocks } from "@/server/eventEmailBlocks";
@@ -86,6 +87,15 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
           status={publicationStatus}
           waiting={waiting}
           readOnly={ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)}
+        />
+      ) : null}
+      {canPublish ? (
+        <BotProtection
+          orgSlug={orgSlug}
+          eventId={eventId}
+          enabled={e.botProtection}
+          readOnly={ctx.readOnly}
+          labels={{ title: tp("botTitle"), hint: tp("botHint"), saved: tp("botSaved") }}
         />
       ) : null}
       {canPublish && presale ? (

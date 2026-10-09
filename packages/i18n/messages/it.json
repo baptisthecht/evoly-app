@@ -376,7 +376,8 @@
     "PRESALE_CODE_TAKEN": "Questo codice esiste già per questo evento.",
     "PRESALE_CODE_FORMAT": "Il codice deve avere da 3 a 30 caratteri: lettere, cifre o trattini.",
     "PRESALE_LIMIT": "Un evento può avere al massimo 20.000 codici di prevendita.",
-    "PRESALE_AFTER_START": "La prevendita deve iniziare prima dell’inizio dell’evento."
+    "PRESALE_AFTER_START": "La prevendita deve iniziare prima dell’inizio dell’evento.",
+    "BOT_CHECK_FAILED": "La verifica anti-bot non è riuscita. Ricarica la pagina e riprova."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -2398,7 +2399,10 @@
     "previewCopy": "Copia",
     "previewCopied": "Copiato",
     "previewRevoke": "Disattiva il link",
-    "alertsWaiting": "{count, plural, one {# persona aspetta} other {# persone aspettano}} l’apertura delle vendite."
+    "alertsWaiting": "{count, plural, one {# persona aspetta} other {# persone aspettano}} l’apertura delle vendite.",
+    "botTitle": "Protezione anti-bot",
+    "botHint": "Per le vendite molto richieste: prima di prenotare, il browser di ogni acquirente risolve un piccolo calcolo, invisibile per una persona e molto costoso per un bot che prenota in massa. Senza captcha né servizi esterni.",
+    "botSaved": "Salvato."
   },
   "presale": {
     "title": "Prevendita privata",

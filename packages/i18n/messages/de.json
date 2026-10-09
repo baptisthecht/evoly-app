@@ -376,7 +376,8 @@
     "PRESALE_CODE_TAKEN": "Dieser Code existiert für diese Veranstaltung bereits.",
     "PRESALE_CODE_FORMAT": "Der Code muss 3 bis 30 Zeichen lang sein: Buchstaben, Ziffern oder Bindestriche.",
     "PRESALE_LIMIT": "Eine Veranstaltung kann höchstens 20.000 Vorverkaufscodes haben.",
-    "PRESALE_AFTER_START": "Der Vorverkauf muss vor Beginn der Veranstaltung starten."
+    "PRESALE_AFTER_START": "Der Vorverkauf muss vor Beginn der Veranstaltung starten.",
+    "BOT_CHECK_FAILED": "Die Bot-Prüfung ist fehlgeschlagen. Laden Sie die Seite neu und versuchen Sie es erneut."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -2398,7 +2399,10 @@
     "previewCopy": "Kopieren",
     "previewCopied": "Kopiert",
     "previewRevoke": "Link deaktivieren",
-    "alertsWaiting": "{count, plural, one {# Person wartet} other {# Personen warten}} auf den Verkaufsstart."
+    "alertsWaiting": "{count, plural, one {# Person wartet} other {# Personen warten}} auf den Verkaufsstart.",
+    "botTitle": "Schutz vor Bots",
+    "botHint": "Für sehr gefragte Verkäufe: Vor der Reservierung löst der Browser jedes Käufers eine kleine Rechenaufgabe, unsichtbar für Menschen und sehr aufwendig für einen Bot, der massenhaft reserviert. Ohne Captcha und ohne Drittanbieter.",
+    "botSaved": "Gespeichert."
   },
   "presale": {
     "title": "Privater Vorverkauf",

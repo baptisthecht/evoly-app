@@ -376,7 +376,8 @@
     "PRESALE_CODE_TAKEN": "Deze code bestaat al voor dit evenement.",
     "PRESALE_CODE_FORMAT": "De code moet 3 tot 30 tekens tellen: letters, cijfers of koppeltekens.",
     "PRESALE_LIMIT": "Een evenement kan hoogstens 20.000 voorverkoopcodes hebben.",
-    "PRESALE_AFTER_START": "De voorverkoop moet vóór de start van het evenement beginnen."
+    "PRESALE_AFTER_START": "De voorverkoop moet vóór de start van het evenement beginnen.",
+    "BOT_CHECK_FAILED": "De botcontrole is mislukt. Laad de pagina opnieuw en probeer het nog eens."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -2398,7 +2399,10 @@
     "previewCopy": "Kopiëren",
     "previewCopied": "Gekopieerd",
     "previewRevoke": "Link uitschakelen",
-    "alertsWaiting": "{count, plural, one {# persoon wacht} other {# personen wachten}} op de start van de verkoop."
+    "alertsWaiting": "{count, plural, one {# persoon wacht} other {# personen wachten}} op de start van de verkoop.",
+    "botTitle": "Bescherming tegen bots",
+    "botHint": "Voor veelgevraagde verkopen: vóór het reserveren lost de browser van elke koper een kleine berekening op, onzichtbaar voor een mens en erg duur voor een bot die massaal reserveert. Zonder captcha of externe dienst.",
+    "botSaved": "Opgeslagen."
   },
   "presale": {
     "title": "Privévoorverkoop",

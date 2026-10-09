@@ -1,5 +1,6 @@
 "use server";
 
+import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -19,7 +20,7 @@ import { deleteSeatingBlock, moveTicketSeat, saveSeatingBlock, setBlockView, upd
 import { planFromPhoto } from "@/server/seatingPhoto";
 import { applyPlan, type StoredPlan } from "@/server/seating";
 import { applySeatingLayout, deleteSeatingLayout, listSeatingLayouts, saveSeatingLayout, type SeatingLayoutItem } from "@/server/seatingLayouts";
-import { SEATING_TEMPLATES } from "@evoly/core";
+import { SEATING_TEMPLATES, CoreError } from "@evoly/core";
 import { NUMBERING, blockSchema, rowLabels, sInt } from "@/lib/seatingSchemas";
 import { parseRecipients } from "@evoly/core";
 import { createScannerLink, personalScannerLink, revokeScannerLink, scannerUrl } from "@/server/scanner";
@@ -700,6 +701,16 @@ export async function savePresaleStartAction(orgSlug: string, eventId: string, s
       await savePresaleStart(ctx, eventId, d.startsLocal);
     },
   );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
+  return r;
+}
+
+/** RG-BUY-10 : protection anti-robots activée ou non pour un événement à forte demande. */
+export async function saveBotProtectionAction(orgSlug: string, eventId: string, enabled: boolean): Promise<ActionState> {
+  const r = await runOrgAction(orgSlug, { enabled }, { schema: z.object({ enabled: z.boolean() }), permission: "EVENTS_PUBLISH" }, async (d, ctx) => {
+    const res = await db.event.updateMany({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null }, data: { botProtection: d.enabled } });
+    if (res.count === 0) throw new CoreError("NOT_FOUND");
+  });
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
 }

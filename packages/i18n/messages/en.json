@@ -646,7 +646,8 @@
     "PRESALE_CODE_TAKEN": "This code already exists for this event.",
     "PRESALE_CODE_FORMAT": "The code must be 3 to 30 characters: letters, digits or hyphens.",
     "PRESALE_LIMIT": "An event can have at most 20,000 presale codes.",
-    "PRESALE_AFTER_START": "The presale must start before the event begins."
+    "PRESALE_AFTER_START": "The presale must start before the event begins.",
+    "BOT_CHECK_FAILED": "The bot check failed. Reload the page and try again."
   },
   "brand": {
     "sloganStart": "your next",
@@ -2398,7 +2399,10 @@
     "previewCopy": "Copy",
     "previewCopied": "Copied",
     "previewRevoke": "Disable the link",
-    "alertsWaiting": "{count, plural, one {# person is} other {# people are}} waiting for tickets to go on sale."
+    "alertsWaiting": "{count, plural, one {# person is} other {# people are}} waiting for tickets to go on sale.",
+    "botTitle": "Bot protection",
+    "botHint": "For high-demand sales: before reserving, each buyer’s browser solves a small calculation, invisible to a person and very costly for a bot reserving in bulk. No captcha, no third-party service.",
+    "botSaved": "Saved."
   },
   "presale": {
     "title": "Private presale",

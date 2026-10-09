@@ -6,7 +6,15 @@ import { formatMoney, type Locale } from "@evoly/i18n";
 import { availabilityDisplay, unitDiscount } from "@evoly/core";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
-import { friendSeatsAction, previewPromoAction, reserveAction, type PromoPreview, type ReservationView } from "@/app/site/[sub]/[eventSlug]/actions";
+import {
+  botChallengeAction,
+  friendSeatsAction,
+  previewPromoAction,
+  reserveAction,
+  type PromoPreview,
+  type ReservationView,
+} from "@/app/site/[sub]/[eventSlug]/actions";
+import { solveBotChallenge } from "./botProof";
 import { Input } from "../ui/Field";
 import { Button } from "../ui/Button";
 import { CheckoutPanel } from "./CheckoutPanel";
@@ -116,7 +124,10 @@ export function TicketPicker({
       .filter(([, n]) => n > 0)
       .map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
     // meilleures places attribuées tout de suite (ou près de l'ami) ; l'acheteur peut les voir et les changer ensuite
-    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null);
+    // RG-BUY-10 : défi anti-robots résolu dans le navigateur si l'organisateur l'a activé
+    const challenge = await botChallengeAction(checkout.eventId);
+    const botProof = challenge ? await solveBotChallenge(challenge).catch(() => null) : null;
+    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null, botProof);
     setPending(false);
     if (res.ok) return setReservation(res.data);
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));

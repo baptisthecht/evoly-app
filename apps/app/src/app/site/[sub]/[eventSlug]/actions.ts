@@ -25,6 +25,7 @@ import { getPublicOrganization, loadPublicEvent, type PublicTicketType } from "@
 import { hit } from "@/server/rateLimit";
 import { subscribeAlert } from "@/server/alerts";
 import { presaleCookie, unlockPresale } from "@/server/presale";
+import { botProtected, createChallenge, verifyProof, type BotChallenge } from "@/server/botProtection";
 import { clientIp } from "@/server/requestInfo";
 import { safeError } from "@/lib/redact";
 
@@ -99,7 +100,10 @@ export async function reserveAction(
   promoCode?: string | null,
   seatIds?: unknown,
   nearCode?: string | null,
+  botProof?: unknown,
 ): Promise<Result<ReservationView>> {
+  // RG-BUY-10 : preuve anti-robots exigée sur les événements où l'organisateur l'a activée
+  if ((await botProtected(eventId.slice(0, 40))) && !(await verifyProof(eventId.slice(0, 40), botProof))) return { ok: false, error: "BOT_CHECK_FAILED" };
   const parsed = linesSchema.safeParse(lines);
   if (!parsed.success) return { ok: false, error: "CART_EMPTY_CART" };
   if ((await hit(`checkout:reserve:${await clientIp()}`, 600)) > 30) return { ok: false, error: "RATE_LIMITED" };
@@ -330,4 +334,10 @@ export async function unlockPresaleAction(eventId: string, code: unknown): Promi
   } catch (err) {
     return { ok: false, error: err instanceof CoreError ? err.code : "PRESALE_INVALID" };
   }
+}
+
+/** RG-BUY-10 : défi anti-robots à résoudre avant de réserver, seulement si l'organisateur a activé la protection. */
+export async function botChallengeAction(eventId: string): Promise<BotChallenge | null> {
+  const id = eventId.slice(0, 40);
+  return (await botProtected(id)) ? createChallenge(id) : null;
 }
