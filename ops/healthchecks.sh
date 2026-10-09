@@ -4,7 +4,7 @@
 # Ne fait jamais échouer une tâche : sans clé, sans réseau ou si Healthchecks.io ne répond pas, il ne se passe rien.
 # Sondes créées et réglées par ops/healthchecks-setup.sh (identifiants evoly-<tâche>).
 
-hc_env() { grep -E "^$1=" .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"' || true; }
+hc_env() { grep -E "^$1=" .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d "\"' \r" || true; }
 
 # hc_ping <tâche> [suffixe] [message]
 #   sans suffixe : succès ; « start » : début ; « log » : simple entrée d'historique ; 0-255 : code de sortie (0 = succès)

@@ -5,7 +5,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-key="$(grep -E '^HEALTHCHECKS_API_KEY=' .env | head -1 | cut -d= -f2- | tr -d '"' || true)"
+# guillemets, apostrophes, espaces et fins de ligne Windows retirés (une clé collée depuis un PC passe telle quelle)
+key="$(grep -E '^HEALTHCHECKS_API_KEY=' .env | head -1 | cut -d= -f2- | tr -d "\"' \r" || true)"
 if [ -z "$key" ]; then echo "HEALTHCHECKS_API_KEY manque dans .env (Healthchecks.io : Settings, API Access)"; exit 1; fi
 api="${HEALTHCHECKS_API_URL:-https://healthchecks.io}/api/v3/checks/"
 
@@ -38,5 +39,9 @@ sonde certificates "Certificats" "30 5 * * *" 3600 "Contrôle quotidien des cert
 sonde statements "Relevés de commissions" "0 6 1 * *" 7200 "Émet les relevés de commissions du mois écoulé."
 sonde backup "Sauvegarde" "15 3 * * *" 7200 "Sauvegarde nocturne de la base vers R2."
 
-if [ "$failures" -gt 0 ]; then echo "$failures sonde(s) en échec : vérifiez la clé d'API (lecture-écriture) et réessayez."; exit 1; fi
+if [ "$failures" -gt 0 ]; then
+  echo "$failures sonde(s) en échec. Erreur 401 : Healthchecks.io refuse la clé. Utilisez une clé « API key » en lecture-écriture"
+  echo "(pas « read-only »), créée dans le bon projet : Settings, API Access, puis HEALTHCHECKS_API_KEY dans .env."
+  exit 1
+fi
 echo "Les 8 sondes sont prêtes. Elles passent au vert à leur premier signal (la sauvegarde la nuit prochaine)."
