@@ -124,7 +124,7 @@ describe("commandes (US-ORD-01, RG-ORD-02)", () => {
     await correctBuyerEmail(s.ctx, s.orderId, `  Lea.Nouvelle.${s.id}@Exemple.be `);
     expect(await findOrderIdByToken(s.token)).toBeNull();
     expect(await findOrderIdByToken(orderAccessToken(s.orderId, 2))).toBe(s.orderId);
-    const mail = await db.emailMessage.findFirstOrThrow({ where: { orderId: s.orderId, template: "order.confirmation" }, orderBy: { queuedAt: "desc" } });
+    const mail = await db.emailMessage.findFirstOrThrow({ where: { orderId: s.orderId, template: "order.email_changed" }, orderBy: { queuedAt: "desc" } });
     expect(mail.toEmail).toBe(`lea.nouvelle.${s.id}@exemple.be`);
   });
 

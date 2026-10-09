@@ -55,7 +55,7 @@ export function PreferencesForm({ orgSlug, rows, labels }: { orgSlug: string; ro
                 </td>
                 <td className="py-2 text-center">
                   {r.email === null ? (
-                    <span className="text-ink-muted">—</span>
+                    <span className="text-ink-muted">-</span>
                   ) : (
                     <input
                       type="checkbox"
