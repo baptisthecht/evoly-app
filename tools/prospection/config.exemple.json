@@ -1,12 +1,11 @@
 {
-  "signature": "Baptist Hecht\nFondateur d'Evoly, la billetterie au prix affiché\nhttps://evoly.me\nEvoly Solutions · BCE 1043.315.766 · Mouscron (Belgique)",
   "delai_secondes": [120, 300],
   "boites": [
     {
-      "nom": "Baptist d'Evoly",
-      "adresse": "baptist@evolytickets.com",
+      "nom": "Baptist Hecht",
+      "adresse": "baptist@baptisthecht.fr",
       "smtp": "ssl0.ovh.net",
-      "imap": "ssl0.ovh.net",
+      "port": 465,
       "plafond_par_jour": 15
     }
   ]
