@@ -1,0 +1,27 @@
+{
+  "fuseau": "Europe/Brussels",
+  "heures": ["09:00", "17:30"],
+  "jours_ouvres": [1, 2, 3, 4, 5],
+  "delai_secondes": [180, 480],
+  "relance_apres_jours": 7,
+  "arret_si_rebonds_pourcent": 3,
+  "signature": "Baptist Hecht\nFondateur d'Evoly, la billetterie au prix affiché\nhttps://evoly.me\nEvoly Solutions · BCE 1043.315.766 · Mouscron (Belgique)",
+  "boites": [
+    {
+      "nom": "Baptist d'Evoly",
+      "adresse": "baptist@evolytickets.com",
+      "identifiant": "baptist@evolytickets.com",
+      "mot_de_passe": "trousseau",
+      "smtp": { "hote": "ssl0.ovh.net", "port": 465, "securite": "ssl" },
+      "imap": { "hote": "ssl0.ovh.net", "port": 993 },
+      "dossier_envoyes": "auto",
+      "debut": "2026-10-27",
+      "montee_en_charge": [
+        [7, 15],
+        [14, 25],
+        [99999, 40]
+      ],
+      "plafond": 40
+    }
+  ]
+}

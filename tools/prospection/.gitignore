@@ -1,0 +1,6 @@
+# données personnelles et secrets : jamais sur GitHub
+config.json
+etat.sqlite
+suivi.csv
+lots/*.json
+!lots/exemple.json
