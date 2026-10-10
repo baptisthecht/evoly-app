@@ -8,10 +8,6 @@
       "langue": "fr",
       "objet": "Les préventes de votre bal d'hiver",
       "message": "Bonjour,\n\nJ'ai vu que vous organisez votre bal d'hiver le 6 décembre, avec des préventes en ligne. Je lance Evoly, une billetterie belge pensée pour les cercles : vos participants paient le prix affiché, et vous payez 0,49 € sur un billet à 10 €, rien sur les entrées gratuites.\n\nLa revente est intégrée : un étudiant qui ne peut plus venir remet sa place en vente, et l'ancien billet est désactivé. Le jour J, vous scannez avec vos téléphones, même sans réseau.\n\nSi ça vous parle, je mets votre bal en ligne avec vous et je vous offre l'offre Pro pendant 3 mois.",
-      "relance": {
-        "apres_jours": 7,
-        "message": "Bonjour,\n\nJe me permets de revenir vers vous pour les préventes de votre bal. Si ce n'est pas le moment, dites-le-moi simplement. Sinon, je vous montre Evoly en 10 minutes quand vous voulez."
-      },
       "source": "https://exemple.example/agenda",
       "pourquoi": "Bal de 500 personnes le 6 décembre, préventes aujourd'hui par virement."
     },
