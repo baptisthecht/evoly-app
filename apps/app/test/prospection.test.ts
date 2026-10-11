@@ -158,4 +158,20 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     expect((await sendTest(a.id, "", envoi, copie)).ok).toBe(true);
     expect(partis.at(-1)!.to).toBe("baptist@exemple.fr");
   });
+
+  it("Gmail range déjà ses envois : aucune seconde copie dans « Envoyés »", async () => {
+    await saveMailbox({
+      fromName: "Baptist",
+      address: "baptist@gmail.com",
+      smtpHost: "smtp.gmail.com",
+      password: "mdp-application",
+      maxPerDay: 3,
+      startedAt: iso(new Date(NOW.getTime() - 30 * DAY)),
+    });
+    await importLot({ emails: [mail(1)] }, NOW);
+    await vider(new Date(NOW.getTime() + 3 * 3_600_000));
+    expect(partis).toHaveLength(1);
+    expect(copies).toHaveLength(0);
+    expect(await db.prospectEmail.count({ where: { copiedAt: null } })).toBe(0);
+  });
 });

@@ -102,6 +102,8 @@ const imapCopy: Copier = async (raw, box, date) => {
     await client.logout().catch(() => undefined);
   }
 };
+/** Gmail et Google Workspace rangent eux-mêmes les envois dans « Envoyés » : pas de seconde copie. */
+export const keepsSentCopy = (box: ProspectMailbox) => /(^|\.)(gmail|googlemail)\.com$/i.test(box.smtpHost.trim());
 const messageIdFor = (emailId: string, box: ProspectMailbox) => `<${emailId}@${box.address.split("@")[1]}>`;
 const fromHeader = (b: ProspectMailbox) => `${b.fromName.replace(/["<>]/g, "")} <${b.address}>`;
 
@@ -336,7 +338,7 @@ async function deliver(id: string, now: Date, send: Sender, copy: Copier, from: 
     return false;
   }
   try {
-    await copy(await buildRaw(out), box, now);
+    if (!keepsSentCopy(box)) await copy(await buildRaw(out), box, now);
     await db.prospectEmail.update({ where: { id }, data: { copiedAt: new Date() } });
   } catch (err) {
     console.error("copie dans « Envoyés » impossible", box.address, safeError(err)); // rattrapée au prochain passage
@@ -364,7 +366,7 @@ export async function fileMissingCopies(copy: Copier = imapCopy, limit = 10) {
       date: e.sentAt ?? new Date(),
     };
     try {
-      await copy(await buildRaw(out), box, out.date);
+      if (!keepsSentCopy(box)) await copy(await buildRaw(out), box, out.date);
       await db.prospectEmail.update({ where: { id: e.id }, data: { copiedAt: new Date() } });
       filed++;
     } catch (err) {
@@ -426,7 +428,7 @@ export async function sendTest(boxId: string, to?: string, send: Sender = smtpSe
     return { ok: false as const, error: safeError(err) };
   }
   try {
-    await copy(await buildRaw(out), box, now);
+    if (!keepsSentCopy(box)) await copy(await buildRaw(out), box, now);
     return { ok: true as const, copied: true };
   } catch (err) {
     return { ok: true as const, copied: false, error: safeError(err) };
