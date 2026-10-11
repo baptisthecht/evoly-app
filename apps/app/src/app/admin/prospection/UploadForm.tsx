@@ -3,7 +3,15 @@
 import { useActionState } from "react";
 import { importLotAction, type ImportState } from "./actions";
 
-/** Import du lot : fichier JSON ou contenu collé ; réparti entre les boîtes et programmé aussitôt. */
+const local = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Brussels" }).format(d);
+function jourLabel(jour: string) {
+  const now = new Date();
+  if (jour === local(now)) return "aujourd'hui";
+  if (jour === local(new Date(now.getTime() + 86_400_000))) return "demain";
+  return new Intl.DateTimeFormat("fr-BE", { timeZone: "UTC", weekday: "long", day: "numeric", month: "short" }).format(new Date(`${jour}T12:00:00Z`));
+}
+
+/** Import du lot : fichier JSON ou contenu collé ; réparti entre les boîtes et programmé jour après jour. */
 export function UploadForm() {
   const [state, action, pending] = useActionState<ImportState, FormData>(importLotAction, null);
   return (
@@ -39,8 +47,9 @@ export function UploadForm() {
         <div role="status" className="grid gap-1 text-sm">
           <p className="font-semibold">
             {state.report.ajoutes} e-mail(s) importé(s) dans le lot {state.report.lot} : {state.report.programmes} programmé(s)
-            {state.report.enAttente ? `, ${state.report.enAttente} en attente faute de place aujourd'hui` : ""}.
+            {state.report.enAttente ? `, ${state.report.enAttente} en attente (aucune boîte active)` : ""}.
           </p>
+          {state.report.parJour.length ? <p>{state.report.parJour.map((j) => `${jourLabel(j.jour)} : ${j.count}`).join(" · ")}</p> : null}
           {state.report.parBoite.map((b) => (
             <p key={b.address}>
               {b.address} : {b.count}

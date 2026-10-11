@@ -46,6 +46,11 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
         <section className={`${card} grid gap-3`} aria-label="Envois disponibles aujourd'hui">
           <p className="text-sm text-ink-muted">Envois disponibles aujourd&apos;hui, toutes boîtes confondues</p>
           <p className="font-display text-5xl tracking-[-0.04em]">{o.disponibles}</p>
+          <p className="text-sm text-ink-muted">
+            {o.plageTerminee
+              ? `La plage d'envoi du jour est terminée : un lot collé maintenant part demain dès ${o.plage[0].replace(":", " h ")}.`
+              : `Envois de ${o.plage[0].replace(":", " h ")} à ${o.plage[1].replace(":", " h ")}. Au-delà de la place du jour, les e-mails sont programmés les jours suivants.`}
+          </p>
           {o.boites.length ? (
             <ul className="grid gap-1 text-sm">
               {o.boites.map((b) => (
@@ -83,10 +88,10 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
             </div>
           ))}
         </section>
-        {o.aEnvoyer > 0 && o.disponibles > 0 ? (
+        {o.aEnvoyer > 0 && o.boites.length > 0 ? (
           <form action={scheduleWaitingAction}>
             <button type="submit" className="h-11 rounded-full bg-[var(--evoly-charbon)] px-5 font-semibold text-[var(--evoly-creme)]">
-              Envoyer les {Math.min(o.aEnvoyer, o.disponibles)} e-mail(s) en attente
+              Programmer les {o.aEnvoyer} e-mail(s) en attente
             </button>
           </form>
         ) : null}

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ProspectMailbox } from "@evoly/db";
 import { requireStaff } from "@/server/platform";
-import { listMailboxes, rampCap } from "@/server/prospection";
+import { listMailboxes, rampSchedule } from "@/server/prospection";
 import { deleteMailboxAction, saveMailboxAction, testMailboxAction, testSendAction, toggleMailboxAction } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +12,7 @@ const card = "rounded-2xl bg-surface-raised p-5 ring-1 ring-line";
 const champ = "h-11 min-w-0 rounded-xl bg-surface-raised px-3 ring-1 ring-line-strong";
 const bouton = "h-10 rounded-full px-4 text-sm font-semibold ring-1 ring-line-strong";
 const jour = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Brussels" }).format(d);
+const court = (d: Date) => new Intl.DateTimeFormat("fr-BE", { timeZone: "Europe/Brussels", day: "numeric", month: "short" }).format(d);
 
 function Champs({ b }: { b?: ProspectMailbox }) {
   return (
@@ -77,8 +78,8 @@ export default async function BoitesPage({ searchParams }: { searchParams: Promi
           </nav>
         </header>
         <p className="text-sm text-ink-muted">
-          Chaque boîte monte en charge toute seule : 15 e-mails par jour la première semaine, 25 la deuxième, puis son plafond. Jamais une adresse en evoly.me :
-          les billets des clients en partent.
+          Chaque boîte monte en charge toute seule : 15 e-mails par jour la première semaine, 25 la deuxième, puis son plafond (40 par défaut). Jamais une
+          adresse en evoly.me : les billets des clients en partent.
         </p>
         {info ? (
           <p role="status" className={`${card} text-sm`}>
@@ -89,7 +90,13 @@ export default async function BoitesPage({ searchParams }: { searchParams: Promi
           <section key={b.id} className={`${card} grid gap-3`} aria-label={b.address}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="break-all font-semibold">{b.address}</p>
-              <p className="text-sm">{b.active ? `${rampCap(b.startedAt, b.maxPerDay, now)} e-mails par jour aujourd'hui` : "Désactivée"}</p>
+              <p className="text-sm">
+                {b.active
+                  ? rampSchedule(b.startedAt, b.maxPerDay, now)
+                      .map((st, i) => (i === 0 ? `${st.perDay} e-mails par jour aujourd'hui` : `${st.perDay} dès le ${court(new Date(st.from))}`))
+                      .join(" · ")
+                  : "Désactivée"}
+              </p>
             </div>
             <p className="text-sm text-ink-muted">
               {b.smtpHost}:{b.smtpPort} · plafond {b.maxPerDay} · depuis le {jour(b.startedAt)}

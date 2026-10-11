@@ -6,6 +6,7 @@ import {
   importLot,
   openPassword,
   rampCap,
+  rampSchedule,
   retryEmail,
   saveMailbox,
   scheduleWaiting,
@@ -85,14 +86,20 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     expect((await availability(NOW)).total).toBe(5);
   });
 
-  it("lot réparti selon la place de chaque boîte, envois en parallèle sans doublon, le reste part le lendemain", async () => {
+  it("lot réparti selon la place de chaque boîte, le surplus programmé les jours suivants, envois en parallèle sans doublon", async () => {
     const { a, b } = await boites();
-    const r = await importLot({ lot: "L", emails: [1, 2, 3, 4, 5, 6, 7].map((i) => mail(i)) }, NOW);
-    expect(r).toMatchObject({ ajoutes: 7, programmes: 5, enAttente: 2 });
-    expect(Object.fromEntries(r.parBoite.map((p) => [p.address, p.count]))).toEqual({ "baptist@exemple.fr": 3, "hello@exemple.com": 2 });
+    const r = await importLot({ lot: "L", emails: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => mail(i)) }, NOW);
+    expect(r).toMatchObject({ ajoutes: 12, programmes: 12, enAttente: 0 });
+    expect(r.parJour.map((j) => j.count)).toEqual([5, 5, 2]); // 3 + 2 par jour
+    expect(r.parJour.map((j) => j.jour)).toEqual([0, 1, 2].map((k) => iso(new Date(NOW.getTime() + k * DAY))));
     expect((await availability(NOW)).total).toBe(0);
+    const tous = await db.prospectEmail.findMany({ orderBy: { scheduledAt: "asc" } });
+    for (const e of tous) {
+      const h = new Intl.DateTimeFormat("fr-BE", { timeZone: "Europe/Brussels", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(e.scheduledAt!);
+      expect(h >= "08:30" && h < "19:00").toBe(true);
+    }
     for (const box of [a, b]) {
-      const t = (await db.prospectEmail.findMany({ where: { mailboxId: box.id }, orderBy: { scheduledAt: "asc" } })).map((e) => e.scheduledAt!.getTime());
+      const t = tous.filter((e) => e.mailboxId === box.id).map((e) => e.scheduledAt!.getTime());
       for (let i = 1; i < t.length; i++) expect(t[i]! - t[i - 1]!).toBeGreaterThanOrEqual(120_000);
     }
     const plusTard = new Date(NOW.getTime() + 3 * 3_600_000);
@@ -102,11 +109,19 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     expect(new Set(partis.map((p) => p.to)).size).toBe(5);
     expect(partis.filter((p) => p.from.includes("baptist@exemple.fr"))).toHaveLength(3);
     expect(partis.filter((p) => p.from.includes("hello@exemple.com"))).toHaveLength(2);
-    const lendemain = new Date(NOW.getTime() + DAY);
-    expect(await scheduleWaiting(lendemain)).toMatchObject({ programmes: 2, enAttente: 0 });
-    await vider(new Date(lendemain.getTime() + 3 * 3_600_000));
-    expect(partis).toHaveLength(7);
-    expect(await db.prospect.count({ where: { status: "CONTACTE" } })).toBe(7);
+    await vider(zonedLocalToUtc(`${iso(new Date(NOW.getTime() + DAY))}T13:00`, "Europe/Brussels"));
+    expect(partis).toHaveLength(10);
+    await vider(zonedLocalToUtc(`${iso(new Date(NOW.getTime() + 2 * DAY))}T13:00`, "Europe/Brussels"));
+    expect(partis).toHaveLength(12);
+    expect(await db.prospect.count({ where: { status: "CONTACTE" } })).toBe(12);
+  });
+
+  it("lot collé après la plage d'envoi : rien ne part le soir, tout est programmé dès le lendemain", async () => {
+    await boites();
+    const soir = zonedLocalToUtc(`${iso(NOW)}T21:30`, "Europe/Brussels");
+    const r = await importLot({ emails: [1, 2, 3].map((i) => mail(i)) }, soir);
+    expect(r.parJour).toEqual([{ jour: iso(new Date(NOW.getTime() + DAY)), count: 3 }]);
+    expect((await sendDueProspectEmails(new Date(soir.getTime() + 3_600_000), envoi, copie)).sent).toBe(0);
   });
 
   it("désactiver une boîte remet ses e-mails programmés en attente", async () => {
@@ -173,5 +188,17 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     expect(partis).toHaveLength(1);
     expect(copies).toHaveLength(0);
     expect(await db.prospectEmail.count({ where: { copiedAt: null } })).toBe(0);
+  });
+
+  it("calendrier de montée en charge affiché : 15 puis 25 puis le plafond, avec leurs dates", () => {
+    const debut = zonedLocalToUtc("2026-10-11T00:00", "Europe/Brussels");
+    const vu = zonedLocalToUtc("2026-10-11T15:00", "Europe/Brussels");
+    expect(rampSchedule(debut, 40, vu).map((st) => [iso(new Date(st.from)), st.perDay])).toEqual([
+      ["2026-10-11", 15],
+      ["2026-10-18", 25],
+      ["2026-10-25", 40],
+    ]);
+    expect(rampSchedule(debut, 40, zonedLocalToUtc("2026-10-20T10:00", "Europe/Brussels")).map((st) => st.perDay)).toEqual([25, 40]);
+    expect(rampSchedule(debut, 12, vu).map((st) => st.perDay)).toEqual([12]);
   });
 });

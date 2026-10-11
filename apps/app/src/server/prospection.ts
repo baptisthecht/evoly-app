@@ -44,6 +44,20 @@ export function rampCap(startedAt: Date, maxPerDay: number, now: Date) {
   return Math.min(days < 7 ? 15 : days < 14 ? 25 : maxPerDay, maxPerDay);
 }
 
+/** Calendrier de montée en charge d'une boîte, à partir d'aujourd'hui : [{ du, par jour }]. */
+export function rampSchedule(startedAt: Date, maxPerDay: number, now: Date) {
+  const start = dayStart(startedAt).getTime();
+  const steps = [
+    { from: start, perDay: Math.min(15, maxPerDay) },
+    { from: start + 7 * DAY, perDay: Math.min(25, maxPerDay) },
+    { from: start + 14 * DAY, perDay: maxPerDay },
+  ].filter((st, i, all) => i === 0 || st.perDay !== all[i - 1]!.perDay);
+  const today = dayStart(now).getTime();
+  return steps
+    .filter((st, i) => i === steps.length - 1 || steps[i + 1]!.from > today)
+    .map((st, i, all) => ({ ...st, until: all[i + 1] ? new Date(all[i + 1]!.from - DAY) : null }));
+}
+
 const key = () => createHash("sha256").update(`prospection:${env().BETTER_AUTH_SECRET}`).digest();
 export function sealPassword(plain: string) {
   const iv = randomBytes(12);
@@ -217,6 +231,7 @@ export type ImportReport = {
   programmes: number;
   enAttente: number;
   parBoite: { address: string; count: number }[];
+  parJour: { jour: string; count: number }[];
   ignores: { id: string; a: string; raison: string }[];
 };
 
@@ -224,45 +239,85 @@ export type ImportReport = {
  * Répartit des e-mails à envoyer entre les boîtes actives, au hasard pondéré par la place de chacune ; chaque boîte
  * a son propre rythme (2 à 5 minutes entre deux e-mails). Ce qui dépasse la capacité du jour reste en attente.
  */
+/** Plage d'envoi, heure de Belgique : un lot collé le soir part le lendemain matin. */
+export const WINDOW = ["08:30", "19:00"] as const;
+const localDate = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: FUSEAU }).format(d);
+
+/**
+ * Répartit des e-mails entre les boîtes actives, jour après jour : le jour même tant qu'il reste de la place et que la
+ * plage d'envoi est ouverte, puis le lendemain, le surlendemain, etc., selon la capacité de chaque boîte ce jour-là
+ * (montée en charge comprise). Au sein d'un jour, chaque e-mail va au hasard à une boîte, pondéré par sa place, et
+ * chaque boîte envoie à son rythme (2 à 5 minutes entre deux e-mails).
+ */
 async function distribute(ids: string[], now: Date, rand: Rand) {
-  const { rows } = await availability(now);
+  const boxes = await db.prospectMailbox.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } });
   const [d0, d1] = delay();
-  const until = dayStart(now).getTime() + DAY;
-  const remaining = new Map(rows.map((r) => [r.box.id, r.remaining]));
-  const cursor = new Map<string, number>();
-  for (const r of rows) {
-    const last = await db.prospectEmail.findFirst({
-      where: { mailboxId: r.box.id, status: "PROGRAMME" },
-      orderBy: { scheduledAt: "desc" },
-      select: { scheduledAt: true },
-    });
-    cursor.set(r.box.id, Math.max(now.getTime() + rand(10, 90) * 1000, last?.scheduledAt ? last.scheduledAt.getTime() + rand(d0, d1) * 1000 : 0));
-  }
+  const pending = [...ids];
   const parBoite = new Map<string, number>();
-  let programmes = 0;
-  for (const id of ids) {
-    const options = [...remaining].filter(([bid, r]) => r > 0 && cursor.get(bid)! < until);
-    if (options.length === 0) break;
-    let pick = rand(
-      1,
-      options.reduce((t, [, r]) => t + r, 0),
+  const parJour = new Map<string, number>();
+  for (let k = 0; pending.length > 0 && boxes.length > 0 && k < 90; k++) {
+    const jour = localDate(new Date(dayStart(now).getTime() + k * DAY + 12 * 3_600_000));
+    const open = zonedLocalToUtc(`${jour}T${WINDOW[0]}`, FUSEAU).getTime();
+    const close = zonedLocalToUtc(`${jour}T${WINDOW[1]}`, FUSEAU).getTime();
+    const from = k === 0 ? Math.max(now.getTime(), open) : open;
+    if (from >= close) continue;
+    const since = zonedLocalToUtc(`${jour}T00:00`, FUSEAU);
+    const until = zonedLocalToUtc(`${localDate(new Date(since.getTime() + 36 * 3_600_000))}T00:00`, FUSEAU);
+    const used = await db.prospectEmail.groupBy({
+      by: ["mailboxId"],
+      where: {
+        mailboxId: { in: boxes.map((b) => b.id) },
+        OR: [
+          { status: "ENVOYE", sentAt: { gte: since, lt: until } },
+          { status: "PROGRAMME", scheduledAt: { gte: since, lt: until } },
+        ],
+      },
+      _count: { _all: true },
+    });
+    const remaining = new Map(
+      boxes.map((b) => [b.id, Math.max(0, rampCap(b.startedAt, b.maxPerDay, new Date(open)) - (used.find((u) => u.mailboxId === b.id)?._count._all ?? 0))]),
     );
-    let chosen = options[0]![0];
-    for (const [bid, r] of options) {
-      pick -= r;
-      if (pick <= 0) {
-        chosen = bid;
-        break;
-      }
+    const cursor = new Map<string, number>();
+    for (const b of boxes) {
+      const last = await db.prospectEmail.findFirst({
+        where: { mailboxId: b.id, status: "PROGRAMME", scheduledAt: { gte: since, lt: until } },
+        orderBy: { scheduledAt: "desc" },
+        select: { scheduledAt: true },
+      });
+      const start = from + (k === 0 ? rand(10, 90) : rand(0, 1800)) * 1000;
+      cursor.set(b.id, Math.max(start, last?.scheduledAt ? last.scheduledAt.getTime() + rand(d0, d1) * 1000 : 0));
     }
-    const at = cursor.get(chosen)!;
-    await db.prospectEmail.update({ where: { id }, data: { status: "PROGRAMME", mailboxId: chosen, scheduledAt: new Date(at), error: null } });
-    cursor.set(chosen, at + rand(d0, d1) * 1000);
-    remaining.set(chosen, remaining.get(chosen)! - 1);
-    parBoite.set(chosen, (parBoite.get(chosen) ?? 0) + 1);
-    programmes++;
+    while (pending.length > 0) {
+      const options = [...remaining].filter(([bid, r]) => r > 0 && cursor.get(bid)! < close);
+      if (options.length === 0) break;
+      let pick = rand(
+        1,
+        options.reduce((t, [, r]) => t + r, 0),
+      );
+      let chosen = options[0]![0];
+      for (const [bid, r] of options) {
+        pick -= r;
+        if (pick <= 0) {
+          chosen = bid;
+          break;
+        }
+      }
+      const at = cursor.get(chosen)!;
+      await db.prospectEmail.update({
+        where: { id: pending.shift()! },
+        data: { status: "PROGRAMME", mailboxId: chosen, scheduledAt: new Date(at), error: null },
+      });
+      cursor.set(chosen, at + rand(d0, d1) * 1000);
+      remaining.set(chosen, remaining.get(chosen)! - 1);
+      parBoite.set(chosen, (parBoite.get(chosen) ?? 0) + 1);
+      parJour.set(jour, (parJour.get(jour) ?? 0) + 1);
+    }
   }
-  return { programmes, parBoite: rows.filter((r) => parBoite.has(r.box.id)).map((r) => ({ address: r.box.address, count: parBoite.get(r.box.id)! })) };
+  return {
+    programmes: ids.length - pending.length,
+    parBoite: boxes.filter((b) => parBoite.has(b.id)).map((b) => ({ address: b.address, count: parBoite.get(b.id)! })),
+    parJour: [...parJour].map(([jour, count]) => ({ jour, count })),
+  };
 }
 
 /** Import d'un lot : chaque e-mail vérifié un à un, doublons et organisations exclues écartés, puis réparti et programmé aussitôt. */
@@ -302,10 +357,19 @@ export async function importLot(raw: unknown, now = new Date(), rand: Rand = def
     created.push(row.id);
   }
   const d = await distribute(created, now, rand);
-  return { lot, ajoutes: created.length, programmes: d.programmes, enAttente: created.length - d.programmes, parBoite: d.parBoite, ignores };
+  return {
+    lot,
+    ajoutes: created.length,
+    programmes: d.programmes,
+    enAttente: created.length - d.programmes,
+    parBoite: d.parBoite,
+    parJour: d.parJour,
+    ignores,
+  };
 }
 
 /** Programme les e-mails en attente (lots qui dépassaient la capacité d'un jour précédent). */
+/** Programme les e-mails en attente (boîte désactivée, aucune boîte active au moment de l'import), sur les prochains jours. */
 export async function scheduleWaiting(now = new Date(), rand: Rand = defaultRand) {
   const waiting = await db.prospectEmail.findMany({ where: { status: "A_ENVOYER" }, orderBy: { createdAt: "asc" }, select: { id: true } });
   const d = await distribute(
@@ -464,6 +528,8 @@ export async function prospectionOverview(now = new Date()) {
   const sentByBox = await db.prospectEmail.groupBy({ by: ["mailboxId"], where: { status: "ENVOYE", sentAt: { gte: since } }, _count: { _all: true } });
   return {
     disponibles: avail.total,
+    plageTerminee: now.getTime() >= zonedLocalToUtc(`${localDate(now)}T${WINDOW[1]}`, FUSEAU).getTime(),
+    plage: WINDOW,
     boites: avail.rows.map((r) => ({
       id: r.box.id,
       address: r.box.address,
