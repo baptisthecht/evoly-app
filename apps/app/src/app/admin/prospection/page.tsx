@@ -49,6 +49,18 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
             {INFO[info]}
           </p>
         ) : null}
+        {o.boxes.length > 1 ? (
+          <ul className={`${card} grid gap-1 text-sm`} aria-label="Boîtes d'envoi">
+            {o.boxes.map((b) => (
+              <li key={b.address} className="flex flex-wrap justify-between gap-2">
+                <span className="break-all">{b.address}</span>
+                <span>
+                  {b.sentToday} / {b.cap} aujourd&apos;hui
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Aujourd'hui">
           {[
             ["Envoyés aujourd'hui", `${o.sentToday} / ${o.cap}`],
@@ -105,7 +117,10 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
                     {e.status === "ENVOYE" && e.sentAt ? ` · ${heure(e.sentAt)}` : ""}
                   </span>
                 </div>
-                <p className="break-all text-sm text-ink-muted">{e.toEmail}</p>
+                <p className="break-all text-sm text-ink-muted">
+                  {e.toEmail}
+                  {e.mailbox ? ` · envoyé depuis ${e.mailbox}` : ""}
+                </p>
                 <p className="text-sm">
                   <span className="text-ink-muted">Objet : </span>
                   {e.subject}

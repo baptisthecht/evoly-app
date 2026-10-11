@@ -186,6 +186,7 @@ Les lots d'e-mails de prospection rédigés par Claude s'importent dans `/admin/
 
 1. Dans `/opt/evoly/.env`, décommente et complète `PROSPECTION_SMTP_URL` et `PROSPECTION_FROM` (voir `ops/env.production.example`). Dans l'URL, l'arobase de l'identifiant s'écrit `%40` et les caractères spéciaux du mot de passe doivent être encodés.
 2. `PROSPECTION_DAILY_CAP` fixe la limite quotidienne (15 par défaut, à augmenter progressivement) et `PROSPECTION_DELAY_SECONDS` l'espacement entre deux e-mails (2 à 5 minutes par défaut).
+   Pour plusieurs boîtes, ajoute `PROSPECTION_2_SMTP_URL`, `PROSPECTION_2_FROM` et `PROSPECTION_2_DAILY_CAP`, puis `PROSPECTION_3_…`, jusqu'à 9 : chaque boîte garde sa limite, et chaque e-mail part de la boîte qui a le plus de place ce jour-là.
 3. `ops/deploy.sh`, puis réinstalle la crontab : la tâche `prospection` envoie, chaque minute, l'e-mail programmé qui est dû.
 
 Chaque jour : importe le fichier JSON du lot, relis les e-mails, puis « Programmer l'envoi ». La page Prospects garde le statut et les notes de chaque organisation ; une organisation marquée « Exclu » ou « Pas intéressé » n'est plus jamais contactée.

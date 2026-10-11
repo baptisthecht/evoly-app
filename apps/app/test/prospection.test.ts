@@ -4,12 +4,17 @@ import { importLot, retryEmail, scheduleLot, sendDueProspectEmails, sendNow, upd
 
 process.env.PROSPECTION_SMTP_URL = "smtp://test:test@localhost:2525";
 process.env.PROSPECTION_FROM = "Baptist Hecht <baptist@exemple.fr>";
-process.env.PROSPECTION_DAILY_CAP = "3";
+process.env.PROSPECTION_DAILY_CAP = "2";
+process.env.PROSPECTION_2_SMTP_URL = "smtp://test2:test@localhost:2525";
+process.env.PROSPECTION_2_FROM = "Evoly <hello@exemple.com>";
+process.env.PROSPECTION_2_DAILY_CAP = "1";
 process.env.PROSPECTION_DELAY_SECONDS = "120-300";
 
 const partis: string[] = [];
+const expediteurs: string[] = [];
 const envoi: Sender = async (m) => {
   partis.push(m.to);
+  expediteurs.push(m.from);
   return { messageId: `<${partis.length}@exemple.fr>` };
 };
 const mail = (i: number, x: Record<string, unknown> = {}) => ({
@@ -24,6 +29,7 @@ const mail = (i: number, x: Record<string, unknown> = {}) => ({
 describe("prospection depuis le back-office", () => {
   beforeEach(async () => {
     partis.length = 0;
+    expediteurs.length = 0;
     await db.prospectEmail.deleteMany();
     await db.prospect.deleteMany();
   });
@@ -56,6 +62,14 @@ describe("prospection depuis le back-office", () => {
       /* vide la file */
     }
     expect(partis.length).toBe(3);
+    // deux boîtes : 2 e-mails depuis la première (limite 2), 1 depuis la seconde (limite 1)
+    expect(expediteurs.filter((f) => f.includes("baptist@exemple.fr")).length).toBe(2);
+    expect(expediteurs.filter((f) => f.includes("hello@exemple.com")).length).toBe(1);
+    expect((await db.prospectEmail.findMany({ where: { status: "ENVOYE" }, select: { mailbox: true } })).map((e) => e.mailbox).sort()).toEqual([
+      "baptist@exemple.fr",
+      "baptist@exemple.fr",
+      "hello@exemple.com",
+    ]);
     expect(await sendDueProspectEmails(plusTard, envoi)).toEqual({ sent: 0 });
     const p = await db.prospect.findUniqueOrThrow({ where: { email: partis[0]! } });
     expect(p.status).toBe("CONTACTE");

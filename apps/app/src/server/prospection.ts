@@ -29,15 +29,31 @@ export type Sender = (m: { from: string; to: string; subject: string; text: stri
 
 const STATUT: Record<string, string> = { EXCLU: "exclue", PAS_INTERESSE: "pas intéressée", CLIENT: "déjà cliente" };
 
+export type Mailbox = { url: string; from: string; address: string; cap: number };
+
+/**
+ * Boîtes de prospection : PROSPECTION_SMTP_URL, PROSPECTION_FROM et PROSPECTION_DAILY_CAP pour la première,
+ * PROSPECTION_2_SMTP_URL, PROSPECTION_2_FROM et PROSPECTION_2_DAILY_CAP pour la deuxième, et ainsi de suite jusqu'à 9.
+ */
+export function mailboxes(): Mailbox[] {
+  const e = env();
+  const list: Mailbox[] = [];
+  const add = (url: string | undefined, from: string | undefined, cap: string | number | undefined) => {
+    if (!url || !from) return;
+    const address = (/<([^>]+)>/.exec(from)?.[1] ?? from).trim().toLowerCase();
+    const n = Math.trunc(Number(cap ?? 15));
+    list.push({ url, from, address, cap: Number.isFinite(n) && n >= 1 ? Math.min(n, 500) : 15 });
+  };
+  add(e.PROSPECTION_SMTP_URL, e.PROSPECTION_FROM, e.PROSPECTION_DAILY_CAP);
+  for (let i = 2; i <= 9; i++) add(process.env[`PROSPECTION_${i}_SMTP_URL`], process.env[`PROSPECTION_${i}_FROM`], process.env[`PROSPECTION_${i}_DAILY_CAP`]);
+  return list;
+}
+
 export function prospectionConfig() {
   const e = env();
   const [min, max] = e.PROSPECTION_DELAY_SECONDS.split("-").map(Number) as [number, number];
-  return {
-    configured: !!(e.PROSPECTION_SMTP_URL && e.PROSPECTION_FROM),
-    from: e.PROSPECTION_FROM ?? "",
-    cap: e.PROSPECTION_DAILY_CAP,
-    delay: [Math.min(min, max), Math.max(min, max)] as const,
-  };
+  const boxes = mailboxes();
+  return { configured: boxes.length > 0, boxes, cap: boxes.reduce((t, b) => t + b.cap, 0), delay: [Math.min(min, max), Math.max(min, max)] as const };
 }
 
 /** Début de la journée en Belgique, pour la limite quotidienne. */
@@ -104,20 +120,37 @@ export async function scheduleLot(lot: string, now = new Date(), rand = (a: numb
   return { programmes: pending.length, restants: await db.prospectEmail.count({ where: { lot, status: "A_ENVOYER" } }) };
 }
 
-let transport: nodemailer.Transporter | null = null;
+const transports = new Map<string, nodemailer.Transporter>();
 const smtpSend: Sender = async (m) => {
-  transport ??= nodemailer.createTransport(env().PROSPECTION_SMTP_URL!);
-  const r = await transport.sendMail(m);
+  const box = mailboxes().find((b) => b.from === m.from);
+  if (!box) throw new Error("boîte de prospection introuvable");
+  if (!transports.has(box.url)) transports.set(box.url, nodemailer.createTransport(box.url));
+  const r = await transports.get(box.url)!.sendMail(m);
   return { messageId: r.messageId };
 };
 
+/** La boîte qui a le plus de place aujourd'hui, ou aucune si toutes ont atteint leur limite. */
+async function pickMailbox(now: Date): Promise<Mailbox | null> {
+  const since = dayStart(now);
+  const used = await db.prospectEmail.groupBy({ by: ["mailbox"], where: { status: "ENVOYE", sentAt: { gte: since } }, _count: { _all: true } });
+  const room = (b: Mailbox) => b.cap - (used.find((u) => u.mailbox === b.address)?._count._all ?? 0);
+  const best = mailboxes()
+    .map((b) => ({ b, r: room(b) }))
+    .filter((x) => x.r > 0)
+    .sort((a, b) => b.r - a.r)[0];
+  return best?.b ?? null;
+}
+
 /** Envoi d'un e-mail, réservé d'abord pour qu'il ne parte jamais deux fois. */
-async function deliver(id: string, now: Date, send: Sender, from: string[]) {
-  const claimed = await db.prospectEmail.updateMany({ where: { id, status: { in: from as never } }, data: { status: "ENVOYE", sentAt: now, error: null } });
+async function deliver(id: string, now: Date, send: Sender, from: string[], box: Mailbox) {
+  const claimed = await db.prospectEmail.updateMany({
+    where: { id, status: { in: from as never } },
+    data: { status: "ENVOYE", sentAt: now, mailbox: box.address, error: null },
+  });
   if (claimed.count === 0) return false;
   const e = await db.prospectEmail.findUniqueOrThrow({ where: { id } });
   try {
-    const r = await send({ from: prospectionConfig().from, to: e.toEmail, subject: e.subject, text: e.body });
+    const r = await send({ from: box.from, to: e.toEmail, subject: e.subject, text: e.body });
     await db.$transaction([
       db.prospectEmail.update({ where: { id }, data: { messageId: r.messageId ?? null } }),
       db.prospect.update({ where: { id: e.prospectId }, data: { lastContactAt: now } }),
@@ -125,31 +158,30 @@ async function deliver(id: string, now: Date, send: Sender, from: string[]) {
     ]);
     return true;
   } catch (err) {
-    await db.prospectEmail.update({ where: { id }, data: { status: "ECHEC", sentAt: null, error: safeError(err) } });
+    await db.prospectEmail.update({ where: { id }, data: { status: "ECHEC", sentAt: null, mailbox: null, error: safeError(err) } });
     return false;
   }
 }
 
 /** Tâche planifiée, chaque minute : envoie l'e-mail programmé le plus ancien qui est dû, dans la limite du jour. */
 export async function sendDueProspectEmails(now = new Date(), send: Sender = smtpSend) {
-  const c = prospectionConfig();
-  if (!c.configured) return { sent: 0 };
-  if ((await sentSince(dayStart(now))) >= c.cap) return { sent: 0 };
+  const box = await pickMailbox(now);
+  if (!box) return { sent: 0 };
   const due = await db.prospectEmail.findFirst({
     where: { status: "PROGRAMME", scheduledAt: { lte: now } },
     orderBy: { scheduledAt: "asc" },
     select: { id: true },
   });
   if (!due) return { sent: 0 };
-  return { sent: (await deliver(due.id, now, send, ["PROGRAMME"])) ? 1 : 0 };
+  return { sent: (await deliver(due.id, now, send, ["PROGRAMME"], box)) ? 1 : 0 };
 }
 
 /** « Envoyer maintenant » depuis le back-office, dans la limite du jour. */
 export async function sendNow(id: string, now = new Date(), send: Sender = smtpSend) {
-  const c = prospectionConfig();
-  if (!c.configured) throw new CoreError("PROSPECTION_NOT_CONFIGURED");
-  if ((await sentSince(dayStart(now))) >= c.cap) throw new CoreError("PROSPECTION_DAILY_CAP");
-  if (!(await deliver(id, now, send, ["A_ENVOYER", "PROGRAMME", "ECHEC"]))) throw new CoreError("PROSPECTION_SEND_FAILED");
+  if (!prospectionConfig().configured) throw new CoreError("PROSPECTION_NOT_CONFIGURED");
+  const box = await pickMailbox(now);
+  if (!box) throw new CoreError("PROSPECTION_DAILY_CAP");
+  if (!(await deliver(id, now, send, ["A_ENVOYER", "PROGRAMME", "ECHEC"], box))) throw new CoreError("PROSPECTION_SEND_FAILED");
 }
 
 export async function withdrawEmail(id: string) {
@@ -169,15 +201,18 @@ export async function updateProspect(id: string, data: { status: string; notes: 
 
 /** Vue d'ensemble pour le back-office. */
 export async function prospectionOverview(now = new Date()) {
-  const [byStatus, sentToday, lots, next] = await Promise.all([
+  const [byStatus, sentToday, lots, next, perBox] = await Promise.all([
     db.prospectEmail.groupBy({ by: ["status"], _count: { _all: true } }),
     sentSince(dayStart(now)),
     db.prospectEmail.groupBy({ by: ["lot"], _count: { _all: true }, _max: { createdAt: true }, orderBy: { _max: { createdAt: "desc" } }, take: 12 }),
     db.prospectEmail.findFirst({ where: { status: "PROGRAMME" }, orderBy: { scheduledAt: "asc" }, select: { scheduledAt: true } }),
+    db.prospectEmail.groupBy({ by: ["mailbox"], where: { status: "ENVOYE", sentAt: { gte: dayStart(now) } }, _count: { _all: true } }),
   ]);
   const count = (s: string) => byStatus.find((b) => b.status === s)?._count._all ?? 0;
+  const config = prospectionConfig();
   return {
-    ...prospectionConfig(),
+    ...config,
+    boxes: config.boxes.map((b) => ({ address: b.address, cap: b.cap, sentToday: perBox.find((p) => p.mailbox === b.address)?._count._all ?? 0 })),
     sentToday,
     aEnvoyer: count("A_ENVOYER"),
     programmes: count("PROGRAMME"),

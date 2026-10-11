@@ -1853,6 +1853,7 @@ model ProspectEmail {
   scheduledAt DateTime?
   sentAt      DateTime?
   messageId   String?
+  mailbox     String? // boîte d'envoi utilisée (plusieurs boîtes possibles)
   error       String?
   createdAt   DateTime            @default(now())
 
