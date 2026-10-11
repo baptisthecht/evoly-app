@@ -368,6 +368,31 @@ export async function importLot(raw: unknown, now = new Date(), rand: Rand = def
   };
 }
 
+/**
+ * Redistribue les e-mails pas encore partis (programmés plus tard, ou en attente) entre les boîtes actives, jour après
+ * jour, dans leur ordre d'origine. Appelé à chaque ajout, modification, activation, désactivation ou suppression d'une
+ * boîte : une nouvelle boîte avance les envois, une boîte retirée les reporte sur les autres. Les e-mails dus dans la
+ * minute ne bougent pas, pour ne jamais croiser un envoi en cours.
+ */
+export async function rebalance(now = new Date(), rand: Rand = defaultRand) {
+  const horizon = new Date(now.getTime() + 60_000);
+  const toMove = await db.prospectEmail.findMany({
+    where: { OR: [{ status: "PROGRAMME", scheduledAt: { gt: horizon } }, { status: "A_ENVOYER" }] },
+    orderBy: [{ scheduledAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
+    select: { id: true },
+  });
+  if (toMove.length === 0) return { programmes: 0, enAttente: 0, parBoite: [], parJour: [] };
+  const ids = toMove.map((e) => e.id);
+  await db.prospectEmail.updateMany({
+    where: { id: { in: ids }, status: "PROGRAMME", scheduledAt: { gt: horizon } },
+    data: { status: "A_ENVOYER", mailboxId: null, scheduledAt: null },
+  });
+  const still = new Set((await db.prospectEmail.findMany({ where: { id: { in: ids }, status: "A_ENVOYER" }, select: { id: true } })).map((e) => e.id));
+  const ordered = ids.filter((id) => still.has(id));
+  const d = await distribute(ordered, now, rand);
+  return { ...d, enAttente: ordered.length - d.programmes };
+}
+
 /** Programme les e-mails en attente (lots qui dépassaient la capacité d'un jour précédent). */
 /** Programme les e-mails en attente (boîte désactivée, aucune boîte active au moment de l'import), sur les prochains jours. */
 export async function scheduleWaiting(now = new Date(), rand: Rand = defaultRand) {

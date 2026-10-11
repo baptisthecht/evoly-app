@@ -7,6 +7,7 @@ import {
   openPassword,
   rampCap,
   rampSchedule,
+  rebalance,
   retryEmail,
   saveMailbox,
   scheduleWaiting,
@@ -124,14 +125,34 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     expect((await sendDueProspectEmails(new Date(soir.getTime() + 3_600_000), envoi, copie)).sent).toBe(0);
   });
 
-  it("désactiver une boîte remet ses e-mails programmés en attente", async () => {
+  it("ajouter une boîte avance les envois des jours suivants ; en retirer une les reporte sur les autres", async () => {
     const { b } = await boites();
-    await importLot({ emails: [1, 2, 3, 4, 5].map((i) => mail(i)) }, NOW);
-    expect(await db.prospectEmail.count({ where: { mailboxId: b.id, status: "PROGRAMME" } })).toBe(2);
+    const fixe = (_a: number, b: number) => b; // tirage fixe : premier envoi à 90 s, hors de la minute protégée
+    await importLot({ emails: Array.from({ length: 12 }, (_, i) => mail(i + 1)) }, NOW, fixe);
+    const parJour = async () => {
+      const rows = await db.prospectEmail.findMany({ where: { status: "PROGRAMME" }, select: { scheduledAt: true } });
+      const m = new Map<string, number>();
+      for (const r of rows) m.set(iso(r.scheduledAt!), (m.get(iso(r.scheduledAt!)) ?? 0) + 1);
+      return [...m.entries()].sort().map(([, n]) => n);
+    };
+    expect(await parJour()).toEqual([5, 5, 2]);
+    const c = await saveMailbox({
+      fromName: "Baptist",
+      address: "hey@exemple.org",
+      smtpHost: "smtp.exemple.org",
+      password: "secret-c",
+      maxPerDay: 4,
+      startedAt: iso(new Date(NOW.getTime() - 30 * DAY)),
+    });
+    const r = await rebalance(NOW, fixe);
+    expect(r).toMatchObject({ programmes: 12, enAttente: 0 });
+    expect(await parJour()).toEqual([9, 3]); // 3 + 2 + 4 aujourd'hui
+    expect(await db.prospectEmail.count({ where: { mailboxId: c.id, scheduledAt: { lt: new Date(NOW.getTime() + DAY / 2) } } })).toBe(4);
     await setMailboxActive(b.id, false);
+    await rebalance(NOW, fixe);
     expect(await db.prospectEmail.count({ where: { mailboxId: b.id } })).toBe(0);
-    expect(await db.prospectEmail.count({ where: { status: "A_ENVOYER" } })).toBe(2);
-    expect((await availability(NOW)).rows.map((r) => r.box.address)).toEqual(["baptist@exemple.fr"]);
+    expect(await db.prospectEmail.count({ where: { status: "A_ENVOYER" } })).toBe(0);
+    expect(await parJour()).toEqual([7, 5]); // 3 + 4 par jour sans la boîte B
   });
 
   it("aucun doublon, organisations exclues écartées, échec d'envoi sans l'adresse dans l'erreur", async () => {

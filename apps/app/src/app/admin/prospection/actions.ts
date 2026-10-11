@@ -7,6 +7,7 @@ import { requireStaff } from "@/server/platform";
 import {
   deleteMailbox,
   importLot,
+  rebalance,
   retryEmail,
   saveMailbox,
   scheduleWaiting,
@@ -93,6 +94,21 @@ export async function prospectAction(id: string, form: FormData) {
 
 const boites = (info: string) => redirect(`/admin/prospection/boites?info=${encodeURIComponent(info)}`);
 
+const local = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Brussels" }).format(d);
+function jourLabel(jour: string) {
+  const now = new Date();
+  if (jour === local(now)) return "aujourd'hui";
+  if (jour === local(new Date(now.getTime() + 86_400_000))) return "demain";
+  return new Intl.DateTimeFormat("fr-BE", { timeZone: "UTC", weekday: "long", day: "numeric", month: "short" }).format(new Date(`${jour}T12:00:00Z`));
+}
+/** Après tout changement de boîte, les e-mails pas encore partis sont redistribués ; le message dit comment. */
+async function redistribuer(debut: string) {
+  const r = await rebalance();
+  if (r.programmes === 0 && r.enAttente === 0) return debut;
+  const jours = r.parJour.map((j) => `${jourLabel(j.jour)} : ${j.count}`).join(" · ");
+  return `${debut} Répartition mise à jour pour ${r.programmes} e-mail(s)${jours ? ` (${jours})` : ""}${r.enAttente ? `, ${r.enAttente} en attente faute de boîte active` : ""}.`;
+}
+
 export async function saveMailboxAction(id: string | null, form: FormData) {
   await requireStaff("ADMIN");
   const champ = (k: string) => {
@@ -122,19 +138,19 @@ export async function saveMailboxAction(id: string | null, form: FormData) {
         : "Boîte non enregistrée : vérifie les champs (adresse, serveur, port).",
     );
   }
-  boites(id ? "Boîte modifiée." : "Boîte ajoutée. Lance « Tester la connexion » pour vérifier.");
+  boites(await redistribuer(id ? "Boîte modifiée." : "Boîte ajoutée. Lance « Tester la connexion » pour vérifier."));
 }
 
 export async function toggleMailboxAction(id: string, active: boolean) {
   await requireStaff("ADMIN");
   await setMailboxActive(id, active);
-  boites(active ? "Boîte réactivée." : "Boîte désactivée : ses e-mails programmés sont revenus en attente.");
+  boites(await redistribuer(active ? "Boîte réactivée." : "Boîte désactivée."));
 }
 
 export async function deleteMailboxAction(id: string) {
   await requireStaff("ADMIN");
   await deleteMailbox(id);
-  boites("Boîte supprimée : ses e-mails programmés sont revenus en attente.");
+  boites(await redistribuer("Boîte supprimée."));
 }
 
 export async function testMailboxAction(id: string) {
