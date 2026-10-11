@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireStaff } from "@/server/platform";
 import { lotEmails, prospectionOverview } from "@/server/prospection";
-import { retryAction, scheduleLotAction, sendNowAction, withdrawAction } from "./actions";
+import { retryAction, scheduleWaitingAction, sendNowAction, withdrawAction } from "./actions";
 import { UploadForm } from "./UploadForm";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Prospection - Back-office Evoly", robots: { index: false, follow: false } };
 
 const card = "rounded-2xl bg-surface-raised p-5 ring-1 ring-line";
-const ETAT: Record<string, string> = { A_ENVOYER: "À envoyer", PROGRAMME: "Programmé", ENVOYE: "Envoyé", ECHEC: "Échec", RETIRE: "Retiré" };
+const ETAT: Record<string, string> = { A_ENVOYER: "En attente", PROGRAMME: "Programmé", ENVOYE: "Envoyé", ECHEC: "Échec", RETIRE: "Retiré" };
 const INFO: Record<string, string> = {
-  programme: "Lot programmé : les e-mails partent un à un dans les prochaines heures.",
-  limite: "Limite du jour atteinte : les e-mails restants pourront être programmés demain.",
+  programme: "E-mails programmés : ils partent un à un depuis chaque boîte.",
+  limite: "Plus de place aujourd'hui : les e-mails restants attendent demain.",
   envoye: "E-mail envoyé.",
   echec: "L'envoi a échoué : le détail est indiqué sous l'e-mail.",
 };
@@ -20,52 +20,61 @@ const heure = (d: Date) =>
   new Intl.DateTimeFormat("fr-BE", { timeZone: "Europe/Brussels", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(d);
 const bouton = "h-10 rounded-full px-4 text-sm font-semibold ring-1 ring-line-strong";
 
-/** Prospection d'Evoly : import du lot du jour, envoi espacé et suivi, depuis le back-office. */
+/** Prospection d'Evoly : capacité du jour toutes boîtes confondues, import du lot réparti entre les boîtes, suivi des envois. */
 export default async function ProspectionPage({ searchParams }: { searchParams: Promise<{ lot?: string; info?: string }> }) {
   await requireStaff("ADMIN");
   const { lot: choisi, info } = await searchParams;
   const o = await prospectionOverview();
   const lot = choisi ?? o.lots[0]?.lot;
   const emails = lot ? await lotEmails(lot) : [];
-  const aEnvoyer = emails.filter((e) => e.status === "A_ENVOYER").length;
   return (
     <main className="min-h-dvh overflow-x-hidden bg-[var(--evoly-creme)] px-5 py-8 text-[var(--evoly-charbon)]">
       <div className="mx-auto grid min-w-0 max-w-4xl gap-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-3xl tracking-[-0.04em]">Prospection</h1>
           <nav className="flex gap-4 text-sm underline underline-offset-4">
+            <Link href="/admin/prospection/boites">Boîtes d&apos;envoi</Link>
             <Link href="/admin/prospection/prospects">Prospects</Link>
             <Link href="/admin">Back-office</Link>
           </nav>
         </header>
-        {!o.configured ? (
-          <p className={`${card} text-sm`}>
-            La boîte de prospection n&apos;est pas configurée : ajoute PROSPECTION_SMTP_URL et PROSPECTION_FROM dans le fichier .env du serveur (voir
-            docs/DEPLOIEMENT.md), puis redéploie.
-          </p>
-        ) : null}
         {info && INFO[info] ? (
           <p role="status" className={`${card} text-sm`}>
             {INFO[info]}
           </p>
         ) : null}
-        {o.boxes.length > 1 ? (
-          <ul className={`${card} grid gap-1 text-sm`} aria-label="Boîtes d'envoi">
-            {o.boxes.map((b) => (
-              <li key={b.address} className="flex flex-wrap justify-between gap-2">
-                <span className="break-all">{b.address}</span>
-                <span>
-                  {b.sentToday} / {b.cap} aujourd&apos;hui
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Aujourd'hui">
+        <section className={`${card} grid gap-3`} aria-label="Envois disponibles aujourd'hui">
+          <p className="text-sm text-ink-muted">Envois disponibles aujourd&apos;hui, toutes boîtes confondues</p>
+          <p className="font-display text-5xl tracking-[-0.04em]">{o.disponibles}</p>
+          {o.boites.length ? (
+            <ul className="grid gap-1 text-sm">
+              {o.boites.map((b) => (
+                <li key={b.id} className="flex flex-wrap justify-between gap-2 border-t border-line pt-1">
+                  <span className="break-all">{b.address}</span>
+                  <span>
+                    {b.envoyes} envoyé(s) · {b.restants} disponible(s) sur {b.cap}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm">
+              Aucune boîte active :{" "}
+              <Link href="/admin/prospection/boites" className="underline underline-offset-4">
+                ajoute ta première boîte d&apos;envoi
+              </Link>
+              .
+            </p>
+          )}
+        </section>
+        <section className={card} aria-label="Importer un lot">
+          <UploadForm />
+        </section>
+        <section className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="État des envois">
           {[
-            ["Envoyés aujourd'hui", `${o.sentToday} / ${o.cap}`],
-            ["À envoyer", String(o.aEnvoyer)],
-            ["Programmés", o.programmes ? `${o.programmes}${o.prochain ? `, prochain ${heure(o.prochain).split(" ").pop()}` : ""}` : "0"],
+            ["Programmés", o.programmes ? `${o.programmes}${o.prochain ? `, prochain à ${heure(o.prochain).split(" ").pop()}` : ""}` : "0"],
+            ["En attente", String(o.aEnvoyer)],
+            ["Envoyés au total", String(o.envoyes)],
             ["Échecs", String(o.echecs)],
           ].map(([k, v]) => (
             <div key={k} className={card}>
@@ -74,9 +83,13 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
             </div>
           ))}
         </section>
-        <section className={card} aria-label="Importer un lot">
-          <UploadForm />
-        </section>
+        {o.aEnvoyer > 0 && o.disponibles > 0 ? (
+          <form action={scheduleWaitingAction}>
+            <button type="submit" className="h-11 rounded-full bg-[var(--evoly-charbon)] px-5 font-semibold text-[var(--evoly-creme)]">
+              Envoyer les {Math.min(o.aEnvoyer, o.disponibles)} e-mail(s) en attente
+            </button>
+          </form>
+        ) : null}
         {o.lots.length ? (
           <nav className="flex flex-wrap gap-2" aria-label="Lots">
             {o.lots.map((l) => (
@@ -92,21 +105,7 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
         ) : null}
         {lot ? (
           <section className="grid gap-3" aria-label={`Lot ${lot}`}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-xl">Lot {lot}</h2>
-              {aEnvoyer && o.configured ? (
-                <form action={scheduleLotAction.bind(null, lot)}>
-                  <button type="submit" className="h-11 rounded-full bg-[var(--evoly-charbon)] px-5 font-semibold text-[var(--evoly-creme)]">
-                    Programmer l&apos;envoi de {aEnvoyer} e-mail(s)
-                  </button>
-                </form>
-              ) : null}
-            </div>
-            {aEnvoyer && o.configured ? (
-              <p className="text-sm text-ink-muted">
-                Un e-mail toutes les {Math.round(o.delay[0] / 60)} à {Math.round(o.delay[1] / 60)} minutes, dans la limite de {o.cap} par jour.
-              </p>
-            ) : null}
+            <h2 className="font-display text-xl">Lot {lot}</h2>
             {emails.map((e) => (
               <article key={e.id} className={`${card} grid gap-2`}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -119,7 +118,7 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
                 </div>
                 <p className="break-all text-sm text-ink-muted">
                   {e.toEmail}
-                  {e.mailbox ? ` · envoyé depuis ${e.mailbox}` : ""}
+                  {e.box?.address || e.mailbox ? ` · depuis ${e.box?.address ?? e.mailbox}` : ""}
                 </p>
                 <p className="text-sm">
                   <span className="text-ink-muted">Objet : </span>
@@ -140,7 +139,7 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
                   ) : null}
                 </details>
                 <div className="flex flex-wrap gap-2">
-                  {["A_ENVOYER", "PROGRAMME", "ECHEC"].includes(e.status) && o.configured ? (
+                  {["A_ENVOYER", "PROGRAMME", "ECHEC"].includes(e.status) && o.boites.length ? (
                     <form action={sendNowAction.bind(null, e.id, lot)}>
                       <button type="submit" className={bouton}>
                         Envoyer maintenant
@@ -150,7 +149,7 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
                   {e.status === "ECHEC" ? (
                     <form action={retryAction.bind(null, e.id, lot)}>
                       <button type="submit" className={bouton}>
-                        Remettre à envoyer
+                        Remettre en attente
                       </button>
                     </form>
                   ) : null}
@@ -166,7 +165,7 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
             ))}
           </section>
         ) : (
-          <p className="text-sm text-ink-muted">Aucun lot pour l&apos;instant : importe le premier ci-dessus.</p>
+          <p className="text-sm text-ink-muted">Aucun lot pour l&apos;instant.</p>
         )}
       </div>
     </main>

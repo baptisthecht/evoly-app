@@ -1,6 +1,7 @@
 import "server-only";
-import { randomInt } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomInt } from "node:crypto";
 import { CoreError, zonedLocalToUtc } from "@evoly/core";
+import type { ProspectMailbox } from "@evoly/db";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -8,11 +9,158 @@ import { env } from "@/lib/env";
 import { safeError } from "@/lib/redact";
 
 /**
- * Prospection d'Evoly (back-office) : lots d'e-mails rédigés au cas par cas, importés en JSON, programmés et envoyés
- * un à un par la boîte de prospection (SMTP dédié, jamais Resend ni evoly.me), dans une limite quotidienne.
+ * Prospection d'Evoly (back-office) : boîtes d'envoi configurées dans le back-office (mot de passe chiffré), capacité
+ * du jour calculée pour chaque boîte (montée en charge selon sa date de début, moins ce qu'elle a déjà envoyé ou
+ * programmé), lots JSON répartis au hasard entre les boîtes selon leur place, puis envoyés un à un, en parallèle,
+ * jamais par Resend ni depuis evoly.me.
  */
 const FUSEAU = "Europe/Brussels";
 const DAY = 86_400_000;
+
+export type Sender = (m: { from: string; to: string; subject: string; text: string }, box: ProspectMailbox) => Promise<{ messageId?: string }>;
+type Rand = (a: number, b: number) => number;
+const defaultRand: Rand = (a, b) => randomInt(a, b + 1);
+
+// ---------------------------------------------------------------- outils
+
+export function dayStart(now: Date) {
+  const d = new Intl.DateTimeFormat("en-CA", { timeZone: FUSEAU, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  return zonedLocalToUtc(`${d}T00:00`, FUSEAU);
+}
+
+function delay() {
+  const [a, b] = env().PROSPECTION_DELAY_SECONDS.split("-").map(Number) as [number, number];
+  return [Math.min(a, b), Math.max(a, b)] as const;
+}
+
+/** Montée en charge selon l'ancienneté de la boîte : 15 par jour la première semaine, 25 la deuxième, puis son plafond. */
+export function rampCap(startedAt: Date, maxPerDay: number, now: Date) {
+  const days = Math.round((dayStart(now).getTime() - dayStart(startedAt).getTime()) / DAY);
+  if (days < 0) return 0;
+  return Math.min(days < 7 ? 15 : days < 14 ? 25 : maxPerDay, maxPerDay);
+}
+
+const key = () => createHash("sha256").update(`prospection:${env().BETTER_AUTH_SECRET}`).digest();
+export function sealPassword(plain: string) {
+  const iv = randomBytes(12);
+  const c = createCipheriv("aes-256-gcm", key(), iv);
+  const ct = Buffer.concat([c.update(plain, "utf8"), c.final()]);
+  return Buffer.concat([iv, c.getAuthTag(), ct]).toString("base64url");
+}
+export function openPassword(blob: string) {
+  const raw = Buffer.from(blob, "base64url");
+  const d = createDecipheriv("aes-256-gcm", key(), raw.subarray(0, 12));
+  d.setAuthTag(raw.subarray(12, 28));
+  return Buffer.concat([d.update(raw.subarray(28)), d.final()]).toString("utf8");
+}
+
+const transports = new Map<string, { at: number; t: nodemailer.Transporter }>();
+function transportFor(box: ProspectMailbox) {
+  const cached = transports.get(box.id);
+  if (cached && cached.at === box.updatedAt.getTime()) return cached.t;
+  const t = nodemailer.createTransport({
+    host: box.smtpHost,
+    port: box.smtpPort,
+    secure: box.smtpPort === 465,
+    auth: { user: box.username, pass: openPassword(box.passwordEnc) },
+  });
+  transports.set(box.id, { at: box.updatedAt.getTime(), t });
+  return t;
+}
+const smtpSend: Sender = async (m, box) => {
+  const r = await transportFor(box).sendMail(m);
+  return { messageId: r.messageId };
+};
+const fromHeader = (b: ProspectMailbox) => `${b.fromName.replace(/["<>]/g, "")} <${b.address}>`;
+
+// ---------------------------------------------------------------- boîtes
+
+const mailboxSchema = z.object({
+  fromName: z.string().trim().min(1).max(100),
+  address: z.string().trim().toLowerCase().pipe(z.email().max(200)),
+  smtpHost: z.string().trim().min(3).max(200),
+  smtpPort: z.coerce.number().int().min(1).max(65535).default(465),
+  username: z.string().trim().max(200).optional(),
+  password: z.string().max(500).optional(),
+  maxPerDay: z.coerce.number().int().min(1).max(500).default(40),
+  startedAt: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+});
+
+export async function saveMailbox(input: unknown, id?: string) {
+  const d = mailboxSchema.parse(input);
+  const startedAt = d.startedAt ? zonedLocalToUtc(`${d.startedAt}T00:00`, FUSEAU) : undefined;
+  const common = {
+    fromName: d.fromName,
+    address: d.address,
+    smtpHost: d.smtpHost,
+    smtpPort: d.smtpPort,
+    username: d.username || d.address,
+    maxPerDay: d.maxPerDay,
+  };
+  if (id) {
+    return db.prospectMailbox.update({
+      where: { id },
+      data: { ...common, ...(startedAt ? { startedAt } : {}), ...(d.password ? { passwordEnc: sealPassword(d.password) } : {}) },
+    });
+  }
+  if (!d.password) throw new CoreError("PROSPECTION_PASSWORD_REQUIRED");
+  return db.prospectMailbox.create({ data: { ...common, passwordEnc: sealPassword(d.password), ...(startedAt ? { startedAt } : {}) } });
+}
+
+/** Désactiver ou supprimer une boîte remet ses e-mails programmés dans la file d'attente. */
+async function releaseBox(id: string) {
+  await db.prospectEmail.updateMany({ where: { mailboxId: id, status: "PROGRAMME" }, data: { status: "A_ENVOYER", mailboxId: null, scheduledAt: null } });
+}
+export async function setMailboxActive(id: string, active: boolean) {
+  await db.prospectMailbox.update({ where: { id }, data: { active } });
+  if (!active) await releaseBox(id);
+}
+export async function deleteMailbox(id: string) {
+  await releaseBox(id);
+  await db.prospectMailbox.delete({ where: { id } });
+}
+export async function testMailbox(id: string) {
+  const box = await db.prospectMailbox.findUniqueOrThrow({ where: { id } });
+  try {
+    await transportFor(box).verify();
+    return { ok: true as const };
+  } catch (err) {
+    return { ok: false as const, error: safeError(err) };
+  }
+}
+
+export function listMailboxes() {
+  return db.prospectMailbox.findMany({ orderBy: { createdAt: "asc" } });
+}
+
+/** Capacité du jour de chaque boîte active : montée en charge, moins les e-mails déjà envoyés ou programmés aujourd'hui. */
+export async function availability(now = new Date()) {
+  const boxes = await db.prospectMailbox.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } });
+  const since = dayStart(now);
+  const until = new Date(since.getTime() + DAY);
+  const used = await db.prospectEmail.groupBy({
+    by: ["mailboxId"],
+    where: {
+      mailboxId: { in: boxes.map((b) => b.id) },
+      OR: [
+        { status: "ENVOYE", sentAt: { gte: since, lt: until } },
+        { status: "PROGRAMME", scheduledAt: { gte: since, lt: until } },
+      ],
+    },
+    _count: { _all: true },
+  });
+  const rows = boxes.map((b) => {
+    const cap = rampCap(b.startedAt, b.maxPerDay, now);
+    const u = used.find((x) => x.mailboxId === b.id)?._count._all ?? 0;
+    return { box: b, cap, used: u, remaining: Math.max(0, cap - u) };
+  });
+  return { rows, total: rows.reduce((t, r) => t + r.remaining, 0) };
+}
+
+// ---------------------------------------------------------------- lots
 
 const emailSchema = z.object({
   id: z.string().trim().min(1).max(80),
@@ -23,134 +171,124 @@ const emailSchema = z.object({
   source: z.string().trim().max(500).optional(),
   pourquoi: z.string().trim().max(1000).optional(),
 });
-
-export type ImportReport = { lot: string; ajoutes: number; ignores: { id: string; a: string; raison: string }[] };
-export type Sender = (m: { from: string; to: string; subject: string; text: string }) => Promise<{ messageId?: string }>;
-
 const STATUT: Record<string, string> = { EXCLU: "exclue", PAS_INTERESSE: "pas intéressée", CLIENT: "déjà cliente" };
 
-export type Mailbox = { url: string; from: string; address: string; cap: number };
+export type ImportReport = {
+  lot: string;
+  ajoutes: number;
+  programmes: number;
+  enAttente: number;
+  parBoite: { address: string; count: number }[];
+  ignores: { id: string; a: string; raison: string }[];
+};
 
 /**
- * Boîtes de prospection : PROSPECTION_SMTP_URL, PROSPECTION_FROM et PROSPECTION_DAILY_CAP pour la première,
- * PROSPECTION_2_SMTP_URL, PROSPECTION_2_FROM et PROSPECTION_2_DAILY_CAP pour la deuxième, et ainsi de suite jusqu'à 9.
+ * Répartit des e-mails à envoyer entre les boîtes actives, au hasard pondéré par la place de chacune ; chaque boîte
+ * a son propre rythme (2 à 5 minutes entre deux e-mails). Ce qui dépasse la capacité du jour reste en attente.
  */
-export function mailboxes(): Mailbox[] {
-  const e = env();
-  const list: Mailbox[] = [];
-  const add = (url: string | undefined, from: string | undefined, cap: string | number | undefined) => {
-    if (!url || !from) return;
-    const address = (/<([^>]+)>/.exec(from)?.[1] ?? from).trim().toLowerCase();
-    const n = Math.trunc(Number(cap ?? 15));
-    list.push({ url, from, address, cap: Number.isFinite(n) && n >= 1 ? Math.min(n, 500) : 15 });
-  };
-  add(e.PROSPECTION_SMTP_URL, e.PROSPECTION_FROM, e.PROSPECTION_DAILY_CAP);
-  for (let i = 2; i <= 9; i++) add(process.env[`PROSPECTION_${i}_SMTP_URL`], process.env[`PROSPECTION_${i}_FROM`], process.env[`PROSPECTION_${i}_DAILY_CAP`]);
-  return list;
+async function distribute(ids: string[], now: Date, rand: Rand) {
+  const { rows } = await availability(now);
+  const [d0, d1] = delay();
+  const until = dayStart(now).getTime() + DAY;
+  const remaining = new Map(rows.map((r) => [r.box.id, r.remaining]));
+  const cursor = new Map<string, number>();
+  for (const r of rows) {
+    const last = await db.prospectEmail.findFirst({
+      where: { mailboxId: r.box.id, status: "PROGRAMME" },
+      orderBy: { scheduledAt: "desc" },
+      select: { scheduledAt: true },
+    });
+    cursor.set(r.box.id, Math.max(now.getTime() + rand(10, 90) * 1000, last?.scheduledAt ? last.scheduledAt.getTime() + rand(d0, d1) * 1000 : 0));
+  }
+  const parBoite = new Map<string, number>();
+  let programmes = 0;
+  for (const id of ids) {
+    const options = [...remaining].filter(([bid, r]) => r > 0 && cursor.get(bid)! < until);
+    if (options.length === 0) break;
+    let pick = rand(
+      1,
+      options.reduce((t, [, r]) => t + r, 0),
+    );
+    let chosen = options[0]![0];
+    for (const [bid, r] of options) {
+      pick -= r;
+      if (pick <= 0) {
+        chosen = bid;
+        break;
+      }
+    }
+    const at = cursor.get(chosen)!;
+    await db.prospectEmail.update({ where: { id }, data: { status: "PROGRAMME", mailboxId: chosen, scheduledAt: new Date(at), error: null } });
+    cursor.set(chosen, at + rand(d0, d1) * 1000);
+    remaining.set(chosen, remaining.get(chosen)! - 1);
+    parBoite.set(chosen, (parBoite.get(chosen) ?? 0) + 1);
+    programmes++;
+  }
+  return { programmes, parBoite: rows.filter((r) => parBoite.has(r.box.id)).map((r) => ({ address: r.box.address, count: parBoite.get(r.box.id)! })) };
 }
 
-export function prospectionConfig() {
-  const e = env();
-  const [min, max] = e.PROSPECTION_DELAY_SECONDS.split("-").map(Number) as [number, number];
-  const boxes = mailboxes();
-  return { configured: boxes.length > 0, boxes, cap: boxes.reduce((t, b) => t + b.cap, 0), delay: [Math.min(min, max), Math.max(min, max)] as const };
-}
-
-/** Début de la journée en Belgique, pour la limite quotidienne. */
-export function dayStart(now: Date) {
-  const d = new Intl.DateTimeFormat("en-CA", { timeZone: FUSEAU, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
-  return zonedLocalToUtc(`${d}T00:00`, FUSEAU);
-}
-
-const sentSince = (since: Date) => db.prospectEmail.count({ where: { status: "ENVOYE", sentAt: { gte: since } } });
-
-/** Import d'un lot : chaque e-mail vérifié un à un ; doublons, organisations exclues ou déjà contactées écartés avec leur raison. */
-export async function importLot(raw: unknown, now = new Date()): Promise<ImportReport> {
+/** Import d'un lot : chaque e-mail vérifié un à un, doublons et organisations exclues écartés, puis réparti et programmé aussitôt. */
+export async function importLot(raw: unknown, now = new Date(), rand: Rand = defaultRand): Promise<ImportReport> {
   const top = raw as { lot?: unknown; emails?: unknown };
   if (!top || typeof top !== "object" || !Array.isArray(top.emails)) throw new CoreError("PROSPECTION_LOT_INVALID");
   if (top.emails.length > 500) throw new CoreError("PROSPECTION_LOT_TOO_LARGE");
   const lot = (typeof top.lot === "string" && top.lot.trim().slice(0, 60)) || new Intl.DateTimeFormat("en-CA", { timeZone: FUSEAU }).format(now);
-  const report: ImportReport = { lot, ajoutes: 0, ignores: [] };
+  const ignores: ImportReport["ignores"] = [];
+  const created: string[] = [];
   for (const item of top.emails) {
     const parsed = emailSchema.safeParse(item);
     const ref = { id: String((item as { id?: unknown })?.id ?? "?"), a: String((item as { a?: unknown })?.a ?? "?") };
     if (!parsed.success) {
-      report.ignores.push({ ...ref, raison: `champ manquant ou invalide : ${parsed.error.issues.map((i) => i.path.join(".")).join(", ")}` });
+      ignores.push({ ...ref, raison: `champ manquant ou invalide : ${parsed.error.issues.map((i) => i.path.join(".")).join(", ")}` });
       continue;
     }
     const e = parsed.data;
     if (await db.prospectEmail.findUnique({ where: { externalId: e.id }, select: { id: true } })) {
-      report.ignores.push({ id: e.id, a: e.a, raison: "déjà importé (même identifiant)" });
+      ignores.push({ id: e.id, a: e.a, raison: "déjà importé (même identifiant)" });
       continue;
     }
     const prospect = await db.prospect.findUnique({ where: { email: e.a }, select: { id: true, status: true } });
     if (prospect && STATUT[prospect.status]) {
-      report.ignores.push({ id: e.id, a: e.a, raison: `organisation ${STATUT[prospect.status]}` });
+      ignores.push({ id: e.id, a: e.a, raison: `organisation ${STATUT[prospect.status]}` });
       continue;
     }
     if (prospect && (await db.prospectEmail.count({ where: { prospectId: prospect.id, status: { in: ["A_ENVOYER", "PROGRAMME", "ENVOYE"] } } }))) {
-      report.ignores.push({ id: e.id, a: e.a, raison: "déjà contactée ou déjà prévue" });
+      ignores.push({ id: e.id, a: e.a, raison: "déjà contactée ou déjà prévue" });
       continue;
     }
-    const p =
-      prospect ??
-      (await db.prospect.create({ data: { email: e.a, organisation: e.organisation, source: e.source ?? null }, select: { id: true, status: true } }));
-    await db.prospectEmail.create({
+    const p = prospect ?? (await db.prospect.create({ data: { email: e.a, organisation: e.organisation, source: e.source ?? null }, select: { id: true } }));
+    const row = await db.prospectEmail.create({
       data: { externalId: e.id, lot, prospectId: p.id, toEmail: e.a, subject: e.objet, body: e.message, why: e.pourquoi ?? null, source: e.source ?? null },
+      select: { id: true },
     });
-    report.ajoutes++;
+    created.push(row.id);
   }
-  return report;
+  const d = await distribute(created, now, rand);
+  return { lot, ajoutes: created.length, programmes: d.programmes, enAttente: created.length - d.programmes, parBoite: d.parBoite, ignores };
 }
 
-/** Programme les e-mails à envoyer d'un lot : espacés au hasard, sans dépasser la limite du jour (envoyés et programmés compris). */
-export async function scheduleLot(lot: string, now = new Date(), rand = (a: number, b: number) => randomInt(a, b + 1)) {
-  const { cap, delay } = prospectionConfig();
-  const since = dayStart(now);
-  const until = new Date(since.getTime() + DAY);
-  const used = (await sentSince(since)) + (await db.prospectEmail.count({ where: { status: "PROGRAMME", scheduledAt: { gte: since, lt: until } } }));
-  const room = Math.max(0, cap - used);
-  const pending = await db.prospectEmail.findMany({ where: { lot, status: "A_ENVOYER" }, orderBy: { createdAt: "asc" }, take: room, select: { id: true } });
-  const last = await db.prospectEmail.findFirst({ where: { status: "PROGRAMME" }, orderBy: { scheduledAt: "desc" }, select: { scheduledAt: true } });
-  let t = Math.max(now.getTime() + 10_000, last?.scheduledAt ? last.scheduledAt.getTime() + rand(delay[0], delay[1]) * 1000 : 0);
-  for (const [i, e] of pending.entries()) {
-    if (i > 0) t += rand(delay[0], delay[1]) * 1000;
-    await db.prospectEmail.update({ where: { id: e.id }, data: { status: "PROGRAMME", scheduledAt: new Date(t), error: null } });
-  }
-  return { programmes: pending.length, restants: await db.prospectEmail.count({ where: { lot, status: "A_ENVOYER" } }) };
+/** Programme les e-mails en attente (lots qui dépassaient la capacité d'un jour précédent). */
+export async function scheduleWaiting(now = new Date(), rand: Rand = defaultRand) {
+  const waiting = await db.prospectEmail.findMany({ where: { status: "A_ENVOYER" }, orderBy: { createdAt: "asc" }, select: { id: true } });
+  const d = await distribute(
+    waiting.map((w) => w.id),
+    now,
+    rand,
+  );
+  return { ...d, enAttente: waiting.length - d.programmes };
 }
 
-const transports = new Map<string, nodemailer.Transporter>();
-const smtpSend: Sender = async (m) => {
-  const box = mailboxes().find((b) => b.from === m.from);
-  if (!box) throw new Error("boîte de prospection introuvable");
-  if (!transports.has(box.url)) transports.set(box.url, nodemailer.createTransport(box.url));
-  const r = await transports.get(box.url)!.sendMail(m);
-  return { messageId: r.messageId };
-};
+// ---------------------------------------------------------------- envoi
 
-/** La boîte qui a le plus de place aujourd'hui, ou aucune si toutes ont atteint leur limite. */
-async function pickMailbox(now: Date): Promise<Mailbox | null> {
-  const since = dayStart(now);
-  const used = await db.prospectEmail.groupBy({ by: ["mailbox"], where: { status: "ENVOYE", sentAt: { gte: since } }, _count: { _all: true } });
-  const room = (b: Mailbox) => b.cap - (used.find((u) => u.mailbox === b.address)?._count._all ?? 0);
-  const best = mailboxes()
-    .map((b) => ({ b, r: room(b) }))
-    .filter((x) => x.r > 0)
-    .sort((a, b) => b.r - a.r)[0];
-  return best?.b ?? null;
-}
-
-/** Envoi d'un e-mail, réservé d'abord pour qu'il ne parte jamais deux fois. */
-async function deliver(id: string, now: Date, send: Sender, from: string[], box: Mailbox) {
+async function deliver(id: string, now: Date, send: Sender, from: string[], box: ProspectMailbox) {
   const claimed = await db.prospectEmail.updateMany({
     where: { id, status: { in: from as never } },
-    data: { status: "ENVOYE", sentAt: now, mailbox: box.address, error: null },
+    data: { status: "ENVOYE", sentAt: now, mailboxId: box.id, mailbox: box.address, error: null },
   });
   if (claimed.count === 0) return false;
   const e = await db.prospectEmail.findUniqueOrThrow({ where: { id } });
   try {
-    const r = await send({ from: box.from, to: e.toEmail, subject: e.subject, text: e.body });
+    const r = await send({ from: fromHeader(box), to: e.toEmail, subject: e.subject, text: e.body }, box);
     await db.$transaction([
       db.prospectEmail.update({ where: { id }, data: { messageId: r.messageId ?? null } }),
       db.prospect.update({ where: { id: e.prospectId }, data: { lastContactAt: now } }),
@@ -158,30 +296,39 @@ async function deliver(id: string, now: Date, send: Sender, from: string[], box:
     ]);
     return true;
   } catch (err) {
-    await db.prospectEmail.update({ where: { id }, data: { status: "ECHEC", sentAt: null, mailbox: null, error: safeError(err) } });
+    await db.prospectEmail.update({ where: { id }, data: { status: "ECHEC", sentAt: null, error: safeError(err) } });
     return false;
   }
 }
 
-/** Tâche planifiée, chaque minute : envoie l'e-mail programmé le plus ancien qui est dû, dans la limite du jour. */
+const sentToday = (boxId: string, now: Date) => db.prospectEmail.count({ where: { mailboxId: boxId, status: "ENVOYE", sentAt: { gte: dayStart(now) } } });
+
+/** Tâche planifiée, chaque minute : pour chaque boîte, l'e-mail programmé le plus ancien qui est dû, dans sa limite du jour. */
 export async function sendDueProspectEmails(now = new Date(), send: Sender = smtpSend) {
-  const box = await pickMailbox(now);
-  if (!box) return { sent: 0 };
-  const due = await db.prospectEmail.findFirst({
-    where: { status: "PROGRAMME", scheduledAt: { lte: now } },
-    orderBy: { scheduledAt: "asc" },
-    select: { id: true },
-  });
-  if (!due) return { sent: 0 };
-  return { sent: (await deliver(due.id, now, send, ["PROGRAMME"], box)) ? 1 : 0 };
+  const boxes = await db.prospectMailbox.findMany({ where: { active: true } });
+  let sent = 0;
+  for (const b of boxes) {
+    const due = await db.prospectEmail.findFirst({
+      where: { mailboxId: b.id, status: "PROGRAMME", scheduledAt: { lte: now } },
+      orderBy: { scheduledAt: "asc" },
+      select: { id: true },
+    });
+    if (!due || (await sentToday(b.id, now)) >= rampCap(b.startedAt, b.maxPerDay, now)) continue;
+    if (await deliver(due.id, now, send, ["PROGRAMME"], b)) sent++;
+  }
+  return { sent };
 }
 
-/** « Envoyer maintenant » depuis le back-office, dans la limite du jour. */
-export async function sendNow(id: string, now = new Date(), send: Sender = smtpSend) {
-  if (!prospectionConfig().configured) throw new CoreError("PROSPECTION_NOT_CONFIGURED");
-  const box = await pickMailbox(now);
-  if (!box) throw new CoreError("PROSPECTION_DAILY_CAP");
-  if (!(await deliver(id, now, send, ["A_ENVOYER", "PROGRAMME", "ECHEC"], box))) throw new CoreError("PROSPECTION_SEND_FAILED");
+/** « Envoyer maintenant » : par sa boîte si elle a encore de la place, sinon par une boîte qui en a. */
+export async function sendNow(id: string, now = new Date(), send: Sender = smtpSend, rand: Rand = defaultRand) {
+  const e = await db.prospectEmail.findUniqueOrThrow({ where: { id }, select: { mailboxId: true } });
+  const { rows } = await availability(now);
+  if (rows.length === 0) throw new CoreError("PROSPECTION_NOT_CONFIGURED");
+  const own = rows.find((r) => r.box.id === e.mailboxId && (r.remaining > 0 || r.cap - (r.used - 1) > 0));
+  const free = rows.filter((r) => r.remaining > 0);
+  const row = own ?? free[rand(0, Math.max(0, free.length - 1))];
+  if (!row) throw new CoreError("PROSPECTION_DAILY_CAP");
+  if (!(await deliver(id, now, send, ["A_ENVOYER", "PROGRAMME", "ECHEC"], row.box))) throw new CoreError("PROSPECTION_SEND_FAILED");
 }
 
 export async function withdrawEmail(id: string) {
@@ -189,7 +336,7 @@ export async function withdrawEmail(id: string) {
 }
 
 export async function retryEmail(id: string) {
-  await db.prospectEmail.updateMany({ where: { id, status: "ECHEC" }, data: { status: "A_ENVOYER", error: null } });
+  await db.prospectEmail.updateMany({ where: { id, status: "ECHEC" }, data: { status: "A_ENVOYER", mailboxId: null, error: null } });
 }
 
 export async function updateProspect(id: string, data: { status: string; notes: string }) {
@@ -199,21 +346,28 @@ export async function updateProspect(id: string, data: { status: string; notes: 
     await db.prospectEmail.updateMany({ where: { prospectId: id, status: { in: ["A_ENVOYER", "PROGRAMME"] } }, data: { status: "RETIRE", scheduledAt: null } });
 }
 
-/** Vue d'ensemble pour le back-office. */
+// ---------------------------------------------------------------- vues
+
 export async function prospectionOverview(now = new Date()) {
-  const [byStatus, sentToday, lots, next, perBox] = await Promise.all([
+  const [avail, byStatus, lots, next] = await Promise.all([
+    availability(now),
     db.prospectEmail.groupBy({ by: ["status"], _count: { _all: true } }),
-    sentSince(dayStart(now)),
     db.prospectEmail.groupBy({ by: ["lot"], _count: { _all: true }, _max: { createdAt: true }, orderBy: { _max: { createdAt: "desc" } }, take: 12 }),
     db.prospectEmail.findFirst({ where: { status: "PROGRAMME" }, orderBy: { scheduledAt: "asc" }, select: { scheduledAt: true } }),
-    db.prospectEmail.groupBy({ by: ["mailbox"], where: { status: "ENVOYE", sentAt: { gte: dayStart(now) } }, _count: { _all: true } }),
   ]);
   const count = (s: string) => byStatus.find((b) => b.status === s)?._count._all ?? 0;
-  const config = prospectionConfig();
+  const since = dayStart(now);
+  const sentByBox = await db.prospectEmail.groupBy({ by: ["mailboxId"], where: { status: "ENVOYE", sentAt: { gte: since } }, _count: { _all: true } });
   return {
-    ...config,
-    boxes: config.boxes.map((b) => ({ address: b.address, cap: b.cap, sentToday: perBox.find((p) => p.mailbox === b.address)?._count._all ?? 0 })),
-    sentToday,
+    disponibles: avail.total,
+    boites: avail.rows.map((r) => ({
+      id: r.box.id,
+      address: r.box.address,
+      cap: r.cap,
+      envoyes: sentByBox.find((s) => s.mailboxId === r.box.id)?._count._all ?? 0,
+      restants: r.remaining,
+    })),
+    delay: delay(),
     aEnvoyer: count("A_ENVOYER"),
     programmes: count("PROGRAMME"),
     echecs: count("ECHEC"),
@@ -224,7 +378,11 @@ export async function prospectionOverview(now = new Date()) {
 }
 
 export function lotEmails(lot: string) {
-  return db.prospectEmail.findMany({ where: { lot }, orderBy: { createdAt: "asc" }, include: { prospect: { select: { organisation: true, status: true } } } });
+  return db.prospectEmail.findMany({
+    where: { lot },
+    orderBy: { scheduledAt: "asc" },
+    include: { prospect: { select: { organisation: true, status: true } }, box: { select: { address: true } } },
+  });
 }
 
 export function listProspects(q?: string, status?: string) {

@@ -182,11 +182,11 @@ Récupère le code, reconstruit l'image, applique les migrations, redémarre l'a
 
 ## Prospection (back-office)
 
-Les lots d'e-mails de prospection rédigés par Claude s'importent dans `/admin/prospection` (compte d'équipe Evoly, niveau administrateur), puis partent un à un par la boîte de prospection, jamais par Resend ni depuis evoly.me.
+Les lots d'e-mails de prospection rédigés par Claude se collent dans `/admin/prospection` (compte d'équipe Evoly, niveau administrateur). Ils partent un à un par les boîtes de prospection, jamais par Resend ni depuis evoly.me.
 
-1. Dans `/opt/evoly/.env`, décommente et complète `PROSPECTION_SMTP_URL` et `PROSPECTION_FROM` (voir `ops/env.production.example`). Dans l'URL, l'arobase de l'identifiant s'écrit `%40` et les caractères spéciaux du mot de passe doivent être encodés.
-2. `PROSPECTION_DAILY_CAP` fixe la limite quotidienne (15 par défaut, à augmenter progressivement) et `PROSPECTION_DELAY_SECONDS` l'espacement entre deux e-mails (2 à 5 minutes par défaut).
-   Pour plusieurs boîtes, ajoute `PROSPECTION_2_SMTP_URL`, `PROSPECTION_2_FROM` et `PROSPECTION_2_DAILY_CAP`, puis `PROSPECTION_3_…`, jusqu'à 9 : chaque boîte garde sa limite, et chaque e-mail part de la boîte qui a le plus de place ce jour-là.
-3. `ops/deploy.sh`, puis réinstalle la crontab : la tâche `prospection` envoie, chaque minute, l'e-mail programmé qui est dû.
+1. **Boîtes d'envoi** : `/admin/prospection/boites`. Pour chaque boîte : nom affiché, adresse, serveur d'envoi (chez LWS, `mail.<domaine>`, port 465), identifiant, mot de passe (chiffré en base), plafond par jour et date de début. « Tester la connexion » vérifie les réglages sans rien envoyer.
+2. **Capacité** : chaque boîte monte en charge toute seule, 15 e-mails par jour la première semaine, 25 la deuxième, puis son plafond ; on retire ce qu'elle a déjà envoyé ou programmé dans la journée. Le total de toutes les boîtes s'affiche en haut de `/admin/prospection` : c'est le nombre d'e-mails à demander à Claude.
+3. **Envoi** : coller le lot répartit les e-mails au hasard entre les boîtes selon leur place, et chaque boîte envoie à son rythme (2 à 5 minutes entre deux e-mails, `PROSPECTION_DELAY_SECONDS`). Ce qui dépasse la capacité du jour attend : un bouton l'envoie le lendemain.
+4. **Tâche planifiée** : `prospection`, chaque minute (crontab).
 
-Chaque jour : importe le fichier JSON du lot, relis les e-mails, puis « Programmer l'envoi ». La page Prospects garde le statut et les notes de chaque organisation ; une organisation marquée « Exclu » ou « Pas intéressé » n'est plus jamais contactée.
+La page Prospects garde le statut et les notes de chaque organisation ; une organisation marquée « Exclu » ou « Pas intéressé » n'est plus jamais contactée.

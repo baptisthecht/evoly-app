@@ -1853,11 +1853,31 @@ model ProspectEmail {
   scheduledAt DateTime?
   sentAt      DateTime?
   messageId   String?
-  mailbox     String? // boîte d'envoi utilisée (plusieurs boîtes possibles)
+  mailbox     String? // adresse de la boîte d'envoi utilisée (gardée même si la boîte est supprimée)
+  mailboxId   String?
+  box         ProspectMailbox? @relation(fields: [mailboxId], references: [id], onDelete: SetNull)
   error       String?
   createdAt   DateTime            @default(now())
 
   @@index([status, scheduledAt])
   @@index([lot])
+  @@index([mailboxId, status])
+}
+
+/// Boîte d'envoi de la prospection, configurée dans le back-office ; mot de passe chiffré (AES-256-GCM)
+model ProspectMailbox {
+  id          String          @id @default(cuid())
+  fromName    String
+  address     String          @unique
+  smtpHost    String
+  smtpPort    Int             @default(465)
+  username    String
+  passwordEnc String
+  maxPerDay   Int             @default(40) // plafond atteint après la montée en charge
+  startedAt   DateTime        @default(now()) // début de la montée en charge : 15 par jour la 1re semaine, 25 la 2e
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  emails      ProspectEmail[]
 }
 
