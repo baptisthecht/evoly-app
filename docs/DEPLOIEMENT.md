@@ -179,3 +179,13 @@ Récupère le code, reconstruit l'image, applique les migrations, redémarre l'a
 - Créer une clé sur console.anthropic.com, avec une limite de dépense mensuelle (une analyse coûte quelques centimes ; 20 au plus par organisation et par jour).
 - Ajouter `ANTHROPIC_API_KEY="…"` au `.env` du serveur, puis `ops/deploy.sh`. Sans clé, la carte « D’après une photo » indique que la fonction n’est pas activée.
 - L’image est envoyée à Anthropic pour l’analyse puis oubliée ; Anthropic figure parmi les sous-traitants de la politique de confidentialité. Si des organisateurs utilisent déjà Evoly, les prévenir 30 jours avant d’activer la fonction (accord de sous-traitance, article 4).
+
+## Prospection (back-office)
+
+Les lots d'e-mails de prospection rédigés par Claude s'importent dans `/admin/prospection` (compte d'équipe Evoly, niveau administrateur), puis partent un à un par la boîte de prospection, jamais par Resend ni depuis evoly.me.
+
+1. Dans `/opt/evoly/.env`, décommente et complète `PROSPECTION_SMTP_URL` et `PROSPECTION_FROM` (voir `ops/env.production.example`). Dans l'URL, l'arobase de l'identifiant s'écrit `%40` et les caractères spéciaux du mot de passe doivent être encodés.
+2. `PROSPECTION_DAILY_CAP` fixe la limite quotidienne (15 par défaut, à augmenter progressivement) et `PROSPECTION_DELAY_SECONDS` l'espacement entre deux e-mails (2 à 5 minutes par défaut).
+3. `ops/deploy.sh`, puis réinstalle la crontab : la tâche `prospection` envoie, chaque minute, l'e-mail programmé qui est dû.
+
+Chaque jour : importe le fichier JSON du lot, relis les e-mails, puis « Programmer l'envoi ». La page Prospects garde le statut et les notes de chaque organisation ; une organisation marquée « Exclu » ou « Pas intéressé » n'est plus jamais contactée.

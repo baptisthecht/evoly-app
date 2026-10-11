@@ -1805,3 +1805,58 @@ model PresaleCode {
   @@index([eventId, createdAt])
 }
 
+/// Prospection d'Evoly (back-office) : organisations démarchées et e-mails rédigés au cas par cas, envoyés par la boîte de prospection (jamais par Resend)
+enum ProspectStatus {
+  NOUVEAU
+  CONTACTE
+  REPONDU
+  CLIENT
+  PAS_INTERESSE
+  EXCLU
+}
+
+enum ProspectEmailStatus {
+  A_ENVOYER
+  PROGRAMME
+  ENVOYE
+  ECHEC
+  RETIRE
+}
+
+model Prospect {
+  id            String          @id @default(cuid())
+  email         String          @unique
+  organisation  String
+  status        ProspectStatus  @default(NOUVEAU)
+  notes         String?
+  source        String?
+  lastContactAt DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  emails        ProspectEmail[]
+
+  @@index([status])
+}
+
+model ProspectEmail {
+  id          String              @id @default(cuid())
+  externalId  String              @unique // identifiant unique donné dans le lot : un lot importé deux fois ne crée aucun doublon
+  lot         String
+  prospectId  String
+  prospect    Prospect            @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  toEmail     String
+  subject     String
+  body        String
+  why         String?
+  source      String?
+  status      ProspectEmailStatus @default(A_ENVOYER)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  messageId   String?
+  error       String?
+  createdAt   DateTime            @default(now())
+
+  @@index([status, scheduledAt])
+  @@index([lot])
+}
+

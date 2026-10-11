@@ -15,6 +15,14 @@ const schema = z.object({
   STRIPE_WEBHOOK_SECRET_CONNECT: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   ORDER_TOKEN_SECRET: z.string().min(32).optional(), // liens magiques des commandes ; BETTER_AUTH_SECRET à défaut
+  // prospection (back-office) : boîte d'envoi dédiée, jamais Resend ni evoly.me ; mot de passe encodé dans l'URL
+  PROSPECTION_SMTP_URL: z.string().url().optional(), // smtps://utilisateur:motdepasse@ssl0.ovh.net:465
+  PROSPECTION_FROM: z.string().min(3).optional(), // Baptist Hecht <baptist@baptisthecht.fr>
+  PROSPECTION_DAILY_CAP: z.coerce.number().int().min(1).max(500).default(15),
+  PROSPECTION_DELAY_SECONDS: z
+    .string()
+    .regex(/^\d+-\d+$/)
+    .default("120-300"),
   CRON_SECRET: z.string().min(16).optional(), // tâches planifiées (libération des réservations expirées)
   EVOLY_LEGAL_NAME: z.string().default("Baptist Hecht - Evoly Solutions"), // émetteur des relevés de commissions
   R2_ACCOUNT_ID: z.string().optional(), // fichiers importés (logos, images) ; à défaut, dossier local UPLOADS_DIR

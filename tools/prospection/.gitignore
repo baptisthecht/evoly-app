@@ -1,5 +1,0 @@
-# données personnelles et secrets : jamais sur GitHub
-config.json
-envoyes.csv
-lots/*.json
-!lots/exemple.json

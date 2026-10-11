@@ -23,7 +23,12 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
     <main className="min-h-dvh overflow-x-hidden bg-[var(--evoly-creme)] px-5 py-8 text-[var(--evoly-charbon)]">
       <div className="mx-auto grid min-w-0 max-w-6xl gap-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-display text-3xl tracking-[-0.04em]">Back-office Evoly</h1>
+          <div className="flex flex-wrap items-baseline gap-4">
+            <h1 className="font-display text-3xl tracking-[-0.04em]">Back-office Evoly</h1>
+            <Link href="/admin/prospection" className="text-sm underline underline-offset-4">
+              Prospection
+            </Link>
+          </div>
           <p className="text-sm">
             {st.user.name} ·{" "}
             <span className="rounded-full bg-[var(--evoly-charbon)] px-2 py-0.5 text-xs font-bold text-[var(--evoly-creme)]">{st.user.platformRole}</span>
