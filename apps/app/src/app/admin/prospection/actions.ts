@@ -11,6 +11,7 @@ import {
   saveMailbox,
   scheduleWaiting,
   sendNow,
+  sendTest,
   setMailboxActive,
   testMailbox,
   updateProspect,
@@ -105,6 +106,8 @@ export async function saveMailboxAction(id: string | null, form: FormData) {
         address: champ("address"),
         smtpHost: champ("smtpHost"),
         smtpPort: champ("smtpPort"),
+        imapHost: champ("imapHost"),
+        imapPort: champ("imapPort"),
         username: champ("username"),
         password: champ("password"),
         maxPerDay: champ("maxPerDay"),
@@ -138,4 +141,16 @@ export async function testMailboxAction(id: string) {
   await requireStaff("ADMIN");
   const r = await testMailbox(id);
   boites(r.ok ? "Connexion réussie : la boîte peut envoyer." : `Connexion impossible : ${r.error}`);
+}
+
+export async function testSendAction(id: string, form: FormData) {
+  await requireStaff("ADMIN");
+  const r = await sendTest(id, String(form.get("to") ?? ""));
+  boites(
+    !r.ok
+      ? `Envoi impossible : ${r.error}`
+      : r.copied
+        ? "E-mail de test envoyé, et rangé dans « Envoyés » : vérifie qu'il est bien arrivé."
+        : `E-mail de test envoyé, mais pas rangé dans « Envoyés » (${r.error}) : vérifie le serveur de réception.`,
+  );
 }

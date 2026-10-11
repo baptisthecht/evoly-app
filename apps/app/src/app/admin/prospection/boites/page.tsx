@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ProspectMailbox } from "@evoly/db";
 import { requireStaff } from "@/server/platform";
 import { listMailboxes, rampCap } from "@/server/prospection";
-import { deleteMailboxAction, saveMailboxAction, testMailboxAction, toggleMailboxAction } from "../actions";
+import { deleteMailboxAction, saveMailboxAction, testMailboxAction, testSendAction, toggleMailboxAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Boîtes d'envoi - Back-office Evoly", robots: { index: false, follow: false } };
@@ -31,6 +31,14 @@ function Champs({ b }: { b?: ProspectMailbox }) {
       <label className="grid gap-1 text-sm">
         Port
         <input name="smtpPort" type="number" defaultValue={b?.smtpPort ?? 465} className={champ} />
+      </label>
+      <label className="grid gap-1 text-sm">
+        Serveur de réception (IMAP, le même si vide)
+        <input name="imapHost" defaultValue={b?.imapHost ?? ""} placeholder="mail.baptisthecht.fr" className={champ} />
+      </label>
+      <label className="grid gap-1 text-sm">
+        Port de réception
+        <input name="imapPort" type="number" defaultValue={b?.imapPort ?? 993} className={champ} />
       </label>
       <label className="grid gap-1 text-sm">
         Identifiant (l&apos;adresse si vide)
@@ -103,6 +111,12 @@ export default async function BoitesPage({ searchParams }: { searchParams: Promi
                 </button>
               </form>
             </div>
+            <form action={testSendAction.bind(null, b.id)} className="flex flex-wrap gap-2">
+              <input name="to" type="email" placeholder={`À (vide : ${b.address})`} aria-label="Adresse du test" className={`${champ} flex-1`} />
+              <button type="submit" className={bouton}>
+                M&apos;envoyer un test
+              </button>
+            </form>
             <details>
               <summary className="cursor-pointer text-sm">Modifier</summary>
               <form action={saveMailboxAction.bind(null, b.id)} className="mt-3 grid gap-3">

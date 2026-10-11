@@ -13,6 +13,8 @@ import {
   sendNow,
   setMailboxActive,
   updateProspect,
+  sendTest,
+  type Copier,
   type Sender,
 } from "@/server/prospection";
 
@@ -23,7 +25,10 @@ const NOW = zonedLocalToUtc(`${iso(new Date())}T10:00`, "Europe/Brussels"); // h
 const partis: { to: string; from: string }[] = [];
 const envoi: Sender = async (m) => {
   partis.push({ to: m.to, from: m.from });
-  return { messageId: `<${partis.length}@exemple.fr>` };
+};
+const copies: string[] = [];
+const copie: Copier = async (raw) => {
+  copies.push(raw.toString("utf8"));
 };
 const mail = (i: number, x: Record<string, unknown> = {}) => ({
   id: `t-${i}`,
@@ -54,7 +59,7 @@ async function boites() {
   return { a, b };
 }
 const vider = async (quand: Date) => {
-  while ((await sendDueProspectEmails(quand, envoi)).sent) {
+  while ((await sendDueProspectEmails(quand, envoi, copie)).sent) {
     /* envoie tout ce qui est dû */
   }
 };
@@ -62,6 +67,7 @@ const vider = async (quand: Date) => {
 describe("prospection : boîtes du back-office, disponibilités et répartition", () => {
   beforeEach(async () => {
     partis.length = 0;
+    copies.length = 0;
     await db.prospectEmail.deleteMany();
     await db.prospect.deleteMany();
     await db.prospectMailbox.deleteMany();
@@ -90,7 +96,7 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
       for (let i = 1; i < t.length; i++) expect(t[i]! - t[i - 1]!).toBeGreaterThanOrEqual(120_000);
     }
     const plusTard = new Date(NOW.getTime() + 3 * 3_600_000);
-    await Promise.all([sendDueProspectEmails(plusTard, envoi), sendDueProspectEmails(plusTard, envoi)]);
+    await Promise.all([sendDueProspectEmails(plusTard, envoi, copie), sendDueProspectEmails(plusTard, envoi, copie)]);
     await vider(plusTard);
     expect(partis).toHaveLength(5);
     expect(new Set(partis.map((p) => p.to)).size).toBe(5);
@@ -125,11 +131,31 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     const panne: Sender = async () => {
       throw new Error("550 boîte inconnue : comite1@cercle1.be");
     };
-    await expect(sendNow(e.id, NOW, panne)).rejects.toMatchObject({ code: "PROSPECTION_SEND_FAILED" });
+    await expect(sendNow(e.id, NOW, panne, copie)).rejects.toMatchObject({ code: "PROSPECTION_SEND_FAILED" });
     const apres = await db.prospectEmail.findUniqueOrThrow({ where: { id: e.id } });
     expect(apres.status).toBe("ECHEC");
     expect(apres.error).not.toContain("comite1@cercle1.be");
     await retryEmail(e.id);
     expect((await db.prospectEmail.findUniqueOrThrow({ where: { id: e.id } })).status).toBe("A_ENVOYER");
+  });
+
+  it("chaque envoi est rangé dans « Envoyés » ; une copie impossible n'annule pas l'envoi et se rattrape ensuite", async () => {
+    const { a } = await boites();
+    await importLot({ emails: [1, 2].map((i) => mail(i)) }, NOW);
+    const panne: Copier = async () => {
+      throw new Error("IMAP indisponible");
+    };
+    const plusTard = new Date(NOW.getTime() + 3 * 3_600_000);
+    while ((await sendDueProspectEmails(plusTard, envoi, panne)).sent) {
+      /* envoie sans pouvoir copier */
+    }
+    expect(partis).toHaveLength(2);
+    expect(await db.prospectEmail.count({ where: { status: "ENVOYE", copiedAt: null } })).toBe(2);
+    expect((await sendDueProspectEmails(plusTard, envoi, copie)).filed).toBe(2);
+    expect(await db.prospectEmail.count({ where: { copiedAt: null } })).toBe(0);
+    expect(copies[0]).toContain("Subject: Objet");
+    expect(copies[0]).toMatch(/Message-ID: <[a-z0-9]+@exemple\.(fr|com)>/);
+    expect((await sendTest(a.id, "", envoi, copie)).ok).toBe(true);
+    expect(partis.at(-1)!.to).toBe("baptist@exemple.fr");
   });
 });

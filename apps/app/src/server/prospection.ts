@@ -2,7 +2,9 @@ import "server-only";
 import { createCipheriv, createDecipheriv, createHash, randomBytes, randomInt } from "node:crypto";
 import { CoreError, zonedLocalToUtc } from "@evoly/core";
 import type { ProspectMailbox } from "@evoly/db";
+import { ImapFlow } from "imapflow";
 import nodemailer from "nodemailer";
+import MailComposer from "nodemailer/lib/mail-composer";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -17,7 +19,9 @@ import { safeError } from "@/lib/redact";
 const FUSEAU = "Europe/Brussels";
 const DAY = 86_400_000;
 
-export type Sender = (m: { from: string; to: string; subject: string; text: string }, box: ProspectMailbox) => Promise<{ messageId?: string }>;
+export type Outgoing = { from: string; to: string; subject: string; text: string; messageId: string; date: Date };
+export type Sender = (m: Outgoing, box: ProspectMailbox) => Promise<void>;
+export type Copier = (raw: Buffer, box: ProspectMailbox, date: Date) => Promise<void>;
 type Rand = (a: number, b: number) => number;
 const defaultRand: Rand = (a, b) => randomInt(a, b + 1);
 
@@ -67,10 +71,38 @@ function transportFor(box: ProspectMailbox) {
   transports.set(box.id, { at: box.updatedAt.getTime(), t });
   return t;
 }
+/** Le même message, composé une fois : envoyé au destinataire, puis rangé tel quel dans « Envoyés ». */
+export function buildRaw(m: Outgoing): Promise<Buffer> {
+  return new Promise((resolve, reject) =>
+    new MailComposer({ from: m.from, to: m.to, subject: m.subject, text: m.text, messageId: m.messageId, date: m.date })
+      .compile()
+      .build((err, msg) => (err ? reject(err) : resolve(msg))),
+  );
+}
 const smtpSend: Sender = async (m, box) => {
-  const r = await transportFor(box).sendMail(m);
-  return { messageId: r.messageId };
+  await transportFor(box).sendMail({ envelope: { from: box.address, to: [m.to] }, raw: await buildRaw(m) });
 };
+/** Copie dans le dossier « Envoyés » de la boîte (IMAP), comme le ferait une application de messagerie. */
+const imapCopy: Copier = async (raw, box, date) => {
+  const client = new ImapFlow({
+    host: box.imapHost || box.smtpHost,
+    port: box.imapPort,
+    secure: true,
+    auth: { user: box.username, pass: openPassword(box.passwordEnc) },
+    logger: false,
+  });
+  await client.connect();
+  try {
+    const list = await client.list();
+    const sent =
+      list.find((m) => m.specialUse === "\\Sent") ?? list.find((m) => /^(inbox[./])?(sent|envoy|éléments envoyés|sent items|sent messages)/i.test(m.path));
+    if (!sent) throw new Error("dossier des envoyés introuvable");
+    await client.append(sent.path, raw, ["\\Seen"], date);
+  } finally {
+    await client.logout().catch(() => undefined);
+  }
+};
+const messageIdFor = (emailId: string, box: ProspectMailbox) => `<${emailId}@${box.address.split("@")[1]}>`;
 const fromHeader = (b: ProspectMailbox) => `${b.fromName.replace(/["<>]/g, "")} <${b.address}>`;
 
 // ---------------------------------------------------------------- boîtes
@@ -80,6 +112,8 @@ const mailboxSchema = z.object({
   address: z.string().trim().toLowerCase().pipe(z.email().max(200)),
   smtpHost: z.string().trim().min(3).max(200),
   smtpPort: z.coerce.number().int().min(1).max(65535).default(465),
+  imapHost: z.string().trim().max(200).optional(),
+  imapPort: z.coerce.number().int().min(1).max(65535).default(993),
   username: z.string().trim().max(200).optional(),
   password: z.string().max(500).optional(),
   maxPerDay: z.coerce.number().int().min(1).max(500).default(40),
@@ -98,6 +132,8 @@ export async function saveMailbox(input: unknown, id?: string) {
     smtpHost: d.smtpHost,
     smtpPort: d.smtpPort,
     username: d.username || d.address,
+    imapHost: d.imapHost || null,
+    imapPort: d.imapPort,
     maxPerDay: d.maxPerDay,
   };
   if (id) {
@@ -280,31 +316,69 @@ export async function scheduleWaiting(now = new Date(), rand: Rand = defaultRand
 
 // ---------------------------------------------------------------- envoi
 
-async function deliver(id: string, now: Date, send: Sender, from: string[], box: ProspectMailbox) {
+async function deliver(id: string, now: Date, send: Sender, copy: Copier, from: string[], box: ProspectMailbox) {
   const claimed = await db.prospectEmail.updateMany({
     where: { id, status: { in: from as never } },
     data: { status: "ENVOYE", sentAt: now, mailboxId: box.id, mailbox: box.address, error: null },
   });
   if (claimed.count === 0) return false;
   const e = await db.prospectEmail.findUniqueOrThrow({ where: { id } });
+  const out: Outgoing = { from: fromHeader(box), to: e.toEmail, subject: e.subject, text: e.body, messageId: messageIdFor(e.id, box), date: now };
   try {
-    const r = await send({ from: fromHeader(box), to: e.toEmail, subject: e.subject, text: e.body }, box);
+    await send(out, box);
     await db.$transaction([
-      db.prospectEmail.update({ where: { id }, data: { messageId: r.messageId ?? null } }),
+      db.prospectEmail.update({ where: { id }, data: { messageId: out.messageId } }),
       db.prospect.update({ where: { id: e.prospectId }, data: { lastContactAt: now } }),
       db.prospect.updateMany({ where: { id: e.prospectId, status: "NOUVEAU" }, data: { status: "CONTACTE" } }),
     ]);
-    return true;
   } catch (err) {
     await db.prospectEmail.update({ where: { id }, data: { status: "ECHEC", sentAt: null, error: safeError(err) } });
     return false;
   }
+  try {
+    await copy(await buildRaw(out), box, now);
+    await db.prospectEmail.update({ where: { id }, data: { copiedAt: new Date() } });
+  } catch (err) {
+    console.error("copie dans « Envoyés » impossible", box.address, safeError(err)); // rattrapée au prochain passage
+  }
+  return true;
+}
+
+/** Range dans « Envoyés » les e-mails envoyés dont la copie manque (envois antérieurs, ou serveur indisponible au moment de l'envoi). */
+export async function fileMissingCopies(copy: Copier = imapCopy, limit = 10) {
+  const missing = await db.prospectEmail.findMany({
+    where: { status: "ENVOYE", copiedAt: null, box: { isNot: null } },
+    include: { box: true },
+    orderBy: { sentAt: "asc" },
+    take: limit,
+  });
+  let filed = 0;
+  for (const e of missing) {
+    const box = e.box!;
+    const out: Outgoing = {
+      from: fromHeader(box),
+      to: e.toEmail,
+      subject: e.subject,
+      text: e.body,
+      messageId: e.messageId ?? messageIdFor(e.id, box),
+      date: e.sentAt ?? new Date(),
+    };
+    try {
+      await copy(await buildRaw(out), box, out.date);
+      await db.prospectEmail.update({ where: { id: e.id }, data: { copiedAt: new Date() } });
+      filed++;
+    } catch (err) {
+      console.error("copie dans « Envoyés » impossible", box.address, safeError(err));
+      break; // serveur indisponible : on réessaiera au prochain passage
+    }
+  }
+  return filed;
 }
 
 const sentToday = (boxId: string, now: Date) => db.prospectEmail.count({ where: { mailboxId: boxId, status: "ENVOYE", sentAt: { gte: dayStart(now) } } });
 
 /** Tâche planifiée, chaque minute : pour chaque boîte, l'e-mail programmé le plus ancien qui est dû, dans sa limite du jour. */
-export async function sendDueProspectEmails(now = new Date(), send: Sender = smtpSend) {
+export async function sendDueProspectEmails(now = new Date(), send: Sender = smtpSend, copy: Copier = imapCopy) {
   const boxes = await db.prospectMailbox.findMany({ where: { active: true } });
   let sent = 0;
   for (const b of boxes) {
@@ -314,13 +388,14 @@ export async function sendDueProspectEmails(now = new Date(), send: Sender = smt
       select: { id: true },
     });
     if (!due || (await sentToday(b.id, now)) >= rampCap(b.startedAt, b.maxPerDay, now)) continue;
-    if (await deliver(due.id, now, send, ["PROGRAMME"], b)) sent++;
+    if (await deliver(due.id, now, send, copy, ["PROGRAMME"], b)) sent++;
   }
-  return { sent };
+  const filed = await fileMissingCopies(copy);
+  return { sent, filed };
 }
 
 /** « Envoyer maintenant » : par sa boîte si elle a encore de la place, sinon par une boîte qui en a. */
-export async function sendNow(id: string, now = new Date(), send: Sender = smtpSend, rand: Rand = defaultRand) {
+export async function sendNow(id: string, now = new Date(), send: Sender = smtpSend, copy: Copier = imapCopy, rand: Rand = defaultRand) {
   const e = await db.prospectEmail.findUniqueOrThrow({ where: { id }, select: { mailboxId: true } });
   const { rows } = await availability(now);
   if (rows.length === 0) throw new CoreError("PROSPECTION_NOT_CONFIGURED");
@@ -328,7 +403,34 @@ export async function sendNow(id: string, now = new Date(), send: Sender = smtpS
   const free = rows.filter((r) => r.remaining > 0);
   const row = own ?? free[rand(0, Math.max(0, free.length - 1))];
   if (!row) throw new CoreError("PROSPECTION_DAILY_CAP");
-  if (!(await deliver(id, now, send, ["A_ENVOYER", "PROGRAMME", "ECHEC"], row.box))) throw new CoreError("PROSPECTION_SEND_FAILED");
+  if (!(await deliver(id, now, send, copy, ["A_ENVOYER", "PROGRAMME", "ECHEC"], row.box))) throw new CoreError("PROSPECTION_SEND_FAILED");
+}
+
+/** « M'envoyer un test » : un e-mail court depuis la boîte, à elle-même ou à l'adresse donnée (par exemple celle de mail-tester.com). */
+export async function sendTest(boxId: string, to?: string, send: Sender = smtpSend, copy: Copier = imapCopy) {
+  const box = await db.prospectMailbox.findUniqueOrThrow({ where: { id: boxId } });
+  const dest = (to?.trim() || box.address).toLowerCase();
+  if (!z.email().safeParse(dest).success) return { ok: false as const, error: "adresse de test invalide" };
+  const now = new Date();
+  const out: Outgoing = {
+    from: fromHeader(box),
+    to: dest,
+    subject: "Test d'envoi de la prospection Evoly",
+    text: `Bonjour,\n\nCe message de test part de ${box.address}, par le serveur ${box.smtpHost}. S'il t'arrive, l'envoi fonctionne.\n\nEvoly`,
+    messageId: `<test-${now.getTime()}@${box.address.split("@")[1]}>`,
+    date: now,
+  };
+  try {
+    await send(out, box);
+  } catch (err) {
+    return { ok: false as const, error: safeError(err) };
+  }
+  try {
+    await copy(await buildRaw(out), box, now);
+    return { ok: true as const, copied: true };
+  } catch (err) {
+    return { ok: true as const, copied: false, error: safeError(err) };
+  }
 }
 
 export async function withdrawEmail(id: string) {
