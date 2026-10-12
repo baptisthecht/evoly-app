@@ -48,9 +48,9 @@ Les dépendances npm passent par la vérification hebdomadaire ci-dessus (âge m
 
 **Cliquet** : après chaque série de tests ajoutés, les seuils sont relevés au niveau atteint ; ils ne sont jamais abaissés. Objectif : s'approcher de 100 %.
 
-| Partie                                              | Instructions | Branches | Fonctions | Lignes | Mesuré le                                                                                             |
-| --------------------------------------------------- | ------------ | -------- | --------- | ------ | ----------------------------------------------------------------------------------------------------- |
-| Cœur (`packages/core`)                              | 98,8 %       | 94,1 %   | 100 %     | 99,5 % | 12 octobre 2026                                                                                       |
-| Serveur de l'app (`apps/app/src/server`, `src/lib`) | 78,2 %       | 66,7 %   | 79,0 %    | 83,5 % | 12 octobre 2026, après les séries « argent et sécurité », « événements, tarifs, e-mails et finances » |
+| Partie                                              | Instructions | Branches | Fonctions | Lignes | Mesuré le                                                                                                                                                                                |
+| --------------------------------------------------- | ------------ | -------- | --------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cœur (`packages/core`)                              | 98,8 %       | 94,1 %   | 100 %     | 99,5 % | 12 octobre 2026                                                                                                                                                                          |
+| Serveur de l'app (`apps/app/src/server`, `src/lib`) | 82,5 %       | 70,1 %   | 83,8 %    | 87,7 % | 12 octobre 2026, après les séries « argent et sécurité », « événements, tarifs, e-mails et finances », « équipe, questions, campagnes, back-office, domaines, marque, scanner, revente » |
 
 Les écrans sont couverts par les parcours complets (Playwright, `apps/app/e2e`). `pnpm traceability` liste les règles du cahier des charges qu'aucun test ne cite : chaque nouveau test nomme la règle qu'il vérifie (par exemple « RG-POS-04 »).
