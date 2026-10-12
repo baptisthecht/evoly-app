@@ -220,37 +220,44 @@ Le simulateur du site compare les frais d'Evoly (commission + frais d'une carte 
 
 ## 4. Offres et fonctionnalités
 
-| Fonctionnalité                                                        | Free      | Pro    | Priorité |
-| --------------------------------------------------------------------- | --------- | ------ | -------- |
-| Événements et tarifs illimités                                        | Oui       | Oui    | P0       |
-| Billets gratuits à 0 %, sans limite                                   | Oui       | Oui    | P0       |
-| Commission plafonnée                                                  | 1 €       | 0,70 € | P0       |
-| Frais bancaires au coût réel                                          | Oui       | Oui    | P0       |
-| Paiement Apple Pay, Google Pay, cartes et moyens locaux               | Oui       | Oui    | P0       |
-| Page de vente sur `mon-asso.evoly.me`                                 | Oui       | Oui    | P0       |
-| Revente entre participants par lien                                   | Oui       | Oui    | P0       |
-| Section Revente sur la page de vente                                  | Oui       | Oui    | P0       |
-| Statistiques en direct                                                | Oui       | Oui    | P0       |
-| Scanner, liens bénévoles sans compte, mode hors ligne                 | Oui       | Oui    | P0       |
-| E-mails transactionnels                                               | Oui       | Oui    | P0       |
-| Codes promo                                                           | Oui       | Oui    | P0       |
-| Questions à l'achat, billets nominatifs                               | Oui       | Oui    | P0       |
-| Remboursements et politique par événement                             | Oui       | Oui    | P0       |
-| Relevés et factures de commission                                     | Oui       | Oui    | P0       |
-| Billets offerts                                                       | Oui       | Oui    | P1       |
-| Apple Wallet et Google Wallet                                         | Oui       | Oui    | P1       |
-| Prix dynamiques (paliers par date ou quantité)                        | -         | Oui    | P0       |
-| Rappels automatiques J-7, J-1, jour J                                 | -         | Oui    | P0       |
-| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | -         | Oui    | P0       |
-| Couleurs et logo                                                      | -         | Oui    | P0       |
-| Aucune mention d'Evoly                                                | -         | Oui    | P0       |
-| Domaine personnalisé avec SSL                                         | -         | Oui    | P0       |
-| Sous-domaine dédié par événement                                      | -         | Oui    | P1       |
-| Membres, rôles système et rôles personnalisés                         | -         | Oui    | P0       |
-| Plusieurs organisations sur un compte                                 | Une seule | Oui    | P0       |
-| Plan de salle et placement numéroté                                   | -         | Oui    | P2 ⚠     |
-| Parrainage                                                            | Oui       | Oui    | P2       |
-| Espace participant avec compte                                        | Oui       | Oui    | P2       |
+| Fonctionnalité                                                        | Free        | Pro    | Priorité |
+| --------------------------------------------------------------------- | ----------- | ------ | -------- |
+| Événements et tarifs illimités                                        | Oui         | Oui    | P0       |
+| Billets gratuits à 0 %, sans limite                                   | Oui         | Oui    | P0       |
+| Commission plafonnée                                                  | 1 €         | 0,70 € | P0       |
+| Frais bancaires au coût réel                                          | Oui         | Oui    | P0       |
+| Paiement Apple Pay, Google Pay, cartes et moyens locaux               | Oui         | Oui    | P0       |
+| Page de vente sur `mon-asso.evoly.me`                                 | Oui         | Oui    | P0       |
+| Revente entre participants par lien                                   | Oui         | Oui    | P0       |
+| Section Revente sur la page de vente                                  | Oui         | Oui    | P0       |
+| Statistiques en direct                                                | Oui         | Oui    | P0       |
+| Scanner, liens bénévoles sans compte, mode hors ligne                 | Oui         | Oui    | P0       |
+| E-mails transactionnels                                               | Oui         | Oui    | P0       |
+| Codes promo                                                           | Oui         | Oui    | P0       |
+| Questions à l'achat, billets nominatifs                               | Oui         | Oui    | P0       |
+| Remboursements et politique par événement                             | Oui         | Oui    | P0       |
+| Relevés et factures de commission                                     | Oui         | Oui    | P0       |
+| Billets offerts                                                       | Oui         | Oui    | P1       |
+| Apple Wallet et Google Wallet                                         | Oui         | Oui    | P1       |
+| Prix dynamiques (paliers par date ou quantité)                        | -           | Oui    | P0       |
+| Rappels automatiques J-7, J-1, jour J                                 | -           | Oui    | P0       |
+| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | -           | Oui    | P0       |
+| Couleurs et logo                                                      | -           | Oui    | P0       |
+| Aucune mention d'Evoly                                                | -           | Oui    | P0       |
+| Domaine personnalisé avec SSL                                         | -           | Oui    | P0       |
+| Sous-domaine dédié par événement                                      | -           | Oui    | P1       |
+| Membres, rôles système et rôles personnalisés                         | -           | Oui    | P0       |
+| Plusieurs organisations sur un compte                                 | Une seule   | Oui    | P0       |
+| Plan de salle et placement numéroté                                   | -           | Oui    | P2 ⚠     |
+| Parrainage                                                            | Oui         | Oui    | P2       |
+| Espace participant avec compte                                        | Oui         | Oui    | P2       |
+| Billetterie intégrable au site de l'organisateur                      | Oui         | Oui    | P1       |
+| Vente sur place : paiement par QR code et espèces                     | Oui         | Oui    | P1       |
+| Vente sur place : sans contact sur le téléphone de l'équipe           | Non         | Oui    | P1       |
+| Ambassadeurs et classement des ventes                                 | 3/événement | Oui    | P1       |
+| Options et consommations prépayées                                    | Oui         | Oui    | P1       |
+| Liste d'attente                                                       | Oui         | Oui    | P1       |
+| Tables et forfaits                                                    | Non         | Oui    | P1       |
 
 Le contrôle d'accès aux fonctionnalités passe par une fonction unique `hasFeature(organisation, fonctionnalité)` qui lit `Plan.features` et l'état de l'abonnement (voir section 6.4).
 
@@ -1210,6 +1217,158 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 
 ---
 
+### 9.26 Billetterie intégrable (P1)
+
+**User stories**
+
+- US-EMB-01 : en tant qu'organisateur, je copie un code et ma billetterie apparaît sur mon propre site, sans renvoyer mes acheteurs ailleurs.
+- US-EMB-02 : en tant qu'acheteur, j'achète mes places sans quitter le site de l'organisateur, et je paie comme sur Evoly (carte, Apple Pay, Google Pay, Bancontact).
+- US-EMB-03 : en tant qu'organisateur, je choisis la forme : un bouton qui ouvre la billetterie par-dessus mon site, ou un module affiché dans la page.
+
+**Fonctionnement**
+
+1. Dans les réglages de l'événement (ou de l'organisation, pour tout l'agenda), rubrique « Intégrer à mon site » : choix du format (bouton ou module), couleur du bouton, aperçu, code à copier (une ligne de script et un élément).
+2. Le script affiche la billetterie dans un cadre (iframe) servi depuis Evoly ou depuis le domaine personnalisé de l'organisateur.
+3. Le cadre s'ajuste à la hauteur de son contenu et prévient la page qui l'accueille des étapes de l'achat (ouverture, commande terminée), pour les statistiques de l'organisateur.
+
+**Règles de gestion**
+
+- RG-EMB-01 : l'intégration n'est autorisée que sur les domaines déclarés par l'organisateur (liste « Sites autorisés ») ; ailleurs, l'affichage dans un cadre est refusé (en-tête `Content-Security-Policy: frame-ancestors`), contre le détournement de clic.
+- RG-EMB-02 : l'achat dans le cadre ne dépend d'aucun cookie tiers (bloqués par Safari et Firefox) : l'état de la commande est porté par un jeton signé.
+- RG-EMB-03 : le cadre porte l'autorisation de paiement (`allow="payment"`) pour Apple Pay et Google Pay ; si un moyen de paiement est refusé dans un cadre, l'achat se termine dans un nouvel onglet, commande conservée.
+- RG-EMB-04 : la langue suit celle de la page qui accueille le cadre, ou le réglage du code, parmi les 7 langues.
+- RG-EMB-05 : en Free, le cadre affiche « Billetterie Evoly » ; en Pro, il est aux couleurs de l'organisateur, sans mention d'Evoly.
+- RG-EMB-06 : les règles d'achat sont celles de la page de vente : réservation, protection anti-robots, prévente, codes promo, revente, liste d'attente.
+- RG-EMB-07 : la page qui accueille le cadre ne reçoit que des événements sans donnée personnelle (ouverture ; commande terminée avec le nombre de billets et le montant), jamais l'e-mail de l'acheteur.
+
+**Critères d'acceptation**
+
+- Achat complet par carte et par Apple Pay dans un cadre, sur un domaine autorisé, sous Safari iOS, Chrome Android, et Chrome et Firefox sur ordinateur.
+- Affichage refusé sur un domaine non déclaré.
+- Achat possible avec les cookies tiers bloqués.
+
+### 9.27 Vente sur place (P1)
+
+**User stories**
+
+- US-POS-01 : en tant que membre de l'équipe à l'entrée, je vends une place depuis mon téléphone en quelques secondes, et le client entre aussitôt.
+- US-POS-02 : en tant que client, je paie sans contact sur le téléphone de l'équipe (carte, téléphone ou montre), ou sur mon propre téléphone en scannant un QR code.
+- US-POS-03 : en tant qu'organisateur, je suis les ventes sur place par vendeur et par mode de paiement, dans les mêmes statistiques que la vente en ligne.
+
+**Modes de paiement**
+
+1. **QR code** (premier livrable) : le téléphone de l'équipe affiche le QR code de paiement de la commande ; le client paie sur son téléphone ; l'écran de l'équipe confirme et valide l'entrée.
+2. **Sans contact sur le téléphone de l'équipe** (second livrable) : paiement « Tap to Pay » de Stripe Terminal ; le client approche sa carte, son téléphone ou sa montre. ⚠ Exige l'application mobile native d'Evoly (iOS et Android) : Tap to Pay ne fonctionne pas dans une application web. Apple doit accorder l'autorisation « Tap to Pay on iPhone » ; modèles et versions minimales de téléphone selon Stripe ; pays couverts à vérifier pour la Belgique, la France, la Suisse et le Royaume-Uni.
+3. **Espèces** : vente enregistrée sans paiement en ligne, pour le rapport de caisse.
+
+**Règles de gestion**
+
+- RG-POS-01 : la vente sur place puise dans le même stock que la vente en ligne, dans la même transaction : aucune survente (section 8.5).
+- RG-POS-02 : réservée aux membres qui ont la permission « Vendre sur place » (annexe B).
+- RG-POS-03 : commission identique à la vente en ligne (section 6) ; frais bancaires de Stripe au coût réel, selon le mode de paiement ; aucune commission sur les ventes en espèces.
+- RG-POS-04 : un billet vendu sur place est marqué entré au moment de la vente, sauf si l'équipe choisit de l'envoyer au client pour plus tard.
+- RG-POS-05 : l'e-mail du client est facultatif ; s'il est donné, le billet et le reçu lui sont envoyés.
+- RG-POS-06 : un encaissement par carte ou par QR code exige le réseau ; le scan des billets reste possible hors ligne.
+- RG-POS-07 : rapport de caisse par appareil, par vendeur et par mode de paiement (nombre de ventes, montants, espèces à remettre), exportable.
+- RG-POS-08 : une vente sur place se rembourse depuis le tableau de bord, comme une commande en ligne (section 9.14) ; une vente en espèces se rembourse en espèces, hors d'Evoly.
+
+**Critères d'acceptation**
+
+- Vente par QR code d'un billet à un client sans compte, en moins de 30 secondes.
+- Aucune survente avec des ventes en ligne et sur place simultanées (test de charge).
+- Rapport de caisse exact après 50 ventes mixtes.
+
+### 9.28 Ambassadeurs (P1)
+
+**User stories**
+
+- US-AMB-01 : en tant qu'organisateur, je crée en quelques secondes un lien de vente pour chaque membre de mon équipe ou chaque promoteur.
+- US-AMB-02 : en tant qu'ambassadeur, je partage mon lien, et je suis mes ventes et mon rang sans créer de compte.
+- US-AMB-03 : en tant qu'organisateur, je vois le classement des ventes par ambassadeur et j'en exporte les résultats.
+
+**Règles de gestion**
+
+- RG-AMB-01 : chaque ambassadeur a un code unique et un lien de vente ; le code peut aussi servir de code promo si l'organisateur l'associe à une réduction.
+- RG-AMB-02 : la commande est attribuée au dernier lien d'ambassadeur suivi dans les 30 jours, mémorisé dans le navigateur de l'acheteur sur le domaine de la billetterie (aucun cookie tiers), puis inscrit sur la commande.
+- RG-AMB-03 : une commande compte pour un seul ambassadeur ; remboursements et annulations sont retirés du classement.
+- RG-AMB-04 : l'ambassadeur suit ses ventes par un lien privé, sans compte ; il ne voit jamais les données des acheteurs.
+- RG-AMB-05 : classement par nombre de billets et par montant, par événement ou sur toute l'organisation ; objectif et récompense affichés si l'organisateur les renseigne, la récompense restant remise par l'organisateur.
+- RG-AMB-06 : Free : 3 ambassadeurs par événement ; Pro : sans limite.
+- RG-AMB-07 : données de l'ambassadeur limitées à son nom et, s'il le souhaite, à son e-mail ; supprimées selon les durées de conservation (section 13).
+
+**Critères d'acceptation**
+
+- Une commande passée après un clic sur un lien d'ambassadeur lui est attribuée, même si l'achat a lieu le lendemain.
+- Le classement se met à jour en moins d'une minute, et retire une commande remboursée.
+
+### 9.29 Options et consommations prépayées (P1)
+
+**User stories**
+
+- US-OPT-01 : en tant qu'organisateur, je propose avec le billet des options : jetons boisson, vestiaire, t-shirt, parking, repas, bouteilles.
+- US-OPT-02 : en tant que participant, j'ajoute des options en achetant ma place, ou plus tard depuis mes billets, jusqu'au début de l'événement.
+- US-OPT-03 : en tant que barman ou bénévole, je scanne le QR code du participant avec mon téléphone et je retire ce qu'il consomme.
+- US-OPT-04 : en tant qu'organisateur, je suis en direct les ventes et les retraits de chaque option.
+
+**Règles de gestion**
+
+- RG-OPT-01 : une option a un nom, un prix, un stock facultatif et un maximum par commande ; elle peut être réservée à certains tarifs.
+- RG-OPT-02 : une option est un article (« 3 jetons boisson »), jamais un solde d'argent : aucun porte-monnaie, donc aucune monnaie électronique au sens réglementaire.
+- RG-OPT-03 : les options achetées sont rattachées au billet et à son QR code ; un QR code de retrait est émis pour des options achetées sans billet (vestiaire seul, par exemple).
+- RG-OPT-04 : retrait par le scanner, en mode « Bar et options » : le scan affiche les options restantes, l'équipe retire la quantité servie ; chaque retrait est journalisé (appareil, membre, heure).
+- RG-OPT-05 : retrait possible hors ligne ; à la reconnexion, un retrait en double est signalé à l'organisateur, comme pour le scan des billets.
+- RG-OPT-06 : commission sur les options à valider (section 17) ; proposition : 2 % du prix, sans part fixe, avec le même plafond que les billets.
+- RG-OPT-07 : les options non retirées sont remboursables jusqu'au début de l'événement ; après, elles ne le sont plus, sauf réglage contraire de l'organisateur.
+- RG-OPT-08 : options et retraits apparaissent dans les statistiques, les exports et les relevés.
+
+**Critères d'acceptation**
+
+- Achat d'un billet avec 3 jetons, retrait de 2 au bar : le troisième reste visible au scan suivant.
+- Aucun retrait au-delà de la quantité achetée, y compris avec deux téléphones à la fois (en ligne).
+
+### 9.30 Liste d'attente (P1)
+
+**User stories**
+
+- US-ATT-01 : en tant que participant, quand un tarif est complet, je m'inscris sur la liste d'attente avec mon e-mail.
+- US-ATT-02 : en tant qu'inscrit, je suis prévenu dès qu'une place se libère, et je dispose d'un délai réservé pour l'acheter.
+- US-ATT-03 : en tant qu'organisateur, je vois la liste et je décide d'ouvrir des places supplémentaires.
+
+**Règles de gestion**
+
+- RG-ATT-01 : inscription sur un tarif complet, avec l'e-mail, le nombre de places souhaitées (1 à 4, dans la limite du maximum par commande) et le consentement ; une inscription par e-mail et par tarif ; protection anti-robots (RG-BUY-10).
+- RG-ATT-02 : une place se libère quand une commande est remboursée ou expire, quand l'organisateur augmente le stock, ou quand une place est mise en revente.
+- RG-ATT-03 : les inscrits sont prévenus dans l'ordre d'inscription ; chacun reçoit un lien personnel qui lui réserve les places pendant 30 minutes (durée réglable, à valider en section 17) ; sans achat, l'offre passe au suivant.
+- RG-ATT-04 : une place mise en revente est d'abord proposée aux inscrits pendant le délai réservé, au prix fixé par le vendeur, par le parcours habituel de la revente (section 9.13) ; le vendeur est remboursé dès la vente.
+- RG-ATT-05 : un inscrit se désinscrit en un clic ; la liste est supprimée après l'événement.
+- RG-ATT-06 : l'organisateur voit le nombre d'inscrits par tarif ; l'export ne contient que les inscrits qui ont consenti à être recontactés.
+
+**Critères d'acceptation**
+
+- Remboursement d'un billet sur un tarif complet : le premier inscrit reçoit son lien dans la minute, le deuxième si le délai expire sans achat.
+- Une place mise en revente est achetée par un inscrit, et son vendeur est remboursé.
+
+### 9.31 Tables et forfaits (P1)
+
+**User stories**
+
+- US-TAB-01 : en tant qu'organisateur de club ou de gala, je vends des tables sur mon plan de salle, avec un forfait : nombre de personnes, bouteilles, accès.
+- US-TAB-02 : en tant que client, je choisis ma table sur le plan, je paie le forfait et j'envoie leur billet à mes invités.
+- US-TAB-03 : en tant que membre de l'équipe, je vois à l'entrée la table de chaque invité, et au bar les consommations comprises.
+
+**Règles de gestion**
+
+- RG-TAB-01 : une table est un groupe de places du plan de salle, vendu d'un bloc, au prix du forfait.
+- RG-TAB-02 : le forfait donne un nombre de billets (les places de la table) et, s'il y a lieu, des options comprises (section 9.29), retirées au bar.
+- RG-TAB-03 : le client reçoit tous les billets ; il peut les nommer ou les transférer à ses invités ; chaque billet indique la table.
+- RG-TAB-04 : la table est réservée pendant le paiement, comme un billet (section 8.5) : aucune double vente.
+- RG-TAB-05 : réservation sur demande (validée par l'organisateur) et acompte : hors du premier livrable, à valider en section 17.
+- RG-TAB-06 : réservé à l'offre Pro, comme le plan de salle.
+
+**Critères d'acceptation**
+
+- Vente d'une table de 6 avec 2 bouteilles : 6 billets émis, 2 options à retirer, table indisponible sur le plan.
+
 ## 10. Catalogue des e-mails
 
 Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la file de tâches. Catégories : **T** transactionnel (toujours envoyé), **S** service (respecte la désinscription de l'événement), **M** marketing (consentement requis).
@@ -1417,6 +1576,8 @@ La v1 ne contient que des données de test : **scénario A retenu**.
 7. **Pro** : abonnement et essai, marque, domaines personnalisés, rappels, campagnes, membres et rôles, plusieurs organisations.
 8. **Lancement** : documents légaux, sécurité (test d'intrusion), charge, accessibilité, migration, bêta privée avec quelques organisateurs, ouverture.
 
+9. **Conquête** (avant la prospection de masse) : options et consommations prépayées (socle des tables et forfaits), liste d'attente, ambassadeurs, billetterie intégrable, vente sur place par QR code et en espèces, tables et forfaits ; puis application mobile native et paiement sans contact sur le téléphone de l'équipe.
+
 Chaque étape se termine par une démonstration et le passage des tests de la section 14.
 
 ---
@@ -1449,6 +1610,12 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 | 20  | Réponses de la FAQ du site (versements, essai, résiliation, domaine, annulation, HelloAsso) | À relire avec les règles de ce document                                                                                 |
 
 ---
+
+- **Commission sur les options et consommations** (RG-OPT-06) : proposition 2 % du prix sans part fixe, avec le plafond des billets ; la formule des billets (0,29 € + 2 %) pèserait trop sur un jeton à 2 €.
+- **Répartition Free et Pro des nouvelles fonctions** (section 4) : proposition : ambassadeurs limités à 3 par événement en Free, sans contact et tables réservés à Pro, le reste dans les deux offres.
+- **Délai réservé de la liste d'attente** (RG-ATT-03) : proposition 30 minutes, réglable par l'organisateur.
+- **Application mobile native** (section 9.27) : nécessaire au paiement sans contact ; demande de l'autorisation « Tap to Pay on iPhone » à Apple à déposer tôt ⚠.
+- **Tables sur demande et acompte** (RG-TAB-05) : à prévoir après le premier livrable si les clubs le demandent.
 
 ## Annexe A - Glossaire
 

@@ -6,6 +6,7 @@
 
 ## Écarts connus
 
+- **Lot Conquête** (sections 9.26 à 9.31 : billetterie intégrable, vente sur place, ambassadeurs, options et consommations, liste d'attente, tables et forfaits) : à faire, à réaliser avant la prospection de masse ; ses récits (US-EMB, US-POS, US-AMB, US-OPT, US-ATT, US-TAB) et ses règles (RG-EMB, RG-POS, RG-AMB, RG-OPT, RG-ATT, RG-TAB) ne sont pas encore comptés dans le bilan.
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
 
 ## Détail
