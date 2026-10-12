@@ -1304,3 +1304,174 @@ export function latePaymentRefundEmail(o: {
 </table></td></tr></table></body></html>`;
   return { subject: c.subject(o.eventTitle), html, text: [o.organizationName, c.title, "", c.body(o.eventTitle, o.amount), "", c.outro].join("\n") };
 }
+
+/** Liste d'attente (section 9.30) : confirmation d'inscription et place libérée. */
+const WAITLIST_COPY = {
+  fr: {
+    joinedSubject: (e: string) => `${e} : vous êtes sur la liste d’attente`,
+    joinedTitle: "Vous êtes sur la liste d’attente",
+    joinedBody: (e: string, t: string) => `Le tarif ${t} de ${e} est complet. Dès qu’une place se libère, nous vous écrivons, dans l’ordre d’inscription.`,
+    offerSubject: (e: string) => `${e} : une place s’est libérée pour vous`,
+    offerTitle: "Une place s’est libérée pour vous",
+    offerBody: (e: string, t: string, n: number) =>
+      `${n > 1 ? `${n} places` : "Une place"} au tarif ${t} de ${e} vous ${n > 1 ? "sont réservées" : "est réservée"}.`,
+    offerUntil: (d: string) => `Réservation valable jusqu’à ${d}. Passé ce délai, elle sera proposée à la personne suivante.`,
+    cta: "Réserver ma place",
+    outro: "Vous ne souhaitez plus attendre ?",
+    unsubscribe: "Quitter la liste d’attente",
+  },
+  en: {
+    joinedSubject: (e: string) => `${e}: you are on the waiting list`,
+    joinedTitle: "You are on the waiting list",
+    joinedBody: (e: string, t: string) =>
+      `The ${t} ticket for ${e} is sold out. As soon as a place frees up, we will email you, in the order people signed up.`,
+    offerSubject: (e: string) => `${e}: a place has freed up for you`,
+    offerTitle: "A place has freed up for you",
+    offerBody: (e: string, t: string, n: number) => `${n > 1 ? `${n} places` : "A place"} at the ${t} price for ${e} ${n > 1 ? "are" : "is"} held for you.`,
+    offerUntil: (d: string) => `Held until ${d}. After that, it will be offered to the next person.`,
+    cta: "Get my place",
+    outro: "Don’t want to wait any longer?",
+    unsubscribe: "Leave the waiting list",
+  },
+  nl: {
+    joinedSubject: (e: string) => `${e}: je staat op de wachtlijst`,
+    joinedTitle: "Je staat op de wachtlijst",
+    joinedBody: (e: string, t: string) => `Het tarief ${t} van ${e} is uitverkocht. Zodra er een plaats vrijkomt, mailen we je, in volgorde van inschrijving.`,
+    offerSubject: (e: string) => `${e}: er is een plaats vrijgekomen voor jou`,
+    offerTitle: "Er is een plaats vrijgekomen voor jou",
+    offerBody: (e: string, t: string, n: number) =>
+      `${n > 1 ? `${n} plaatsen` : "Eén plaats"} aan het tarief ${t} van ${e} ${n > 1 ? "zijn" : "is"} voor je gereserveerd.`,
+    offerUntil: (d: string) => `Gereserveerd tot ${d}. Daarna gaat ze naar de volgende persoon.`,
+    cta: "Mijn plaats reserveren",
+    outro: "Wil je niet langer wachten?",
+    unsubscribe: "De wachtlijst verlaten",
+  },
+  de: {
+    joinedSubject: (e: string) => `${e}: Sie stehen auf der Warteliste`,
+    joinedTitle: "Sie stehen auf der Warteliste",
+    joinedBody: (e: string, t: string) =>
+      `Der Tarif ${t} für ${e} ist ausverkauft. Sobald ein Platz frei wird, schreiben wir Ihnen, in der Reihenfolge der Anmeldung.`,
+    offerSubject: (e: string) => `${e}: Ein Platz ist für Sie frei geworden`,
+    offerTitle: "Ein Platz ist für Sie frei geworden",
+    offerBody: (e: string, t: string, n: number) =>
+      `${n > 1 ? `${n} Plätze` : "Ein Platz"} zum Tarif ${t} für ${e} ${n > 1 ? "sind" : "ist"} für Sie reserviert.`,
+    offerUntil: (d: string) => `Reserviert bis ${d}. Danach wird er der nächsten Person angeboten.`,
+    cta: "Meinen Platz sichern",
+    outro: "Sie möchten nicht mehr warten?",
+    unsubscribe: "Warteliste verlassen",
+  },
+  es: {
+    joinedSubject: (e: string) => `${e}: estás en la lista de espera`,
+    joinedTitle: "Estás en la lista de espera",
+    joinedBody: (e: string, t: string) => `La tarifa ${t} de ${e} está agotada. En cuanto se libere una plaza, te escribiremos, por orden de inscripción.`,
+    offerSubject: (e: string) => `${e}: se ha liberado una plaza para ti`,
+    offerTitle: "Se ha liberado una plaza para ti",
+    offerBody: (e: string, t: string, n: number) =>
+      `${n > 1 ? `${n} plazas` : "Una plaza"} con la tarifa ${t} de ${e} ${n > 1 ? "están reservadas" : "está reservada"} para ti.`,
+    offerUntil: (d: string) => `Reservada hasta ${d}. Después, se ofrecerá a la siguiente persona.`,
+    cta: "Reservar mi plaza",
+    outro: "¿Ya no quieres esperar?",
+    unsubscribe: "Salir de la lista de espera",
+  },
+  it: {
+    joinedSubject: (e: string) => `${e}: sei in lista d’attesa`,
+    joinedTitle: "Sei in lista d’attesa",
+    joinedBody: (e: string, t: string) => `La tariffa ${t} di ${e} è esaurita. Appena si libera un posto, ti scriviamo, in ordine di iscrizione.`,
+    offerSubject: (e: string) => `${e}: si è liberato un posto per te`,
+    offerTitle: "Si è liberato un posto per te",
+    offerBody: (e: string, t: string, n: number) =>
+      `${n > 1 ? `${n} posti` : "Un posto"} con la tariffa ${t} di ${e} ${n > 1 ? "sono riservati" : "è riservato"} per te.`,
+    offerUntil: (d: string) => `Riservato fino a ${d}. Dopo, sarà proposto alla persona successiva.`,
+    cta: "Prenota il mio posto",
+    outro: "Non vuoi più aspettare?",
+    unsubscribe: "Lascia la lista d’attesa",
+  },
+  pt: {
+    joinedSubject: (e: string) => `${e}: está na lista de espera`,
+    joinedTitle: "Está na lista de espera",
+    joinedBody: (e: string, t: string) => `A tarifa ${t} de ${e} está esgotada. Assim que um lugar ficar livre, escrevemos-lhe, por ordem de inscrição.`,
+    offerSubject: (e: string) => `${e}: ficou um lugar livre para si`,
+    offerTitle: "Ficou um lugar livre para si",
+    offerBody: (e: string, t: string, n: number) =>
+      `${n > 1 ? `${n} lugares` : "Um lugar"} na tarifa ${t} de ${e} ${n > 1 ? "estão reservados" : "está reservado"} para si.`,
+    offerUntil: (d: string) => `Reservado até ${d}. Depois, será proposto à pessoa seguinte.`,
+    cta: "Reservar o meu lugar",
+    outro: "Já não quer esperar?",
+    unsubscribe: "Sair da lista de espera",
+  },
+};
+
+function waitlistHtml(o: {
+  brand?: EmailBrand | null;
+  organizationName: string;
+  title: string;
+  body: string;
+  note?: string;
+  cta?: { label: string; url: string };
+  outro: string;
+  unsubscribe: string;
+  unsubscribeUrl: string;
+}) {
+  return `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
+<tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
+<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(o.title)}</td></tr>
+<tr><td style="font-size:15px;line-height:1.6;padding-bottom:${o.note ? 6 : 20}px">${escapeHtml(o.body)}</td></tr>
+${o.note ? `<tr><td style="font-size:14px;color:#555;padding-bottom:20px">${escapeHtml(o.note)}</td></tr>` : ""}
+${o.cta ? `<tr><td><a href="${escapeHtml(o.cta.url)}" style="display:inline-block;background:${palette.charbon};color:${palette.blanc};text-decoration:none;font-weight:600;border-radius:999px;padding:14px 26px">${escapeHtml(o.cta.label)}</a></td></tr>` : ""}
+<tr><td style="font-size:12px;line-height:1.6;color:#777;padding-top:24px">${escapeHtml(o.outro)} <a href="${escapeHtml(o.unsubscribeUrl)}" style="color:#777">${escapeHtml(o.unsubscribe)}</a></td></tr>
+</table></td></tr></table></body></html>`;
+}
+
+export function waitlistJoinedEmail(o: {
+  brand?: EmailBrand | null;
+  locale: Locale;
+  organizationName: string;
+  eventTitle: string;
+  ticketTypeName: string;
+  unsubscribeUrl: string;
+}): RenderedEmail {
+  const c = pick(WAITLIST_COPY, o.locale);
+  const body = c.joinedBody(o.eventTitle, o.ticketTypeName);
+  const html = waitlistHtml({
+    brand: o.brand,
+    organizationName: o.organizationName,
+    title: c.joinedTitle,
+    body,
+    outro: c.outro,
+    unsubscribe: c.unsubscribe,
+    unsubscribeUrl: o.unsubscribeUrl,
+  });
+  const text = [o.organizationName, c.joinedTitle, "", body, "", c.outro, `${c.unsubscribe} : ${o.unsubscribeUrl}`].join("\n");
+  return { subject: c.joinedSubject(o.eventTitle), html, text };
+}
+
+export function waitlistOfferEmail(o: {
+  brand?: EmailBrand | null;
+  locale: Locale;
+  organizationName: string;
+  eventTitle: string;
+  ticketTypeName: string;
+  quantity: number;
+  until: string;
+  url: string;
+  unsubscribeUrl: string;
+}): RenderedEmail {
+  const c = pick(WAITLIST_COPY, o.locale);
+  const body = c.offerBody(o.eventTitle, o.ticketTypeName, o.quantity);
+  const note = c.offerUntil(o.until);
+  const html = waitlistHtml({
+    brand: o.brand,
+    organizationName: o.organizationName,
+    title: c.offerTitle,
+    body,
+    note,
+    cta: { label: c.cta, url: o.url },
+    outro: c.outro,
+    unsubscribe: c.unsubscribe,
+    unsubscribeUrl: o.unsubscribeUrl,
+  });
+  const text = [o.organizationName, c.offerTitle, "", body, note, "", `${c.cta} : ${o.url}`, "", c.outro, `${c.unsubscribe} : ${o.unsubscribeUrl}`].join("\n");
+  return { subject: c.offerSubject(o.eventTitle), html, text };
+}

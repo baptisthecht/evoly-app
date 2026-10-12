@@ -521,6 +521,7 @@ enum RefundPolicy {
 }
 
 model Event {
+  waitlist     WaitlistEntry[]
   options      EventOption[]
   id                  String          @id @default(cuid())
   organizationId      String
@@ -650,6 +651,7 @@ enum TicketVisibility {
 }
 
 model TicketType {
+  waitlist     WaitlistEntry[]
   id                String           @id @default(cuid())
   eventId           String
   name              String
@@ -1957,5 +1959,37 @@ model OptionRedemption {
   line          OrderOption @relation(fields: [orderOptionId], references: [id], onDelete: Cascade)
 
   @@index([orderOptionId])
+}
+
+/// Liste d'attente (section 9.30) : une inscription par adresse et par tarif complet
+enum WaitlistStatus {
+  WAITING // en attente d'une place
+  OFFERED // place proposée, réservée jusqu'à offerExpiresAt
+  PURCHASED
+  EXPIRED // offre non utilisée à temps
+  CANCELLED // désinscription
+}
+
+model WaitlistEntry {
+  id              String         @id @default(cuid())
+  eventId         String
+  ticketTypeId    String
+  email           String
+  quantity        Int            @default(1) // places souhaitées (1 à 4)
+  offeredQuantity Int? // places proposées (au plus celles souhaitées)
+  locale          String         @default("fr")
+  status          WaitlistStatus @default(WAITING)
+  token           String         @unique // lien personnel d'achat et de désinscription
+  consentAt       DateTime       @default(now())
+  offeredAt       DateTime?
+  offerExpiresAt  DateTime?
+  orderId         String? // commande passée avec l'offre
+  createdAt       DateTime       @default(now())
+  event           Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketType      TicketType     @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketTypeId, email])
+  @@index([ticketTypeId, status, createdAt])
+  @@index([eventId, status])
 }
 

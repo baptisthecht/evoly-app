@@ -37,6 +37,7 @@ import { sendEmail } from "./email/send";
 import { safeError } from "@/lib/redact";
 import { formatMoney, toLocale } from "@evoly/i18n";
 import { NO_OPTIONS, priceOptionsInTx, type RequestedOption } from "./options";
+import { blockedForPublic, validOffer } from "./waitlist";
 
 type Tx = Prisma.TransactionClient;
 
@@ -169,6 +170,7 @@ export async function reserveOrder(
     seatIds?: string[] | null;
     nearCode?: string | null;
     options?: RequestedOption[] | null; // options et consommations prépayées (section 9.29, Pro)
+    waitlistToken?: string | null; // lien personnel d'un inscrit à la liste d'attente (section 9.30)
   },
   now = new Date(),
 ): Promise<Reservation> {
@@ -190,6 +192,22 @@ export async function reserveOrder(
       },
     });
     const types: TicketTypeForSale[] = event.ticketTypes.map((t) => ({ ...t, tiers: t.priceTiers }));
+    // section 9.30 : tant que des inscrits attendent, le tarif reste complet pour le public, sauf pour l'inscrit qui achète avec son offre
+    const offer = input.waitlistToken ? await validOffer(tx, input.waitlistToken, event.id, now) : null;
+    const blocked = await blockedForPublic(
+      tx,
+      input.lines.map((l) => l.ticketTypeId),
+      now,
+    );
+    for (const l of input.lines) {
+      if (blocked.has(l.ticketTypeId) && l.ticketTypeId !== offer?.ticketTypeId)
+        throw new CartRejected([{ code: "NOT_ENOUGH_STOCK", ticketTypeId: l.ticketTypeId, available: 0 }]);
+    }
+    if (offer) {
+      const asked = input.lines.filter((l) => l.ticketTypeId === offer.ticketTypeId).reduce((n, l) => n + l.quantity, 0);
+      const allowed = offer.offeredQuantity ?? offer.quantity;
+      if (asked > allowed) throw new CartRejected([{ code: "NOT_ENOUGH_STOCK", ticketTypeId: offer.ticketTypeId, available: allowed }]);
+    }
     let promo: PromoInput | null = null;
     if (input.promoCode) {
       const row = await tx.promoCode.findUnique({ where: { eventId_code: { eventId: event.id, code: normalizePromoCode(input.promoCode) } } });
@@ -304,6 +322,7 @@ export async function reserveOrder(
       },
       include: { items: true, options: { include: { option: { select: { name: true } } } } },
     });
+    if (offer) await tx.waitlistEntry.update({ where: { id: offer.id }, data: { orderId: order.id } });
     const names = new Map(
       event.ticketTypes.map((t) => [
         t.id,

@@ -106,6 +106,7 @@ export async function reserveAction(
   nearCode?: string | null,
   botProof?: unknown,
   options?: unknown,
+  waitlistToken?: unknown,
 ): Promise<Result<ReservationView>> {
   // RG-BUY-10 : preuve anti-robots exigée sur les événements où l'organisateur l'a activée
   if ((await botProtected(eventId.slice(0, 40))) && !(await verifyProof(eventId.slice(0, 40), botProof))) return { ok: false, error: "BOT_CHECK_FAILED" };
@@ -127,6 +128,7 @@ export async function reserveAction(
       seatIds: seats,
       nearCode: typeof nearCode === "string" ? nearCode.slice(0, 16) : null,
       options: optionsSchema.safeParse(options ?? []).data ?? [],
+      waitlistToken: typeof waitlistToken === "string" ? waitlistToken.slice(0, 60) : null,
     });
     const held = await reservationSeats(r.orderId);
     return {

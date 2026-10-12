@@ -18,6 +18,7 @@ import { buildTicketsPdf } from "./ticketsPdf";
 import { emailBrandFor, logoBytes } from "./email/brand";
 import { organizationPublicUrl } from "./urls";
 import { safeError } from "@/lib/redact";
+import { markWaitlistPurchased } from "./waitlist";
 
 export function ticketsUrl(org: { subdomain: string | null; slug: string }, orderId: string, version: number): string {
   return `${organizationPublicUrl(org.subdomain ?? org.slug)}/billets/${orderAccessToken(orderId, version)}`;
@@ -307,6 +308,7 @@ export async function sendTicketsLookup(organizationId: string, email: string, l
 export async function afterOrderPaid(orderId: string): Promise<void> {
   await sendOrderConfirmation(orderId).catch((err) => console.error("confirmation non envoyée", orderId, safeError(err)));
   await settleResale(orderId).catch((err) => console.error("revente à régler", orderId, safeError(err)));
+  await markWaitlistPurchased(orderId).catch((err) => console.error("liste d'attente", orderId, safeError(err)));
   // section 9.20 : nouvelle commande (hors revente, signalée à part) et paliers de jauge
   const o = await db.order.findUnique({
     where: { id: orderId },
