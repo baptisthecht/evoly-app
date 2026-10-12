@@ -26,9 +26,20 @@ export GOOGLE_WALLET_PRIVATE_KEY="$(b64 "$d/google.pem")"
 npx playwright install chromium > /dev/null
 echo "Construction de l'app…"
 pnpm build > /tmp/evoly-e2e-build.log 2>&1 || { tail -40 /tmp/evoly-e2e-build.log; echo "ÉCHEC : construction de l'app"; exit 1; }
+# un autre serveur sur le port 3001 (essai précédent mal arrêté) ferait parler les parcours à la mauvaise base : on refuse
+if curl -sf -o /dev/null --max-time 2 http://localhost:3001/api/health; then
+  echo "ÉCHEC : le port 3001 est déjà occupé par un autre serveur. Arrêtez-le : les parcours ne doivent parler qu'au serveur qu'ils viennent de construire."
+  exit 1
+fi
 npx next start -p 3001 > /tmp/evoly-e2e-server.log 2>&1 &
 server=$!
-trap 'kill "$server" 2> /dev/null || true' EXIT
+# arrêt de toute l'arborescence : npx lance le vrai serveur (next-server) dans un processus enfant, qui survivait seul
+killtree() {
+  local p
+  for p in $(pgrep -P "$1" 2> /dev/null); do killtree "$p"; done
+  kill "$1" 2> /dev/null || true
+}
+trap 'killtree "$server"' EXIT
 npx --yes wait-on -t 90000 http://localhost:3001/api/health
 echo "Parcours complets…"
 npx playwright test "$@"
