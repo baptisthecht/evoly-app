@@ -13,6 +13,14 @@ export default defineConfig({
     testTimeout: 60_000,
     hookTimeout: 60_000,
     fileParallelism: false,
+    // couverture du code serveur ; cliquet (docs/MAINTENANCE.md) : plancher relevé à chaque série de tests ajoutés, jamais abaissé
+    coverage: {
+      provider: "v8",
+      include: ["src/server/**/*.ts", "src/lib/**/*.ts"],
+      exclude: ["src/generated/**"],
+      reporter: ["text-summary", "json-summary"],
+      thresholds: { statements: 66, branches: 56, functions: 60, lines: 71 },
+    },
     env: {
       DATABASE_URL: process.env.DATABASE_URL ?? "postgresql://evoly:evoly@localhost:5432/evoly",
       EMAIL_OUTBOX_DIR: process.env.EMAIL_OUTBOX_DIR ?? path.join(os.tmpdir(), "evoly-test-outbox"),

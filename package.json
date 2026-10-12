@@ -18,7 +18,8 @@
     "db:seed": "pnpm --filter @evoly/db seed",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "traceability": "node ops/traceability.mjs"
   },
   "devDependencies": {
     "lint-staged": "^17.6.0",
