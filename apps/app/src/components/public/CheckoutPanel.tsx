@@ -420,6 +420,14 @@ export function CheckoutPanel({
             <span className="font-semibold tabular-nums">{money(l.unitPriceMinor * l.quantity)}</span>
           </li>
         ))}
+        {reservation.options.map((o) => (
+          <li key={o.optionId} className="flex items-baseline justify-between gap-3 text-sm">
+            <span>
+              {o.quantity} × {o.name}
+            </span>
+            <span className="font-semibold tabular-nums">{money(o.unitPriceMinor * o.quantity)}</span>
+          </li>
+        ))}
         {reservation.discountMinor > 0 && reservation.promoCode ? (
           <li className="flex items-baseline justify-between gap-3 text-sm text-ink-muted">
             <span>{t("promoLine", { code: reservation.promoCode })}</span>

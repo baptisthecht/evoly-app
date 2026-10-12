@@ -504,7 +504,10 @@
     "friendsBody": "Partilhe este link: os seus amigos vão ver os seus lugares e receber a proposta dos lugares livres mais próximos dos seus.",
     "friendsLink": "Link para partilhar",
     "friendsShare": "Partilhar o link",
-    "friendsCopied": "Link copiado."
+    "friendsCopied": "Link copiado.",
+    "optionsTitle": "Os seus extras",
+    "optionsHint": "A levantar no bar com uma simples leitura do seu bilhete.",
+    "optionsLeft": "Restam {left} de {quantity} por levantar"
   },
   "scanner": {
     "valid": "Bilhete válido",

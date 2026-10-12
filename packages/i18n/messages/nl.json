@@ -504,7 +504,10 @@
     "friendsBody": "Deel deze link: je vrienden zien jouw plaatsen en krijgen de vrije plaatsen voorgesteld die het dichtst bij de jouwe liggen.",
     "friendsLink": "Link om te delen",
     "friendsShare": "Link delen",
-    "friendsCopied": "Link gekopieerd."
+    "friendsCopied": "Link gekopieerd.",
+    "optionsTitle": "Je opties",
+    "optionsHint": "In te wisselen aan de bar met een simpele scan van je ticket.",
+    "optionsLeft": "Nog {left} van {quantity} in te wisselen"
   },
   "scanner": {
     "valid": "Geldig ticket",

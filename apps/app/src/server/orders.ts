@@ -31,6 +31,7 @@ export async function sendOrderConfirmation(orderId: string, template = "order.c
       event: true,
       organization: { select: { name: true, subdomain: true, slug: true } },
       items: { include: { ticketType: { select: { name: true } } } },
+      options: { include: { option: { select: { name: true } } }, orderBy: { createdAt: "asc" } },
       tickets: {
         include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } },
         orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
@@ -51,7 +52,11 @@ export async function sendOrderConfirmation(orderId: string, template = "order.c
     when: formatDateTime(e.startsAt, e.timezone, locale),
     where,
     online: e.locationType !== "PHYSICAL" ? e.onlineUrl : null,
-    lines: order.items.map((i) => ({ name: i.ticketType.name, quantity: i.quantity })),
+    // options et consommations prépayées listées avec les billets (section 9.29)
+    lines: [
+      ...order.items.map((i) => ({ name: i.ticketType.name, quantity: i.quantity })),
+      ...order.options.map((o) => ({ name: o.option.name, quantity: o.quantity })),
+    ],
     total: order.totalMinor === 0 ? null : formatMoney(order.totalMinor, order.currency, locale),
     reference: order.reference,
     url: ticketsUrl(order.organization, order.id, order.accessTokenVersion),
@@ -360,6 +365,7 @@ export async function getBuyerOrder(orderId: string) {
       event: true,
       organization: { select: { subdomain: true, slug: true } },
       items: { include: { ticketType: { select: { name: true } }, priceTier: { select: { name: true } } } },
+      options: { include: { option: { select: { name: true } } }, orderBy: { createdAt: "asc" } },
       tickets: {
         include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } },
         orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],

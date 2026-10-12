@@ -504,7 +504,10 @@
     "friendsBody": "Comparte este enlace: tus amigos verán tus plazas y se les propondrán las plazas libres más cercanas a las tuyas.",
     "friendsLink": "Enlace para compartir",
     "friendsShare": "Compartir el enlace",
-    "friendsCopied": "Enlace copiado."
+    "friendsCopied": "Enlace copiado.",
+    "optionsTitle": "Tus extras",
+    "optionsHint": "Se canjean en la barra con un simple escaneo de tu entrada.",
+    "optionsLeft": "Quedan {left} de {quantity} por canjear"
   },
   "scanner": {
     "valid": "Entrada válida",

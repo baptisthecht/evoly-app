@@ -504,7 +504,10 @@
     "friendsBody": "Teilen Sie diesen Link: Ihre Freunde sehen Ihre Plätze und bekommen die freien Plätze vorgeschlagen, die Ihren am nächsten sind.",
     "friendsLink": "Link zum Teilen",
     "friendsShare": "Link teilen",
-    "friendsCopied": "Link kopiert."
+    "friendsCopied": "Link kopiert.",
+    "optionsTitle": "Ihre Extras",
+    "optionsHint": "An der Bar mit einem einfachen Scan Ihres Tickets einzulösen.",
+    "optionsLeft": "Noch {left} von {quantity} einzulösen"
   },
   "scanner": {
     "valid": "Gültiges Ticket",

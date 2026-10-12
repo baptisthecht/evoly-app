@@ -504,7 +504,10 @@
     "friendsBody": "Condividi questo link: i tuoi amici vedranno i tuoi posti e riceveranno la proposta dei posti liberi più vicini ai tuoi.",
     "friendsLink": "Link da condividere",
     "friendsShare": "Condividi il link",
-    "friendsCopied": "Link copiato."
+    "friendsCopied": "Link copiato.",
+    "optionsTitle": "I tuoi extra",
+    "optionsHint": "Da riscattare al bar con una semplice scansione del biglietto.",
+    "optionsLeft": "Ne restano {left} su {quantity} da riscattare"
   },
   "scanner": {
     "valid": "Biglietto valido",

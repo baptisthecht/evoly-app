@@ -484,7 +484,10 @@
     "friendsBody": "Share this link: your friends will see your seats and be offered the free seats closest to yours.",
     "friendsLink": "Link to share",
     "friendsShare": "Share the link",
-    "friendsCopied": "Link copied."
+    "friendsCopied": "Link copied.",
+    "optionsTitle": "Your add-ons",
+    "optionsHint": "Redeem them at the bar with a simple scan of your ticket.",
+    "optionsLeft": "{left} of {quantity} left to redeem"
   },
   "resale": {
     "sell": "Resell my ticket",

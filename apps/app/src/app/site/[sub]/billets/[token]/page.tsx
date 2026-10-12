@@ -130,6 +130,22 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
                 </a>
               </div>
             </section>
+            {order.options.length ? (
+              <section className="grid gap-2 rounded-lg bg-surface-sunken p-5" aria-label={t("optionsTitle")}>
+                <h2 className="font-semibold">{t("optionsTitle")}</h2>
+                <p className="text-sm text-ink-muted">{t("optionsHint")}</p>
+                <ul className="grid gap-1 text-sm">
+                  {order.options.map((o) => (
+                    <li key={o.id} className="flex flex-wrap justify-between gap-3">
+                      <span>
+                        {o.quantity} × {o.option.name}
+                      </span>
+                      <span className="tabular-nums">{t("optionsLeft", { left: o.quantity - o.redeemed, quantity: o.quantity })}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
             <ol className="grid gap-4 sm:grid-cols-2">
               {order.tickets.map((tk, i) => (
                 <li

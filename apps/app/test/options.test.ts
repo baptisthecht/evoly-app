@@ -1,8 +1,10 @@
+import { readdir, readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { optionCommission } from "@evoly/core";
 import { db } from "@/lib/db";
 import { finalizeOrder, reserveOrder } from "@/server/checkout";
 import { findOrgContext } from "@/server/context";
+import { afterOrderPaid, getBuyerOrder } from "@/server/orders";
 import { createOption, listOptions, optionsForScan, optionsForTicket, publicOptions, redeemOption, setOptionActive } from "@/server/options";
 
 const DAY = 86_400_000;
@@ -105,5 +107,28 @@ describe("options et consommations prépayées (section 9.29)", () => {
     expect(parCode.options).toEqual([expect.objectContaining({ name: "Jeton boisson", quantity: 2, left: 2 })]);
     expect((await optionsForScan(s.event.id, { shortCode: ticket.shortCode })).options[0]!.left).toBe(2);
     await expect(optionsForScan(autre.event.id, { code: ticket.code })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("l'e-mail de confirmation et la page « Mes billets » montrent les options", async () => {
+    const s = await setup("pro");
+    const jeton = await createOption(s.ctx, s.event.id, { name: "Jeton boisson", price: "2" });
+    const r = await reserveOrder({
+      eventId: s.event.id,
+      lines: [{ ticketTypeId: s.type.id, quantity: 1 }],
+      locale: "fr",
+      options: [{ optionId: jeton.id, quantity: 3 }],
+    });
+    const email = `opt.${rid()}@exemple.be`;
+    await db.order.update({ where: { id: r.orderId }, data: { buyerEmail: email, buyerFirstName: "Alex", buyerLastName: "Martin" } });
+    expect(await finalizeOrder(r.orderId)).toBe("PAID");
+    await afterOrderPaid(r.orderId); // comme après la confirmation du paiement par Stripe
+    const msg = await db.emailMessage.findFirst({ where: { toEmail: email }, orderBy: { queuedAt: "desc" }, select: { id: true } });
+    expect(msg).not.toBeNull();
+    const dir = process.env.EMAIL_OUTBOX_DIR!;
+    const file = (await readdir(dir)).find((f) => f.includes(msg!.id) && f.endsWith(".json"));
+    const { text } = JSON.parse(await readFile(`${dir}/${file}`, "utf8")) as { text: string };
+    expect(text).toContain("Jeton boisson");
+    const order = await getBuyerOrder(r.orderId);
+    expect(order.options).toEqual([expect.objectContaining({ quantity: 3, redeemed: 0, option: { name: "Jeton boisson" } })]);
   });
 });

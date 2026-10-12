@@ -484,7 +484,10 @@
     "friendsBody": "Partagez ce lien : vos amis verront vos places et se verront proposer les places libres les plus proches des vôtres.",
     "friendsLink": "Lien à partager",
     "friendsShare": "Partager le lien",
-    "friendsCopied": "Lien copié."
+    "friendsCopied": "Lien copié.",
+    "optionsTitle": "Vos options",
+    "optionsHint": "À retirer au bar, sur un simple scan de votre billet.",
+    "optionsLeft": "{left} sur {quantity} à retirer"
   },
   "resale": {
     "sell": "Revendre ma place",
