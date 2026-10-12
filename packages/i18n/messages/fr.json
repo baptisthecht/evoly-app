@@ -1030,7 +1030,10 @@
     "accessCodeKeep": "Un code est déjà défini : laissez vide pour le garder, ou saisissez-en un nouveau (l’ancien ne fonctionnera plus).",
     "maxTicketsPerBuyer": "Billets par adresse e-mail",
     "maxTicketsPerBuyerHint": "Facultatif : maximum de billets qu’une même adresse peut acheter pour cet événement.",
-    "concurrentEdit": "Un autre membre a modifié cet événement pendant que vous le modifiiez : vos changements ont été enregistrés par-dessus les siens. Rechargez la page pour voir la dernière version."
+    "concurrentEdit": "Un autre membre a modifié cet événement pendant que vous le modifiiez : vos changements ont été enregistrés par-dessus les siens. Rechargez la page pour voir la dernière version.",
+    "resaleWaitlistFirst": "Proposer d'abord les places en revente aux inscrits de la liste d'attente",
+    "resaleWaitlistMinutes": "Délai réservé aux inscrits (minutes)",
+    "resaleWaitlistHint": "Pendant ce délai, la place n'apparaît pas dans la section Revente de la page : les inscrits du tarif reçoivent le lien par e-mail. Le lien du vendeur, lui, fonctionne dès la mise en revente."
   },
   "public": {
     "previewBanner": "Aperçu : c’est la page que verront vos acheteurs. Les achats ne sont pas possibles depuis l’aperçu.",

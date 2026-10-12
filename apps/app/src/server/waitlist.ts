@@ -8,7 +8,8 @@ import { env } from "@/lib/env";
 import { safeError } from "@/lib/redact";
 import { emailBrandFor } from "./email/brand";
 import { sendEmail } from "./email/send";
-import { waitlistJoinedEmail, waitlistOfferEmail } from "./email/templates";
+import { waitlistJoinedEmail, waitlistOfferEmail, waitlistResaleEmail } from "./email/templates";
+import { resaleShortUrl } from "./resale";
 import { eventPublicUrl } from "./urls";
 
 /**
@@ -238,4 +239,65 @@ export async function waitlistCounts(eventId: string) {
     _count: { _all: true },
     _sum: { quantity: true },
   });
+}
+
+/**
+ * Place mise en revente (RG-ATT-04, au choix de l'organisateur) : si l'événement le prévoit et que des inscrits attendent ce tarif,
+ * l'annonce n'apparaît dans la section Revente publique qu'après le délai réservé, et les inscrits reçoivent le lien. Le lien du vendeur,
+ * lui, fonctionne dès la mise en revente.
+ */
+export async function offerResaleToWaitlist(listingId: string, now = new Date()) {
+  const l = await db.resaleListing.findUniqueOrThrow({
+    where: { id: listingId },
+    select: {
+      id: true,
+      linkCode: true,
+      expiresAt: true,
+      ticket: { select: { ticketTypeId: true, ticketType: { select: { name: true } } } },
+      event: {
+        select: {
+          title: true,
+          timezone: true,
+          organizationId: true,
+          resaleWaitlistFirst: true,
+          resaleWaitlistMinutes: true,
+          organization: { select: { name: true } },
+        },
+      },
+    },
+  });
+  if (!l.event.resaleWaitlistFirst) return 0;
+  const waiting = await db.waitlistEntry.findMany({
+    where: { ticketTypeId: l.ticket.ticketTypeId, status: "WAITING" },
+    orderBy: { createdAt: "asc" },
+    take: 500,
+  });
+  if (waiting.length === 0) return 0;
+  const until = new Date(Math.min(now.getTime() + l.event.resaleWaitlistMinutes * 60_000, l.expiresAt.getTime()));
+  await db.resaleListing.update({ where: { id: l.id }, data: { publicFrom: until } });
+  const brand = await emailBrandFor(l.event.organizationId).catch(() => null);
+  for (const w of waiting) {
+    const locale = toLocale(w.locale);
+    const mail = waitlistResaleEmail({
+      brand,
+      locale,
+      organizationName: l.event.organization.name,
+      eventTitle: l.event.title,
+      ticketTypeName: l.ticket.ticketType.name,
+      until: formatDateTime(until, l.event.timezone, locale),
+      url: resaleShortUrl(l.linkCode),
+      unsubscribeUrl: unsubscribeUrl(w.token),
+    });
+    await sendEmail({
+      to: w.email,
+      subject: mail.subject,
+      html: mail.html,
+      text: mail.text,
+      category: "SERVICE",
+      template: "waitlist.resale",
+      organizationId: l.event.organizationId,
+      fromName: l.event.organization.name,
+    }).catch((err) => console.error("revente proposée à la liste d'attente : e-mail non envoyé", safeError(err)));
+  }
+  return waiting.length;
 }

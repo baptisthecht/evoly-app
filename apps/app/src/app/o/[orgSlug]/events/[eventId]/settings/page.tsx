@@ -72,6 +72,8 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
           salesEndLocal: local(e.salesEndAt),
           resaleEnabled: e.resaleEnabled,
           resaleCutoffHours: e.resaleCutoffMinutes / 60,
+          resaleWaitlistFirst: e.resaleWaitlistFirst,
+          resaleWaitlistMinutes: e.resaleWaitlistMinutes,
           showResaleSection: e.showResaleSection,
         }}
       />

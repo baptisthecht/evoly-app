@@ -1091,7 +1091,10 @@
     "accessCodeKeep": "Ya hay un código definido: déjalo vacío para mantenerlo o introduce uno nuevo (el anterior dejará de funcionar).",
     "maxTicketsPerBuyer": "Entradas por dirección de e-mail",
     "maxTicketsPerBuyerHint": "Opcional: máximo de entradas que una misma dirección puede comprar para este evento.",
-    "concurrentEdit": "Otro miembro ha modificado este evento mientras lo editabas: tus cambios se han guardado por encima de los suyos. Recarga la página para ver la última versión."
+    "concurrentEdit": "Otro miembro ha modificado este evento mientras lo editabas: tus cambios se han guardado por encima de los suyos. Recarga la página para ver la última versión.",
+    "resaleWaitlistFirst": "Ofrecer primero las plazas en reventa a la lista de espera",
+    "resaleWaitlistMinutes": "Tiempo reservado a la lista de espera (minutos)",
+    "resaleWaitlistHint": "Durante este tiempo, la plaza no aparece en la sección Reventa de la página: quienes esperan esa tarifa reciben el enlace por correo. El enlace del vendedor funciona desde el primer momento."
   },
   "ordersAdmin": {
     "title": "Pedidos",

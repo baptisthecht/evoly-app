@@ -121,6 +121,9 @@ export async function createListing(token: string, ticketId: string, priceInput:
         targetId: listing.id,
         metadata: { priceMinor, via: "buyer_link" },
       });
+      // section 9.30 : liste d'attente d'abord, si l'organisateur l'a choisi ; le lien du vendeur fonctionne déjà
+      const { offerResaleToWaitlist } = await import("./waitlist");
+      await offerResaleToWaitlist(listing.id, now).catch((err) => console.error("revente et liste d'attente", err instanceof Error ? err.message : "erreur"));
       return listing;
     } catch (err) {
       if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) throw err;
@@ -202,7 +205,15 @@ export async function expireResaleListings(now = new Date()): Promise<number> {
 /** Section Revente de la page de vente (RG-PUB-04) : annonces disponibles, regroupées par tarif. */
 export async function publicListings(eventId: string, now = new Date()) {
   const rows = await db.resaleListing.findMany({
-    where: { eventId, showOnEventPage: true, expiresAt: { gt: now }, OR: [{ status: "ACTIVE" }, { status: "RESERVED", reservedUntil: { lt: now } }] },
+    where: {
+      eventId,
+      showOnEventPage: true,
+      expiresAt: { gt: now },
+      AND: [
+        { OR: [{ status: "ACTIVE" }, { status: "RESERVED", reservedUntil: { lt: now } }] },
+        { OR: [{ publicFrom: null }, { publicFrom: { lte: now } }] }, // délai réservé à la liste d'attente écoulé
+      ],
+    },
     select: { id: true, linkCode: true, priceMinor: true, createdAt: true, ticket: { select: { ticketTypeId: true, ticketType: { select: { name: true } } } } },
   });
   const codes = new Map(rows.map((r) => [r.id, r.linkCode]));

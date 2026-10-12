@@ -1091,7 +1091,10 @@
     "accessCodeKeep": "Er is al een code ingesteld: laat leeg om hem te behouden, of vul een nieuwe in (de oude werkt dan niet meer).",
     "maxTicketsPerBuyer": "Tickets per e-mailadres",
     "maxTicketsPerBuyerHint": "Optioneel: maximum aantal tickets dat eenzelfde adres voor dit evenement kan kopen.",
-    "concurrentEdit": "Een ander lid heeft dit evenement gewijzigd terwijl jij het bewerkte: jouw wijzigingen zijn over de zijne heen opgeslagen. Laad de pagina opnieuw om de laatste versie te zien."
+    "concurrentEdit": "Een ander lid heeft dit evenement gewijzigd terwijl jij het bewerkte: jouw wijzigingen zijn over de zijne heen opgeslagen. Laad de pagina opnieuw om de laatste versie te zien.",
+    "resaleWaitlistFirst": "Doorverkochte plaatsen eerst aanbieden aan de wachtlijst",
+    "resaleWaitlistMinutes": "Tijd voorbehouden aan de wachtlijst (minuten)",
+    "resaleWaitlistHint": "Tijdens deze periode staat de plaats niet in de sectie Doorverkoop van de pagina: wie op de wachtlijst staat voor dat tarief, krijgt de link per e-mail. De link van de verkoper werkt meteen."
   },
   "ordersAdmin": {
     "title": "Bestellingen",

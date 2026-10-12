@@ -20,6 +20,8 @@ export interface SettingsValues extends EventFieldValues {
   salesEndLocal: string;
   resaleEnabled: boolean;
   resaleCutoffHours: number;
+  resaleWaitlistFirst: boolean;
+  resaleWaitlistMinutes: number;
   showResaleSection: boolean;
 }
 
@@ -167,6 +169,21 @@ export function SettingsForm({ orgSlug, eventId, values, readOnly }: { orgSlug: 
                 <input type="checkbox" name="showResaleSection" defaultChecked={values.showResaleSection} className="size-5 accent-[var(--ink)]" />
                 {t("showResaleSection")}
               </label>
+              <label className="flex items-center gap-3 sm:col-span-2">
+                <input type="checkbox" name="resaleWaitlistFirst" defaultChecked={values.resaleWaitlistFirst} className="size-5 accent-[var(--ink)]" />
+                {t("resaleWaitlistFirst")}
+              </label>
+              <Field label={t("resaleWaitlistMinutes")} htmlFor="resaleWaitlistMinutes" hint={t("resaleWaitlistHint")}>
+                <Input
+                  id="resaleWaitlistMinutes"
+                  name="resaleWaitlistMinutes"
+                  type="number"
+                  min={5}
+                  max={10080}
+                  step={5}
+                  defaultValue={values.resaleWaitlistMinutes}
+                />
+              </Field>
             </div>
           ) : (
             <input type="hidden" name="showResaleSection" value={values.showResaleSection ? "on" : ""} />

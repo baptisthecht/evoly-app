@@ -50,6 +50,8 @@ export interface EventSettingsInput extends EventEssentials {
   salesEndLocal?: string | null;
   resaleEnabled: boolean;
   resaleCutoffMinutes: number;
+  resaleWaitlistFirst?: boolean;
+  resaleWaitlistMinutes?: number;
   showResaleSection: boolean;
 }
 
@@ -198,6 +200,8 @@ export async function updateEventSettings(ctx: OrgContext, eventId: string, inpu
       salesEndAt,
       resaleEnabled: input.resaleEnabled,
       resaleCutoffMinutes: input.resaleCutoffMinutes,
+      ...(input.resaleWaitlistFirst !== undefined ? { resaleWaitlistFirst: input.resaleWaitlistFirst } : {}),
+      ...(input.resaleWaitlistMinutes !== undefined ? { resaleWaitlistMinutes: input.resaleWaitlistMinutes } : {}),
       showResaleSection: input.showResaleSection,
       ...(majorChange ? { lastMajorChangeAt: new Date() } : {}),
     },

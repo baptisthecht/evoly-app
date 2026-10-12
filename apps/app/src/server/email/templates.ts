@@ -1475,3 +1475,92 @@ export function waitlistOfferEmail(o: {
   const text = [o.organizationName, c.offerTitle, "", body, note, "", `${c.cta} : ${o.url}`, "", c.outro, `${c.unsubscribe} : ${o.unsubscribeUrl}`].join("\n");
   return { subject: c.offerSubject(o.eventTitle), html, text };
 }
+
+const WAITLIST_RESALE_COPY = {
+  fr: {
+    subject: (e: string) => `${e} : une place est en revente pour vous`,
+    title: "Une place est en revente pour vous",
+    body: (e: string, t: string) =>
+      `Une place au tarif ${t} de ${e} vient d’être mise en revente. Elle est proposée d’abord aux inscrits de la liste d’attente : le premier à l’acheter l’obtient.`,
+    until: (d: string) => `Réservée aux inscrits jusqu’à ${d}.`,
+    cta: "Voir la place",
+  },
+  en: {
+    subject: (e: string) => `${e}: a place is up for resale for you`,
+    title: "A place is up for resale for you",
+    body: (e: string, t: string) =>
+      `A ${t} place for ${e} has just been put up for resale. It is offered first to people on the waiting list: the first to buy it gets it.`,
+    until: (d: string) => `Reserved for the waiting list until ${d}.`,
+    cta: "See the place",
+  },
+  nl: {
+    subject: (e: string) => `${e}: er is een plaats te koop voor jou`,
+    title: "Er is een plaats te koop voor jou",
+    body: (e: string, t: string) =>
+      `Er is net een plaats aan het tarief ${t} van ${e} doorverkocht. Ze gaat eerst naar wie op de wachtlijst staat: wie ze als eerste koopt, krijgt ze.`,
+    until: (d: string) => `Voorbehouden aan de wachtlijst tot ${d}.`,
+    cta: "De plaats bekijken",
+  },
+  de: {
+    subject: (e: string) => `${e}: Ein Platz wird für Sie weiterverkauft`,
+    title: "Ein Platz wird für Sie weiterverkauft",
+    body: (e: string, t: string) =>
+      `Ein Platz zum Tarif ${t} für ${e} wurde gerade zum Weiterverkauf angeboten. Er wird zuerst den Personen auf der Warteliste angeboten: Wer zuerst kauft, bekommt ihn.`,
+    until: (d: string) => `Bis ${d} der Warteliste vorbehalten.`,
+    cta: "Platz ansehen",
+  },
+  es: {
+    subject: (e: string) => `${e}: hay una plaza en reventa para ti`,
+    title: "Hay una plaza en reventa para ti",
+    body: (e: string, t: string) =>
+      `Acaba de ponerse en reventa una plaza con la tarifa ${t} de ${e}. Se ofrece primero a la lista de espera: quien la compre primero se la queda.`,
+    until: (d: string) => `Reservada a la lista de espera hasta ${d}.`,
+    cta: "Ver la plaza",
+  },
+  it: {
+    subject: (e: string) => `${e}: c’è un posto in rivendita per te`,
+    title: "C’è un posto in rivendita per te",
+    body: (e: string, t: string) =>
+      `Un posto con la tariffa ${t} di ${e} è appena stato messo in rivendita. È proposto prima agli iscritti alla lista d’attesa: chi lo compra per primo lo ottiene.`,
+    until: (d: string) => `Riservato alla lista d’attesa fino a ${d}.`,
+    cta: "Vedi il posto",
+  },
+  pt: {
+    subject: (e: string) => `${e}: há um lugar em revenda para si`,
+    title: "Há um lugar em revenda para si",
+    body: (e: string, t: string) =>
+      `Um lugar na tarifa ${t} de ${e} acabou de ser posto em revenda. É proposto primeiro a quem está na lista de espera: quem o comprar primeiro fica com ele.`,
+    until: (d: string) => `Reservado à lista de espera até ${d}.`,
+    cta: "Ver o lugar",
+  },
+};
+
+/** Liste d'attente : place mise en revente, proposée d'abord aux inscrits pendant le délai choisi par l'organisateur. */
+export function waitlistResaleEmail(o: {
+  brand?: EmailBrand | null;
+  locale: Locale;
+  organizationName: string;
+  eventTitle: string;
+  ticketTypeName: string;
+  until: string;
+  url: string;
+  unsubscribeUrl: string;
+}): RenderedEmail {
+  const c = pick(WAITLIST_RESALE_COPY, o.locale);
+  const w = pick(WAITLIST_COPY, o.locale);
+  const body = c.body(o.eventTitle, o.ticketTypeName);
+  const note = c.until(o.until);
+  const html = waitlistHtml({
+    brand: o.brand,
+    organizationName: o.organizationName,
+    title: c.title,
+    body,
+    note,
+    cta: { label: c.cta, url: o.url },
+    outro: w.outro,
+    unsubscribe: w.unsubscribe,
+    unsubscribeUrl: o.unsubscribeUrl,
+  });
+  const text = [o.organizationName, c.title, "", body, note, "", `${c.cta} : ${o.url}`, "", w.outro, `${w.unsubscribe} : ${o.unsubscribeUrl}`].join("\n");
+  return { subject: c.subject(o.eventTitle), html, text };
+}

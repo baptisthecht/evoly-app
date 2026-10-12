@@ -1091,7 +1091,10 @@
     "accessCodeKeep": "Já existe um código definido: deixe vazio para o manter ou introduza um novo (o anterior deixará de funcionar).",
     "maxTicketsPerBuyer": "Bilhetes por endereço de e-mail",
     "maxTicketsPerBuyerHint": "Opcional: número máximo de bilhetes que um mesmo endereço pode comprar para este evento.",
-    "concurrentEdit": "Outro membro alterou este evento enquanto o editava: as suas alterações foram guardadas por cima das dele. Recarregue a página para ver a última versão."
+    "concurrentEdit": "Outro membro alterou este evento enquanto o editava: as suas alterações foram guardadas por cima das dele. Recarregue a página para ver a última versão.",
+    "resaleWaitlistFirst": "Propor primeiro os lugares em revenda à lista de espera",
+    "resaleWaitlistMinutes": "Tempo reservado à lista de espera (minutos)",
+    "resaleWaitlistHint": "Durante este tempo, o lugar não aparece na secção Revenda da página: quem espera por essa tarifa recebe a ligação por e-mail. A ligação do vendedor funciona desde o início."
   },
   "ordersAdmin": {
     "title": "Encomendas",

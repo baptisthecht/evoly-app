@@ -90,6 +90,8 @@ const settingsSchema = z.object({
   salesEndLocal: optionalLocalDate,
   resaleEnabled: checkbox,
   resaleCutoffMinutes: int(0, 10_080),
+  resaleWaitlistFirst: checkbox,
+  resaleWaitlistMinutes: int(5, 10_080),
   showResaleSection: checkbox,
 });
 

@@ -1030,7 +1030,10 @@
     "accessCodeKeep": "A code is already set: leave empty to keep it, or type a new one (the old one will stop working).",
     "maxTicketsPerBuyer": "Tickets per email address",
     "maxTicketsPerBuyerHint": "Optional: maximum tickets one address can buy for this event.",
-    "concurrentEdit": "Another member edited this event while you were editing it: your changes were saved over theirs. Reload the page to see the latest version."
+    "concurrentEdit": "Another member edited this event while you were editing it: your changes were saved over theirs. Reload the page to see the latest version.",
+    "resaleWaitlistFirst": "Offer resale places to the waiting list first",
+    "resaleWaitlistMinutes": "Time reserved for the waiting list (minutes)",
+    "resaleWaitlistHint": "During this time, the place does not appear in the page’s Resale section: people waiting for that ticket get the link by email. The seller’s own link works as soon as the place is listed."
   },
   "public": {
     "previewBanner": "Preview: this is the page your buyers will see. Purchases aren’t possible from the preview.",

@@ -521,6 +521,8 @@ enum RefundPolicy {
 }
 
 model Event {
+  resaleWaitlistFirst   Boolean @default(false) // section 9.30 : places en revente d'abord proposées aux inscrits de la liste d'attente
+  resaleWaitlistMinutes Int     @default(60) // délai réservé aux inscrits, avant la section Revente publique
   waitlist     WaitlistEntry[]
   options      EventOption[]
   id                  String          @id @default(cuid())
@@ -1115,6 +1117,7 @@ enum ResaleStatus {
 }
 
 model ResaleListing {
+  publicFrom           DateTime? // visible dans la section Revente publique à partir de cette date (délai réservé à la liste d'attente)
   id                   String         @id @default(cuid())
   eventId              String
   ticketId             String
