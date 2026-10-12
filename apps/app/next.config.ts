@@ -1,3 +1,4 @@
+import { buildCsp } from "./src/lib/csp";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
@@ -6,22 +7,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 // Politique de contenu : scripts, cadres et connexions limités à l'app et à Stripe ; jamais intégrée dans un autre site.
 // « unsafe-inline » reste nécessaire aux scripts de démarrage de Next.js (pas de nonce) ; en production seulement
 // (le mode développement exige en plus « unsafe-eval »).
-const csp = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://js.stripe.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' data: https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https:",
-  "connect-src 'self' https://api.stripe.com",
-  "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
-  "worker-src 'self' blob:",
-  "manifest-src 'self'",
-  "media-src 'self' blob:",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self' https://checkout.stripe.com https://billing.stripe.com",
-  "frame-ancestors 'none'",
-].join("; ");
+const csp = buildCsp();
 
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -40,7 +26,12 @@ const config: NextConfig = {
   transpilePackages: ["@evoly/core", "@evoly/db", "@evoly/i18n", "@evoly/ui"],
   serverExternalPackages: ["@node-rs/argon2"],
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    // module intégrable (section 9.26) : ni X-Frame-Options ni CSP fixes, l'intercepteur pose frame-ancestors avec les sites déclarés
+    const embedHeaders = securityHeaders.filter((h) => h.key !== "X-Frame-Options" && h.key !== "Content-Security-Policy");
+    return [
+      { source: "/((?!integre/).*)", headers: securityHeaders },
+      { source: "/integre/:path*", headers: embedHeaders },
+    ];
   },
 };
 

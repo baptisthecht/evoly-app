@@ -130,7 +130,9 @@
     "waitlistUnsubText": "Estás apuntado a la tarifa {ticket} de {event}.",
     "waitlistUnsubButton": "Salir de la lista de espera",
     "waitlistUnsubDone": "Hecho: ya no recibirás mensajes de esta lista de espera.",
-    "waitlistUnsubGone": "Este enlace ya no es válido."
+    "waitlistUnsubGone": "Este enlace ya no es válido.",
+    "embedBook": "Reservar",
+    "embedUnavailable": "La venta de entradas no está disponible."
   },
   "checkout": {
     "tickets": "Entradas",
@@ -411,7 +413,9 @@
     "OPTION_NOT_REDEEMABLE": "No queda nada por canjear en este extra.",
     "AMBASSADOR_NAME_REQUIRED": "Ponle un nombre al embajador.",
     "AMBASSADOR_EMAIL_INVALID": "Indica un correo válido o deja el campo vacío.",
-    "AMBASSADOR_GOAL_INVALID": "El objetivo debe ser un número entero positivo."
+    "AMBASSADOR_GOAL_INVALID": "El objetivo debe ser un número entero positivo.",
+    "EMBED_ORIGIN_INVALID": "Indica la dirección de una web en HTTPS, por ejemplo miclub.es.",
+    "EMBED_TOO_MANY": "10 webs como máximo."
   },
   "validation": {
     "required": "Este campo es obligatorio.",
@@ -829,7 +833,8 @@
     "basePrice": "Precio base",
     "tabSeating": "Plano de sala",
     "tabOptions": "Extras",
-    "tabAmbassadors": "Embajadores"
+    "tabAmbassadors": "Embajadores",
+    "tabEmbed": "Integrar"
   },
   "tickets": {
     "addTicketType": "Añadir una tarifa",
@@ -2576,5 +2581,21 @@
     "you": "tú",
     "privacy": "Aquí solo se ven totales, nunca los datos de los compradores.",
     "gone": "Este enlace ya no es válido."
+  },
+  "embed": {
+    "intro": "Vende entradas directamente en tu web: pega un botón o un módulo. La compra se abre en una ventana sobre tu web, con todos los medios de pago.",
+    "sitesTitle": "Webs autorizadas",
+    "sitesHint": "Solo estas webs pueden mostrar el módulo, en HTTPS.",
+    "siteAdd": "Añadir una web",
+    "add": "Añadir",
+    "remove": "Quitar",
+    "noSites": "Todavía no hay webs: añade la dirección de tu web.",
+    "buttonTitle": "Botón «Reservar»",
+    "buttonHint": "Lo más sencillo: un botón que abre la venta de entradas. Sin JavaScript, es un enlace a tu página de venta.",
+    "moduleTitle": "Módulo de venta",
+    "moduleHint": "El evento y sus tarifas en tu página, con un botón «Reservar».",
+    "bookLabel": "Reservar",
+    "copy": "Copiar el código",
+    "preview": "Ver la vista previa del módulo"
   }
 }

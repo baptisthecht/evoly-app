@@ -1,5 +1,6 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
+import { buildCsp } from "@/lib/csp";
 
 const PROTECTED = ["/o/", "/onboarding", "/acces-scanner", "/admin", "/2fa", "/compte"];
 const BASE_DOMAIN = (process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "evoly.me").toLowerCase();
@@ -48,9 +49,43 @@ function siteSubdomain(host: string | null): string | null {
  * mon-asso.evoly.me/concert → /site/mon-asso/concert. Les domaines personnalisés s'ajouteront ici.
  * Le contrôle complet des espaces protégés (session, appartenance, droits) reste fait côté serveur.
  */
-export function proxy(request: NextRequest) {
+/** Sites autorisés à afficher le module d'un événement, gardés une minute (section 9.26). */
+const embedCache = new Map<string, { at: number; origins: string[] }>();
+async function embedOrigins(eventId: string): Promise<string[]> {
+  const hit = embedCache.get(eventId);
+  if (hit && Date.now() - hit.at < 60_000) return hit.origins;
+  let origins: string[] = [];
+  try {
+    const res = await fetch(`http://127.0.0.1:${process.env.PORT ?? "3000"}/api/embed/${encodeURIComponent(eventId)}`, { cache: "no-store" });
+    if (res.ok) origins = ((await res.json()) as { origins?: string[] }).origins ?? [];
+  } catch {
+    origins = []; // indisponible : affichage refusé, jamais autorisé par défaut
+  }
+  if (embedCache.size > 5000) embedCache.clear();
+  embedCache.set(eventId, { at: Date.now(), origins });
+  return origins;
+}
+
+/** Module intégrable : affichage dans un cadre limité aux sites déclarés par l'organisateur, langue de la page d'accueil. */
+async function embedResponse(request: NextRequest, eventId: string) {
+  const headers = new Headers(request.headers);
+  const lang = request.nextUrl.searchParams.get("lang")?.slice(0, 2).toLowerCase();
+  if (lang && /^[a-z]{2}$/.test(lang)) headers.set("x-evoly-locale", lang);
+  const res = NextResponse.next({ request: { headers } });
+  const origins = (await embedOrigins(eventId)).filter((o) => /^https:\/\/[a-z0-9.-]+(:\d+)?$/.test(o));
+  const ancestors = origins.length ? origins.join(" ") : "'none'";
+  res.headers.set("Content-Security-Policy", process.env.NODE_ENV === "production" ? buildCsp(ancestors) : `frame-ancestors ${ancestors}`);
+  return res;
+}
+
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const host = request.headers.get("host")?.toLowerCase() ?? "";
+  if (pathname.startsWith("/integre/")) {
+    const eventId = pathname.split("/")[2] ?? "";
+    if (!/^[a-z0-9]{10,40}$/i.test(eventId)) return notFoundPage(request);
+    return embedResponse(request, eventId);
+  }
   // scanner.evoly.me/s/[jeton] → /scanner/s/[jeton] (section 9.17)
   if (host === `scanner.${BASE_DOMAIN}`) {
     const url = request.nextUrl.clone();

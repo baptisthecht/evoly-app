@@ -221,7 +221,8 @@
     "basePrice": "Base price",
     "tabSeating": "Seating plan",
     "tabOptions": "Add-ons",
-    "tabAmbassadors": "Ambassadors"
+    "tabAmbassadors": "Ambassadors",
+    "tabEmbed": "Embed"
   },
   "tickets": {
     "addTicketType": "Add a ticket type",
@@ -678,7 +679,9 @@
     "OPTION_NOT_REDEEMABLE": "Nothing left to redeem for this add-on.",
     "AMBASSADOR_NAME_REQUIRED": "Give the ambassador a name.",
     "AMBASSADOR_EMAIL_INVALID": "Enter a valid email, or leave it empty.",
-    "AMBASSADOR_GOAL_INVALID": "The goal must be a positive whole number."
+    "AMBASSADOR_GOAL_INVALID": "The goal must be a positive whole number.",
+    "EMBED_ORIGIN_INVALID": "Enter an HTTPS website address, for example myclub.com.",
+    "EMBED_TOO_MANY": "10 websites at most."
   },
   "brand": {
     "sloganStart": "your next",
@@ -1144,7 +1147,9 @@
     "waitlistUnsubText": "You are signed up for the {ticket} ticket for {event}.",
     "waitlistUnsubButton": "Leave the waiting list",
     "waitlistUnsubDone": "Done: you will no longer receive messages from this waiting list.",
-    "waitlistUnsubGone": "This link is no longer valid."
+    "waitlistUnsubGone": "This link is no longer valid.",
+    "embedBook": "Book",
+    "embedUnavailable": "Ticketing is not available."
   },
   "promo": {
     "new": "New code",
@@ -2576,5 +2581,21 @@
     "you": "you",
     "privacy": "Only totals are shown here, never buyers’ details.",
     "gone": "This link is no longer valid."
+  },
+  "embed": {
+    "intro": "Sell tickets directly on your website: paste a button or a module. Checkout opens in a window over your site, with every payment method.",
+    "sitesTitle": "Allowed websites",
+    "sitesHint": "Only these websites can display the module, over HTTPS.",
+    "siteAdd": "Add a website",
+    "add": "Add",
+    "remove": "Remove",
+    "noSites": "No website yet: add your website’s address.",
+    "buttonTitle": "“Book” button",
+    "buttonHint": "The simplest: a button that opens the ticketing. Without JavaScript, it is a link to your sales page.",
+    "moduleTitle": "Ticketing module",
+    "moduleHint": "The event and its prices shown in your page, with a “Book” button.",
+    "bookLabel": "Book",
+    "copy": "Copy the code",
+    "preview": "Preview the module"
   }
 }

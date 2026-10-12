@@ -130,7 +130,9 @@
     "waitlistUnsubText": "Sei iscritto per la tariffa {ticket} di {event}.",
     "waitlistUnsubButton": "Lascia la lista d'attesa",
     "waitlistUnsubDone": "Fatto: non riceverai più messaggi da questa lista d'attesa.",
-    "waitlistUnsubGone": "Questo link non è più valido."
+    "waitlistUnsubGone": "Questo link non è più valido.",
+    "embedBook": "Prenota",
+    "embedUnavailable": "La biglietteria non è disponibile."
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -411,7 +413,9 @@
     "OPTION_NOT_REDEEMABLE": "Non resta nulla da riscattare per questo extra.",
     "AMBASSADOR_NAME_REQUIRED": "Dai un nome all'ambasciatore.",
     "AMBASSADOR_EMAIL_INVALID": "Indica un'e-mail valida, o lascia il campo vuoto.",
-    "AMBASSADOR_GOAL_INVALID": "L'obiettivo deve essere un numero intero positivo."
+    "AMBASSADOR_GOAL_INVALID": "L'obiettivo deve essere un numero intero positivo.",
+    "EMBED_ORIGIN_INVALID": "Indica l'indirizzo di un sito in HTTPS, per esempio ilmioclub.it.",
+    "EMBED_TOO_MANY": "Al massimo 10 siti."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -829,7 +833,8 @@
     "basePrice": "Prezzo base",
     "tabSeating": "Mappa dei posti",
     "tabOptions": "Extra",
-    "tabAmbassadors": "Ambasciatori"
+    "tabAmbassadors": "Ambasciatori",
+    "tabEmbed": "Integra"
   },
   "tickets": {
     "addTicketType": "Aggiungi una tariffa",
@@ -2576,5 +2581,21 @@
     "you": "tu",
     "privacy": "Qui si vedono solo i totali, mai i dati degli acquirenti.",
     "gone": "Questo link non è più valido."
+  },
+  "embed": {
+    "intro": "Vendi i biglietti direttamente sul tuo sito: incolla un pulsante o un modulo. L'acquisto si apre in una finestra sopra il tuo sito, con tutti i metodi di pagamento.",
+    "sitesTitle": "Siti autorizzati",
+    "sitesHint": "Solo questi siti possono mostrare il modulo, in HTTPS.",
+    "siteAdd": "Aggiungi un sito",
+    "add": "Aggiungi",
+    "remove": "Rimuovi",
+    "noSites": "Ancora nessun sito: aggiungi l'indirizzo del tuo sito.",
+    "buttonTitle": "Pulsante «Prenota»",
+    "buttonHint": "Il più semplice: un pulsante che apre la biglietteria. Senza JavaScript, è un link alla tua pagina di vendita.",
+    "moduleTitle": "Modulo di biglietteria",
+    "moduleHint": "L'evento e le sue tariffe nella tua pagina, con un pulsante «Prenota».",
+    "bookLabel": "Prenota",
+    "copy": "Copia il codice",
+    "preview": "Anteprima del modulo"
   }
 }

@@ -130,7 +130,9 @@
     "waitlistUnsubText": "Sie stehen auf der Warteliste für den Tarif {ticket} von {event}.",
     "waitlistUnsubButton": "Warteliste verlassen",
     "waitlistUnsubDone": "Erledigt: Sie erhalten keine Nachrichten mehr von dieser Warteliste.",
-    "waitlistUnsubGone": "Dieser Link ist nicht mehr gültig."
+    "waitlistUnsubGone": "Dieser Link ist nicht mehr gültig.",
+    "embedBook": "Buchen",
+    "embedUnavailable": "Der Ticketverkauf ist nicht verfügbar."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -411,7 +413,9 @@
     "OPTION_NOT_REDEEMABLE": "Für dieses Extra ist nichts mehr einzulösen.",
     "AMBASSADOR_NAME_REQUIRED": "Geben Sie dem Botschafter einen Namen.",
     "AMBASSADOR_EMAIL_INVALID": "Geben Sie eine gültige E-Mail-Adresse an oder lassen Sie das Feld leer.",
-    "AMBASSADOR_GOAL_INVALID": "Das Ziel muss eine positive ganze Zahl sein."
+    "AMBASSADOR_GOAL_INVALID": "Das Ziel muss eine positive ganze Zahl sein.",
+    "EMBED_ORIGIN_INVALID": "Geben Sie die Adresse einer HTTPS-Website an, zum Beispiel meinclub.de.",
+    "EMBED_TOO_MANY": "Höchstens 10 Websites."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -829,7 +833,8 @@
     "basePrice": "Grundpreis",
     "tabSeating": "Saalplan",
     "tabOptions": "Extras",
-    "tabAmbassadors": "Botschafter"
+    "tabAmbassadors": "Botschafter",
+    "tabEmbed": "Einbinden"
   },
   "tickets": {
     "addTicketType": "Tarif hinzufügen",
@@ -2576,5 +2581,21 @@
     "you": "Sie",
     "privacy": "Hier sehen Sie nur Summen, nie Daten der Käufer.",
     "gone": "Dieser Link ist nicht mehr gültig."
+  },
+  "embed": {
+    "intro": "Verkaufen Sie Tickets direkt auf Ihrer Website: Fügen Sie einen Button oder ein Modul ein. Der Kauf öffnet sich in einem Fenster über Ihrer Website, mit allen Zahlungsarten.",
+    "sitesTitle": "Erlaubte Websites",
+    "sitesHint": "Nur diese Websites dürfen das Modul anzeigen, über HTTPS.",
+    "siteAdd": "Website hinzufügen",
+    "add": "Hinzufügen",
+    "remove": "Entfernen",
+    "noSites": "Noch keine Website: Fügen Sie die Adresse Ihrer Website hinzu.",
+    "buttonTitle": "Button „Buchen“",
+    "buttonHint": "Am einfachsten: ein Button, der den Ticketverkauf öffnet. Ohne JavaScript ist es ein Link zu Ihrer Verkaufsseite.",
+    "moduleTitle": "Ticketmodul",
+    "moduleHint": "Die Veranstaltung und ihre Preise in Ihrer Seite, mit einem Button „Buchen“.",
+    "bookLabel": "Buchen",
+    "copy": "Code kopieren",
+    "preview": "Vorschau des Moduls"
   }
 }

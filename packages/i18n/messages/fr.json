@@ -221,7 +221,8 @@
     "basePrice": "Prix de base",
     "tabSeating": "Plan de salle",
     "tabOptions": "Options",
-    "tabAmbassadors": "Ambassadeurs"
+    "tabAmbassadors": "Ambassadeurs",
+    "tabEmbed": "Intégrer"
   },
   "tickets": {
     "addTicketType": "Ajouter un tarif",
@@ -678,7 +679,9 @@
     "OPTION_NOT_REDEEMABLE": "Plus rien à retirer pour cette option.",
     "AMBASSADOR_NAME_REQUIRED": "Donnez un nom à l'ambassadeur.",
     "AMBASSADOR_EMAIL_INVALID": "Indiquez un e-mail valide, ou laissez le champ vide.",
-    "AMBASSADOR_GOAL_INVALID": "L'objectif doit être un nombre entier positif."
+    "AMBASSADOR_GOAL_INVALID": "L'objectif doit être un nombre entier positif.",
+    "EMBED_ORIGIN_INVALID": "Indiquez l'adresse d'un site en HTTPS, par exemple monclub.be.",
+    "EMBED_TOO_MANY": "10 sites au maximum."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -1144,7 +1147,9 @@
     "waitlistUnsubText": "Vous êtes inscrit pour le tarif {ticket} de {event}.",
     "waitlistUnsubButton": "Quitter la liste d'attente",
     "waitlistUnsubDone": "C'est fait : vous ne recevrez plus de message de cette liste d'attente.",
-    "waitlistUnsubGone": "Ce lien n'est plus valable."
+    "waitlistUnsubGone": "Ce lien n'est plus valable.",
+    "embedBook": "Réserver",
+    "embedUnavailable": "La billetterie n'est pas disponible."
   },
   "promo": {
     "new": "Nouveau code",
@@ -2576,5 +2581,21 @@
     "you": "vous",
     "privacy": "Seuls les totaux sont visibles ici, jamais les données des acheteurs.",
     "gone": "Ce lien n'est plus valable."
+  },
+  "embed": {
+    "intro": "Vendez vos places directement sur votre site : collez un bouton ou un module. L'achat s'ouvre dans une fenêtre posée sur votre site, avec tous les moyens de paiement.",
+    "sitesTitle": "Sites autorisés",
+    "sitesHint": "Seuls ces sites peuvent afficher le module, en HTTPS.",
+    "siteAdd": "Ajouter un site",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "noSites": "Aucun site pour l'instant : ajoutez l'adresse de votre site.",
+    "buttonTitle": "Bouton « Réserver »",
+    "buttonHint": "Le plus simple : un bouton qui ouvre la billetterie. Sans JavaScript, c'est un lien vers votre page de vente.",
+    "moduleTitle": "Module de billetterie",
+    "moduleHint": "L'événement et ses tarifs affichés dans votre page, avec un bouton « Réserver ».",
+    "bookLabel": "Réserver",
+    "copy": "Copier le code",
+    "preview": "Voir l'aperçu du module"
   }
 }

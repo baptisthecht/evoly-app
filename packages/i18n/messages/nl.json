@@ -130,7 +130,9 @@
     "waitlistUnsubText": "Je staat ingeschreven voor het tarief {ticket} van {event}.",
     "waitlistUnsubButton": "De wachtlijst verlaten",
     "waitlistUnsubDone": "Klaar: je ontvangt geen berichten meer van deze wachtlijst.",
-    "waitlistUnsubGone": "Deze link is niet meer geldig."
+    "waitlistUnsubGone": "Deze link is niet meer geldig.",
+    "embedBook": "Reserveren",
+    "embedUnavailable": "De ticketverkoop is niet beschikbaar."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -411,7 +413,9 @@
     "OPTION_NOT_REDEEMABLE": "Niets meer in te wisselen voor deze optie.",
     "AMBASSADOR_NAME_REQUIRED": "Geef de ambassadeur een naam.",
     "AMBASSADOR_EMAIL_INVALID": "Geef een geldig e-mailadres op, of laat het veld leeg.",
-    "AMBASSADOR_GOAL_INVALID": "Het doel moet een positief geheel getal zijn."
+    "AMBASSADOR_GOAL_INVALID": "Het doel moet een positief geheel getal zijn.",
+    "EMBED_ORIGIN_INVALID": "Geef het adres van een HTTPS-website op, bijvoorbeeld mijnclub.be.",
+    "EMBED_TOO_MANY": "Maximaal 10 websites."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -829,7 +833,8 @@
     "basePrice": "Basisprijs",
     "tabSeating": "Zaalplan",
     "tabOptions": "Opties",
-    "tabAmbassadors": "Ambassadeurs"
+    "tabAmbassadors": "Ambassadeurs",
+    "tabEmbed": "Integreren"
   },
   "tickets": {
     "addTicketType": "Tarief toevoegen",
@@ -2576,5 +2581,21 @@
     "you": "jij",
     "privacy": "Hier staan enkel totalen, nooit gegevens van kopers.",
     "gone": "Deze link is niet meer geldig."
+  },
+  "embed": {
+    "intro": "Verkoop tickets rechtstreeks op je website: plak een knop of een module. Afrekenen gebeurt in een venster boven je site, met alle betaalmethoden.",
+    "sitesTitle": "Toegestane websites",
+    "sitesHint": "Alleen deze websites mogen de module tonen, via HTTPS.",
+    "siteAdd": "Website toevoegen",
+    "add": "Toevoegen",
+    "remove": "Verwijderen",
+    "noSites": "Nog geen website: voeg het adres van je website toe.",
+    "buttonTitle": "Knop ‘Reserveren’",
+    "buttonHint": "Het eenvoudigst: een knop die de ticketverkoop opent. Zonder JavaScript is het een link naar je verkooppagina.",
+    "moduleTitle": "Ticketmodule",
+    "moduleHint": "Het evenement en de tarieven in je pagina, met een knop ‘Reserveren’.",
+    "bookLabel": "Reserveren",
+    "copy": "Code kopiëren",
+    "preview": "Voorbeeld van de module"
   }
 }

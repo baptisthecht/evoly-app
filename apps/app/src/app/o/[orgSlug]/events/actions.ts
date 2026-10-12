@@ -9,6 +9,7 @@ import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, upd
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
 import { createOption, setOptionActive, updateOption } from "@/server/options";
 import { createAmbassador, setAmbassadorActive } from "@/server/ambassadors";
+import { addEmbedOrigin, removeEmbedOrigin } from "@/server/embed";
 import { cancelListingByOrganizer } from "@/server/resale";
 import { cancelEvent } from "@/server/refunds";
 import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
@@ -812,5 +813,29 @@ export async function ambassadorCommandAction(
     return null;
   });
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/ambassadors`);
+  return result;
+}
+
+// Billetterie intégrable (section 9.26, Pro) : sites autorisés, communs à toute l'organisation
+export async function addEmbedOriginAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: z.object({ origin: text(200).min(1, { message: "validation.required" }) }), permission: "MARKETING_MANAGE", feature: "EMBED_WIDGET" },
+    async (d, ctx) => {
+      await addEmbedOrigin(ctx, d.origin);
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/embed`);
+  return result;
+}
+
+export async function removeEmbedOriginAction(orgSlug: string, eventId: string, origin: string, _: ActionState): Promise<ActionState> {
+  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "MARKETING_MANAGE" }, async (_d, ctx) => {
+    await removeEmbedOrigin(ctx, origin);
+    return null;
+  });
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/embed`);
   return result;
 }

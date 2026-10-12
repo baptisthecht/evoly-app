@@ -130,7 +130,9 @@
     "waitlistUnsubText": "Está inscrito na tarifa {ticket} de {event}.",
     "waitlistUnsubButton": "Sair da lista de espera",
     "waitlistUnsubDone": "Feito: deixará de receber mensagens desta lista de espera.",
-    "waitlistUnsubGone": "Esta ligação já não é válida."
+    "waitlistUnsubGone": "Esta ligação já não é válida.",
+    "embedBook": "Reservar",
+    "embedUnavailable": "A bilheteira não está disponível."
   },
   "checkout": {
     "tickets": "Bilhetes",
@@ -411,7 +413,9 @@
     "OPTION_NOT_REDEEMABLE": "Já não há nada para levantar neste extra.",
     "AMBASSADOR_NAME_REQUIRED": "Dê um nome ao embaixador.",
     "AMBASSADOR_EMAIL_INVALID": "Indique um e-mail válido, ou deixe o campo vazio.",
-    "AMBASSADOR_GOAL_INVALID": "O objetivo deve ser um número inteiro positivo."
+    "AMBASSADOR_GOAL_INVALID": "O objetivo deve ser um número inteiro positivo.",
+    "EMBED_ORIGIN_INVALID": "Indique o endereço de um site em HTTPS, por exemplo omeuclube.pt.",
+    "EMBED_TOO_MANY": "No máximo 10 sites."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -829,7 +833,8 @@
     "basePrice": "Preço base",
     "tabSeating": "Planta da sala",
     "tabOptions": "Extras",
-    "tabAmbassadors": "Embaixadores"
+    "tabAmbassadors": "Embaixadores",
+    "tabEmbed": "Integrar"
   },
   "tickets": {
     "addTicketType": "Adicionar uma tarifa",
@@ -2576,5 +2581,21 @@
     "you": "você",
     "privacy": "Aqui só se veem totais, nunca os dados dos compradores.",
     "gone": "Esta ligação já não é válida."
+  },
+  "embed": {
+    "intro": "Venda bilhetes diretamente no seu site: cole um botão ou um módulo. A compra abre numa janela sobre o seu site, com todos os meios de pagamento.",
+    "sitesTitle": "Sites autorizados",
+    "sitesHint": "Só estes sites podem mostrar o módulo, em HTTPS.",
+    "siteAdd": "Adicionar um site",
+    "add": "Adicionar",
+    "remove": "Remover",
+    "noSites": "Ainda não há sites: adicione o endereço do seu site.",
+    "buttonTitle": "Botão «Reservar»",
+    "buttonHint": "O mais simples: um botão que abre a bilheteira. Sem JavaScript, é uma ligação para a sua página de venda.",
+    "moduleTitle": "Módulo de bilheteira",
+    "moduleHint": "O evento e as suas tarifas na sua página, com um botão «Reservar».",
+    "bookLabel": "Reservar",
+    "copy": "Copiar o código",
+    "preview": "Pré-visualizar o módulo"
   }
 }

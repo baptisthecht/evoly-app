@@ -7,6 +7,9 @@ export const LOCALE_COOKIE = "evoly_locale";
 /** Langue d'affichage : choix mémorisé, sinon langue du navigateur, sinon français (section 7.3). */
 export async function resolveLocale(): Promise<Locale> {
   const [c, h] = await Promise.all([cookies(), headers()]);
+  // module intégrable (section 9.26) : langue de la page qui l'accueille, transmise par l'intercepteur
+  const embedded = h.get("x-evoly-locale");
+  if (isLocale(embedded)) return embedded;
   const remembered = c.get(LOCALE_COOKIE)?.value;
   return negotiateLocale(h.get("accept-language"), isLocale(remembered) ? remembered : null, DEFAULT_LOCALE);
 }
