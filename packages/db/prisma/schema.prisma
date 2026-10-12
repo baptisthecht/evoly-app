@@ -521,6 +521,7 @@ enum RefundPolicy {
 }
 
 model Event {
+  ambassadors  Ambassador[]
   resaleWaitlistFirst   Boolean @default(false) // section 9.30 : places en revente d'abord proposées aux inscrits de la liste d'attente
   resaleWaitlistMinutes Int     @default(60) // délai réservé aux inscrits, avant la section Revente publique
   waitlist     WaitlistEntry[]
@@ -939,6 +940,8 @@ enum OrderSource {
 }
 
 model Order {
+  ambassadorId String? // ambassadeur dont le lien a amené la commande (section 9.28)
+  ambassador   Ambassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
   options      OrderOption[]
   friendCode          String?            @unique // « Réserver à côté de mes amis » : lien partagé par l'acheteur
   id                    String      @id @default(cuid())
@@ -1994,5 +1997,23 @@ model WaitlistEntry {
   @@unique([ticketTypeId, email])
   @@index([ticketTypeId, status, createdAt])
   @@index([eventId, status])
+}
+
+/// Ambassadeurs (section 9.28, Pro) : un lien de vente par membre de l'équipe ou promoteur, et un classement
+model Ambassador {
+  id         String   @id @default(cuid())
+  eventId    String
+  name       String
+  email      String?
+  code       String // lien de vente : ?a=CODE, unique dans l'événement
+  statsToken String   @unique // lien privé de suivi, sans compte (RG-AMB-04)
+  goal       Int? // objectif de billets, facultatif
+  reward     String? // récompense annoncée, remise par l'organisateur
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  orders     Order[]
+
+  @@unique([eventId, code])
 }
 

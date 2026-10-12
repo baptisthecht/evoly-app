@@ -38,6 +38,7 @@ import { safeError } from "@/lib/redact";
 import { formatMoney, toLocale } from "@evoly/i18n";
 import { NO_OPTIONS, priceOptionsInTx, type RequestedOption } from "./options";
 import { blockedForPublic, validOffer } from "./waitlist";
+import { resolveAmbassadorInTx } from "./ambassadors";
 
 type Tx = Prisma.TransactionClient;
 
@@ -171,6 +172,7 @@ export async function reserveOrder(
     nearCode?: string | null;
     options?: RequestedOption[] | null; // options et consommations prépayées (section 9.29, Pro)
     waitlistToken?: string | null; // lien personnel d'un inscrit à la liste d'attente (section 9.30)
+    ambassadorCode?: string | null; // lien d'ambassadeur suivi par l'acheteur (section 9.28, Pro)
   },
   now = new Date(),
 ): Promise<Reservation> {
@@ -192,6 +194,11 @@ export async function reserveOrder(
       },
     });
     const types: TicketTypeForSale[] = event.ticketTypes.map((t) => ({ ...t, tiers: t.priceTiers }));
+    // section 9.28 : commande attribuée à l'ambassadeur du lien, si l'organisation a l'offre Pro ; un code inconnu est ignoré
+    const ambassadorId =
+      input.ambassadorCode && hasFeature(plans[effectivePlan(event.organization.subscription, now)].features, "AMBASSADORS")
+        ? await resolveAmbassadorInTx(tx, event.id, input.ambassadorCode)
+        : null;
     // section 9.30 : tant que des inscrits attendent, le tarif reste complet pour le public, sauf pour l'inscrit qui achète avec son offre
     const offer = input.waitlistToken ? await validOffer(tx, input.waitlistToken, event.id, now) : null;
     const blocked = await blockedForPublic(
@@ -297,6 +304,7 @@ export async function reserveOrder(
         buyerLastName: "",
         buyerLocale: input.locale,
         currency: event.currency,
+        ambassadorId,
         subtotalMinor: priced.subtotalMinor + opts.subtotalMinor,
         discountMinor: priced.discountMinor,
         totalMinor: priced.totalMinor + opts.subtotalMinor,
