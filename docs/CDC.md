@@ -220,44 +220,44 @@ Le simulateur du site compare les frais d'Evoly (commission + frais d'une carte 
 
 ## 4. Offres et fonctionnalités
 
-| Fonctionnalité                                                        | Free        | Pro    | Priorité |
-| --------------------------------------------------------------------- | ----------- | ------ | -------- |
-| Événements et tarifs illimités                                        | Oui         | Oui    | P0       |
-| Billets gratuits à 0 %, sans limite                                   | Oui         | Oui    | P0       |
-| Commission plafonnée                                                  | 1 €         | 0,70 € | P0       |
-| Frais bancaires au coût réel                                          | Oui         | Oui    | P0       |
-| Paiement Apple Pay, Google Pay, cartes et moyens locaux               | Oui         | Oui    | P0       |
-| Page de vente sur `mon-asso.evoly.me`                                 | Oui         | Oui    | P0       |
-| Revente entre participants par lien                                   | Oui         | Oui    | P0       |
-| Section Revente sur la page de vente                                  | Oui         | Oui    | P0       |
-| Statistiques en direct                                                | Oui         | Oui    | P0       |
-| Scanner, liens bénévoles sans compte, mode hors ligne                 | Oui         | Oui    | P0       |
-| E-mails transactionnels                                               | Oui         | Oui    | P0       |
-| Codes promo                                                           | Oui         | Oui    | P0       |
-| Questions à l'achat, billets nominatifs                               | Oui         | Oui    | P0       |
-| Remboursements et politique par événement                             | Oui         | Oui    | P0       |
-| Relevés et factures de commission                                     | Oui         | Oui    | P0       |
-| Billets offerts                                                       | Oui         | Oui    | P1       |
-| Apple Wallet et Google Wallet                                         | Oui         | Oui    | P1       |
-| Prix dynamiques (paliers par date ou quantité)                        | -           | Oui    | P0       |
-| Rappels automatiques J-7, J-1, jour J                                 | -           | Oui    | P0       |
-| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | -           | Oui    | P0       |
-| Couleurs et logo                                                      | -           | Oui    | P0       |
-| Aucune mention d'Evoly                                                | -           | Oui    | P0       |
-| Domaine personnalisé avec SSL                                         | -           | Oui    | P0       |
-| Sous-domaine dédié par événement                                      | -           | Oui    | P1       |
-| Membres, rôles système et rôles personnalisés                         | -           | Oui    | P0       |
-| Plusieurs organisations sur un compte                                 | Une seule   | Oui    | P0       |
-| Plan de salle et placement numéroté                                   | -           | Oui    | P2 ⚠     |
-| Parrainage                                                            | Oui         | Oui    | P2       |
-| Espace participant avec compte                                        | Oui         | Oui    | P2       |
-| Billetterie intégrable au site de l'organisateur                      | Oui         | Oui    | P1       |
-| Vente sur place : paiement par QR code et espèces                     | Oui         | Oui    | P1       |
-| Vente sur place : sans contact sur le téléphone de l'équipe           | Non         | Oui    | P1       |
-| Ambassadeurs et classement des ventes                                 | 3/événement | Oui    | P1       |
-| Options et consommations prépayées                                    | Oui         | Oui    | P1       |
-| Liste d'attente                                                       | Oui         | Oui    | P1       |
-| Tables et forfaits                                                    | Non         | Oui    | P1       |
+| Fonctionnalité                                                        | Free      | Pro    | Priorité |
+| --------------------------------------------------------------------- | --------- | ------ | -------- |
+| Événements et tarifs illimités                                        | Oui       | Oui    | P0       |
+| Billets gratuits à 0 %, sans limite                                   | Oui       | Oui    | P0       |
+| Commission plafonnée                                                  | 1 €       | 0,70 € | P0       |
+| Frais bancaires au coût réel                                          | Oui       | Oui    | P0       |
+| Paiement Apple Pay, Google Pay, cartes et moyens locaux               | Oui       | Oui    | P0       |
+| Page de vente sur `mon-asso.evoly.me`                                 | Oui       | Oui    | P0       |
+| Revente entre participants par lien                                   | Oui       | Oui    | P0       |
+| Section Revente sur la page de vente                                  | Oui       | Oui    | P0       |
+| Statistiques en direct                                                | Oui       | Oui    | P0       |
+| Scanner, liens bénévoles sans compte, mode hors ligne                 | Oui       | Oui    | P0       |
+| E-mails transactionnels                                               | Oui       | Oui    | P0       |
+| Codes promo                                                           | Oui       | Oui    | P0       |
+| Questions à l'achat, billets nominatifs                               | Oui       | Oui    | P0       |
+| Remboursements et politique par événement                             | Oui       | Oui    | P0       |
+| Relevés et factures de commission                                     | Oui       | Oui    | P0       |
+| Billets offerts                                                       | Oui       | Oui    | P1       |
+| Apple Wallet et Google Wallet                                         | Oui       | Oui    | P1       |
+| Prix dynamiques (paliers par date ou quantité)                        | -         | Oui    | P0       |
+| Rappels automatiques J-7, J-1, jour J                                 | -         | Oui    | P0       |
+| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | -         | Oui    | P0       |
+| Couleurs et logo                                                      | -         | Oui    | P0       |
+| Aucune mention d'Evoly                                                | -         | Oui    | P0       |
+| Domaine personnalisé avec SSL                                         | -         | Oui    | P0       |
+| Sous-domaine dédié par événement                                      | -         | Oui    | P1       |
+| Membres, rôles système et rôles personnalisés                         | -         | Oui    | P0       |
+| Plusieurs organisations sur un compte                                 | Une seule | Oui    | P0       |
+| Plan de salle et placement numéroté                                   | -         | Oui    | P2 ⚠     |
+| Parrainage                                                            | Oui       | Oui    | P2       |
+| Espace participant avec compte                                        | Oui       | Oui    | P2       |
+| Billetterie intégrable au site de l'organisateur                      | Non       | Oui    | P1       |
+| Vente sur place : paiement par QR code et espèces                     | Oui       | Oui    | P1       |
+| Vente sur place : sans contact sur le téléphone de l'équipe           | Non       | Oui    | P1       |
+| Ambassadeurs et classement des ventes                                 | Non       | Oui    | P1       |
+| Options et consommations prépayées                                    | Non       | Oui    | P1       |
+| Liste d'attente                                                       | Oui       | Oui    | P1       |
+| Tables et forfaits                                                    | Non       | Oui    | P1       |
 
 Le contrôle d'accès aux fonctionnalités passe par une fonction unique `hasFeature(organisation, fonctionnalité)` qui lit `Plan.features` et l'état de l'abonnement (voir section 6.4).
 
@@ -1237,7 +1237,7 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 - RG-EMB-02 : l'achat dans le cadre ne dépend d'aucun cookie tiers (bloqués par Safari et Firefox) : l'état de la commande est porté par un jeton signé.
 - RG-EMB-03 : le cadre porte l'autorisation de paiement (`allow="payment"`) pour Apple Pay et Google Pay ; si un moyen de paiement est refusé dans un cadre, l'achat se termine dans un nouvel onglet, commande conservée.
 - RG-EMB-04 : la langue suit celle de la page qui accueille le cadre, ou le réglage du code, parmi les 7 langues.
-- RG-EMB-05 : en Free, le cadre affiche « Billetterie Evoly » ; en Pro, il est aux couleurs de l'organisateur, sans mention d'Evoly.
+- RG-EMB-05 : réservé à l'offre Pro ; le cadre est aux couleurs de l'organisateur, sans mention d'Evoly.
 - RG-EMB-06 : les règles d'achat sont celles de la page de vente : réservation, protection anti-robots, prévente, codes promo, revente, liste d'attente.
 - RG-EMB-07 : la page qui accueille le cadre ne reçoit que des événements sans donnée personnelle (ouverture ; commande terminée avec le nombre de billets et le montant), jamais l'e-mail de l'acheteur.
 
@@ -1293,7 +1293,7 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 - RG-AMB-03 : une commande compte pour un seul ambassadeur ; remboursements et annulations sont retirés du classement.
 - RG-AMB-04 : l'ambassadeur suit ses ventes par un lien privé, sans compte ; il ne voit jamais les données des acheteurs.
 - RG-AMB-05 : classement par nombre de billets et par montant, par événement ou sur toute l'organisation ; objectif et récompense affichés si l'organisateur les renseigne, la récompense restant remise par l'organisateur.
-- RG-AMB-06 : Free : 3 ambassadeurs par événement ; Pro : sans limite.
+- RG-AMB-06 : réservé à l'offre Pro, sans limite d'ambassadeurs.
 - RG-AMB-07 : données de l'ambassadeur limitées à son nom et, s'il le souhaite, à son e-mail ; supprimées selon les durées de conservation (section 13).
 
 **Critères d'acceptation**
@@ -1320,6 +1320,7 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 - RG-OPT-06 : commission sur les options à valider (section 17) ; proposition : 2 % du prix, sans part fixe, avec le même plafond que les billets.
 - RG-OPT-07 : les options non retirées sont remboursables jusqu'au début de l'événement ; après, elles ne le sont plus, sauf réglage contraire de l'organisateur.
 - RG-OPT-08 : options et retraits apparaissent dans les statistiques, les exports et les relevés.
+- RG-OPT-09 : réservé à l'offre Pro ; les options déjà vendues restent retirables si l'organisation repasse en Free.
 
 **Critères d'acceptation**
 
@@ -1612,7 +1613,7 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 ---
 
 - **Commission sur les options et consommations** (RG-OPT-06) : proposition 2 % du prix sans part fixe, avec le plafond des billets ; la formule des billets (0,29 € + 2 %) pèserait trop sur un jeton à 2 €.
-- **Répartition Free et Pro des nouvelles fonctions** (section 4) : proposition : ambassadeurs limités à 3 par événement en Free, sans contact et tables réservés à Pro, le reste dans les deux offres.
+- **Répartition Free et Pro des nouvelles fonctions** (section 4) : décidé le 11 octobre 2026 : billetterie intégrable, ambassadeurs, options et consommations, tables et forfaits et paiement sans contact réservés à Pro ; liste d'attente et vente sur place par QR code ou en espèces dans les deux offres.
 - **Délai réservé de la liste d'attente** (RG-ATT-03) : proposition 30 minutes, réglable par l'organisateur.
 - **Application mobile native** (section 9.27) : nécessaire au paiement sans contact ; demande de l'autorisation « Tap to Pay on iPhone » à Apple à déposer tôt ⚠.
 - **Tables sur demande et acompte** (RG-TAB-05) : à prévoir après le premier livrable si les clubs le demandent.

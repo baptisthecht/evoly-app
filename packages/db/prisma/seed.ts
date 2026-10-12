@@ -20,6 +20,9 @@ const PRO_FEATURES: PlanFeature[] = [
   "MULTI_ORGANIZATIONS",
   "SEATING_MAPS",
   "PRESALE_CODES",
+  "PREPAID_OPTIONS",
+  "EMBED_WIDGET",
+  "AMBASSADORS",
 ];
 
 const ALL: Permission[] = [

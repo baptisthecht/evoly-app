@@ -151,7 +151,10 @@ enum PlanFeature {
   MULTI_ORGANIZATIONS // plusieurs organisations sur un compte
   SEATING_MAPS // placement numéroté
   WALLET_PASSES // Apple Wallet et Google Wallet
-  PRESALE_CODES // prévente privée par codes (Pro)
+  PRESALE_CODES
+  PREPAID_OPTIONS
+  EMBED_WIDGET
+  AMBASSADORS // prévente privée par codes (Pro)
 }
 
 model Plan {
@@ -518,6 +521,7 @@ enum RefundPolicy {
 }
 
 model Event {
+  options      EventOption[]
   id                  String          @id @default(cuid())
   organizationId      String
   slug                String // unique par organisation
@@ -931,6 +935,7 @@ enum OrderSource {
 }
 
 model Order {
+  options      OrderOption[]
   friendCode          String?            @unique // « Réserver à côté de mes amis » : lien partagé par l'acheteur
   id                    String      @id @default(cuid())
   reference             String      @unique // lisible : EVO-7KQ2-4821
@@ -1902,5 +1907,55 @@ model ProspectMailbox {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   emails      ProspectEmail[]
+}
+
+/// Options et consommations prépayées (section 9.29, Pro) : des articles vendus avec le billet, jamais un solde d'argent (RG-OPT-02)
+model EventOption {
+  id          String        @id @default(cuid())
+  eventId     String
+  name        String
+  description String?
+  priceMinor  Int
+  stock       Int? // sans limite si vide
+  maxPerOrder Int           @default(10)
+  active      Boolean       @default(true)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  lines       OrderOption[]
+
+  @@index([eventId])
+}
+
+/// Option achetée dans une commande : prix et commission figés à l'achat, quantité déjà retirée au bar
+model OrderOption {
+  id             String             @id @default(cuid())
+  orderId        String
+  optionId       String
+  quantity       Int
+  unitPriceMinor Int
+  unitFeeMinor   Int                @default(0)
+  redeemed       Int                @default(0)
+  createdAt      DateTime           @default(now())
+  order          Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  option         EventOption        @relation(fields: [optionId], references: [id])
+  redemptions    OptionRedemption[]
+
+  @@index([orderId])
+  @@index([optionId])
+}
+
+/// Retrait d'une option au bar (RG-OPT-04) : qui, quand, combien
+model OptionRedemption {
+  id            String      @id @default(cuid())
+  orderOptionId String
+  quantity      Int
+  deviceId      String?
+  staffName     String?
+  createdAt     DateTime    @default(now())
+  line          OrderOption @relation(fields: [orderOptionId], references: [id], onDelete: Cascade)
+
+  @@index([orderOptionId])
 }
 

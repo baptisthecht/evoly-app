@@ -30,6 +30,16 @@ export function ticketCommission(pricePaidMinor: Minor, terms: FeeTerms): Minor 
   return Math.min(terms.capMinor, applyBps(pricePaidMinor, terms.rateBps, terms.fixedMinor));
 }
 
+/**
+ * Commission sur une option ou une consommation (RG-OPT-06) : le pourcentage des billets, sans part fixe, avec le même plafond.
+ * La part fixe des billets pèserait trop sur un jeton à 2 €.
+ */
+export function optionCommission(priceMinor: Minor, terms: FeeTerms): Minor {
+  assertNonNegative(priceMinor, "prix");
+  if (priceMinor === 0) return 0;
+  return Math.min(terms.capMinor, applyBps(priceMinor, terms.rateBps, 0));
+}
+
 /** Instantané des conditions, enregistré dans Order.feeSnapshot (RG-FEE-04). */
 export interface FeeSnapshot {
   planId: string;

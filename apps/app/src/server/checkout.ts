@@ -36,6 +36,7 @@ import { emailBrandFor } from "./email/brand";
 import { sendEmail } from "./email/send";
 import { safeError } from "@/lib/redact";
 import { formatMoney, toLocale } from "@evoly/i18n";
+import { NO_OPTIONS, priceOptionsInTx, type RequestedOption } from "./options";
 
 type Tx = Prisma.TransactionClient;
 
@@ -138,6 +139,7 @@ export interface Reservation {
   isFree: boolean;
   discountMinor: number;
   promoCode: string | null;
+  options?: Array<{ optionId: string; name: string; quantity: number; unitPriceMinor: number }>;
   lines: Array<{
     orderItemId: string;
     ticketTypeId: string;
@@ -166,6 +168,7 @@ export async function reserveOrder(
     presaleCode?: string | null;
     seatIds?: string[] | null;
     nearCode?: string | null;
+    options?: RequestedOption[] | null; // options et consommations prépayées (section 9.29, Pro)
   },
   now = new Date(),
 ): Promise<Reservation> {
@@ -226,7 +229,17 @@ export async function reserveOrder(
     const terms = plan.terms[event.currency];
     if (!terms) throw new CoreError("CURRENCY_NOT_SUPPORTED");
     const priced = priceOrder(types, input.lines, terms, now, { promo });
-    if (!meetsMinimumCharge(priced.totalMinor, event.currency)) throw new CoreError("BELOW_MINIMUM_CHARGE");
+    const opts = input.options?.length
+      ? await priceOptionsInTx(
+          tx,
+          event.id,
+          input.options,
+          terms,
+          now,
+          hasFeature(plans[effectivePlan(event.organization.subscription, now)].features, "PREPAID_OPTIONS"),
+        )
+      : NO_OPTIONS;
+    if (!meetsMinimumCharge(priced.totalMinor + opts.subtotalMinor, event.currency)) throw new CoreError("BELOW_MINIMUM_CHARGE");
 
     const perType = new Map<string, number>();
     for (const l of priced.lines) perType.set(l.ticketTypeId, (perType.get(l.ticketTypeId) ?? 0) + l.quantity);
@@ -266,15 +279,18 @@ export async function reserveOrder(
         buyerLastName: "",
         buyerLocale: input.locale,
         currency: event.currency,
-        subtotalMinor: priced.subtotalMinor,
+        subtotalMinor: priced.subtotalMinor + opts.subtotalMinor,
         discountMinor: priced.discountMinor,
-        totalMinor: priced.totalMinor,
-        applicationFeeMinor: priced.applicationFeeMinor,
+        totalMinor: priced.totalMinor + opts.subtotalMinor,
+        applicationFeeMinor: priced.applicationFeeMinor + opts.feeMinor,
         promoCodeId: promo?.id ?? null,
         presaleCodeId: presale?.id ?? null,
         feeSnapshot: priced.feeSnapshot as unknown as Prisma.InputJsonValue,
         holdExpiresAt: new Date(now.getTime() + event.checkoutHoldMinutes * 60_000),
         accessTokenHash,
+        options: {
+          create: opts.lines.map((l) => ({ optionId: l.optionId, quantity: l.quantity, unitPriceMinor: l.unitPriceMinor, unitFeeMinor: l.unitFeeMinor })),
+        },
         items: {
           create: priced.lines.map((l) => ({
             ticketTypeId: l.ticketTypeId,
@@ -286,7 +302,7 @@ export async function reserveOrder(
           })),
         },
       },
-      include: { items: true },
+      include: { items: true, options: { include: { option: { select: { name: true } } } } },
     });
     const names = new Map(
       event.ticketTypes.map((t) => [
@@ -316,6 +332,7 @@ export async function reserveOrder(
     isFree: order.totalMinor === 0,
     discountMinor: order.discountMinor,
     promoCode: input.promoCode ? normalizePromoCode(input.promoCode) : null,
+    options: order.options.map((o) => ({ optionId: o.optionId, name: o.option.name, quantity: o.quantity, unitPriceMinor: o.unitPriceMinor })),
     lines: order.items.map((i) => ({
       orderItemId: i.id,
       ticketTypeId: i.ticketTypeId,

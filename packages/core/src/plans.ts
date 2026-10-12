@@ -17,6 +17,9 @@ export const PLAN_FEATURES = [
   "SEATING_MAPS",
   "WALLET_PASSES",
   "PRESALE_CODES",
+  "PREPAID_OPTIONS",
+  "EMBED_WIDGET",
+  "AMBASSADORS",
 ] as const;
 
 export type PlanFeature = (typeof PLAN_FEATURES)[number];
