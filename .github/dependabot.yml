@@ -1,15 +1,11 @@
-# Mises à jour mensuelles des dépendances (CDC section 13.1) : mineures et correctifs regroupés, majeures à part
+# Dépendances npm : vérification hebdomadaire par la garde avant envoi (ops/versions-check.mjs, docs/MAINTENANCE.md),
+# avec un âge minimal de 14 jours et des versions majeures migrées une par une. Dependabot ne garde que les actions GitHub,
+# avec le même délai de 14 jours. Les alertes de sécurité de GitHub (paramètres du dépôt) restent actives.
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: "/"
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 10
-    groups:
-      mineures-et-correctifs:
-        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 14

@@ -26,6 +26,10 @@ Une fois par semaine, le même contrôle affiche les **nouvelles versions** (`op
 3. **Versions majeures** : une par une, notes de migration lues, code adapté, vérification complète, enregistrement séparé.
 4. **Exceptions** : `@types/node` suit la version de Node du serveur (22) ; une majeure qui demande une réécriture importante (par exemple TypeScript 7) attend que l'écosystème (Next.js, Prisma) la prenne en charge.
 
+## Dependabot
+
+Les dépendances npm passent par la vérification hebdomadaire ci-dessus (âge minimal de 14 jours, majeures une par une) : Dependabot ne propose plus de mises à jour npm, qui contredisaient cette règle. Il garde les actions GitHub (`.github/dependabot.yml`), avec le même délai de 14 jours. Les alertes de sécurité de GitHub restent actives.
+
 ## Décisions en cours
 
 | Dépendance                                         | Version          | Décision                                                              |
