@@ -13,6 +13,7 @@ export AUTH_GOOGLE_ID=evoly-test.apps.googleusercontent.com AUTH_GOOGLE_SECRET=s
 export APPLE_PASS_TYPE_ID=pass.me.evoly.test APPLE_TEAM_ID=TEAM123456
 export GOOGLE_WALLET_ISSUER_ID=3388000000012345678 GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL=wallet@evoly-test.iam.gserviceaccount.com
 export EMAIL_OUTBOX_DIR=/tmp/evoly-outbox NEXT_TELEMETRY_DISABLED=1
+export PORT=3001 # comme PORT=3000 en production : l'app connaît son propre port
 
 # identifiants Wallet de test, générés à chaque exécution (base64 sur une ligne, sous Linux comme sous macOS)
 d=$(mktemp -d)

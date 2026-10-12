@@ -51,12 +51,12 @@ function siteSubdomain(host: string | null): string | null {
  */
 /** Sites autorisés à afficher le module d'un événement, gardés une minute (section 9.26). */
 const embedCache = new Map<string, { at: number; origins: string[] }>();
-async function embedOrigins(eventId: string): Promise<string[]> {
+async function embedOrigins(eventId: string, port: string): Promise<string[]> {
   const hit = embedCache.get(eventId);
   if (hit && Date.now() - hit.at < 60_000) return hit.origins;
   let origins: string[] = [];
   try {
-    const res = await fetch(`http://127.0.0.1:${process.env.PORT ?? "3000"}/api/embed/${encodeURIComponent(eventId)}`, { cache: "no-store" });
+    const res = await fetch(`http://127.0.0.1:${port}/api/embed/${encodeURIComponent(eventId)}`, { cache: "no-store" });
     if (res.ok) origins = ((await res.json()) as { origins?: string[] }).origins ?? [];
   } catch {
     origins = []; // indisponible : affichage refusé, jamais autorisé par défaut
@@ -72,7 +72,8 @@ async function embedResponse(request: NextRequest, eventId: string) {
   const lang = request.nextUrl.searchParams.get("lang")?.slice(0, 2).toLowerCase();
   if (lang && /^[a-z]{2}$/.test(lang)) headers.set("x-evoly-locale", lang);
   const res = NextResponse.next({ request: { headers } });
-  const origins = (await embedOrigins(eventId)).filter((o) => /^https:\/\/[a-z0-9.-]+(:\d+)?$/.test(o));
+  // port de l'app : PORT (production : 3000), sinon celui de la requête (parcours de test, développement)
+  const origins = (await embedOrigins(eventId, process.env.PORT ?? (request.nextUrl.port || "3000"))).filter((o) => /^https:\/\/[a-z0-9.-]+(:\d+)?$/.test(o));
   const ancestors = origins.length ? origins.join(" ") : "'none'";
   res.headers.set("Content-Security-Policy", process.env.NODE_ENV === "production" ? buildCsp(ancestors) : `frame-ancestors ${ancestors}`);
   return res;
