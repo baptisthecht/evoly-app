@@ -8,6 +8,7 @@ import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
 import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, updateEventSettings } from "@/server/events";
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
 import { createOption, setOptionActive, updateOption } from "@/server/options";
+import { createAmbassador, setAmbassadorActive } from "@/server/ambassadors";
 import { cancelListingByOrganizer } from "@/server/resale";
 import { cancelEvent } from "@/server/refunds";
 import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
@@ -774,5 +775,42 @@ export async function optionCommandAction(
     return null;
   });
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/options`);
+  return result;
+}
+
+// Ambassadeurs (section 9.28, Pro)
+const ambassadorSchema = z.object({
+  name: text(80).min(1, { message: "validation.required" }),
+  email: optionalText(200),
+  goal: optionalText(6),
+  reward: optionalText(200),
+});
+
+export async function createAmbassadorAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: ambassadorSchema, permission: "PROMO_MANAGE", feature: "AMBASSADORS" },
+    async (d, ctx) => {
+      await createAmbassador(ctx, eventId, { name: d.name, email: d.email ?? undefined, goal: d.goal ?? undefined, reward: d.reward ?? undefined });
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/ambassadors`);
+  return result;
+}
+
+export async function ambassadorCommandAction(
+  orgSlug: string,
+  eventId: string,
+  id: string,
+  command: "activate" | "deactivate",
+  _: ActionState,
+): Promise<ActionState> {
+  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "PROMO_MANAGE" }, async (_d, ctx) => {
+    await setAmbassadorActive(ctx, eventId, id, command === "activate");
+    return null;
+  });
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/ambassadors`);
   return result;
 }

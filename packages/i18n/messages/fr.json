@@ -220,7 +220,8 @@
     "exportParticipants": "Exporter les participants (CSV)",
     "basePrice": "Prix de base",
     "tabSeating": "Plan de salle",
-    "tabOptions": "Options"
+    "tabOptions": "Options",
+    "tabAmbassadors": "Ambassadeurs"
   },
   "tickets": {
     "addTicketType": "Ajouter un tarif",
@@ -674,7 +675,10 @@
     "OPTION_UNAVAILABLE": "Cette option n'est plus disponible.",
     "OPTION_MAX_EXCEEDED": "Vous dépassez le maximum autorisé pour cette option.",
     "OPTION_SOLD_OUT": "Cette option est épuisée.",
-    "OPTION_NOT_REDEEMABLE": "Plus rien à retirer pour cette option."
+    "OPTION_NOT_REDEEMABLE": "Plus rien à retirer pour cette option.",
+    "AMBASSADOR_NAME_REQUIRED": "Donnez un nom à l'ambassadeur.",
+    "AMBASSADOR_EMAIL_INVALID": "Indiquez un e-mail valide, ou laissez le champ vide.",
+    "AMBASSADOR_GOAL_INVALID": "L'objectif doit être un nombre entier positif."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -2533,5 +2537,44 @@
     "unlimited": "sans limite",
     "perOrder": "{max} au plus par commande",
     "saved": "Option enregistrée."
+  },
+  "ambassadors": {
+    "intro": "Donnez à chaque membre de votre équipe ou à chaque promoteur son propre lien de vente, et suivez qui vend le plus.",
+    "emptyTitle": "Aucun ambassadeur pour l'instant",
+    "emptyBody": "Ajoutez votre premier ambassadeur : il recevra un lien de vente et un lien privé pour suivre ses ventes.",
+    "newTitle": "Nouvel ambassadeur",
+    "name": "Nom",
+    "email": "E-mail",
+    "emailHint": "Facultatif, pour lui envoyer ses liens.",
+    "goal": "Objectif de billets",
+    "goalHint": "Facultatif.",
+    "reward": "Récompense",
+    "rewardHint": "Facultatif, par exemple : une place offerte.",
+    "add": "Ajouter l'ambassadeur",
+    "saved": "Ambassadeur ajouté.",
+    "saleLink": "Lien de vente",
+    "statsLink": "Suivi des ventes",
+    "copyStats": "Copier le lien privé",
+    "tickets": "{count, plural, one {# billet} other {# billets}}",
+    "goalProgress": "objectif {tickets} sur {goal}",
+    "rewardLabel": "récompense : {reward}",
+    "active": "Actif",
+    "inactive": "Désactivé",
+    "activate": "Réactiver",
+    "deactivate": "Désactiver",
+    "export": "Exporter le classement (CSV)"
+  },
+  "ambassador": {
+    "title": "Vos ventes, {name}",
+    "ticketsLabel": "Billets vendus",
+    "rankLabel": "Votre rang",
+    "rank": "{rank} sur {total}",
+    "amount": "Montant de vos ventes : {amount}",
+    "goal": "Objectif : {tickets} sur {goal} billets",
+    "reward": "Récompense : {reward}",
+    "leaderboard": "Classement de l'équipe",
+    "you": "vous",
+    "privacy": "Seuls les totaux sont visibles ici, jamais les données des acheteurs.",
+    "gone": "Ce lien n'est plus valable."
   }
 }

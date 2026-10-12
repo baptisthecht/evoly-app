@@ -408,7 +408,10 @@
     "OPTION_UNAVAILABLE": "Deze optie is niet meer beschikbaar.",
     "OPTION_MAX_EXCEEDED": "Je overschrijdt het maximum voor deze optie.",
     "OPTION_SOLD_OUT": "Deze optie is uitverkocht.",
-    "OPTION_NOT_REDEEMABLE": "Niets meer in te wisselen voor deze optie."
+    "OPTION_NOT_REDEEMABLE": "Niets meer in te wisselen voor deze optie.",
+    "AMBASSADOR_NAME_REQUIRED": "Geef de ambassadeur een naam.",
+    "AMBASSADOR_EMAIL_INVALID": "Geef een geldig e-mailadres op, of laat het veld leeg.",
+    "AMBASSADOR_GOAL_INVALID": "Het doel moet een positief geheel getal zijn."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -825,7 +828,8 @@
     "exportParticipants": "Bezoekers exporteren (CSV)",
     "basePrice": "Basisprijs",
     "tabSeating": "Zaalplan",
-    "tabOptions": "Opties"
+    "tabOptions": "Opties",
+    "tabAmbassadors": "Ambassadeurs"
   },
   "tickets": {
     "addTicketType": "Tarief toevoegen",
@@ -2533,5 +2537,44 @@
     "unlimited": "onbeperkt",
     "perOrder": "Maximaal {max} per bestelling",
     "saved": "Optie opgeslagen."
+  },
+  "ambassadors": {
+    "intro": "Geef elk teamlid of elke promotor een eigen verkooplink en zie wie het meest verkoopt.",
+    "emptyTitle": "Nog geen ambassadeurs",
+    "emptyBody": "Voeg je eerste ambassadeur toe: die krijgt een verkooplink en een privélink om de verkoop te volgen.",
+    "newTitle": "Nieuwe ambassadeur",
+    "name": "Naam",
+    "email": "E-mail",
+    "emailHint": "Optioneel, om de links te sturen.",
+    "goal": "Ticketdoel",
+    "goalHint": "Optioneel.",
+    "reward": "Beloning",
+    "rewardHint": "Optioneel, bijvoorbeeld: een gratis ticket.",
+    "add": "Ambassadeur toevoegen",
+    "saved": "Ambassadeur toegevoegd.",
+    "saleLink": "Verkooplink",
+    "statsLink": "Verkoop volgen",
+    "copyStats": "Privélink kopiëren",
+    "tickets": "{count, plural, one {# ticket} other {# tickets}}",
+    "goalProgress": "doel {tickets} van {goal}",
+    "rewardLabel": "beloning: {reward}",
+    "active": "Actief",
+    "inactive": "Uitgeschakeld",
+    "activate": "Inschakelen",
+    "deactivate": "Uitschakelen",
+    "export": "Klassement exporteren (CSV)"
+  },
+  "ambassador": {
+    "title": "Jouw verkoop, {name}",
+    "ticketsLabel": "Verkochte tickets",
+    "rankLabel": "Jouw plaats",
+    "rank": "{rank} van {total}",
+    "amount": "Bedrag van je verkoop: {amount}",
+    "goal": "Doel: {tickets} van {goal} tickets",
+    "reward": "Beloning: {reward}",
+    "leaderboard": "Klassement van het team",
+    "you": "jij",
+    "privacy": "Hier staan enkel totalen, nooit gegevens van kopers.",
+    "gone": "Deze link is niet meer geldig."
   }
 }

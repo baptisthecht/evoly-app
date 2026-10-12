@@ -26,6 +26,8 @@ const outbox = async (to: string, template: string) => {
 
 describe("espace participant (section 9.23)", () => {
   it("lien de connexion sans fuite, session signée, billets à venir et passés, préférences d'e-mails", async () => {
+    // adresse IP fictive propre à chaque exécution : la limite de fréquence (20 par heure) ne s'accumule pas d'un passage à l'autre
+    const ip = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`;
     jar.clear();
     const id = rid();
     const email = `lea.${id}@exemple.be`;
@@ -53,9 +55,9 @@ describe("espace participant (section 9.23)", () => {
     }
     await db.event.updateMany({ where: { slug: `bal-${id}` }, data: { startsAt: new Date(Date.now() - 5 * 86_400_000) } });
 
-    await requestParticipantLink(`nobody.${id}@exemple.be`, "10.0.0.1", "fr");
+    await requestParticipantLink(`nobody.${id}@exemple.be`, ip, "fr");
     expect(await outbox(`nobody.${id}@exemple.be`, "participant.magic_link")).toBeNull(); // aucune fuite : rien n'est envoyé
-    await requestParticipantLink(email.toUpperCase(), "10.0.0.1", "fr");
+    await requestParticipantLink(email.toUpperCase(), ip, "fr");
     const mail = (await outbox(email, "participant.magic_link"))!;
     const token = /\/mon-espace\/connexion\/(\S+)/.exec(mail.text)![1]!;
     expect(await openParticipantSession(`${token}x`)).toBe(false);

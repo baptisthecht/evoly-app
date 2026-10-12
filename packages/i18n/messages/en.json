@@ -220,7 +220,8 @@
     "exportParticipants": "Export attendees (CSV)",
     "basePrice": "Base price",
     "tabSeating": "Seating plan",
-    "tabOptions": "Add-ons"
+    "tabOptions": "Add-ons",
+    "tabAmbassadors": "Ambassadors"
   },
   "tickets": {
     "addTicketType": "Add a ticket type",
@@ -674,7 +675,10 @@
     "OPTION_UNAVAILABLE": "This add-on is no longer available.",
     "OPTION_MAX_EXCEEDED": "You are over the maximum allowed for this add-on.",
     "OPTION_SOLD_OUT": "This add-on is sold out.",
-    "OPTION_NOT_REDEEMABLE": "Nothing left to redeem for this add-on."
+    "OPTION_NOT_REDEEMABLE": "Nothing left to redeem for this add-on.",
+    "AMBASSADOR_NAME_REQUIRED": "Give the ambassador a name.",
+    "AMBASSADOR_EMAIL_INVALID": "Enter a valid email, or leave it empty.",
+    "AMBASSADOR_GOAL_INVALID": "The goal must be a positive whole number."
   },
   "brand": {
     "sloganStart": "your next",
@@ -2533,5 +2537,44 @@
     "unlimited": "unlimited",
     "perOrder": "Up to {max} per order",
     "saved": "Add-on saved."
+  },
+  "ambassadors": {
+    "intro": "Give each team member or promoter their own sales link, and see who sells the most.",
+    "emptyTitle": "No ambassadors yet",
+    "emptyBody": "Add your first ambassador: they will get a sales link and a private link to follow their sales.",
+    "newTitle": "New ambassador",
+    "name": "Name",
+    "email": "Email",
+    "emailHint": "Optional, to send them their links.",
+    "goal": "Ticket goal",
+    "goalHint": "Optional.",
+    "reward": "Reward",
+    "rewardHint": "Optional, for example: a free ticket.",
+    "add": "Add the ambassador",
+    "saved": "Ambassador added.",
+    "saleLink": "Sales link",
+    "statsLink": "Sales tracking",
+    "copyStats": "Copy the private link",
+    "tickets": "{count, plural, one {# ticket} other {# tickets}}",
+    "goalProgress": "goal {tickets} of {goal}",
+    "rewardLabel": "reward: {reward}",
+    "active": "Active",
+    "inactive": "Disabled",
+    "activate": "Enable",
+    "deactivate": "Disable",
+    "export": "Export the leaderboard (CSV)"
+  },
+  "ambassador": {
+    "title": "Your sales, {name}",
+    "ticketsLabel": "Tickets sold",
+    "rankLabel": "Your rank",
+    "rank": "{rank} of {total}",
+    "amount": "Value of your sales: {amount}",
+    "goal": "Goal: {tickets} of {goal} tickets",
+    "reward": "Reward: {reward}",
+    "leaderboard": "Team leaderboard",
+    "you": "you",
+    "privacy": "Only totals are shown here, never buyers’ details.",
+    "gone": "This link is no longer valid."
   }
 }

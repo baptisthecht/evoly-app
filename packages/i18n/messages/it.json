@@ -408,7 +408,10 @@
     "OPTION_UNAVAILABLE": "Questo extra non è più disponibile.",
     "OPTION_MAX_EXCEEDED": "Superi il massimo consentito per questo extra.",
     "OPTION_SOLD_OUT": "Questo extra è esaurito.",
-    "OPTION_NOT_REDEEMABLE": "Non resta nulla da riscattare per questo extra."
+    "OPTION_NOT_REDEEMABLE": "Non resta nulla da riscattare per questo extra.",
+    "AMBASSADOR_NAME_REQUIRED": "Dai un nome all'ambasciatore.",
+    "AMBASSADOR_EMAIL_INVALID": "Indica un'e-mail valida, o lascia il campo vuoto.",
+    "AMBASSADOR_GOAL_INVALID": "L'obiettivo deve essere un numero intero positivo."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -825,7 +828,8 @@
     "exportParticipants": "Esporta i partecipanti (CSV)",
     "basePrice": "Prezzo base",
     "tabSeating": "Mappa dei posti",
-    "tabOptions": "Extra"
+    "tabOptions": "Extra",
+    "tabAmbassadors": "Ambasciatori"
   },
   "tickets": {
     "addTicketType": "Aggiungi una tariffa",
@@ -2533,5 +2537,44 @@
     "unlimited": "senza limiti",
     "perOrder": "Al massimo {max} per ordine",
     "saved": "Extra salvato."
+  },
+  "ambassadors": {
+    "intro": "Dai a ogni membro del team o promoter il proprio link di vendita e scopri chi vende di più.",
+    "emptyTitle": "Ancora nessun ambasciatore",
+    "emptyBody": "Aggiungi il tuo primo ambasciatore: riceverà un link di vendita e un link privato per seguire le sue vendite.",
+    "newTitle": "Nuovo ambasciatore",
+    "name": "Nome",
+    "email": "E-mail",
+    "emailHint": "Facoltativa, per inviargli i link.",
+    "goal": "Obiettivo di biglietti",
+    "goalHint": "Facoltativo.",
+    "reward": "Ricompensa",
+    "rewardHint": "Facoltativa, per esempio: un biglietto omaggio.",
+    "add": "Aggiungi l'ambasciatore",
+    "saved": "Ambasciatore aggiunto.",
+    "saleLink": "Link di vendita",
+    "statsLink": "Andamento delle vendite",
+    "copyStats": "Copia il link privato",
+    "tickets": "{count, plural, one {# biglietto} other {# biglietti}}",
+    "goalProgress": "obiettivo {tickets} su {goal}",
+    "rewardLabel": "ricompensa: {reward}",
+    "active": "Attivo",
+    "inactive": "Disattivato",
+    "activate": "Riattiva",
+    "deactivate": "Disattiva",
+    "export": "Esporta la classifica (CSV)"
+  },
+  "ambassador": {
+    "title": "Le tue vendite, {name}",
+    "ticketsLabel": "Biglietti venduti",
+    "rankLabel": "La tua posizione",
+    "rank": "{rank} su {total}",
+    "amount": "Importo delle tue vendite: {amount}",
+    "goal": "Obiettivo: {tickets} su {goal} biglietti",
+    "reward": "Ricompensa: {reward}",
+    "leaderboard": "Classifica del team",
+    "you": "tu",
+    "privacy": "Qui si vedono solo i totali, mai i dati degli acquirenti.",
+    "gone": "Questo link non è più valido."
   }
 }

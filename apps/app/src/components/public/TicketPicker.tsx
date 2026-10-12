@@ -62,6 +62,12 @@ export function TicketPicker({
   const tc = useTranslations("checkout");
   const [qty, setQty] = useState<Record<string, number>>({});
   const [optQty, setOptQty] = useState<Record<string, number>>({});
+  // section 9.28 : code d'ambassadeur lu dans l'adresse de la visite (?a=CODE), sans rien enregistrer sur l'appareil
+  const [ambassadorCode, setAmbassadorCode] = useState<string | null>(null);
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("a");
+    if (code && /^[a-z0-9-]{3,40}$/i.test(code)) setAmbassadorCode(code.toLowerCase());
+  }, []);
   const [reservation, setReservation] = useState<ReservationView | null>(null);
   const tseat = useTranslations("seatPicker");
   const [pending, setPending] = useState(false);
@@ -148,7 +154,17 @@ export function TicketPicker({
     const opts = Object.entries(optQty)
       .filter(([, n]) => n > 0)
       .map(([optionId, quantity]) => ({ optionId, quantity }));
-    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null, botProof, opts, waitlistOffer?.token ?? null);
+    const res = await reserveAction(
+      checkout.eventId,
+      lines,
+      promo?.code ?? null,
+      null,
+      friend?.code ?? null,
+      botProof,
+      opts,
+      waitlistOffer?.token ?? null,
+      ambassadorCode,
+    );
     setPending(false);
     if (res.ok) return setReservation(res.data);
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
