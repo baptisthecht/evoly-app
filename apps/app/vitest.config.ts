@@ -19,7 +19,7 @@ export default defineConfig({
       include: ["src/server/**/*.ts", "src/lib/**/*.ts"],
       exclude: ["src/generated/**"],
       reporter: ["text-summary", "json-summary"],
-      thresholds: { statements: 66, branches: 56, functions: 60, lines: 71 },
+      thresholds: { statements: 70, branches: 60, functions: 61, lines: 74 },
     },
     env: {
       DATABASE_URL: process.env.DATABASE_URL ?? "postgresql://evoly:evoly@localhost:5432/evoly",
