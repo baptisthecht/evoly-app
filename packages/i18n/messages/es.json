@@ -572,7 +572,15 @@
     "modeCheck": "Verificación",
     "checkBanner": "Solo verificación: las entradas se comprueban sin validarse.",
     "check": "Verificar",
-    "checkConfirm": "¿Verificar la entrada de {name}?"
+    "checkConfirm": "¿Verificar la entrada de {name}?",
+    "modeBar": "Barra y extras",
+    "barHint": "Escanea una entrada para ver sus extras.",
+    "barEmpty": "No hay extras en esta entrada.",
+    "barRedeem": "Canjear 1",
+    "barLeft": "Quedan {left} de {quantity}",
+    "bar_NOT_FOUND": "Entrada desconocida para este evento.",
+    "bar_OFFLINE": "El modo barra necesita conexión.",
+    "bar_FAILED": "No se pudo canjear: no queda nada, o inténtalo de nuevo."
   },
   "scannerAccess": {
     "title": "Escanear las entradas",

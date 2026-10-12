@@ -1,5 +1,5 @@
 import "server-only";
-import { CoreError, effectivePlan, hasFeature, optionCommission, parseMajorToMinor, type FeeTerms } from "@evoly/core";
+import { CoreError, effectivePlan, hasFeature, normalizeShortCode, optionCommission, parseMajorToMinor, type FeeTerms } from "@evoly/core";
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
@@ -159,6 +159,19 @@ export async function optionsForTicket(eventId: string, ticketId: string) {
     orderBy: { createdAt: "asc" },
   });
   return lines.map((l) => ({ id: l.id, name: l.option.name, quantity: l.quantity, redeemed: l.redeemed, left: l.quantity - l.redeemed }));
+}
+
+/** Au bar, à partir du QR code ou du code court scanné, avec les mêmes règles qu'à l'entrée : un billet de cet événement seulement. */
+export async function optionsForScan(eventId: string, input: { code?: string; shortCode?: string }) {
+  const select = { id: true, eventId: true, holderFirstName: true, holderLastName: true } as const;
+  const ticket = input.code
+    ? await db.ticket.findUnique({ where: { code: input.code.trim() }, select })
+    : input.shortCode
+      ? await db.ticket.findUnique({ where: { eventId_shortCode: { eventId, shortCode: normalizeShortCode(input.shortCode) } }, select })
+      : null;
+  if (!ticket || ticket.eventId !== eventId) throw new CoreError("NOT_FOUND");
+  const holder = [ticket.holderFirstName, ticket.holderLastName].filter(Boolean).join(" ") || null;
+  return { holder, options: await optionsForTicket(eventId, ticket.id) };
 }
 
 /** Retrait au bar, atomique : jamais au-delà de ce qui a été acheté, même avec deux téléphones à la fois ; chaque retrait est journalisé. */

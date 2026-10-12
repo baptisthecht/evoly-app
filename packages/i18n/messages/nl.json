@@ -572,7 +572,15 @@
     "modeCheck": "Controle",
     "checkBanner": "Alleen controle: tickets worden gecontroleerd zonder te worden gevalideerd.",
     "check": "Controleren",
-    "checkConfirm": "Ticket van {name} controleren?"
+    "checkConfirm": "Ticket van {name} controleren?",
+    "modeBar": "Bar en opties",
+    "barHint": "Scan een ticket om de opties te zien.",
+    "barEmpty": "Geen opties op dit ticket.",
+    "barRedeem": "1 inwisselen",
+    "barLeft": "Nog {left} van {quantity}",
+    "bar_NOT_FOUND": "Onbekend ticket voor dit evenement.",
+    "bar_OFFLINE": "De barmodus heeft een netwerkverbinding nodig.",
+    "bar_FAILED": "Inwisselen mislukt: niets meer over, of probeer opnieuw."
   },
   "scannerAccess": {
     "title": "Tickets scannen",

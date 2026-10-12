@@ -572,7 +572,15 @@
     "modeCheck": "Verificação",
     "checkBanner": "Só verificação: os bilhetes são verificados sem serem validados.",
     "check": "Verificar",
-    "checkConfirm": "Verificar o bilhete de {name}?"
+    "checkConfirm": "Verificar o bilhete de {name}?",
+    "modeBar": "Bar e extras",
+    "barHint": "Leia um bilhete para ver os seus extras.",
+    "barEmpty": "Nenhum extra neste bilhete.",
+    "barRedeem": "Levantar 1",
+    "barLeft": "Restam {left} de {quantity}",
+    "bar_NOT_FOUND": "Bilhete desconhecido para este evento.",
+    "bar_OFFLINE": "O modo bar precisa de rede.",
+    "bar_FAILED": "Não foi possível levantar: nada restante, ou tente novamente."
   },
   "scannerAccess": {
     "title": "Ler os bilhetes",

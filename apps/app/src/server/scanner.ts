@@ -175,6 +175,7 @@ export async function scannerManifest(link: ResolvedLink) {
   return {
     serverTime: new Date().toISOString(),
     salt,
+    hasOptions: (await db.eventOption.count({ where: { eventId: link.eventId } })) > 0, // mode « Bar et options » (section 9.29)
     event: {
       title: link.event.title,
       startsAt: link.event.startsAt.toISOString(),

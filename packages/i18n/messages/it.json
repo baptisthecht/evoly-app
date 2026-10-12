@@ -572,7 +572,15 @@
     "modeCheck": "Verifica",
     "checkBanner": "Solo verifica: i biglietti vengono controllati senza essere convalidati.",
     "check": "Verifica",
-    "checkConfirm": "Verificare il biglietto di {name}?"
+    "checkConfirm": "Verificare il biglietto di {name}?",
+    "modeBar": "Bar ed extra",
+    "barHint": "Scansiona un biglietto per vederne gli extra.",
+    "barEmpty": "Nessun extra su questo biglietto.",
+    "barRedeem": "Riscatta 1",
+    "barLeft": "Ne restano {left} su {quantity}",
+    "bar_NOT_FOUND": "Biglietto sconosciuto per questo evento.",
+    "bar_OFFLINE": "La modalità bar richiede la rete.",
+    "bar_FAILED": "Riscatto impossibile: non resta nulla, o riprova."
   },
   "scannerAccess": {
     "title": "Scansiona i biglietti",

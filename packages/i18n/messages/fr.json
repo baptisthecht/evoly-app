@@ -610,7 +610,15 @@
     "modeCheck": "Vérification",
     "checkBanner": "Vérification seule : les billets sont contrôlés sans être validés.",
     "check": "Vérifier",
-    "checkConfirm": "Vérifier le billet de {name} ?"
+    "checkConfirm": "Vérifier le billet de {name} ?",
+    "modeBar": "Bar et options",
+    "barHint": "Scannez un billet pour voir ses options.",
+    "barEmpty": "Aucune option sur ce billet.",
+    "barRedeem": "Retirer 1",
+    "barLeft": "{left} sur {quantity} restant(s)",
+    "bar_NOT_FOUND": "Billet inconnu pour cet événement.",
+    "bar_OFFLINE": "Le mode bar a besoin du réseau.",
+    "bar_FAILED": "Retrait impossible : plus rien à retirer, ou réessayez."
   },
   "plans": {
     "free": "Free",

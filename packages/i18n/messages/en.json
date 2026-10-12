@@ -610,7 +610,15 @@
     "modeCheck": "Check",
     "checkBanner": "Check only: tickets are checked without being validated.",
     "check": "Check",
-    "checkConfirm": "Check {name}'s ticket?"
+    "checkConfirm": "Check {name}'s ticket?",
+    "modeBar": "Bar and add-ons",
+    "barHint": "Scan a ticket to see its add-ons.",
+    "barEmpty": "No add-ons on this ticket.",
+    "barRedeem": "Redeem 1",
+    "barLeft": "{left} of {quantity} left",
+    "bar_NOT_FOUND": "Unknown ticket for this event.",
+    "bar_OFFLINE": "Bar mode needs a network connection.",
+    "bar_FAILED": "Could not redeem: nothing left, or try again."
   },
   "plans": {
     "free": "Free",

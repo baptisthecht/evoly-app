@@ -3,7 +3,7 @@ import { optionCommission } from "@evoly/core";
 import { db } from "@/lib/db";
 import { finalizeOrder, reserveOrder } from "@/server/checkout";
 import { findOrgContext } from "@/server/context";
-import { createOption, listOptions, optionsForTicket, publicOptions, redeemOption, setOptionActive } from "@/server/options";
+import { createOption, listOptions, optionsForScan, optionsForTicket, publicOptions, redeemOption, setOptionActive } from "@/server/options";
 
 const DAY = 86_400_000;
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -87,5 +87,23 @@ describe("options et consommations prépayées (section 9.29)", () => {
     expect((await listOptions(s.ctx, s.event.id))[0]).toMatchObject({ sold: 3, redeemed: 3 });
     await setOptionActive(s.ctx, s.event.id, jeton.id, false);
     expect(await publicOptions(s.event.id, s.ctx.features)).toEqual([]);
+  });
+
+  it("au bar : un billet scanné par son QR code ou son code court montre ses options ; un billet d'un autre événement est refusé", async () => {
+    const s = await setup("pro");
+    const autre = await setup("pro");
+    const jeton = await createOption(s.ctx, s.event.id, { name: "Jeton boisson", price: "2" });
+    const r = await reserveOrder({
+      eventId: s.event.id,
+      lines: [{ ticketTypeId: s.type.id, quantity: 1 }],
+      locale: "fr",
+      options: [{ optionId: jeton.id, quantity: 2 }],
+    });
+    expect(await payer(r.orderId)).toBe("PAID");
+    const ticket = await db.ticket.findFirstOrThrow({ where: { orderId: r.orderId } });
+    const parCode = await optionsForScan(s.event.id, { code: ticket.code });
+    expect(parCode.options).toEqual([expect.objectContaining({ name: "Jeton boisson", quantity: 2, left: 2 })]);
+    expect((await optionsForScan(s.event.id, { shortCode: ticket.shortCode })).options[0]!.left).toBe(2);
+    await expect(optionsForScan(autre.event.id, { code: ticket.code })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });

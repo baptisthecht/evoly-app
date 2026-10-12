@@ -572,7 +572,15 @@
     "modeCheck": "Prüfung",
     "checkBanner": "Nur Prüfung: Tickets werden geprüft, ohne entwertet zu werden.",
     "check": "Prüfen",
-    "checkConfirm": "Ticket von {name} prüfen?"
+    "checkConfirm": "Ticket von {name} prüfen?",
+    "modeBar": "Bar und Extras",
+    "barHint": "Scannen Sie ein Ticket, um seine Extras zu sehen.",
+    "barEmpty": "Keine Extras auf diesem Ticket.",
+    "barRedeem": "1 einlösen",
+    "barLeft": "Noch {left} von {quantity}",
+    "bar_NOT_FOUND": "Unbekanntes Ticket für diese Veranstaltung.",
+    "bar_OFFLINE": "Der Barmodus braucht eine Netzwerkverbindung.",
+    "bar_FAILED": "Einlösen nicht möglich: nichts mehr übrig, oder erneut versuchen."
   },
   "scannerAccess": {
     "title": "Tickets scannen",

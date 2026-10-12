@@ -23,6 +23,13 @@ interface Manifest {
   event: { title: string; startsAt: string; timezone: string; place: string | null };
   link: { label: string; allowManualSearch: boolean; checkOnly?: boolean; expiresAt: string };
   tickets: LocalTicket[];
+  hasOptions?: boolean;
+}
+/** Mode « Bar et options » : ce qui reste à retirer sur le billet scanné (section 9.29). */
+interface BarView {
+  holder: string | null;
+  options: Array<{ id: string; name: string; quantity: number; redeemed: number; left: number }>;
+  error?: "NOT_FOUND" | "OFFLINE" | "FAILED";
 }
 interface PendingScan {
   clientId: string;
@@ -118,6 +125,8 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [pending, setPending] = useState<PendingScan[]>([]);
   const [checkMode, setCheckMode] = useState(false); // vérification seule choisie dans le scanner
+  const [barMode, setBarMode] = useState(false);
+  const [bar, setBar] = useState<BarView | null>(null);
   const [online, setOnline] = useState(true);
   const [dead, setDead] = useState<Dead | null>(gone ?? null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -240,10 +249,44 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     return t.has(key) ? t(key) : t("void_OTHER");
   };
 
+  const barCall = async (body: Record<string, unknown>) => {
+    if (!navigator.onLine) throw new Error("OFFLINE");
+    const res = await fetch(`/api/scanner/${token}/options`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...body, deviceId }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.error === "NOT_FOUND" ? "NOT_FOUND" : "FAILED");
+    return data;
+  };
+  const barLookup = async (input: { code?: string; shortCode?: string }) => {
+    try {
+      setBar(await barCall({ action: "lookup", code: input.code, shortCode: input.shortCode }));
+    } catch (err) {
+      setBar({
+        holder: null,
+        options: [],
+        error: (err as Error).message === "OFFLINE" ? "OFFLINE" : (err as Error).message === "NOT_FOUND" ? "NOT_FOUND" : "FAILED",
+      });
+    }
+  };
+  const barRedeem = async (id: string) => {
+    try {
+      const r = (await barCall({ action: "redeem", orderOptionId: id, quantity: 1 })) as { left: number };
+      setBar((b) =>
+        b ? { ...b, error: undefined, options: b.options.map((o) => (o.id === id ? { ...o, left: r.left, redeemed: o.quantity - r.left } : o)) } : b,
+      );
+      navigator.vibrate?.(60);
+    } catch (err) {
+      setBar((b) => (b ? { ...b, error: (err as Error).message === "OFFLINE" ? "OFFLINE" : "FAILED" } : b));
+    }
+  };
   const scan = async (input: { code?: string; shortCode?: string; ticketId?: string; method: PendingScan["method"] }) => {
     if (busy.current || !manifest) return;
     busy.current = true;
     setTimeout(() => (busy.current = false), 1500);
+    if (barMode) return barLookup(input);
     const scannedAt = new Date().toISOString();
     let local: LocalTicket | undefined;
     if (input.code) {
@@ -363,20 +406,40 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
               <div role="group" aria-label={t("modeLabel")} className="mt-2 inline-flex rounded-full bg-[var(--evoly-creme)]/10 p-1 text-sm font-semibold">
                 <button
                   type="button"
-                  aria-pressed={!checkMode}
-                  onClick={() => setCheckMode(false)}
-                  className={`rounded-full px-3 py-1.5 ${checkMode ? "" : "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]"}`}
+                  aria-pressed={!checkMode && !barMode}
+                  onClick={() => {
+                    setCheckMode(false);
+                    setBarMode(false);
+                  }}
+                  className={`rounded-full px-3 py-1.5 ${checkMode || barMode ? "" : "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]"}`}
                 >
                   {t("modeEntry")}
                 </button>
                 <button
                   type="button"
                   aria-pressed={checkMode}
-                  onClick={() => setCheckMode(true)}
+                  onClick={() => {
+                    setCheckMode(true);
+                    setBarMode(false);
+                  }}
                   className={`rounded-full px-3 py-1.5 ${checkMode ? "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]" : ""}`}
                 >
                   {t("modeCheck")}
                 </button>
+                {manifest.hasOptions ? (
+                  <button
+                    type="button"
+                    aria-pressed={barMode}
+                    onClick={() => {
+                      setBarMode(true);
+                      setCheckMode(false);
+                      setBar(null);
+                    }}
+                    className={`rounded-full px-3 py-1.5 ${barMode ? "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]" : ""}`}
+                  >
+                    {t("modeBar")}
+                  </button>
+                ) : null}
               </div>
             )}
             {verify && (
@@ -519,6 +582,38 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
         </div>
       ) : null}
 
+      {barMode ? (
+        <section aria-live="polite" aria-label={t("modeBar")} className="mx-4 mb-4 grid gap-3 rounded-2xl bg-blanc p-4 text-[var(--evoly-charbon)]">
+          {!bar ? <p className="text-sm">{t("barHint")}</p> : null}
+          {bar?.holder ? <p className="font-display text-lg">{bar.holder}</p> : null}
+          {bar?.error ? (
+            <p role="alert" className="text-sm font-semibold text-danger">
+              {t(`bar_${bar.error}`)}
+            </p>
+          ) : null}
+          {bar && !bar.error && bar.options.length === 0 ? <p className="text-sm">{t("barEmpty")}</p> : null}
+          {bar?.options.length ? (
+            <ul className="grid gap-2">
+              {bar.options.map((o) => (
+                <li key={o.id} className="flex items-center justify-between gap-3">
+                  <div className="grid">
+                    <span className="font-semibold">{o.name}</span>
+                    <span className="text-sm tabular-nums">{t("barLeft", { left: o.left, quantity: o.quantity })}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => barRedeem(o.id)}
+                    disabled={o.left === 0}
+                    className="h-11 rounded-full bg-[var(--evoly-charbon)] px-4 font-semibold text-[var(--evoly-creme)] disabled:opacity-40"
+                  >
+                    {t("barRedeem")}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </section>
+      ) : null}
       {feedback ? (
         <button
           type="button"
