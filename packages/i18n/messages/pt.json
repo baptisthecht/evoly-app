@@ -132,7 +132,10 @@
     "waitlistUnsubDone": "Feito: deixará de receber mensagens desta lista de espera.",
     "waitlistUnsubGone": "Esta ligação já não é válida.",
     "embedBook": "Reservar",
-    "embedUnavailable": "A bilheteira não está disponível."
+    "embedUnavailable": "A bilheteira não está disponível.",
+    "payTitle": "Pagamento no local",
+    "payUnavailable": "Este pagamento já não está disponível: peça um novo código à equipa.",
+    "payCancelled": "Pagamento cancelado."
   },
   "checkout": {
     "tickets": "Bilhetes",
@@ -615,7 +618,13 @@
     "sellError": "Não foi possível vender: verifique os lugares disponíveis e tente novamente.",
     "sellOffline": "A venda precisa de rede.",
     "sellEmpty": "Escolha pelo menos um bilhete.",
-    "sellSoldOut": "Esgotado"
+    "sellSoldOut": "Esgotado",
+    "sellQr": "Pagamento por código QR · {amount}",
+    "sellQrTitle": "O cliente lê este código e paga no seu telefone.",
+    "sellQrWaiting": "À espera do pagamento…",
+    "sellQrPaid": "{count, plural, one {Pago: # bilhete, entrada validada.} other {Pago: # bilhetes, entrada validada.}}",
+    "sellQrExpired": "O pagamento não foi concluído a tempo: recomece se necessário.",
+    "sellQrNew": "Nova venda"
   },
   "scannerAccess": {
     "title": "Ler os bilhetes",

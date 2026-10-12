@@ -132,7 +132,10 @@
     "waitlistUnsubDone": "Hecho: ya no recibirás mensajes de esta lista de espera.",
     "waitlistUnsubGone": "Este enlace ya no es válido.",
     "embedBook": "Reservar",
-    "embedUnavailable": "La venta de entradas no está disponible."
+    "embedUnavailable": "La venta de entradas no está disponible.",
+    "payTitle": "Pago in situ",
+    "payUnavailable": "Este pago ya no está disponible: pide un nuevo código al equipo.",
+    "payCancelled": "Pago cancelado."
   },
   "checkout": {
     "tickets": "Entradas",
@@ -615,7 +618,13 @@
     "sellError": "No se pudo vender: revisa las plazas disponibles y vuelve a intentarlo.",
     "sellOffline": "La venta necesita conexión.",
     "sellEmpty": "Elige al menos una entrada.",
-    "sellSoldOut": "Agotado"
+    "sellSoldOut": "Agotado",
+    "sellQr": "Pago con código QR · {amount}",
+    "sellQrTitle": "El cliente escanea este código y paga en su teléfono.",
+    "sellQrWaiting": "Esperando el pago…",
+    "sellQrPaid": "{count, plural, one {Pagado: # entrada, acceso validado.} other {Pagado: # entradas, acceso validado.}}",
+    "sellQrExpired": "El pago no se completó a tiempo: vuelve a empezar si hace falta.",
+    "sellQrNew": "Nueva venta"
   },
   "scannerAccess": {
     "title": "Escanear las entradas",

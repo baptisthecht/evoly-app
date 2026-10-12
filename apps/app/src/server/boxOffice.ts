@@ -1,10 +1,12 @@
 import "server-only";
 import { CoreError } from "@evoly/core";
+import QRCode from "qrcode";
 import { db } from "@/lib/db";
 import { finalizeOrder, reserveOrder } from "./checkout";
 import type { OrgContext } from "./context";
 import { findEvent } from "./events";
 import { afterOrderPaid } from "./orders";
+import { organizationPublicUrl } from "./urls";
 
 /**
  * Vente sur place (section 9.27) depuis l'application du scanner : même stock que la vente en ligne (RG-POS-01), billets marqués
@@ -64,6 +66,29 @@ export async function sellCash(link: SellingLink, input: SaleInput, now = new Da
   const tickets = await markEntered(r.orderId, link, input.deviceId, now);
   if (email) await afterOrderPaid(r.orderId); // billets et reçu envoyés au client
   return { orderId: r.orderId, reference: r.reference, totalMinor: r.totalMinor, tickets };
+}
+
+/**
+ * Paiement par QR code (section 9.27, premier mode) : places réservées comme en ligne, commission habituelle (RG-POS-03) ; le client
+ * scanne le code et paie sur son téléphone, sur la page de paiement du site de l'organisateur.
+ */
+export async function startQrSale(link: SellingLink, input: SaleInput, now = new Date()) {
+  if (!link.canSell || link.checkOnly) throw new CoreError("BOX_OFFICE_FORBIDDEN");
+  const r = await reserveOrder({ eventId: link.eventId, lines: input.lines, locale: "fr" }, now);
+  await db.order.update({ where: { id: r.orderId }, data: { source: "BOX_OFFICE", boxOfficeMode: "QR", soldByLinkId: link.id } });
+  const org = await db.event.findUniqueOrThrow({ where: { id: link.eventId }, select: { organization: { select: { slug: true, subdomain: true } } } });
+  const url = `${organizationPublicUrl(org.organization.subdomain ?? org.organization.slug)}/payer/${r.token}`;
+  const qrSvg = await QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M" });
+  return { orderId: r.orderId, url, qrSvg, totalMinor: r.totalMinor, expiresAt: r.expiresAt.toISOString() };
+}
+
+/** Suivi d'un paiement par QR code, seulement par le lien qui l'a lancé ; une fois payé, billets marqués entrés (RG-POS-04). */
+export async function qrSaleStatus(link: SellingLink, orderId: string, deviceId?: string | null, now = new Date()) {
+  const order = await db.order.findFirst({ where: { id: orderId, soldByLinkId: link.id, boxOfficeMode: "QR" }, select: { status: true } });
+  if (!order) throw new CoreError("NOT_FOUND");
+  if (order.status === "PAID")
+    return { status: "PAID" as const, tickets: (await markEntered(orderId, link, deviceId, now)) || (await db.ticket.count({ where: { orderId } })) };
+  return { status: order.status };
 }
 
 /** Rapport de caisse : ventes sur place par vendeur et par mode de paiement, remboursements déduits (RG-POS-07). */

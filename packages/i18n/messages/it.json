@@ -132,7 +132,10 @@
     "waitlistUnsubDone": "Fatto: non riceverai più messaggi da questa lista d'attesa.",
     "waitlistUnsubGone": "Questo link non è più valido.",
     "embedBook": "Prenota",
-    "embedUnavailable": "La biglietteria non è disponibile."
+    "embedUnavailable": "La biglietteria non è disponibile.",
+    "payTitle": "Pagamento sul posto",
+    "payUnavailable": "Questo pagamento non è più disponibile: chiedi un nuovo codice allo staff.",
+    "payCancelled": "Pagamento annullato."
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -615,7 +618,13 @@
     "sellError": "Vendita non riuscita: controlla i posti disponibili e riprova.",
     "sellOffline": "La vendita richiede la rete.",
     "sellEmpty": "Scegli almeno un biglietto.",
-    "sellSoldOut": "Esaurito"
+    "sellSoldOut": "Esaurito",
+    "sellQr": "Pagamento con codice QR · {amount}",
+    "sellQrTitle": "Il cliente scansiona questo codice e paga sul suo telefono.",
+    "sellQrWaiting": "In attesa del pagamento…",
+    "sellQrPaid": "{count, plural, one {Pagato: # biglietto, ingresso convalidato.} other {Pagato: # biglietti, ingresso convalidato.}}",
+    "sellQrExpired": "Il pagamento non è andato a buon fine in tempo: ricomincia se serve.",
+    "sellQrNew": "Nuova vendita"
   },
   "scannerAccess": {
     "title": "Scansiona i biglietti",

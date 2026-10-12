@@ -95,7 +95,8 @@ export async function processRefund(refundId: string, options: { notify?: boolea
     for (const item of refund.items) await cancelListingsForTicket(item.ticketId);
   }
   let outcome: "SUCCEEDED" | "PROCESSING" | "FAILED" = "SUCCEEDED";
-  if (refund.amountMinor > 0) {
+  // RG-POS-08 : une vente sur place en espèces se rembourse en espèces, hors d'Evoly ; aucun appel à Stripe
+  if (refund.amountMinor > 0 && refund.order.boxOfficeMode !== "CASH") {
     const s = stripe();
     const account = await db.stripeAccount.findUnique({ where: { organizationId: refund.order.organizationId }, select: { stripeAccountId: true } });
     try {

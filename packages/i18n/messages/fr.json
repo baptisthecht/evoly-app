@@ -633,7 +633,13 @@
     "sellError": "Vente impossible : vérifiez les places disponibles, puis réessayez.",
     "sellOffline": "La vente a besoin du réseau.",
     "sellEmpty": "Choisissez au moins un billet.",
-    "sellSoldOut": "Complet"
+    "sellSoldOut": "Complet",
+    "sellQr": "Paiement par QR code · {amount}",
+    "sellQrTitle": "Le client scanne ce code et paie sur son téléphone.",
+    "sellQrWaiting": "En attente du paiement…",
+    "sellQrPaid": "{count, plural, one {Payé : # billet, entrée validée.} other {Payé : # billets, entrée validée.}}",
+    "sellQrExpired": "Le paiement n'a pas abouti à temps : recommencez si besoin.",
+    "sellQrNew": "Nouvelle vente"
   },
   "plans": {
     "free": "Free",
@@ -1159,7 +1165,10 @@
     "waitlistUnsubDone": "C'est fait : vous ne recevrez plus de message de cette liste d'attente.",
     "waitlistUnsubGone": "Ce lien n'est plus valable.",
     "embedBook": "Réserver",
-    "embedUnavailable": "La billetterie n'est pas disponible."
+    "embedUnavailable": "La billetterie n'est pas disponible.",
+    "payTitle": "Paiement sur place",
+    "payUnavailable": "Ce paiement n'est plus disponible : demandez un nouveau code à l'équipe.",
+    "payCancelled": "Paiement annulé."
   },
   "promo": {
     "new": "Nouveau code",

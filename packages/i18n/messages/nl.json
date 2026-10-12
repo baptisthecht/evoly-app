@@ -132,7 +132,10 @@
     "waitlistUnsubDone": "Klaar: je ontvangt geen berichten meer van deze wachtlijst.",
     "waitlistUnsubGone": "Deze link is niet meer geldig.",
     "embedBook": "Reserveren",
-    "embedUnavailable": "De ticketverkoop is niet beschikbaar."
+    "embedUnavailable": "De ticketverkoop is niet beschikbaar.",
+    "payTitle": "Betaling ter plaatse",
+    "payUnavailable": "Deze betaling is niet meer beschikbaar: vraag het team om een nieuwe code.",
+    "payCancelled": "Betaling geannuleerd."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -615,7 +618,13 @@
     "sellError": "Verkoop mislukt: controleer de beschikbare plaatsen en probeer opnieuw.",
     "sellOffline": "Verkopen vraagt een netwerkverbinding.",
     "sellEmpty": "Kies minstens één ticket.",
-    "sellSoldOut": "Uitverkocht"
+    "sellSoldOut": "Uitverkocht",
+    "sellQr": "Betalen met QR-code · {amount}",
+    "sellQrTitle": "De klant scant deze code en betaalt op zijn telefoon.",
+    "sellQrWaiting": "Wachten op de betaling…",
+    "sellQrPaid": "{count, plural, one {Betaald: # ticket, toegang gevalideerd.} other {Betaald: # tickets, toegang gevalideerd.}}",
+    "sellQrExpired": "De betaling is niet op tijd gelukt: begin opnieuw indien nodig.",
+    "sellQrNew": "Nieuwe verkoop"
   },
   "scannerAccess": {
     "title": "Tickets scannen",

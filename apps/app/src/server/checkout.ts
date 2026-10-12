@@ -379,6 +379,51 @@ export async function reserveOrder(
 }
 
 /** L'acheteur renonce à sa réservation : les places sont libérées tout de suite. */
+/** Récapitulatif d'une réservation en cours, retrouvée par son jeton : paiement par QR code sur place (section 9.27). */
+export async function reservationByToken(token: string, now = new Date()): Promise<Reservation | null> {
+  const orderId = await findOrderIdByToken(token);
+  if (!orderId) return null;
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: { include: { ticketType: { select: { name: true, isNominative: true, requireHolderEmail: true } }, priceTier: { select: { name: true } } } },
+      options: { include: { option: { select: { name: true } } } },
+    },
+  });
+  if (!order || order.status !== "PENDING" || !order.holdExpiresAt || order.holdExpiresAt <= now) return null;
+  const account =
+    order.totalMinor > 0
+      ? await db.stripeAccount.findUnique({ where: { organizationId: order.organizationId }, select: { stripeAccountId: true, chargesEnabled: true } })
+      : null;
+  return {
+    orderId,
+    token,
+    reference: order.reference,
+    expiresAt: order.holdExpiresAt,
+    currency: order.currency,
+    totalMinor: order.totalMinor,
+    isFree: order.totalMinor === 0,
+    discountMinor: order.discountMinor,
+    promoCode: null,
+    options: order.options.map((o) => ({ optionId: o.optionId, name: o.option.name, quantity: o.quantity, unitPriceMinor: o.unitPriceMinor })),
+    lines: order.items.map((i) => ({
+      orderItemId: i.id,
+      ticketTypeId: i.ticketTypeId,
+      name: i.ticketType.name,
+      tierName: i.priceTier?.name ?? null,
+      quantity: i.quantity,
+      unitPriceMinor: i.unitPriceMinor - i.unitDiscountMinor,
+      nominative: i.ticketType.isNominative,
+      holderEmail: i.ticketType.isNominative && i.ticketType.requireHolderEmail,
+    })),
+    questions: questionsForOrder(
+      await publicQuestions(order.eventId),
+      order.items.map((i) => ({ orderItemId: i.id, ticketTypeId: i.ticketTypeId })),
+    ),
+    stripeAccountId: account?.chargesEnabled ? account.stripeAccountId : null,
+  };
+}
+
 export async function cancelReservation(token: string): Promise<void> {
   const orderId = await findOrderIdByToken(token);
   if (!orderId) return;

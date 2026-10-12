@@ -633,7 +633,13 @@
     "sellError": "Sale failed: check available places, then try again.",
     "sellOffline": "Selling needs a network connection.",
     "sellEmpty": "Choose at least one ticket.",
-    "sellSoldOut": "Sold out"
+    "sellSoldOut": "Sold out",
+    "sellQr": "Pay by QR code · {amount}",
+    "sellQrTitle": "The customer scans this code and pays on their phone.",
+    "sellQrWaiting": "Waiting for payment…",
+    "sellQrPaid": "{count, plural, one {Paid: # ticket, entry validated.} other {Paid: # tickets, entry validated.}}",
+    "sellQrExpired": "The payment did not go through in time: start again if needed.",
+    "sellQrNew": "New sale"
   },
   "plans": {
     "free": "Free",
@@ -1159,7 +1165,10 @@
     "waitlistUnsubDone": "Done: you will no longer receive messages from this waiting list.",
     "waitlistUnsubGone": "This link is no longer valid.",
     "embedBook": "Book",
-    "embedUnavailable": "Ticketing is not available."
+    "embedUnavailable": "Ticketing is not available.",
+    "payTitle": "On-site payment",
+    "payUnavailable": "This payment is no longer available: ask the team for a new code.",
+    "payCancelled": "Payment cancelled."
   },
   "promo": {
     "new": "New code",

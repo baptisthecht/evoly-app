@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { cashReport, sellCash } from "@/server/boxOffice";
+import { cashReport, qrSaleStatus, sellCash, startQrSale } from "@/server/boxOffice";
+import { finalizeOrder, reservationByToken } from "@/server/checkout";
+import { refundTickets } from "@/server/refunds";
 import { findOrgContext } from "@/server/context";
 
 const DAY = 86_400_000;
@@ -75,5 +77,35 @@ describe("vente sur place en espèces (section 9.27)", () => {
     await sellCash(caisse, { lines: [{ ticketTypeId: s.type.id, quantity: 2 }] });
     await expect(sellCash(caisse, { lines: [{ ticketTypeId: s.type.id, quantity: 1 }] })).rejects.toThrow();
     expect(await cashReport(s.ctx, s.event.id)).toEqual([{ label: "Caisse 1", mode: "CASH", sales: 3, amountMinor: 5000 }]);
+  });
+
+  it("paiement par QR code : places réservées, page de paiement par le jeton, suivi réservé au lien, billets entrés une fois payé", async () => {
+    const s = await setup();
+    const caisse = await s.lien({ canSell: true, label: "Caisse QR" });
+    const q = await startQrSale(caisse, { lines: [{ ticketTypeId: s.type.id, quantity: 1 }] });
+    expect(q.url).toContain("/payer/");
+    expect(q.qrSvg.startsWith("<svg")).toBe(true);
+    const order = await db.order.findUniqueOrThrow({ where: { id: q.orderId } });
+    expect(order).toMatchObject({ status: "PENDING", source: "BOX_OFFICE", boxOfficeMode: "QR", soldByLinkId: caisse.id, applicationFeeMinor: 49 }); // commission habituelle
+    const r = await reservationByToken(q.url.split("/payer/")[1]!);
+    expect(r).toMatchObject({ orderId: q.orderId, totalMinor: 1000, lines: [expect.objectContaining({ name: "Entrée", quantity: 1 })] });
+    expect(await qrSaleStatus(caisse, q.orderId)).toEqual({ status: "PENDING" });
+    await expect(qrSaleStatus(await s.lien({ canSell: true }), q.orderId)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await db.order.update({ where: { id: q.orderId }, data: { buyerEmail: `client.${rid()}@exemple.be`, buyerFirstName: "Alex", buyerLastName: "Martin" } });
+    expect(await finalizeOrder(q.orderId)).toBe("PAID"); // comme après la confirmation du paiement par Stripe
+    expect(await qrSaleStatus(caisse, q.orderId)).toEqual({ status: "PAID", tickets: 1 });
+    expect(await qrSaleStatus(caisse, q.orderId)).toEqual({ status: "PAID", tickets: 1 });
+    expect((await db.ticket.findFirstOrThrow({ where: { orderId: q.orderId } })).status).toBe("CHECKED_IN");
+  });
+
+  it("remboursement d'une vente en espèces depuis le tableau de bord, sans Stripe (RG-POS-08)", async () => {
+    const s = await setup();
+    const caisse = await s.lien({ canSell: true });
+    const v = await sellCash(caisse, { lines: [{ ticketTypeId: s.type.id, quantity: 1 }] });
+    const ticket = await db.ticket.findFirstOrThrow({ where: { orderId: v.orderId } });
+    await refundTickets(s.ctx, v.orderId, [ticket.id], "OTHER", null);
+    const refund = await db.refund.findFirstOrThrow({ where: { orderId: v.orderId } });
+    expect(refund.status).toBe("SUCCEEDED");
+    expect((await db.order.findUniqueOrThrow({ where: { id: v.orderId } })).status).toBe("REFUNDED");
   });
 });

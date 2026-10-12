@@ -2,7 +2,7 @@
 
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 /** Vente sur place en espèces depuis le scanner (section 9.27) : tarifs, total, e-mail facultatif, entrée validée. */
 export function SellPanel({
@@ -21,6 +21,21 @@ export function SellPanel({
   const [pending, setPending] = useState(false);
   const [result, setResult] = useState<{ ok: true; tickets: number } | { ok: false; error: string } | null>(null);
   const [left, setLeft] = useState<Record<string, number>>(Object.fromEntries(sale.ticketTypes.map((tt) => [tt.id, tt.remaining])));
+  // paiement par QR code : le client scanne et paie sur son téléphone, l'écran suit le paiement
+  const [qr, setQr] = useState<{ orderId: string; qrSvg: string; totalMinor: number; status: string; tickets?: number } | null>(null);
+  useEffect(() => {
+    if (!qr || qr.status !== "PENDING") return;
+    const id = setInterval(async () => {
+      const res = await fetch(`/api/scanner/${token}/sell?order=${qr.orderId}&device=${encodeURIComponent(deviceId)}`, { cache: "no-store" }).catch(() => null);
+      if (!res || !res.ok) return;
+      const data = (await res.json()) as { status: string; tickets?: number };
+      if (data.status !== "PENDING") {
+        setQr((q) => (q ? { ...q, status: data.status, tickets: data.tickets } : q));
+        if (data.status === "PAID") navigator.vibrate?.(120);
+      }
+    }, 2500);
+    return () => clearInterval(id);
+  }, [qr, token, deviceId]);
   const total = sale.ticketTypes.reduce((n, tt) => n + (qty[tt.id] ?? 0) * tt.priceMinor, 0);
   const count = Object.values(qty).reduce((n, q) => n + q, 0);
   const money = (v: number) => formatMoney(v, sale.currency, locale, { trimZeroCents: true });
@@ -46,6 +61,61 @@ export function SellPanel({
     setResult({ ok: true, tickets: data.tickets });
     navigator.vibrate?.(80);
   };
+  const startQr = async () => {
+    if (count === 0) return setResult({ ok: false, error: "EMPTY" });
+    if (!navigator.onLine) return setResult({ ok: false, error: "OFFLINE" });
+    setPending(true);
+    const lines = Object.entries(qty)
+      .filter(([, q]) => q > 0)
+      .map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
+    const res = await fetch(`/api/scanner/${token}/sell`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "qr", lines, deviceId }),
+    }).catch(() => null);
+    setPending(false);
+    if (!res || !res.ok) return setResult({ ok: false, error: "FAILED" });
+    const data = (await res.json()) as { orderId: string; qrSvg: string; totalMinor: number };
+    setLeft((l) => Object.fromEntries(Object.entries(l).map(([id, n]) => [id, n - (qty[id] ?? 0)])));
+    setResult(null);
+    setQr({ ...data, status: "PENDING" });
+  };
+  if (qr) {
+    return (
+      <section
+        aria-label={t("tab_sell")}
+        aria-live="polite"
+        className="mx-4 mb-4 grid justify-items-center gap-3 rounded-2xl bg-blanc p-4 text-center text-[var(--evoly-charbon)]"
+      >
+        {qr.status === "PENDING" ? (
+          <>
+            <p className="font-semibold">{t("sellQrTitle")}</p>
+            <div className="w-full max-w-64" dangerouslySetInnerHTML={{ __html: qr.qrSvg }} />
+            <p className="font-display text-2xl tabular-nums">{money(qr.totalMinor)}</p>
+            <p className="text-sm">{t("sellQrWaiting")}</p>
+          </>
+        ) : qr.status === "PAID" ? (
+          <p role="status" className="text-lg font-semibold">
+            {t("sellQrPaid", { count: qr.tickets ?? 0 })}
+          </p>
+        ) : (
+          <p role="alert" className="text-lg font-semibold text-danger">
+            {t("sellQrExpired")}
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={() => {
+            setQr(null);
+            setQty({});
+          }}
+          className="h-12 w-full rounded-full bg-[var(--evoly-charbon)] font-semibold text-[var(--evoly-creme)]"
+        >
+          {t("sellQrNew")}
+        </button>
+      </section>
+    );
+  }
   return (
     <section aria-label={t("tab_sell")} className="mx-4 mb-4 grid gap-3 rounded-2xl bg-blanc p-4 text-[var(--evoly-charbon)]">
       <ul className="grid gap-2">
@@ -99,6 +169,14 @@ export function SellPanel({
         className="h-12 rounded-full bg-[var(--evoly-charbon)] font-semibold text-[var(--evoly-creme)] disabled:opacity-40"
       >
         {t("sellCash", { amount: money(total) })}
+      </button>
+      <button
+        type="button"
+        onClick={startQr}
+        disabled={pending || count === 0}
+        className="h-12 rounded-full font-semibold ring-1 ring-[var(--evoly-charbon)] disabled:opacity-40"
+      >
+        {t("sellQr", { amount: money(total) })}
       </button>
       {result?.ok ? (
         <p role="status" className="text-sm font-semibold">
