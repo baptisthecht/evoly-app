@@ -32,6 +32,28 @@ else
   echo "Déjà faite il y a moins de 7 jours."
 fi
 log=$(mktemp)
+# Base neuve, préparée exactement comme dans l'intégration continue (schéma, contraintes, données de départ) :
+# les tests et les parcours ne dépendent jamais des données laissées par des essais précédents. Supprimée à la fin.
+base_url="${DATABASE_URL:-postgresql://evoly:evoly@localhost:5432/evoly}"
+guard_db="evoly_garde_$$"
+admin_url="${base_url%/*}/postgres"
+echo "Base de données neuve ($guard_db), préparée comme dans l'intégration continue"
+psql "$admin_url" -v ON_ERROR_STOP=1 -qc "CREATE DATABASE $guard_db" > "$log" 2>&1 || { cat "$log"; echo "ENVOI BLOQUÉ : création de la base neuve impossible."; exit 1; }
+trap 'psql "$admin_url" -qc "DROP DATABASE IF EXISTS $guard_db WITH (FORCE)" > /dev/null 2>&1 || true' EXIT
+export DATABASE_URL="${base_url%/*}/$guard_db"
+schema() {
+  pnpm --filter @evoly/db exec prisma db push
+  # sans moteur de schéma Prisma (environnement isolé) la base reste vide : on applique alors les migrations, une par une
+  if [ "$(psql "$DATABASE_URL" -tAc "select count(*) from information_schema.tables where table_schema = 'public'")" = "0" ]; then
+    for f in packages/db/prisma/migrations/*/migration.sql; do psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$f" || return 1; done
+  fi
+}
+if ! { schema && psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f packages/db/prisma/sql/constraints.sql && pnpm db:seed; } > "$log" 2>&1; then
+  tail -20 "$log"
+  echo "ENVOI BLOQUÉ : préparation de la base neuve impossible."
+  exit 1
+fi
+
 echo "4/5 Tests et seuils de couverture"
 tests_log="$(git rev-parse --git-dir)/evoly-last-tests.log" # gardé pour relever le cliquet de couverture (docs/MAINTENANCE.md)
 if ! pnpm -r test > "$tests_log" 2>&1; then

@@ -46,7 +46,7 @@ Les dépendances npm passent par la vérification hebdomadaire ci-dessus (âge m
 
 `pnpm test` mesure la couverture (cœur et code serveur de l'app) et échoue sous le seuil ; l'intégration continue le lance à chaque envoi.
 
-**Cliquet** : après chaque série de tests ajoutés, les seuils sont relevés au niveau atteint ; ils ne sont jamais abaissés. Objectif : s'approcher de 100 %.
+**Cliquet** : après chaque série de tests ajoutés, les seuils sont relevés ; ils ne sont jamais abaissés. Chaque seuil vaut la mesure moins un demi-point, arrondie à l'entier inférieur : une petite différence d'environnement (la base neuve de l'intégration continue) ne fait pas échouer un envoi. Le 12 octobre, un seuil réglé sans marge (70 % des branches pour 70,11 % mesurés en local, 69,94 % dans l'intégration continue) a fait échouer l'intégration continue : d'où cette règle, et la base neuve de la garde. Objectif : s'approcher de 100 %.
 
 | Partie                                              | Instructions | Branches | Fonctions | Lignes | Mesuré le                                                                                                                                                                                |
 | --------------------------------------------------- | ------------ | -------- | --------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -8,7 +8,7 @@ on:
 jobs:
   audit:
     # vulnérabilités connues des dépendances de production (CDC section 13.1) ; exclusions justifiées dans docs/SECURITE.md
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # version fixée : ubuntu-latest passe à Ubuntu 26 le 19 octobre 2026, migration à faire délibérément
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
         run: pnpm audit --prod --audit-level high
 
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # version fixée : ubuntu-latest passe à Ubuntu 26 le 19 octobre 2026, migration à faire délibérément
     timeout-minutes: 45
     services:
       postgres:
