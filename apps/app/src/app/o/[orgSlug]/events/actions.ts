@@ -10,6 +10,7 @@ import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
 import { createOption, setOptionActive, updateOption } from "@/server/options";
 import { createAmbassador, setAmbassadorActive } from "@/server/ambassadors";
 import { addEmbedOrigin, removeEmbedOrigin } from "@/server/embed";
+import { saveTableSettings } from "@/server/tables";
 import { cancelListingByOrganizer } from "@/server/resale";
 import { cancelEvent } from "@/server/refunds";
 import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
@@ -838,5 +839,25 @@ export async function removeEmbedOriginAction(orgSlug: string, eventId: string, 
     return null;
   });
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/embed`);
+  return result;
+}
+
+// Tables et forfaits (section 9.31, Pro)
+export async function saveTablesAction(orgSlug: string, eventId: string, ticketTypeId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const included = [...form.entries()]
+    .filter(([k]) => k.startsWith("include_"))
+    .map(([k, v]) => ({ optionId: k.slice(8, 48), quantity: Number(v) }))
+    .filter((i) => i.quantity > 0);
+  const data = { groupSize: String(form.get("groupSize") ?? "1"), tableLabels: String(form.get("tableLabels") ?? "") };
+  const result = await runOrgAction(
+    orgSlug,
+    data,
+    { schema: z.object({ groupSize: text(3), tableLabels: z.string().max(12_000) }), permission: "TICKETS_MANAGE", feature: "SEATING_MAPS" },
+    async (d, ctx) => {
+      await saveTableSettings(ctx, eventId, ticketTypeId, { groupSize: Number(d.groupSize || 1), tableLabels: d.tableLabels.split(/\r?\n/), included });
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/tables`);
   return result;
 }

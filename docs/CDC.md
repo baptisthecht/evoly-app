@@ -1234,8 +1234,8 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 **Règles de gestion**
 
 - RG-EMB-01 : l'intégration n'est autorisée que sur les domaines déclarés par l'organisateur (liste « Sites autorisés ») ; ailleurs, l'affichage dans un cadre est refusé (en-tête `Content-Security-Policy: frame-ancestors`), contre le détournement de clic.
-- RG-EMB-02 : l'achat dans le cadre ne dépend d'aucun cookie tiers (bloqués par Safari et Firefox) : l'état de la commande est porté par un jeton signé.
-- RG-EMB-03 : le cadre porte l'autorisation de paiement (`allow="payment"`) pour Apple Pay et Google Pay ; si un moyen de paiement est refusé dans un cadre, l'achat se termine dans un nouvel onglet, commande conservée.
+- RG-EMB-02 : le cadre affiche l'événement et ses tarifs ; l'achat s'ouvre dans une fenêtre de paiement posée sur le site de l'organisateur (page de vente habituelle, au premier plan). Aucun cookie tiers n'est nécessaire. _Décidé le 12 octobre 2026 : les banques (Bancontact, iDEAL/Wero) refusent presque toutes d'être affichées dans un cadre ; un paiement dans le cadre aurait échoué._
+- RG-EMB-03 : tous les moyens de paiement fonctionnent dans la fenêtre de paiement (cartes, Bancontact, Wero, Apple Pay, Google Pay). Si le navigateur bloque la fenêtre, la page de vente s'ouvre à la place.
 - RG-EMB-04 : la langue suit celle de la page qui accueille le cadre, ou le réglage du code, parmi les 7 langues.
 - RG-EMB-05 : réservé à l'offre Pro ; le cadre est aux couleurs de l'organisateur, sans mention d'Evoly.
 - RG-EMB-06 : les règles d'achat sont celles de la page de vente : réservation, protection anti-robots, prévente, codes promo, revente, liste d'attente.
@@ -1289,7 +1289,7 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 **Règles de gestion**
 
 - RG-AMB-01 : chaque ambassadeur a un code unique et un lien de vente ; le code peut aussi servir de code promo si l'organisateur l'associe à une réduction.
-- RG-AMB-02 : la commande est attribuée au dernier lien d'ambassadeur suivi dans les 30 jours, mémorisé dans le navigateur de l'acheteur sur le domaine de la billetterie (aucun cookie tiers), puis inscrit sur la commande.
+- RG-AMB-02 : la commande est attribuée au lien d'ambassadeur ouvert pour la visite (code lu dans l'adresse), puis inscrite sur la commande ; rien n'est enregistré sur l'appareil de l'acheteur. _Décidé le 12 octobre 2026 : garder le lien 30 jours sur l'appareil demanderait le consentement de l'acheteur (directive « vie privée et communications électroniques »). Le souvenir de 30 jours pourra être activé avec un bandeau de consentement._
 - RG-AMB-03 : une commande compte pour un seul ambassadeur ; remboursements et annulations sont retirés du classement.
 - RG-AMB-04 : l'ambassadeur suit ses ventes par un lien privé, sans compte ; il ne voit jamais les données des acheteurs.
 - RG-AMB-05 : classement par nombre de billets et par montant, par événement ou sur toute l'organisation ; objectif et récompense affichés si l'organisateur les renseigne, la récompense restant remise par l'organisateur.
@@ -1359,7 +1359,7 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 
 **Règles de gestion**
 
-- RG-TAB-01 : une table est un groupe de places du plan de salle, vendu d'un bloc, au prix du forfait.
+- RG-TAB-01 : une table est un tarif qui donne plusieurs billets par achat (une table de N personnes), au prix du forfait ; le stock compte les tables ; chaque table vendue reçoit un nom (liste de l'organisateur, sinon « Table 1 », « Table 2 »…), inscrit sur chacun de ses billets et affiché au scan. La valeur faciale et la commission sont calculées par personne. _Premier livrable (12 octobre 2026) ; le choix d'une table dessinée sur le plan de salle viendra ensuite._
 - RG-TAB-02 : le forfait donne un nombre de billets (les places de la table) et, s'il y a lieu, des options comprises (section 9.29), retirées au bar.
 - RG-TAB-03 : le client reçoit tous les billets ; il peut les nommer ou les transférer à ses invités ; chaque billet indique la table.
 - RG-TAB-04 : la table est réservée pendant le paiement, comme un billet (section 8.5) : aucune double vente.

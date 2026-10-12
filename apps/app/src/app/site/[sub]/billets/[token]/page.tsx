@@ -154,6 +154,7 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
                 >
                   <p className="font-label text-xs font-bold text-ink-muted">{t("ticketOf", { index: i + 1, count: order.tickets.length })}</p>
                   <p className="font-display text-lg tracking-[-0.03em]">{tk.ticketType.name}</p>
+                  {tk.tableLabel ? <p className="text-sm font-semibold">{tk.tableLabel}</p> : null}
                   {tk.seat ? (
                     <p className="text-sm font-semibold" data-testid="seat">
                       {t("seat", { row: tk.seat.row.name, seat: tk.seat.label })}

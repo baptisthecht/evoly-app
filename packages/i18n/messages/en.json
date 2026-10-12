@@ -222,7 +222,8 @@
     "tabSeating": "Seating plan",
     "tabOptions": "Add-ons",
     "tabAmbassadors": "Ambassadors",
-    "tabEmbed": "Embed"
+    "tabEmbed": "Embed",
+    "tabTables": "Tables"
   },
   "tickets": {
     "addTicketType": "Add a ticket type",
@@ -697,7 +698,9 @@
     "EMBED_ORIGIN_INVALID": "Enter an HTTPS website address, for example myclub.com.",
     "EMBED_TOO_MANY": "10 websites at most.",
     "BOX_OFFICE_FORBIDDEN": "On-site sales are not allowed with this link.",
-    "BOX_OFFICE_FAILED": "The sale could not be recorded."
+    "BOX_OFFICE_FAILED": "The sale could not be recorded.",
+    "TABLE_SIZE_INVALID": "Enter a number of people between 1 and 30.",
+    "TABLE_LOCKED": "Tables have already been sold: the number of people can no longer change."
   },
   "brand": {
     "sloganStart": "your next",
@@ -1168,7 +1171,9 @@
     "embedUnavailable": "Ticketing is not available.",
     "payTitle": "On-site payment",
     "payUnavailable": "This payment is no longer available: ask the team for a new code.",
-    "payCancelled": "Payment cancelled."
+    "payCancelled": "Payment cancelled.",
+    "tablePeople": "Table for {count} people",
+    "tableIncludes": "Includes: {items}"
   },
   "promo": {
     "new": "New code",
@@ -2621,5 +2626,21 @@
     "bookLabel": "Book",
     "copy": "Copy the code",
     "preview": "Preview the module"
+  },
+  "tables": {
+    "intro": "Sell tables: a ticket can give several tickets per purchase, with a table name on each ticket and included drinks, redeemed at the bar.",
+    "emptyTitle": "No tickets yet",
+    "emptyBody": "First create a ticket, for example “VIP table”, in the Tickets tab.",
+    "groupSize": "People per table",
+    "groupSizeHint": "1 for a simple ticket. One purchase gives this number of tickets.",
+    "locked": "Tables have already been sold: the number of people can no longer change.",
+    "labels": "Table names",
+    "labelsHint": "Optional, one per line, in order of sale. Otherwise: Table 1, Table 2…",
+    "included": "Included drinks",
+    "includedHint": "Quantity included with each table, redeemed at the bar. 0: not included.",
+    "noOptions": "To include bottles or drinks, first create them in the Add-ons tab.",
+    "save": "Save",
+    "saved": "Package saved.",
+    "perPerson": "that is {amount} per person for {count}"
   }
 }

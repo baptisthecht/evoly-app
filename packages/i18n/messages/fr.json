@@ -222,7 +222,8 @@
     "tabSeating": "Plan de salle",
     "tabOptions": "Options",
     "tabAmbassadors": "Ambassadeurs",
-    "tabEmbed": "Intégrer"
+    "tabEmbed": "Intégrer",
+    "tabTables": "Tables"
   },
   "tickets": {
     "addTicketType": "Ajouter un tarif",
@@ -697,7 +698,9 @@
     "EMBED_ORIGIN_INVALID": "Indiquez l'adresse d'un site en HTTPS, par exemple monclub.be.",
     "EMBED_TOO_MANY": "10 sites au maximum.",
     "BOX_OFFICE_FORBIDDEN": "La vente sur place n'est pas autorisée avec ce lien.",
-    "BOX_OFFICE_FAILED": "La vente n'a pas pu être enregistrée."
+    "BOX_OFFICE_FAILED": "La vente n'a pas pu être enregistrée.",
+    "TABLE_SIZE_INVALID": "Indiquez un nombre de personnes entre 1 et 30.",
+    "TABLE_LOCKED": "Des tables sont déjà vendues : le nombre de personnes ne peut plus changer."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -1168,7 +1171,9 @@
     "embedUnavailable": "La billetterie n'est pas disponible.",
     "payTitle": "Paiement sur place",
     "payUnavailable": "Ce paiement n'est plus disponible : demandez un nouveau code à l'équipe.",
-    "payCancelled": "Paiement annulé."
+    "payCancelled": "Paiement annulé.",
+    "tablePeople": "Table pour {count} personnes",
+    "tableIncludes": "Comprend : {items}"
   },
   "promo": {
     "new": "Nouveau code",
@@ -2621,5 +2626,21 @@
     "bookLabel": "Réserver",
     "copy": "Copier le code",
     "preview": "Voir l'aperçu du module"
+  },
+  "tables": {
+    "intro": "Vendez des tables : un tarif peut donner plusieurs billets par achat, avec un nom de table sur chaque billet et des consommations comprises, retirées au bar.",
+    "emptyTitle": "Aucun tarif pour l'instant",
+    "emptyBody": "Créez d'abord un tarif, par exemple « Table VIP », dans l'onglet Tarifs.",
+    "groupSize": "Personnes par table",
+    "groupSizeHint": "1 pour un billet simple. Un achat donne ce nombre de billets.",
+    "locked": "Des tables sont déjà vendues : le nombre de personnes ne peut plus changer.",
+    "labels": "Noms des tables",
+    "labelsHint": "Facultatif, un par ligne, dans l'ordre de vente. Sinon : Table 1, Table 2…",
+    "included": "Consommations comprises",
+    "includedHint": "Quantité offerte avec chaque table, retirée au bar. 0 : non comprise.",
+    "noOptions": "Pour inclure des bouteilles ou des consommations, créez-les d'abord dans l'onglet Options.",
+    "save": "Enregistrer",
+    "saved": "Forfait enregistré.",
+    "perPerson": "soit {amount} par personne pour {count}"
   }
 }

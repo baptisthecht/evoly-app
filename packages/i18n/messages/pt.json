@@ -135,7 +135,9 @@
     "embedUnavailable": "A bilheteira não está disponível.",
     "payTitle": "Pagamento no local",
     "payUnavailable": "Este pagamento já não está disponível: peça um novo código à equipa.",
-    "payCancelled": "Pagamento cancelado."
+    "payCancelled": "Pagamento cancelado.",
+    "tablePeople": "Mesa para {count} pessoas",
+    "tableIncludes": "Inclui: {items}"
   },
   "checkout": {
     "tickets": "Bilhetes",
@@ -420,7 +422,9 @@
     "EMBED_ORIGIN_INVALID": "Indique o endereço de um site em HTTPS, por exemplo omeuclube.pt.",
     "EMBED_TOO_MANY": "No máximo 10 sites.",
     "BOX_OFFICE_FORBIDDEN": "A venda no local não é permitida com esta ligação.",
-    "BOX_OFFICE_FAILED": "Não foi possível registar a venda."
+    "BOX_OFFICE_FAILED": "Não foi possível registar a venda.",
+    "TABLE_SIZE_INVALID": "Indique um número de pessoas entre 1 e 30.",
+    "TABLE_LOCKED": "Já foram vendidas mesas: o número de pessoas já não pode mudar."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -853,7 +857,8 @@
     "tabSeating": "Planta da sala",
     "tabOptions": "Extras",
     "tabAmbassadors": "Embaixadores",
-    "tabEmbed": "Integrar"
+    "tabEmbed": "Integrar",
+    "tabTables": "Mesas"
   },
   "tickets": {
     "addTicketType": "Adicionar uma tarifa",
@@ -2621,5 +2626,21 @@
     "bookLabel": "Reservar",
     "copy": "Copiar o código",
     "preview": "Pré-visualizar o módulo"
+  },
+  "tables": {
+    "intro": "Venda mesas: uma tarifa pode dar vários bilhetes por compra, com o nome da mesa em cada bilhete e consumos incluídos, levantados no bar.",
+    "emptyTitle": "Ainda não há tarifas",
+    "emptyBody": "Crie primeiro uma tarifa, por exemplo «Mesa VIP», no separador Tarifas.",
+    "groupSize": "Pessoas por mesa",
+    "groupSizeHint": "1 para um bilhete simples. Uma compra dá este número de bilhetes.",
+    "locked": "Já foram vendidas mesas: o número de pessoas já não pode mudar.",
+    "labels": "Nomes das mesas",
+    "labelsHint": "Opcional, um por linha, por ordem de venda. Caso contrário: Mesa 1, Mesa 2…",
+    "included": "Consumos incluídos",
+    "includedHint": "Quantidade incluída com cada mesa, levantada no bar. 0: não incluído.",
+    "noOptions": "Para incluir garrafas ou consumos, crie-os primeiro no separador Extras.",
+    "save": "Guardar",
+    "saved": "Pacote guardado.",
+    "perPerson": "ou seja, {amount} por pessoa para {count}"
   }
 }

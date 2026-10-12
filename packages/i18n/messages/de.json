@@ -135,7 +135,9 @@
     "embedUnavailable": "Der Ticketverkauf ist nicht verfügbar.",
     "payTitle": "Zahlung vor Ort",
     "payUnavailable": "Diese Zahlung ist nicht mehr verfügbar: Bitten Sie das Team um einen neuen Code.",
-    "payCancelled": "Zahlung abgebrochen."
+    "payCancelled": "Zahlung abgebrochen.",
+    "tablePeople": "Tisch für {count} Personen",
+    "tableIncludes": "Inklusive: {items}"
   },
   "checkout": {
     "tickets": "Tickets",
@@ -420,7 +422,9 @@
     "EMBED_ORIGIN_INVALID": "Geben Sie die Adresse einer HTTPS-Website an, zum Beispiel meinclub.de.",
     "EMBED_TOO_MANY": "Höchstens 10 Websites.",
     "BOX_OFFICE_FORBIDDEN": "Der Verkauf vor Ort ist mit diesem Link nicht erlaubt.",
-    "BOX_OFFICE_FAILED": "Der Verkauf konnte nicht erfasst werden."
+    "BOX_OFFICE_FAILED": "Der Verkauf konnte nicht erfasst werden.",
+    "TABLE_SIZE_INVALID": "Geben Sie eine Personenzahl zwischen 1 und 30 an.",
+    "TABLE_LOCKED": "Es wurden bereits Tische verkauft: Die Personenzahl kann nicht mehr geändert werden."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -853,7 +857,8 @@
     "tabSeating": "Saalplan",
     "tabOptions": "Extras",
     "tabAmbassadors": "Botschafter",
-    "tabEmbed": "Einbinden"
+    "tabEmbed": "Einbinden",
+    "tabTables": "Tische"
   },
   "tickets": {
     "addTicketType": "Tarif hinzufügen",
@@ -2621,5 +2626,21 @@
     "bookLabel": "Buchen",
     "copy": "Code kopieren",
     "preview": "Vorschau des Moduls"
+  },
+  "tables": {
+    "intro": "Verkaufen Sie Tische: Ein Tarif kann mehrere Tickets pro Kauf ergeben, mit einem Tischnamen auf jedem Ticket und inklusiven Getränken, an der Bar einzulösen.",
+    "emptyTitle": "Noch keine Tarife",
+    "emptyBody": "Legen Sie zuerst einen Tarif an, zum Beispiel „VIP-Tisch“, im Reiter Tarife.",
+    "groupSize": "Personen pro Tisch",
+    "groupSizeHint": "1 für ein einfaches Ticket. Ein Kauf ergibt diese Anzahl Tickets.",
+    "locked": "Es wurden bereits Tische verkauft: Die Personenzahl kann nicht mehr geändert werden.",
+    "labels": "Tischnamen",
+    "labelsHint": "Optional, einer pro Zeile, in der Reihenfolge des Verkaufs. Sonst: Tisch 1, Tisch 2…",
+    "included": "Inklusive Getränke",
+    "includedHint": "Menge pro Tisch, an der Bar einzulösen. 0: nicht inklusive.",
+    "noOptions": "Um Flaschen oder Getränke aufzunehmen, legen Sie sie zuerst im Reiter Extras an.",
+    "save": "Speichern",
+    "saved": "Paket gespeichert.",
+    "perPerson": "also {amount} pro Person für {count}"
   }
 }

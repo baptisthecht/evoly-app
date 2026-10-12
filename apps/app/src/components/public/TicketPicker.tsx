@@ -23,6 +23,8 @@ import { WaitlistJoin } from "./WaitlistJoin";
 
 export interface PickerTicket {
   id: string;
+  groupSize?: number; // tables et forfaits (section 9.31)
+  included?: string[];
   name: string;
   description: string | null;
   priceMinor: number;
@@ -214,6 +216,8 @@ export function TicketPicker({
                 <div className="grid min-w-0 gap-1">
                   <p className="font-semibold">{tt.name}</p>
                   {tt.description ? <p className="text-sm text-ink-muted">{tt.description}</p> : null}
+                  {tt.groupSize && tt.groupSize > 1 ? <p className="text-sm font-semibold">{t("tablePeople", { count: tt.groupSize })}</p> : null}
+                  {tt.included?.length ? <p className="text-sm text-ink-muted">{t("tableIncludes", { items: tt.included.join(", ") })}</p> : null}
                   <div className="flex flex-wrap gap-2 text-sm">
                     {tt.tierName ? <span className="rounded-full bg-surface-accent px-2 py-0.5 font-label text-xs font-bold">{tt.tierName}</span> : null}
                     {availability.kind === "FEW_LEFT" ? (

@@ -135,7 +135,9 @@
     "embedUnavailable": "La biglietteria non è disponibile.",
     "payTitle": "Pagamento sul posto",
     "payUnavailable": "Questo pagamento non è più disponibile: chiedi un nuovo codice allo staff.",
-    "payCancelled": "Pagamento annullato."
+    "payCancelled": "Pagamento annullato.",
+    "tablePeople": "Tavolo per {count} persone",
+    "tableIncludes": "Include: {items}"
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -420,7 +422,9 @@
     "EMBED_ORIGIN_INVALID": "Indica l'indirizzo di un sito in HTTPS, per esempio ilmioclub.it.",
     "EMBED_TOO_MANY": "Al massimo 10 siti.",
     "BOX_OFFICE_FORBIDDEN": "La vendita in loco non è consentita con questo link.",
-    "BOX_OFFICE_FAILED": "Non è stato possibile registrare la vendita."
+    "BOX_OFFICE_FAILED": "Non è stato possibile registrare la vendita.",
+    "TABLE_SIZE_INVALID": "Indica un numero di persone tra 1 e 30.",
+    "TABLE_LOCKED": "Sono già stati venduti dei tavoli: il numero di persone non può più cambiare."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -853,7 +857,8 @@
     "tabSeating": "Mappa dei posti",
     "tabOptions": "Extra",
     "tabAmbassadors": "Ambasciatori",
-    "tabEmbed": "Integra"
+    "tabEmbed": "Integra",
+    "tabTables": "Tavoli"
   },
   "tickets": {
     "addTicketType": "Aggiungi una tariffa",
@@ -2621,5 +2626,21 @@
     "bookLabel": "Prenota",
     "copy": "Copia il codice",
     "preview": "Anteprima del modulo"
+  },
+  "tables": {
+    "intro": "Vendi tavoli: una tariffa può dare più biglietti per acquisto, con il nome del tavolo su ogni biglietto e consumazioni incluse, riscattate al bar.",
+    "emptyTitle": "Ancora nessuna tariffa",
+    "emptyBody": "Crea prima una tariffa, per esempio «Tavolo VIP», nella scheda Tariffe.",
+    "groupSize": "Persone per tavolo",
+    "groupSizeHint": "1 per un biglietto semplice. Un acquisto dà questo numero di biglietti.",
+    "locked": "Sono già stati venduti dei tavoli: il numero di persone non può più cambiare.",
+    "labels": "Nomi dei tavoli",
+    "labelsHint": "Facoltativo, uno per riga, in ordine di vendita. Altrimenti: Tavolo 1, Tavolo 2…",
+    "included": "Consumazioni incluse",
+    "includedHint": "Quantità inclusa con ogni tavolo, riscattata al bar. 0: non inclusa.",
+    "noOptions": "Per includere bottiglie o consumazioni, creale prima nella scheda Extra.",
+    "save": "Salva",
+    "saved": "Pacchetto salvato.",
+    "perPerson": "cioè {amount} a persona per {count}"
   }
 }

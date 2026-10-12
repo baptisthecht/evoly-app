@@ -93,6 +93,8 @@ export interface PublicTicketType {
   next: { priceMinor: number; startsAt: Date } | null;
   remaining: number;
   quantity: number | null;
+  groupSize: number; // tables et forfaits (section 9.31)
+  included: string[]; // consommations comprises : « 2 × Bouteille »
   minPerOrder: number;
   maxPerOrder: number;
   onSale: boolean;
@@ -150,6 +152,10 @@ async function loadPublicEventUncached(
   // RG-PRV-02 : un code de prévente valable ouvre la vente avant l\'ouverture publique, pour ce visiteur
   const presale = !!options.presaleCode && !!opensAt && opensAt > now && event.status === "PUBLISHED" && (await presaleUsable(event, options.presaleCode, now));
   const salesOpen = event.status === "PUBLISHED" && (presale || !opensAt || opensAt <= now) && now < (event.salesEndAt ?? event.startsAt);
+  const includedRows = await db.includedOption.findMany({
+    where: { ticketTypeId: { in: event.ticketTypes.map((t) => t.id) } },
+    include: { option: { select: { name: true } } },
+  });
   const waitlisted = await blockedForPublic(
     db,
     event.ticketTypes.map((t) => t.id),
@@ -173,6 +179,8 @@ async function loadPublicEventUncached(
       minPerOrder: t.minPerOrder,
       maxPerOrder: Math.min(t.maxPerOrder, event.maxTicketsPerOrder),
       onSale: salesOpen && inWindow && remaining > 0,
+      groupSize: t.groupSize,
+      included: includedRows.filter((r) => r.ticketTypeId === t.id).map((r) => `${r.quantity} × ${r.option.name}`),
     };
   });
   return {

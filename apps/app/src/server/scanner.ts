@@ -178,6 +178,7 @@ export async function scannerManifest(link: ResolvedLink) {
       voidReason: true,
       holderFirstName: true,
       holderLastName: true,
+      tableLabel: true,
       ticketType: { select: { name: true } },
       order: { select: { buyerFirstName: true, buyerLastName: true, buyerEmail: true } },
     },
@@ -209,7 +210,7 @@ export async function scannerManifest(link: ResolvedLink) {
       holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : `${t.order.buyerFirstName} ${t.order.buyerLastName}`.trim(),
       buyer: `${t.order.buyerFirstName} ${t.order.buyerLastName}`.trim(),
       emailHash: sha256(`${salt}:${t.order.buyerEmail.toLowerCase()}`),
-      typeName: t.ticketType.name,
+      typeName: t.tableLabel ? `${t.ticketType.name} · ${t.tableLabel}` : t.ticketType.name,
       status: t.status,
       checkedInAt: t.checkedInAt?.toISOString() ?? null,
       voidReason: t.voidReason,
@@ -321,7 +322,7 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
           holder: ticket.holderFirstName
             ? `${ticket.holderFirstName} ${ticket.holderLastName ?? ""}`.trim()
             : `${ticket.order.buyerFirstName} ${ticket.order.buyerLastName}`.trim(),
-          typeName: ticket.ticketType.name,
+          typeName: ticket.tableLabel ? `${ticket.ticketType.name} · ${ticket.tableLabel}` : ticket.ticketType.name,
           status: result === "VALID" && !checkOnly ? "CHECKED_IN" : ticket.status,
           checkedInAt: checkedInAt?.toISOString() ?? null,
           voidReason: ticket.voidReason,

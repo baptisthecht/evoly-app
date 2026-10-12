@@ -135,7 +135,9 @@
     "embedUnavailable": "De ticketverkoop is niet beschikbaar.",
     "payTitle": "Betaling ter plaatse",
     "payUnavailable": "Deze betaling is niet meer beschikbaar: vraag het team om een nieuwe code.",
-    "payCancelled": "Betaling geannuleerd."
+    "payCancelled": "Betaling geannuleerd.",
+    "tablePeople": "Tafel voor {count} personen",
+    "tableIncludes": "Inbegrepen: {items}"
   },
   "checkout": {
     "tickets": "Tickets",
@@ -420,7 +422,9 @@
     "EMBED_ORIGIN_INVALID": "Geef het adres van een HTTPS-website op, bijvoorbeeld mijnclub.be.",
     "EMBED_TOO_MANY": "Maximaal 10 websites.",
     "BOX_OFFICE_FORBIDDEN": "Verkoop ter plaatse is niet toegestaan met deze link.",
-    "BOX_OFFICE_FAILED": "De verkoop kon niet worden geregistreerd."
+    "BOX_OFFICE_FAILED": "De verkoop kon niet worden geregistreerd.",
+    "TABLE_SIZE_INVALID": "Geef een aantal personen tussen 1 en 30 op.",
+    "TABLE_LOCKED": "Er zijn al tafels verkocht: het aantal personen kan niet meer veranderen."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -853,7 +857,8 @@
     "tabSeating": "Zaalplan",
     "tabOptions": "Opties",
     "tabAmbassadors": "Ambassadeurs",
-    "tabEmbed": "Integreren"
+    "tabEmbed": "Integreren",
+    "tabTables": "Tafels"
   },
   "tickets": {
     "addTicketType": "Tarief toevoegen",
@@ -2621,5 +2626,21 @@
     "bookLabel": "Reserveren",
     "copy": "Code kopiëren",
     "preview": "Voorbeeld van de module"
+  },
+  "tables": {
+    "intro": "Verkoop tafels: een tarief kan meerdere tickets per aankoop geven, met een tafelnaam op elk ticket en inbegrepen consumpties, in te wisselen aan de bar.",
+    "emptyTitle": "Nog geen tarieven",
+    "emptyBody": "Maak eerst een tarief aan, bijvoorbeeld ‘VIP-tafel’, in het tabblad Tarieven.",
+    "groupSize": "Personen per tafel",
+    "groupSizeHint": "1 voor een gewoon ticket. Eén aankoop geeft dit aantal tickets.",
+    "locked": "Er zijn al tafels verkocht: het aantal personen kan niet meer veranderen.",
+    "labels": "Namen van de tafels",
+    "labelsHint": "Optioneel, één per regel, in volgorde van verkoop. Anders: Tafel 1, Tafel 2…",
+    "included": "Inbegrepen consumpties",
+    "includedHint": "Hoeveelheid per tafel, in te wisselen aan de bar. 0: niet inbegrepen.",
+    "noOptions": "Om flessen of consumpties op te nemen, maak ze eerst aan in het tabblad Opties.",
+    "save": "Opslaan",
+    "saved": "Formule opgeslagen.",
+    "perPerson": "dus {amount} per persoon voor {count}"
   }
 }

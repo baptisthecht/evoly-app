@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { finalizeOrder, reserveOrder } from "@/server/checkout";
 import { findOrgContext } from "@/server/context";
+import { loadPublicEvent } from "@/server/publicEvents";
 import { createOption } from "@/server/options";
 import { saveTableSettings } from "@/server/tables";
 
@@ -60,6 +61,9 @@ describe("tables et forfaits (section 9.31)", () => {
     expect(o1.tickets).toHaveLength(6);
     expect(new Set(o1.tickets.map((t) => t.tableLabel))).toEqual(new Set(["Carré Or"]));
     expect(o1.tickets.reduce((n, t) => n + t.faceValueMinor, 0)).toBe(30_000);
+    // la page de vente annonce le forfait
+    const publique = await loadPublicEvent({ id: s.event.id });
+    expect(publique!.ticketTypes[0]).toMatchObject({ groupSize: 6, included: ["2 × Bouteille"] });
     const o2 = await acheter(s);
     expect(o2.tickets[0]!.tableLabel).toBe("Table 2");
     await expect(saveTableSettings(s.ctx, s.event.id, s.type.id, { groupSize: 8, tableLabels: [], included: [] })).rejects.toMatchObject({
