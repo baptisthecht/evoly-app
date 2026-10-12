@@ -7,7 +7,7 @@ import { siteGate } from "@/server/siteGuard";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ sub: string; eventSlug: string }>; searchParams: Promise<{ apercu?: string; prevente?: string }> };
+type Props = { params: Promise<{ sub: string; eventSlug: string }>; searchParams: Promise<{ apercu?: string; prevente?: string; attente?: string }> };
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { sub, eventSlug } = await params;

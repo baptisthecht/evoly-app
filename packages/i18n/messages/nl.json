@@ -115,7 +115,22 @@
     "presaleBack": "Bekijk het evenement",
     "optionsTitle": "Opties",
     "optionsHint": "In te wisselen ter plaatse met een simpele scan van je ticket.",
-    "optionsNeedTicket": "Kies eerst je tickets om opties toe te voegen."
+    "optionsNeedTicket": "Kies eerst je tickets om opties toe te voegen.",
+    "waitlistJoin": "Op de wachtlijst",
+    "waitlistJoinFor": "Wachtlijst: {name}",
+    "waitlistEmail": "Je e-mailadres",
+    "waitlistQuantity": "Gewenste plaatsen",
+    "waitlistConsent": "Ik wil per e-mail verwittigd worden zodra er een plaats vrijkomt.",
+    "waitlistSubmit": "Inschrijven",
+    "waitlistJoined": "Genoteerd: we mailen je zodra er een plaats vrijkomt.",
+    "waitlistError": "Inschrijven mislukt: controleer je e-mailadres en probeer opnieuw.",
+    "waitlistErrorNotSoldOut": "Er zijn nog plaatsen: je kunt ze meteen reserveren.",
+    "waitlistOfferBanner": "Er is een plaats vrijgekomen voor jou: ze is voor je gereserveerd tot {time}.",
+    "waitlistUnsubTitle": "De wachtlijst verlaten",
+    "waitlistUnsubText": "Je staat ingeschreven voor het tarief {ticket} van {event}.",
+    "waitlistUnsubButton": "De wachtlijst verlaten",
+    "waitlistUnsubDone": "Klaar: je ontvangt geen berichten meer van deze wachtlijst.",
+    "waitlistUnsubGone": "Deze link is niet meer geldig."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -869,7 +884,9 @@
     "youGetHint": "Wat je per ticket wilt ontvangen: de prijs wordt vanzelf berekend.",
     "pricePaid": "Prijs die de bezoeker betaalt",
     "roundTo": "Ronde prijzen:",
-    "roundOption": "{price} · je ontvangt {net}"
+    "roundOption": "{price} · je ontvangt {net}",
+    "waitlistTitle": "Wachtlijst",
+    "waitlistLine": "{name}: {people, plural, one {# persoon} other {# personen}}, {places, plural, one {# gevraagde plaats} other {# gevraagde plaatsen}}"
   },
   "plans": {
     "free": "Free",

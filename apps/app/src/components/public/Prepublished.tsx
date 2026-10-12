@@ -155,7 +155,7 @@ export async function SalesCountdown({
   );
 }
 
-type Query = { apercu?: string; prevente?: string };
+type Query = { apercu?: string; prevente?: string; attente?: string };
 
 /** Chargement pour un visiteur : avec un code de prévente mémorisé et valable, la vente lui est ouverte (RG-PRV-02). */
 export async function loadEventForVisitor(org: PublicOrganization, where: { organizationId: string; slug: string } | { id: string }) {
@@ -195,5 +195,5 @@ export async function EventRouteView({ org, data, homeHref, query }: { org: Publ
       />
     );
   if (data.prepublished) return <PrepublishedEvent org={org} data={data} homeHref={homeHref} token={query.apercu} />;
-  return <PublicEventPage org={org} data={data} homeHref={homeHref} />;
+  return <PublicEventPage org={org} data={data} homeHref={homeHref} waitlistToken={query.attente?.slice(0, 60)} />;
 }

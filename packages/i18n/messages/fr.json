@@ -279,7 +279,9 @@
     "youGetHint": "Ce que vous voulez recevoir par billet : le prix se calcule tout seul.",
     "pricePaid": "Prix payé par le participant",
     "roundTo": "Prix ronds :",
-    "roundOption": "{price} · vous percevez {net}"
+    "roundOption": "{price} · vous percevez {net}",
+    "waitlistTitle": "Liste d'attente",
+    "waitlistLine": "{name} : {people, plural, one {# personne} other {# personnes}}, {places, plural, one {# place demandée} other {# places demandées}}"
   },
   "checkout": {
     "tickets": "Billets",
@@ -1120,7 +1122,22 @@
     "presaleBack": "Voir l’événement",
     "optionsTitle": "Options",
     "optionsHint": "À retirer sur place, sur un simple scan de votre billet.",
-    "optionsNeedTicket": "Choisissez d'abord vos billets pour ajouter des options."
+    "optionsNeedTicket": "Choisissez d'abord vos billets pour ajouter des options.",
+    "waitlistJoin": "Rejoindre la liste d'attente",
+    "waitlistJoinFor": "Liste d'attente : {name}",
+    "waitlistEmail": "Votre e-mail",
+    "waitlistQuantity": "Places souhaitées",
+    "waitlistConsent": "J'accepte d'être prévenu par e-mail dès qu'une place se libère.",
+    "waitlistSubmit": "M'inscrire",
+    "waitlistJoined": "C'est noté : nous vous écrirons dès qu'une place se libère.",
+    "waitlistError": "Inscription impossible : vérifiez votre e-mail, puis réessayez.",
+    "waitlistErrorNotSoldOut": "Des places sont encore disponibles : vous pouvez les réserver directement.",
+    "waitlistOfferBanner": "Une place s'est libérée pour vous : elle vous est réservée jusqu'à {time}.",
+    "waitlistUnsubTitle": "Quitter la liste d'attente",
+    "waitlistUnsubText": "Vous êtes inscrit pour le tarif {ticket} de {event}.",
+    "waitlistUnsubButton": "Quitter la liste d'attente",
+    "waitlistUnsubDone": "C'est fait : vous ne recevrez plus de message de cette liste d'attente.",
+    "waitlistUnsubGone": "Ce lien n'est plus valable."
   },
   "promo": {
     "new": "Nouveau code",

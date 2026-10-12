@@ -115,7 +115,22 @@
     "presaleBack": "Vedi l’evento",
     "optionsTitle": "Extra",
     "optionsHint": "Da riscattare sul posto con una semplice scansione del biglietto.",
-    "optionsNeedTicket": "Scegli prima i biglietti per aggiungere degli extra."
+    "optionsNeedTicket": "Scegli prima i biglietti per aggiungere degli extra.",
+    "waitlistJoin": "Iscriviti alla lista d'attesa",
+    "waitlistJoinFor": "Lista d'attesa: {name}",
+    "waitlistEmail": "La tua e-mail",
+    "waitlistQuantity": "Posti desiderati",
+    "waitlistConsent": "Accetto di essere avvisato per e-mail appena si libera un posto.",
+    "waitlistSubmit": "Iscrivimi",
+    "waitlistJoined": "Fatto: ti scriveremo appena si libera un posto.",
+    "waitlistError": "Iscrizione non riuscita: controlla la tua e-mail e riprova.",
+    "waitlistErrorNotSoldOut": "Ci sono ancora posti: puoi prenotarli direttamente.",
+    "waitlistOfferBanner": "Si è liberato un posto per te: è riservato fino alle {time}.",
+    "waitlistUnsubTitle": "Lascia la lista d'attesa",
+    "waitlistUnsubText": "Sei iscritto per la tariffa {ticket} di {event}.",
+    "waitlistUnsubButton": "Lascia la lista d'attesa",
+    "waitlistUnsubDone": "Fatto: non riceverai più messaggi da questa lista d'attesa.",
+    "waitlistUnsubGone": "Questo link non è più valido."
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -869,7 +884,9 @@
     "youGetHint": "Quanto vuoi ricevere per biglietto: il prezzo si calcola da solo.",
     "pricePaid": "Prezzo pagato dal partecipante",
     "roundTo": "Prezzi tondi:",
-    "roundOption": "{price} · incassi {net}"
+    "roundOption": "{price} · incassi {net}",
+    "waitlistTitle": "Lista d'attesa",
+    "waitlistLine": "{name}: {people, plural, one {# persona} other {# persone}}, {places, plural, one {# posto richiesto} other {# posti richiesti}}"
   },
   "plans": {
     "free": "Free",

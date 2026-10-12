@@ -28,6 +28,7 @@ import { presaleCookie, unlockPresale } from "@/server/presale";
 import { botProtected, createChallenge, verifyProof, type BotChallenge } from "@/server/botProtection";
 import { clientIp } from "@/server/requestInfo";
 import { safeError } from "@/lib/redact";
+import { joinWaitlist } from "@/server/waitlist";
 
 /** Options et consommations demandées avec les billets (section 9.29). */
 const optionsSchema = z.array(z.object({ optionId: z.string().max(40), quantity: z.number().int().min(0).max(100) })).max(20);
@@ -350,4 +351,22 @@ export async function unlockPresaleAction(eventId: string, code: unknown): Promi
 export async function botChallengeAction(eventId: string): Promise<BotChallenge | null> {
   const id = eventId.slice(0, 40);
   return (await botProtected(id)) ? createChallenge(id) : null;
+}
+
+/** Liste d'attente (section 9.30) : inscription sur un tarif complet, avec le consentement, limitée par adresse IP. */
+export async function joinWaitlistAction(eventId: string, ticketTypeId: string, email: unknown, quantity: unknown, consent: unknown): Promise<Result<null>> {
+  const parsed = z
+    .email()
+    .max(200)
+    .safeParse(typeof email === "string" ? email.trim().toLowerCase() : email);
+  if (!parsed.success) return { ok: false, error: "INVALID_EMAIL" };
+  if (consent !== true) return { ok: false, error: "CONSENT_REQUIRED" };
+  const q = typeof quantity === "number" ? quantity : Number(quantity);
+  if ((await hit(`waitlist:ip:${await clientIp()}`, 3600)) > 30) return { ok: false, error: "RATE_LIMITED" };
+  try {
+    await joinWaitlist(eventId.slice(0, 40), ticketTypeId.slice(0, 40), parsed.data, q, await getLocale());
+    return { ok: true, data: null };
+  } catch (err) {
+    return { ok: false, error: err instanceof CoreError ? err.code : "ERROR" };
+  }
 }

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { finalizeOrder, releaseExpiredHolds, reserveOrder } from "@/server/checkout";
 import { afterOrderPaid } from "@/server/orders";
-import { dispatchWaitlist, joinWaitlist, leaveWaitlist } from "@/server/waitlist";
+import { loadPublicEvent } from "@/server/publicEvents";
+import { dispatchWaitlist, joinWaitlist, leaveWaitlist, waitlistOfferView } from "@/server/waitlist";
 
 const DAY = 86_400_000;
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -58,10 +59,16 @@ describe("liste d'attente (section 9.30)", () => {
     // la réservation expire : la place libérée n'est pas vendue au public, elle est proposée au premier inscrit
     expect(await releaseExpiredHolds()).toBeGreaterThanOrEqual(1);
     await expect(reserveOrder(panier(1))).rejects.toThrow();
+    // la page de vente publique affiche le tarif complet, alors qu'une place est libre
+    const publique = await loadPublicEvent({ id: s.event.id });
+    expect(publique!.ticketTypes.find((t) => t.id === s.type.id)!.remaining).toBe(0);
     expect(await dispatchWaitlist()).toMatchObject({ offered: 1 });
     expect(await db.waitlistEntry.findUniqueOrThrow({ where: { id: ea.id } })).toMatchObject({ status: "OFFERED", offeredQuantity: 1 });
     expect((await db.waitlistEntry.findUniqueOrThrow({ where: { id: eb.id } })).status).toBe("WAITING");
     expect(await sent(a, "waitlist.offer")).toBe(1);
+    // le lien personnel fait apparaître l'offre, avec le bon nombre de places
+    expect(await waitlistOfferView(ea.token, s.event.id)).toMatchObject({ ticketTypeId: s.type.id, quantity: 1 });
+    expect(await waitlistOfferView(eb.token, s.event.id)).toBeNull();
     await expect(reserveOrder(panier(1))).rejects.toThrow(); // le public attend toujours
     // A achète avec son lien, sans dépasser ce qui lui est proposé
     await expect(reserveOrder(panier(2, { waitlistToken: ea.token }))).rejects.toThrow();

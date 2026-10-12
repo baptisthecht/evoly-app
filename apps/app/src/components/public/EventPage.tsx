@@ -77,11 +77,13 @@ export async function PublicEventPage({
   data,
   homeHref,
   preview = false,
+  waitlistToken,
 }: {
   org: PublicOrganization;
   data: PublicEventData;
   homeHref: string;
   preview?: boolean;
+  waitlistToken?: string;
 }) {
   const e = data.event;
   if (!(await eventUnlocked(e.id)))
@@ -133,7 +135,7 @@ export async function PublicEventPage({
   return (
     <PublicShell org={org} homeHref={homeHref}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <EventPublicView org={org} data={data} seatMap={await seatMapFor(e)} preview={preview} />
+      <EventPublicView org={org} data={data} seatMap={await seatMapFor(e)} preview={preview} waitlistToken={waitlistToken} />
     </PublicShell>
   );
 }

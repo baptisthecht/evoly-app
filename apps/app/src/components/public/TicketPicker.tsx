@@ -19,6 +19,7 @@ import { Input } from "../ui/Field";
 import { Button } from "../ui/Button";
 import { CheckoutPanel } from "./CheckoutPanel";
 import { cn } from "../ui/cn";
+import { WaitlistJoin } from "./WaitlistJoin";
 
 export interface PickerTicket {
   id: string;
@@ -44,6 +45,7 @@ export function TicketPicker({
   checkout,
   seatMap = null,
   options = [],
+  waitlistOffer = null,
 }: {
   tickets: PickerTicket[];
   currency: string;
@@ -53,6 +55,7 @@ export function TicketPicker({
   checkout?: { eventId: string; organizationName: string; requirePhone: boolean; publishableKey: string | null };
   seatMap?: PublicSeatMap | null;
   options?: Array<{ id: string; name: string; description: string | null; priceMinor: number; maxPerOrder: number; left: number | null }>;
+  waitlistOffer?: { token: string; ticketTypeId: string; quantity: number; expiresAt: string } | null;
 }) {
   const t = useTranslations("public");
   const locale = useLocale() as Locale;
@@ -67,7 +70,17 @@ export function TicketPicker({
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoInput, setPromoInput] = useState("");
   const [promoError, setPromoError] = useState<string | null>(null);
-  const tickets = useMemo(() => [...baseTickets, ...(promo?.unlocked ?? []).filter((u) => !baseTickets.some((b) => b.id === u.id))], [baseTickets, promo]);
+  // section 9.30 : avec son lien personnel, l'inscrit voit les places qui lui sont proposées
+  const offered = useMemo(
+    () =>
+      baseTickets.map((b) =>
+        waitlistOffer && b.id === waitlistOffer.ticketTypeId
+          ? { ...b, remaining: waitlistOffer.quantity, maxPerOrder: Math.min(b.maxPerOrder, waitlistOffer.quantity), onSale: true }
+          : b,
+      ),
+    [baseTickets, waitlistOffer],
+  );
+  const tickets = useMemo(() => [...offered, ...(promo?.unlocked ?? []).filter((u) => !offered.some((b) => b.id === u.id))], [offered, promo]);
   const discounted = (tt: PickerTicket) =>
     promo && (promo.ticketTypeIds.length === 0 || promo.ticketTypeIds.includes(tt.id))
       ? tt.priceMinor -
@@ -135,7 +148,7 @@ export function TicketPicker({
     const opts = Object.entries(optQty)
       .filter(([, n]) => n > 0)
       .map(([optionId, quantity]) => ({ optionId, quantity }));
-    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null, botProof, opts);
+    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null, botProof, opts, waitlistOffer?.token ?? null);
     setPending(false);
     if (res.ok) return setReservation(res.data);
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
@@ -164,6 +177,13 @@ export function TicketPicker({
           {tseat("friendBanner", { name: friend.firstName })}
         </p>
       ) : null}
+      {waitlistOffer ? (
+        <p role="status" className="rounded-md bg-info-soft px-4 py-3 text-sm">
+          {t("waitlistOfferBanner", {
+            time: new Intl.DateTimeFormat(locale, { timeZone, hour: "2-digit", minute: "2-digit" }).format(new Date(waitlistOffer.expiresAt)),
+          })}
+        </p>
+      ) : null}
       <ul className="grid gap-3">
         {tickets.map((tt) => {
           const availability = availabilityDisplay(tt.remaining, tt.quantity);
@@ -184,6 +204,14 @@ export function TicketPicker({
                       <span className="font-semibold text-warning">{t("fewLeft", { count: availability.remaining })}</span>
                     ) : null}
                     {availability.kind === "SOLD_OUT" ? <span className="font-semibold text-ink-muted">{t("soldOut")}</span> : null}
+                    {availability.kind === "SOLD_OUT" && checkout && state === "OPEN" ? (
+                      <WaitlistJoin
+                        eventId={checkout.eventId}
+                        ticketTypeId={tt.id}
+                        name={tt.name}
+                        max={Math.max(1, Math.min(4, tt.maxPerOrder, maxPerOrder))}
+                      />
+                    ) : null}
                   </div>
                   {tt.next ? (
                     <p className="text-xs text-ink-muted">

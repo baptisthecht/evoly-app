@@ -11,6 +11,7 @@ import { getEventWithTickets } from "@/server/events";
 import { getPlans } from "@/server/plans";
 import { NewTicketType } from "./NewTicketType";
 import { TicketTypeCard, type TicketTypeRow } from "./TicketTypeEditor";
+import { waitlistCounts } from "@/server/waitlist";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -22,6 +23,7 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
   const t = await getTranslations("tickets");
+  const waitlist = await waitlistCounts(eventId); // section 9.30
   const plans = await getPlans();
   const terms = plans[ctx.plan].terms[event.currency] ?? plans[ctx.plan].terms.EUR!;
   const tz = event.timezone;
@@ -75,6 +77,20 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
         />
       ))}
       {manage ? <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} /> : null}
+      {waitlist.length ? (
+        <section className="grid gap-1 rounded-lg bg-surface-sunken p-4 text-sm" aria-label={t("waitlistTitle")}>
+          <h2 className="font-semibold">{t("waitlistTitle")}</h2>
+          {waitlist.map((w) => (
+            <p key={w.ticketTypeId}>
+              {t("waitlistLine", {
+                name: event.ticketTypes.find((tt) => tt.id === w.ticketTypeId)?.name ?? "",
+                people: w._count._all,
+                places: w._sum.quantity ?? 0,
+              })}
+            </p>
+          ))}
+        </section>
+      ) : null}
       {can(ctx.membership, "ORDERS_MANAGE") && !ctx.readOnly && event.ticketTypes.length > 0 ? (
         <ComplimentaryForm orgSlug={orgSlug} eventId={eventId} ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name }))} />
       ) : null}

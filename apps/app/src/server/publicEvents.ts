@@ -9,6 +9,7 @@ import { effectivePlan, hasFeature } from "@evoly/core";
 import { isPrepublished, salesOpeningAt } from "@evoly/core";
 import { publiclyVisible } from "./publication";
 import { presaleUsable } from "./presale";
+import { blockedForPublic } from "./waitlist";
 
 const VISIBLE_STATUSES = ["PUBLISHED", "SALES_PAUSED", "CANCELLED", "ENDED"] as const;
 
@@ -149,12 +150,17 @@ async function loadPublicEventUncached(
   // RG-PRV-02 : un code de prévente valable ouvre la vente avant l\'ouverture publique, pour ce visiteur
   const presale = !!options.presaleCode && !!opensAt && opensAt > now && event.status === "PUBLISHED" && (await presaleUsable(event, options.presaleCode, now));
   const salesOpen = event.status === "PUBLISHED" && (presale || !opensAt || opensAt <= now) && now < (event.salesEndAt ?? event.startsAt);
+  const waitlisted = await blockedForPublic(
+    db,
+    event.ticketTypes.map((t) => t.id),
+    now,
+  ); // section 9.30 : places réservées aux inscrits
   const ticketTypes: PublicTicketType[] = event.ticketTypes.map((t) => {
     const tiers = t.priceTiers.map(toTier);
     const price = effectivePrice(t.priceMinor, tiers, now);
     const upcoming = event.showNextPriceTier ? nextTier(tiers, now) : null;
     const inWindow = (presale || !t.salesStartAt || t.salesStartAt <= now) && (!t.salesEndAt || now < t.salesEndAt);
-    const remaining = t.status === "SOLD_OUT" ? 0 : availableFor(t, eventStock);
+    const remaining = t.status === "SOLD_OUT" || waitlisted.has(t.id) ? 0 : availableFor(t, eventStock);
     return {
       id: t.id,
       name: t.name,

@@ -11,6 +11,7 @@ import { formatMoney } from "@evoly/i18n";
 import { SalesCountdown } from "./Prepublished";
 import { eventPublicUrl } from "@/server/urls";
 import { saleOptions } from "@/server/options";
+import { waitlistOfferView } from "@/server/waitlist";
 
 /** Page de vente (section 9.10) : informations à gauche, billets à droite ; billets en premier sur téléphone. */
 export async function EventPublicView({
@@ -18,11 +19,13 @@ export async function EventPublicView({
   data,
   preview = false,
   seatMap = null,
+  waitlistToken,
 }: {
   org: PublicOrganization;
   data: PublicEventData;
   preview?: boolean;
   seatMap?: PublicSeatMap | null;
+  waitlistToken?: string;
 }) {
   const { event, ticketTypes, salesOpen } = data;
   const t = await getTranslations("public");
@@ -131,6 +134,7 @@ export async function EventPublicView({
                 maxPerOrder={event.maxTicketsPerOrder}
                 state={state}
                 options={await saleOptions(event.id)}
+                waitlistOffer={waitlistToken ? await waitlistOfferView(waitlistToken, event.id) : null}
                 checkout={
                   preview
                     ? undefined

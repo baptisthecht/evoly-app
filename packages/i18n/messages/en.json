@@ -279,7 +279,9 @@
     "youGetHint": "What you want to receive per ticket: the price is calculated for you.",
     "pricePaid": "Price paid by the attendee",
     "roundTo": "Round prices:",
-    "roundOption": "{price} · you receive {net}"
+    "roundOption": "{price} · you receive {net}",
+    "waitlistTitle": "Waiting list",
+    "waitlistLine": "{name}: {people, plural, one {# person} other {# people}}, {places, plural, one {# place wanted} other {# places wanted}}"
   },
   "checkout": {
     "tickets": "Tickets",
@@ -1120,7 +1122,22 @@
     "presaleBack": "See the event",
     "optionsTitle": "Add-ons",
     "optionsHint": "Redeemed on site with a simple scan of your ticket.",
-    "optionsNeedTicket": "Choose your tickets first to add add-ons."
+    "optionsNeedTicket": "Choose your tickets first to add add-ons.",
+    "waitlistJoin": "Join the waiting list",
+    "waitlistJoinFor": "Waiting list: {name}",
+    "waitlistEmail": "Your email",
+    "waitlistQuantity": "Places wanted",
+    "waitlistConsent": "I agree to be emailed as soon as a place frees up.",
+    "waitlistSubmit": "Sign me up",
+    "waitlistJoined": "Done: we will email you as soon as a place frees up.",
+    "waitlistError": "Could not sign you up: check your email, then try again.",
+    "waitlistErrorNotSoldOut": "Places are still available: you can book them directly.",
+    "waitlistOfferBanner": "A place has freed up for you: it is held for you until {time}.",
+    "waitlistUnsubTitle": "Leave the waiting list",
+    "waitlistUnsubText": "You are signed up for the {ticket} ticket for {event}.",
+    "waitlistUnsubButton": "Leave the waiting list",
+    "waitlistUnsubDone": "Done: you will no longer receive messages from this waiting list.",
+    "waitlistUnsubGone": "This link is no longer valid."
   },
   "promo": {
     "new": "New code",

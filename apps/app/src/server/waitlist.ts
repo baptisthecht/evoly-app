@@ -126,7 +126,7 @@ export function waitlistByToken(token: string) {
 }
 
 /** Tarifs que le public ne peut pas acheter : des inscrits attendent, ou une place leur est proposée. */
-export async function blockedForPublic(tx: Tx, ticketTypeIds: string[], now: Date) {
+export async function blockedForPublic(tx: Tx | typeof db, ticketTypeIds: string[], now: Date) {
   const rows = await tx.waitlistEntry.groupBy({
     by: ["ticketTypeId"],
     where: { ticketTypeId: { in: ticketTypeIds }, OR: [{ status: "WAITING" }, activeOffer(now)] },
@@ -222,4 +222,20 @@ export async function dispatchWaitlist(now = new Date()) {
   }
   for (const id of offered) await sendOffer(id).catch((err) => console.error("offre de la liste d'attente non envoyée", safeError(err)));
   return { expired, offered: offered.length };
+}
+
+/** Offre en cours, pour la page de vente ouverte avec le lien personnel. */
+export async function waitlistOfferView(token: string, eventId: string, now = new Date()) {
+  const e = await validOffer(db, token.slice(0, 60), eventId, now);
+  return e ? { token: e.token, ticketTypeId: e.ticketTypeId, quantity: e.offeredQuantity ?? e.quantity, expiresAt: e.offerExpiresAt!.toISOString() } : null;
+}
+
+/** Nombre d'inscrits et de places demandées par tarif, pour l'organisateur (RG-ATT-06). */
+export async function waitlistCounts(eventId: string) {
+  return db.waitlistEntry.groupBy({
+    by: ["ticketTypeId"],
+    where: { eventId, status: { in: ["WAITING", "OFFERED"] } },
+    _count: { _all: true },
+    _sum: { quantity: true },
+  });
 }

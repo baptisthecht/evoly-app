@@ -115,7 +115,22 @@
     "presaleBack": "Ver el evento",
     "optionsTitle": "Extras",
     "optionsHint": "Se canjean in situ con un simple escaneo de tu entrada.",
-    "optionsNeedTicket": "Elige primero tus entradas para añadir extras."
+    "optionsNeedTicket": "Elige primero tus entradas para añadir extras.",
+    "waitlistJoin": "Apuntarme a la lista de espera",
+    "waitlistJoinFor": "Lista de espera: {name}",
+    "waitlistEmail": "Tu correo",
+    "waitlistQuantity": "Plazas deseadas",
+    "waitlistConsent": "Acepto recibir un correo en cuanto se libere una plaza.",
+    "waitlistSubmit": "Apuntarme",
+    "waitlistJoined": "Hecho: te escribiremos en cuanto se libere una plaza.",
+    "waitlistError": "No se pudo completar: revisa tu correo y vuelve a intentarlo.",
+    "waitlistErrorNotSoldOut": "Todavía quedan plazas: puedes reservarlas directamente.",
+    "waitlistOfferBanner": "Se ha liberado una plaza para ti: está reservada hasta las {time}.",
+    "waitlistUnsubTitle": "Salir de la lista de espera",
+    "waitlistUnsubText": "Estás apuntado a la tarifa {ticket} de {event}.",
+    "waitlistUnsubButton": "Salir de la lista de espera",
+    "waitlistUnsubDone": "Hecho: ya no recibirás mensajes de esta lista de espera.",
+    "waitlistUnsubGone": "Este enlace ya no es válido."
   },
   "checkout": {
     "tickets": "Entradas",
@@ -869,7 +884,9 @@
     "youGetHint": "Lo que quieres recibir por entrada: el precio se calcula solo.",
     "pricePaid": "Precio pagado por el asistente",
     "roundTo": "Precios redondos:",
-    "roundOption": "{price} · recibes {net}"
+    "roundOption": "{price} · recibes {net}",
+    "waitlistTitle": "Lista de espera",
+    "waitlistLine": "{name}: {people, plural, one {# persona} other {# personas}}, {places, plural, one {# plaza pedida} other {# plazas pedidas}}"
   },
   "plans": {
     "free": "Free",
