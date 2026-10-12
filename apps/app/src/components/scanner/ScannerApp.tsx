@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CameraScanner } from "./CameraScanner";
+import { SellPanel } from "./SellPanel";
 
 type TicketStatus = "VALID" | "CHECKED_IN" | "VOID" | "REFUNDED";
 interface LocalTicket {
@@ -21,7 +22,8 @@ interface Manifest {
   serverTime: string;
   salt: string;
   event: { title: string; startsAt: string; timezone: string; place: string | null };
-  link: { label: string; allowManualSearch: boolean; checkOnly?: boolean; expiresAt: string };
+  link: { label: string; allowManualSearch: boolean; checkOnly?: boolean; canSell?: boolean; expiresAt: string };
+  sale?: { currency: string; ticketTypes: Array<{ id: string; name: string; priceMinor: number; remaining: number }> } | null;
   tickets: LocalTicket[];
   hasOptions?: boolean;
 }
@@ -130,13 +132,19 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
   const [online, setOnline] = useState(true);
   const [dead, setDead] = useState<Dead | null>(gone ?? null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [tab, setTab] = useState<"scan" | "search">("scan");
+  const [tab, setTab] = useState<"scan" | "search" | "sell">("scan");
   const [code, setCode] = useState("");
   const [query, setQuery] = useState("");
   const [emailHash, setEmailHash] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<LocalTicket | null>(null);
   // vérification seule : imposée par le lien, ou choisie ici ; le billet est contrôlé sans être validé
   const verify = !!manifest?.link.checkOnly || checkMode;
+  // onglets : scan, recherche si le lien l'autorise, vente sur place si le lien l'autorise (section 9.27)
+  const tabs: Array<"scan" | "search" | "sell"> = [
+    "scan",
+    ...(manifest?.link.allowManualSearch ? (["search"] as const) : []),
+    ...(manifest?.link.canSell && manifest.sale ? (["sell"] as const) : []),
+  ];
   const pendingRef = useRef(pending);
   const busy = useRef(false);
   pendingRef.current = pending;
@@ -461,9 +469,9 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
           </p>
           {pending.length > 0 ? <p className="rounded-full bg-blanc/15 px-3 py-1 text-xs font-semibold">{t("pending", { count: pending.length })}</p> : null}
         </div>
-        {manifest.link.allowManualSearch ? (
-          <nav className="grid grid-cols-2 gap-1 rounded-full bg-blanc/10 p-1" aria-label={t("tabs")}>
-            {(["scan", "search"] as const).map((k) => (
+        {tabs.length > 1 ? (
+          <nav className={`grid ${tabs.length === 3 ? "grid-cols-3" : "grid-cols-2"} gap-1 rounded-full bg-blanc/10 p-1`} aria-label={t("tabs")}>
+            {tabs.map((k) => (
               <button
                 key={k}
                 type="button"
@@ -478,7 +486,8 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
         ) : null}
       </header>
 
-      {tab === "scan" ? (
+      {tab === "sell" && manifest?.sale ? <SellPanel token={token} deviceId={deviceId} sale={manifest.sale} /> : null}
+      {tab === "sell" ? null : tab === "scan" ? (
         <section className="grid gap-4 px-4 pt-2">
           <CameraScanner paused={!!feedback} onCode={(value) => scan({ code: value, method: "QR" })} />
           <form

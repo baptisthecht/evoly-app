@@ -415,7 +415,9 @@
     "AMBASSADOR_EMAIL_INVALID": "Geef een geldig e-mailadres op, of laat het veld leeg.",
     "AMBASSADOR_GOAL_INVALID": "Het doel moet een positief geheel getal zijn.",
     "EMBED_ORIGIN_INVALID": "Geef het adres van een HTTPS-website op, bijvoorbeeld mijnclub.be.",
-    "EMBED_TOO_MANY": "Maximaal 10 websites."
+    "EMBED_TOO_MANY": "Maximaal 10 websites.",
+    "BOX_OFFICE_FORBIDDEN": "Verkoop ter plaatse is niet toegestaan met deze link.",
+    "BOX_OFFICE_FAILED": "De verkoop kon niet worden geregistreerd."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -605,7 +607,15 @@
     "barLeft": "Nog {left} van {quantity}",
     "bar_NOT_FOUND": "Onbekend ticket voor dit evenement.",
     "bar_OFFLINE": "De barmodus heeft een netwerkverbinding nodig.",
-    "bar_FAILED": "Inwisselen mislukt: niets meer over, of probeer opnieuw."
+    "bar_FAILED": "Inwisselen mislukt: niets meer over, of probeer opnieuw.",
+    "tab_sell": "Verkoop",
+    "sellEmail": "E-mail van de klant (optioneel, om de tickets te sturen)",
+    "sellCash": "{amount} contant ontvangen",
+    "sellDone": "{count, plural, one {Verkoop geregistreerd: # ticket, toegang gevalideerd.} other {Verkoop geregistreerd: # tickets, toegang gevalideerd.}}",
+    "sellError": "Verkoop mislukt: controleer de beschikbare plaatsen en probeer opnieuw.",
+    "sellOffline": "Verkopen vraagt een netwerkverbinding.",
+    "sellEmpty": "Kies minstens één ticket.",
+    "sellSoldOut": "Uitverkocht"
   },
   "scannerAccess": {
     "title": "Tickets scannen",
@@ -2198,7 +2208,12 @@
     "revoke": "Intrekken",
     "qrLabel": "QR-code van de vrijwilligerslink",
     "checkOnly": "Alleen controle: tickets controleren zonder de toegang te bevestigen (controle aan de omheining, verificatie)",
-    "checkOnlyBadge": "alleen controle"
+    "checkOnlyBadge": "alleen controle",
+    "canSell": "Verkoop ter plaatse toestaan (contant)",
+    "cashTitle": "Kasrapport",
+    "cashModeCash": "contant",
+    "cashModeQr": "QR-code",
+    "cashLine": "{sales, plural, one {# verkoop} other {# verkopen}}"
   },
   "resaleAdmin": {
     "statActive": "Te koop",

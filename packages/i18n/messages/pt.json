@@ -415,7 +415,9 @@
     "AMBASSADOR_EMAIL_INVALID": "Indique um e-mail válido, ou deixe o campo vazio.",
     "AMBASSADOR_GOAL_INVALID": "O objetivo deve ser um número inteiro positivo.",
     "EMBED_ORIGIN_INVALID": "Indique o endereço de um site em HTTPS, por exemplo omeuclube.pt.",
-    "EMBED_TOO_MANY": "No máximo 10 sites."
+    "EMBED_TOO_MANY": "No máximo 10 sites.",
+    "BOX_OFFICE_FORBIDDEN": "A venda no local não é permitida com esta ligação.",
+    "BOX_OFFICE_FAILED": "Não foi possível registar a venda."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -605,7 +607,15 @@
     "barLeft": "Restam {left} de {quantity}",
     "bar_NOT_FOUND": "Bilhete desconhecido para este evento.",
     "bar_OFFLINE": "O modo bar precisa de rede.",
-    "bar_FAILED": "Não foi possível levantar: nada restante, ou tente novamente."
+    "bar_FAILED": "Não foi possível levantar: nada restante, ou tente novamente.",
+    "tab_sell": "Venda",
+    "sellEmail": "E-mail do cliente (opcional, para lhe enviar os bilhetes)",
+    "sellCash": "Receber {amount} em dinheiro",
+    "sellDone": "{count, plural, one {Venda registada: # bilhete, entrada validada.} other {Venda registada: # bilhetes, entrada validada.}}",
+    "sellError": "Não foi possível vender: verifique os lugares disponíveis e tente novamente.",
+    "sellOffline": "A venda precisa de rede.",
+    "sellEmpty": "Escolha pelo menos um bilhete.",
+    "sellSoldOut": "Esgotado"
   },
   "scannerAccess": {
     "title": "Ler os bilhetes",
@@ -2198,7 +2208,12 @@
     "revoke": "Revogar",
     "qrLabel": "Código QR do link para voluntários",
     "checkOnly": "Só verificação: verificar os bilhetes sem validar a entrada (controlo de perímetro, verificação)",
-    "checkOnlyBadge": "só verificação"
+    "checkOnlyBadge": "só verificação",
+    "canSell": "Permitir a venda no local (dinheiro)",
+    "cashTitle": "Relatório de caixa",
+    "cashModeCash": "dinheiro",
+    "cashModeQr": "código QR",
+    "cashLine": "{sales, plural, one {# venda} other {# vendas}}"
   },
   "resaleAdmin": {
     "statActive": "À venda",

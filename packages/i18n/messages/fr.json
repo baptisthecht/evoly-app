@@ -625,7 +625,15 @@
     "barLeft": "{left} sur {quantity} restant(s)",
     "bar_NOT_FOUND": "Billet inconnu pour cet événement.",
     "bar_OFFLINE": "Le mode bar a besoin du réseau.",
-    "bar_FAILED": "Retrait impossible : plus rien à retirer, ou réessayez."
+    "bar_FAILED": "Retrait impossible : plus rien à retirer, ou réessayez.",
+    "tab_sell": "Vente",
+    "sellEmail": "E-mail du client (facultatif, pour lui envoyer ses billets)",
+    "sellCash": "Encaisser {amount} en espèces",
+    "sellDone": "{count, plural, one {Vente enregistrée : # billet, entrée validée.} other {Vente enregistrée : # billets, entrée validée.}}",
+    "sellError": "Vente impossible : vérifiez les places disponibles, puis réessayez.",
+    "sellOffline": "La vente a besoin du réseau.",
+    "sellEmpty": "Choisissez au moins un billet.",
+    "sellSoldOut": "Complet"
   },
   "plans": {
     "free": "Free",
@@ -681,7 +689,9 @@
     "AMBASSADOR_EMAIL_INVALID": "Indiquez un e-mail valide, ou laissez le champ vide.",
     "AMBASSADOR_GOAL_INVALID": "L'objectif doit être un nombre entier positif.",
     "EMBED_ORIGIN_INVALID": "Indiquez l'adresse d'un site en HTTPS, par exemple monclub.be.",
-    "EMBED_TOO_MANY": "10 sites au maximum."
+    "EMBED_TOO_MANY": "10 sites au maximum.",
+    "BOX_OFFICE_FORBIDDEN": "La vente sur place n'est pas autorisée avec ce lien.",
+    "BOX_OFFICE_FAILED": "La vente n'a pas pu être enregistrée."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -1233,7 +1243,12 @@
     "revoke": "Révoquer",
     "qrLabel": "QR code du lien bénévole",
     "checkOnly": "Vérification seule : contrôler les billets sans valider l'entrée (contrôle au périmètre, vérification)",
-    "checkOnlyBadge": "vérification seule"
+    "checkOnlyBadge": "vérification seule",
+    "canSell": "Autoriser la vente sur place (espèces)",
+    "cashTitle": "Rapport de caisse",
+    "cashModeCash": "espèces",
+    "cashModeQr": "QR code",
+    "cashLine": "{sales, plural, one {# vente} other {# ventes}}"
   },
   "resaleAdmin": {
     "statActive": "En vente",

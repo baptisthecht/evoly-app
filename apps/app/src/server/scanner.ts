@@ -58,7 +58,7 @@ function expiryFor(duration: LinkDuration, event: { startsAt: Date; endsAt: Date
 export async function createScannerLink(
   ctx: OrgContext,
   eventId: string,
-  input: { label: string; duration: LinkDuration; expiresAtLocal?: string | null; allowManualSearch: boolean; checkOnly?: boolean },
+  input: { label: string; duration: LinkDuration; expiresAtLocal?: string | null; allowManualSearch: boolean; checkOnly?: boolean; canSell?: boolean },
   now = new Date(),
 ) {
   const event = await findEvent(ctx, eventId);
@@ -71,6 +71,7 @@ export async function createScannerLink(
       label: input.label.trim(),
       allowManualSearch: input.allowManualSearch,
       checkOnly: !!input.checkOnly,
+      canSell: !!input.canSell && !input.checkOnly, // section 9.27 : jamais de vente avec un lien de vérification seule
       expiresAt: expiryFor(input.duration, event, now, input.expiresAtLocal),
       createdById: ctx.user.id,
     },
@@ -154,6 +155,17 @@ export async function resolveScannerLink(token: string, now = new Date()) {
 export type ResolvedLink = NonNullable<Awaited<ReturnType<typeof resolveScannerLink>>>["link"];
 
 /** RG-SCN-03 : liste locale du scanner. Codes hachés avec un sel propre au lien, aucune donnée financière (RG-SCN-06). */
+/** Tarifs en vente sur place : prix du moment (paliers compris) et places restantes, comme sur la page de vente. */
+async function saleCatalog(eventId: string) {
+  const { loadPublicEvent } = await import("./publicEvents");
+  const data = await loadPublicEvent({ id: eventId });
+  if (!data) return null;
+  return {
+    currency: data.event.currency,
+    ticketTypes: data.ticketTypes.map((t) => ({ id: t.id, name: t.name, priceMinor: t.priceMinor, remaining: t.remaining })),
+  };
+}
+
 export async function scannerManifest(link: ResolvedLink) {
   const tickets = await db.ticket.findMany({
     where: { eventId: link.eventId },
@@ -176,13 +188,20 @@ export async function scannerManifest(link: ResolvedLink) {
     serverTime: new Date().toISOString(),
     salt,
     hasOptions: (await db.eventOption.count({ where: { eventId: link.eventId } })) > 0, // mode « Bar et options » (section 9.29)
+    sale: link.canSell ? await saleCatalog(link.eventId) : null, // vente sur place (section 9.27)
     event: {
       title: link.event.title,
       startsAt: link.event.startsAt.toISOString(),
       timezone: link.event.timezone,
       place: link.event.locationName ?? link.event.city,
     },
-    link: { label: await gateLabel(link), allowManualSearch: link.allowManualSearch, checkOnly: link.checkOnly, expiresAt: link.expiresAt.toISOString() },
+    link: {
+      label: await gateLabel(link),
+      allowManualSearch: link.allowManualSearch,
+      checkOnly: link.checkOnly,
+      canSell: link.canSell,
+      expiresAt: link.expiresAt.toISOString(),
+    },
     tickets: tickets.map((t) => ({
       id: t.id,
       codeHash: sha256(`${salt}:${t.code}`),

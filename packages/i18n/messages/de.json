@@ -415,7 +415,9 @@
     "AMBASSADOR_EMAIL_INVALID": "Geben Sie eine gültige E-Mail-Adresse an oder lassen Sie das Feld leer.",
     "AMBASSADOR_GOAL_INVALID": "Das Ziel muss eine positive ganze Zahl sein.",
     "EMBED_ORIGIN_INVALID": "Geben Sie die Adresse einer HTTPS-Website an, zum Beispiel meinclub.de.",
-    "EMBED_TOO_MANY": "Höchstens 10 Websites."
+    "EMBED_TOO_MANY": "Höchstens 10 Websites.",
+    "BOX_OFFICE_FORBIDDEN": "Der Verkauf vor Ort ist mit diesem Link nicht erlaubt.",
+    "BOX_OFFICE_FAILED": "Der Verkauf konnte nicht erfasst werden."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -605,7 +607,15 @@
     "barLeft": "Noch {left} von {quantity}",
     "bar_NOT_FOUND": "Unbekanntes Ticket für diese Veranstaltung.",
     "bar_OFFLINE": "Der Barmodus braucht eine Netzwerkverbindung.",
-    "bar_FAILED": "Einlösen nicht möglich: nichts mehr übrig, oder erneut versuchen."
+    "bar_FAILED": "Einlösen nicht möglich: nichts mehr übrig, oder erneut versuchen.",
+    "tab_sell": "Verkauf",
+    "sellEmail": "E-Mail des Kunden (optional, um die Tickets zu senden)",
+    "sellCash": "{amount} bar kassieren",
+    "sellDone": "{count, plural, one {Verkauf erfasst: # Ticket, Einlass bestätigt.} other {Verkauf erfasst: # Tickets, Einlass bestätigt.}}",
+    "sellError": "Verkauf nicht möglich: Prüfen Sie die freien Plätze und versuchen Sie es erneut.",
+    "sellOffline": "Der Verkauf braucht eine Netzwerkverbindung.",
+    "sellEmpty": "Wählen Sie mindestens ein Ticket.",
+    "sellSoldOut": "Ausverkauft"
   },
   "scannerAccess": {
     "title": "Tickets scannen",
@@ -2198,7 +2208,12 @@
     "revoke": "Widerrufen",
     "qrLabel": "QR-Code des Helfer-Links",
     "checkOnly": "Nur Prüfung: Tickets prüfen, ohne den Einlass zu bestätigen (Kontrolle am Gelände, Überprüfung)",
-    "checkOnlyBadge": "nur Prüfung"
+    "checkOnlyBadge": "nur Prüfung",
+    "canSell": "Verkauf vor Ort erlauben (bar)",
+    "cashTitle": "Kassenbericht",
+    "cashModeCash": "bar",
+    "cashModeQr": "QR-Code",
+    "cashLine": "{sales, plural, one {# Verkauf} other {# Verkäufe}}"
   },
   "resaleAdmin": {
     "statActive": "Im Verkauf",

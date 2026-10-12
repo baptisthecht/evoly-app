@@ -625,7 +625,15 @@
     "barLeft": "{left} of {quantity} left",
     "bar_NOT_FOUND": "Unknown ticket for this event.",
     "bar_OFFLINE": "Bar mode needs a network connection.",
-    "bar_FAILED": "Could not redeem: nothing left, or try again."
+    "bar_FAILED": "Could not redeem: nothing left, or try again.",
+    "tab_sell": "Sell",
+    "sellEmail": "Customer email (optional, to send their tickets)",
+    "sellCash": "Take {amount} in cash",
+    "sellDone": "{count, plural, one {Sale recorded: # ticket, entry validated.} other {Sale recorded: # tickets, entry validated.}}",
+    "sellError": "Sale failed: check available places, then try again.",
+    "sellOffline": "Selling needs a network connection.",
+    "sellEmpty": "Choose at least one ticket.",
+    "sellSoldOut": "Sold out"
   },
   "plans": {
     "free": "Free",
@@ -681,7 +689,9 @@
     "AMBASSADOR_EMAIL_INVALID": "Enter a valid email, or leave it empty.",
     "AMBASSADOR_GOAL_INVALID": "The goal must be a positive whole number.",
     "EMBED_ORIGIN_INVALID": "Enter an HTTPS website address, for example myclub.com.",
-    "EMBED_TOO_MANY": "10 websites at most."
+    "EMBED_TOO_MANY": "10 websites at most.",
+    "BOX_OFFICE_FORBIDDEN": "On-site sales are not allowed with this link.",
+    "BOX_OFFICE_FAILED": "The sale could not be recorded."
   },
   "brand": {
     "sloganStart": "your next",
@@ -1233,7 +1243,12 @@
     "revoke": "Revoke",
     "qrLabel": "Volunteer link QR code",
     "checkOnly": "Check only: check tickets without validating entry (perimeter control, verification)",
-    "checkOnlyBadge": "check only"
+    "checkOnlyBadge": "check only",
+    "canSell": "Allow on-site sales (cash)",
+    "cashTitle": "Cash report",
+    "cashModeCash": "cash",
+    "cashModeQr": "QR code",
+    "cashLine": "{sales, plural, one {# sale} other {# sales}}"
   },
   "resaleAdmin": {
     "statActive": "Listed",

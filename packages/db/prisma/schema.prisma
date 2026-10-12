@@ -941,6 +941,9 @@ enum OrderSource {
 }
 
 model Order {
+  boxOfficeMode BoxOfficeMode? // vente sur place : espèces ou QR code (section 9.27)
+  soldByLinkId  String? // lien de scanner qui a vendu, pour le rapport de caisse
+  soldBy        ScannerLink? @relation("BoxOfficeSales", fields: [soldByLinkId], references: [id], onDelete: SetNull)
   ambassadorId String? // ambassadeur dont le lien a amené la commande (section 9.28)
   ambassador   Ambassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
   options      OrderOption[]
@@ -1226,6 +1229,8 @@ model RefundItem {
 
 // Lien bénévole : scanner sans compte Evoly
 model ScannerLink {
+  canSell           Boolean   @default(false) // vente sur place autorisée (section 9.27)
+  sales             Order[]   @relation("BoxOfficeSales")
   id                String    @id @default(cuid())
   eventId           String
   tokenHash         String    @unique // hachage du jeton de l'URL, dérivé par HMAC (le jeton lui-même n'est jamais stocké)
@@ -2018,3 +2023,7 @@ model Ambassador {
   @@unique([eventId, code])
 }
 
+enum BoxOfficeMode {
+  CASH
+  QR
+}

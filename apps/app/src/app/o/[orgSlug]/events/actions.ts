@@ -261,6 +261,7 @@ const scannerLinkSchema = z.object({
   expiresAtLocal: optionalLocalDate,
   allowManualSearch: checkbox,
   checkOnly: checkbox,
+  canSell: checkbox,
 });
 
 /** US-SCN-01 : lien bénévole, sans compte. */

@@ -415,7 +415,9 @@
     "AMBASSADOR_EMAIL_INVALID": "Indica un'e-mail valida, o lascia il campo vuoto.",
     "AMBASSADOR_GOAL_INVALID": "L'obiettivo deve essere un numero intero positivo.",
     "EMBED_ORIGIN_INVALID": "Indica l'indirizzo di un sito in HTTPS, per esempio ilmioclub.it.",
-    "EMBED_TOO_MANY": "Al massimo 10 siti."
+    "EMBED_TOO_MANY": "Al massimo 10 siti.",
+    "BOX_OFFICE_FORBIDDEN": "La vendita in loco non è consentita con questo link.",
+    "BOX_OFFICE_FAILED": "Non è stato possibile registrare la vendita."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -605,7 +607,15 @@
     "barLeft": "Ne restano {left} su {quantity}",
     "bar_NOT_FOUND": "Biglietto sconosciuto per questo evento.",
     "bar_OFFLINE": "La modalità bar richiede la rete.",
-    "bar_FAILED": "Riscatto impossibile: non resta nulla, o riprova."
+    "bar_FAILED": "Riscatto impossibile: non resta nulla, o riprova.",
+    "tab_sell": "Vendita",
+    "sellEmail": "E-mail del cliente (facoltativa, per inviargli i biglietti)",
+    "sellCash": "Incassa {amount} in contanti",
+    "sellDone": "{count, plural, one {Vendita registrata: # biglietto, ingresso convalidato.} other {Vendita registrata: # biglietti, ingresso convalidato.}}",
+    "sellError": "Vendita non riuscita: controlla i posti disponibili e riprova.",
+    "sellOffline": "La vendita richiede la rete.",
+    "sellEmpty": "Scegli almeno un biglietto.",
+    "sellSoldOut": "Esaurito"
   },
   "scannerAccess": {
     "title": "Scansiona i biglietti",
@@ -2198,7 +2208,12 @@
     "revoke": "Revoca",
     "qrLabel": "Codice QR del link per volontari",
     "checkOnly": "Solo verifica: controllare i biglietti senza convalidare l'ingresso (controllo perimetrale, verifica)",
-    "checkOnlyBadge": "solo verifica"
+    "checkOnlyBadge": "solo verifica",
+    "canSell": "Consenti la vendita in loco (contanti)",
+    "cashTitle": "Rapporto di cassa",
+    "cashModeCash": "contanti",
+    "cashModeQr": "codice QR",
+    "cashLine": "{sales, plural, one {# vendita} other {# vendite}}"
   },
   "resaleAdmin": {
     "statActive": "In vendita",
