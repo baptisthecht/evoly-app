@@ -49,6 +49,7 @@ export function UploadForm() {
             {state.report.ajoutes} e-mail(s) importé(s) dans le lot {state.report.lot} : {state.report.programmes} programmé(s)
             {state.report.enAttente ? `, ${state.report.enAttente} en attente (aucune boîte active)` : ""}.
           </p>
+          {state.report.misAJour ? <p>{state.report.misAJour} e-mail(s) pas encore parti(s) mis à jour avec le nouveau texte.</p> : null}
           {state.report.parJour.length ? <p>{state.report.parJour.map((j) => `${jourLabel(j.jour)} : ${j.count}`).join(" · ")}</p> : null}
           {state.report.parBoite.map((b) => (
             <p key={b.address}>

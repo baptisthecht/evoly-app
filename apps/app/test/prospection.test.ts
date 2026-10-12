@@ -159,7 +159,9 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     await boites();
     const r = await importLot({ lot: "L", emails: [mail(1), mail(2), mail(3, { objet: "" })] }, NOW);
     expect(r.ignores.map((i) => i.id)).toEqual(["t-3"]);
-    expect((await importLot({ emails: [mail(1)] }, NOW)).ignores[0]!.raison).toBe("déjà importé (même identifiant)");
+    const recolle = await importLot({ emails: [mail(1, { objet: "Nouvel objet", message: "Nouveau texte" })] }, NOW);
+    expect(recolle).toMatchObject({ ajoutes: 0, misAJour: 1, ignores: [] });
+    expect(await db.prospectEmail.findUniqueOrThrow({ where: { externalId: "t-1" } })).toMatchObject({ subject: "Nouvel objet", body: "Nouveau texte" });
     const p = await db.prospect.findUniqueOrThrow({ where: { email: "comite2@cercle2.be" } });
     await updateProspect(p.id, { status: "EXCLU", notes: "" });
     expect((await importLot({ emails: [mail(2, { id: "t-2b" })] }, NOW)).ignores[0]!.raison).toBe("organisation exclue");
@@ -221,5 +223,15 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     ]);
     expect(rampSchedule(debut, 40, zonedLocalToUtc("2026-10-20T10:00", "Europe/Brussels")).map((st) => st.perDay)).toEqual([25, 40]);
     expect(rampSchedule(debut, 12, vu).map((st) => st.perDay)).toEqual([12]);
+  });
+
+  it("un lot recollé ne touche jamais un e-mail déjà envoyé", async () => {
+    await boites();
+    await importLot({ emails: [mail(1)] }, NOW);
+    await vider(new Date(NOW.getTime() + 3 * 3_600_000));
+    const r = await importLot({ emails: [mail(1, { message: "Autre texte" })] }, NOW);
+    expect(r.misAJour).toBe(0);
+    expect(r.ignores[0]!.raison).toBe("déjà envoyé");
+    expect((await db.prospectEmail.findUniqueOrThrow({ where: { externalId: "t-1" } })).body).toBe("Bonjour 1");
   });
 });

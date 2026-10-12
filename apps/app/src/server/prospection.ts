@@ -228,6 +228,7 @@ const STATUT: Record<string, string> = { EXCLU: "exclue", PAS_INTERESSE: "pas in
 export type ImportReport = {
   lot: string;
   ajoutes: number;
+  misAJour: number;
   programmes: number;
   enAttente: number;
   parBoite: { address: string; count: number }[];
@@ -328,6 +329,7 @@ export async function importLot(raw: unknown, now = new Date(), rand: Rand = def
   const lot = (typeof top.lot === "string" && top.lot.trim().slice(0, 60)) || new Intl.DateTimeFormat("en-CA", { timeZone: FUSEAU }).format(now);
   const ignores: ImportReport["ignores"] = [];
   const created: string[] = [];
+  let misAJour = 0;
   for (const item of top.emails) {
     const parsed = emailSchema.safeParse(item);
     const ref = { id: String((item as { id?: unknown })?.id ?? "?"), a: String((item as { a?: unknown })?.a ?? "?") };
@@ -336,8 +338,15 @@ export async function importLot(raw: unknown, now = new Date(), rand: Rand = def
       continue;
     }
     const e = parsed.data;
-    if (await db.prospectEmail.findUnique({ where: { externalId: e.id }, select: { id: true } })) {
-      ignores.push({ id: e.id, a: e.a, raison: "déjà importé (même identifiant)" });
+    const existing = await db.prospectEmail.findUnique({ where: { externalId: e.id }, select: { id: true, status: true } });
+    if (existing) {
+      // lot recollé : les e-mails pas encore partis reçoivent le nouveau texte, les autres restent intacts
+      const updated = await db.prospectEmail.updateMany({
+        where: { id: existing.id, status: { in: ["A_ENVOYER", "PROGRAMME"] } },
+        data: { subject: e.objet, body: e.message, why: e.pourquoi ?? null, source: e.source ?? null },
+      });
+      if (updated.count) misAJour++;
+      else ignores.push({ id: e.id, a: e.a, raison: existing.status === "ENVOYE" ? "déjà envoyé" : "déjà importé (même identifiant)" });
       continue;
     }
     const prospect = await db.prospect.findUnique({ where: { email: e.a }, select: { id: true, status: true } });
@@ -360,6 +369,7 @@ export async function importLot(raw: unknown, now = new Date(), rand: Rand = def
   return {
     lot,
     ajoutes: created.length,
+    misAJour,
     programmes: d.programmes,
     enAttente: created.length - d.programmes,
     parBoite: d.parBoite,
