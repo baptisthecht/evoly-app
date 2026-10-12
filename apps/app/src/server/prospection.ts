@@ -3,7 +3,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes, randomInt } 
 import { CoreError, zonedLocalToUtc } from "@evoly/core";
 import type { ProspectMailbox } from "@evoly/db";
 import { ImapFlow } from "imapflow";
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 import MailComposer from "nodemailer/lib/mail-composer";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -74,7 +74,7 @@ export function openPassword(blob: string) {
   return Buffer.concat([d.update(raw.subarray(28)), d.final()]).toString("utf8");
 }
 
-const transports = new Map<string, { at: number; t: nodemailer.Transporter }>();
+const transports = new Map<string, { at: number; t: Transporter }>();
 function transportFor(box: ProspectMailbox) {
   const cached = transports.get(box.id);
   if (cached && cached.at === box.updatedAt.getTime()) return cached.t;

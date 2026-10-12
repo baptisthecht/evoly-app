@@ -1,0 +1,29 @@
+# Maintenance des dépendances
+
+## Contrôles obligatoires avant chaque envoi
+
+À chaque `git push`, git lance `ops/prepush.sh` (installé par `pnpm install`, via simple-git-hooks). L'envoi est **bloqué** si :
+
+1. `pnpm audit` trouve une faille **modérée ou plus grave** (les exceptions justifiées sont listées dans `docs/SECURITE.md`) ;
+2. un fichier n'est pas formaté par **Prettier** (`pnpm format` corrige).
+
+Une fois par semaine, le même contrôle affiche les **nouvelles versions** (`ops/versions-check.mjs`).
+
+## Migrer sans casser
+
+1. **Âge minimal de 14 jours.** On n'installe jamais une version publiée depuis moins de 14 jours : une version piégée (attaque de la chaîne d'approvisionnement) est en général repérée et retirée dans ce délai. Jamais de version candidate (alpha, beta, rc).
+2. **Mises à jour mineures** : appliquées ensemble, puis vérification complète (types, tests du cœur, des traductions et de l'app, construction). Enregistrées seulement si tout passe.
+3. **Versions majeures** : une par une, notes de migration lues, code adapté, vérification complète, enregistrement séparé.
+4. **Exceptions** : `@types/node` suit la version de Node du serveur (22) ; une majeure qui demande une réécriture importante (par exemple TypeScript 7) attend que l'écosystème (Next.js, Prisma) la prenne en charge.
+
+## Décisions en cours
+
+| Dépendance                                         | Version          | Décision                                                              |
+| -------------------------------------------------- | ---------------- | --------------------------------------------------------------------- |
+| nodemailer                                         | 6.10.1 → 10.0.11 | Migrée le 12 octobre 2026 : 16 failles corrigées (6 élevées).         |
+| prisma                                             | 8.0.0            | Version candidate seulement : on attend la version stable.            |
+| typescript                                         | 7                | Réécriture du compilateur : on attend la prise en charge par Next.js. |
+| @types/node                                        | 26               | Reste en 22, comme Node sur le serveur.                               |
+| stripe, @stripe/stripe-js, @stripe/react-stripe-js | 23, 10, 7        | À migrer ensemble, avec un paiement de test complet.                  |
+| vitest, @vitest/coverage-v8                        | 5                | À migrer ensemble.                                                    |
+| dotenv, imapflow, @types/nodemailer                | 18, 2, 8         | À migrer une par une.                                                 |
