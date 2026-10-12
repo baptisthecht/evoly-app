@@ -7,6 +7,7 @@ import { z } from "zod";
 import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
 import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, updateEventSettings } from "@/server/events";
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
+import { createOption, setOptionActive, updateOption } from "@/server/options";
 import { cancelListingByOrganizer } from "@/server/resale";
 import { cancelEvent } from "@/server/refunds";
 import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
@@ -713,4 +714,63 @@ export async function saveBotProtectionAction(orgSlug: string, eventId: string, 
   });
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
+}
+
+// Options et consommations prépayées (section 9.29, Pro)
+const optionSchema = z.object({
+  name: text(80).min(1, { message: "validation.required" }),
+  description: optionalText(300),
+  price: text(12).min(1, { message: "validation.required" }),
+  stock: optionalText(9),
+  maxPerOrder: optionalText(3),
+});
+const optionInput = (d: z.infer<typeof optionSchema>) => ({
+  name: d.name,
+  description: d.description ?? undefined,
+  price: d.price,
+  stock: d.stock ?? undefined,
+  maxPerOrder: d.maxPerOrder ?? undefined,
+});
+
+export async function createOptionAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: optionSchema, permission: "TICKETS_MANAGE", feature: "PREPAID_OPTIONS" },
+    async (d, ctx) => {
+      await createOption(ctx, eventId, optionInput(d));
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/options`);
+  return result;
+}
+
+export async function updateOptionAction(orgSlug: string, eventId: string, optionId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: optionSchema, permission: "TICKETS_MANAGE", feature: "PREPAID_OPTIONS" },
+    async (d, ctx) => {
+      await updateOption(ctx, eventId, optionId, optionInput(d));
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/options`);
+  return result;
+}
+
+export async function optionCommandAction(
+  orgSlug: string,
+  eventId: string,
+  optionId: string,
+  command: "activate" | "deactivate",
+  _: ActionState,
+): Promise<ActionState> {
+  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "TICKETS_MANAGE" }, async (_d, ctx) => {
+    await setOptionActive(ctx, eventId, optionId, command === "activate");
+    return null;
+  });
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/options`);
+  return result;
 }

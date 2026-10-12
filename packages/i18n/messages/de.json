@@ -377,7 +377,16 @@
     "PRESALE_CODE_FORMAT": "Der Code muss 3 bis 30 Zeichen lang sein: Buchstaben, Ziffern oder Bindestriche.",
     "PRESALE_LIMIT": "Eine Veranstaltung kann höchstens 20.000 Vorverkaufscodes haben.",
     "PRESALE_AFTER_START": "Der Vorverkauf muss vor Beginn der Veranstaltung starten.",
-    "BOT_CHECK_FAILED": "Die Bot-Prüfung ist fehlgeschlagen. Laden Sie die Seite neu und versuchen Sie es erneut."
+    "BOT_CHECK_FAILED": "Die Bot-Prüfung ist fehlgeschlagen. Laden Sie die Seite neu und versuchen Sie es erneut.",
+    "OPTION_NAME_REQUIRED": "Geben Sie dem Extra einen Namen.",
+    "OPTION_PRICE_INVALID": "Geben Sie einen gültigen Preis an.",
+    "OPTION_STOCK_INVALID": "Der Bestand muss eine ganze Zahl sein.",
+    "OPTION_MAX_INVALID": "Das Maximum pro Bestellung muss zwischen 1 und 100 liegen.",
+    "OPTION_QUANTITY_INVALID": "Ungültige Menge.",
+    "OPTION_UNAVAILABLE": "Dieses Extra ist nicht mehr verfügbar.",
+    "OPTION_MAX_EXCEEDED": "Sie überschreiten das Maximum für dieses Extra.",
+    "OPTION_SOLD_OUT": "Dieses Extra ist ausverkauft.",
+    "OPTION_NOT_REDEEMABLE": "Für dieses Extra ist nichts mehr einzulösen."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -782,7 +791,8 @@
     "cancelledNotice": "Veranstaltung abgesagt. Grund: {reason}",
     "exportParticipants": "Gäste exportieren (CSV)",
     "basePrice": "Grundpreis",
-    "tabSeating": "Saalplan"
+    "tabSeating": "Saalplan",
+    "tabOptions": "Extras"
   },
   "tickets": {
     "addTicketType": "Tarif hinzufügen",
@@ -866,6 +876,18 @@
     "PRESALE_CODES": {
       "title": "Privater Vorverkauf",
       "body": "Erstellen Sie Codes, die den Kauf vor dem öffentlichen Verkaufsstart freischalten, für Mitglieder, Partner oder die Presse: einmalig in großer Zahl, geteilt oder mehrfach nutzbar."
+    },
+    "PREPAID_OPTIONS": {
+      "title": "Extras und Getränke",
+      "body": "Verkaufen Sie Getränkemarken, Garderobe oder T-Shirts mit dem Ticket und lösen Sie sie an der Bar mit einem einfachen Scan ein."
+    },
+    "EMBED_WIDGET": {
+      "title": "Ticketverkauf auf Ihrer Website",
+      "body": "Verkaufen Sie Ihre Tickets direkt auf Ihrer eigenen Website, ohne Ihre Käufer woandershin zu schicken."
+    },
+    "AMBASSADORS": {
+      "title": "Botschafter",
+      "body": "Geben Sie jedem Teammitglied einen eigenen Verkaufslink und verfolgen Sie die Verkaufsrangliste."
     }
   },
   "upsell": {
@@ -1503,7 +1525,10 @@
     "switchToYear": "Zu jährlich wechseln: {price} pro Jahr (−15 %)",
     "switchToMonth": "Zu monatlich wechseln: {price} pro Monat",
     "switchDone": "Erledigt. Stripe berücksichtigt die anteilige Verrechnung auf Ihrer nächsten Rechnung.",
-    "switchError": "Die Änderung war nicht möglich. Bitte erneut versuchen oder „Abo verwalten“ nutzen."
+    "switchError": "Die Änderung war nicht möglich. Bitte erneut versuchen oder „Abo verwalten“ nutzen.",
+    "feature_PREPAID_OPTIONS": "Vorausbezahlte Extras und Getränke",
+    "feature_EMBED_WIDGET": "Ticketverkauf auf Ihrer eigenen Website",
+    "feature_AMBASSADORS": "Botschafter und Verkaufsrangliste"
   },
   "brand": {
     "sloganStart": "deine nächste",
@@ -2444,5 +2469,31 @@
     "enable": "Aktivieren",
     "disabled": "deaktiviert",
     "latest": "Die 50 zuletzt erstellten Codes. Der Export enthält alle Codes mit ihren Links."
+  },
+  "options": {
+    "intro": "Bieten Sie mit dem Ticket vorausbezahlte Extras und Getränke an: Getränkemarken, Garderobe, T-Shirt, Parkplatz. Die Teilnehmenden lösen sie mit einem einfachen Scan ihres Tickets ein.",
+    "emptyTitle": "Noch keine Extras",
+    "emptyBody": "Fügen Sie Ihr erstes Extra hinzu: Es erscheint auf der Verkaufsseite neben den Tickets.",
+    "newTitle": "Neues Extra",
+    "name": "Name",
+    "namePlaceholder": "Getränkemarke",
+    "description": "Beschreibung (optional)",
+    "price": "Preis",
+    "stock": "Bestand",
+    "stockHint": "Leer: unbegrenzt.",
+    "maxPerOrder": "Höchstens pro Bestellung",
+    "add": "Extra hinzufügen",
+    "save": "Speichern",
+    "edit": "Bearbeiten",
+    "active": "Im Verkauf",
+    "inactive": "Nicht im Verkauf",
+    "activate": "Wieder verkaufen",
+    "deactivate": "Aus dem Verkauf nehmen",
+    "sold": "{count, plural, one {# verkauft} other {# verkauft}}",
+    "redeemed": "{count, plural, one {# eingelöst} other {# eingelöst}}",
+    "stockOf": "von {stock}",
+    "unlimited": "unbegrenzt",
+    "perOrder": "Höchstens {max} pro Bestellung",
+    "saved": "Extra gespeichert."
   }
 }

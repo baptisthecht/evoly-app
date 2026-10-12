@@ -377,7 +377,16 @@
     "PRESALE_CODE_FORMAT": "Il codice deve avere da 3 a 30 caratteri: lettere, cifre o trattini.",
     "PRESALE_LIMIT": "Un evento può avere al massimo 20.000 codici di prevendita.",
     "PRESALE_AFTER_START": "La prevendita deve iniziare prima dell’inizio dell’evento.",
-    "BOT_CHECK_FAILED": "La verifica anti-bot non è riuscita. Ricarica la pagina e riprova."
+    "BOT_CHECK_FAILED": "La verifica anti-bot non è riuscita. Ricarica la pagina e riprova.",
+    "OPTION_NAME_REQUIRED": "Dai un nome all'extra.",
+    "OPTION_PRICE_INVALID": "Indica un prezzo valido.",
+    "OPTION_STOCK_INVALID": "La disponibilità deve essere un numero intero.",
+    "OPTION_MAX_INVALID": "Il massimo per ordine deve essere compreso tra 1 e 100.",
+    "OPTION_QUANTITY_INVALID": "Quantità non valida.",
+    "OPTION_UNAVAILABLE": "Questo extra non è più disponibile.",
+    "OPTION_MAX_EXCEEDED": "Superi il massimo consentito per questo extra.",
+    "OPTION_SOLD_OUT": "Questo extra è esaurito.",
+    "OPTION_NOT_REDEEMABLE": "Non resta nulla da riscattare per questo extra."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -782,7 +791,8 @@
     "cancelledNotice": "Evento annullato. Motivo: {reason}",
     "exportParticipants": "Esporta i partecipanti (CSV)",
     "basePrice": "Prezzo base",
-    "tabSeating": "Mappa dei posti"
+    "tabSeating": "Mappa dei posti",
+    "tabOptions": "Extra"
   },
   "tickets": {
     "addTicketType": "Aggiungi una tariffa",
@@ -866,6 +876,18 @@
     "PRESALE_CODES": {
       "title": "Prevendita privata",
       "body": "Crea codici che aprono l’acquisto prima dell’apertura pubblica delle vendite, per i tuoi soci, partner o la stampa: monouso in serie, condivisi o a uso multiplo."
+    },
+    "PREPAID_OPTIONS": {
+      "title": "Extra e consumazioni",
+      "body": "Vendi gettoni bevanda, guardaroba o magliette con il biglietto, e riscattali al bar con una semplice scansione."
+    },
+    "EMBED_WIDGET": {
+      "title": "Biglietteria integrata",
+      "body": "Vendi i tuoi biglietti direttamente sul tuo sito, senza mandare i tuoi acquirenti altrove."
+    },
+    "AMBASSADORS": {
+      "title": "Ambasciatori",
+      "body": "Dai a ogni membro del tuo team il proprio link di vendita e segui la classifica delle vendite."
     }
   },
   "upsell": {
@@ -1503,7 +1525,10 @@
     "switchToYear": "Passa all’annuale: {price} all’anno (−15 %)",
     "switchToMonth": "Passa al mensile: {price} al mese",
     "switchDone": "Fatto. Stripe tiene conto del pro rata nella prossima fattura.",
-    "switchError": "Non è stato possibile effettuare il cambio. Riprova o usa «Gestisci l’abbonamento»."
+    "switchError": "Non è stato possibile effettuare il cambio. Riprova o usa «Gestisci l’abbonamento».",
+    "feature_PREPAID_OPTIONS": "Extra e consumazioni prepagate",
+    "feature_EMBED_WIDGET": "Biglietteria integrata nel tuo sito",
+    "feature_AMBASSADORS": "Ambasciatori e classifica delle vendite"
   },
   "brand": {
     "sloganStart": "il tuo prossimo",
@@ -2444,5 +2469,31 @@
     "enable": "Riattiva",
     "disabled": "disattivato",
     "latest": "Gli ultimi 50 codici creati. L’esportazione contiene tutti i codici e i loro link."
+  },
+  "options": {
+    "intro": "Proponi con il biglietto extra e consumazioni prepagate: gettoni bevanda, guardaroba, maglietta, parcheggio. I partecipanti li riscattano con una semplice scansione del biglietto.",
+    "emptyTitle": "Ancora nessun extra",
+    "emptyBody": "Aggiungi il tuo primo extra: apparirà nella pagina di vendita, accanto ai biglietti.",
+    "newTitle": "Nuovo extra",
+    "name": "Nome",
+    "namePlaceholder": "Gettone bevanda",
+    "description": "Descrizione (facoltativa)",
+    "price": "Prezzo",
+    "stock": "Disponibilità",
+    "stockHint": "Vuoto: senza limiti.",
+    "maxPerOrder": "Massimo per ordine",
+    "add": "Aggiungi l'extra",
+    "save": "Salva",
+    "edit": "Modifica",
+    "active": "In vendita",
+    "inactive": "Ritirato dalla vendita",
+    "activate": "Rimetti in vendita",
+    "deactivate": "Ritira dalla vendita",
+    "sold": "{count, plural, one {# venduto} other {# venduti}}",
+    "redeemed": "{count, plural, one {# riscattato} other {# riscattati}}",
+    "stockOf": "su {stock}",
+    "unlimited": "senza limiti",
+    "perOrder": "Al massimo {max} per ordine",
+    "saved": "Extra salvato."
   }
 }

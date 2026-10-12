@@ -219,7 +219,8 @@
     "cancelledNotice": "Événement annulé. Motif : {reason}",
     "exportParticipants": "Exporter les participants (CSV)",
     "basePrice": "Prix de base",
-    "tabSeating": "Plan de salle"
+    "tabSeating": "Plan de salle",
+    "tabOptions": "Options"
   },
   "tickets": {
     "addTicketType": "Ajouter un tarif",
@@ -647,7 +648,16 @@
     "PRESALE_CODE_FORMAT": "Le code doit compter 3 à 30 caractères : lettres, chiffres ou tirets.",
     "PRESALE_LIMIT": "Un événement compte au plus 20 000 codes de prévente.",
     "PRESALE_AFTER_START": "La prévente doit commencer avant le début de l’événement.",
-    "BOT_CHECK_FAILED": "La vérification anti-robots a échoué. Rechargez la page et réessayez."
+    "BOT_CHECK_FAILED": "La vérification anti-robots a échoué. Rechargez la page et réessayez.",
+    "OPTION_NAME_REQUIRED": "Donnez un nom à l'option.",
+    "OPTION_PRICE_INVALID": "Indiquez un prix valide.",
+    "OPTION_STOCK_INVALID": "Le stock doit être un nombre entier.",
+    "OPTION_MAX_INVALID": "Le maximum par commande doit être compris entre 1 et 100.",
+    "OPTION_QUANTITY_INVALID": "Quantité invalide.",
+    "OPTION_UNAVAILABLE": "Cette option n'est plus disponible.",
+    "OPTION_MAX_EXCEEDED": "Vous dépassez le maximum autorisé pour cette option.",
+    "OPTION_SOLD_OUT": "Cette option est épuisée.",
+    "OPTION_NOT_REDEEMABLE": "Plus rien à retirer pour cette option."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -1493,7 +1503,10 @@
     "switchToYear": "Passer à l’annuel : {price} par an (−15 %)",
     "switchToMonth": "Passer au mensuel : {price} par mois",
     "switchDone": "C’est fait. Stripe tient compte du prorata sur votre prochaine facture.",
-    "switchError": "Le changement n’a pas pu être fait. Réessayez ou passez par « Gérer mon abonnement »."
+    "switchError": "Le changement n’a pas pu être fait. Réessayez ou passez par « Gérer mon abonnement ».",
+    "feature_PREPAID_OPTIONS": "Options et consommations prépayées",
+    "feature_EMBED_WIDGET": "Billetterie intégrable à votre site",
+    "feature_AMBASSADORS": "Ambassadeurs et classement des ventes"
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Modifier les paramètres de l’organisation",
@@ -2069,6 +2082,18 @@
     "PRESALE_CODES": {
       "title": "Prévente privée",
       "body": "Créez des codes qui ouvrent l’achat avant l’ouverture publique des ventes, pour vos adhérents, vos partenaires ou la presse : à usage unique en masse, partagés ou à usages multiples."
+    },
+    "PREPAID_OPTIONS": {
+      "title": "Options et consommations",
+      "body": "Vendez jetons boisson, vestiaire ou t-shirts avec le billet, et retirez-les au bar sur un simple scan."
+    },
+    "EMBED_WIDGET": {
+      "title": "Billetterie intégrable",
+      "body": "Vendez vos places directement sur votre site, sans renvoyer vos acheteurs ailleurs."
+    },
+    "AMBASSADORS": {
+      "title": "Ambassadeurs",
+      "body": "Donnez à chaque membre de votre équipe son propre lien de vente, et suivez le classement des ventes."
     }
   },
   "seatingEditor": {
@@ -2444,5 +2469,31 @@
     "enable": "Réactiver",
     "disabled": "désactivé",
     "latest": "Les 50 derniers codes créés. L’export contient tous les codes et leurs liens."
+  },
+  "options": {
+    "intro": "Proposez avec le billet des options et des consommations prépayées : jetons boisson, vestiaire, t-shirt, parking. Vos participants les retirent sur un simple scan de leur billet.",
+    "emptyTitle": "Aucune option pour l'instant",
+    "emptyBody": "Ajoutez votre première option : elle apparaîtra sur la page de vente, avec les billets.",
+    "newTitle": "Nouvelle option",
+    "name": "Nom",
+    "namePlaceholder": "Jeton boisson",
+    "description": "Description (facultative)",
+    "price": "Prix",
+    "stock": "Stock",
+    "stockHint": "Vide : sans limite.",
+    "maxPerOrder": "Maximum par commande",
+    "add": "Ajouter l'option",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "active": "En vente",
+    "inactive": "Retirée de la vente",
+    "activate": "Remettre en vente",
+    "deactivate": "Retirer de la vente",
+    "sold": "{count, plural, one {# vendue} other {# vendues}}",
+    "redeemed": "{count, plural, one {# retirée} other {# retirées}}",
+    "stockOf": "sur {stock}",
+    "unlimited": "sans limite",
+    "perOrder": "{max} au plus par commande",
+    "saved": "Option enregistrée."
   }
 }

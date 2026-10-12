@@ -33,6 +33,7 @@ export default async function EventLayout({ children, params }: { children: Reac
           { href: `${base}/tickets`, label: t("tabTickets") },
           { href: `${base}/seating`, label: t("tabSeating") },
           { href: `${base}/promo`, label: t("tabPromo") },
+          { href: `${base}/options`, label: t("tabOptions") },
           { href: `${base}/resale`, label: t("tabResale") },
           { href: `${base}/entries`, label: t("tabEntries") },
           { href: `${base}/settings`, label: t("tabSettings") },

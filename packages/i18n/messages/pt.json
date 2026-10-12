@@ -377,7 +377,16 @@
     "PRESALE_CODE_FORMAT": "O código deve ter 3 a 30 caracteres: letras, algarismos ou hífenes.",
     "PRESALE_LIMIT": "Um evento pode ter no máximo 20 000 códigos de pré-venda.",
     "PRESALE_AFTER_START": "A pré-venda tem de começar antes do início do evento.",
-    "BOT_CHECK_FAILED": "A verificação anti-robôs falhou. Recarregue a página e tente novamente."
+    "BOT_CHECK_FAILED": "A verificação anti-robôs falhou. Recarregue a página e tente novamente.",
+    "OPTION_NAME_REQUIRED": "Dê um nome ao extra.",
+    "OPTION_PRICE_INVALID": "Indique um preço válido.",
+    "OPTION_STOCK_INVALID": "O stock deve ser um número inteiro.",
+    "OPTION_MAX_INVALID": "O máximo por encomenda deve estar entre 1 e 100.",
+    "OPTION_QUANTITY_INVALID": "Quantidade inválida.",
+    "OPTION_UNAVAILABLE": "Este extra já não está disponível.",
+    "OPTION_MAX_EXCEEDED": "Ultrapassa o máximo permitido para este extra.",
+    "OPTION_SOLD_OUT": "Este extra está esgotado.",
+    "OPTION_NOT_REDEEMABLE": "Já não há nada para levantar neste extra."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -782,7 +791,8 @@
     "cancelledNotice": "Evento cancelado. Motivo: {reason}",
     "exportParticipants": "Exportar os participantes (CSV)",
     "basePrice": "Preço base",
-    "tabSeating": "Planta da sala"
+    "tabSeating": "Planta da sala",
+    "tabOptions": "Extras"
   },
   "tickets": {
     "addTicketType": "Adicionar uma tarifa",
@@ -866,6 +876,18 @@
     "PRESALE_CODES": {
       "title": "Pré-venda privada",
       "body": "Crie códigos que abrem a compra antes da abertura pública das vendas, para os seus sócios, parceiros ou a imprensa: de utilização única em massa, partilhados ou de utilização múltipla."
+    },
+    "PREPAID_OPTIONS": {
+      "title": "Extras e consumos",
+      "body": "Venda fichas de bebida, bengaleiro ou t-shirts com o bilhete, e levante-os no bar com uma simples leitura."
+    },
+    "EMBED_WIDGET": {
+      "title": "Bilheteira integrada",
+      "body": "Venda os seus bilhetes diretamente no seu site, sem enviar os compradores para outro lado."
+    },
+    "AMBASSADORS": {
+      "title": "Embaixadores",
+      "body": "Dê a cada membro da sua equipa a sua própria ligação de venda e acompanhe a classificação de vendas."
     }
   },
   "upsell": {
@@ -1503,7 +1525,10 @@
     "switchToYear": "Mudar para anual: {price} por ano (−15 %)",
     "switchToMonth": "Mudar para mensal: {price} por mês",
     "switchDone": "Feito. A Stripe tem em conta o rateio na sua próxima fatura.",
-    "switchError": "Não foi possível fazer a alteração. Tente novamente ou use «Gerir a subscrição»."
+    "switchError": "Não foi possível fazer a alteração. Tente novamente ou use «Gerir a subscrição».",
+    "feature_PREPAID_OPTIONS": "Extras e consumos pré-pagos",
+    "feature_EMBED_WIDGET": "Bilheteira integrada no seu site",
+    "feature_AMBASSADORS": "Embaixadores e classificação de vendas"
   },
   "brand": {
     "sloganStart": "a sua próxima",
@@ -2444,5 +2469,31 @@
     "enable": "Reativar",
     "disabled": "desativado",
     "latest": "Os 50 últimos códigos criados. A exportação contém todos os códigos e os seus links."
+  },
+  "options": {
+    "intro": "Proponha com o bilhete extras e consumos pré-pagos: fichas de bebida, bengaleiro, t-shirt, estacionamento. Os participantes levantam-nos com uma simples leitura do bilhete.",
+    "emptyTitle": "Ainda não há extras",
+    "emptyBody": "Adicione o seu primeiro extra: aparecerá na página de venda, junto aos bilhetes.",
+    "newTitle": "Novo extra",
+    "name": "Nome",
+    "namePlaceholder": "Ficha de bebida",
+    "description": "Descrição (opcional)",
+    "price": "Preço",
+    "stock": "Stock",
+    "stockHint": "Vazio: sem limite.",
+    "maxPerOrder": "Máximo por encomenda",
+    "add": "Adicionar o extra",
+    "save": "Guardar",
+    "edit": "Editar",
+    "active": "À venda",
+    "inactive": "Retirado de venda",
+    "activate": "Voltar a pôr à venda",
+    "deactivate": "Retirar de venda",
+    "sold": "{count, plural, one {# vendido} other {# vendidos}}",
+    "redeemed": "{count, plural, one {# levantado} other {# levantados}}",
+    "stockOf": "de {stock}",
+    "unlimited": "sem limite",
+    "perOrder": "No máximo {max} por encomenda",
+    "saved": "Extra guardado."
   }
 }

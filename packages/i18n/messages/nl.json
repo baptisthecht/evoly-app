@@ -377,7 +377,16 @@
     "PRESALE_CODE_FORMAT": "De code moet 3 tot 30 tekens tellen: letters, cijfers of koppeltekens.",
     "PRESALE_LIMIT": "Een evenement kan hoogstens 20.000 voorverkoopcodes hebben.",
     "PRESALE_AFTER_START": "De voorverkoop moet vóór de start van het evenement beginnen.",
-    "BOT_CHECK_FAILED": "De botcontrole is mislukt. Laad de pagina opnieuw en probeer het nog eens."
+    "BOT_CHECK_FAILED": "De botcontrole is mislukt. Laad de pagina opnieuw en probeer het nog eens.",
+    "OPTION_NAME_REQUIRED": "Geef de optie een naam.",
+    "OPTION_PRICE_INVALID": "Geef een geldige prijs op.",
+    "OPTION_STOCK_INVALID": "De voorraad moet een geheel getal zijn.",
+    "OPTION_MAX_INVALID": "Het maximum per bestelling moet tussen 1 en 100 liggen.",
+    "OPTION_QUANTITY_INVALID": "Ongeldige hoeveelheid.",
+    "OPTION_UNAVAILABLE": "Deze optie is niet meer beschikbaar.",
+    "OPTION_MAX_EXCEEDED": "Je overschrijdt het maximum voor deze optie.",
+    "OPTION_SOLD_OUT": "Deze optie is uitverkocht.",
+    "OPTION_NOT_REDEEMABLE": "Niets meer in te wisselen voor deze optie."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -782,7 +791,8 @@
     "cancelledNotice": "Evenement geannuleerd. Reden: {reason}",
     "exportParticipants": "Bezoekers exporteren (CSV)",
     "basePrice": "Basisprijs",
-    "tabSeating": "Zaalplan"
+    "tabSeating": "Zaalplan",
+    "tabOptions": "Opties"
   },
   "tickets": {
     "addTicketType": "Tarief toevoegen",
@@ -866,6 +876,18 @@
     "PRESALE_CODES": {
       "title": "Privévoorverkoop",
       "body": "Maak codes die het kopen openzetten vóór de publieke verkoop, voor je leden, partners of de pers: eenmalig in grote aantallen, gedeeld of meermaals te gebruiken."
+    },
+    "PREPAID_OPTIONS": {
+      "title": "Opties en consumpties",
+      "body": "Verkoop drankbonnen, vestiaire of T-shirts samen met het ticket, en wissel ze aan de bar in met een simpele scan."
+    },
+    "EMBED_WIDGET": {
+      "title": "Ticketverkoop op je website",
+      "body": "Verkoop je tickets rechtstreeks op je eigen website, zonder je kopers elders heen te sturen."
+    },
+    "AMBASSADORS": {
+      "title": "Ambassadeurs",
+      "body": "Geef elk teamlid een eigen verkooplink en volg het verkoopklassement."
     }
   },
   "upsell": {
@@ -1503,7 +1525,10 @@
     "switchToYear": "Overstappen op jaarlijks: {price} per jaar (−15%)",
     "switchToMonth": "Overstappen op maandelijks: {price} per maand",
     "switchDone": "Klaar. Stripe verrekent het pro rata op je volgende factuur.",
-    "switchError": "De wijziging lukte niet. Probeer opnieuw of gebruik ‘Abonnement beheren’."
+    "switchError": "De wijziging lukte niet. Probeer opnieuw of gebruik ‘Abonnement beheren’.",
+    "feature_PREPAID_OPTIONS": "Opties en vooraf betaalde consumpties",
+    "feature_EMBED_WIDGET": "Ticketverkoop op je eigen website",
+    "feature_AMBASSADORS": "Ambassadeurs en verkoopklassement"
   },
   "brand": {
     "sloganStart": "je volgende",
@@ -2444,5 +2469,31 @@
     "enable": "Inschakelen",
     "disabled": "uitgeschakeld",
     "latest": "De 50 laatst gemaakte codes. De export bevat alle codes en hun links."
+  },
+  "options": {
+    "intro": "Bied samen met het ticket opties en vooraf betaalde consumpties aan: drankbonnen, vestiaire, T-shirt, parking. Deelnemers wisselen ze in met een simpele scan van hun ticket.",
+    "emptyTitle": "Nog geen opties",
+    "emptyBody": "Voeg je eerste optie toe: ze verschijnt op de verkooppagina, naast de tickets.",
+    "newTitle": "Nieuwe optie",
+    "name": "Naam",
+    "namePlaceholder": "Drankbon",
+    "description": "Beschrijving (optioneel)",
+    "price": "Prijs",
+    "stock": "Voorraad",
+    "stockHint": "Leeg: onbeperkt.",
+    "maxPerOrder": "Maximum per bestelling",
+    "add": "Optie toevoegen",
+    "save": "Opslaan",
+    "edit": "Bewerken",
+    "active": "Te koop",
+    "inactive": "Niet meer te koop",
+    "activate": "Opnieuw te koop zetten",
+    "deactivate": "Uit de verkoop halen",
+    "sold": "{count, plural, one {# verkocht} other {# verkocht}}",
+    "redeemed": "{count, plural, one {# ingewisseld} other {# ingewisseld}}",
+    "stockOf": "van {stock}",
+    "unlimited": "onbeperkt",
+    "perOrder": "Maximaal {max} per bestelling",
+    "saved": "Optie opgeslagen."
   }
 }

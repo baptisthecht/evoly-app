@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-export type LockedFeature = "SEATING_MAPS" | "EMAIL_MARKETING" | "PRESALE_CODES";
+export type LockedFeature = "SEATING_MAPS" | "EMAIL_MARKETING" | "PRESALE_CODES" | "PREPAID_OPTIONS" | "EMBED_WIDGET" | "AMBASSADORS";
 
 /**
  * Fonction Pro montrée en offre gratuite : nom, bénéfice, aperçu grisé et non interactif, et accès à l'abonnement

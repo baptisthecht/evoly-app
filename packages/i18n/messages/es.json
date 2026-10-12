@@ -377,7 +377,16 @@
     "PRESALE_CODE_FORMAT": "El código debe tener de 3 a 30 caracteres: letras, cifras o guiones.",
     "PRESALE_LIMIT": "Un evento puede tener como máximo 20.000 códigos de preventa.",
     "PRESALE_AFTER_START": "La preventa debe empezar antes del inicio del evento.",
-    "BOT_CHECK_FAILED": "La verificación contra robots ha fallado. Recarga la página e inténtalo de nuevo."
+    "BOT_CHECK_FAILED": "La verificación contra robots ha fallado. Recarga la página e inténtalo de nuevo.",
+    "OPTION_NAME_REQUIRED": "Ponle un nombre al extra.",
+    "OPTION_PRICE_INVALID": "Indica un precio válido.",
+    "OPTION_STOCK_INVALID": "Las existencias deben ser un número entero.",
+    "OPTION_MAX_INVALID": "El máximo por pedido debe estar entre 1 y 100.",
+    "OPTION_QUANTITY_INVALID": "Cantidad no válida.",
+    "OPTION_UNAVAILABLE": "Este extra ya no está disponible.",
+    "OPTION_MAX_EXCEEDED": "Superas el máximo permitido para este extra.",
+    "OPTION_SOLD_OUT": "Este extra está agotado.",
+    "OPTION_NOT_REDEEMABLE": "No queda nada por canjear en este extra."
   },
   "validation": {
     "required": "Este campo es obligatorio.",
@@ -782,7 +791,8 @@
     "cancelledNotice": "Evento cancelado. Motivo: {reason}",
     "exportParticipants": "Exportar los asistentes (CSV)",
     "basePrice": "Precio base",
-    "tabSeating": "Plano de sala"
+    "tabSeating": "Plano de sala",
+    "tabOptions": "Extras"
   },
   "tickets": {
     "addTicketType": "Añadir una tarifa",
@@ -866,6 +876,18 @@
     "PRESALE_CODES": {
       "title": "Preventa privada",
       "body": "Crea códigos que abren la compra antes de la apertura pública de la venta, para tus socios, colaboradores o la prensa: de un solo uso en masa, compartidos o de varios usos."
+    },
+    "PREPAID_OPTIONS": {
+      "title": "Extras y consumiciones",
+      "body": "Vende fichas de bebida, guardarropa o camisetas con la entrada, y canjéalas en la barra con un simple escaneo."
+    },
+    "EMBED_WIDGET": {
+      "title": "Venta en tu web",
+      "body": "Vende tus entradas directamente en tu propia web, sin enviar a tus compradores a otro sitio."
+    },
+    "AMBASSADORS": {
+      "title": "Embajadores",
+      "body": "Da a cada miembro de tu equipo su propio enlace de venta y sigue la clasificación de ventas."
     }
   },
   "upsell": {
@@ -1503,7 +1525,10 @@
     "switchToYear": "Pasar al anual: {price} al año (−15 %)",
     "switchToMonth": "Pasar al mensual: {price} al mes",
     "switchDone": "Hecho. Stripe tiene en cuenta el prorrateo en tu próxima factura.",
-    "switchError": "No se pudo hacer el cambio. Inténtalo de nuevo o usa «Gestionar mi suscripción»."
+    "switchError": "No se pudo hacer el cambio. Inténtalo de nuevo o usa «Gestionar mi suscripción».",
+    "feature_PREPAID_OPTIONS": "Extras y consumiciones prepagadas",
+    "feature_EMBED_WIDGET": "Venta de entradas en tu propia web",
+    "feature_AMBASSADORS": "Embajadores y clasificación de ventas"
   },
   "brand": {
     "sloganStart": "tu próximo",
@@ -2444,5 +2469,31 @@
     "enable": "Reactivar",
     "disabled": "desactivado",
     "latest": "Los 50 últimos códigos creados. La exportación contiene todos los códigos y sus enlaces."
+  },
+  "options": {
+    "intro": "Ofrece con la entrada extras y consumiciones prepagadas: fichas de bebida, guardarropa, camiseta, parking. Los asistentes los canjean con un simple escaneo de su entrada.",
+    "emptyTitle": "Todavía no hay extras",
+    "emptyBody": "Añade tu primer extra: aparecerá en la página de venta, junto a las entradas.",
+    "newTitle": "Nuevo extra",
+    "name": "Nombre",
+    "namePlaceholder": "Ficha de bebida",
+    "description": "Descripción (opcional)",
+    "price": "Precio",
+    "stock": "Existencias",
+    "stockHint": "Vacío: sin límite.",
+    "maxPerOrder": "Máximo por pedido",
+    "add": "Añadir el extra",
+    "save": "Guardar",
+    "edit": "Editar",
+    "active": "A la venta",
+    "inactive": "Retirado de la venta",
+    "activate": "Volver a poner a la venta",
+    "deactivate": "Retirar de la venta",
+    "sold": "{count, plural, one {# vendido} other {# vendidos}}",
+    "redeemed": "{count, plural, one {# canjeado} other {# canjeados}}",
+    "stockOf": "de {stock}",
+    "unlimited": "sin límite",
+    "perOrder": "Hasta {max} por pedido",
+    "saved": "Extra guardado."
   }
 }

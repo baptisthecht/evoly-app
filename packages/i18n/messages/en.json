@@ -219,7 +219,8 @@
     "cancelledNotice": "Event cancelled. Reason: {reason}",
     "exportParticipants": "Export attendees (CSV)",
     "basePrice": "Base price",
-    "tabSeating": "Seating plan"
+    "tabSeating": "Seating plan",
+    "tabOptions": "Add-ons"
   },
   "tickets": {
     "addTicketType": "Add a ticket type",
@@ -647,7 +648,16 @@
     "PRESALE_CODE_FORMAT": "The code must be 3 to 30 characters: letters, digits or hyphens.",
     "PRESALE_LIMIT": "An event can have at most 20,000 presale codes.",
     "PRESALE_AFTER_START": "The presale must start before the event begins.",
-    "BOT_CHECK_FAILED": "The bot check failed. Reload the page and try again."
+    "BOT_CHECK_FAILED": "The bot check failed. Reload the page and try again.",
+    "OPTION_NAME_REQUIRED": "Give the add-on a name.",
+    "OPTION_PRICE_INVALID": "Enter a valid price.",
+    "OPTION_STOCK_INVALID": "Stock must be a whole number.",
+    "OPTION_MAX_INVALID": "The maximum per order must be between 1 and 100.",
+    "OPTION_QUANTITY_INVALID": "Invalid quantity.",
+    "OPTION_UNAVAILABLE": "This add-on is no longer available.",
+    "OPTION_MAX_EXCEEDED": "You are over the maximum allowed for this add-on.",
+    "OPTION_SOLD_OUT": "This add-on is sold out.",
+    "OPTION_NOT_REDEEMABLE": "Nothing left to redeem for this add-on."
   },
   "brand": {
     "sloganStart": "your next",
@@ -1493,7 +1503,10 @@
     "switchToYear": "Switch to yearly: {price} per year (−15%)",
     "switchToMonth": "Switch to monthly: {price} per month",
     "switchDone": "Done. Stripe accounts for the proration on your next invoice.",
-    "switchError": "The change couldn’t be made. Try again or use “Manage my subscription”."
+    "switchError": "The change couldn’t be made. Try again or use “Manage my subscription”.",
+    "feature_PREPAID_OPTIONS": "Prepaid add-ons and drinks",
+    "feature_EMBED_WIDGET": "Ticketing embedded on your website",
+    "feature_AMBASSADORS": "Ambassadors and sales leaderboard"
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Edit organisation settings",
@@ -2069,6 +2082,18 @@
     "PRESALE_CODES": {
       "title": "Private presale",
       "body": "Create codes that unlock purchases before tickets go on sale to the public, for your members, partners or the press: single-use in bulk, shared, or multi-use."
+    },
+    "PREPAID_OPTIONS": {
+      "title": "Add-ons and drinks",
+      "body": "Sell drink tokens, cloakroom or T-shirts with the ticket, and redeem them at the bar with a simple scan."
+    },
+    "EMBED_WIDGET": {
+      "title": "Embedded ticketing",
+      "body": "Sell your tickets directly on your own website, without sending your buyers elsewhere."
+    },
+    "AMBASSADORS": {
+      "title": "Ambassadors",
+      "body": "Give each member of your team their own sales link, and follow the sales leaderboard."
     }
   },
   "seatingEditor": {
@@ -2444,5 +2469,31 @@
     "enable": "Enable",
     "disabled": "disabled",
     "latest": "The 50 most recent codes. The export contains every code and its link."
+  },
+  "options": {
+    "intro": "Offer prepaid add-ons and drinks with the ticket: drink tokens, cloakroom, T-shirt, parking. Attendees redeem them with a simple scan of their ticket.",
+    "emptyTitle": "No add-ons yet",
+    "emptyBody": "Add your first add-on: it will appear on the sales page, next to the tickets.",
+    "newTitle": "New add-on",
+    "name": "Name",
+    "namePlaceholder": "Drink token",
+    "description": "Description (optional)",
+    "price": "Price",
+    "stock": "Stock",
+    "stockHint": "Empty: unlimited.",
+    "maxPerOrder": "Maximum per order",
+    "add": "Add the add-on",
+    "save": "Save",
+    "edit": "Edit",
+    "active": "On sale",
+    "inactive": "Off sale",
+    "activate": "Put back on sale",
+    "deactivate": "Take off sale",
+    "sold": "{count, plural, one {# sold} other {# sold}}",
+    "redeemed": "{count, plural, one {# redeemed} other {# redeemed}}",
+    "stockOf": "of {stock}",
+    "unlimited": "unlimited",
+    "perOrder": "Up to {max} per order",
+    "saved": "Add-on saved."
   }
 }
