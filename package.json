@@ -46,7 +46,7 @@
     }
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged",
+    "pre-commit": "bash ops/precommit.sh",
     "pre-push": "bash ops/prepush.sh"
   },
   "lint-staged": {

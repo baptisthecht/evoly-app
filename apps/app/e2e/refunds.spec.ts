@@ -28,7 +28,8 @@ test("commandes : recherche, détail, renvoi des billets, correction de l'e-mail
   await page.getByRole("button", { name: "Enregistrer et envoyer" }).click();
   await expect(page.getByText("Adresse corrigée, billets envoyés.")).toBeVisible();
   expect((await page.goto(oldLink))?.status()).toBe(404);
-  const link = firstLink((await lastEmail(newEmail, "order.confirmation")).text);
+  // section 10 : à la nouvelle adresse, l'e-mail « adresse corrigée » (order.email_changed) porte les billets
+  const link = firstLink((await lastEmail(newEmail, "order.email_changed")).text);
   await page.goto(link);
   await expect(page.getByRole("heading", { name: "Vos billets" })).toBeVisible();
 });

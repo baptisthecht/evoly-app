@@ -1,11 +1,21 @@
 # Maintenance des dépendances
 
+## Contrôles obligatoires avant chaque enregistrement
+
+À chaque `git commit`, git lance `ops/precommit.sh`. L'enregistrement est **refusé** si la mise en forme des fichiers enregistrés, les types ou les tests (cœur, traductions, serveur de l'app) échouent. Les tests du serveur ont besoin d'une base PostgreSQL de test (`DATABASE_URL`, par défaut `postgresql://evoly:evoly@localhost:5432/evoly`).
+
+Ces contrôles, comme ceux de l'envoi, ne se contournent jamais (`--no-verify` interdit).
+
 ## Contrôles obligatoires avant chaque envoi
 
 À chaque `git push`, git lance `ops/prepush.sh` (installé par `pnpm install`, via simple-git-hooks). L'envoi est **bloqué** si :
 
 1. `pnpm audit` trouve une faille **modérée ou plus grave** (les exceptions justifiées sont listées dans `docs/SECURITE.md`) ;
 2. un fichier n'est pas formaté par **Prettier** (`pnpm format` corrige).
+3. les **tests** échouent ou la **couverture** passe sous le seuil (`pnpm -r test`) ;
+4. la **construction** de l'app ou les **parcours complets** échouent (`bash ops/e2e.sh`, exactement comme l'intégration continue).
+
+Si l'envoi passe ces contrôles, l'intégration continue passe aussi.
 
 Une fois par semaine, le même contrôle affiche les **nouvelles versions** (`ops/versions-check.mjs`).
 
