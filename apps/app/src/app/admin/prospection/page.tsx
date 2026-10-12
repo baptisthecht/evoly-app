@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireStaff } from "@/server/platform";
-import { lotEmails, prospectionOverview } from "@/server/prospection";
+import { lotEmails, pipelineStats, prospectionOverview } from "@/server/prospection";
 import { retryAction, scheduleWaitingAction, sendNowAction, withdrawAction } from "./actions";
 import { UploadForm } from "./UploadForm";
 
@@ -24,7 +24,7 @@ const bouton = "h-10 rounded-full px-4 text-sm font-semibold ring-1 ring-line-st
 export default async function ProspectionPage({ searchParams }: { searchParams: Promise<{ lot?: string; info?: string }> }) {
   await requireStaff("ADMIN");
   const { lot: choisi, info } = await searchParams;
-  const o = await prospectionOverview();
+  const [o, suivi] = await Promise.all([prospectionOverview(), pipelineStats()]);
   const lot = choisi ?? o.lots[0]?.lot;
   const emails = lot ? await lotEmails(lot) : [];
   return (
@@ -38,6 +38,11 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
             <Link href="/admin">Back-office</Link>
           </nav>
         </header>
+        {suivi.aRelancer ? (
+          <Link href="/admin/prospection/prospects?relancer=1" className={`${card} text-sm underline-offset-4 hover:underline`}>
+            {suivi.aRelancer} prospect(s) à relancer aujourd&apos;hui
+          </Link>
+        ) : null}
         {info && INFO[info] ? (
           <p role="status" className={`${card} text-sm`}>
             {INFO[info]}

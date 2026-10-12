@@ -14,6 +14,7 @@ import {
   sendNow,
   sendTest,
   setMailboxActive,
+  setMailboxLimit,
   testMailbox,
   updateProspect,
   withdrawEmail,
@@ -86,7 +87,20 @@ export async function retryAction(id: string, lot: string) {
 
 export async function prospectAction(id: string, form: FormData) {
   await requireStaff("ADMIN");
-  await updateProspect(id, { status: String(form.get("status") ?? ""), notes: String(form.get("notes") ?? "") });
+  await updateProspect(id, {
+    status: String(form.get("status") ?? ""),
+    notes: String(form.get("notes") ?? ""),
+    nextActionAt: String(form.get("nextActionAt") ?? ""),
+  });
+  revalidatePath("/admin/prospection/prospects");
+  revalidatePath(`/admin/prospection/prospects/${id}`);
+}
+
+/** Changement de statut en un geste, depuis la fiche du prospect. */
+export async function prospectStatusAction(id: string, status: string) {
+  await requireStaff("ADMIN");
+  await updateProspect(id, { status });
+  revalidatePath(`/admin/prospection/prospects/${id}`);
   revalidatePath("/admin/prospection/prospects");
 }
 
@@ -127,6 +141,7 @@ export async function saveMailboxAction(id: string | null, form: FormData) {
         username: champ("username"),
         password: champ("password"),
         maxPerDay: champ("maxPerDay"),
+        rampUp: form.get("rampUp") === "on",
         startedAt: champ("startedAt"),
       },
       id ?? undefined,
@@ -169,4 +184,14 @@ export async function testSendAction(id: string, form: FormData) {
         ? "E-mail de test envoyé, et rangé dans « Envoyés » : vérifie qu'il est bien arrivé."
         : `E-mail de test envoyé, mais pas rangé dans « Envoyés » (${r.error}) : vérifie le serveur de réception.`,
   );
+}
+
+export async function setMailboxLimitAction(id: string, form: FormData) {
+  await requireStaff("ADMIN");
+  try {
+    await setMailboxLimit(id, Number(form.get("maxPerDay")), form.get("rampUp") === "on");
+  } catch {
+    boites("Limite non enregistrée : choisis un nombre entre 1 et 500.");
+  }
+  boites(await redistribuer("Limite enregistrée."));
 }

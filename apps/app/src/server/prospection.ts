@@ -38,15 +38,17 @@ function delay() {
 }
 
 /** Montée en charge selon l'ancienneté de la boîte : 15 par jour la première semaine, 25 la deuxième, puis son plafond. */
-export function rampCap(startedAt: Date, maxPerDay: number, now: Date) {
+export function rampCap(startedAt: Date, maxPerDay: number, now: Date, rampUp = true) {
   const days = Math.round((dayStart(now).getTime() - dayStart(startedAt).getTime()) / DAY);
   if (days < 0) return 0;
+  if (!rampUp) return maxPerDay;
   return Math.min(days < 7 ? 15 : days < 14 ? 25 : maxPerDay, maxPerDay);
 }
 
 /** Calendrier de montée en charge d'une boîte, à partir d'aujourd'hui : [{ du, par jour }]. */
-export function rampSchedule(startedAt: Date, maxPerDay: number, now: Date) {
+export function rampSchedule(startedAt: Date, maxPerDay: number, now: Date, rampUp = true) {
   const start = dayStart(startedAt).getTime();
+  if (!rampUp) return [{ from: start, perDay: maxPerDay, until: null }];
   const steps = [
     { from: start, perDay: Math.min(15, maxPerDay) },
     { from: start + 7 * DAY, perDay: Math.min(25, maxPerDay) },
@@ -133,6 +135,7 @@ const mailboxSchema = z.object({
   username: z.string().trim().max(200).optional(),
   password: z.string().max(500).optional(),
   maxPerDay: z.coerce.number().int().min(1).max(500).default(40),
+  rampUp: z.boolean().default(true),
   startedAt: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -151,6 +154,7 @@ export async function saveMailbox(input: unknown, id?: string) {
     imapHost: d.imapHost || null,
     imapPort: d.imapPort,
     maxPerDay: d.maxPerDay,
+    rampUp: d.rampUp,
   };
   if (id) {
     return db.prospectMailbox.update({
@@ -166,6 +170,13 @@ export async function saveMailbox(input: unknown, id?: string) {
 async function releaseBox(id: string) {
   await db.prospectEmail.updateMany({ where: { mailboxId: id, status: "PROGRAMME" }, data: { status: "A_ENVOYER", mailboxId: null, scheduledAt: null } });
 }
+/** Réglage rapide de la limite d'une boîte : maximum par jour et montée en charge progressive ou non. */
+export async function setMailboxLimit(id: string, maxPerDay: number, rampUp: boolean) {
+  const max = Math.trunc(maxPerDay);
+  if (!Number.isFinite(max) || max < 1 || max > 500) throw new CoreError("PROSPECTION_LIMIT_INVALID");
+  await db.prospectMailbox.update({ where: { id }, data: { maxPerDay: max, rampUp } });
+}
+
 export async function setMailboxActive(id: string, active: boolean) {
   await db.prospectMailbox.update({ where: { id }, data: { active } });
   if (!active) await releaseBox(id);
@@ -205,7 +216,7 @@ export async function availability(now = new Date()) {
     _count: { _all: true },
   });
   const rows = boxes.map((b) => {
-    const cap = rampCap(b.startedAt, b.maxPerDay, now);
+    const cap = rampCap(b.startedAt, b.maxPerDay, now, b.rampUp);
     const u = used.find((x) => x.mailboxId === b.id)?._count._all ?? 0;
     return { box: b, cap, used: u, remaining: Math.max(0, cap - u) };
   });
@@ -223,7 +234,16 @@ const emailSchema = z.object({
   source: z.string().trim().max(500).optional(),
   pourquoi: z.string().trim().max(1000).optional(),
 });
-const STATUT: Record<string, string> = { EXCLU: "exclue", PAS_INTERESSE: "pas intéressée", CLIENT: "déjà cliente" };
+const STATUT: Record<string, string> = {
+  EXCLU: "exclue",
+  PAS_INTERESSE: "pas intéressée",
+  CLIENT: "déjà cliente",
+  INSCRIT: "déjà inscrite",
+  INTERESSE: "déjà en discussion",
+  RDV: "déjà en discussion",
+  A_RELANCER: "déjà en discussion",
+  REPONDU: "déjà en discussion",
+};
 
 export type ImportReport = {
   lot: string;
@@ -276,7 +296,10 @@ async function distribute(ids: string[], now: Date, rand: Rand) {
       _count: { _all: true },
     });
     const remaining = new Map(
-      boxes.map((b) => [b.id, Math.max(0, rampCap(b.startedAt, b.maxPerDay, new Date(open)) - (used.find((u) => u.mailboxId === b.id)?._count._all ?? 0))]),
+      boxes.map((b) => [
+        b.id,
+        Math.max(0, rampCap(b.startedAt, b.maxPerDay, new Date(open), b.rampUp) - (used.find((u) => u.mailboxId === b.id)?._count._all ?? 0)),
+      ]),
     );
     const cursor = new Map<string, number>();
     for (const b of boxes) {
@@ -488,7 +511,7 @@ export async function sendDueProspectEmails(now = new Date(), send: Sender = smt
       orderBy: { scheduledAt: "asc" },
       select: { id: true },
     });
-    if (!due || (await sentToday(b.id, now)) >= rampCap(b.startedAt, b.maxPerDay, now)) continue;
+    if (!due || (await sentToday(b.id, now)) >= rampCap(b.startedAt, b.maxPerDay, now, b.rampUp)) continue;
     if (await deliver(due.id, now, send, copy, ["PROGRAMME"], b)) sent++;
   }
   const filed = await fileMissingCopies(copy);
@@ -542,10 +565,56 @@ export async function retryEmail(id: string) {
   await db.prospectEmail.updateMany({ where: { id, status: "ECHEC" }, data: { status: "A_ENVOYER", mailboxId: null, error: null } });
 }
 
-export async function updateProspect(id: string, data: { status: string; notes: string }) {
-  const status = z.enum(["NOUVEAU", "CONTACTE", "REPONDU", "CLIENT", "PAS_INTERESSE", "EXCLU"]).parse(data.status);
-  await db.prospect.update({ where: { id }, data: { status, notes: data.notes.trim().slice(0, 2000) || null } });
-  if (status === "EXCLU" || status === "PAS_INTERESSE")
+export const PROSPECT_STATUTS = [
+  ["NOUVEAU", "Nouveau"],
+  ["CONTACTE", "Contacté, en attente de réponse"],
+  ["REPONDU", "A répondu, à qualifier"],
+  ["INTERESSE", "Intéressé"],
+  ["RDV", "Démo ou rendez-vous prévu"],
+  ["A_RELANCER", "Plus tard, à relancer"],
+  ["INSCRIT", "Compte créé"],
+  ["CLIENT", "Client"],
+  ["PAS_INTERESSE", "Pas intéressé"],
+  ["EXCLU", "Ne plus contacter"],
+] as const;
+export type ProspectStatut = (typeof PROSPECT_STATUTS)[number][0];
+const LIBELLE = Object.fromEntries(PROSPECT_STATUTS) as Record<string, string>;
+const REPONSES = new Set(["REPONDU", "INTERESSE", "RDV", "A_RELANCER", "INSCRIT", "CLIENT", "PAS_INTERESSE"]);
+const jourFr = (d: Date) => new Intl.DateTimeFormat("fr-BE", { timeZone: FUSEAU, day: "numeric", month: "long", year: "numeric" }).format(d);
+
+/** Mise à jour du suivi d'un prospect ; chaque changement est inscrit dans son historique. */
+export async function updateProspect(id: string, data: { status?: string; notes?: string; nextActionAt?: string | null }, now = new Date()) {
+  const p = await db.prospect.findUniqueOrThrow({ where: { id } });
+  const patch: { status?: ProspectStatut; notes?: string | null; nextActionAt?: Date | null; respondedAt?: Date } = {};
+  const log: string[] = [];
+  if (data.status !== undefined) {
+    const status = z.enum(PROSPECT_STATUTS.map(([k]) => k) as [ProspectStatut, ...ProspectStatut[]]).parse(data.status);
+    if (status !== p.status) {
+      patch.status = status;
+      log.push(`Statut : ${LIBELLE[p.status] ?? p.status} → ${LIBELLE[status]}`);
+      if (REPONSES.has(status) && !p.respondedAt) patch.respondedAt = now;
+    }
+  }
+  if (data.notes !== undefined) {
+    const notes = data.notes.trim().slice(0, 4000) || null;
+    if (notes !== p.notes) {
+      patch.notes = notes;
+      log.push(notes ? "Note modifiée" : "Note effacée");
+    }
+  }
+  if (data.nextActionAt !== undefined) {
+    const at = data.nextActionAt && /^\d{4}-\d{2}-\d{2}$/.test(data.nextActionAt) ? zonedLocalToUtc(`${data.nextActionAt}T09:00`, FUSEAU) : null;
+    if ((at?.getTime() ?? null) !== (p.nextActionAt?.getTime() ?? null)) {
+      patch.nextActionAt = at;
+      log.push(at ? `Relance prévue le ${jourFr(at)}` : "Relance retirée");
+    }
+  }
+  if (log.length === 0) return;
+  await db.$transaction([
+    db.prospect.update({ where: { id }, data: patch }),
+    ...log.map((label) => db.prospectActivity.create({ data: { prospectId: id, label, createdAt: now } })),
+  ]);
+  if (patch.status === "EXCLU" || patch.status === "PAS_INTERESSE")
     await db.prospectEmail.updateMany({ where: { prospectId: id, status: { in: ["A_ENVOYER", "PROGRAMME"] } }, data: { status: "RETIRE", scheduledAt: null } });
 }
 
@@ -590,14 +659,74 @@ export function lotEmails(lot: string) {
   });
 }
 
-export function listProspects(q?: string, status?: string) {
+export function listProspects(q?: string, status?: string, aRelancer = false, now = new Date()) {
+  const finDuJour = new Date(dayStart(now).getTime() + DAY);
   return db.prospect.findMany({
     where: {
-      ...(q ? { OR: [{ organisation: { contains: q, mode: "insensitive" } }, { email: { contains: q, mode: "insensitive" } }] } : {}),
-      ...(status ? { status: status as never } : {}),
+      ...(q
+        ? {
+            OR: [
+              { organisation: { contains: q, mode: "insensitive" } },
+              { email: { contains: q, mode: "insensitive" } },
+              { notes: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+      ...(status ? { status: status as ProspectStatut } : {}),
+      ...(aRelancer ? { nextActionAt: { lt: finDuJour } } : {}),
     },
-    orderBy: { updatedAt: "desc" },
-    take: 200,
+    orderBy: aRelancer ? { nextActionAt: "asc" } : { updatedAt: "desc" },
+    take: 300,
     include: { _count: { select: { emails: true } } },
   });
+}
+
+/** Fiche d'un prospect : e-mails et historique. */
+export function prospectDetail(id: string) {
+  return db.prospect.findUnique({
+    where: { id },
+    include: {
+      emails: { orderBy: { createdAt: "asc" }, include: { box: { select: { address: true } } } },
+      activities: { orderBy: { createdAt: "desc" }, take: 100 },
+    },
+  });
+}
+
+/** Chiffres du suivi : contactés, réponses, intéressés, démos, comptes, clients, relances du jour. */
+export async function pipelineStats(now = new Date()) {
+  const finDuJour = new Date(dayStart(now).getTime() + DAY);
+  const [parStatut, contactes, aRelancer] = await Promise.all([
+    db.prospect.groupBy({ by: ["status"], _count: { _all: true } }),
+    db.prospect.count({ where: { emails: { some: { status: "ENVOYE" } } } }),
+    db.prospect.count({ where: { nextActionAt: { lt: finDuJour }, status: { notIn: ["EXCLU", "PAS_INTERESSE", "CLIENT"] } } }),
+  ]);
+  const n = (s: string) => parStatut.find((x) => x.status === s)?._count._all ?? 0;
+  const reponses = [...REPONSES].reduce((t, s) => t + n(s), 0);
+  return {
+    contactes,
+    reponses,
+    tauxReponse: contactes ? Math.round((reponses / contactes) * 100) : 0,
+    interesses: n("INTERESSE") + n("RDV"),
+    rdv: n("RDV"),
+    inscrits: n("INSCRIT"),
+    clients: n("CLIENT"),
+    pasInteresses: n("PAS_INTERESSE"),
+    aRelancer,
+    parStatut: Object.fromEntries(PROSPECT_STATUTS.map(([k]) => [k, n(k)])),
+  };
+}
+
+/** Export de la liste des prospects (CSV, séparateur point-virgule, lisible par Excel). */
+export async function prospectsCsv() {
+  const rows = await db.prospect.findMany({ orderBy: { updatedAt: "desc" }, include: { _count: { select: { emails: true } } } });
+  const cell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const d = (x: Date | null) => (x ? new Intl.DateTimeFormat("en-CA", { timeZone: FUSEAU }).format(x) : "");
+  const lines = [["Organisation", "E-mail", "Statut", "Dernier contact", "Première réponse", "Relance", "E-mails", "Notes", "Source"].map(cell).join(";")];
+  for (const p of rows)
+    lines.push(
+      [p.organisation, p.email, LIBELLE[p.status] ?? p.status, d(p.lastContactAt), d(p.respondedAt), d(p.nextActionAt), p._count.emails, p.notes, p.source]
+        .map(cell)
+        .join(";"),
+    );
+  return "\uFEFF" + lines.join("\r\n") + "\r\n";
 }

@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ProspectMailbox } from "@evoly/db";
 import { requireStaff } from "@/server/platform";
 import { listMailboxes, rampSchedule } from "@/server/prospection";
-import { deleteMailboxAction, saveMailboxAction, testMailboxAction, testSendAction, toggleMailboxAction } from "../actions";
+import { deleteMailboxAction, saveMailboxAction, setMailboxLimitAction, testMailboxAction, testSendAction, toggleMailboxAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Boîtes d'envoi - Back-office Evoly", robots: { index: false, follow: false } };
@@ -53,6 +53,10 @@ function Champs({ b }: { b?: ProspectMailbox }) {
         Plafond par jour après la montée en charge
         <input name="maxPerDay" type="number" min={1} max={500} defaultValue={b?.maxPerDay ?? 40} className={champ} />
       </label>
+      <label className="flex items-center gap-2 text-sm sm:col-span-2">
+        <input name="rampUp" type="checkbox" defaultChecked={b?.rampUp ?? true} />
+        Montée en charge progressive (15 par jour, puis 25, puis le plafond)
+      </label>
       <label className="grid gap-1 text-sm">
         Début de la montée en charge
         <input name="startedAt" type="date" defaultValue={jour(b?.startedAt ?? new Date())} className={champ} />
@@ -92,7 +96,7 @@ export default async function BoitesPage({ searchParams }: { searchParams: Promi
               <p className="break-all font-semibold">{b.address}</p>
               <p className="text-sm">
                 {b.active
-                  ? rampSchedule(b.startedAt, b.maxPerDay, now)
+                  ? rampSchedule(b.startedAt, b.maxPerDay, now, b.rampUp)
                       .map((st, i) => (i === 0 ? `${st.perDay} e-mails par jour aujourd'hui` : `${st.perDay} dès le ${court(new Date(st.from))}`))
                       .join(" · ")
                   : "Désactivée"}
@@ -118,6 +122,19 @@ export default async function BoitesPage({ searchParams }: { searchParams: Promi
                 </button>
               </form>
             </div>
+            <form action={setMailboxLimitAction.bind(null, b.id)} className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 text-sm">
+                Max par jour
+                <input name="maxPerDay" type="number" min={1} max={500} defaultValue={b.maxPerDay} className={`${champ} w-24`} />
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input name="rampUp" type="checkbox" defaultChecked={b.rampUp} />
+                Montée en charge progressive
+              </label>
+              <button type="submit" className={bouton}>
+                Enregistrer
+              </button>
+            </form>
             <form action={testSendAction.bind(null, b.id)} className="flex flex-wrap gap-2">
               <input name="to" type="email" placeholder={`À (vide : ${b.address})`} aria-label="Adresse du test" className={`${champ} flex-1`} />
               <button type="submit" className={bouton}>

@@ -1813,6 +1813,10 @@ enum ProspectStatus {
   CLIENT
   PAS_INTERESSE
   EXCLU
+  INTERESSE
+  RDV
+  A_RELANCER
+  INSCRIT
 }
 
 enum ProspectEmailStatus {
@@ -1831,11 +1835,26 @@ model Prospect {
   notes         String?
   source        String?
   lastContactAt DateTime?
+  nextActionAt  DateTime? // date de relance ou de prochaine action
+  respondedAt   DateTime? // première réponse
+  activities    ProspectActivity[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   emails        ProspectEmail[]
 
   @@index([status])
+  @@index([nextActionAt])
+}
+
+/// Historique du suivi d'un prospect : changements de statut, de note, de date de relance
+model ProspectActivity {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  label      String
+  createdAt  DateTime @default(now())
+
+  @@index([prospectId, createdAt])
 }
 
 model ProspectEmail {
@@ -1877,6 +1896,7 @@ model ProspectMailbox {
   username    String
   passwordEnc String
   maxPerDay   Int             @default(40) // plafond atteint après la montée en charge
+  rampUp      Boolean         @default(true) // montée en charge progressive (15, 25, puis le plafond) ; sinon le plafond tout de suite
   startedAt   DateTime        @default(now()) // début de la montée en charge : 15 par jour la 1re semaine, 25 la 2e
   active      Boolean         @default(true)
   createdAt   DateTime        @default(now())

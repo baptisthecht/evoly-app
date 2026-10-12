@@ -8,6 +8,10 @@ import {
   rampCap,
   rampSchedule,
   rebalance,
+  setMailboxLimit,
+  listProspects,
+  pipelineStats,
+  prospectsCsv,
   retryEmail,
   saveMailbox,
   scheduleWaiting,
@@ -233,5 +237,45 @@ describe("prospection : boîtes du back-office, disponibilités et répartition"
     expect(r.misAJour).toBe(0);
     expect(r.ignores[0]!.raison).toBe("déjà envoyé");
     expect((await db.prospectEmail.findUniqueOrThrow({ where: { externalId: "t-1" } })).body).toBe("Bonjour 1");
+  });
+
+  it("limite réglable : sans montée en charge, la boîte envoie son maximum dès le premier jour", async () => {
+    const { b } = await boites(); // ajoutée aujourd'hui, plafond 2
+    expect(rampCap(NOW, 40, NOW, false)).toBe(40);
+    expect(rampSchedule(NOW, 40, NOW, false).map((st) => st.perDay)).toEqual([40]);
+    await setMailboxLimit(b.id, 30, false);
+    expect((await availability(NOW)).rows.find((r) => r.box.id === b.id)!.cap).toBe(30);
+    await setMailboxLimit(b.id, 30, true);
+    expect((await availability(NOW)).rows.find((r) => r.box.id === b.id)!.cap).toBe(15);
+    await expect(setMailboxLimit(b.id, 0, true)).rejects.toMatchObject({ code: "PROSPECTION_LIMIT_INVALID" });
+  });
+
+  it("suivi : historique de chaque changement, première réponse datée, relances, chiffres et export", async () => {
+    await boites();
+    await importLot({ emails: [1, 2, 3].map((i) => mail(i)) }, NOW);
+    await vider(new Date(NOW.getTime() + 3 * 3_600_000));
+    const p1 = await db.prospect.findUniqueOrThrow({ where: { email: "comite1@cercle1.be" } });
+    const demain = iso(new Date(NOW.getTime() + DAY));
+    await updateProspect(p1.id, { status: "INTERESSE", notes: "Gala en mars, 400 places", nextActionAt: iso(NOW) }, NOW);
+    await updateProspect(p1.id, { status: "INTERESSE", notes: "Gala en mars, 400 places", nextActionAt: iso(NOW) }, NOW); // rien ne change : rien n'est inscrit
+    const apres = await db.prospect.findUniqueOrThrow({ where: { id: p1.id }, include: { activities: true } });
+    expect(apres.activities.map((a) => a.label).sort()).toEqual(
+      [
+        "Note modifiée",
+        `Relance prévue le ${new Intl.DateTimeFormat("fr-BE", { timeZone: "Europe/Brussels", day: "numeric", month: "long", year: "numeric" }).format(apres.nextActionAt!)}`,
+        "Statut : Contacté, en attente de réponse → Intéressé",
+      ].sort(),
+    );
+    expect(apres.respondedAt).not.toBeNull();
+    const p2 = await db.prospect.findUniqueOrThrow({ where: { email: "comite2@cercle2.be" } });
+    await updateProspect(p2.id, { status: "PAS_INTERESSE", nextActionAt: demain }, NOW);
+    expect((await listProspects(undefined, undefined, true, new Date(NOW.getTime() + 3_600_000))).map((p) => p.id)).toEqual([p1.id]);
+    expect((await listProspects("400 places")).map((p) => p.id)).toEqual([p1.id]);
+    const s = await pipelineStats(new Date(NOW.getTime() + 3_600_000));
+    expect(s).toMatchObject({ contactes: 3, reponses: 2, tauxReponse: 67, interesses: 1, pasInteresses: 1, aRelancer: 1 });
+    const csv = await prospectsCsv();
+    expect(csv.split("\r\n")[0]).toContain('"Organisation";"E-mail";"Statut"');
+    expect(csv).toContain('"Intéressé"');
+    expect((await importLot({ emails: [mail(1, { id: "t-1-nouveau" })] }, NOW)).ignores[0]!.raison).toBe("organisation déjà en discussion");
   });
 });
