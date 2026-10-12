@@ -43,6 +43,7 @@ export function TicketPicker({
   state,
   checkout,
   seatMap = null,
+  options = [],
 }: {
   tickets: PickerTicket[];
   currency: string;
@@ -51,11 +52,13 @@ export function TicketPicker({
   state: "OPEN" | "NOT_STARTED" | "PAUSED" | "CLOSED" | "PREVIEW";
   checkout?: { eventId: string; organizationName: string; requirePhone: boolean; publishableKey: string | null };
   seatMap?: PublicSeatMap | null;
+  options?: Array<{ id: string; name: string; description: string | null; priceMinor: number; maxPerOrder: number; left: number | null }>;
 }) {
   const t = useTranslations("public");
   const locale = useLocale() as Locale;
   const tc = useTranslations("checkout");
   const [qty, setQty] = useState<Record<string, number>>({});
+  const [optQty, setOptQty] = useState<Record<string, number>>({});
   const [reservation, setReservation] = useState<ReservationView | null>(null);
   const tseat = useTranslations("seatPicker");
   const [pending, setPending] = useState(false);
@@ -91,7 +94,9 @@ export function TicketPicker({
   };
   // tout est complet : ni code promo ni total, la section Revente prend le relais (RG-EVT-04)
   const allSoldOut = tickets.length > 0 && tickets.every((tt) => tt.remaining <= 0);
-  const total = tickets.reduce((n, tt) => n + (qty[tt.id] ?? 0) * discounted(tt), 0);
+  const total = tickets.reduce((n, tt) => n + (qty[tt.id] ?? 0) * discounted(tt), 0) + options.reduce((n, o) => n + (optQty[o.id] ?? 0) * o.priceMinor, 0);
+  const setOpt = (o: (typeof options)[number], next: number) =>
+    setOptQty((q) => ({ ...q, [o.id]: Math.max(0, Math.min(next, o.maxPerOrder, o.left ?? o.maxPerOrder)) }));
   const count = Object.values(qty).reduce((a, b) => a + b, 0);
   const money = (v: number) => (v === 0 ? t("free") : formatMoney(v, currency, locale, { trimZeroCents: true }));
   const set = (tt: PickerTicket, next: number) => {
@@ -127,7 +132,10 @@ export function TicketPicker({
     // RG-BUY-10 : défi anti-robots résolu dans le navigateur si l'organisateur l'a activé
     const challenge = await botChallengeAction(checkout.eventId);
     const botProof = challenge ? await solveBotChallenge(challenge).catch(() => null) : null;
-    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null, botProof);
+    const opts = Object.entries(optQty)
+      .filter(([, n]) => n > 0)
+      .map(([optionId, quantity]) => ({ optionId, quantity }));
+    const res = await reserveAction(checkout.eventId, lines, promo?.code ?? null, null, friend?.code ?? null, botProof, opts);
     setPending(false);
     if (res.ok) return setReservation(res.data);
     setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
@@ -144,6 +152,7 @@ export function TicketPicker({
         onCancel={() => {
           setReservation(null);
           setQty({});
+          setOptQty({});
         }}
       />
     );
@@ -228,6 +237,56 @@ export function TicketPicker({
           );
         })}
       </ul>
+      {options.length > 0 && state === "OPEN" ? (
+        <section className="grid gap-3" aria-label={t("optionsTitle")}>
+          <div className="grid gap-1">
+            <h3 className="font-semibold">{t("optionsTitle")}</h3>
+            <p className="text-sm text-ink-muted">{count === 0 ? t("optionsNeedTicket") : t("optionsHint")}</p>
+          </div>
+          <ul className="grid gap-2">
+            {options.map((o) => {
+              const n = optQty[o.id] ?? 0;
+              const cap = Math.min(o.maxPerOrder, o.left ?? o.maxPerOrder);
+              return (
+                <li key={o.id} className="flex items-center justify-between gap-3">
+                  <div className="grid min-w-0 gap-0.5">
+                    <p className="font-semibold">{o.name}</p>
+                    {o.description ? <p className="text-sm text-ink-muted">{o.description}</p> : null}
+                    <p className="text-sm tabular-nums">{money(o.priceMinor)}</p>
+                  </div>
+                  <div className="flex items-center justify-end gap-2" role="group" aria-label={t("quantityFor", { name: o.name })}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="size-10 px-0 text-lg"
+                      onClick={() => setOpt(o, n - 1)}
+                      disabled={n === 0}
+                      aria-label={t("less", { name: o.name })}
+                    >
+                      −
+                    </Button>
+                    <output className="w-8 text-center font-display text-lg tabular-nums" aria-live="polite">
+                      {n}
+                    </output>
+                    <Button
+                      type="button"
+                      variant="dark"
+                      size="sm"
+                      className="size-10 px-0 text-lg"
+                      onClick={() => setOpt(o, n + 1)}
+                      disabled={count === 0 || n >= cap}
+                      aria-label={t("more", { name: o.name })}
+                    >
+                      +
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
       {state === "OPEN" && checkout && (!allSoldOut || promo) ? (
         promo ? (
           <p className="flex items-center justify-between gap-3 rounded-md bg-surface-accent px-4 py-2.5 text-sm">

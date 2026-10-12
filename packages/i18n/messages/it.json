@@ -112,7 +112,10 @@
     "presaleInvalid": "Questo codice di prevendita non è valido.",
     "presaleBanner": "Prevendita privata: hai accesso ai biglietti prima dell’apertura pubblica delle vendite.",
     "presaleUnlocking": "Apertura del tuo accesso alla prevendita…",
-    "presaleBack": "Vedi l’evento"
+    "presaleBack": "Vedi l’evento",
+    "optionsTitle": "Extra",
+    "optionsHint": "Da riscattare sul posto con una semplice scansione del biglietto.",
+    "optionsNeedTicket": "Scegli prima i biglietti per aggiungere degli extra."
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -218,7 +221,11 @@
     "error_RESERVATION_EXPIRED": "La tua prenotazione è scaduta: rifai l’ordine.",
     "seatsBest": "Ti abbiamo riservato i migliori posti disponibili: <b>{seats}</b>.",
     "seatsNearFriend": "Ti abbiamo riservato i posti liberi più vicini a {name}: <b>{seats}</b>.",
-    "seatsChosen": "I tuoi posti: <b>{seats}</b>."
+    "seatsChosen": "I tuoi posti: <b>{seats}</b>.",
+    "error_OPTION_UNAVAILABLE": "Questo extra non è più disponibile.",
+    "error_OPTION_MAX_EXCEEDED": "Superi il massimo consentito per questo extra.",
+    "error_OPTION_SOLD_OUT": "Questo extra è esaurito.",
+    "error_OPTION_QUANTITY_INVALID": "Quantità di extra non valida."
   },
   "seatPicker": {
     "title": "Scegli i tuoi posti",

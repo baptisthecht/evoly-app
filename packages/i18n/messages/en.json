@@ -385,7 +385,11 @@
     "error_RESERVATION_EXPIRED": "Your reservation has expired: please start your order again.",
     "seatsBest": "We’ve reserved the best seats available for you: <b>{seats}</b>.",
     "seatsNearFriend": "We’ve reserved the free seats closest to {name} for you: <b>{seats}</b>.",
-    "seatsChosen": "Your seats: <b>{seats}</b>."
+    "seatsChosen": "Your seats: <b>{seats}</b>.",
+    "error_OPTION_UNAVAILABLE": "This add-on is no longer available.",
+    "error_OPTION_MAX_EXCEEDED": "You are over the maximum allowed for this add-on.",
+    "error_OPTION_SOLD_OUT": "This add-on is sold out.",
+    "error_OPTION_QUANTITY_INVALID": "Invalid add-on quantity."
   },
   "orders": {
     "confirmationTitle": "You’re in!",
@@ -1102,7 +1106,10 @@
     "presaleInvalid": "This presale code isn’t valid.",
     "presaleBanner": "Private presale: you can buy tickets before they go on sale to the public.",
     "presaleUnlocking": "Unlocking your presale access…",
-    "presaleBack": "See the event"
+    "presaleBack": "See the event",
+    "optionsTitle": "Add-ons",
+    "optionsHint": "Redeemed on site with a simple scan of your ticket.",
+    "optionsNeedTicket": "Choose your tickets first to add add-ons."
   },
   "promo": {
     "new": "New code",

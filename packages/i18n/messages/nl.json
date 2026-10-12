@@ -112,7 +112,10 @@
     "presaleInvalid": "Deze voorverkoopcode is niet geldig.",
     "presaleBanner": "Privévoorverkoop: je kunt tickets kopen vóór de publieke verkoop.",
     "presaleUnlocking": "Je toegang tot de voorverkoop wordt geopend…",
-    "presaleBack": "Bekijk het evenement"
+    "presaleBack": "Bekijk het evenement",
+    "optionsTitle": "Opties",
+    "optionsHint": "In te wisselen ter plaatse met een simpele scan van je ticket.",
+    "optionsNeedTicket": "Kies eerst je tickets om opties toe te voegen."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -218,7 +221,11 @@
     "error_RESERVATION_EXPIRED": "Je reservering is verlopen: begin je bestelling opnieuw.",
     "seatsBest": "We hebben de beste vrije plaatsen voor je gereserveerd: <b>{seats}</b>.",
     "seatsNearFriend": "We hebben de vrije plaatsen het dichtst bij {name} voor je gereserveerd: <b>{seats}</b>.",
-    "seatsChosen": "Je plaatsen: <b>{seats}</b>."
+    "seatsChosen": "Je plaatsen: <b>{seats}</b>.",
+    "error_OPTION_UNAVAILABLE": "Deze optie is niet meer beschikbaar.",
+    "error_OPTION_MAX_EXCEEDED": "Je overschrijdt het maximum voor deze optie.",
+    "error_OPTION_SOLD_OUT": "Deze optie is uitverkocht.",
+    "error_OPTION_QUANTITY_INVALID": "Ongeldige hoeveelheid voor deze optie."
   },
   "seatPicker": {
     "title": "Kies je plaatsen",

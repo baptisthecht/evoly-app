@@ -29,7 +29,11 @@ import { botProtected, createChallenge, verifyProof, type BotChallenge } from "@
 import { clientIp } from "@/server/requestInfo";
 import { safeError } from "@/lib/redact";
 
+/** Options et consommations demandées avec les billets (section 9.29). */
+const optionsSchema = z.array(z.object({ optionId: z.string().max(40), quantity: z.number().int().min(0).max(100) })).max(20);
+
 export interface ReservationView {
+  options: Array<{ optionId: string; name: string; quantity: number; unitPriceMinor: number }>;
   token: string;
   reference: string;
   expiresAt: string;
@@ -101,6 +105,7 @@ export async function reserveAction(
   seatIds?: unknown,
   nearCode?: string | null,
   botProof?: unknown,
+  options?: unknown,
 ): Promise<Result<ReservationView>> {
   // RG-BUY-10 : preuve anti-robots exigée sur les événements où l'organisateur l'a activée
   if ((await botProtected(eventId.slice(0, 40))) && !(await verifyProof(eventId.slice(0, 40), botProof))) return { ok: false, error: "BOT_CHECK_FAILED" };
@@ -121,6 +126,7 @@ export async function reserveAction(
       presaleCode: await presaleCookie(eventId),
       seatIds: seats,
       nearCode: typeof nearCode === "string" ? nearCode.slice(0, 16) : null,
+      options: optionsSchema.safeParse(options ?? []).data ?? [],
     });
     const held = await reservationSeats(r.orderId);
     return {
@@ -135,6 +141,7 @@ export async function reserveAction(
         discountMinor: r.discountMinor,
         promoCode: r.promoCode,
         lines: r.lines,
+        options: r.options ?? [],
         questions: r.questions,
         stripeAccountId: r.stripeAccountId,
         seats: held,
@@ -238,6 +245,7 @@ export async function reserveResaleAction(linkCode: string): Promise<Result<Rese
         discountMinor: 0,
         promoCode: null,
         lines: r.lines,
+        options: [], // achat d'une place en revente : pas d'options
         questions: r.questions,
         stripeAccountId: r.stripeAccountId,
       },

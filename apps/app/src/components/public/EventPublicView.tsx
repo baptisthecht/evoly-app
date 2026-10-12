@@ -10,6 +10,7 @@ import { publicListings } from "@/server/resale";
 import { formatMoney } from "@evoly/i18n";
 import { SalesCountdown } from "./Prepublished";
 import { eventPublicUrl } from "@/server/urls";
+import { saleOptions } from "@/server/options";
 
 /** Page de vente (section 9.10) : informations à gauche, billets à droite ; billets en premier sur téléphone. */
 export async function EventPublicView({
@@ -129,6 +130,7 @@ export async function EventPublicView({
                 timeZone={event.timezone}
                 maxPerOrder={event.maxTicketsPerOrder}
                 state={state}
+                options={await saleOptions(event.id)}
                 checkout={
                   preview
                     ? undefined

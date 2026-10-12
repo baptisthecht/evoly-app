@@ -385,7 +385,11 @@
     "error_RESERVATION_EXPIRED": "Votre réservation a expiré : recommencez votre commande.",
     "seatsBest": "Nous vous avons réservé les meilleures places disponibles : <b>{seats}</b>.",
     "seatsNearFriend": "Nous vous avons réservé les places libres les plus proches de {name} : <b>{seats}</b>.",
-    "seatsChosen": "Vos places : <b>{seats}</b>."
+    "seatsChosen": "Vos places : <b>{seats}</b>.",
+    "error_OPTION_UNAVAILABLE": "Cette option n'est plus disponible.",
+    "error_OPTION_MAX_EXCEEDED": "Vous dépassez le maximum autorisé pour cette option.",
+    "error_OPTION_SOLD_OUT": "Cette option est épuisée.",
+    "error_OPTION_QUANTITY_INVALID": "Quantité d'option invalide."
   },
   "orders": {
     "confirmationTitle": "C’est réservé !",
@@ -1102,7 +1106,10 @@
     "presaleInvalid": "Ce code de prévente n’est pas valable.",
     "presaleBanner": "Prévente privée : vous avez accès aux billets avant l’ouverture publique des ventes.",
     "presaleUnlocking": "Ouverture de votre accès à la prévente…",
-    "presaleBack": "Voir l’événement"
+    "presaleBack": "Voir l’événement",
+    "optionsTitle": "Options",
+    "optionsHint": "À retirer sur place, sur un simple scan de votre billet.",
+    "optionsNeedTicket": "Choisissez d'abord vos billets pour ajouter des options."
   },
   "promo": {
     "new": "Nouveau code",

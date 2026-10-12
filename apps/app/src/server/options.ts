@@ -1,10 +1,11 @@
 import "server-only";
-import { CoreError, hasFeature, optionCommission, parseMajorToMinor, type FeeTerms } from "@evoly/core";
+import { CoreError, effectivePlan, hasFeature, optionCommission, parseMajorToMinor, type FeeTerms } from "@evoly/core";
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { exponentFor, findEvent } from "./events";
+import { getPlans } from "./plans";
 
 /**
  * Options et consommations prépayées (section 9.29, Pro) : jetons boisson, vestiaire, t-shirt…
@@ -97,6 +98,17 @@ export async function publicOptions(eventId: string, features: readonly string[]
     const left = o.stock == null ? null : Math.max(0, o.stock - (used.find((u) => u.optionId === o.id)?._sum.quantity ?? 0));
     return { id: o.id, name: o.name, description: o.description, priceMinor: o.priceMinor, maxPerOrder: o.maxPerOrder, left };
   });
+}
+
+/** Options en vente pour un événement, d'après l'offre de son organisateur (page de vente et aperçu). */
+export async function saleOptions(eventId: string, now = new Date()) {
+  const ev = await db.event.findUnique({
+    where: { id: eventId },
+    select: { organization: { select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } } },
+  });
+  if (!ev) return [];
+  const plans = await getPlans();
+  return publicOptions(eventId, plans[effectivePlan(ev.organization.subscription, now)].features, now);
 }
 
 /**
