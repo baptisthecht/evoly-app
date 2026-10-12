@@ -33,7 +33,9 @@ else
 fi
 log=$(mktemp)
 echo "4/5 Tests et seuils de couverture"
-if ! pnpm -r test > "$log" 2>&1; then
+tests_log="$(git rev-parse --git-dir)/evoly-last-tests.log" # gardé pour relever le cliquet de couverture (docs/MAINTENANCE.md)
+if ! pnpm -r test > "$tests_log" 2>&1; then
+  cp "$tests_log" "$log"
   grep -E "FAIL|×|ERROR: Coverage|threshold" "$log" | head -20 || tail -20 "$log"
   echo "ENVOI BLOQUÉ : tests en échec ou couverture sous le seuil."
   exit 1
