@@ -34,9 +34,9 @@ Une fois par semaine, le même contrôle affiche les **nouvelles versions** (`op
 
 **Cliquet** : après chaque série de tests ajoutés, les seuils sont relevés au niveau atteint ; ils ne sont jamais abaissés. Objectif : s'approcher de 100 %.
 
-| Partie                                              | Instructions | Branches | Fonctions | Lignes | Mesuré le       |
-| --------------------------------------------------- | ------------ | -------- | --------- | ------ | --------------- |
-| Cœur (`packages/core`)                              | 98,8 %       | 94,1 %   | 100 %     | 99,5 % | 12 octobre 2026 |
-| Serveur de l'app (`apps/app/src/server`, `src/lib`) | 67,0 %       | 56,8 %   | 60,3 %    | 71,1 % | 12 octobre 2026 |
+| Partie                                              | Instructions | Branches | Fonctions | Lignes | Mesuré le                                              |
+| --------------------------------------------------- | ------------ | -------- | --------- | ------ | ------------------------------------------------------ |
+| Cœur (`packages/core`)                              | 98,8 %       | 94,1 %   | 100 %     | 99,5 % | 12 octobre 2026                                        |
+| Serveur de l'app (`apps/app/src/server`, `src/lib`) | 70,1 %       | 60,6 %   | 61,8 %    | 74,1 % | 12 octobre 2026, après la série « argent et sécurité » |
 
 Les écrans sont couverts par les parcours complets (Playwright, `apps/app/e2e`). `pnpm traceability` liste les règles du cahier des charges qu'aucun test ne cite : chaque nouveau test nomme la règle qu'il vérifie (par exemple « RG-POS-04 »).
