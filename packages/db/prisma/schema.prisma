@@ -655,6 +655,9 @@ enum TicketVisibility {
 }
 
 model TicketType {
+  groupSize    Int      @default(1) // tables et forfaits (section 9.31) : billets donnés par achat ; 1 pour un billet simple
+  tableLabels  String[] @default([]) // noms des tables, dans l'ordre de vente ; « Table 1 », « Table 2 »… à défaut
+  includedOptions IncludedOption[]
   waitlist     WaitlistEntry[]
   id                String           @id @default(cuid())
   eventId           String
@@ -1050,6 +1053,7 @@ enum VoidReason {
 }
 
 model Ticket {
+  tableLabel   String? // table du forfait (section 9.31), affichée sur le billet et au scan
   id               String       @id @default(cuid())
   eventId          String
   orderId          String
@@ -1925,6 +1929,7 @@ model ProspectMailbox {
 
 /// Options et consommations prépayées (section 9.29, Pro) : des articles vendus avec le billet, jamais un solde d'argent (RG-OPT-02)
 model EventOption {
+  includedIn  IncludedOption[]
   id          String        @id @default(cuid())
   eventId     String
   name        String
@@ -2027,3 +2032,16 @@ enum BoxOfficeMode {
   CASH
   QR
 }
+
+/// Consommations comprises dans un forfait table (section 9.31) : options ajoutées gratuitement à chaque table achetée
+model IncludedOption {
+  id           String      @id @default(cuid())
+  ticketTypeId String
+  optionId     String
+  quantity     Int
+  ticketType   TicketType  @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  option       EventOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketTypeId, optionId])
+}
+

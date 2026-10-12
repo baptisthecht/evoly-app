@@ -30,7 +30,7 @@ import { stripe } from "@/lib/stripe";
 import { getPlans } from "./plans";
 import { salesOpeningAt } from "@evoly/core";
 import { presaleCodeFor } from "./presale";
-import { hasFeature } from "@evoly/core";
+import { hasFeature, ticketCommission } from "@evoly/core";
 import { latePaymentRefundEmail } from "./email/templates";
 import { emailBrandFor } from "./email/brand";
 import { sendEmail } from "./email/send";
@@ -254,6 +254,21 @@ export async function reserveOrder(
     const terms = plan.terms[event.currency];
     if (!terms) throw new CoreError("CURRENCY_NOT_SUPPORTED");
     const priced = priceOrder(types, input.lines, terms, now, { promo });
+    // section 9.31 : forfait table, commission calculée par personne (part du prix de la table), comme pour des billets séparés
+    for (const l of priced.lines) {
+      const size = event.ticketTypes.find((t) => t.id === l.ticketTypeId)?.groupSize ?? 1;
+      if (size <= 1) continue;
+      const fee = size * ticketCommission(Math.round((l.unitPriceMinor - (l.unitDiscountMinor ?? 0)) / size), terms);
+      priced.applicationFeeMinor += (fee - l.unitFeeMinor) * l.quantity;
+      l.unitFeeMinor = fee;
+    }
+    const included = await tx.includedOption.findMany({ where: { ticketTypeId: { in: priced.lines.map((l) => l.ticketTypeId) } } });
+    const includedLines = included.map((inc) => ({
+      optionId: inc.optionId,
+      quantity: inc.quantity * priced.lines.filter((l) => l.ticketTypeId === inc.ticketTypeId).reduce((n, l) => n + l.quantity, 0),
+      unitPriceMinor: 0,
+      unitFeeMinor: 0,
+    }));
     const opts = input.options?.length
       ? await priceOptionsInTx(
           tx,
@@ -315,7 +330,12 @@ export async function reserveOrder(
         holdExpiresAt: new Date(now.getTime() + event.checkoutHoldMinutes * 60_000),
         accessTokenHash,
         options: {
-          create: opts.lines.map((l) => ({ optionId: l.optionId, quantity: l.quantity, unitPriceMinor: l.unitPriceMinor, unitFeeMinor: l.unitFeeMinor })),
+          create: [...opts.lines, ...includedLines].map((l) => ({
+            optionId: l.optionId,
+            quantity: l.quantity,
+            unitPriceMinor: l.unitPriceMinor,
+            unitFeeMinor: l.unitFeeMinor,
+          })),
         },
         items: {
           create: priced.lines.map((l) => ({
@@ -682,18 +702,37 @@ export async function finalizeOrder(
           const c = seatCategory.get(ticketTypeId);
           return c ? (seatsBy.get(c)?.shift() ?? null) : null;
         };
+        // section 9.31 : un forfait table donne plusieurs billets par achat, chacun avec le nom de sa table
+        const groups = new Map(
+          (
+            await tx.ticketType.findMany({
+              where: { id: { in: order.items.map((i) => i.ticketTypeId) } },
+              select: { id: true, groupSize: true, tableLabels: true, quantitySold: true },
+            })
+          ).map((t) => [t.id, { ...t, next: t.quantitySold - order.items.filter((i) => i.ticketTypeId === t.id).reduce((n, i) => n + i.quantity, 0) }]),
+        );
         const created = await tx.ticket.createManyAndReturn({
           select: { id: true, orderItemId: true },
           data: order.items.flatMap((it) => {
             const holders = Array.isArray(it.holders) ? (it.holders as Array<{ firstName?: string; lastName?: string; email?: string }>) : [];
-            return Array.from({ length: it.quantity }, (_, i) => ({
+            const g = groups.get(it.ticketTypeId);
+            const size = g?.groupSize ?? 1;
+            const net = it.unitPriceMinor - it.unitDiscountMinor;
+            const share = Math.floor(net / size);
+            const labels = Array.from({ length: it.quantity }, () => {
+              if (!g || size === 1) return null;
+              const n = g.next++;
+              return g.tableLabels[n] ?? `Table ${n + 1}`;
+            });
+            return Array.from({ length: it.quantity * size }, (_, i) => ({
               eventId: order.eventId,
               orderId: order.id,
               orderItemId: it.id,
               ticketTypeId: it.ticketTypeId,
               code: secretToken(24),
               shortCode: ticketShortCode(),
-              faceValueMinor: it.unitPriceMinor - it.unitDiscountMinor,
+              faceValueMinor: size === 1 ? net : share + (i % size === 0 ? net - share * size : 0), // les centimes d'arrondi sur le premier billet de la table
+              tableLabel: labels[Math.floor(i / size)] ?? null,
               holderFirstName: holders[i]?.firstName ?? null,
               holderLastName: holders[i]?.lastName ?? null,
               holderEmail: holders[i]?.email ?? null,
