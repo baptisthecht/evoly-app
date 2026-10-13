@@ -7,6 +7,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# empreinte du Caddyfile avant la mise à jour : il est monté comme un fichier, et le conteneur de Caddy garde l'ancien après un
+# « git pull » qui le remplace (nouvel inode) ; un simple rechargement relirait alors l'ancienne configuration
+caddy_avant=$(sha256sum ops/Caddyfile | cut -d' ' -f1)
 git pull --ff-only
 python3 apps/web/build.py >/dev/null
 python3 apps/web/legal.py >/dev/null
@@ -38,9 +41,20 @@ else
   docker stop -t 30 "$old" >/dev/null
   docker rm "$old" >/dev/null
   docker compose up -d --no-deps --no-recreate --scale app=1 app
-  # 3. Caddy : recréé seulement si sa configuration Docker a changé ; sinon le Caddyfile est rechargé à chaud
-  docker compose up -d --no-deps caddy
-  docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 || true
+  # 3. services ajoutés depuis le dernier déploiement (pgAdmin…) : démarrés, sans toucher à ceux qui tournent déjà
+  docker compose up -d --no-deps --no-recreate pgadmin || echo "pgAdmin ne démarre pas : vérifier PGADMIN_EMAIL et PGADMIN_PASSWORD dans .env"
+  # 4. Caddy : recréé si le Caddyfile a changé (le conteneur ne verrait que l'ancien fichier, une ou deux secondes de coupure) ;
+  #    sinon recréé seulement si sa configuration Docker a changé, puis rechargé à chaud
+  if [ "$(sha256sum ops/Caddyfile | cut -d' ' -f1)" != "$caddy_avant" ]; then
+    docker compose up -d --no-deps --force-recreate caddy
+  else
+    docker compose up -d --no-deps caddy
+    docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 || true
+  fi
+  # contrôle : Caddy doit lire exactement le Caddyfile du dépôt
+  if [ "$(docker compose exec -T caddy sha256sum /etc/caddy/Caddyfile | cut -d' ' -f1)" != "$(sha256sum ops/Caddyfile | cut -d' ' -f1)" ]; then
+    echo "Attention : Caddy ne lit pas le Caddyfile du dépôt. Lancer : docker compose up -d --no-deps --force-recreate caddy"
+  fi
 fi
 docker image prune -f >/dev/null
 for _ in $(seq 1 60); do
