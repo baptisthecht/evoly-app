@@ -168,6 +168,8 @@ export async function syncSubscription(sub: StripeSubscriptionLike, now = new Da
   if (!organizationId) return false;
   const existing = await db.subscription.findUnique({ where: { organizationId } });
   const status = subscriptionStatusFromStripe(sub.status);
+  // abonnement qui n'est plus celui de l'organisation (résilié par le back-office, remplacé) : sa fin ne réécrit jamais l'offre
+  if (existing && existing.stripeSubscriptionId !== sub.id && !["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID", "INCOMPLETE"].includes(status)) return false;
   const item = sub.items.data[0];
   const toDate = (t?: number | null) => (t ? new Date(t * 1000) : null);
   const data = {

@@ -27,9 +27,19 @@ const RISK: Record<string, string> = {
 };
 
 /** Section 9.24 : fiche organisation et actions du back-office. */
-export default async function OrganizationSheetPage({ params }: { params: Promise<{ id: string }> }) {
+const ERREURS: Record<string, string> = {
+  PLAN_MANAGED_BY_STRIPE:
+    "Cette organisation a un abonnement Stripe en cours : cochez « Résilier l'abonnement Stripe en cours » pour lui attribuer une autre offre.",
+  STRIPE_UNAVAILABLE: "Stripe n'est pas configuré sur ce serveur : l'abonnement ne peut pas être modifié.",
+  TRIAL_DAYS_INVALID: "Le nombre de jours doit être compris entre 1 et 90.",
+};
+const erreurEnClair = (code: string) =>
+  ERREURS[code] ?? (code.startsWith("STRIPE_") ? `Stripe a refusé la modification (${code}).` : `Action impossible (${code}).`);
+
+export default async function OrganizationSheetPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ erreur?: string }> }) {
   const st = await requireStaff("SUPPORT");
   const { id } = await params;
+  const { erreur } = await searchParams;
   const sheet = await organizationSheet(id);
   if (!sheet) notFound();
   const { org } = sheet;
@@ -74,7 +84,14 @@ export default async function OrganizationSheetPage({ params }: { params: Promis
             [
               "Offre",
               sub
-                ? `${sub.planId} · ${sub.status}${sub.currentPeriodEnd ? ` · jusqu’au ${formatDateTime(sub.currentPeriodEnd, org.timezone, "fr", "short")}` : ""}`
+                ? [
+                    `${sub.planId} · ${sub.status}`,
+                    sub.trialEndsAt ? `essai jusqu’au ${formatDateTime(sub.trialEndsAt, org.timezone, "fr", "short")}` : null,
+                    sub.currentPeriodEnd ? `période jusqu’au ${formatDateTime(sub.currentPeriodEnd, org.timezone, "fr", "short")}` : null,
+                    sub.stripeSubscriptionId ? "abonnement Stripe" : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")
                 : "free",
             ],
             ["Stripe", org.stripeAccount ? `${org.stripeAccount.status} · ${org.stripeAccount.stripeAccountId}` : "non connecté"],
@@ -110,6 +127,11 @@ export default async function OrganizationSheetPage({ params }: { params: Promis
                 </button>
               </form>
             )}
+            {erreur ? (
+              <p role="alert" className="rounded-2xl p-4 text-sm font-semibold text-danger ring-1 ring-danger">
+                {erreurEnClair(erreur)}
+              </p>
+            ) : null}
             <form action={extendTrialAction.bind(null, org.id)} className="flex flex-wrap items-center gap-2">
               <input name="days" type="number" min={1} max={90} defaultValue={14} aria-label="Jours d’essai" className={`${input} w-24`} />
               <button type="submit" className={btn}>
@@ -123,6 +145,12 @@ export default async function OrganizationSheetPage({ params }: { params: Promis
                 <option value="partner">Partenaire (Pro offert, sans commission)</option>
               </select>
               <input name="until" type="date" aria-label="Jusqu’au" className={input} />
+              {sub?.stripeSubscriptionId ? (
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="resilierStripe" className="size-5" />
+                  Résilier l’abonnement Stripe en cours
+                </label>
+              ) : null}
               <button type="submit" className={btn}>
                 Attribuer l’offre
               </button>

@@ -2,7 +2,7 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 158 · fait : 160 · partiel : 8 · à faire : 14 · hors périmètre : 2.
+**Bilan** : fait, testé : 159 · fait : 160 · partiel : 8 · à faire : 14 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -357,3 +357,4 @@
 | RG-LIEU-07 | P2 | fiscalité à valider avec l'expert-comptable : le lieu facture sa part ; TVA belge à 21 % non récupérable sous la franchi | à faire | section 9.32, à développer |
 | RG-LIEU-08 | P2 | si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fo | à faire | section 9.32, à développer |
 | RG-ADM-01 | P1 | accès complet à la base (pgAdmin) réservé aux administrateurs, derrière la session Evoly et la double authentification | fait, testé | route.ts, db-access.test.ts, Caddyfile, compose.yaml |
+| RG-ADM-02 | P1 | le back-office n'écrase jamais un abonnement Stripe en cours ; erreur affichée en clair | fait, testé | platform.ts, billing.ts, actions.ts, admin-plan-stripe.test.ts, admin-offres.spec.ts |

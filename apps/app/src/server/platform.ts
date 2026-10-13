@@ -260,12 +260,19 @@ export async function extendTrial(st: Staff, id: string, days: number, now = new
   const sub = await db.subscription.findUnique({ where: { organizationId: id } });
   const base = sub?.status === "TRIALING" && sub.trialEndsAt && sub.trialEndsAt > now ? sub.trialEndsAt : now;
   const end = new Date(base.getTime() + days * 86_400_000);
-  if (sub?.stripeSubscriptionId)
-    await stripe()
-      ?.subscriptions.update(sub.stripeSubscriptionId, { trial_end: Math.floor(end.getTime() / 1000), proration_behavior: "none" })
-      .catch((err) => {
-        throw new CoreError(`STRIPE_${String(err?.code ?? "ERROR").toUpperCase()}`);
-      });
+  if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"].includes(sub.status)) {
+    // abonnement géré par Stripe : la prolongation se fait chez Stripe, qui reste la référence ; sa notification resynchronise
+    // l'abonnement, donc on n'écrit ici que la fin d'essai, la même que celle envoyée à Stripe (jamais des valeurs contradictoires)
+    const s = stripe();
+    if (!s) throw new CoreError("STRIPE_UNAVAILABLE");
+    const trialEnd = Math.floor(end.getTime() / 1000); // Stripe compte en secondes : la base garde exactement la même date
+    await s.subscriptions.update(sub.stripeSubscriptionId, { trial_end: trialEnd, proration_behavior: "none" }).catch((err) => {
+      throw new CoreError(`STRIPE_${String(err?.code ?? "ERROR").toUpperCase()}`);
+    });
+    await db.subscription.update({ where: { organizationId: id }, data: { trialEndsAt: new Date(trialEnd * 1000) } });
+    await log(st, "platform.trial_extended", id, { days, until: new Date(trialEnd * 1000).toISOString(), stripe: true });
+    return;
+  }
   await db.subscription.upsert({
     where: { organizationId: id },
     create: { organizationId: id, planId: "pro", status: "TRIALING", trialEndsAt: end, currentPeriodEnd: end },
@@ -276,17 +283,28 @@ export async function extendTrial(st: Staff, id: string, days: number, now = new
 
 /** Offre attribuée par Evoly (sans abonnement Stripe) : Pro jusqu'à une date, ou sans limite ; ou retour en Free. */
 /** Offre attribuée par un administrateur : Free, Pro offert, ou Partenaire (Pro sans commission), avec date de fin facultative. */
-export async function assignPlan(st: Staff, id: string, planId: "pro" | "free" | "partner", until: Date | null) {
+export async function assignPlan(st: Staff, id: string, planId: "pro" | "free" | "partner", until: Date | null, opts: { resilierStripe?: boolean } = {}) {
   const sub = await db.subscription.findUnique({ where: { organizationId: id } });
-  if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"].includes(sub.status)) throw new CoreError("PLAN_MANAGED_BY_STRIPE");
+  let detache = {};
+  if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"].includes(sub.status)) {
+    // abonnement payant en cours : jamais remplacé en silence ; l'administrateur doit demander sa résiliation explicitement
+    if (!opts.resilierStripe) throw new CoreError("PLAN_MANAGED_BY_STRIPE");
+    const s = stripe();
+    if (!s) throw new CoreError("STRIPE_UNAVAILABLE");
+    await s.subscriptions.cancel(sub.stripeSubscriptionId).catch((err) => {
+      throw new CoreError(`STRIPE_${String(err?.code ?? "ERROR").toUpperCase()}`);
+    });
+    // détaché de l'organisation : les notifications de cet ancien abonnement ne réécrivent plus l'offre (syncSubscription)
+    detache = { stripeSubscriptionId: null, cancelAtPeriodEnd: false, canceledAt: new Date(), trialEndsAt: null };
+  }
   const data =
     planId === "free"
       ? { planId: "free", status: "NONE" as const, currentPeriodEnd: null }
       : until
         ? { planId, status: "CANCELED" as const, currentPeriodEnd: until, cancelAtPeriodEnd: true }
         : { planId, status: "ACTIVE" as const, currentPeriodEnd: null };
-  await db.subscription.upsert({ where: { organizationId: id }, create: { organizationId: id, ...data }, update: data });
-  await log(st, "platform.plan_assigned", id, { planId, until: until?.toISOString() ?? null });
+  await db.subscription.upsert({ where: { organizationId: id }, create: { organizationId: id, ...data, ...detache }, update: { ...data, ...detache } });
+  await log(st, "platform.plan_assigned", id, { planId, until: until?.toISOString() ?? null, stripeResilie: Object.keys(detache).length > 0 });
 }
 
 export async function resendOrderEmail(st: Staff, orderId: string) {

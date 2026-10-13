@@ -13,8 +13,22 @@ import {
   startSupportView,
   suspendOrganization,
 } from "@/server/platform";
+import { CoreError } from "@evoly/core";
 
 const orgPath = (id: string) => `/admin/organisations/${id}`;
+
+/** Une erreur métier ramène sur la fiche avec son code, affiché en clair ; jamais la page d'erreur de l'app. */
+async function tenter(id: string, action: () => Promise<unknown>) {
+  let code: string | null = null;
+  try {
+    await action();
+  } catch (err) {
+    if (!(err instanceof CoreError)) throw err;
+    code = err.code;
+  }
+  revalidatePath(orgPath(id));
+  if (code) redirect(`${orgPath(id)}?erreur=${encodeURIComponent(code)}`);
+}
 const text = (f: FormData, k: string, max = 300) =>
   String(f.get(k) ?? "")
     .trim()
@@ -34,19 +48,24 @@ export async function reactivateAction(id: string) {
 }
 
 export async function extendTrialAction(id: string, form: FormData) {
-  await extendTrial(await requireStaff("ADMIN"), id, Number(form.get("days")));
-  revalidatePath(orgPath(id));
+  const st = await requireStaff("ADMIN");
+  await tenter(id, () => extendTrial(st, id, Number(form.get("days"))));
 }
 
 export async function assignPlanAction(id: string, form: FormData) {
   const until = text(form, "until", 10);
-  await assignPlan(
-    await requireStaff("ADMIN"),
-    id,
-    form.get("plan") === "free" ? "free" : form.get("plan") === "partner" ? "partner" : "pro",
-    until ? new Date(`${until}T23:59:59Z`) : null,
+  const st = await requireStaff("ADMIN");
+  await tenter(id, () =>
+    assignPlan(
+      st,
+      id,
+      form.get("plan") === "free" ? "free" : form.get("plan") === "partner" ? "partner" : "pro",
+      until ? new Date(`${until}T23:59:59Z`) : null,
+      {
+        resilierStripe: form.get("resilierStripe") === "on",
+      },
+    ),
   );
-  revalidatePath(orgPath(id));
 }
 
 export async function resendOrderAction(id: string, form: FormData) {

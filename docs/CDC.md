@@ -1195,6 +1195,7 @@ Retour automatique au scan après 1,5 seconde.
 - Tableau de bord : volume de ventes, commissions, organisations actives, abonnements, taux de litiges et de remboursements.
 - Signaux de risque : nouvelle organisation avec un événement à prix élevé, taux de litiges anormal, nombreux remboursements.
 - RG-ADM-01 : accès complet à la base (pgAdmin, `app.<domaine>/pgadmin`) réservé aux administrateurs de la plateforme : Caddy vérifie d'abord auprès de l'app la session administrateur et la double authentification, puis vient la connexion pgAdmin ; pgAdmin n'est jamais exposé directement.
+- RG-ADM-02 : le back-office n'écrase jamais un abonnement Stripe en cours : attribuer une offre exige d'en demander explicitement la résiliation ; les jours Pro offerts à un abonné Stripe passent par Stripe ; les notifications d'un abonnement qui n'est plus celui de l'organisation ne réécrivent pas l'offre ; une erreur s'affiche en clair sur la fiche, jamais la page d'erreur.
 
 ### 9.25 Site vitrine et documents légaux
 
