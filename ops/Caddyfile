@@ -50,8 +50,24 @@ https:// {
 	@private host app.{$SITE_DOMAIN} scanner.{$SITE_DOMAIN}
 	header @private X-Robots-Tag "noindex, nofollow"
 	encode zstd gzip
+	# accès complet à la base (RG-ADM-01) : pgAdmin sur app.<domaine>/pgadmin, seulement si l'app confirme un administrateur Evoly
+	# connecté avec sa double authentification ; sinon l'app renvoie vers la connexion, la double authentification, ou « introuvable »
+	@pgadmin {
+		host app.{$SITE_DOMAIN}
+		path /pgadmin /pgadmin/*
+	}
+	handle @pgadmin {
+		forward_auth app:3000 {
+			uri /api/admin/acces-base
+		}
+		reverse_proxy pgadmin:80 {
+			header_up X-Script-Name /pgadmin
+		}
+	}
 	# Caddy transmet l'adresse réelle du visiteur (il ignore l'en-tête X-Forwarded-For envoyé par le client)
-	import app
+	handle {
+		import app
+	}
 }
 
 # Accès local au serveur (tâches planifiées, vérification du déploiement) : publié sur 127.0.0.1:3000 seulement, jamais sur Internet

@@ -49,6 +49,27 @@ services:
       db:
         condition: service_healthy
 
+  # Accès complet à la base pour les administrateurs Evoly (RG-ADM-01) : app.<domaine>/pgadmin, jamais exposé directement,
+  # seulement par Caddy, après la vérification de la session administrateur et de la double authentification (docs/DEPLOIEMENT.md)
+  pgadmin:
+    image: dpage/pgadmin4:9.18
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-}
+      SCRIPT_NAME: /pgadmin
+      PGADMIN_DISABLE_POSTFIX: "true"
+      PGADMIN_CONFIG_SESSION_COOKIE_SECURE: "True"
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+      PGADMIN_CONFIG_MAX_LOGIN_ATTEMPTS: "5"
+      PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: "False"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+      - ./ops/pgadmin-servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
   caddy:
     image: caddy:2
     restart: unless-stopped
@@ -71,6 +92,7 @@ services:
 
 volumes:
   pgdata:
+  pgadmin:
   uploads:
   caddy_data:
   caddy_config:

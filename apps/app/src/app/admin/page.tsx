@@ -28,6 +28,12 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
             <Link href="/admin/prospection" className="text-sm underline underline-offset-4">
               Prospection
             </Link>
+            {st.user.platformRole === "ADMIN" ? (
+              // accès complet à la base (RG-ADM-01) : pgAdmin, derrière la session Evoly et la double authentification
+              <a href="/pgadmin/" target="_blank" rel="noopener" className="text-sm underline underline-offset-4">
+                Base de données
+              </a>
+            ) : null}
           </div>
           <p className="text-sm">
             {st.user.name} ·{" "}

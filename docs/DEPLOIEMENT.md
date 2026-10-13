@@ -190,3 +190,23 @@ Les lots d'e-mails de prospection rédigés par Claude se collent dans `/admin/p
 4. **Tâche planifiée** : `prospection`, chaque minute (crontab).
 
 La page Prospects garde le statut et les notes de chaque organisation ; une organisation marquée « Exclu » ou « Pas intéressé » n'est plus jamais contactée.
+
+## Accès complet à la base (pgAdmin)
+
+pgAdmin est servi sur `https://app.<domaine>/pgadmin` (lien « Base de données » du back-office, pour les administrateurs). Trois verrous successifs (RG-ADM-01) : Caddy demande d'abord à l'app si le visiteur est un administrateur Evoly connecté avec sa double authentification (sinon : connexion, double authentification, ou « introuvable ») ; puis la connexion propre de pgAdmin ; puis le mot de passe de la base. Le conteneur pgAdmin n'est jamais exposé directement.
+
+1. Dans `.env` : `PGADMIN_EMAIL` (l'e-mail de connexion à pgAdmin) et `PGADMIN_PASSWORD` (généré par `ops/new-env.sh` sur un nouveau serveur ; sinon, un mot de passe fort : `openssl rand -hex 24`).
+2. `docker compose up -d pgadmin`, puis `docker compose up -d --no-deps caddy` pour charger la nouvelle règle (ou `ops/deploy.sh`).
+3. Se connecter au back-office (`/admin`) avec un compte administrateur, ouvrir « Base de données », se connecter à pgAdmin. Le serveur « Evoly (production) » est déjà déclaré : saisir une fois le mot de passe de la base (`POSTGRES_PASSWORD` de `.env`), qu'on peut faire retenir par pgAdmin.
+
+Prudence : c'est un accès complet, en écriture. Pour explorer sans risque, un rôle en lecture seule :
+
+```sql
+CREATE ROLE lecture LOGIN PASSWORD 'un-mot-de-passe-fort';
+GRANT CONNECT ON DATABASE evoly TO lecture;
+GRANT USAGE ON SCHEMA public TO lecture;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO lecture;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO lecture;
+```
+
+Les sauvegardes nocturnes (section 10) restent le filet de sécurité : avant une modification importante à la main, lancer `ops/backup.sh`.

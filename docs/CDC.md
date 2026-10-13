@@ -1194,6 +1194,7 @@ Retour automatique au scan après 1,5 seconde.
 - Consultation en lecture seule de l'app d'un organisateur, journalisée.
 - Tableau de bord : volume de ventes, commissions, organisations actives, abonnements, taux de litiges et de remboursements.
 - Signaux de risque : nouvelle organisation avec un événement à prix élevé, taux de litiges anormal, nombreux remboursements.
+- RG-ADM-01 : accès complet à la base (pgAdmin, `app.<domaine>/pgadmin`) réservé aux administrateurs de la plateforme : Caddy vérifie d'abord auprès de l'app la session administrateur et la double authentification, puis vient la connexion pgAdmin ; pgAdmin n'est jamais exposé directement.
 
 ### 9.25 Site vitrine et documents légaux
 

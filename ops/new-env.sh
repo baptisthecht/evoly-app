@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 if [ -f .env ]; then echo ".env existe déjà : rien n'est modifié."; exit 1; fi
 cp ops/env.production.example .env
 chmod 600 .env
-for key in POSTGRES_PASSWORD BETTER_AUTH_SECRET ORDER_TOKEN_SECRET CRON_SECRET; do
+for key in POSTGRES_PASSWORD BETTER_AUTH_SECRET ORDER_TOKEN_SECRET CRON_SECRET PGADMIN_PASSWORD; do
   sed -i "s|^${key}=\"A_REMPLIR\"|${key}=\"$(openssl rand -hex 32)\"|" .env
 done
 echo ".env créé (lisible par evoly seul). À compléter :"
