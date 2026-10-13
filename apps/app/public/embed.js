@@ -7,13 +7,27 @@
 (function () {
   var script = document.currentScript;
   var base = script ? new URL(script.src).origin : "https://app.evoly.me";
+  var popups = [];
+  // RG-EMB-07 : événements pour le site de l'organisateur, sans aucune donnée personnelle
+  function emit(data) {
+    if (!data || typeof data !== "object") return;
+    if (data.type === "evoly:open") window.dispatchEvent(new CustomEvent("evoly:open"));
+    if (data.type === "evoly:order_completed") {
+      var tickets = Math.max(0, Math.floor(Number(data.tickets) || 0));
+      var amountMinor = Math.max(0, Math.floor(Number(data.amountMinor) || 0));
+      var currency = /^[A-Z]{3}$/.test(String(data.currency)) ? String(data.currency) : "";
+      window.dispatchEvent(new CustomEvent("evoly:order_completed", { detail: { tickets: tickets, amountMinor: amountMinor, currency: currency } }));
+    }
+  }
   function popup(url) {
     var w = Math.min(480, screen.availWidth || 480);
     var h = Math.min(820, screen.availHeight || 820);
     var left = Math.max(0, ((screen.availWidth || w) - w) / 2);
     var top = Math.max(0, ((screen.availHeight || h) - h) / 2);
     var win = window.open(url, "evoly-billetterie", "popup=yes,width=" + w + ",height=" + h + ",left=" + left + ",top=" + top);
-    if (!win) window.location.href = url; // fenêtre bloquée : la page de vente s'ouvre à la place
+    if (win) popups.push(win);
+    else window.location.href = url; // fenêtre bloquée : la page de vente s'ouvre à la place
+    emit({ type: "evoly:open" });
   }
   function init() {
     Array.prototype.forEach.call(document.querySelectorAll("[data-evoly-button]"), function (el) {
@@ -42,7 +56,10 @@
     });
   }
   window.addEventListener("message", function (e) {
-    if (e.origin !== base || !e.data || typeof e.data !== "object" || e.data.type !== "evoly:height") return;
+    if (!e.data || typeof e.data !== "object") return;
+    if (popups.indexOf(e.source) !== -1) return emit(e.data); // fenêtre d'achat ouverte par un bouton
+    if (e.origin !== base) return;
+    if (e.data.type !== "evoly:height") return emit(e.data); // relayé par un module
     Array.prototype.forEach.call(document.querySelectorAll("iframe[data-evoly-frame]"), function (frame) {
       if (frame.contentWindow === e.source) frame.style.height = Math.min(4000, Math.max(200, Number(e.data.height) || 0)) + "px";
     });

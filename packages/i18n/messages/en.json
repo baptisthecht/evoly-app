@@ -2625,7 +2625,9 @@
     "moduleHint": "The event and its prices shown in your page, with a “Book” button.",
     "bookLabel": "Book",
     "copy": "Copy the code",
-    "preview": "Preview the module"
+    "preview": "Preview the module",
+    "eventsTitle": "Events for your website",
+    "eventsHint": "Your website can react when the ticketing opens (evoly:open) and when an order is completed (evoly:order_completed: number of tickets, amount in cents and currency), for example for your analytics. No personal data is sent."
   },
   "tables": {
     "intro": "Sell tables: a ticket can give several tickets per purchase, with a table name on each ticket and included drinks, redeemed at the bar.",

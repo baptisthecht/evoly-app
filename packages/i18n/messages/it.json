@@ -2625,7 +2625,9 @@
     "moduleHint": "L'evento e le sue tariffe nella tua pagina, con un pulsante «Prenota».",
     "bookLabel": "Prenota",
     "copy": "Copia il codice",
-    "preview": "Anteprima del modulo"
+    "preview": "Anteprima del modulo",
+    "eventsTitle": "Eventi per il tuo sito",
+    "eventsHint": "Il tuo sito può reagire all'apertura della biglietteria (evoly:open) e a un ordine completato (evoly:order_completed: numero di biglietti, importo in centesimi e valuta), per esempio per le tue statistiche. Nessun dato personale viene trasmesso."
   },
   "tables": {
     "intro": "Vendi tavoli: una tariffa può dare più biglietti per acquisto, con il nome del tavolo su ogni biglietto e consumazioni incluse, riscattate al bar.",

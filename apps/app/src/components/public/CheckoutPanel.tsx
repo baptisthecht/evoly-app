@@ -13,6 +13,7 @@ import { SeatMapPicker } from "./SeatMapPicker";
 import { Button } from "../ui/Button";
 import { Field, Input } from "../ui/Field";
 import { PayButton, PaymentFields, StripePayment } from "./StripePayment";
+import { notifyOrderCompleted } from "./embedEvents";
 
 const DOMAIN_TYPOS: Record<string, string> = {
   "gmial.com": "gmail.com",
@@ -106,6 +107,15 @@ export function CheckoutPanel({
   }, [reservation.expiresAt]);
   const money = (v: number) => (v === 0 ? tp("free") : formatMoney(v, reservation.currency, locale, { trimZeroCents: true }));
   const ticketsHref = `/billets/${reservation.token}`;
+  // RG-EMB-07 : la page qui a ouvert la fenêtre d'achat apprend la commande terminée, sans donnée personnelle
+  const done = () => {
+    notifyOrderCompleted(
+      reservation.lines.reduce((n, l) => n + l.quantity, 0),
+      reservation.totalMinor,
+      reservation.currency,
+    );
+    window.location.assign(ticketsHref);
+  };
   const suggestion = emailSuggestion(buyer.email);
   const set = (patch: Partial<Buyer>) => setBuyer((b) => ({ ...b, ...patch }));
 
@@ -150,7 +160,7 @@ export function CheckoutPanel({
     setBusy(true);
     setMessage(null);
     const res = await submitBuyerAction(reservation.token, payload());
-    if (res.ok) return window.location.assign(ticketsHref);
+    if (res.ok) return done();
     setMessage(explain(res.error));
     setBusy(false);
   };
@@ -169,7 +179,7 @@ export function CheckoutPanel({
       setMessage(explain(res.error));
       return setBusy(false);
     }
-    if (res.data.kind === "PAID") return window.location.assign(ticketsHref);
+    if (res.data.kind === "PAID") return done();
     const { error } = await stripe.confirmPayment({
       elements,
       clientSecret: res.data.clientSecret,
@@ -184,7 +194,7 @@ export function CheckoutPanel({
       setMessage(error.message ?? t("error_UNKNOWN"));
       return setBusy(false);
     }
-    window.location.assign(ticketsHref);
+    done();
   };
 
   if (left <= 0) {

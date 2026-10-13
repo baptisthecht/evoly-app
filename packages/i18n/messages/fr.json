@@ -2625,7 +2625,9 @@
     "moduleHint": "L'événement et ses tarifs affichés dans votre page, avec un bouton « Réserver ».",
     "bookLabel": "Réserver",
     "copy": "Copier le code",
-    "preview": "Voir l'aperçu du module"
+    "preview": "Voir l'aperçu du module",
+    "eventsTitle": "Événements pour votre site",
+    "eventsHint": "Votre site peut réagir à l'ouverture de la billetterie (evoly:open) et à une commande terminée (evoly:order_completed : nombre de billets, montant en centimes et devise), par exemple pour vos statistiques. Aucune donnée personnelle n'est transmise."
   },
   "tables": {
     "intro": "Vendez des tables : un tarif peut donner plusieurs billets par achat, avec un nom de table sur chaque billet et des consommations comprises, retirées au bar.",

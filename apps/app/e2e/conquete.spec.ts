@@ -79,3 +79,20 @@ test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page priv
   await expect(page.getByRole("heading", { name: `Gala ${id}` })).toBeVisible();
   await expect(page.getByRole("link", { name: "Réserver" })).toHaveAttribute("href", new RegExp(ev.eventSlug));
 });
+
+test("billetterie intégrable : la page qui ouvre la fenêtre d'achat apprend la commande terminée, sans donnée personnelle (RG-EMB-07)", async ({ page }) => {
+  const { id, slug } = await organizer(page);
+  const ev = publicPage(slug, await publishedFreeEvent(page, slug, `Salon ${id}`, 10));
+  type Recu = { recu: unknown[] };
+  await page.goto(siteUrl(slug, "/")); // la page d'origine : le site de l'organisateur
+  await page.evaluate(() => {
+    (window as unknown as Recu).recu = [];
+    window.addEventListener("message", (e) => (window as unknown as Recu).recu.push(e.data));
+  });
+  const [popup] = await Promise.all([page.waitForEvent("popup"), page.evaluate((u) => void window.open(u, "evoly-billetterie"), ev.url)]);
+  await buyFree(popup, ev.url, "Fosse", 2, `salon${id}@exemple.be`);
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as Recu).recu))
+    .toContainEqual({ type: "evoly:order_completed", tickets: 2, amountMinor: 0, currency: "EUR" });
+  expect(JSON.stringify(await page.evaluate(() => (window as unknown as Recu).recu))).not.toContain("@"); // aucune adresse e-mail
+});

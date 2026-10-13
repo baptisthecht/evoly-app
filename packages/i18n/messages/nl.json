@@ -2625,7 +2625,9 @@
     "moduleHint": "Het evenement en de tarieven in je pagina, met een knop ‘Reserveren’.",
     "bookLabel": "Reserveren",
     "copy": "Code kopiëren",
-    "preview": "Voorbeeld van de module"
+    "preview": "Voorbeeld van de module",
+    "eventsTitle": "Gebeurtenissen voor je website",
+    "eventsHint": "Je website kan reageren wanneer de ticketverkoop opent (evoly:open) en wanneer een bestelling is afgerond (evoly:order_completed: aantal tickets, bedrag in centen en munteenheid), bijvoorbeeld voor je statistieken. Er worden geen persoonsgegevens doorgegeven."
   },
   "tables": {
     "intro": "Verkoop tafels: een tarief kan meerdere tickets per aankoop geven, met een tafelnaam op elk ticket en inbegrepen consumpties, in te wisselen aan de bar.",

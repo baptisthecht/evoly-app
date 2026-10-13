@@ -2625,7 +2625,9 @@
     "moduleHint": "El evento y sus tarifas en tu página, con un botón «Reservar».",
     "bookLabel": "Reservar",
     "copy": "Copiar el código",
-    "preview": "Ver la vista previa del módulo"
+    "preview": "Ver la vista previa del módulo",
+    "eventsTitle": "Eventos para tu web",
+    "eventsHint": "Tu web puede reaccionar cuando se abre la venta de entradas (evoly:open) y cuando se completa un pedido (evoly:order_completed: número de entradas, importe en céntimos y moneda), por ejemplo para tus estadísticas. No se transmite ningún dato personal."
   },
   "tables": {
     "intro": "Vende mesas: una tarifa puede dar varias entradas por compra, con el nombre de la mesa en cada entrada y consumiciones incluidas, canjeadas en la barra.",

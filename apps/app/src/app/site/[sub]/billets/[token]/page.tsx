@@ -25,6 +25,7 @@ import { findOrderIdByToken } from "@/server/checkout";
 import { getBuyerOrder, syncPaymentFromStripe } from "@/server/orders";
 import { getPublicOrganization } from "@/server/publicEvents";
 import { siteGate } from "@/server/siteGuard";
+import { NotifyOpener } from "@/components/public/NotifyOpener";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +104,7 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
   return (
     <PublicShell org={org} homeHref="/">
       <div className="mx-auto grid max-w-3xl gap-8 px-5 pt-4 pb-16 sm:px-8">
+        <NotifyOpener tickets={order.tickets.length} amountMinor={order.totalMinor} currency={order.currency} />
         {order.status === "PAID" || order.status === "PARTIALLY_REFUNDED" ? (
           <>
             <header className="grid gap-2">

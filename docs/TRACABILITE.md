@@ -2,11 +2,11 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 156 · fait : 160 · partiel : 8 · à faire : 4 · hors périmètre : 2.
+**Bilan** : fait, testé : 157 · fait : 160 · partiel : 8 · à faire : 3 · hors périmètre : 2.
 
 ## Écarts connus
 
-- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : événements de la page d'accueil du module intégré (RG-EMB-07), options en retrait hors ligne, remboursement et statistiques (RG-OPT-05, 07, 08), vestiaire seul (RG-OPT-03), export du rapport de caisse (RG-POS-07), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05), export et suppression de la liste d'attente (RG-ATT-05, 06). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
+- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement et statistiques (RG-OPT-05, 07, 08), vestiaire seul (RG-OPT-03), export du rapport de caisse (RG-POS-07), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05), export et suppression de la liste d'attente (RG-ATT-05, 06). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
 
 ## Détail
@@ -291,7 +291,7 @@
 | RG-EMB-04 | | la langue suit celle de la page qui accueille le cadre, ou le réglage du code, parmi les 7 langues. | fait | langue de la page (proxy.ts) ; non testé |
 | RG-EMB-05 | | réservé à l'offre Pro ; le cadre est aux couleurs de l'organisateur, sans mention d'Evoly. | fait, testé | embed.test.ts |
 | RG-EMB-06 | | les règles d'achat sont celles de la page de vente : réservation, protection anti-robots, prévente, codes promo, revente | fait | page de vente habituelle |
-| RG-EMB-07 | | la page qui accueille le cadre ne reçoit que des événements sans donnée personnelle (ouverture ; commande terminée avec | à faire | le module n’envoie que sa hauteur |
+| RG-EMB-07 | | la page qui accueille le cadre ne reçoit que des événements sans donnée personnelle (ouverture ; commande terminée avec | fait, testé | embedEvents.ts, Embed.tsx, embed.js, CheckoutPanel.tsx, conquete.spec.ts |
 | US-POS-01 | | en tant que membre de l'équipe à l'entrée, je vends une place depuis mon téléphone en quelques secondes, et le client en | fait | section 9.26 à 9.31 |
 | US-POS-02 | | en tant que client, je paie sans contact sur le téléphone de l'équipe (carte, téléphone ou montre), ou sur mon propre té | fait | section 9.26 à 9.31 |
 | US-POS-03 | | en tant qu'organisateur, je suis les ventes sur place par vendeur et par mode de paiement, dans les mêmes statistiques q | fait | section 9.26 à 9.31 |

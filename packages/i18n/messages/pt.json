@@ -2625,7 +2625,9 @@
     "moduleHint": "O evento e as suas tarifas na sua página, com um botão «Reservar».",
     "bookLabel": "Reservar",
     "copy": "Copiar o código",
-    "preview": "Pré-visualizar o módulo"
+    "preview": "Pré-visualizar o módulo",
+    "eventsTitle": "Eventos para o seu site",
+    "eventsHint": "O seu site pode reagir à abertura da bilheteira (evoly:open) e a uma encomenda concluída (evoly:order_completed: número de bilhetes, montante em cêntimos e moeda), por exemplo para as suas estatísticas. Nenhum dado pessoal é transmitido."
   },
   "tables": {
     "intro": "Venda mesas: uma tarifa pode dar vários bilhetes por compra, com o nome da mesa em cada bilhete e consumos incluídos, levantados no bar.",

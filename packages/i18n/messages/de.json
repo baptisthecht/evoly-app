@@ -2625,7 +2625,9 @@
     "moduleHint": "Die Veranstaltung und ihre Preise in Ihrer Seite, mit einem Button „Buchen“.",
     "bookLabel": "Buchen",
     "copy": "Code kopieren",
-    "preview": "Vorschau des Moduls"
+    "preview": "Vorschau des Moduls",
+    "eventsTitle": "Ereignisse für Ihre Website",
+    "eventsHint": "Ihre Website kann auf das Öffnen des Ticketverkaufs (evoly:open) und auf eine abgeschlossene Bestellung (evoly:order_completed: Anzahl der Tickets, Betrag in Cent und Währung) reagieren, zum Beispiel für Ihre Statistiken. Es werden keine personenbezogenen Daten übermittelt."
   },
   "tables": {
     "intro": "Verkaufen Sie Tische: Ein Tarif kann mehrere Tickets pro Kauf ergeben, mit einem Tischnamen auf jedem Ticket und inklusiven Getränken, an der Bar einzulösen.",

@@ -71,6 +71,13 @@ export default async function EmbedPage({ params }: { params: Promise<{ orgSlug:
           </div>
         </Card>
       ))}
+      <Card className="grid gap-3">
+        <h2 className="font-display text-xl">{t("eventsTitle")}</h2>
+        <p className="text-sm text-ink-muted">{t("eventsHint")}</p>
+        <pre className="overflow-x-auto rounded-lg bg-surface-sunken p-3 text-xs">
+          <code>{`<script>\n  window.addEventListener("evoly:order_completed", (e) => {\n    // e.detail : { tickets, amountMinor, currency }\n  });\n</script>`}</code>
+        </pre>
+      </Card>
       <a href={`${app}/integre/${event.id}`} target="_blank" rel="noopener" className="justify-self-start text-sm font-semibold underline underline-offset-4">
         {t("preview")}
       </a>
