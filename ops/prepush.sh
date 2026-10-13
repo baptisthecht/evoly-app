@@ -37,6 +37,10 @@ log=$(mktemp)
 base_url="${DATABASE_URL:-postgresql://evoly:evoly@localhost:5432/evoly}"
 guard_db="evoly_garde_$$"
 admin_url="${base_url%/*}/postgres"
+# bases laissées par une garde interrompue (processus disparu) : supprimées ; celles d'une garde encore en cours, jamais
+for old in $(psql "$admin_url" -tAc "select datname from pg_database where datname like 'evoly_garde_%'" 2> /dev/null); do
+  kill -0 "${old#evoly_garde_}" 2> /dev/null || psql "$admin_url" -qc "DROP DATABASE IF EXISTS $old WITH (FORCE)" > /dev/null 2>&1 || true
+done
 echo "Base de données neuve ($guard_db), préparée comme dans l'intégration continue"
 psql "$admin_url" -v ON_ERROR_STOP=1 -qc "CREATE DATABASE $guard_db" > "$log" 2>&1 || { cat "$log"; echo "ENVOI BLOQUÉ : création de la base neuve impossible."; exit 1; }
 trap 'psql "$admin_url" -qc "DROP DATABASE IF EXISTS $guard_db WITH (FORCE)" > /dev/null 2>&1 || true' EXIT

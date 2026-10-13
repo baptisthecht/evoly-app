@@ -41,6 +41,7 @@ test("vente sur place : onglet Vente du scanner en espèces, rapport de caisse, 
   const api = appUrl(`/api/scanner/${token}/sell`);
   const sale = await (await scan.request.post(api, { data: { action: "qr", lines: [{ ticketTypeId, quantity: 1 }] } })).json();
   expect(sale.url).toMatch(/\/payer\/[A-Za-z0-9_-]{43}$/);
+  expect(new URL(sale.url).pathname.startsWith("/payer/")).toBe(true); // page de paiement sur place du site de l'organisateur
   expect((await (await scan.request.get(`${api}?order=${sale.orderId}`)).json()).status).toBe("PENDING");
   const client = await (await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: "fr-BE" })).newPage();
   await client.goto(sale.url);
