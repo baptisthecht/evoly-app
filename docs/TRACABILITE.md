@@ -2,10 +2,11 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 157 · fait : 160 · partiel : 8 · à faire : 3 · hors périmètre : 2.
+**Bilan** : fait, testé : 157 · fait : 160 · partiel : 8 · à faire : 14 · hors périmètre : 2.
 
 ## Écarts connus
 
+- **Lieux partenaires** (section 9.32) : inscrits au cahier des charges le 13 octobre 2026, à développer ; décisions en section 17.
 - **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement et statistiques (RG-OPT-05, 07, 08), vestiaire seul (RG-OPT-03), export du rapport de caisse (RG-POS-07), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05), export et suppression de la liste d'attente (RG-ATT-05, 06). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
 
@@ -344,3 +345,14 @@
 | RG-TAB-04 | | la table est réservée pendant le paiement, comme un billet (section 8.5) : aucune double vente. | fait | même réservation que les billets (checkout.ts) |
 | RG-TAB-05 | | réservation sur demande (validée par l'organisateur) et acompte : hors du premier livrable, à valider en section 17. | hors périmètre | hors du premier livrable |
 | RG-TAB-06 | | réservé à l'offre Pro, comme le plan de salle. | fait, testé | tables.test.ts |
+| US-LIEU-01 | P2 | en tant que gérant d'un lieu, j'obtiens un lien et un code partenaire à donner aux organisateurs qui louent ma salle. | à faire | section 9.32, à développer |
+| US-LIEU-02 | P2 | en tant que gérant d'un lieu, je vois ce que me rapportent les ventes des organisateurs rattachés à mon lieu, et je reço | à faire | section 9.32, à développer |
+| US-LIEU-03 | P2 | en tant qu'organisateur, je sais que je suis rattaché à un lieu partenaire, et ce que ce lieu voit de mes ventes. | à faire | section 9.32, à développer |
+| RG-LIEU-01 | P2 | un lieu partenaire est une organisation Evoly qui a activé le programme ; elle reçoit un lien et un code partenaire uniq | à faire | section 9.32, à développer |
+| RG-LIEU-02 | P2 | un organisateur est rattaché à un lieu en s'inscrivant par son lien (parrainage, section 9.22), ou en choisissant le lie | à faire | section 9.32, à développer |
+| RG-LIEU-03 | P2 | le lieu reçoit une part de la commission d'Evoly, jamais un surcoût pour l'organisateur ni pour l'acheteur ; taux, base | à faire | section 9.32, à développer |
+| RG-LIEU-04 | P2 | remboursements et annulations sont déduits de la part du lieu, comme de la commission d'Evoly. | à faire | section 9.32, à développer |
+| RG-LIEU-05 | P2 | le lieu ne voit que des totaux (nombre de billets, part due), jamais les acheteurs ni le détail des ventes d'un organisa | à faire | section 9.32, à développer |
+| RG-LIEU-06 | P2 | la part est versée chaque mois sur le compte Stripe du lieu, avec un relevé ; sous le seuil de versement, elle est repor | à faire | section 9.32, à développer |
+| RG-LIEU-07 | P2 | fiscalité à valider avec l'expert-comptable : le lieu facture sa part ; TVA belge à 21 % non récupérable sous la franchi | à faire | section 9.32, à développer |
+| RG-LIEU-08 | P2 | si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fo | à faire | section 9.32, à développer |

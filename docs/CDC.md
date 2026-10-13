@@ -1370,6 +1370,27 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 
 - Vente d'une table de 6 avec 2 bouteilles : 6 billets émis, 2 options à retirer, table indisponible sur le plan.
 
+### 9.32 Lieux partenaires (P2, à développer)
+
+Beaucoup de lieux (salles de fêtes, salles de concert, clubs) accueillent des organisateurs extérieurs qui louent la salle et vendent leurs propres billets. En recommandant Evoly à ces organisateurs, le lieu devient prescripteur, et reçoit en échange une part de la commission d'Evoly sur leurs ventes. Annoncé dans la prospection du 13 octobre 2026 comme une proposition de partenariat à discuter, sans promesse de fonction ; développement prévu plus tard.
+
+**User stories**
+
+- US-LIEU-01 : en tant que gérant d'un lieu, j'obtiens un lien et un code partenaire à donner aux organisateurs qui louent ma salle.
+- US-LIEU-02 : en tant que gérant d'un lieu, je vois ce que me rapportent les ventes des organisateurs rattachés à mon lieu, et je reçois ma part chaque mois.
+- US-LIEU-03 : en tant qu'organisateur, je sais que je suis rattaché à un lieu partenaire, et ce que ce lieu voit de mes ventes.
+
+**Règles de gestion**
+
+- RG-LIEU-01 : un lieu partenaire est une organisation Evoly qui a activé le programme ; elle reçoit un lien et un code partenaire uniques.
+- RG-LIEU-02 : un organisateur est rattaché à un lieu en s'inscrivant par son lien (parrainage, section 9.22), ou en choisissant le lieu à la création d'un événement, selon la base retenue (section 17) ; les ventes antérieures au rattachement ne rapportent rien au lieu.
+- RG-LIEU-03 : le lieu reçoit une part de la commission d'Evoly, jamais un surcoût pour l'organisateur ni pour l'acheteur ; taux, base et durée à valider (section 17).
+- RG-LIEU-04 : remboursements et annulations sont déduits de la part du lieu, comme de la commission d'Evoly.
+- RG-LIEU-05 : le lieu ne voit que des totaux (nombre de billets, part due), jamais les acheteurs ni le détail des ventes d'un organisateur ; l'organisateur est informé de son rattachement et de ce que le lieu voit.
+- RG-LIEU-06 : la part est versée chaque mois sur le compte Stripe du lieu, avec un relevé ; sous le seuil de versement, elle est reportée au mois suivant.
+- RG-LIEU-07 : fiscalité à valider avec l'expert-comptable : le lieu facture sa part ; TVA belge à 21 % non récupérable sous la franchise d'Evoly ; autoliquidation pour un lieu d'un autre pays de l'Union européenne.
+- RG-LIEU-08 : si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fois.
+
 ## 10. Catalogue des e-mails
 
 Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la file de tâches. Catégories : **T** transactionnel (toujours envoyé), **S** service (respecte la désinscription de l'événement), **M** marketing (consentement requis).
@@ -1587,28 +1608,29 @@ Chaque étape se termine par une démonstration et le passage des tests de la se
 
 Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle à implémenter. ✅ = décision validée.
 
-| #   | Sujet                                                                                       | Valeur par défaut                                                                                                       |
-| --- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | Qui supporte les frais d'une revente                                                        | ✅ Le vendeur (déduits de son remboursement)                                                                            |
-| 2   | Commission sur les billets remboursés et lors d'une annulation                              | ✅ Toujours conservée par Evoly                                                                                         |
-| 3   | TVA : prix Pro TTC ou HT, traitement de la TVA sur la commission, mentions des relevés      | Prix TTC ; traitement à définir avec l'expert-comptable                                                                 |
-| 4   | Free limité à une organisation par compte, membres réservés au Pro                          | Oui                                                                                                                     |
-| 5   | Rétrogradation : membres suspendus, organisations supplémentaires en lecture seule          | Oui                                                                                                                     |
-| 6   | Rétrogradation : paliers maintenus jusqu'à la fin des événements publiés                    | Oui                                                                                                                     |
-| 7   | Langues et devises au lancement                                                             | Français et anglais, euro                                                                                               |
-| 8   | Prix minimum d'un billet payant                                                             | 1,00 €                                                                                                                  |
-| 9   | Remboursement possible après un changement de date ou de lieu                               | Pendant 14 jours                                                                                                        |
-| 10  | Téléphone de l'acheteur                                                                     | Facultatif, rendu obligatoire par l'organisateur s'il le souhaite                                                       |
-| 11  | Plan de salle : offre et priorité                                                           | Pro, P2                                                                                                                 |
-| 12  | Wallet : offre et priorité                                                                  | Toutes les offres, P1                                                                                                   |
-| 13  | Parrainage : récompense et condition                                                        | Un mois de Pro au parrain à la première vente payante du filleul                                                        |
-| 14  | Plafond d'envoi d'e-mails marketing au démarrage                                            | 5 000 par jour et par organisation                                                                                      |
-| 15  | Hébergement et file de tâches                                                               | VPS dans l'Union européenne avec Coolify, file sur PostgreSQL                                                           |
-| 16  | Authentification                                                                            | ✅ Better Auth : Auth.js v5 est toujours en bêta en septembre 2026, Better Auth est stable et reprend le projet Auth.js |
-| 17  | Moyens de paiement mis en avant au lancement                                                | Ceux de RG-BUY-11                                                                                                       |
-| 18  | Données de production v1                                                                    | ✅ Aucune donnée réelle : scénario A                                                                                    |
-| 19  | Comptes Stripe v1                                                                           | ✅ Sans objet (comptes de test non repris)                                                                              |
-| 20  | Réponses de la FAQ du site (versements, essai, résiliation, domaine, annulation, HelloAsso) | À relire avec les règles de ce document                                                                                 |
+| #   | Sujet                                                                                       | Valeur par défaut                                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Qui supporte les frais d'une revente                                                        | ✅ Le vendeur (déduits de son remboursement)                                                                                                            |
+| 2   | Commission sur les billets remboursés et lors d'une annulation                              | ✅ Toujours conservée par Evoly                                                                                                                         |
+| 3   | TVA : prix Pro TTC ou HT, traitement de la TVA sur la commission, mentions des relevés      | Prix TTC ; traitement à définir avec l'expert-comptable                                                                                                 |
+| 4   | Free limité à une organisation par compte, membres réservés au Pro                          | Oui                                                                                                                                                     |
+| 5   | Rétrogradation : membres suspendus, organisations supplémentaires en lecture seule          | Oui                                                                                                                                                     |
+| 6   | Rétrogradation : paliers maintenus jusqu'à la fin des événements publiés                    | Oui                                                                                                                                                     |
+| 7   | Langues et devises au lancement                                                             | Français et anglais, euro                                                                                                                               |
+| 8   | Prix minimum d'un billet payant                                                             | 1,00 €                                                                                                                                                  |
+| 9   | Remboursement possible après un changement de date ou de lieu                               | Pendant 14 jours                                                                                                                                        |
+| 10  | Téléphone de l'acheteur                                                                     | Facultatif, rendu obligatoire par l'organisateur s'il le souhaite                                                                                       |
+| 11  | Plan de salle : offre et priorité                                                           | Pro, P2                                                                                                                                                 |
+| 12  | Wallet : offre et priorité                                                                  | Toutes les offres, P1                                                                                                                                   |
+| 13  | Parrainage : récompense et condition                                                        | Un mois de Pro au parrain à la première vente payante du filleul                                                                                        |
+| 14  | Plafond d'envoi d'e-mails marketing au démarrage                                            | 5 000 par jour et par organisation                                                                                                                      |
+| 15  | Hébergement et file de tâches                                                               | VPS dans l'Union européenne avec Coolify, file sur PostgreSQL                                                                                           |
+| 16  | Authentification                                                                            | ✅ Better Auth : Auth.js v5 est toujours en bêta en septembre 2026, Better Auth est stable et reprend le projet Auth.js                                 |
+| 17  | Moyens de paiement mis en avant au lancement                                                | Ceux de RG-BUY-11                                                                                                                                       |
+| 18  | Données de production v1                                                                    | ✅ Aucune donnée réelle : scénario A                                                                                                                    |
+| 19  | Comptes Stripe v1                                                                           | ✅ Sans objet (comptes de test non repris)                                                                                                              |
+| 20  | Réponses de la FAQ du site (versements, essai, résiliation, domaine, annulation, HelloAsso) | À relire avec les règles de ce document                                                                                                                 |
+| 21  | Lieux partenaires (section 9.32) : nom, part du lieu, base, durée, seuil de versement       | Nom « Lieu partenaire » ; 20 % de la commission d'Evoly ; toutes les ventes des organisateurs rattachés ; 12 mois par organisateur ; versement dès 20 € |
 
 ---
 
