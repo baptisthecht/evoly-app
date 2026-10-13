@@ -59,7 +59,7 @@ describe("options et consommations prépayées (section 9.29)", () => {
     ).rejects.toMatchObject({ code: "FEATURE_UNAVAILABLE" });
   });
 
-  it("achat avec options : total et commission, stock et maximum respectés, réservation expirée qui libère, retrait atomique au bar", async () => {
+  it("achat avec options : total et commission, stock et maximum respectés, réservation expirée qui libère, retrait atomique au bar (RG-OPT-01, RG-OPT-04)", async () => {
     const s = await setup("pro");
     const jeton = await createOption(s.ctx, s.event.id, { name: "Jeton boisson", price: "2", stock: "5", maxPerOrder: "4" });
     const panier = (quantity: number) => ({
@@ -91,7 +91,7 @@ describe("options et consommations prépayées (section 9.29)", () => {
     expect(await publicOptions(s.event.id, s.ctx.features)).toEqual([]);
   });
 
-  it("au bar : un billet scanné par son QR code ou son code court montre ses options ; un billet d'un autre événement est refusé", async () => {
+  it("au bar : un billet scanné par son QR code ou son code court montre ses options ; un billet d'un autre événement est refusé (RG-OPT-03, RG-OPT-04)", async () => {
     const s = await setup("pro");
     const autre = await setup("pro");
     const jeton = await createOption(s.ctx, s.event.id, { name: "Jeton boisson", price: "2" });

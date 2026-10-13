@@ -44,7 +44,7 @@ describe("billetterie intégrable (section 9.26)", () => {
     expect(buildCsp("https://monclub.be")).toContain("frame-ancestors https://monclub.be");
   });
 
-  it("réservé à Pro : sites déclarés seulement en Pro, et aucun site autorisé si l'organisation repasse en Free", async () => {
+  it("réservé à Pro : sites déclarés seulement en Pro, et aucun site autorisé si l'organisation repasse en Free (RG-EMB-05)", async () => {
     const free = await setup("free");
     await expect(addEmbedOrigin(free.ctx, "monclub.be")).rejects.toMatchObject({ code: "FEATURE_UNAVAILABLE" });
     const s = await setup("pro");

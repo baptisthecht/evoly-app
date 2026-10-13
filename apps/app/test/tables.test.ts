@@ -50,7 +50,7 @@ describe("tables et forfaits (section 9.31)", () => {
     });
   });
 
-  it("une table de 6 : 6 billets nommés, valeur par personne, commission par personne, bouteilles comprises, nombre verrouillé après la vente", async () => {
+  it("une table de 6 : 6 billets nommés, valeur par personne, commission par personne, bouteilles comprises, nombre verrouillé après la vente (RG-TAB-01, RG-TAB-02, RG-TAB-03)", async () => {
     const s = await setup("pro");
     const bouteille = await createOption(s.ctx, s.event.id, { name: "Bouteille", price: "80" });
     await saveTableSettings(s.ctx, s.event.id, s.type.id, { groupSize: 6, tableLabels: ["Carré Or"], included: [{ optionId: bouteille.id, quantity: 2 }] });

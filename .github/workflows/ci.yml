@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-24.04 # version fixée : ubuntu-latest passe à Ubuntu 26 le 19 octobre 2026, migration à faire délibérément
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
       - name: Vulnérabilités élevées et critiques
@@ -53,9 +53,9 @@ jobs:
       EMAIL_OUTBOX_DIR: /tmp/evoly-outbox
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
           cache: pnpm
@@ -89,7 +89,7 @@ jobs:
           npx playwright install --with-deps chromium
           (npx next start -p 3001 &) && npx wait-on -t 60000 http://localhost:3001/api/health
           npx playwright test
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7.0.1
         if: failure()
         with:
           name: playwright-traces

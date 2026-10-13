@@ -9,7 +9,7 @@ function publicPage(slug: string, eventUrl: string) {
   return { eventId, eventSlug, url: siteUrl(slug, `/${eventSlug}`) };
 }
 
-test("liste d'attente : tarif complet, inscription, puis désinscription en un clic depuis l'e-mail (section 9.30)", async ({ page }) => {
+test("liste d'attente : tarif complet, inscription, puis désinscription en un clic depuis l'e-mail (section 9.30) (RG-ATT-01, RG-ATT-05)", async ({ page }) => {
   const { id, slug } = await organizer(page);
   const ev = publicPage(slug, await publishedFreeEvent(page, slug, `Concert ${id}`, 1));
   await buyFree(page, ev.url, "Fosse", 1, `lea${id}@exemple.be`);
@@ -29,7 +29,7 @@ test("liste d'attente : tarif complet, inscription, puis désinscription en un c
   await expect(page.getByText("C'est fait : vous ne recevrez plus de message de cette liste d'attente.")).toBeVisible();
 });
 
-test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page privée, billetterie intégrable limitée au site déclaré (sections 9.26 à 9.31)", async ({
+test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page privée, billetterie intégrable limitée au site déclaré (sections 9.26 à 9.31) (RG-EMB-01, RG-EMB-02, RG-TAB-03, RG-AMB-02, RG-AMB-04)", async ({
   page,
 }) => {
   const { id, slug } = await organizer(page);

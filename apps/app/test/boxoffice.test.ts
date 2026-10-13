@@ -47,7 +47,7 @@ async function setup() {
 }
 
 describe("vente sur place en espèces (section 9.27)", () => {
-  it("vente enregistrée sans commission, billets entrés, stock partagé, e-mail facultatif, droits du lien, rapport de caisse", async () => {
+  it("vente enregistrée sans commission, billets entrés, stock partagé, e-mail facultatif, droits du lien, rapport de caisse (RG-POS-01, RG-POS-02, RG-POS-03, RG-POS-04, RG-POS-05, RG-POS-07)", async () => {
     const s = await setup();
     const caisse = await s.lien({ canSell: true, label: "Caisse 1" });
     const r = await sellCash(caisse, { lines: [{ ticketTypeId: s.type.id, quantity: 2 }], deviceId: "tel-1" });
@@ -79,7 +79,7 @@ describe("vente sur place en espèces (section 9.27)", () => {
     expect(await cashReport(s.ctx, s.event.id)).toEqual([{ label: "Caisse 1", mode: "CASH", sales: 3, amountMinor: 5000 }]);
   });
 
-  it("paiement par QR code : places réservées, page de paiement par le jeton, suivi réservé au lien, billets entrés une fois payé", async () => {
+  it("paiement par QR code : places réservées, page de paiement par le jeton, suivi réservé au lien, billets entrés une fois payé (RG-POS-03, RG-POS-04)", async () => {
     const s = await setup();
     const caisse = await s.lien({ canSell: true, label: "Caisse QR" });
     const q = await startQrSale(caisse, { lines: [{ ticketTypeId: s.type.id, quantity: 1 }] });

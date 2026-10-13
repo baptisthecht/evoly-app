@@ -38,7 +38,7 @@ const payer = async (orderId: string) => {
 const sent = (to: string, template: string) => db.emailMessage.count({ where: { toEmail: to, template } });
 
 describe("liste d'attente (section 9.30)", () => {
-  it("file d'attente : priorité aux inscrits, offre par lien personnel, achat, expiration, désinscription", async () => {
+  it("file d'attente : priorité aux inscrits, offre par lien personnel, achat, expiration, désinscription (RG-ATT-01, RG-ATT-02, RG-ATT-03, RG-ATT-05)", async () => {
     const s = await setup();
     const panier = (q: number, extra: Record<string, unknown> = {}) => ({
       eventId: s.event.id,
@@ -91,7 +91,7 @@ describe("liste d'attente (section 9.30)", () => {
     expect((await db.waitlistEntry.findUniqueOrThrow({ where: { id: ec.id } })).status).toBe("CANCELLED");
   });
 
-  it("revente : au choix de l'organisateur, d'abord aux inscrits pendant le délai choisi, ou à tous tout de suite", async () => {
+  it("revente : au choix de l'organisateur, d'abord aux inscrits pendant le délai choisi, ou à tous tout de suite (RG-ATT-04)", async () => {
     const s = await setup();
     await db.event.update({ where: { id: s.event.id }, data: { resaleWaitlistFirst: true, resaleWaitlistMinutes: 60 } });
     const vendre = async () => {

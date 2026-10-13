@@ -46,7 +46,7 @@ describe("ambassadeurs (section 9.28)", () => {
     await expect(createAmbassador(s.ctx, s.event.id, { name: "Marie" })).rejects.toMatchObject({ code: "FEATURE_UNAVAILABLE" });
   });
 
-  it("attribution au lien suivi, classement sans les remboursements, ambassadeur désactivé, page privée sans données d'acheteur, export", async () => {
+  it("attribution au lien suivi, classement sans les remboursements, ambassadeur désactivé, page privée sans données d'acheteur, export (RG-AMB-01, RG-AMB-02, RG-AMB-03, RG-AMB-04, RG-AMB-05)", async () => {
     const s = await setup("pro");
     const marie = await createAmbassador(s.ctx, s.event.id, { name: "Marie Dupont", goal: "10", reward: "Une place offerte" });
     const sam = await createAmbassador(s.ctx, s.event.id, { name: "Sam" });
