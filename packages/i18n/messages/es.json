@@ -919,7 +919,8 @@
     "roundTo": "Precios redondos:",
     "roundOption": "{price} · recibes {net}",
     "waitlistTitle": "Lista de espera",
-    "waitlistLine": "{name}: {people, plural, one {# persona} other {# personas}}, {places, plural, one {# plaza pedida} other {# plazas pedidas}}"
+    "waitlistLine": "{name}: {people, plural, one {# persona} other {# personas}}, {places, plural, one {# plaza pedida} other {# plazas pedidas}}",
+    "waitlistExport": "Exportar la lista (CSV)"
   },
   "plans": {
     "free": "Free",
@@ -2227,7 +2228,8 @@
     "cashTitle": "Informe de caja",
     "cashModeCash": "efectivo",
     "cashModeQr": "código QR",
-    "cashLine": "{sales, plural, one {# venta} other {# ventas}}"
+    "cashLine": "{sales, plural, one {# venta} other {# ventas}}",
+    "cashExport": "Exportar las ventas (CSV)"
   },
   "resaleAdmin": {
     "statActive": "A la venta",

@@ -79,7 +79,12 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
       {manage ? <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} /> : null}
       {waitlist.length ? (
         <section className="grid gap-1 rounded-lg bg-surface-sunken p-4 text-sm" aria-label={t("waitlistTitle")}>
-          <h2 className="font-semibold">{t("waitlistTitle")}</h2>
+          <h2 className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
+            {t("waitlistTitle")}
+            <a href={`/o/${orgSlug}/events/${eventId}/waitlist.csv`} className="text-sm font-normal underline underline-offset-4">
+              {t("waitlistExport")}
+            </a>
+          </h2>
           {waitlist.map((w) => (
             <p key={w.ticketTypeId}>
               {t("waitlistLine", {

@@ -919,7 +919,8 @@
     "roundTo": "Ronde prijzen:",
     "roundOption": "{price} · je ontvangt {net}",
     "waitlistTitle": "Wachtlijst",
-    "waitlistLine": "{name}: {people, plural, one {# persoon} other {# personen}}, {places, plural, one {# gevraagde plaats} other {# gevraagde plaatsen}}"
+    "waitlistLine": "{name}: {people, plural, one {# persoon} other {# personen}}, {places, plural, one {# gevraagde plaats} other {# gevraagde plaatsen}}",
+    "waitlistExport": "Lijst exporteren (CSV)"
   },
   "plans": {
     "free": "Free",
@@ -2227,7 +2228,8 @@
     "cashTitle": "Kasrapport",
     "cashModeCash": "contant",
     "cashModeQr": "QR-code",
-    "cashLine": "{sales, plural, one {# verkoop} other {# verkopen}}"
+    "cashLine": "{sales, plural, one {# verkoop} other {# verkopen}}",
+    "cashExport": "Verkopen exporteren (CSV)"
   },
   "resaleAdmin": {
     "statActive": "Te koop",

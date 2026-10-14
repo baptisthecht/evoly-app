@@ -284,7 +284,8 @@
     "roundTo": "Round prices:",
     "roundOption": "{price} · you receive {net}",
     "waitlistTitle": "Waiting list",
-    "waitlistLine": "{name}: {people, plural, one {# person} other {# people}}, {places, plural, one {# place wanted} other {# places wanted}}"
+    "waitlistLine": "{name}: {people, plural, one {# person} other {# people}}, {places, plural, one {# place wanted} other {# places wanted}}",
+    "waitlistExport": "Export the list (CSV)"
   },
   "checkout": {
     "tickets": "Tickets",
@@ -1262,7 +1263,8 @@
     "cashTitle": "Cash report",
     "cashModeCash": "cash",
     "cashModeQr": "QR code",
-    "cashLine": "{sales, plural, one {# sale} other {# sales}}"
+    "cashLine": "{sales, plural, one {# sale} other {# sales}}",
+    "cashExport": "Export the sales (CSV)"
   },
   "resaleAdmin": {
     "statActive": "Listed",

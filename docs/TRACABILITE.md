@@ -2,12 +2,12 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 159 · fait : 160 · partiel : 8 · à faire : 14 · hors périmètre : 2.
+**Bilan** : fait, testé : 160 · fait : 160 · partiel : 7 · à faire : 14 · hors périmètre : 2.
 
 ## Écarts connus
 
 - **Lieux partenaires** (section 9.32) : inscrits au cahier des charges le 13 octobre 2026, à développer ; décisions en section 17.
-- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement et statistiques (RG-OPT-05, 07, 08), vestiaire seul (RG-OPT-03), export du rapport de caisse (RG-POS-07), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05), export et suppression de la liste d'attente (RG-ATT-05, 06). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
+- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement et statistiques (RG-OPT-05, 07, 08), vestiaire seul (RG-OPT-03), détail du rapport de caisse par appareil (RG-POS-07), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05), suppression de la liste d'attente après l'événement (RG-ATT-05). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
 
 ## Détail
@@ -302,7 +302,7 @@
 | RG-POS-04 | | un billet vendu sur place est marqué entré au moment de la vente, sauf si l'équipe choisit de l'envoyer au client pour p | fait, testé | boxOffice.ts, boxoffice.test.ts |
 | RG-POS-05 | | l'e-mail du client est facultatif ; s'il est donné, le billet et le reçu lui sont envoyés. | fait, testé | boxOffice.ts, boxoffice.test.ts |
 | RG-POS-06 | | un encaissement par carte ou par QR code exige le réseau ; le scan des billets reste possible hors ligne. | fait | message hors réseau (SellPanel.tsx) ; non testé |
-| RG-POS-07 | | rapport de caisse par appareil, par vendeur et par mode de paiement (nombre de ventes, montants, espèces à remettre), ex | partiel | par lien et par mode ; par appareil et export à faire (testé) |
+| RG-POS-07 | | rapport de caisse par appareil, par vendeur et par mode de paiement (nombre de ventes, montants, espèces à remettre), ex | partiel | par lien et par mode, export CSV fait (boxOffice.ts, boxoffice.test.ts) ; par appareil à faire |
 | RG-POS-08 | | une vente sur place se rembourse depuis le tableau de bord, comme une commande en ligne (section 9.14) ; une vente en es | fait, testé | boxoffice.test.ts, refunds.ts |
 | US-AMB-01 | | en tant qu'organisateur, je crée en quelques secondes un lien de vente pour chaque membre de mon équipe ou chaque promot | fait | section 9.26 à 9.31 |
 | US-AMB-02 | | en tant qu'ambassadeur, je partage mon lien, et je suis mes ventes et mon rang sans créer de compte. | fait | section 9.26 à 9.31 |
@@ -335,7 +335,7 @@
 | RG-ATT-03 | | les inscrits sont prévenus dans l'ordre d'inscription ; chacun reçoit un lien personnel qui lui réserve les places penda | fait, testé | waitlist.test.ts, waitlist.ts |
 | RG-ATT-04 | | une place mise en revente est d'abord proposée aux inscrits pendant le délai réservé, au prix fixé par le vendeur, par l | fait, testé | waitlist.test.ts, waitlist.ts |
 | RG-ATT-05 | | un inscrit se désinscrit en un clic ; la liste est supprimée après l'événement. | partiel | désinscription en un clic ; suppression après l'événement à faire (testé) |
-| RG-ATT-06 | | l'organisateur voit le nombre d'inscrits par tarif ; l'export ne contient que les inscrits qui ont consenti à être recon | partiel | nombre d'inscrits ; export à faire |
+| RG-ATT-06 | | l'organisateur voit le nombre d'inscrits par tarif ; l'export ne contient que les inscrits qui ont consenti à être recon | fait, testé | nombre d'inscrits et export CSV (waitlist.ts, boxoffice.test.ts) |
 | US-TAB-01 | | en tant qu'organisateur de club ou de gala, je vends des tables sur mon plan de salle, avec un forfait : nombre de perso | fait | section 9.26 à 9.31 |
 | US-TAB-02 | | en tant que client, je choisis ma table sur le plan, je paie le forfait et j'envoie leur billet à mes invités. | fait | section 9.26 à 9.31 |
 | US-TAB-03 | | en tant que membre de l'équipe, je vois à l'entrée la table de chaque invité, et au bar les consommations comprises. | fait | section 9.26 à 9.31 |

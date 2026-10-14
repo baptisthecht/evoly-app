@@ -45,7 +45,15 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
     <div className="grid max-w-5xl gap-6">
       {cash.length ? (
         <section className="grid gap-2 rounded-lg bg-surface-sunken p-4 text-sm" aria-label={t("cashTitle")}>
-          <h2 className="font-semibold">{t("cashTitle")}</h2>
+          <h2 className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
+            {t("cashTitle")}
+            <a
+              href={`/o/${cashCtx.organization.slug}/events/${(await params).eventId}/caisse.csv`}
+              className="text-sm font-normal underline underline-offset-4"
+            >
+              {t("cashExport")}
+            </a>
+          </h2>
           {cash.map((c) => (
             <p key={`${c.label}-${c.mode}`} className="flex flex-wrap justify-between gap-3">
               <span>

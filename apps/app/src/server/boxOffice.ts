@@ -111,3 +111,60 @@ export async function cashReport(ctx: OrgContext, eventId: string) {
     amountMinor: (r._sum.totalMinor ?? 0) - (r._sum.refundedMinor ?? 0),
   }));
 }
+
+/** CSV pour Excel (BOM, point-virgule) : chaque cellule entre guillemets. */
+const csv = (rows: unknown[][]) => "\uFEFF" + rows.map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\r\n") + "\r\n";
+const dateCell = (d: Date | null | undefined, timeZone: string) =>
+  d ? new Intl.DateTimeFormat("fr-BE", { timeZone, dateStyle: "short", timeStyle: "short" }).format(d) : "";
+
+/**
+ * Export du rapport de caisse (RG-POS-07) : une ligne par vente sur place (date, caisse, mode, référence, billets, montants), puis le total.
+ * Document comptable : aucune donnée de l'acheteur.
+ */
+export async function cashReportCsv(ctx: OrgContext, eventId: string) {
+  await findEvent(ctx, eventId);
+  const ev = await db.event.findUniqueOrThrow({ where: { id: eventId }, select: { timezone: true, organization: { select: { timezone: true } } } });
+  const tz = ev.timezone ?? ev.organization.timezone;
+  const orders = await db.order.findMany({
+    where: { eventId, source: "BOX_OFFICE", status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] } },
+    select: {
+      reference: true,
+      paidAt: true,
+      createdAt: true,
+      boxOfficeMode: true,
+      soldByLinkId: true,
+      totalMinor: true,
+      refundedMinor: true,
+      currency: true,
+      _count: { select: { tickets: true } },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+  const links = await db.scannerLink.findMany({
+    where: { id: { in: orders.map((o) => o.soldByLinkId).filter((x): x is string => !!x) } },
+    select: { id: true, label: true },
+  });
+  const euros = (minor: number) => (minor / 100).toFixed(2);
+  const rows: unknown[][] = [["Date", "Caisse", "Mode", "Référence", "Billets", "Montant", "Remboursé", "Net", "Devise"]];
+  let total = 0,
+    rembourse = 0,
+    billets = 0;
+  for (const o of orders) {
+    total += o.totalMinor;
+    rembourse += o.refundedMinor;
+    billets += o._count.tickets;
+    rows.push([
+      dateCell(o.paidAt ?? o.createdAt, tz),
+      links.find((l) => l.id === o.soldByLinkId)?.label ?? "",
+      o.boxOfficeMode === "QR" ? "QR code" : "Espèces",
+      o.reference,
+      o._count.tickets,
+      euros(o.totalMinor),
+      euros(o.refundedMinor),
+      euros(o.totalMinor - o.refundedMinor),
+      o.currency,
+    ]);
+  }
+  rows.push(["Total", "", "", `${orders.length} vente(s)`, billets, euros(total), euros(rembourse), euros(total - rembourse), orders[0]?.currency ?? ""]);
+  return csv(rows);
+}

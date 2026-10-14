@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { cashReport, qrSaleStatus, sellCash, startQrSale } from "@/server/boxOffice";
+import { cashReport, cashReportCsv, qrSaleStatus, sellCash, startQrSale } from "@/server/boxOffice";
+import { waitlistCsv } from "@/server/waitlist";
 import { finalizeOrder, reservationByToken } from "@/server/checkout";
 import { refundTickets } from "@/server/refunds";
 import { findOrgContext } from "@/server/context";
@@ -107,5 +108,30 @@ describe("vente sur place en espèces (section 9.27)", () => {
     const refund = await db.refund.findFirstOrThrow({ where: { orderId: v.orderId } });
     expect(refund.status).toBe("SUCCEEDED");
     expect((await db.order.findUniqueOrThrow({ where: { id: v.orderId } })).status).toBe("REFUNDED");
+  });
+
+  it("exports pour Excel : rapport de caisse vente par vente avec son total (RG-POS-07), liste d'attente avec son rang, sans les désinscrits (RG-ATT-06)", async () => {
+    const s = await setup();
+    const caisse = await s.lien({ canSell: true, label: "Caisse bar" });
+    await sellCash(caisse, { lines: [{ ticketTypeId: s.type.id, quantity: 2 }], email: "client@exemple.be" });
+    const rapport = await cashReportCsv(s.ctx, s.event.id);
+    expect(rapport.startsWith("\uFEFF")).toBe(true); // Excel reconnaît l'UTF-8
+    const lignes = rapport.trim().split("\r\n");
+    expect(lignes[0]).toContain('"Caisse";"Mode";"Référence";"Billets"');
+    expect(lignes[1]).toMatch(/"Caisse bar";"Espèces";"EVO-[^"]+";"2"/);
+    expect(lignes.at(-1)).toMatch(/^"Total";"";"";"1 vente\(s\)";"2"/);
+    expect(rapport).not.toContain("client@exemple.be"); // document comptable : aucune donnée de l'acheteur
+
+    const inscrit = (email: string, status: "WAITING" | "OFFERED" | "PURCHASED" | "CANCELLED") =>
+      db.waitlistEntry.create({ data: { eventId: s.event.id, ticketTypeId: s.type.id, email, status, token: `t-${Math.random().toString(36).slice(2)}` } });
+    await inscrit("premier@exemple.be", "OFFERED");
+    await inscrit("parti@exemple.be", "CANCELLED");
+    await inscrit("second@exemple.be", "WAITING");
+    await inscrit("acheteur@exemple.be", "PURCHASED");
+    const liste = await waitlistCsv(s.ctx, s.event.id);
+    expect(liste).toMatch(/"1";"premier@exemple\.be";"1";"Place proposée"/);
+    expect(liste).toMatch(/"2";"second@exemple\.be";"1";"En attente"/);
+    expect(liste).toMatch(/"";"acheteur@exemple\.be";"1";"Achetée"/);
+    expect(liste).not.toContain("parti@exemple.be"); // désinscrit : jamais exporté
   });
 });

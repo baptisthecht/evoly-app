@@ -919,7 +919,8 @@
     "roundTo": "Runde Preise:",
     "roundOption": "{price} · Sie erhalten {net}",
     "waitlistTitle": "Warteliste",
-    "waitlistLine": "{name}: {people, plural, one {# Person} other {# Personen}}, {places, plural, one {# gewünschter Platz} other {# gewünschte Plätze}}"
+    "waitlistLine": "{name}: {people, plural, one {# Person} other {# Personen}}, {places, plural, one {# gewünschter Platz} other {# gewünschte Plätze}}",
+    "waitlistExport": "Liste exportieren (CSV)"
   },
   "plans": {
     "free": "Free",
@@ -2227,7 +2228,8 @@
     "cashTitle": "Kassenbericht",
     "cashModeCash": "bar",
     "cashModeQr": "QR-Code",
-    "cashLine": "{sales, plural, one {# Verkauf} other {# Verkäufe}}"
+    "cashLine": "{sales, plural, one {# Verkauf} other {# Verkäufe}}",
+    "cashExport": "Verkäufe exportieren (CSV)"
   },
   "resaleAdmin": {
     "statActive": "Im Verkauf",

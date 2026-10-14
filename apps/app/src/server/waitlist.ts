@@ -11,6 +11,8 @@ import { sendEmail } from "./email/send";
 import { waitlistJoinedEmail, waitlistOfferEmail, waitlistResaleEmail } from "./email/templates";
 import { resaleShortUrl } from "./resale";
 import { eventPublicUrl } from "./urls";
+import type { OrgContext } from "./context";
+import { findEvent } from "./events";
 
 /**
  * Liste d'attente (section 9.30). Une place libérée revient d'abord aux inscrits, dans l'ordre d'inscription : tant que des
@@ -300,4 +302,47 @@ export async function offerResaleToWaitlist(listingId: string, now = new Date())
     }).catch((err) => console.error("revente proposée à la liste d'attente : e-mail non envoyé", safeError(err)));
   }
   return waiting.length;
+}
+
+/** CSV pour Excel (BOM, point-virgule) : chaque cellule entre guillemets. */
+const csv = (rows: unknown[][]) => "\uFEFF" + rows.map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\r\n") + "\r\n";
+const dateCell = (d: Date | null | undefined, timeZone: string) =>
+  d ? new Intl.DateTimeFormat("fr-BE", { timeZone, dateStyle: "short", timeStyle: "short" }).format(d) : "";
+
+const STATUT_ATTENTE: Record<string, string> = { WAITING: "En attente", OFFERED: "Place proposée", PURCHASED: "Achetée", EXPIRED: "Offre expirée" };
+
+/**
+ * Export de la liste d'attente (RG-ATT-06) : une ligne par inscrit, son rang dans la file de son tarif, ses dates de consentement
+ * et d'offre. Les désinscrits ne sont jamais exportés.
+ */
+export async function waitlistCsv(ctx: OrgContext, eventId: string) {
+  await findEvent(ctx, eventId);
+  const ev = await db.event.findUniqueOrThrow({ where: { id: eventId }, select: { timezone: true, organization: { select: { timezone: true } } } });
+  const tz = ev.timezone ?? ev.organization.timezone;
+  const entries = await db.waitlistEntry.findMany({
+    where: { eventId, status: { not: "CANCELLED" } },
+    include: { ticketType: { select: { name: true } } },
+    orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
+  });
+  const rangs = new Map<string, number>();
+  const rows: unknown[][] = [
+    ["Tarif", "Rang", "E-mail", "Places souhaitées", "Statut", "Inscription", "Consentement", "Offre envoyée", "Offre valable jusqu'au"],
+  ];
+  for (const e of entries) {
+    const enFile = e.status === "WAITING" || e.status === "OFFERED";
+    const rang = enFile ? (rangs.get(e.ticketTypeId) ?? 0) + 1 : null;
+    if (rang) rangs.set(e.ticketTypeId, rang);
+    rows.push([
+      e.ticketType.name,
+      rang ?? "",
+      e.email,
+      e.quantity,
+      STATUT_ATTENTE[e.status] ?? e.status,
+      dateCell(e.createdAt, tz),
+      dateCell(e.consentAt, tz),
+      dateCell(e.offeredAt, tz),
+      dateCell(e.offerExpiresAt, tz),
+    ]);
+  }
+  return csv(rows);
 }
