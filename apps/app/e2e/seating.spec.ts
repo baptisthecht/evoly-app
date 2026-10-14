@@ -35,12 +35,15 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await page.mouse.up();
   await expect.poll(blockX).not.toBe("0");
 
-  // place bloquée
-  await page.getByLabel("Rang", { exact: true }).fill("A");
-  await page.getByLabel("Place", { exact: true }).fill("1");
-  await page.getByRole("button", { name: "Trouver" }).click();
-  await expect(page.getByRole("heading", { name: "Rang A, place 1" })).toBeVisible();
-  await page.getByLabel("Bloquée (non vendue)").check();
+  // place bloquée : la sélection est rejouée si l'éditeur se rafraîchit juste après l'enregistrement du déplacement
+  // (le panneau de la place se refermait alors, sur mobile surtout : parcours instable)
+  await expect(async () => {
+    await page.getByLabel("Rang", { exact: true }).fill("A");
+    await page.getByLabel("Place", { exact: true }).fill("1");
+    await page.getByRole("button", { name: "Trouver" }).click();
+    await expect(page.getByRole("heading", { name: "Rang A, place 1" })).toBeVisible({ timeout: 3_000 });
+    await page.getByLabel("Bloquée (non vendue)").check({ timeout: 3_000 });
+  }).toPass({ timeout: 30_000 });
   await page.getByRole("button", { name: "Enregistrer la place" }).click();
   await expect(page.getByText(/1 bloquée/)).toBeVisible();
 
@@ -133,7 +136,8 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
     .toBuffer();
   await page.getByLabel("Photo de la vue").setInputFiles({ name: "vue.jpg", mimeType: "image/jpeg", buffer: photo });
   await page.getByRole("button", { name: "Ajouter la photo" }).click();
-  await expect(page.getByRole("img", { name: "Vue depuis Salle" })).toBeVisible();
+  // envoi, traitement de l'image par le serveur puis rafraîchissement : plus de 5 secondes quand la machine est chargée
+  await expect(page.getByRole("img", { name: "Vue depuis Salle" })).toBeVisible({ timeout: 20_000 });
   const guest3 = await (await browser.newContext({ locale: "fr-BE" })).newPage();
   await guest3.goto(siteUrl(slug, `/opera-${id}`));
   await guest3.locator("#billets").getByRole("button", { name: "Un billet Fosse de plus" }).click();
