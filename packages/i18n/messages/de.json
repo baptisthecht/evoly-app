@@ -2229,7 +2229,9 @@
     "cashModeCash": "bar",
     "cashModeQr": "QR-Code",
     "cashLine": "{sales, plural, one {# Verkauf} other {# Verkäufe}}",
-    "cashExport": "Verkäufe exportieren (CSV)"
+    "cashExport": "Verkäufe exportieren (CSV)",
+    "cashDevice": "Gerät {device}",
+    "cashHandOver": "Abzugebendes Bargeld"
   },
   "resaleAdmin": {
     "statActive": "Im Verkauf",

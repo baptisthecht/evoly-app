@@ -2229,7 +2229,9 @@
     "cashModeCash": "contanti",
     "cashModeQr": "codice QR",
     "cashLine": "{sales, plural, one {# vendita} other {# vendite}}",
-    "cashExport": "Esporta le vendite (CSV)"
+    "cashExport": "Esporta le vendite (CSV)",
+    "cashDevice": "dispositivo {device}",
+    "cashHandOver": "Contanti da consegnare"
   },
   "resaleAdmin": {
     "statActive": "In vendita",

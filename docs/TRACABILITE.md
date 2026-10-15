@@ -2,13 +2,13 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 169 · fait : 164 · partiel : 5 · à faire : 14 · hors périmètre : 2.
+**Bilan** : fait, testé : 170 · fait : 164 · partiel : 4 · à faire : 14 · hors périmètre : 2.
 
 ## Écarts connus
 
 - **Kit d'installation de salle** (section 9.33) : livré (étiquettes, guide de pose, page test) ; « Commander l'impression » (RG-ETIQ-09) pour plus tard, avec l'impression à la demande.
 - **Lieux partenaires** (section 9.32) : inscrits au cahier des charges le 13 octobre 2026, à développer ; décisions en section 17.
-- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement et statistiques (RG-OPT-05, 07, 08), vestiaire seul (RG-OPT-03), détail du rapport de caisse par appareil (RG-POS-07), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
+- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement et statistiques (RG-OPT-05, 07, 08), vestiaire seul (RG-OPT-03), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
 
 ## Détail
@@ -303,7 +303,7 @@
 | RG-POS-04 | | un billet vendu sur place est marqué entré au moment de la vente, sauf si l'équipe choisit de l'envoyer au client pour p | fait, testé | boxOffice.ts, boxoffice.test.ts |
 | RG-POS-05 | | l'e-mail du client est facultatif ; s'il est donné, le billet et le reçu lui sont envoyés. | fait, testé | boxOffice.ts, boxoffice.test.ts |
 | RG-POS-06 | | un encaissement par carte ou par QR code exige le réseau ; le scan des billets reste possible hors ligne. | fait | message hors réseau (SellPanel.tsx) ; non testé |
-| RG-POS-07 | | rapport de caisse par appareil, par vendeur et par mode de paiement (nombre de ventes, montants, espèces à remettre), ex | partiel | par lien et par mode, export CSV fait (boxOffice.ts, boxoffice.test.ts) ; par appareil à faire |
+| RG-POS-07 | | rapport de caisse par appareil, par vendeur et par mode de paiement (nombre de ventes, montants, espèces à remettre), ex | fait, testé | par caisse, par appareil et par mode, espèces à remettre, export avec l'appareil (boxOffice.ts, boxoffice.test.ts, onsite-sales.spec.ts) |
 | RG-POS-08 | | une vente sur place se rembourse depuis le tableau de bord, comme une commande en ligne (section 9.14) ; une vente en es | fait, testé | boxoffice.test.ts, refunds.ts |
 | US-AMB-01 | | en tant qu'organisateur, je crée en quelques secondes un lien de vente pour chaque membre de mon équipe ou chaque promot | fait | section 9.26 à 9.31 |
 | US-AMB-02 | | en tant qu'ambassadeur, je partage mon lien, et je suis mes ventes et mon rang sans créer de compte. | fait | section 9.26 à 9.31 |

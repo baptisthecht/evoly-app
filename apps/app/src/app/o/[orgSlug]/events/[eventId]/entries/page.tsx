@@ -12,7 +12,7 @@ import { attendanceStats, listScannerLinks } from "@/server/scanner";
 import { LinkActions, NewScannerLink, OpenScanner } from "./EntriesClient";
 import { OccupancyPlan } from "@/components/seating/OccupancyPlan";
 import { seatOccupancy } from "@/server/seatingEditor";
-import { cashReport } from "@/server/boxOffice";
+import { cashHandOver, cashReport } from "@/server/boxOffice";
 import { db } from "@/lib/db";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -55,13 +55,24 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
             </a>
           </h2>
           {cash.map((c) => (
-            <p key={`${c.label}-${c.mode}`} className="flex flex-wrap justify-between gap-3">
+            <p key={`${c.label}-${c.device}-${c.mode}`} className="flex flex-wrap justify-between gap-3">
               <span>
                 {c.label} · {c.mode === "CASH" ? t("cashModeCash") : t("cashModeQr")}
+                {c.device ? ` · ${t("cashDevice", { device: c.device })}` : ""}
               </span>
               <span className="tabular-nums">
                 {t("cashLine", { sales: c.sales })} · {formatMoney(c.amountMinor, cashCurrency, cashLocale, { trimZeroCents: true })}
               </span>
+            </p>
+          ))}
+          <h3 className="mt-2 font-semibold">{t("cashHandOver")}</h3>
+          {cashHandOver(cash).map((h) => (
+            <p key={`${h.label}-${h.device}`} className="flex flex-wrap justify-between gap-3">
+              <span>
+                {h.label}
+                {h.device ? ` · ${t("cashDevice", { device: h.device })}` : ""}
+              </span>
+              <span className="font-semibold tabular-nums">{formatMoney(h.amountMinor, cashCurrency, cashLocale, { trimZeroCents: true })}</span>
             </p>
           ))}
         </section>

@@ -33,6 +33,12 @@ test("vente sur place : onglet Vente du scanner en espèces, rapport de caisse, 
   await page.goto(`${eventUrl}/entries`);
   await expect(page.getByText("Rapport de caisse")).toBeVisible();
   await expect(page.getByText("Caisse 1 · espèces")).toBeVisible();
+  // par appareil, avec les espèces à remettre, et l'appareil dans l'export (RG-POS-07)
+  await expect(page.getByText(/^Caisse 1 · espèces · appareil [A-Z0-9?]{1,4}$/)).toBeVisible();
+  await expect(page.getByText("Espèces à remettre")).toBeVisible();
+  const caisseCsv = await (await page.request.get(`${eventUrl}/caisse.csv`)).text();
+  expect(caisseCsv).toContain('"Caisse";"Appareil";"Mode"');
+  expect(caisseCsv).toMatch(/"Caisse 1";"[A-Z0-9?]{1,4}";"Espèces"/);
 
   // paiement par QR code : l'adresse du QR code, demandée comme le fait l'écran du scanner, ouverte sur le téléphone du client
   const eventId = eventUrl.split("/").pop()!;

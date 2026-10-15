@@ -2229,7 +2229,9 @@
     "cashModeCash": "efectivo",
     "cashModeQr": "código QR",
     "cashLine": "{sales, plural, one {# venta} other {# ventas}}",
-    "cashExport": "Exportar las ventas (CSV)"
+    "cashExport": "Exportar las ventas (CSV)",
+    "cashDevice": "dispositivo {device}",
+    "cashHandOver": "Efectivo a entregar"
   },
   "resaleAdmin": {
     "statActive": "A la venta",

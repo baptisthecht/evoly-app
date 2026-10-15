@@ -2229,7 +2229,9 @@
     "cashModeCash": "contant",
     "cashModeQr": "QR-code",
     "cashLine": "{sales, plural, one {# verkoop} other {# verkopen}}",
-    "cashExport": "Verkopen exporteren (CSV)"
+    "cashExport": "Verkopen exporteren (CSV)",
+    "cashDevice": "toestel {device}",
+    "cashHandOver": "Af te geven cash"
   },
   "resaleAdmin": {
     "statActive": "Te koop",

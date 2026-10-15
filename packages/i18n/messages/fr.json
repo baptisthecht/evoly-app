@@ -1264,7 +1264,9 @@
     "cashModeCash": "espèces",
     "cashModeQr": "QR code",
     "cashLine": "{sales, plural, one {# vente} other {# ventes}}",
-    "cashExport": "Exporter les ventes (CSV)"
+    "cashExport": "Exporter les ventes (CSV)",
+    "cashDevice": "appareil {device}",
+    "cashHandOver": "Espèces à remettre"
   },
   "resaleAdmin": {
     "statActive": "En vente",
