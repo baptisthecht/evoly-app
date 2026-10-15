@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { finalizeOrder, reserveOrder } from "@/server/checkout";
 import { findOrgContext } from "@/server/context";
-import { financeOverview, optionsCsv, ordersCsv, summarizeOptions } from "@/server/finances";
+import { PDFDocument } from "pdf-lib";
+import { financeOverview, issueStatement, optionsCsv, ordersCsv, statementOptionsFee, statementPdf, summarizeOptions } from "@/server/finances";
 import { createOption, redeemOption } from "@/server/options";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -140,5 +141,30 @@ describe("options dans les finances et les exports (RG-OPT-08)", () => {
       ["Affiche", "", 2],
       ["Badge", "", 1],
     ]); // à montant égal : ordre alphabétique ; événement inconnu : vide
+  });
+
+  it("facture mensuelle : la commission des options apparaît « dont options », déjà comprise dans le total facturé ; numérotation et total inchangés (RG-OPT-08)", async () => {
+    const { org, ctx } = await organisation();
+    const bal = await evenement(org.id, "Bal");
+    const jeton = await createOption(ctx, bal.id, { name: "Jeton boisson", price: "3" });
+    const c = await achat(bal, [{ optionId: jeton.id, quantity: 5 }]);
+    const now = new Date();
+    const moisDernier = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 15, 12));
+    await db.order.update({ where: { id: c }, data: { paidAt: moisDernier } });
+    const commande = await db.order.findUniqueOrThrow({ where: { id: c } });
+    const periode = `${moisDernier.getUTCFullYear()}-${String(moisDernier.getUTCMonth() + 1).padStart(2, "0")}`;
+    const facture = await issueStatement(org.id, periode, "EUR");
+    expect(facture.feesMinor).toBe(commande.applicationFeeMinor); // la facture inclut déjà la commission des options
+    const options = await statementOptionsFee(org.id, facture.periodStart, facture.periodEnd, "EUR");
+    expect(options).toBe(5 * 6); // 5 jetons à 3 € : 2 % = 0,06 € chacun
+    expect(commande.applicationFeeMinor).toBeGreaterThan(options); // commission du billet en plus
+    const pdf = await statementPdf(facture.id);
+    expect(pdf.number).toBe(facture.number);
+    expect((await PDFDocument.load(pdf.bytes)).getPageCount()).toBe(1);
+    // la facture est figée : la réémettre rend la même, avec le même numéro et le même total
+    expect(await issueStatement(org.id, periode, "EUR")).toMatchObject({ id: facture.id, number: facture.number, totalMinor: facture.totalMinor });
+    // autre devise ou autre période : aucune option
+    expect(await statementOptionsFee(org.id, facture.periodStart, facture.periodEnd, "USD")).toBe(0);
+    expect(await statementOptionsFee(org.id, facture.periodEnd, new Date(facture.periodEnd.getTime() + 31 * DAY), "EUR")).toBe(0);
   });
 });

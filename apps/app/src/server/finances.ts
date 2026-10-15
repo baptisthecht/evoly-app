@@ -363,6 +363,7 @@ const STATEMENT_LABELS: Record<
     fees: string;
     total: string;
     ofVat: string;
+    ofOptions: string;
     noVat: string;
     footer: string;
   }
@@ -380,6 +381,7 @@ const STATEMENT_LABELS: Record<
     fees: "Commissions",
     total: "Total TTC",
     ofVat: "dont TVA",
+    ofOptions: "dont options",
     noVat: "Numéro de TVA : à compléter",
     footer:
       "Commissions Evoly prélevées sur les ventes de billets, selon les conditions de l’offre en vigueur à la date de chaque vente. Montants débités par Stripe lors de chaque vente : rien à payer.",
@@ -397,6 +399,7 @@ const STATEMENT_LABELS: Record<
     fees: "Fees",
     total: "Total incl. VAT",
     ofVat: "of which VAT",
+    ofOptions: "of which add-ons",
     noVat: "VAT number: to be completed",
     footer:
       "Evoly fees taken on ticket sales, under the plan terms in force on the date of each sale. Amounts collected by Stripe on each sale: nothing to pay.",
@@ -414,6 +417,7 @@ const STATEMENT_LABELS: Record<
     fees: "Comisiones",
     total: "Total con IVA",
     ofVat: "de los cuales IVA",
+    ofOptions: "de ello, opciones",
     noVat: "Número de IVA: pendiente de completar",
     footer:
       "Comisiones de Evoly cobradas sobre la venta de entradas, según las condiciones del plan vigentes en la fecha de cada venta. Importes cobrados por Stripe en cada venta: no hay nada que pagar.",
@@ -431,6 +435,7 @@ const STATEMENT_LABELS: Record<
     fees: "Gebühren",
     total: "Gesamt inkl. USt.",
     ofVat: "davon USt.",
+    ofOptions: "davon Optionen",
     noVat: "USt-IdNr.: noch zu ergänzen",
     footer:
       "Evoly-Gebühren, die beim Ticketverkauf einbehalten werden, gemäß den am Tag jedes Verkaufs geltenden Tarifbedingungen. Von Stripe bei jedem Verkauf eingezogene Beträge: nichts zu zahlen.",
@@ -448,6 +453,7 @@ const STATEMENT_LABELS: Record<
     fees: "Commissioni",
     total: "Totale IVA inclusa",
     ofVat: "di cui IVA",
+    ofOptions: "di cui opzioni",
     noVat: "Partita IVA: da completare",
     footer:
       "Commissioni Evoly trattenute sulle vendite di biglietti, secondo le condizioni del piano in vigore alla data di ogni vendita. Importi riscossi da Stripe a ogni vendita: nulla da pagare.",
@@ -465,6 +471,7 @@ const STATEMENT_LABELS: Record<
     fees: "Comissões",
     total: "Total com IVA",
     ofVat: "dos quais IVA",
+    ofOptions: "dos quais opções",
     noVat: "Número de IVA: a completar",
     footer:
       "Comissões Evoly cobradas sobre as vendas de bilhetes, segundo as condições do plano em vigor na data de cada venda. Montantes cobrados pela Stripe em cada venda: nada a pagar.",
@@ -482,6 +489,7 @@ const STATEMENT_LABELS: Record<
     fees: "Commissies",
     total: "Totaal incl. btw",
     ofVat: "waarvan btw",
+    ofOptions: "waarvan opties",
     noVat: "Btw-nummer: nog in te vullen",
     footer:
       "Commissies van Evoly ingehouden op de ticketverkoop, volgens de abonnementsvoorwaarden die gelden op de datum van elke verkoop. Bedragen die Stripe bij elke verkoop int: niets te betalen.",
@@ -492,6 +500,14 @@ const STATEMENT_LABELS: Record<
  * RG-FEE-30 : relevé mensuel des commissions, par organisation et par devise, émis une seule fois,
  * avec un numéro tiré d'une séquence sans trou. Il vaut facture. RG-FEE-31 : PDF envoyé au propriétaire.
  */
+/** Commission sur les options d'une facture (RG-OPT-08) : déjà comprise dans le total facturé, affichée pour information. */
+export async function statementOptionsFee(organizationId: string, periodStart: Date, periodEnd: Date, currency: string) {
+  return (await periodOptionLines(organizationId, { from: periodStart, to: periodEnd }, undefined, currency)).reduce(
+    (n, l) => n + l.quantity * l.unitFeeMinor,
+    0,
+  );
+}
+
 export async function issueStatement(organizationId: string, period: string, currency: string, now = new Date()) {
   if (!/^\d{4}-\d{2}$/.test(period)) throw new CoreError("NOT_FOUND");
   const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId } });
@@ -613,6 +629,12 @@ export async function statementPdf(statementId: string): Promise<{ bytes: Uint8A
   if (st.vatMinor > 0) {
     text(`${L.ofVat} (${(st.vatRateBps ?? 0) / 100} %)`, 380, y - 28, 10);
     text(money(st.vatMinor), 470, y - 28, 10);
+  }
+  // dont options et consommations (RG-OPT-08) : information, déjà comprise dans le total facturé
+  const optionsFee = await statementOptionsFee(org.id, st.periodStart, st.periodEnd, st.currency);
+  if (optionsFee > 0) {
+    text(L.ofOptions, 380, st.vatMinor > 0 ? y - 42 : y - 28, 10);
+    text(money(optionsFee), 470, st.vatMinor > 0 ? y - 42 : y - 28, 10);
   }
   const mention = MENTIONS[locale][(st.vatMention as VatMention) ?? "BE_VAT"]?.(`${(st.vatRateBps ?? 0) / 100} %`) ?? "";
   text(mention, 48, y - 56, 9, regular, grey);
