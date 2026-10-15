@@ -1542,6 +1542,8 @@ Les factures de l'abonnement Pro sont envoyées par Stripe.
 
 ---
 
+- **Conservation des données (tâche planifiée `retention`)** : commandes anonymisées après 7 ans (pièces comptables), journaux d'e-mails anonymisés et journal d'audit supprimé après 12 mois, liste d'attente supprimée le lendemain de l'événement (RG-ATT-05), ambassadeurs anonymisés 12 mois après l'événement : nom générique, sans e-mail, lien privé invalidé, ventes attribuées conservées (RG-AMB-07).
+
 ## 14. Qualité et tests
 
 ### 14.1 Tests obligatoires
