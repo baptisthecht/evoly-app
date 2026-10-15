@@ -11,6 +11,14 @@ test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({ page }
     `update "Order" set "totalMinor" = 4800, "subtotalMinor" = 4800, "applicationFeeMinor" = 102, "paymentFeeMinor" = 97, "netMinor" = 4601, "paidAt" = date_trunc('month', now()) - interval '3 days' where "organizationId" = '${orgId}'`,
   );
   const reference = sql(`select reference from "Order" where "organizationId" = '${orgId}'`);
+  // deux jetons boissons vendus sur cette commande, dont un retiré au bar (RG-OPT-08)
+  const orderId = sql(`select id from "Order" where "organizationId" = '${orgId}'`);
+  sql(
+    `insert into "EventOption" (id, "eventId", name, "priceMinor", "updatedAt") select 'opt-${id}', "eventId", 'Jeton boisson', 300, now() from "Order" where id = '${orderId}'`,
+  );
+  sql(
+    `insert into "OrderOption" (id, "orderId", "optionId", quantity, "unitPriceMinor", "unitFeeMinor", redeemed) values ('oo-${id}', '${orderId}', 'opt-${id}', 2, 300, 6, 1)`,
+  );
 
   await page.goto(appUrl(`/o/${slug}/finances?period=ALL`));
   await expect(page.getByRole("heading", { name: "Finances" })).toBeVisible();
@@ -22,7 +30,25 @@ test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({ page }
 
   const csv = await page.request.get(appUrl(`/o/${slug}/finances/export/orders?period=ALL`));
   expect(csv.headers()["content-type"]).toContain("text/csv");
-  expect(await csv.text()).toContain(`${reference};`);
+  const commandes = await csv.text();
+  expect(commandes).toContain(`${reference};`);
+  expect(commandes.split("\r\n")[0]).toMatch(/;Options;Montant des options$/); // colonnes ajoutées en fin de ligne
+  expect(commandes).toMatch(/;2 × Jeton boisson;6,00\r\n/);
+
+  // section « Options et consommations » et export des options (RG-OPT-08)
+  const section = page.getByRole("rowheader", { name: "Jeton boisson" });
+  await expect(section).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Options et consommations" })).toBeVisible();
+  const options = await page.request.get(appUrl(`/o/${slug}/finances/export/options?period=ALL`));
+  expect(options.status()).toBe(200);
+  expect(options.headers()["content-type"]).toContain("text/csv");
+  const lignes = (await options.text())
+    .replace(/^\uFEFF/, "")
+    .trim()
+    .split("\r\n");
+  expect(lignes).toHaveLength(2);
+  expect(lignes[1]).toContain(`${reference};`);
+  expect(lignes[1]).toMatch(/;Jeton boisson;2;3,00;6,00;0,12;1;EUR;PAID$/);
 
   await page
     .getByRole("link", { name: "Télécharger le relevé" })

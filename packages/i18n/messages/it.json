@@ -1758,7 +1758,17 @@
     "dispute_UNDER_REVIEW": "In esame",
     "dispute_WON": "Vinta",
     "dispute_LOST": "Persa",
-    "answerDisputes": "Rispondi in Stripe"
+    "answerDisputes": "Rispondi in Stripe",
+    "optionsTitle": "Opzioni e consumazioni",
+    "optionsHint": "Importi lordi, già compresi nei totali qui sopra: un rimborso non indica a quale opzione si riferisce.",
+    "exportOptions": "Esporta le opzioni",
+    "optionCol": "Opzione",
+    "optionEventCol": "Evento",
+    "optionSold": "Vendute",
+    "optionRedeemed": "Ritirate",
+    "optionAmount": "Importo",
+    "optionFee": "Commissione",
+    "optionTotal": "Totale"
   },
   "settings": {
     "title": "Impostazioni",

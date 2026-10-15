@@ -1758,7 +1758,17 @@
     "dispute_UNDER_REVIEW": "Em análise",
     "dispute_WON": "Ganha",
     "dispute_LOST": "Perdida",
-    "answerDisputes": "Responder na Stripe"
+    "answerDisputes": "Responder na Stripe",
+    "optionsTitle": "Opções e consumos",
+    "optionsHint": "Montantes brutos, já incluídos nos totais acima: um reembolso não indica a que opção se refere.",
+    "exportOptions": "Exportar as opções",
+    "optionCol": "Opção",
+    "optionEventCol": "Evento",
+    "optionSold": "Vendidas",
+    "optionRedeemed": "Levantadas",
+    "optionAmount": "Montante",
+    "optionFee": "Comissão",
+    "optionTotal": "Total"
   },
   "settings": {
     "title": "Definições",

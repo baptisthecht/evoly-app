@@ -1515,7 +1515,17 @@
     "dispute_UNDER_REVIEW": "Under review",
     "dispute_WON": "Won",
     "dispute_LOST": "Lost",
-    "answerDisputes": "Respond in Stripe"
+    "answerDisputes": "Respond in Stripe",
+    "optionsTitle": "Add-ons and drinks",
+    "optionsHint": "Gross amounts, already included in the totals above: a refund does not say which add-on it concerns.",
+    "exportOptions": "Export add-ons",
+    "optionCol": "Add-on",
+    "optionEventCol": "Event",
+    "optionSold": "Sold",
+    "optionRedeemed": "Redeemed",
+    "optionAmount": "Amount",
+    "optionFee": "Commission",
+    "optionTotal": "Total"
   },
   "billing": {
     "title": "Billing",

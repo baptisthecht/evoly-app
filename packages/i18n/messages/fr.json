@@ -1515,7 +1515,17 @@
     "dispute_UNDER_REVIEW": "En cours d’examen",
     "dispute_WON": "Gagné",
     "dispute_LOST": "Perdu",
-    "answerDisputes": "Répondre dans Stripe"
+    "answerDisputes": "Répondre dans Stripe",
+    "optionsTitle": "Options et consommations",
+    "optionsHint": "Montants bruts, déjà compris dans les totaux ci-dessus : un remboursement ne précise pas quelle option il concerne.",
+    "exportOptions": "Exporter les options",
+    "optionCol": "Option",
+    "optionEventCol": "Événement",
+    "optionSold": "Vendues",
+    "optionRedeemed": "Retirées",
+    "optionAmount": "Montant",
+    "optionFee": "Commission",
+    "optionTotal": "Total"
   },
   "billing": {
     "title": "Abonnement",

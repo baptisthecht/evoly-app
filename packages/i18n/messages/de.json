@@ -1758,7 +1758,17 @@
     "dispute_UNDER_REVIEW": "In Prüfung",
     "dispute_WON": "Gewonnen",
     "dispute_LOST": "Verloren",
-    "answerDisputes": "In Stripe antworten"
+    "answerDisputes": "In Stripe antworten",
+    "optionsTitle": "Optionen und Getränke",
+    "optionsHint": "Bruttobeträge, bereits in den Summen oben enthalten: Eine Erstattung gibt nicht an, welche Option sie betrifft.",
+    "exportOptions": "Optionen exportieren",
+    "optionCol": "Option",
+    "optionEventCol": "Veranstaltung",
+    "optionSold": "Verkauft",
+    "optionRedeemed": "Eingelöst",
+    "optionAmount": "Betrag",
+    "optionFee": "Provision",
+    "optionTotal": "Gesamt"
   },
   "settings": {
     "title": "Einstellungen",

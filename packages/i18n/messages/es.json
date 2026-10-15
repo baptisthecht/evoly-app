@@ -1758,7 +1758,17 @@
     "dispute_UNDER_REVIEW": "En revisión",
     "dispute_WON": "Ganada",
     "dispute_LOST": "Perdida",
-    "answerDisputes": "Responder en Stripe"
+    "answerDisputes": "Responder en Stripe",
+    "optionsTitle": "Opciones y consumiciones",
+    "optionsHint": "Importes brutos, ya incluidos en los totales de arriba: un reembolso no indica a qué opción corresponde.",
+    "exportOptions": "Exportar las opciones",
+    "optionCol": "Opción",
+    "optionEventCol": "Evento",
+    "optionSold": "Vendidas",
+    "optionRedeemed": "Canjeadas",
+    "optionAmount": "Importe",
+    "optionFee": "Comisión",
+    "optionTotal": "Total"
   },
   "settings": {
     "title": "Ajustes",

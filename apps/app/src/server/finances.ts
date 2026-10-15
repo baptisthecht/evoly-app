@@ -49,6 +49,76 @@ export function periodRange(period: Period, tz: string, now = new Date()): { fro
   }
 }
 
+/**
+ * Options vendues (RG-OPT-08) : exactement les commandes retenues par les finances (statuts comptés, payées dans la période,
+ * événement, devise). Montants bruts, déjà compris dans les totaux des commandes : un remboursement ne dit pas quelle option il concerne.
+ */
+async function periodOptionLines(organizationId: string, range: { from: Date | null; to: Date | null }, eventId?: string, currency?: string) {
+  return db.orderOption.findMany({
+    where: {
+      order: {
+        organizationId,
+        status: { in: [...COUNTED] },
+        paidAt: { not: null, ...(range.from ? { gte: range.from } : {}), ...(range.to ? { lt: range.to } : {}) },
+        ...(eventId ? { eventId } : {}),
+        ...(currency ? { currency } : {}),
+      },
+    },
+    select: {
+      orderId: true,
+      quantity: true,
+      unitPriceMinor: true,
+      unitFeeMinor: true,
+      redeemed: true,
+      option: { select: { id: true, name: true, eventId: true } },
+      order: { select: { reference: true, paidAt: true, currency: true, status: true } },
+    },
+    orderBy: [{ order: { paidAt: "asc" } }, { createdAt: "asc" }],
+  });
+}
+
+export type OptionsRow = {
+  optionId: string;
+  name: string;
+  eventId: string;
+  eventTitle: string;
+  sold: number;
+  redeemed: number;
+  amountMinor: number;
+  feeMinor: number;
+};
+
+/** Par option : vendues, retirées, montant brut et commission ; puis les totaux (RG-OPT-08). */
+export function summarizeOptions(
+  lines: { quantity: number; unitPriceMinor: number; unitFeeMinor: number; redeemed: number; option: { id: string; name: string; eventId: string } }[],
+  titles: Map<string, string>,
+) {
+  const byOption = new Map<string, OptionsRow>();
+  for (const l of lines) {
+    const r = byOption.get(l.option.id) ?? {
+      optionId: l.option.id,
+      name: l.option.name,
+      eventId: l.option.eventId,
+      eventTitle: titles.get(l.option.eventId) ?? "",
+      sold: 0,
+      redeemed: 0,
+      amountMinor: 0,
+      feeMinor: 0,
+    };
+    r.sold += l.quantity;
+    r.redeemed += l.redeemed;
+    r.amountMinor += l.quantity * l.unitPriceMinor;
+    r.feeMinor += l.quantity * l.unitFeeMinor;
+    byOption.set(l.option.id, r);
+  }
+  const rows = [...byOption.values()].sort((a, b) => b.amountMinor - a.amountMinor || a.name.localeCompare(b.name, "fr"));
+  const totals = rows.reduce(
+    (t, r) => ({ sold: t.sold + r.sold, redeemed: t.redeemed + r.redeemed, amountMinor: t.amountMinor + r.amountMinor, feeMinor: t.feeMinor + r.feeMinor }),
+    { sold: 0, redeemed: 0, amountMinor: 0, feeMinor: 0 },
+  );
+  return { rows, totals };
+}
+
 async function periodOrders(organizationId: string, range: { from: Date | null; to: Date | null }, eventId?: string, currency?: string) {
   return db.order.findMany({
     where: {
@@ -108,6 +178,10 @@ export async function financeOverview(ctx: OrgContext, opts: { period: Period; e
     byEvent: [...grouped]
       .map(([eventId, totals]) => ({ eventId, title: titles.get(eventId)?.title ?? "-", startsAt: titles.get(eventId)?.startsAt ?? null, ...totals }))
       .sort((a, b) => b.grossMinor - a.grossMinor),
+    options: summarizeOptions(
+      await periodOptionLines(ctx.organization.id, range, opts.eventId, ctx.organization.currency),
+      new Map(events.map((e) => [e.id, e.title])),
+    ),
   };
 }
 
@@ -630,7 +704,17 @@ export async function ordersCsv(ctx: OrgContext, opts: { period: Period; eventId
     "Statut",
     "Source",
     "Moyen de paiement",
+    "Options",
+    "Montant des options",
   ];
+  // options de chaque commande, en fin de ligne : aucune colonne existante n'est décalée (RG-OPT-08)
+  const parCommande = new Map<string, { text: string[]; amountMinor: number }>();
+  for (const l of await periodOptionLines(ctx.organization.id, range, opts.eventId)) {
+    const c = parCommande.get(l.orderId) ?? { text: [], amountMinor: 0 };
+    c.text.push(`${l.quantity} × ${l.option.name}`);
+    c.amountMinor += l.quantity * l.unitPriceMinor;
+    parCommande.set(l.orderId, c);
+  }
   const lines = orders.map((o) => [
     o.reference,
     utcToZonedLocal(o.paidAt!, ctx.organization.timezone).replace("T", " "),
@@ -647,6 +731,31 @@ export async function ordersCsv(ctx: OrgContext, opts: { period: Period; eventId
     o.status,
     o.source,
     o.paymentMethodType ?? "",
+    parCommande.get(o.id)?.text.join(", ") ?? "",
+    parCommande.has(o.id) ? amount(parCommande.get(o.id)!.amountMinor) : "",
+  ]);
+  return "\ufeff" + [head, ...lines].map((l) => l.map(csvCell).join(";")).join("\r\n") + "\r\n";
+}
+
+/** Export des options (RG-OPT-08) : une ligne par option vendue, avec ce qui a été retiré au bar. */
+export async function optionsCsv(ctx: OrgContext, opts: { period: Period; eventId?: string }): Promise<string> {
+  const range = periodRange(opts.period, ctx.organization.timezone);
+  const titles = new Map(
+    (await db.event.findMany({ where: { organizationId: ctx.organization.id }, select: { id: true, title: true } })).map((e) => [e.id, e.title]),
+  );
+  const head = ["Référence", "Date", "Événement", "Option", "Quantité", "Prix unitaire", "Montant", "Commission Evoly", "Retirées", "Devise", "Statut"];
+  const lines = (await periodOptionLines(ctx.organization.id, range, opts.eventId)).map((l) => [
+    l.order.reference,
+    utcToZonedLocal(l.order.paidAt!, ctx.organization.timezone).replace("T", " "),
+    titles.get(l.option.eventId) ?? "",
+    l.option.name,
+    l.quantity,
+    amount(l.unitPriceMinor),
+    amount(l.quantity * l.unitPriceMinor),
+    amount(l.quantity * l.unitFeeMinor),
+    l.redeemed,
+    l.order.currency,
+    l.order.status,
   ]);
   return "\ufeff" + [head, ...lines].map((l) => l.map(csvCell).join(";")).join("\r\n") + "\r\n";
 }

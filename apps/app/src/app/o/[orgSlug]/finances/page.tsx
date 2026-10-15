@@ -162,6 +162,69 @@ export default async function FinancesPage({
         )}
       </Card>
 
+      {overview.options.rows.length ? (
+        <Card className="grid gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("optionsTitle")}</h2>
+            <a href={`/o/${orgSlug}/finances/export/options?${query}`} className={buttonClass("secondary", "sm")}>
+              {t("exportOptions")}
+            </a>
+          </div>
+          <p className="text-sm text-ink-muted">{t("optionsHint")}</p>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[36rem] text-sm">
+              <thead>
+                <tr className="text-left text-ink-muted">
+                  <th scope="col" className="py-2 pr-3 font-medium">
+                    {t("optionCol")}
+                  </th>
+                  <th scope="col" className="py-2 pr-3 font-medium">
+                    {t("optionEventCol")}
+                  </th>
+                  <th scope="col" className="py-2 text-right font-medium">
+                    {t("optionSold")}
+                  </th>
+                  <th scope="col" className="py-2 text-right font-medium">
+                    {t("optionRedeemed")}
+                  </th>
+                  <th scope="col" className="py-2 text-right font-medium">
+                    {t("optionAmount")}
+                  </th>
+                  <th scope="col" className="py-2 text-right font-medium">
+                    {t("optionFee")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {overview.options.rows.map((r) => (
+                  <tr key={r.optionId} className="border-t border-line">
+                    <th scope="row" className="py-2 pr-3 text-left font-semibold">
+                      {r.name}
+                    </th>
+                    <td className="py-2 pr-3">{r.eventTitle}</td>
+                    <td className="py-2 text-right tabular-nums">{r.sold}</td>
+                    <td className="py-2 text-right tabular-nums">{r.redeemed}</td>
+                    <td className="py-2 text-right tabular-nums">{money(r.amountMinor)}</td>
+                    <td className="py-2 text-right tabular-nums">{r.feeMinor ? `−${money(r.feeMinor)}` : "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-line font-semibold">
+                  <th scope="row" colSpan={2} className="py-2 pr-3 text-left">
+                    {t("optionTotal")}
+                  </th>
+                  <td className="py-2 text-right tabular-nums">{overview.options.totals.sold}</td>
+                  <td className="py-2 text-right tabular-nums">{overview.options.totals.redeemed}</td>
+                  <td className="py-2 text-right tabular-nums">{money(overview.options.totals.amountMinor)}</td>
+                  <td className="py-2 text-right tabular-nums">{overview.options.totals.feeMinor ? `−${money(overview.options.totals.feeMinor)}` : "-"}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </Card>
+      ) : null}
+
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="grid content-start gap-3">
           <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("stripeTitle")}</h2>

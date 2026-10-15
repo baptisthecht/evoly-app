@@ -1758,7 +1758,17 @@
     "dispute_UNDER_REVIEW": "In onderzoek",
     "dispute_WON": "Gewonnen",
     "dispute_LOST": "Verloren",
-    "answerDisputes": "Antwoorden in Stripe"
+    "answerDisputes": "Antwoorden in Stripe",
+    "optionsTitle": "Opties en consumpties",
+    "optionsHint": "Brutobedragen, al inbegrepen in de totalen hierboven: een terugbetaling vermeldt niet op welke optie ze betrekking heeft.",
+    "exportOptions": "Opties exporteren",
+    "optionCol": "Optie",
+    "optionEventCol": "Evenement",
+    "optionSold": "Verkocht",
+    "optionRedeemed": "Afgehaald",
+    "optionAmount": "Bedrag",
+    "optionFee": "Commissie",
+    "optionTotal": "Totaal"
   },
   "settings": {
     "title": "Instellingen",
