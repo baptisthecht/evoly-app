@@ -2,10 +2,11 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 160 · fait : 160 · partiel : 7 · à faire : 14 · hors périmètre : 2.
+**Bilan** : fait, testé : 167 · fait : 164 · partiel : 7 · à faire : 14 · hors périmètre : 2.
 
 ## Écarts connus
 
+- **Kit d'installation de salle** (section 9.33) : livré (étiquettes, guide de pose, page test) ; « Commander l'impression » (RG-ETIQ-09) pour plus tard, avec l'impression à la demande.
 - **Lieux partenaires** (section 9.32) : inscrits au cahier des charges le 13 octobre 2026, à développer ; décisions en section 17.
 - **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement et statistiques (RG-OPT-05, 07, 08), vestiaire seul (RG-OPT-03), détail du rapport de caisse par appareil (RG-POS-07), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05), suppression de la liste d'attente après l'événement (RG-ATT-05). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
@@ -358,3 +359,14 @@
 | RG-LIEU-08 | P2 | si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fo | à faire | section 9.32, à développer |
 | RG-ADM-01 | P1 | accès complet à la base (pgAdmin) réservé aux administrateurs, derrière la session Evoly et la double authentification | fait, testé | route.ts, db-access.test.ts, Caddyfile, compose.yaml |
 | RG-ADM-02 | P1 | le back-office n'écrase jamais un abonnement Stripe en cours ; erreur affichée en clair | fait, testé | platform.ts, billing.ts, actions.ts, admin-plan-stripe.test.ts, admin-offres.spec.ts |
+| US-ETIQ-01 | P2 | en tant qu'organisateur, j'imprime des étiquettes à mes couleurs pour numéroter mes chaises d'après mon plan de salle, d | fait, testé | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| US-ETIQ-02 | P2 | en tant qu'organisateur, j'imprime un guide de pose pour mon équipe : plan de pose, nombre de chaises par rang, feuille | fait, testé | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| US-ETIQ-03 | P2 | en tant qu'organisateur, j'imprime des panneaux de rang et de zone. | fait, testé | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| RG-ETIQ-01 | P2 | réservé à l'offre Pro (comme le plan de salle) ; généré à partir du plan de l'événement, sans ressaisie : rangs et place | fait, testé | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| RG-ETIQ-02 | P2 | formats : planches d'autocollants de 24 (3 × 8, 70 × 37 mm), 21 (3 × 7, 63,5 × 38,1 mm) et 8 (2 × 4, 105 × 74 mm) étique | fait, testé | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| RG-ETIQ-03 | P2 | contenu : rang et place en très grand, lisibles dans une salle sombre ; nom du bloc ; logo et couleurs de l'organisation | fait, testé | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| RG-ETIQ-04 | P2 | modèles au choix, avec un aperçu avant le téléchargement : Classique, Contraste (noir sur blanc), Couleur de zone (bande | fait | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| RG-ETIQ-05 | P2 | ordre de pose : bloc par bloc, rang par rang, places dans leur ordre réel sur le rang (positions du plan), de gauche à d | fait, testé | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| RG-ETIQ-06 | P2 | deux fichiers pour ne jamais changer de papier en cours d'impression : « Étiquettes » (planches) et « Guide de pose » (p | fait | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| RG-ETIQ-07 | P2 | sol : le panneau de zone se colle aux murs et aux portes ; pour le sol, le guide conseille un support adapté (vinyle ant | fait | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| RG-ETIQ-08 | P2 | mots fixes (Rang, Place, Zone, Table, Réservé…) dans la langue de l'événement, parmi les 7 langues. | fait | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |

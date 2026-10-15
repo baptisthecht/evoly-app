@@ -156,4 +156,19 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await expect(page.getByText("Vendue", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Changer de modèle" }).isDisabled();
   await expect(page.getByLabel("Numéro de la place")).toBeDisabled();
+
+  // kit d'installation de salle (section 9.33) : depuis le plan, aperçu, avertissement « non réutilisable », trois PDF
+  await page.getByRole("link", { name: "Imprimer les étiquettes" }).click();
+  await expect(page.getByRole("heading", { name: "Imprimer les étiquettes" })).toBeVisible();
+  await expect(page.getByText(/^\d+ étiquettes · \d+ feuilles$/)).toBeVisible();
+  const avertissement = page.getByText(/ces étiquettes ne pourront pas resservir/);
+  await expect(avertissement).toBeHidden(); // réutilisables par défaut
+  await page.getByLabel("Afficher le nom de l'événement").check();
+  await expect(avertissement).toBeVisible();
+  const kit = page.url().replace(/\/etiquettes.*$/, "");
+  for (const f of ["etiquettes.pdf?format=a4-21&modele=zone&evenement=1", "guide-de-pose.pdf", "page-test.pdf?format=a4-8"]) {
+    const r = await page.request.get(`${kit}/${f}`);
+    expect(r.status(), f).toBe(200);
+    expect(r.headers()["content-type"]).toBe("application/pdf");
+  }
 });

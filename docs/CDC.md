@@ -1393,6 +1393,29 @@ Beaucoup de lieux (salles de fêtes, salles de concert, clubs) accueillent des o
 - RG-LIEU-07 : fiscalité à valider avec l'expert-comptable : le lieu facture sa part ; TVA belge à 21 % non récupérable sous la franchise d'Evoly ; autoliquidation pour un lieu d'un autre pays de l'Union européenne.
 - RG-LIEU-08 : si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fois.
 
+### 9.33 Kit d'installation de salle : étiquettes de place et guide de pose (P2, Pro)
+
+Beaucoup d'organisateurs posent des chaises non numérotées. Evoly vend pourtant des places numérotées d'après le plan de salle : le kit relie ce plan à la salle réelle. À partir du plan de l'événement, sans rien ressaisir, l'organisateur imprime sur une imprimante de bureau des étiquettes à coller sur les chaises, dans l'ordre de pose, et un guide de pose pour son équipe.
+
+**User stories**
+
+- US-ETIQ-01 : en tant qu'organisateur, j'imprime des étiquettes à mes couleurs pour numéroter mes chaises d'après mon plan de salle, dans l'ordre où mon équipe les colle.
+- US-ETIQ-02 : en tant qu'organisateur, j'imprime un guide de pose pour mon équipe : plan de pose, nombre de chaises par rang, feuille de route qui dit quelle feuille d'étiquettes va sur quel rang.
+- US-ETIQ-03 : en tant qu'organisateur, j'imprime des panneaux de rang et de zone.
+- US-ETIQ-04 (plus tard) : en tant qu'organisateur sans imprimante, je commande l'impression et la livraison de mes étiquettes à Evoly.
+
+**Règles de gestion**
+
+- RG-ETIQ-01 : réservé à l'offre Pro (comme le plan de salle) ; généré à partir du plan de l'événement, sans ressaisie : rangs et places de rangées, places des tables (« Table 12 · Place 3 »), zones debout en panneaux de zone seulement.
+- RG-ETIQ-02 : formats : planches d'autocollants de 24 (3 × 8, 70 × 37 mm), 21 (3 × 7, 63,5 × 38,1 mm) et 8 (2 × 4, 105 × 74 mm) étiquettes, grille personnalisée (lignes, colonnes, marges, espacement), papier normal avec traits de coupe ; page test d'alignement ; impression à 100 %, sans ajustement à la page, rappelée à l'écran et dans le guide.
+- RG-ETIQ-03 : contenu : rang et place en très grand, lisibles dans une salle sombre ; nom du bloc ; logo et couleurs de l'organisation (marque blanche) ; icône des places pour personne à mobilité réduite ; places bloquées marquées « Réservé ». Le nom de l'événement est une option désactivée par défaut, pour que les étiquettes servent d'un événement à l'autre ; cochée, elle avertit que les étiquettes ne seront pas réutilisables.
+- RG-ETIQ-04 : modèles au choix, avec un aperçu avant le téléchargement : Classique, Contraste (noir sur blanc), Couleur de zone (bandeau à la couleur de la catégorie), Économe (sans aplat, lisible en noir et blanc).
+- RG-ETIQ-05 : ordre de pose : bloc par bloc, rang par rang, places dans leur ordre réel sur le rang (positions du plan), de gauche à droite face à la scène ; on peut n'imprimer qu'un bloc ou un rang, par exemple pour remplacer une étiquette abîmée.
+- RG-ETIQ-06 : deux fichiers pour ne jamais changer de papier en cours d'impression : « Étiquettes » (planches) et « Guide de pose » (papier normal : mode d'emploi, plan de pose, nombre de chaises par rang et au total, feuille de route feuille par feuille avec un mini-plan qui surligne le rang, panneaux de rang deux par feuille A4, panneaux de zone en A4 ronds ou rectangulaires). Sur les planches qui ont une marge, un repère « Feuille 3/12 · Rang C » évite de mélanger les feuilles.
+- RG-ETIQ-07 : sol : le panneau de zone se colle aux murs et aux portes ; pour le sol, le guide conseille un support adapté (vinyle antidérapant, plastification) : jamais un autocollant de papier au sol.
+- RG-ETIQ-08 : mots fixes (Rang, Place, Zone, Table, Réservé…) dans la langue de l'événement, parmi les 7 langues.
+- RG-ETIQ-09 (plus tard, impression à la demande) : « Commander l'impression » : Evoly imprime et expédie dans une enveloppe A4. Prix par étiquette (proposition : 0,10 €), frais d'envoi selon le pays et minimum de commande ; date limite avant l'événement (proposition : 7 jours en Belgique, 10 vers la France) ; paiement par Stripe ; suivi dans le back-office (imprimée, envoyée, numéro de suivi) et e-mails à l'organisateur. Prérequis : conditions générales (livraison, produit personnalisé exclu du droit de rétractation, réimpressions) et avis de l'expert-comptable sur la TVA. Ensuite : un imprimeur en ligne qui expédie directement, avec des supports durables (vinyle de sol).
+
 ## 10. Catalogue des e-mails
 
 Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la file de tâches. Catégories : **T** transactionnel (toujours envoyé), **S** service (respecte la désinscription de l'événement), **M** marketing (consentement requis).
@@ -1601,6 +1624,8 @@ La v1 ne contient que des données de test : **scénario A retenu**.
 8. **Lancement** : documents légaux, sécurité (test d'intrusion), charge, accessibilité, migration, bêta privée avec quelques organisateurs, ouverture.
 
 9. **Conquête** (avant la prospection de masse) : options et consommations prépayées (socle des tables et forfaits), liste d'attente, ambassadeurs, billetterie intégrable, vente sur place par QR code et en espèces, tables et forfaits ; puis application mobile native et paiement sans contact sur le téléphone de l'équipe.
+
+10. **Installation de salle** : kit d'impression (étiquettes de place à la marque de l'organisation dans l'ordre de pose, guide de pose, panneaux de rang et de zone, section 9.33). Plus tard, **impression à la demande** : « Commander l'impression » (Evoly imprime et expédie), puis un imprimeur en ligne (RG-ETIQ-09).
 
 Chaque étape se termine par une démonstration et le passage des tests de la section 14.
 

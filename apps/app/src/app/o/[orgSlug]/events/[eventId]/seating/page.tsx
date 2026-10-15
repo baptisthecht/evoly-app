@@ -28,6 +28,9 @@ export default async function SeatingPage({ params }: { params: Promise<{ orgSlu
   return (
     <div className="grid gap-4">
       <p className="max-w-3xl text-ink-muted">{t("intro")}</p>
+      <a href={`/o/${orgSlug}/events/${eventId}/etiquettes`} className="w-fit text-sm font-semibold underline underline-offset-4">
+        {(await getTranslations("seatKit"))("openKit")}
+      </a>
       <SeatingEditor
         orgSlug={orgSlug}
         eventId={eventId}
