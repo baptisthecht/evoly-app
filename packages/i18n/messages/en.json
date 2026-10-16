@@ -2610,7 +2610,12 @@
     "inactive": "Disabled",
     "activate": "Enable",
     "deactivate": "Disable",
-    "export": "Export the leaderboard (CSV)"
+    "export": "Export the leaderboard (CSV)",
+    "scopeLabel": "Ranking scope",
+    "scopeEvent": "This event",
+    "scopeOrg": "Whole organisation",
+    "orgHint": "One line per person, across all events: same email, or same name without email.",
+    "orgEvents": "{count, plural, one {# event} other {# events}}"
   },
   "ambassador": {
     "title": "Your sales, {name}",

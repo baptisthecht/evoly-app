@@ -2,13 +2,13 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 171 · fait : 164 · partiel : 4 · à faire : 13 · hors périmètre : 2.
+**Bilan** : fait, testé : 172 · fait : 164 · partiel : 3 · à faire : 13 · hors périmètre : 2.
 
 ## Écarts connus
 
 - **Kit d'installation de salle** (section 9.33) : livré (étiquettes, guide de pose, page test) ; « Commander l'impression » (RG-ETIQ-09) pour plus tard, avec l'impression à la demande.
 - **Lieux partenaires** (section 9.32) : inscrits au cahier des charges le 13 octobre 2026, à développer ; décisions en section 17.
-- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement (RG-OPT-05, 07), vestiaire seul (RG-OPT-03), code promo et classement d'organisation des ambassadeurs (RG-AMB-01, 05). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
+- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement (RG-OPT-05, 07), vestiaire seul (RG-OPT-03), code promo des ambassadeurs (RG-AMB-01). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
 
 ## Détail
@@ -312,7 +312,7 @@
 | RG-AMB-02 | | la commande est attribuée au lien d'ambassadeur ouvert pour la visite (code lu dans l'adresse), puis inscrite sur la com | fait, testé | ambassadors.test.ts, ambassadors.ts, conquete.spec.ts |
 | RG-AMB-03 | | une commande compte pour un seul ambassadeur ; remboursements et annulations sont retirés du classement. | fait, testé | ambassadors.test.ts, ambassadors.ts |
 | RG-AMB-04 | | l'ambassadeur suit ses ventes par un lien privé, sans compte ; il ne voit jamais les données des acheteurs. | fait, testé | ambassadors.test.ts, ambassadors.ts, conquete.spec.ts, page.tsx |
-| RG-AMB-05 | | classement par nombre de billets et par montant, par événement ou sur toute l'organisation ; objectif et récompense affi | partiel | classement par événement ; sur l'organisation à faire (testé) |
+| RG-AMB-05 | | classement par nombre de billets et par montant, par événement ou sur toute l'organisation ; objectif et récompense affi | fait, testé | par événement et sur toute l'organisation, une ligne par personne (ambassadors.ts, people.ts, ambassadors-org.test.ts, conquete.spec.ts) |
 | RG-AMB-06 | | réservé à l'offre Pro, sans limite d'ambassadeurs. | fait, testé | ambassadors.test.ts |
 | RG-AMB-07 | | données de l'ambassadeur limitées à son nom et, s'il le souhaite, à son e-mail ; supprimées selon les durées de conserva | fait, testé | nom et e-mail facultatif, anonymisés 12 mois après l'événement (retention.ts, retention-conquete.test.ts) |
 | US-OPT-01 | | en tant qu'organisateur, je propose avec le billet des options : jetons boisson, vestiaire, t-shirt, parking, repas, bou | fait | section 9.26 à 9.31 |
@@ -324,7 +324,7 @@
 | RG-OPT-03 | | les options achetées sont rattachées au billet et à son QR code ; un QR code de retrait est émis pour des options acheté | partiel | options sur le billet ; vestiaire seul à faire (testé) |
 | RG-OPT-04 | | retrait par le scanner, en mode « Bar et options » : le scan affiche les options restantes, l'équipe retire la quantité | fait, testé | options.test.ts, options.ts |
 | RG-OPT-05 | | retrait possible hors ligne ; à la reconnexion, un retrait en double est signalé à l'organisateur, comme pour le scan de | à faire | retrait hors ligne |
-| RG-OPT-06 | | commission sur les options à valider (section 17) ; proposition : 2 % du prix, sans part fixe, avec le même plafond que | fait, testé | coverage-gaps.test.ts, fees.ts, options.test.ts |
+| RG-OPT-06 | | commission sur les options : 2 % du prix, sans part fixe, même plafond que les billets (validé le 16 octobre 2026) | fait, testé | coverage-gaps.test.ts, fees.ts, options.test.ts |
 | RG-OPT-07 | | les options non retirées sont remboursables jusqu'au début de l'événement ; après, elles ne le sont plus, sauf réglage c | à faire | remboursement des options non retirées |
 | RG-OPT-08 | | options et retraits apparaissent dans les statistiques, les exports et les relevés. | fait, testé | finances, exports et factures mensuelles (« dont options ») : finances.ts, options-finances.test.ts, finances.spec.ts |
 | RG-OPT-09 | | réservé à l'offre Pro ; les options déjà vendues restent retirables si l'organisation repasse en Free. | fait, testé | options.test.ts, options.ts |

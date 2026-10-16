@@ -1,6 +1,6 @@
 import "server-only";
 import { randomBytes, randomInt } from "node:crypto";
-import { CoreError, hasFeature } from "@evoly/core";
+import { CoreError, hasFeature, personKey } from "@evoly/core";
 import { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -98,6 +98,49 @@ export async function ambassadorRanking(eventId: string) {
   return ambassadors
     .map((a) => ({ ...a, ...(sums.get(a.id) ?? { tickets: 0, amountMinor: 0 }) }))
     .sort((x, y) => y.tickets - x.tickets || y.amountMinor - x.amountMinor || x.createdAt.getTime() - y.createdAt.getTime());
+}
+
+/**
+ * Classement sur toute l'organisation (RG-AMB-05) : mêmes billets que le classement par événement, une ligne par personne
+ * (même e-mail, ou même nom sans e-mail), tous événements confondus ; les ambassadeurs anonymisés n'y figurent plus.
+ */
+export async function organizationAmbassadorRanking(ctx: OrgContext) {
+  if (!hasFeature(ctx.features, "AMBASSADORS")) throw new CoreError("FEATURE_UNAVAILABLE");
+  const ambassadors = await db.ambassador.findMany({
+    where: { event: { organizationId: ctx.organization.id }, NOT: { statsToken: { startsWith: "anonyme-" } } },
+    select: { id: true, name: true, email: true, eventId: true, createdAt: true },
+    orderBy: { createdAt: "asc" },
+  });
+  const tickets = ambassadors.length
+    ? await db.ticket.findMany({
+        where: {
+          order: { ambassadorId: { in: ambassadors.map((a) => a.id) } },
+          OR: [{ status: { in: ["VALID", "CHECKED_IN"] } }, { status: "VOID", voidReason: "RESOLD" }],
+        },
+        select: { faceValueMinor: true, order: { select: { ambassadorId: true } } },
+      })
+    : [];
+  const sums = new Map<string, { tickets: number; amountMinor: number }>();
+  for (const t of tickets) {
+    const cur = sums.get(t.order.ambassadorId!) ?? { tickets: 0, amountMinor: 0 };
+    sums.set(t.order.ambassadorId!, { tickets: cur.tickets + 1, amountMinor: cur.amountMinor + t.faceValueMinor });
+  }
+  const people = new Map<string, { key: string; name: string; events: Set<string>; tickets: number; amountMinor: number; since: Date }>();
+  for (const a of ambassadors) {
+    const key = personKey(a.name, a.email);
+    const p = people.get(key) ?? { key, name: a.name, events: new Set<string>(), tickets: 0, amountMinor: 0, since: a.createdAt };
+    p.name = a.name; // le nom le plus récent
+    p.events.add(a.eventId);
+    const sum = sums.get(a.id);
+    if (sum) {
+      p.tickets += sum.tickets;
+      p.amountMinor += sum.amountMinor;
+    }
+    people.set(key, p);
+  }
+  return [...people.values()]
+    .map((p) => ({ key: p.key, name: p.name, events: p.events.size, tickets: p.tickets, amountMinor: p.amountMinor, since: p.since }))
+    .sort((x, y) => y.tickets - x.tickets || y.amountMinor - x.amountMinor || x.since.getTime() - y.since.getTime());
 }
 
 const statsUrl = (token: string) => `${env().NEXT_PUBLIC_APP_URL}/ambassadeur/${token}`;

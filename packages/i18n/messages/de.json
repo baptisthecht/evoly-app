@@ -2610,7 +2610,12 @@
     "inactive": "Deaktiviert",
     "activate": "Aktivieren",
     "deactivate": "Deaktivieren",
-    "export": "Rangliste exportieren (CSV)"
+    "export": "Rangliste exportieren (CSV)",
+    "scopeLabel": "Umfang der Rangliste",
+    "scopeEvent": "Diese Veranstaltung",
+    "scopeOrg": "Gesamte Organisation",
+    "orgHint": "Eine Zeile pro Person über alle Veranstaltungen: gleiche E-Mail oder gleicher Name ohne E-Mail.",
+    "orgEvents": "{count, plural, one {# Veranstaltung} other {# Veranstaltungen}}"
   },
   "ambassador": {
     "title": "Ihre Verkäufe, {name}",

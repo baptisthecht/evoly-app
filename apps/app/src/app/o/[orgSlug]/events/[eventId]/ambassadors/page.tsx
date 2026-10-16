@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { CopyButton } from "@/components/CopyButton";
 import { ProLocked } from "@/components/ProLocked";
 import { Badge, Card, EmptyState } from "@/components/ui/Card";
-import { listAmbassadors } from "@/server/ambassadors";
+import { listAmbassadors, organizationAmbassadorRanking } from "@/server/ambassadors";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { AmbassadorCommand, AmbassadorForm } from "./AmbassadorForm";
@@ -16,7 +16,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Ambassadeurs de l'événement : liens de vente, classement, export (section 9.28, Pro). */
-export default async function AmbassadorsPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function AmbassadorsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+  searchParams: Promise<{ portee?: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
@@ -32,9 +38,52 @@ export default async function AmbassadorsPage({ params }: { params: Promise<{ or
   const rows = await listAmbassadors(ctx, eventId);
   const locale = (await getLocale()) as Locale;
   const manage = can(ctx.membership, "PROMO_MANAGE") && !ctx.readOnly;
+  // classement : cet événement, ou toute l'organisation (RG-AMB-05)
+  const scope = (await searchParams).portee === "organisation" ? "org" : "event";
+  const base = `/o/${orgSlug}/events/${eventId}/ambassadors`;
+  const tab = (active: boolean) => `rounded-full px-4 py-2 ${active ? "bg-[var(--evoly-charbon)] text-[var(--evoly-creme)]" : "ring-1 ring-current"}`;
+  const nav = (
+    <nav aria-label={t("scopeLabel")} className="flex flex-wrap gap-2 text-sm font-semibold">
+      <a href={base} aria-current={scope === "event" ? "page" : undefined} className={tab(scope === "event")}>
+        {t("scopeEvent")}
+      </a>
+      <a href={`${base}?portee=organisation`} aria-current={scope === "org" ? "page" : undefined} className={tab(scope === "org")}>
+        {t("scopeOrg")}
+      </a>
+    </nav>
+  );
+  if (scope === "org") {
+    const people = await organizationAmbassadorRanking(ctx);
+    return (
+      <div className="grid max-w-4xl gap-4">
+        <p className="text-ink-muted">{t("intro")}</p>
+        {nav}
+        <p className="text-sm text-ink-muted">{t("orgHint")}</p>
+        {people.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
+        <ol className="grid gap-3">
+          {people.map((p, i) => (
+            <li key={p.key}>
+              <Card className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">
+                    {i + 1}. {p.name}
+                  </p>
+                  <p className="text-sm text-ink-muted">{t("orgEvents", { count: p.events })}</p>
+                </div>
+                <p className="tabular-nums">
+                  {t("tickets", { count: p.tickets })} · {formatMoney(p.amountMinor, ctx.organization.currency, locale, { trimZeroCents: true })}
+                </p>
+              </Card>
+            </li>
+          ))}
+        </ol>
+      </div>
+    );
+  }
   return (
     <div className="grid max-w-4xl gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
+      {nav}
       {rows.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
       {rows.length > 0 ? (
         <a href={`/o/${orgSlug}/events/${eventId}/ambassadors/export`} className="justify-self-start text-sm font-semibold underline underline-offset-4">

@@ -1319,7 +1319,7 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 - RG-OPT-03 : les options achetées sont rattachées au billet et à son QR code ; un QR code de retrait est émis pour des options achetées sans billet (vestiaire seul, par exemple).
 - RG-OPT-04 : retrait par le scanner, en mode « Bar et options » : le scan affiche les options restantes, l'équipe retire la quantité servie ; chaque retrait est journalisé (appareil, membre, heure).
 - RG-OPT-05 : retrait possible hors ligne ; à la reconnexion, un retrait en double est signalé à l'organisateur, comme pour le scan des billets.
-- RG-OPT-06 : commission sur les options à valider (section 17) ; proposition : 2 % du prix, sans part fixe, avec le même plafond que les billets.
+- RG-OPT-06 : commission sur les options : 2 % du prix, sans part fixe, avec le même plafond que les billets (validé le 16 octobre 2026).
 - RG-OPT-07 : les options non retirées sont remboursables jusqu'au début de l'événement ; après, elles ne le sont plus, sauf réglage contraire de l'organisateur.
 - RG-OPT-08 : options et retraits apparaissent dans les statistiques, les exports et les relevés.
 - RG-OPT-09 : réservé à l'offre Pro ; les options déjà vendues restent retirables si l'organisation repasse en Free.

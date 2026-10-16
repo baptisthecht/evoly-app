@@ -2610,7 +2610,12 @@
     "inactive": "Disattivato",
     "activate": "Riattiva",
     "deactivate": "Disattiva",
-    "export": "Esporta la classifica (CSV)"
+    "export": "Esporta la classifica (CSV)",
+    "scopeLabel": "Ambito della classifica",
+    "scopeEvent": "Questo evento",
+    "scopeOrg": "Tutta l'organizzazione",
+    "orgHint": "Una riga per persona, su tutti gli eventi: stessa e-mail, o stesso nome senza e-mail.",
+    "orgEvents": "{count, plural, one {# evento} other {# eventi}}"
   },
   "ambassador": {
     "title": "Le tue vendite, {name}",

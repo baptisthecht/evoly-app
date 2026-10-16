@@ -67,6 +67,11 @@ test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page priv
   await page.goto(appUrl(`/ambassadeur/${statsToken}`));
   await expect(page.getByRole("heading", { name: "Vos ventes, Marie Dupont" })).toBeVisible();
   await expect(page.getByText("6", { exact: true }).first()).toBeVisible();
+  // classement sur toute l'organisation (RG-AMB-05)
+  await page.goto(`${eventUrl}/ambassadors?portee=organisation`);
+  await expect(page.getByRole("link", { name: "Toute l'organisation" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByText(/^1\. Marie Dupont$/)).toBeVisible();
+  await expect(page.getByText(/^6 billets · /)).toBeVisible();
 
   // billetterie intégrable (section 9.26) : cadre autorisé seulement sur le site déclaré
   await page.goto(`${eventUrl}/embed`);

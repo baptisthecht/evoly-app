@@ -2610,7 +2610,12 @@
     "inactive": "Uitgeschakeld",
     "activate": "Inschakelen",
     "deactivate": "Uitschakelen",
-    "export": "Klassement exporteren (CSV)"
+    "export": "Klassement exporteren (CSV)",
+    "scopeLabel": "Bereik van het klassement",
+    "scopeEvent": "Dit evenement",
+    "scopeOrg": "Hele organisatie",
+    "orgHint": "Eén regel per persoon, over alle evenementen: zelfde e-mail, of zelfde naam zonder e-mail.",
+    "orgEvents": "{count, plural, one {# evenement} other {# evenementen}}"
   },
   "ambassador": {
     "title": "Jouw verkoop, {name}",
