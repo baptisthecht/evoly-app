@@ -254,7 +254,10 @@ export async function reserveOrder(
       now,
       { unlocksHidden: !!promo?.unlocksHidden },
     );
-    if (errors.length > 0) throw new CartRejected(errors);
+    // RG-OPT-03 : options seules (vestiaire seul…) : aucun billet, et seulement des options vendables sans billet (contrôlées au chiffrage)
+    const optionsOnly = input.lines.length === 0 && (input.options ?? []).some((o) => o.quantity > 0);
+    const kept = optionsOnly ? errors.filter((e) => e.code !== "EMPTY_CART") : errors;
+    if (kept.length > 0) throw new CartRejected(kept);
     const plan = plans[effectivePlan(event.organization.subscription, now)];
     const terms = plan.terms[event.currency];
     if (!terms) throw new CoreError("CURRENCY_NOT_SUPPORTED");
@@ -282,6 +285,7 @@ export async function reserveOrder(
           terms,
           now,
           hasFeature(plans[effectivePlan(event.organization.subscription, now)].features, "PREPAID_OPTIONS"),
+          optionsOnly,
         )
       : NO_OPTIONS;
     if (!meetsMinimumCharge(priced.totalMinor + opts.subtotalMinor, event.currency)) throw new CoreError("BELOW_MINIMUM_CHARGE");
@@ -325,6 +329,7 @@ export async function reserveOrder(
         buyerLocale: input.locale,
         currency: event.currency,
         ambassadorId,
+        ...(optionsOnly ? { optionsCode: secretToken(24), optionsShortCode: ticketShortCode() } : {}), // QR code de retrait des options (RG-OPT-03)
         subtotalMinor: priced.subtotalMinor + opts.subtotalMinor,
         discountMinor: priced.discountMinor,
         totalMinor: priced.totalMinor + opts.subtotalMinor,

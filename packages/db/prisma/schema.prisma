@@ -952,6 +952,8 @@ model Order {
   soldByDeviceId String? // appareil de la vente sur place (RG-POS-07)
   soldBy        ScannerLink? @relation("BoxOfficeSales", fields: [soldByLinkId], references: [id], onDelete: SetNull)
   ambassadorId String? // ambassadeur dont le lien a amené la commande (section 9.28)
+  optionsCode String? @unique // QR code de retrait d'options achetées sans billet (RG-OPT-03)
+  optionsShortCode String? @unique // son code court
   ambassador   Ambassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
   options      OrderOption[]
   friendCode          String?            @unique // « Réserver à côté de mes amis » : lien partagé par l'acheteur
@@ -1957,6 +1959,7 @@ model EventOption {
   priceMinor  Int
   stock       Int? // sans limite si vide
   maxPerOrder Int           @default(10)
+  standalone Boolean @default(false) // vendable sans billet : vestiaire seul… (RG-OPT-03)
   active      Boolean       @default(true)
   sortOrder   Int           @default(0)
   createdAt   DateTime      @default(now())

@@ -93,8 +93,9 @@ export async function processRefund(refundId: string, options: { notify?: boolea
         if (ok !== 1) throw new CoreError("OPTION_NOT_REFUNDABLE");
       }
       const live = await tx.ticket.count({ where: { orderId: refund.orderId, status: { in: ["VALID", "CHECKED_IN"] } } });
+      const everTickets = await tx.ticket.count({ where: { orderId: refund.orderId } }); // 0 : options achetées seules (RG-OPT-03)
       // plus aucun billet valide (tous remboursés, événement annulé) : les options non retirées sont remboursées avec eux (RG-OPT-07)
-      if (live === 0) {
+      if (live === 0 && everTickets > 0) {
         const lines = await tx.orderOption.findMany({
           where: { orderId: refund.orderId },
           select: { id: true, quantity: true, redeemed: true, refunded: true, unitPriceMinor: true },
@@ -112,7 +113,19 @@ export async function processRefund(refundId: string, options: { notify?: boolea
       }
       await tx.order.update({
         where: { id: refund.orderId },
-        data: { refundedMinor: { increment: refund.amountMinor + extra }, status: live === 0 ? "REFUNDED" : "PARTIALLY_REFUNDED" },
+        data: {
+          refundedMinor: { increment: refund.amountMinor + extra },
+          // options seules : remboursée quand toutes ses options l'ont été
+          status: (
+            everTickets > 0
+              ? live === 0
+              : (await tx.orderOption.findMany({ where: { orderId: refund.orderId }, select: { quantity: true, refunded: true } })).every(
+                  (l) => l.refunded >= l.quantity,
+                )
+          )
+            ? "REFUNDED"
+            : "PARTIALLY_REFUNDED",
+        },
       });
       await tx.refund.update({ where: { id: refund.id }, data: { status: "PROCESSING", processedAt: new Date() } });
     });

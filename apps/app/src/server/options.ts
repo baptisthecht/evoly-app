@@ -11,7 +11,7 @@ import { getPlans } from "./plans";
  * Options et consommations prépayées (section 9.29, Pro) : jetons boisson, vestiaire, t-shirt…
  * Des articles vendus avec le billet et retirés au bar sur un scan, jamais un solde d'argent (RG-OPT-02).
  */
-export type OptionFormInput = { name: string; description?: string; price: string; stock?: string; maxPerOrder?: string };
+export type OptionFormInput = { name: string; description?: string; price: string; stock?: string; maxPerOrder?: string; standalone?: boolean };
 export type RequestedOption = { optionId: string; quantity: number };
 export type PricedOptions = {
   lines: Array<{ optionId: string; name: string; quantity: number; unitPriceMinor: number; unitFeeMinor: number }>;
@@ -34,7 +34,7 @@ function parse(input: OptionFormInput, currency: string) {
   if (stock != null && (!Number.isInteger(stock) || stock < 0)) throw new CoreError("OPTION_STOCK_INVALID");
   const maxPerOrder = input.maxPerOrder?.trim() ? Number(input.maxPerOrder) : 10;
   if (!Number.isInteger(maxPerOrder) || maxPerOrder < 1 || maxPerOrder > 100) throw new CoreError("OPTION_MAX_INVALID");
-  return { name, description: input.description?.trim().slice(0, 300) || null, priceMinor, stock, maxPerOrder };
+  return { name, description: input.description?.trim().slice(0, 300) || null, priceMinor, stock, maxPerOrder, standalone: !!input.standalone };
 }
 
 export async function createOption(ctx: OrgContext, eventId: string, input: OptionFormInput) {
@@ -96,7 +96,7 @@ export async function publicOptions(eventId: string, features: readonly string[]
   });
   return options.map((o) => {
     const left = o.stock == null ? null : Math.max(0, o.stock - (used.find((u) => u.optionId === o.id)?._sum.quantity ?? 0));
-    return { id: o.id, name: o.name, description: o.description, priceMinor: o.priceMinor, maxPerOrder: o.maxPerOrder, left };
+    return { id: o.id, name: o.name, description: o.description, priceMinor: o.priceMinor, maxPerOrder: o.maxPerOrder, left, standalone: o.standalone };
   });
 }
 
@@ -122,6 +122,7 @@ export async function priceOptionsInTx(
   terms: FeeTerms,
   now: Date,
   allowed: boolean,
+  withoutTicket = false, // panier sans billet : seules les options vendables sans billet (RG-OPT-03)
 ): Promise<PricedOptions> {
   const wanted = new Map<string, number>();
   for (const r of requested) {
@@ -132,6 +133,7 @@ export async function priceOptionsInTx(
   if (!allowed) throw new CoreError("FEATURE_UNAVAILABLE");
   const options = await tx.eventOption.findMany({ where: { id: { in: [...wanted.keys()] }, eventId, active: true } });
   if (options.length !== wanted.size) throw new CoreError("OPTION_UNAVAILABLE");
+  if (withoutTicket && options.some((o) => !o.standalone)) throw new CoreError("OPTION_NEEDS_TICKET");
   const lines: PricedOptions["lines"] = [];
   for (const o of options) {
     const quantity = wanted.get(o.id)!;
