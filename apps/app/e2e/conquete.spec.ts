@@ -60,6 +60,12 @@ test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page priv
   await page.getByLabel("Nom").fill("Marie Dupont");
   await page.getByRole("button", { name: "Ajouter l'ambassadeur" }).click();
   await expect(page.getByText("Ambassadeur ajouté.")).toBeVisible();
+  // réduction associée au code de l'ambassadeur, puis retirée (RG-AMB-01)
+  await page.getByLabel("Valeur").fill("10");
+  await page.getByRole("button", { name: "Associer la réduction" }).click();
+  await expect(page.getByText("−10 %")).toBeVisible();
+  await page.getByRole("button", { name: "Retirer la réduction" }).click();
+  await expect(page.getByRole("button", { name: "Associer la réduction" })).toBeVisible();
   const code = sql(`select code from "Ambassador" where "eventId" = '${ev.eventId}'`);
   const statsToken = sql(`select "statsToken" from "Ambassador" where "eventId" = '${ev.eventId}'`);
   await buyFree(page, `${ev.url}?a=${code}`, "Fosse", 1, `client${id}@exemple.be`);

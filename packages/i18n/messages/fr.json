@@ -701,7 +701,9 @@
     "BOX_OFFICE_FORBIDDEN": "La vente sur place n'est pas autorisée avec ce lien.",
     "BOX_OFFICE_FAILED": "La vente n'a pas pu être enregistrée.",
     "TABLE_SIZE_INVALID": "Indiquez un nombre de personnes entre 1 et 30.",
-    "TABLE_LOCKED": "Des tables sont déjà vendues : le nombre de personnes ne peut plus changer."
+    "TABLE_LOCKED": "Des tables sont déjà vendues : le nombre de personnes ne peut plus changer.",
+    "AMBASSADOR_PROMO_EXISTS": "Cet ambassadeur a déjà une réduction.",
+    "PROMO_CODE_TAKEN": "Ce code est déjà utilisé par un autre code promo de cet événement."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -2615,7 +2617,15 @@
     "scopeEvent": "Cet événement",
     "scopeOrg": "Toute l'organisation",
     "orgHint": "Une ligne par personne, tous événements confondus : même e-mail, ou même nom sans e-mail.",
-    "orgEvents": "{count, plural, one {# événement} other {# événements}}"
+    "orgEvents": "{count, plural, one {# événement} other {# événements}}",
+    "promoLabel": "Code promo",
+    "promoHint": "Associez une réduction : le code {code} devient aussi un code promo. L'acheteur qui le saisit obtient la réduction, et la vente est attribuée à cet ambassadeur.",
+    "promoType": "Réduction",
+    "promoPercent": "Pourcentage",
+    "promoAmount": "Montant",
+    "promoValue": "Valeur",
+    "promoAdd": "Associer la réduction",
+    "promoRemove": "Retirer la réduction"
   },
   "ambassador": {
     "title": "Vos ventes, {name}",

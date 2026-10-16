@@ -806,6 +806,8 @@ model PromoCode {
   expiresAt       DateTime?
   unlocksHidden   Boolean      @default(false) // débloque les tarifs CODE_ONLY
   isActive        Boolean      @default(true)
+  ambassadorId String? @unique // code d'un ambassadeur, avec sa réduction (RG-AMB-01)
+  ambassador Ambassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -2025,6 +2027,7 @@ model Ambassador {
   createdAt  DateTime @default(now())
   event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   orders     Order[]
+  promoCode PromoCode?
 
   @@unique([eventId, code])
 }

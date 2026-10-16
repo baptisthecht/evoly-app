@@ -424,7 +424,9 @@
     "BOX_OFFICE_FORBIDDEN": "Der Verkauf vor Ort ist mit diesem Link nicht erlaubt.",
     "BOX_OFFICE_FAILED": "Der Verkauf konnte nicht erfasst werden.",
     "TABLE_SIZE_INVALID": "Geben Sie eine Personenzahl zwischen 1 und 30 an.",
-    "TABLE_LOCKED": "Es wurden bereits Tische verkauft: Die Personenzahl kann nicht mehr geändert werden."
+    "TABLE_LOCKED": "Es wurden bereits Tische verkauft: Die Personenzahl kann nicht mehr geändert werden.",
+    "AMBASSADOR_PROMO_EXISTS": "Dieser Botschafter hat bereits einen Rabatt.",
+    "PROMO_CODE_TAKEN": "Dieser Code wird bereits von einem anderen Aktionscode dieser Veranstaltung verwendet."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -2615,7 +2617,15 @@
     "scopeEvent": "Diese Veranstaltung",
     "scopeOrg": "Gesamte Organisation",
     "orgHint": "Eine Zeile pro Person über alle Veranstaltungen: gleiche E-Mail oder gleicher Name ohne E-Mail.",
-    "orgEvents": "{count, plural, one {# Veranstaltung} other {# Veranstaltungen}}"
+    "orgEvents": "{count, plural, one {# Veranstaltung} other {# Veranstaltungen}}",
+    "promoLabel": "Aktionscode",
+    "promoHint": "Verknüpfen Sie einen Rabatt: Der Code {code} wird auch zum Aktionscode. Wer ihn eingibt, erhält den Rabatt, und der Verkauf wird diesem Botschafter zugerechnet.",
+    "promoType": "Rabatt",
+    "promoPercent": "Prozent",
+    "promoAmount": "Betrag",
+    "promoValue": "Wert",
+    "promoAdd": "Rabatt verknüpfen",
+    "promoRemove": "Rabatt entfernen"
   },
   "ambassador": {
     "title": "Ihre Verkäufe, {name}",

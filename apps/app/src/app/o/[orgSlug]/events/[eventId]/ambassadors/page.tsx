@@ -8,7 +8,7 @@ import { Badge, Card, EmptyState } from "@/components/ui/Card";
 import { listAmbassadors, organizationAmbassadorRanking } from "@/server/ambassadors";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
-import { AmbassadorCommand, AmbassadorForm } from "./AmbassadorForm";
+import { AmbassadorCommand, AmbassadorPromoForm, AmbassadorForm } from "./AmbassadorForm";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -127,6 +127,21 @@ export default async function AmbassadorsPage({
                   <span className="font-semibold">{t("statsLink")}</span>
                   <CopyButton value={a.statsUrl} label={t("copyStats")} />
                 </div>
+                {a.promo ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold">{t("promoLabel")}</span>
+                    <code className="rounded bg-surface-sunken px-2 py-1">{a.promo.code}</code>
+                    <span>
+                      {a.promo.percentOffBps != null
+                        ? `−${a.promo.percentOffBps / 100} %`
+                        : `−${formatMoney(a.promo.amountOffMinor ?? 0, event.currency, locale, { trimZeroCents: true })}`}
+                    </span>
+                    {!a.promo.isActive ? <Badge tone="neutral">{t("inactive")}</Badge> : null}
+                    {manage ? <AmbassadorCommand orgSlug={orgSlug} eventId={eventId} id={a.id} command="removePromo" label={t("promoRemove")} /> : null}
+                  </div>
+                ) : manage ? (
+                  <AmbassadorPromoForm orgSlug={orgSlug} eventId={eventId} id={a.id} code={a.code.toUpperCase()} />
+                ) : null}
               </div>
             </Card>
           </li>

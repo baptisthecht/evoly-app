@@ -8,7 +8,7 @@ import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
 import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, updateEventSettings } from "@/server/events";
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
 import { createOption, setOptionActive, updateOption } from "@/server/options";
-import { createAmbassador, setAmbassadorActive } from "@/server/ambassadors";
+import { createAmbassador, removeAmbassadorPromo, setAmbassadorActive, setAmbassadorPromo } from "@/server/ambassadors";
 import { addEmbedOrigin, removeEmbedOrigin } from "@/server/embed";
 import { saveTableSettings } from "@/server/tables";
 import { cancelListingByOrganizer } from "@/server/resale";
@@ -803,15 +803,38 @@ export async function createAmbassadorAction(orgSlug: string, eventId: string, _
   return result;
 }
 
+const ambassadorPromoSchema = z.object({ discountType: z.enum(["PERCENT", "AMOUNT"]), value: z.string().trim().min(1).max(12) });
+
+/** Réduction associée au code d'un ambassadeur (RG-AMB-01). */
+export async function ambassadorPromoAction(orgSlug: string, eventId: string, id: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: ambassadorPromoSchema, permission: "PROMO_MANAGE", feature: "AMBASSADORS" },
+    async (d, ctx) => {
+      await setAmbassadorPromo(
+        ctx,
+        eventId,
+        id,
+        d.discountType === "PERCENT" ? { discountType: "PERCENT", percent: d.value } : { discountType: "AMOUNT", amount: d.value },
+      );
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/ambassadors`);
+  return result;
+}
+
 export async function ambassadorCommandAction(
   orgSlug: string,
   eventId: string,
   id: string,
-  command: "activate" | "deactivate",
+  command: "activate" | "deactivate" | "removePromo",
   _: ActionState,
 ): Promise<ActionState> {
   const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "PROMO_MANAGE" }, async (_d, ctx) => {
-    await setAmbassadorActive(ctx, eventId, id, command === "activate");
+    if (command === "removePromo") await removeAmbassadorPromo(ctx, eventId, id);
+    else await setAmbassadorActive(ctx, eventId, id, command === "activate");
     return null;
   });
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/ambassadors`);

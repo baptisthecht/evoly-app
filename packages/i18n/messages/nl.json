@@ -424,7 +424,9 @@
     "BOX_OFFICE_FORBIDDEN": "Verkoop ter plaatse is niet toegestaan met deze link.",
     "BOX_OFFICE_FAILED": "De verkoop kon niet worden geregistreerd.",
     "TABLE_SIZE_INVALID": "Geef een aantal personen tussen 1 en 30 op.",
-    "TABLE_LOCKED": "Er zijn al tafels verkocht: het aantal personen kan niet meer veranderen."
+    "TABLE_LOCKED": "Er zijn al tafels verkocht: het aantal personen kan niet meer veranderen.",
+    "AMBASSADOR_PROMO_EXISTS": "Deze ambassadeur heeft al een korting.",
+    "PROMO_CODE_TAKEN": "Deze code wordt al gebruikt door een andere promotiecode van dit evenement."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -2615,7 +2617,15 @@
     "scopeEvent": "Dit evenement",
     "scopeOrg": "Hele organisatie",
     "orgHint": "Eén regel per persoon, over alle evenementen: zelfde e-mail, of zelfde naam zonder e-mail.",
-    "orgEvents": "{count, plural, one {# evenement} other {# evenementen}}"
+    "orgEvents": "{count, plural, one {# evenement} other {# evenementen}}",
+    "promoLabel": "Promotiecode",
+    "promoHint": "Koppel een korting: de code {code} wordt ook een promotiecode. Wie hem invoert krijgt de korting, en de verkoop gaat naar deze ambassadeur.",
+    "promoType": "Korting",
+    "promoPercent": "Percentage",
+    "promoAmount": "Bedrag",
+    "promoValue": "Waarde",
+    "promoAdd": "Korting koppelen",
+    "promoRemove": "Korting verwijderen"
   },
   "ambassador": {
     "title": "Jouw verkoop, {name}",

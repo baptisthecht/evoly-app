@@ -424,7 +424,9 @@
     "BOX_OFFICE_FORBIDDEN": "A venda no local não é permitida com esta ligação.",
     "BOX_OFFICE_FAILED": "Não foi possível registar a venda.",
     "TABLE_SIZE_INVALID": "Indique um número de pessoas entre 1 e 30.",
-    "TABLE_LOCKED": "Já foram vendidas mesas: o número de pessoas já não pode mudar."
+    "TABLE_LOCKED": "Já foram vendidas mesas: o número de pessoas já não pode mudar.",
+    "AMBASSADOR_PROMO_EXISTS": "Este embaixador já tem um desconto.",
+    "PROMO_CODE_TAKEN": "Este código já é usado por outro código promocional deste evento."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -2615,7 +2617,15 @@
     "scopeEvent": "Este evento",
     "scopeOrg": "Toda a organização",
     "orgHint": "Uma linha por pessoa, em todos os eventos: mesmo e-mail, ou mesmo nome sem e-mail.",
-    "orgEvents": "{count, plural, one {# evento} other {# eventos}}"
+    "orgEvents": "{count, plural, one {# evento} other {# eventos}}",
+    "promoLabel": "Código promocional",
+    "promoHint": "Associe um desconto: o código {code} passa também a ser um código promocional. Quem o introduz obtém o desconto e a venda é atribuída a este embaixador.",
+    "promoType": "Desconto",
+    "promoPercent": "Percentagem",
+    "promoAmount": "Montante",
+    "promoValue": "Valor",
+    "promoAdd": "Associar o desconto",
+    "promoRemove": "Retirar o desconto"
   },
   "ambassador": {
     "title": "As suas vendas, {name}",

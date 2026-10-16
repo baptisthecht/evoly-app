@@ -2,13 +2,13 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 172 · fait : 164 · partiel : 3 · à faire : 13 · hors périmètre : 2.
+**Bilan** : fait, testé : 173 · fait : 164 · partiel : 2 · à faire : 13 · hors périmètre : 2.
 
 ## Écarts connus
 
 - **Kit d'installation de salle** (section 9.33) : livré (étiquettes, guide de pose, page test) ; « Commander l'impression » (RG-ETIQ-09) pour plus tard, avec l'impression à la demande.
 - **Lieux partenaires** (section 9.32) : inscrits au cahier des charges le 13 octobre 2026, à développer ; décisions en section 17.
-- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement (RG-OPT-05, 07), vestiaire seul (RG-OPT-03), code promo des ambassadeurs (RG-AMB-01). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
+- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement (RG-OPT-05, 07), vestiaire seul (RG-OPT-03). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
 
 ## Détail
@@ -308,7 +308,7 @@
 | US-AMB-01 | | en tant qu'organisateur, je crée en quelques secondes un lien de vente pour chaque membre de mon équipe ou chaque promot | fait | section 9.26 à 9.31 |
 | US-AMB-02 | | en tant qu'ambassadeur, je partage mon lien, et je suis mes ventes et mon rang sans créer de compte. | fait | section 9.26 à 9.31 |
 | US-AMB-03 | | en tant qu'organisateur, je vois le classement des ventes par ambassadeur et j'en exporte les résultats. | fait | section 9.26 à 9.31 |
-| RG-AMB-01 | | chaque ambassadeur a un code unique et un lien de vente ; le code peut aussi servir de code promo si l'organisateur l'as | partiel | code et lien ; code promo associé à faire (testé) |
+| RG-AMB-01 | | chaque ambassadeur a un code unique et un lien de vente ; le code peut aussi servir de code promo si l'organisateur l'as | fait, testé | code et lien ; code promo associé, le code saisi l'emporte sur le lien (ambassadors.ts, checkout.ts, ambassador-promo.test.ts, conquete.spec.ts) |
 | RG-AMB-02 | | la commande est attribuée au lien d'ambassadeur ouvert pour la visite (code lu dans l'adresse), puis inscrite sur la com | fait, testé | ambassadors.test.ts, ambassadors.ts, conquete.spec.ts |
 | RG-AMB-03 | | une commande compte pour un seul ambassadeur ; remboursements et annulations sont retirés du classement. | fait, testé | ambassadors.test.ts, ambassadors.ts |
 | RG-AMB-04 | | l'ambassadeur suit ses ventes par un lien privé, sans compte ; il ne voit jamais les données des acheteurs. | fait, testé | ambassadors.test.ts, ambassadors.ts, conquete.spec.ts, page.tsx |

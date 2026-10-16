@@ -701,7 +701,9 @@
     "BOX_OFFICE_FORBIDDEN": "On-site sales are not allowed with this link.",
     "BOX_OFFICE_FAILED": "The sale could not be recorded.",
     "TABLE_SIZE_INVALID": "Enter a number of people between 1 and 30.",
-    "TABLE_LOCKED": "Tables have already been sold: the number of people can no longer change."
+    "TABLE_LOCKED": "Tables have already been sold: the number of people can no longer change.",
+    "AMBASSADOR_PROMO_EXISTS": "This ambassador already has a discount.",
+    "PROMO_CODE_TAKEN": "This code is already used by another promo code for this event."
   },
   "brand": {
     "sloganStart": "your next",
@@ -2615,7 +2617,15 @@
     "scopeEvent": "This event",
     "scopeOrg": "Whole organisation",
     "orgHint": "One line per person, across all events: same email, or same name without email.",
-    "orgEvents": "{count, plural, one {# event} other {# events}}"
+    "orgEvents": "{count, plural, one {# event} other {# events}}",
+    "promoLabel": "Promo code",
+    "promoHint": "Add a discount: the code {code} also becomes a promo code. Buyers who enter it get the discount, and the sale is credited to this ambassador.",
+    "promoType": "Discount",
+    "promoPercent": "Percentage",
+    "promoAmount": "Amount",
+    "promoValue": "Value",
+    "promoAdd": "Add the discount",
+    "promoRemove": "Remove the discount"
   },
   "ambassador": {
     "title": "Your sales, {name}",

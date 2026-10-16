@@ -1290,7 +1290,7 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 
 **Règles de gestion**
 
-- RG-AMB-01 : chaque ambassadeur a un code unique et un lien de vente ; le code peut aussi servir de code promo si l'organisateur l'associe à une réduction.
+- RG-AMB-01 : chaque ambassadeur a un code unique et un lien de vente ; le code peut aussi servir de code promo si l'organisateur l'associe à une réduction. La réduction suit l'état de l'ambassadeur ; retirée, elle est supprimée si elle n'a jamais servi, gardée désactivée sinon. _Décidé le 16 octobre 2026 : quand l'acheteur saisit le code promo d'un ambassadeur après avoir suivi le lien d'un autre, le code saisi l'emporte._
 - RG-AMB-02 : la commande est attribuée au lien d'ambassadeur ouvert pour la visite (code lu dans l'adresse), puis inscrite sur la commande ; rien n'est enregistré sur l'appareil de l'acheteur. _Décidé le 12 octobre 2026 : garder le lien 30 jours sur l'appareil demanderait le consentement de l'acheteur (directive « vie privée et communications électroniques »). Le souvenir de 30 jours pourra être activé avec un bandeau de consentement._
 - RG-AMB-03 : une commande compte pour un seul ambassadeur ; remboursements et annulations sont retirés du classement.
 - RG-AMB-04 : l'ambassadeur suit ses ventes par un lien privé, sans compte ; il ne voit jamais les données des acheteurs.

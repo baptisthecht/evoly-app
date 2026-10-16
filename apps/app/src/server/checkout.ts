@@ -195,7 +195,7 @@ export async function reserveOrder(
     });
     const types: TicketTypeForSale[] = event.ticketTypes.map((t) => ({ ...t, tiers: t.priceTiers }));
     // section 9.28 : commande attribuée à l'ambassadeur du lien, si l'organisation a l'offre Pro ; un code inconnu est ignoré
-    const ambassadorId =
+    let ambassadorId =
       input.ambassadorCode && hasFeature(plans[effectivePlan(event.organization.subscription, now)].features, "AMBASSADORS")
         ? await resolveAmbassadorInTx(tx, event.id, input.ambassadorCode)
         : null;
@@ -226,6 +226,11 @@ export async function reserveOrder(
         if (row!.usedCount + pending >= row!.maxUses) throw new PromoRejected("EXHAUSTED");
       }
       promo = row;
+      // RG-AMB-01 : le code promo d'un ambassadeur lui attribue la vente ; le code saisi l'emporte sur le lien suivi (décidé le 16 octobre 2026)
+      if (row!.ambassadorId && hasFeature(plans[effectivePlan(event.organization.subscription, now)].features, "AMBASSADORS")) {
+        const owner = await tx.ambassador.findUnique({ where: { id: row!.ambassadorId }, select: { active: true } });
+        if (owner?.active) ambassadorId = row!.ambassadorId;
+      }
     }
     // RG-PRV-02 : un code de prévente valable ouvre l\'achat avant l\'ouverture publique (dates d\'ouverture ignorées, pas les quotas ni les fermetures)
     const opening = salesOpeningAt(event);

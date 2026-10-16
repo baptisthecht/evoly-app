@@ -8,6 +8,7 @@ import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { findEvent } from "./events";
 import { eventPublicUrl } from "./urls";
+import { createPromo } from "./promos";
 
 /**
  * Ambassadeurs (section 9.28, Pro) : chaque membre de l'équipe ou promoteur a son lien de vente (?a=CODE) ; la commande est attribuée
@@ -67,6 +68,43 @@ export async function setAmbassadorActive(ctx: OrgContext, eventId: string, id: 
   await findEvent(ctx, eventId);
   const res = await db.ambassador.updateMany({ where: { id, eventId }, data: { active } });
   if (res.count === 0) throw new CoreError("NOT_FOUND");
+  await db.promoCode.updateMany({ where: { ambassadorId: id }, data: { isActive: active } }); // sa réduction suit son état (RG-AMB-01)
+}
+
+/**
+ * Code promo d'un ambassadeur (RG-AMB-01) : son code devient aussi un code promo, avec la réduction choisie par l'organisateur.
+ * Créé par createPromo, donc soumis à toutes les règles des codes promo ; l'acheteur qui le saisit obtient la réduction et la vente
+ * est attribuée à l'ambassadeur, même sans son lien (checkout).
+ */
+export async function setAmbassadorPromo(
+  ctx: OrgContext,
+  eventId: string,
+  id: string,
+  input: { discountType: "PERCENT"; percent: string } | { discountType: "AMOUNT"; amount: string },
+) {
+  if (!hasFeature(ctx.features, "AMBASSADORS")) throw new CoreError("FEATURE_UNAVAILABLE");
+  await findEvent(ctx, eventId);
+  const a = await db.ambassador.findFirst({ where: { id, eventId }, select: { id: true, code: true, active: true, promoCode: { select: { id: true } } } });
+  if (!a) throw new CoreError("NOT_FOUND");
+  if (a.promoCode) throw new CoreError("AMBASSADOR_PROMO_EXISTS");
+  const promo = await createPromo(ctx, eventId, {
+    code: a.code,
+    discountType: input.discountType,
+    percent: input.discountType === "PERCENT" ? input.percent : null,
+    amount: input.discountType === "AMOUNT" ? input.amount : null,
+    ticketTypeIds: [], // tous les tarifs
+    unlocksHidden: false, // une remise, jamais l'accès aux tarifs réservés
+  });
+  return db.promoCode.update({ where: { id: promo.id }, data: { ambassadorId: a.id, isActive: a.active } });
+}
+
+/** Retirer la réduction : jamais utilisée, elle est supprimée ; déjà utilisée, elle reste dans les codes promo, désactivée et détachée. */
+export async function removeAmbassadorPromo(ctx: OrgContext, eventId: string, id: string) {
+  await findEvent(ctx, eventId);
+  const promo = await db.promoCode.findFirst({ where: { ambassadorId: id, eventId } });
+  if (!promo) throw new CoreError("NOT_FOUND");
+  if (promo.usedCount > 0) await db.promoCode.update({ where: { id: promo.id }, data: { isActive: false, ambassadorId: null } });
+  else await db.promoCode.delete({ where: { id: promo.id } });
 }
 
 /** Pendant la réservation : l'ambassadeur du lien, s'il existe et est actif ; un code inconnu est ignoré, l'achat n'échoue jamais. */
@@ -149,7 +187,17 @@ const statsUrl = (token: string) => `${env().NEXT_PUBLIC_APP_URL}/ambassadeur/${
 export async function listAmbassadors(ctx: OrgContext, eventId: string) {
   const event = await findEvent(ctx, eventId);
   const url = eventPublicUrl({ subdomain: ctx.organization.subdomain ?? null, slug: ctx.organization.slug }, event);
-  return (await ambassadorRanking(eventId)).map((a) => ({ ...a, saleUrl: `${url}?a=${a.code}`, statsUrl: statsUrl(a.statsToken) }));
+  const ranking = await ambassadorRanking(eventId);
+  const promos = await db.promoCode.findMany({
+    where: { ambassadorId: { in: ranking.map((a) => a.id) } },
+    select: { ambassadorId: true, code: true, percentOffBps: true, amountOffMinor: true, isActive: true, usedCount: true },
+  });
+  return ranking.map((a) => ({
+    ...a,
+    saleUrl: `${url}?a=${a.code}`,
+    statsUrl: statsUrl(a.statsToken),
+    promo: promos.find((p) => p.ambassadorId === a.id) ?? null,
+  }));
 }
 
 /** Lien privé de l'ambassadeur : ses ventes, son rang et le classement, jamais les données des acheteurs (RG-AMB-04). */

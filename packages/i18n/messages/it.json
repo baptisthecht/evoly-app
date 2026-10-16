@@ -424,7 +424,9 @@
     "BOX_OFFICE_FORBIDDEN": "La vendita in loco non è consentita con questo link.",
     "BOX_OFFICE_FAILED": "Non è stato possibile registrare la vendita.",
     "TABLE_SIZE_INVALID": "Indica un numero di persone tra 1 e 30.",
-    "TABLE_LOCKED": "Sono già stati venduti dei tavoli: il numero di persone non può più cambiare."
+    "TABLE_LOCKED": "Sono già stati venduti dei tavoli: il numero di persone non può più cambiare.",
+    "AMBASSADOR_PROMO_EXISTS": "Questo ambasciatore ha già uno sconto.",
+    "PROMO_CODE_TAKEN": "Questo codice è già usato da un altro codice promozionale di questo evento."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -2615,7 +2617,15 @@
     "scopeEvent": "Questo evento",
     "scopeOrg": "Tutta l'organizzazione",
     "orgHint": "Una riga per persona, su tutti gli eventi: stessa e-mail, o stesso nome senza e-mail.",
-    "orgEvents": "{count, plural, one {# evento} other {# eventi}}"
+    "orgEvents": "{count, plural, one {# evento} other {# eventi}}",
+    "promoLabel": "Codice promozionale",
+    "promoHint": "Associa uno sconto: il codice {code} diventa anche un codice promozionale. Chi lo inserisce ottiene lo sconto e la vendita è attribuita a questo ambasciatore.",
+    "promoType": "Sconto",
+    "promoPercent": "Percentuale",
+    "promoAmount": "Importo",
+    "promoValue": "Valore",
+    "promoAdd": "Associa lo sconto",
+    "promoRemove": "Rimuovi lo sconto"
   },
   "ambassador": {
     "title": "Le tue vendite, {name}",
