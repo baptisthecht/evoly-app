@@ -426,7 +426,9 @@
     "TABLE_SIZE_INVALID": "Geben Sie eine Personenzahl zwischen 1 und 30 an.",
     "TABLE_LOCKED": "Es wurden bereits Tische verkauft: Die Personenzahl kann nicht mehr geändert werden.",
     "AMBASSADOR_PROMO_EXISTS": "Dieser Botschafter hat bereits einen Rabatt.",
-    "PROMO_CODE_TAKEN": "Dieser Code wird bereits von einem anderen Aktionscode dieser Veranstaltung verwendet."
+    "PROMO_CODE_TAKEN": "Dieser Code wird bereits von einem anderen Aktionscode dieser Veranstaltung verwendet.",
+    "OPTION_NOT_REFUNDABLE": "Diese Menge ist nicht mehr erstattbar: Sie wurde vielleicht schon eingelöst oder erstattet.",
+    "OPTIONS_REFUND_CLOSED": "Die Veranstaltung hat begonnen: Optionen sind nicht mehr erstattbar, außer Sie erlauben es im Tab Optionen der Veranstaltung."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -1281,7 +1283,16 @@
     "method_revolut_pay": "Revolut Pay",
     "method_amazon_pay": "Amazon Pay",
     "method_twint": "TWINT",
-    "method_mobilepay": "MobilePay"
+    "method_mobilepay": "MobilePay",
+    "optionsTitle": "Optionen",
+    "optionsState": "{redeemed} eingelöst · {refunded} erstattet · {left} übrig",
+    "optionsRefund": "Optionen erstatten",
+    "optionsRefundWhich": "Zu erstattende Optionen (nur nicht eingelöste)",
+    "optionsQuantity": "Menge {name} zum Erstatten",
+    "optionsLeft": "{left} nicht eingelöst",
+    "optionsRefundSubmit": "{amount} erstatten",
+    "optionsRefundDone": "Optionen erstattet.",
+    "optionsRefundClosed": "Die Veranstaltung hat begonnen: Optionen sind nicht mehr erstattbar, außer Sie erlauben es im Tab Optionen der Veranstaltung."
   },
   "seatingEditor": {
     "title": "Saalplan",
@@ -2586,7 +2597,11 @@
     "stockOf": "von {stock}",
     "unlimited": "unbegrenzt",
     "perOrder": "Höchstens {max} pro Bestellung",
-    "saved": "Extra gespeichert."
+    "saved": "Extra gespeichert.",
+    "refundAfterStart": "Optionen nach Beginn der Veranstaltung erstattbar",
+    "refundAfterStartHint": "Standardmäßig sind nicht eingelöste Optionen nach Beginn der Veranstaltung nicht mehr erstattbar.",
+    "refundPolicySave": "Einstellung speichern",
+    "refundPolicySaved": "Einstellung gespeichert."
   },
   "ambassadors": {
     "intro": "Geben Sie jedem Teammitglied oder Promoter einen eigenen Verkaufslink und sehen Sie, wer am meisten verkauft.",

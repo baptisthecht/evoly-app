@@ -61,4 +61,17 @@ test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({ page }
   expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
   await page.goto(appUrl(`/o/${slug}/finances?period=ALL`));
   await expect(page.getByRole("link", { name: /Télécharger le n° EVO-\d{4}-\d{6}/ })).toBeVisible();
+
+  // remboursement d'une option non retirée depuis la fiche de la commande (RG-OPT-07) : 2 jetons, dont 1 servi au bar
+  await page.goto(appUrl(`/o/${slug}/orders/${orderId}`));
+  await expect(page.getByRole("heading", { name: "Options", exact: true })).toBeVisible();
+  await expect(page.getByText("1 retirée(s) · 0 remboursée(s) · 1 restante(s)")).toBeVisible();
+  page.once("dialog", (d) => d.accept()); // confirmation du montant
+  await page.getByRole("button", { name: "Rembourser des options" }).click();
+  await page.getByLabel("Quantité de Jeton boisson à rembourser").fill("1");
+  await page.getByRole("button", { name: /^Rembourser 3,00/ }).click();
+  await expect.poll(() => sql(`select refunded from "OrderOption" where id = 'oo-${id}'`)).toBe("1");
+  await page.reload();
+  await expect(page.getByText("1 retirée(s) · 1 remboursée(s) · 0 restante(s)")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Rembourser des options" })).toBeHidden(); // plus rien à rembourser
 });

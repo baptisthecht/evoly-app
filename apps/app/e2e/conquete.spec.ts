@@ -44,6 +44,10 @@ test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page priv
   await page.getByLabel("Prix").fill("3");
   await page.getByRole("button", { name: "Ajouter l'option" }).click();
   await expect(page.getByText("Option enregistrée.")).toBeVisible();
+  // options remboursables après le début de l'événement : réglage, désactivé par défaut (RG-OPT-07)
+  await page.getByLabel("Options remboursables après le début de l'événement").check();
+  await page.getByRole("button", { name: "Enregistrer le réglage" }).click();
+  await expect(page.getByText("Réglage enregistré.")).toBeVisible();
 
   // table de 6 (section 9.31)
   await page.goto(`${eventUrl}/tables`);

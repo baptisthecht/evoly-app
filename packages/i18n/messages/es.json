@@ -426,7 +426,9 @@
     "TABLE_SIZE_INVALID": "Indica un número de personas entre 1 y 30.",
     "TABLE_LOCKED": "Ya se han vendido mesas: el número de personas ya no puede cambiar.",
     "AMBASSADOR_PROMO_EXISTS": "Este embajador ya tiene un descuento.",
-    "PROMO_CODE_TAKEN": "Este código ya lo usa otro código promocional de este evento."
+    "PROMO_CODE_TAKEN": "Este código ya lo usa otro código promocional de este evento.",
+    "OPTION_NOT_REFUNDABLE": "Esta cantidad ya no es reembolsable: quizá ya se canjeó o se reembolsó.",
+    "OPTIONS_REFUND_CLOSED": "El evento ha comenzado: las opciones ya no son reembolsables, salvo que lo autorices en la pestaña Opciones del evento."
   },
   "validation": {
     "required": "Este campo es obligatorio.",
@@ -1281,7 +1283,16 @@
     "method_revolut_pay": "Revolut Pay",
     "method_amazon_pay": "Amazon Pay",
     "method_twint": "TWINT",
-    "method_mobilepay": "MobilePay"
+    "method_mobilepay": "MobilePay",
+    "optionsTitle": "Opciones",
+    "optionsState": "{redeemed} canjeada(s) · {refunded} reembolsada(s) · {left} restante(s)",
+    "optionsRefund": "Reembolsar opciones",
+    "optionsRefundWhich": "Opciones a reembolsar (solo las no canjeadas)",
+    "optionsQuantity": "Cantidad de {name} a reembolsar",
+    "optionsLeft": "{left} sin canjear",
+    "optionsRefundSubmit": "Reembolsar {amount}",
+    "optionsRefundDone": "Opciones reembolsadas.",
+    "optionsRefundClosed": "El evento ha comenzado: las opciones ya no son reembolsables, salvo que lo autorices en la pestaña Opciones del evento."
   },
   "seatingEditor": {
     "title": "Plano de sala",
@@ -2586,7 +2597,11 @@
     "stockOf": "de {stock}",
     "unlimited": "sin límite",
     "perOrder": "Hasta {max} por pedido",
-    "saved": "Extra guardado."
+    "saved": "Extra guardado.",
+    "refundAfterStart": "Opciones reembolsables tras el inicio del evento",
+    "refundAfterStartHint": "Por defecto, las opciones no canjeadas dejan de ser reembolsables cuando empieza el evento.",
+    "refundPolicySave": "Guardar el ajuste",
+    "refundPolicySaved": "Ajuste guardado."
   },
   "ambassadors": {
     "intro": "Da a cada miembro de tu equipo o promotor su propio enlace de venta y mira quién vende más.",

@@ -426,7 +426,9 @@
     "TABLE_SIZE_INVALID": "Geef een aantal personen tussen 1 en 30 op.",
     "TABLE_LOCKED": "Er zijn al tafels verkocht: het aantal personen kan niet meer veranderen.",
     "AMBASSADOR_PROMO_EXISTS": "Deze ambassadeur heeft al een korting.",
-    "PROMO_CODE_TAKEN": "Deze code wordt al gebruikt door een andere promotiecode van dit evenement."
+    "PROMO_CODE_TAKEN": "Deze code wordt al gebruikt door een andere promotiecode van dit evenement.",
+    "OPTION_NOT_REFUNDABLE": "Dit aantal is niet meer terugbetaalbaar: het is misschien al afgehaald of terugbetaald.",
+    "OPTIONS_REFUND_CLOSED": "Het evenement is begonnen: opties zijn niet meer terugbetaalbaar, tenzij je het toestaat in het tabblad Opties van het evenement."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -1281,7 +1283,16 @@
     "method_revolut_pay": "Revolut Pay",
     "method_amazon_pay": "Amazon Pay",
     "method_twint": "TWINT",
-    "method_mobilepay": "MobilePay"
+    "method_mobilepay": "MobilePay",
+    "optionsTitle": "Opties",
+    "optionsState": "{redeemed} afgehaald · {refunded} terugbetaald · {left} over",
+    "optionsRefund": "Opties terugbetalen",
+    "optionsRefundWhich": "Terug te betalen opties (alleen niet afgehaalde)",
+    "optionsQuantity": "Aantal {name} om terug te betalen",
+    "optionsLeft": "{left} niet afgehaald",
+    "optionsRefundSubmit": "{amount} terugbetalen",
+    "optionsRefundDone": "Opties terugbetaald.",
+    "optionsRefundClosed": "Het evenement is begonnen: opties zijn niet meer terugbetaalbaar, tenzij je het toestaat in het tabblad Opties van het evenement."
   },
   "seatingEditor": {
     "title": "Zaalplan",
@@ -2586,7 +2597,11 @@
     "stockOf": "van {stock}",
     "unlimited": "onbeperkt",
     "perOrder": "Maximaal {max} per bestelling",
-    "saved": "Optie opgeslagen."
+    "saved": "Optie opgeslagen.",
+    "refundAfterStart": "Opties terugbetaalbaar na het begin van het evenement",
+    "refundAfterStartHint": "Standaard zijn niet afgehaalde opties niet meer terugbetaalbaar zodra het evenement begonnen is.",
+    "refundPolicySave": "Instelling opslaan",
+    "refundPolicySaved": "Instelling opgeslagen."
   },
   "ambassadors": {
     "intro": "Geef elk teamlid of elke promotor een eigen verkooplink en zie wie het meest verkoopt.",

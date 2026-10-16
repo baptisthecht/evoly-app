@@ -8,6 +8,7 @@ import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { listOptions } from "@/server/options";
 import { OptionCommand, OptionForm } from "./OptionForm";
+import { OptionsRefundPolicy } from "./OptionsRefundPolicy";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -87,6 +88,7 @@ export default async function OptionsPage({ params }: { params: Promise<{ orgSlu
           </li>
         ))}
       </ul>
+      {manage ? <OptionsRefundPolicy orgSlug={orgSlug} eventId={eventId} allowed={event.optionsRefundAfterStart} /> : null}
       {manage ? <OptionForm orgSlug={orgSlug} eventId={eventId} symbol={symbol} /> : null}
     </div>
   );

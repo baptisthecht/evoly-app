@@ -703,7 +703,9 @@
     "TABLE_SIZE_INVALID": "Indiquez un nombre de personnes entre 1 et 30.",
     "TABLE_LOCKED": "Des tables sont déjà vendues : le nombre de personnes ne peut plus changer.",
     "AMBASSADOR_PROMO_EXISTS": "Cet ambassadeur a déjà une réduction.",
-    "PROMO_CODE_TAKEN": "Ce code est déjà utilisé par un autre code promo de cet événement."
+    "PROMO_CODE_TAKEN": "Ce code est déjà utilisé par un autre code promo de cet événement.",
+    "OPTION_NOT_REFUNDABLE": "Cette quantité n'est plus remboursable : elle a peut-être déjà été retirée ou remboursée.",
+    "OPTIONS_REFUND_CLOSED": "L'événement a commencé : les options ne sont plus remboursables, sauf si vous l'autorisez dans l'onglet Options de l'événement."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -1452,7 +1454,16 @@
     "method_revolut_pay": "Revolut Pay",
     "method_amazon_pay": "Amazon Pay",
     "method_twint": "TWINT",
-    "method_mobilepay": "MobilePay"
+    "method_mobilepay": "MobilePay",
+    "optionsTitle": "Options",
+    "optionsState": "{redeemed} retirée(s) · {refunded} remboursée(s) · {left} restante(s)",
+    "optionsRefund": "Rembourser des options",
+    "optionsRefundWhich": "Options à rembourser (non retirées seulement)",
+    "optionsQuantity": "Quantité de {name} à rembourser",
+    "optionsLeft": "{left} non retirée(s)",
+    "optionsRefundSubmit": "Rembourser {amount}",
+    "optionsRefundDone": "Remboursement des options effectué.",
+    "optionsRefundClosed": "L'événement a commencé : les options ne sont plus remboursables, sauf si vous l'autorisez dans l'onglet Options de l'événement."
   },
   "finances": {
     "title": "Finances",
@@ -2586,7 +2597,11 @@
     "stockOf": "sur {stock}",
     "unlimited": "sans limite",
     "perOrder": "{max} au plus par commande",
-    "saved": "Option enregistrée."
+    "saved": "Option enregistrée.",
+    "refundAfterStart": "Options remboursables après le début de l'événement",
+    "refundAfterStartHint": "Par défaut, les options non retirées ne sont plus remboursables une fois l'événement commencé.",
+    "refundPolicySave": "Enregistrer le réglage",
+    "refundPolicySaved": "Réglage enregistré."
   },
   "ambassadors": {
     "intro": "Donnez à chaque membre de votre équipe ou à chaque promoteur son propre lien de vente, et suivez qui vend le plus.",

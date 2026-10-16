@@ -703,7 +703,9 @@
     "TABLE_SIZE_INVALID": "Enter a number of people between 1 and 30.",
     "TABLE_LOCKED": "Tables have already been sold: the number of people can no longer change.",
     "AMBASSADOR_PROMO_EXISTS": "This ambassador already has a discount.",
-    "PROMO_CODE_TAKEN": "This code is already used by another promo code for this event."
+    "PROMO_CODE_TAKEN": "This code is already used by another promo code for this event.",
+    "OPTION_NOT_REFUNDABLE": "This quantity can no longer be refunded: it may already have been redeemed or refunded.",
+    "OPTIONS_REFUND_CLOSED": "The event has started: add-ons can no longer be refunded, unless you allow it in the event's Add-ons tab."
   },
   "brand": {
     "sloganStart": "your next",
@@ -1452,7 +1454,16 @@
     "method_revolut_pay": "Revolut Pay",
     "method_amazon_pay": "Amazon Pay",
     "method_twint": "TWINT",
-    "method_mobilepay": "MobilePay"
+    "method_mobilepay": "MobilePay",
+    "optionsTitle": "Add-ons",
+    "optionsState": "{redeemed} redeemed · {refunded} refunded · {left} left",
+    "optionsRefund": "Refund add-ons",
+    "optionsRefundWhich": "Add-ons to refund (not redeemed only)",
+    "optionsQuantity": "Quantity of {name} to refund",
+    "optionsLeft": "{left} not redeemed",
+    "optionsRefundSubmit": "Refund {amount}",
+    "optionsRefundDone": "Add-ons refunded.",
+    "optionsRefundClosed": "The event has started: add-ons can no longer be refunded, unless you allow it in the event's Add-ons tab."
   },
   "finances": {
     "title": "Finances",
@@ -2586,7 +2597,11 @@
     "stockOf": "of {stock}",
     "unlimited": "unlimited",
     "perOrder": "Up to {max} per order",
-    "saved": "Add-on saved."
+    "saved": "Add-on saved.",
+    "refundAfterStart": "Add-ons refundable after the event starts",
+    "refundAfterStartHint": "By default, add-ons not redeemed can no longer be refunded once the event has started.",
+    "refundPolicySave": "Save the setting",
+    "refundPolicySaved": "Setting saved."
   },
   "ambassadors": {
     "intro": "Give each team member or promoter their own sales link, and see who sells the most.",

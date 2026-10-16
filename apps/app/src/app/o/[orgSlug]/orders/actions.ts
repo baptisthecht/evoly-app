@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
 import { correctBuyerEmail, resendTickets, updateHolderByOrganizer } from "@/server/ordersAdmin";
-import { approveRefund, refundTickets, rejectRefund, retryRefund } from "@/server/refunds";
+import { approveRefund, refundOptions, refundTickets, rejectRefund, retryRefund } from "@/server/refunds";
 import { revertCheckIn } from "@/server/scanner";
 
 const path = (orgSlug: string, orderId: string) => `/o/${orgSlug}/orders/${orderId}`;
@@ -95,6 +95,25 @@ export async function revertCheckInAction(orgSlug: string, orderId: string, tick
       return null;
     },
   );
+  if (r?.ok) revalidatePath(path(orgSlug, orderId));
+  return r;
+}
+
+/** RG-OPT-07 : rembourser des options non retirées (quantité par option). */
+export async function refundOptionsAction(orgSlug: string, orderId: string, _: ActionState, form: FormData): Promise<ActionState<{ outcome: string }>> {
+  const lines = [...form.entries()]
+    .filter(([k]) => k.startsWith("q_"))
+    .map(([k, v]) => ({ orderOptionId: k.slice(2), quantity: Number(v) || 0 }))
+    .filter((l) => l.quantity > 0);
+  const schema = z.object({
+    lines: z
+      .array(z.object({ orderOptionId: z.string().max(40), quantity: z.number().int().min(1).max(1000) }))
+      .min(1, { message: "validation.required" })
+      .max(50),
+  });
+  const r = await runOrgAction(orgSlug, { lines }, { schema, permission: "REFUNDS_MANAGE" }, async (d, ctx) => ({
+    outcome: await refundOptions(ctx, orderId, d.lines, null),
+  }));
   if (r?.ok) revalidatePath(path(orgSlug, orderId));
   return r;
 }

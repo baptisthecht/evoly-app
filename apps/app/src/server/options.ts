@@ -158,7 +158,14 @@ export async function optionsForTicket(eventId: string, ticketId: string) {
     include: { option: { select: { name: true } } },
     orderBy: { createdAt: "asc" },
   });
-  return lines.map((l) => ({ id: l.id, name: l.option.name, quantity: l.quantity, redeemed: l.redeemed, left: l.quantity - l.redeemed }));
+  return lines.map((l) => ({
+    id: l.id,
+    name: l.option.name,
+    quantity: l.quantity,
+    redeemed: l.redeemed,
+    refunded: l.refunded,
+    left: l.quantity - l.redeemed - l.refunded,
+  }));
 }
 
 /** Au bar, à partir du QR code ou du code court scanné, avec les mêmes règles qu'à l'entrée : un billet de cet événement seulement. */
@@ -182,10 +189,17 @@ export async function redeemOption(eventId: string, orderOptionId: string, quant
       UPDATE "OrderOption" AS l SET "redeemed" = l."redeemed" + ${quantity}
       FROM "Order" AS o
       WHERE l."id" = ${orderOptionId} AND o."id" = l."orderId" AND o."eventId" = ${eventId}
-        AND o."status" IN ('PAID', 'PARTIALLY_REFUNDED') AND l."redeemed" + ${quantity} <= l."quantity"`;
+        AND o."status" IN ('PAID', 'PARTIALLY_REFUNDED') AND l."redeemed" + l."refunded" + ${quantity} <= l."quantity"`;
     if (done !== 1) throw new CoreError("OPTION_NOT_REDEEMABLE");
     await tx.optionRedemption.create({ data: { orderOptionId, quantity, deviceId: by.deviceId ?? null, staffName: by.staffName?.slice(0, 80) ?? null } });
-    const line = await tx.orderOption.findUniqueOrThrow({ where: { id: orderOptionId }, select: { quantity: true, redeemed: true } });
-    return { left: line.quantity - line.redeemed };
+    const line = await tx.orderOption.findUniqueOrThrow({ where: { id: orderOptionId }, select: { quantity: true, redeemed: true, refunded: true } });
+    return { left: line.quantity - line.redeemed - line.refunded };
   });
+}
+
+/** RG-OPT-07 : les options non retirées restent remboursables après le début de l'événement, si l'organisateur le décide. */
+export async function setOptionsRefundAfterStart(ctx: OrgContext, eventId: string, allowed: boolean) {
+  if (!hasFeature(ctx.features, "PREPAID_OPTIONS")) throw new CoreError("FEATURE_UNAVAILABLE");
+  await findEvent(ctx, eventId);
+  await db.event.update({ where: { id: eventId }, data: { optionsRefundAfterStart: allowed } });
 }

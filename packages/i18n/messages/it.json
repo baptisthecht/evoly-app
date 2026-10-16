@@ -426,7 +426,9 @@
     "TABLE_SIZE_INVALID": "Indica un numero di persone tra 1 e 30.",
     "TABLE_LOCKED": "Sono già stati venduti dei tavoli: il numero di persone non può più cambiare.",
     "AMBASSADOR_PROMO_EXISTS": "Questo ambasciatore ha già uno sconto.",
-    "PROMO_CODE_TAKEN": "Questo codice è già usato da un altro codice promozionale di questo evento."
+    "PROMO_CODE_TAKEN": "Questo codice è già usato da un altro codice promozionale di questo evento.",
+    "OPTION_NOT_REFUNDABLE": "Questa quantità non è più rimborsabile: forse è già stata ritirata o rimborsata.",
+    "OPTIONS_REFUND_CLOSED": "L'evento è iniziato: le opzioni non sono più rimborsabili, salvo autorizzazione nella scheda Opzioni dell'evento."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -1281,7 +1283,16 @@
     "method_revolut_pay": "Revolut Pay",
     "method_amazon_pay": "Amazon Pay",
     "method_twint": "TWINT",
-    "method_mobilepay": "MobilePay"
+    "method_mobilepay": "MobilePay",
+    "optionsTitle": "Opzioni",
+    "optionsState": "{redeemed} ritirate · {refunded} rimborsate · {left} rimanenti",
+    "optionsRefund": "Rimborsa opzioni",
+    "optionsRefundWhich": "Opzioni da rimborsare (solo non ritirate)",
+    "optionsQuantity": "Quantità di {name} da rimborsare",
+    "optionsLeft": "{left} non ritirate",
+    "optionsRefundSubmit": "Rimborsa {amount}",
+    "optionsRefundDone": "Opzioni rimborsate.",
+    "optionsRefundClosed": "L'evento è iniziato: le opzioni non sono più rimborsabili, salvo autorizzazione nella scheda Opzioni dell'evento."
   },
   "seatingEditor": {
     "title": "Mappa dei posti",
@@ -2586,7 +2597,11 @@
     "stockOf": "su {stock}",
     "unlimited": "senza limiti",
     "perOrder": "Al massimo {max} per ordine",
-    "saved": "Extra salvato."
+    "saved": "Extra salvato.",
+    "refundAfterStart": "Opzioni rimborsabili dopo l'inizio dell'evento",
+    "refundAfterStartHint": "Per impostazione predefinita, le opzioni non ritirate non sono più rimborsabili una volta iniziato l'evento.",
+    "refundPolicySave": "Salva l'impostazione",
+    "refundPolicySaved": "Impostazione salvata."
   },
   "ambassadors": {
     "intro": "Dai a ogni membro del team o promoter il proprio link di vendita e scopri chi vende di più.",

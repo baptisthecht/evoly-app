@@ -536,6 +536,7 @@ model Event {
   description         Json? // contenu riche (blocs)
   coverImageUrl       String?
   status              EventStatus     @default(DRAFT)
+  optionsRefundAfterStart Boolean @default(false) // options remboursables après le début (RG-OPT-07)
   visibility          EventVisibility @default(PUBLIC)
   accessCodeHash      String? // événements PRIVATE
   locale              String          @default("fr")
@@ -1213,6 +1214,7 @@ model Refund {
   order     Order        @relation(fields: [orderId], references: [id])
   handledBy User?        @relation("RefundHandler", fields: [handledById], references: [id], onDelete: SetNull)
   items     RefundItem[]
+  optionItems RefundOptionItem[] // options remboursées (RG-OPT-07)
 
   @@index([orderId])
   @@index([status])
@@ -1228,6 +1230,21 @@ model RefundItem {
   ticket Ticket @relation(fields: [ticketId], references: [id])
 
   @@unique([refundId, ticketId])
+}
+
+/// Options remboursées dans un remboursement (RG-OPT-07) : jamais au-delà de ce qui n'a été ni retiré ni remboursé.
+model RefundOptionItem {
+  id            String      @id @default(cuid())
+  refundId      String
+  orderOptionId String
+  quantity      Int
+  amountMinor   Int
+  createdAt     DateTime    @default(now())
+  refund        Refund      @relation(fields: [refundId], references: [id], onDelete: Cascade)
+  orderOption   OrderOption @relation(fields: [orderOptionId], references: [id], onDelete: Cascade)
+
+  @@index([refundId])
+  @@index([orderOptionId])
 }
 
 // =============================================================================
@@ -1959,10 +1976,12 @@ model OrderOption {
   unitPriceMinor Int
   unitFeeMinor   Int                @default(0)
   redeemed       Int                @default(0)
+  refunded Int @default(0) // quantité remboursée (RG-OPT-07)
   createdAt      DateTime           @default(now())
   order          Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
   option         EventOption        @relation(fields: [optionId], references: [id])
   redemptions    OptionRedemption[]
+  refundItems RefundOptionItem[]
 
   @@index([orderId])
   @@index([optionId])

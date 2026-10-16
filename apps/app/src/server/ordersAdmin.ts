@@ -69,6 +69,7 @@ export async function getOrderDetail(ctx: OrgContext, orderId: string) {
       event: true,
       promoCode: { select: { code: true } },
       items: { include: { ticketType: { select: { name: true } }, priceTier: { select: { name: true } } } },
+      options: { include: { option: { select: { name: true } } }, orderBy: { createdAt: "asc" } }, // RG-OPT-07
       tickets: {
         include: {
           ticketType: { select: { name: true } },

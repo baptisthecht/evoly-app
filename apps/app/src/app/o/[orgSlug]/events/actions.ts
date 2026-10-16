@@ -7,7 +7,7 @@ import { z } from "zod";
 import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
 import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, updateEventSettings } from "@/server/events";
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
-import { createOption, setOptionActive, updateOption } from "@/server/options";
+import { createOption, setOptionsRefundAfterStart, setOptionActive, updateOption } from "@/server/options";
 import { createAmbassador, removeAmbassadorPromo, setAmbassadorActive, setAmbassadorPromo } from "@/server/ambassadors";
 import { addEmbedOrigin, removeEmbedOrigin } from "@/server/embed";
 import { saveTableSettings } from "@/server/tables";
@@ -882,5 +882,20 @@ export async function saveTablesAction(orgSlug: string, eventId: string, ticketT
     },
   );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/tables`);
+  return result;
+}
+
+/** RG-OPT-07 : options remboursables après le début de l'événement (réglage, désactivé par défaut). */
+export async function optionsRefundPolicyAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    { allowed: form.get("allowed") === "on" },
+    { schema: z.object({ allowed: z.boolean() }), permission: "TICKETS_MANAGE", feature: "PREPAID_OPTIONS" },
+    async (d, ctx) => {
+      await setOptionsRefundAfterStart(ctx, eventId, d.allowed);
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/options`);
   return result;
 }

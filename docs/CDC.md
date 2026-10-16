@@ -1320,7 +1320,7 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 - RG-OPT-04 : retrait par le scanner, en mode « Bar et options » : le scan affiche les options restantes, l'équipe retire la quantité servie ; chaque retrait est journalisé (appareil, membre, heure).
 - RG-OPT-05 : retrait possible hors ligne ; à la reconnexion, un retrait en double est signalé à l'organisateur, comme pour le scan des billets.
 - RG-OPT-06 : commission sur les options : 2 % du prix, sans part fixe, avec le même plafond que les billets (validé le 16 octobre 2026).
-- RG-OPT-07 : les options non retirées sont remboursables jusqu'au début de l'événement ; après, elles ne le sont plus, sauf réglage contraire de l'organisateur.
+- RG-OPT-07 : les options non retirées sont remboursables jusqu'au début de l'événement ; après, elles ne le sont plus, sauf réglage contraire de l'organisateur. _Décidé le 16 octobre 2026 : annulation de l'événement, remboursement intégral, options comprises ; quand tous les billets d'une commande sont remboursés (par l'organisateur, sur demande de l'acheteur ou par annulation), les options non retirées le sont avec eux ; l'organisateur peut rembourser des options seules, à la quantité près, jusqu'au début de l'événement, ou après si le réglage « options remboursables après le début » (désactivé par défaut) le permet ; une option servie au bar n'est jamais remboursée et une option remboursée ne peut plus être retirée ; la commission d'Evoly n'est pas rendue, comme pour les billets._
 - RG-OPT-08 : options et retraits apparaissent dans les statistiques, les exports et les relevés.
 - RG-OPT-09 : réservé à l'offre Pro ; les options déjà vendues restent retirables si l'organisation repasse en Free.
 

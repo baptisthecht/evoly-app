@@ -68,9 +68,10 @@ async function mailBuyer(orderId: string, kind: "PROCESSED" | "REJECTED" | "CANC
 export async function processRefund(refundId: string, options: { notify?: boolean } = {}): Promise<"SUCCEEDED" | "PROCESSING" | "FAILED"> {
   const refund = await db.refund.findUniqueOrThrow({
     where: { id: refundId },
-    include: { items: { include: { ticket: { select: { id: true, status: true, ticketTypeId: true, seatId: true } } } }, order: true },
+    include: { items: { include: { ticket: { select: { id: true, status: true, ticketTypeId: true, seatId: true } } } }, optionItems: true, order: true },
   });
   if (!["APPROVED", "FAILED"].includes(refund.status)) throw new CoreError("REFUND_NOT_APPROVED");
+  let extra = 0; // options non retirées ajoutées quand plus aucun billet n'est valide (RG-OPT-07)
   if (refund.status === "APPROVED") {
     await db.$transaction(async (tx) => {
       for (const item of refund.items) {
@@ -85,18 +86,42 @@ export async function processRefund(refundId: string, options: { notify?: boolea
           await tx.seat.update({ where: { id: item.ticket.seatId }, data: { status: "AVAILABLE", holdOrderId: null } });
         }
       }
+      // options remboursées explicitement (RG-OPT-07) : jamais au-delà de ce qui n'a été ni retiré ni remboursé
+      for (const it of refund.optionItems) {
+        const ok =
+          await tx.$executeRaw`UPDATE "OrderOption" SET "refunded" = "refunded" + ${it.quantity} WHERE id = ${it.orderOptionId} AND "redeemed" + "refunded" + ${it.quantity} <= "quantity"`;
+        if (ok !== 1) throw new CoreError("OPTION_NOT_REFUNDABLE");
+      }
       const live = await tx.ticket.count({ where: { orderId: refund.orderId, status: { in: ["VALID", "CHECKED_IN"] } } });
+      // plus aucun billet valide (tous remboursés, événement annulé) : les options non retirées sont remboursées avec eux (RG-OPT-07)
+      if (live === 0) {
+        const lines = await tx.orderOption.findMany({
+          where: { orderId: refund.orderId },
+          select: { id: true, quantity: true, redeemed: true, refunded: true, unitPriceMinor: true },
+        });
+        for (const l of lines) {
+          const left = l.quantity - l.redeemed - l.refunded;
+          if (left <= 0) continue;
+          const ok =
+            await tx.$executeRaw`UPDATE "OrderOption" SET "refunded" = "refunded" + ${left} WHERE id = ${l.id} AND "redeemed" + "refunded" + ${left} <= "quantity"`;
+          if (ok !== 1) continue;
+          await tx.refundOptionItem.create({ data: { refundId: refund.id, orderOptionId: l.id, quantity: left, amountMinor: left * l.unitPriceMinor } });
+          extra += left * l.unitPriceMinor;
+        }
+        if (extra) await tx.refund.update({ where: { id: refund.id }, data: { amountMinor: { increment: extra } } });
+      }
       await tx.order.update({
         where: { id: refund.orderId },
-        data: { refundedMinor: { increment: refund.amountMinor }, status: live === 0 ? "REFUNDED" : "PARTIALLY_REFUNDED" },
+        data: { refundedMinor: { increment: refund.amountMinor + extra }, status: live === 0 ? "REFUNDED" : "PARTIALLY_REFUNDED" },
       });
       await tx.refund.update({ where: { id: refund.id }, data: { status: "PROCESSING", processedAt: new Date() } });
     });
     for (const item of refund.items) await cancelListingsForTicket(item.ticketId);
   }
+  const amount = refund.amountMinor + extra;
   let outcome: "SUCCEEDED" | "PROCESSING" | "FAILED" = "SUCCEEDED";
   // RG-POS-08 : une vente sur place en espèces se rembourse en espèces, hors d'Evoly ; aucun appel à Stripe
-  if (refund.amountMinor > 0 && refund.order.boxOfficeMode !== "CASH") {
+  if (amount > 0 && refund.order.boxOfficeMode !== "CASH") {
     const s = stripe();
     const account = await db.stripeAccount.findUnique({ where: { organizationId: refund.order.organizationId }, select: { stripeAccountId: true } });
     try {
@@ -104,8 +129,8 @@ export async function processRefund(refundId: string, options: { notify?: boolea
       const r = await s.refunds.create(
         {
           payment_intent: refund.order.stripePaymentIntentId,
-          amount: refund.amountMinor,
-          refund_application_fee: REFUND_APPLICATION_FEE,
+          amount,
+          refund_application_fee: REFUND_APPLICATION_FEE, // la commission d'Evoly n'est pas rendue (options comprises)
           reason: "requested_by_customer",
           metadata: { refundId: refund.id, orderId: refund.orderId, reason: refund.reason },
         },
@@ -134,7 +159,7 @@ export async function processRefund(refundId: string, options: { notify?: boolea
     }
   } else await db.refund.update({ where: { id: refund.id }, data: { status: "SUCCEEDED" } });
   if (options.notify !== false && outcome !== "FAILED" && refund.status === "APPROVED")
-    await mailBuyer(refund.orderId, "PROCESSED", refund.amountMinor, refund.items.length);
+    await mailBuyer(refund.orderId, "PROCESSED", amount, refund.items.length);
   return outcome;
 }
 
@@ -258,6 +283,55 @@ export async function refundTickets(ctx: OrgContext, orderId: string, ticketIds:
     targetId: refund.id,
     metadata: { amountMinor: refund.amountMinor, tickets: tickets.length },
   }); // RG-REF-08
+  return processRefund(refund.id);
+}
+
+/**
+ * RG-OPT-07 : rembourser des options non retirées, jusqu'au début de l'événement ; après, seulement si l'organisateur
+ * l'autorise sur l'événement. Une option remboursée ne peut plus être retirée au bar ; la commission d'Evoly n'est pas rendue.
+ */
+export async function refundOptions(
+  ctx: OrgContext,
+  orderId: string,
+  lines: { orderOptionId: string; quantity: number }[],
+  message: string | null,
+  now = new Date(),
+) {
+  const order = await db.order.findFirst({
+    where: { id: orderId, organizationId: ctx.organization.id },
+    include: { event: { select: { startsAt: true, optionsRefundAfterStart: true } }, options: true },
+  });
+  if (!order || (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")) throw new CoreError("REFUND_NOT_ALLOWED");
+  if (now >= order.event.startsAt && !order.event.optionsRefundAfterStart) throw new CoreError("OPTIONS_REFUND_CLOSED");
+  const wanted = lines.filter((l) => l.quantity !== 0);
+  if (wanted.length === 0) throw new CoreError("OPTION_NOT_REFUNDABLE");
+  const items = wanted.map((l) => {
+    const o = order.options.find((x) => x.id === l.orderOptionId);
+    if (!o || !Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > o.quantity - o.redeemed - o.refunded)
+      throw new CoreError("OPTION_NOT_REFUNDABLE");
+    return { orderOptionId: o.id, quantity: l.quantity, amountMinor: l.quantity * o.unitPriceMinor };
+  });
+  const refund = await db.refund.create({
+    data: {
+      orderId,
+      status: "APPROVED",
+      initiator: "ORGANIZER",
+      reason: "OTHER",
+      responseMessage: message?.trim() || null,
+      amountMinor: items.reduce((n, i) => n + i.amountMinor, 0),
+      handledById: ctx.user.id,
+      handledAt: now,
+      optionItems: { create: items },
+    },
+  });
+  await audit({
+    action: "refund.created",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Refund",
+    targetId: refund.id,
+    metadata: { amountMinor: refund.amountMinor, options: items.reduce((n, i) => n + i.quantity, 0) },
+  });
   return processRefund(refund.id);
 }
 

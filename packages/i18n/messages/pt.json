@@ -426,7 +426,9 @@
     "TABLE_SIZE_INVALID": "Indique um número de pessoas entre 1 e 30.",
     "TABLE_LOCKED": "Já foram vendidas mesas: o número de pessoas já não pode mudar.",
     "AMBASSADOR_PROMO_EXISTS": "Este embaixador já tem um desconto.",
-    "PROMO_CODE_TAKEN": "Este código já é usado por outro código promocional deste evento."
+    "PROMO_CODE_TAKEN": "Este código já é usado por outro código promocional deste evento.",
+    "OPTION_NOT_REFUNDABLE": "Esta quantidade já não é reembolsável: talvez já tenha sido levantada ou reembolsada.",
+    "OPTIONS_REFUND_CLOSED": "O evento começou: as opções já não são reembolsáveis, exceto se o autorizar no separador Opções do evento."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -1281,7 +1283,16 @@
     "method_revolut_pay": "Revolut Pay",
     "method_amazon_pay": "Amazon Pay",
     "method_twint": "TWINT",
-    "method_mobilepay": "MobilePay"
+    "method_mobilepay": "MobilePay",
+    "optionsTitle": "Opções",
+    "optionsState": "{redeemed} levantada(s) · {refunded} reembolsada(s) · {left} restante(s)",
+    "optionsRefund": "Reembolsar opções",
+    "optionsRefundWhich": "Opções a reembolsar (apenas as não levantadas)",
+    "optionsQuantity": "Quantidade de {name} a reembolsar",
+    "optionsLeft": "{left} não levantada(s)",
+    "optionsRefundSubmit": "Reembolsar {amount}",
+    "optionsRefundDone": "Opções reembolsadas.",
+    "optionsRefundClosed": "O evento começou: as opções já não são reembolsáveis, exceto se o autorizar no separador Opções do evento."
   },
   "seatingEditor": {
     "title": "Planta da sala",
@@ -2586,7 +2597,11 @@
     "stockOf": "de {stock}",
     "unlimited": "sem limite",
     "perOrder": "No máximo {max} por encomenda",
-    "saved": "Extra guardado."
+    "saved": "Extra guardado.",
+    "refundAfterStart": "Opções reembolsáveis após o início do evento",
+    "refundAfterStartHint": "Por predefinição, as opções não levantadas deixam de ser reembolsáveis assim que o evento começa.",
+    "refundPolicySave": "Guardar a definição",
+    "refundPolicySaved": "Definição guardada."
   },
   "ambassadors": {
     "intro": "Dê a cada membro da equipa ou promotor a sua própria ligação de venda e veja quem vende mais.",

@@ -2,13 +2,13 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 173 · fait : 164 · partiel : 2 · à faire : 13 · hors périmètre : 2.
+**Bilan** : fait, testé : 174 · fait : 164 · partiel : 2 · à faire : 12 · hors périmètre : 2.
 
 ## Écarts connus
 
 - **Kit d'installation de salle** (section 9.33) : livré (étiquettes, guide de pose, page test) ; « Commander l'impression » (RG-ETIQ-09) pour plus tard, avec l'impression à la demande.
 - **Lieux partenaires** (section 9.32) : inscrits au cahier des charges le 13 octobre 2026, à développer ; décisions en section 17.
-- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne, remboursement (RG-OPT-05, 07), vestiaire seul (RG-OPT-03). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
+- **Lot Conquête** (sections 9.26 à 9.31) : développé et testé le 12 octobre 2026. Restent à faire : options en retrait hors ligne (RG-OPT-05), vestiaire seul (RG-OPT-03). Hors du premier livrable : tables sur demande avec acompte (RG-TAB-05).
 - **RG-POST-04** (partiel) : un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence)
 
 ## Détail
@@ -325,7 +325,7 @@
 | RG-OPT-04 | | retrait par le scanner, en mode « Bar et options » : le scan affiche les options restantes, l'équipe retire la quantité | fait, testé | options.test.ts, options.ts |
 | RG-OPT-05 | | retrait possible hors ligne ; à la reconnexion, un retrait en double est signalé à l'organisateur, comme pour le scan de | à faire | retrait hors ligne |
 | RG-OPT-06 | | commission sur les options : 2 % du prix, sans part fixe, même plafond que les billets (validé le 16 octobre 2026) | fait, testé | coverage-gaps.test.ts, fees.ts, options.test.ts |
-| RG-OPT-07 | | les options non retirées sont remboursables jusqu'au début de l'événement ; après, elles ne le sont plus, sauf réglage c | à faire | remboursement des options non retirées |
+| RG-OPT-07 | | les options non retirées sont remboursables jusqu'au début de l'événement ; après, elles ne le sont plus, sauf réglage c | fait, testé | refunds.ts, options.ts, fiche d'une commande, réglage de l'événement (options-refunds.test.ts, finances.spec.ts, conquete.spec.ts) |
 | RG-OPT-08 | | options et retraits apparaissent dans les statistiques, les exports et les relevés. | fait, testé | finances, exports et factures mensuelles (« dont options ») : finances.ts, options-finances.test.ts, finances.spec.ts |
 | RG-OPT-09 | | réservé à l'offre Pro ; les options déjà vendues restent retirables si l'organisation repasse en Free. | fait, testé | options.test.ts, options.ts |
 | US-ATT-01 | | en tant que participant, quand un tarif est complet, je m'inscris sur la liste d'attente avec mon e-mail. | fait | section 9.26 à 9.31 |

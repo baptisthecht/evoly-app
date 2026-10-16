@@ -6,7 +6,15 @@ import { useActionState, useState } from "react";
 import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select } from "@/components/ui/Field";
-import { correctEmailAction, decideRefundAction, holderAction, refundTicketsAction, resendTicketsAction, revertCheckInAction } from "../actions";
+import {
+  correctEmailAction,
+  decideRefundAction,
+  holderAction,
+  refundOptionsAction,
+  refundTicketsAction,
+  resendTicketsAction,
+  revertCheckInAction,
+} from "../actions";
 
 export function ResendTickets({ orgSlug, orderId }: { orgSlug: string; orderId: string }) {
   const t = useTranslations("ordersAdmin");
@@ -228,6 +236,73 @@ export function RevertCheckIn({ orgSlug, orderId, ticketId }: { orgSlug: string;
       <div className="sm:col-span-2">
         <FormError state={state} />
       </div>
+    </form>
+  );
+}
+
+/** RG-OPT-07 : rembourser des options non retirées, par quantité ; la commission d'Evoly n'est pas rendue. */
+export function RefundOptions({
+  orgSlug,
+  orderId,
+  options,
+  currency,
+  closed,
+}: {
+  orgSlug: string;
+  orderId: string;
+  options: Array<{ id: string; name: string; left: number; unitPriceMinor: number }>;
+  currency: string;
+  closed: boolean;
+}) {
+  const t = useTranslations("ordersAdmin");
+  const locale = useLocale() as Locale;
+  const [open, setOpen] = useState(false);
+  const [qty, setQty] = useState<Record<string, number>>({});
+  const { state, pending, formProps } = useActionForm(refundOptionsAction.bind(null, orgSlug, orderId), null);
+  const refundable = options.filter((o) => o.left > 0);
+  const total = refundable.reduce((n, o) => n + (qty[o.id] ?? 0) * o.unitPriceMinor, 0);
+  if (refundable.length === 0) return null;
+  if (closed) return <p className="text-sm text-ink-muted">{t("optionsRefundClosed")}</p>;
+  if (!open)
+    return (
+      <Button type="button" variant="secondary" size="lg" onClick={() => setOpen(true)}>
+        {t("optionsRefund")}
+      </Button>
+    );
+  return (
+    <form
+      {...formProps}
+      onSubmit={(e) => (window.confirm(t("confirmRefund", { amount: formatMoney(total, currency, locale) })) ? formProps.onSubmit(e) : e.preventDefault())}
+      className="grid gap-4 rounded-md bg-surface-sunken p-4"
+    >
+      <FormError state={state} />
+      <fieldset className="grid gap-2">
+        <legend className="mb-1 font-semibold">{t("optionsRefundWhich")}</legend>
+        <p className="mb-2 text-xs text-ink-muted">{t("feesNotReturned")}</p>
+        {refundable.map((o) => (
+          <label key={o.id} className="flex flex-wrap items-center gap-3 text-sm">
+            <input
+              type="number"
+              name={`q_${o.id}`}
+              min={0}
+              max={o.left}
+              value={qty[o.id] ?? 0}
+              onChange={(e) => setQty((s) => ({ ...s, [o.id]: Math.max(0, Math.min(o.left, Math.trunc(Number(e.target.value) || 0))) }))}
+              aria-label={t("optionsQuantity", { name: o.name })}
+              className="h-10 w-20 rounded-md bg-surface px-2 tabular-nums"
+            />
+            {o.name} · {formatMoney(o.unitPriceMinor, currency, locale)} · {t("optionsLeft", { left: o.left })}
+          </label>
+        ))}
+      </fieldset>
+      <div>
+        <SubmitButton pending={pending}>{t("optionsRefundSubmit", { amount: formatMoney(total, currency, locale) })}</SubmitButton>
+      </div>
+      {state?.ok ? (
+        <p role="status" className="text-sm font-semibold">
+          {t("optionsRefundDone")}
+        </p>
+      ) : null}
     </form>
   );
 }

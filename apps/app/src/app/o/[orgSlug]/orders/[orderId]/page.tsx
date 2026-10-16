@@ -7,7 +7,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Badge, Card } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { getOrderDetail } from "@/server/ordersAdmin";
-import { CorrectEmail, HolderForm, RefundDecision, RefundTickets, ResendTickets, RevertCheckIn } from "./OrderActions";
+import { CorrectEmail, HolderForm, RefundDecision, RefundOptions, RefundTickets, ResendTickets, RevertCheckIn } from "./OrderActions";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("ordersAdmin");
@@ -149,6 +149,38 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
           />
         ) : null}
       </Card>
+
+      {order.options.length > 0 ? (
+        <Card className="grid gap-3">
+          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("optionsTitle")}</h2>
+          <ul className="grid gap-1 text-sm">
+            {order.options.map((o) => (
+              <li key={o.id} className="flex flex-wrap justify-between gap-2">
+                <span className="font-semibold">
+                  {o.quantity} × {o.option.name}
+                </span>
+                <span className="text-ink-muted">
+                  {t("optionsState", { redeemed: o.redeemed, refunded: o.refunded, left: o.quantity - o.redeemed - o.refunded })}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {refunds && (order.status === "PAID" || order.status === "PARTIALLY_REFUNDED") ? (
+            <RefundOptions
+              orgSlug={orgSlug}
+              orderId={order.id}
+              currency={order.currency}
+              closed={new Date() >= order.event.startsAt && !order.event.optionsRefundAfterStart}
+              options={order.options.map((o) => ({
+                id: o.id,
+                name: o.option.name,
+                left: o.quantity - o.redeemed - o.refunded,
+                unitPriceMinor: o.unitPriceMinor,
+              }))}
+            />
+          ) : null}
+        </Card>
+      ) : null}
 
       {order.answers.length > 0 ? (
         <Card className="grid gap-2">
