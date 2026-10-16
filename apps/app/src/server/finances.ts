@@ -73,7 +73,8 @@ async function periodOptionLines(organizationId: string, range: { from: Date | n
       option: { select: { id: true, name: true, eventId: true } },
       order: { select: { reference: true, paidAt: true, currency: true, status: true } },
     },
-    orderBy: [{ order: { paidAt: "asc" } }, { createdAt: "asc" }],
+    // ordre stable : les options d'une même commande sont créées au même instant, l'ordre des options de l'organisateur départage
+    orderBy: [{ order: { paidAt: "asc" } }, { orderId: "asc" }, { option: { sortOrder: "asc" } }, { option: { name: "asc" } }],
   });
 }
 
