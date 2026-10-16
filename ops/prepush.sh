@@ -9,6 +9,22 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
+# une seule garde à la fois : deux gardes en parallèle se gênent (dossier de couverture de Vitest, port 3001, bases neuves) ;
+# le verrou d'une garde disparue (processus terminé) est ignoré
+lock="${TMPDIR:-/tmp}/evoly-garde.lock"
+if [ -f "$lock" ] && kill -0 "$(cat "$lock" 2> /dev/null)" 2> /dev/null; then
+  echo "ENVOI BLOQUÉ : une autre garde tourne déjà (processus $(cat "$lock")). Attendez sa fin, puis relancez l'envoi."
+  exit 1
+fi
+echo $$ > "$lock"
+guard_db=""
+admin_url=""
+cleanup() {
+  if [ -n "$guard_db" ]; then psql "$admin_url" -qc "DROP DATABASE IF EXISTS $guard_db WITH (FORCE)" > /dev/null 2>&1 || true; fi
+  rm -f "$lock"
+}
+trap cleanup EXIT
+
 echo "1/5 Sécurité des dépendances (pnpm audit)"
 if ! pnpm audit --audit-level moderate; then
   echo "ENVOI BLOQUÉ : faille modérée ou plus grave. Mettez la dépendance à jour (docs/MAINTENANCE.md), ou justifiez une exception dans docs/SECURITE.md."
@@ -43,7 +59,6 @@ for old in $(psql "$admin_url" -tAc "select datname from pg_database where datna
 done
 echo "Base de données neuve ($guard_db), préparée comme dans l'intégration continue"
 psql "$admin_url" -v ON_ERROR_STOP=1 -qc "CREATE DATABASE $guard_db" > "$log" 2>&1 || { cat "$log"; echo "ENVOI BLOQUÉ : création de la base neuve impossible."; exit 1; }
-trap 'psql "$admin_url" -qc "DROP DATABASE IF EXISTS $guard_db WITH (FORCE)" > /dev/null 2>&1 || true' EXIT
 export DATABASE_URL="${base_url%/*}/$guard_db"
 schema() {
   pnpm --filter @evoly/db exec prisma db push
