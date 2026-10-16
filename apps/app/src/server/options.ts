@@ -203,3 +203,61 @@ export async function setOptionsRefundAfterStart(ctx: OrgContext, eventId: strin
   await findEvent(ctx, eventId);
   await db.event.update({ where: { id: eventId }, data: { optionsRefundAfterStart: allowed } });
 }
+
+export type OfflineRedemption = { clientId: string; orderOptionId: string; quantity: number; at: string; deviceId?: string | null; staffName?: string | null };
+
+/**
+ * RG-OPT-05 : retraits faits sans réseau, rejoués dans l'ordre où ils ont eu lieu. Chacun retire seulement ce qui reste
+ * (ni retiré, ni remboursé) ; le surplus est refusé et enregistré comme conflit, signalé à l'organisateur dans les entrées.
+ * Un retrait qui ne concerne pas cet événement est ignoré.
+ */
+export async function syncOptionRedemptions(eventId: string, items: OfflineRedemption[], now = new Date()) {
+  const ordered = [...items].sort((a, b) => a.at.localeCompare(b.at));
+  const results: Array<{ clientId: string; redeemed: number; refused: number; left: number }> = [];
+  for (const it of ordered) {
+    const q = Math.max(1, Math.min(20, Math.trunc(it.quantity)));
+    const at = new Date(it.at);
+    const when = Number.isFinite(at.getTime()) && at <= now ? at : now;
+    const by = { deviceId: it.deviceId ?? null, staffName: it.staffName?.slice(0, 80) ?? null };
+    results.push({
+      clientId: it.clientId,
+      ...(await db.$transaction(async (tx) => {
+        const line = await tx.orderOption.findFirst({
+          where: { id: it.orderOptionId, order: { eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
+          select: { quantity: true, redeemed: true, refunded: true },
+        });
+        if (!line) return { redeemed: 0, refused: q, left: 0 };
+        const ok = Math.max(0, Math.min(q, line.quantity - line.redeemed - line.refunded));
+        if (ok > 0) {
+          const done =
+            await tx.$executeRaw`UPDATE "OrderOption" SET "redeemed" = "redeemed" + ${ok} WHERE id = ${it.orderOptionId} AND "redeemed" + "refunded" + ${ok} <= "quantity"`;
+          if (done !== 1) throw new CoreError("OPTION_NOT_REDEEMABLE");
+          await tx.optionRedemption.create({ data: { orderOptionId: it.orderOptionId, quantity: ok, ...by, offline: true, createdAt: when } });
+        }
+        if (q > ok)
+          await tx.optionRedemptionConflict.create({ data: { orderOptionId: it.orderOptionId, requested: q, refused: q - ok, ...by, happenedAt: when } });
+        return { redeemed: ok, refused: q - ok, left: line.quantity - line.redeemed - line.refunded - ok };
+      })),
+    });
+  }
+  return results;
+}
+
+/** Retraits en double signalés à l'organisateur (RG-OPT-05), du plus récent au plus ancien. */
+export async function optionConflicts(ctx: OrgContext, eventId: string) {
+  await findEvent(ctx, eventId);
+  return db.optionRedemptionConflict.findMany({
+    where: { line: { order: { eventId } } },
+    select: {
+      id: true,
+      requested: true,
+      refused: true,
+      deviceId: true,
+      staffName: true,
+      happenedAt: true,
+      line: { select: { option: { select: { name: true } }, order: { select: { reference: true } } } },
+    },
+    orderBy: { happenedAt: "desc" },
+    take: 200,
+  });
+}

@@ -632,7 +632,11 @@
     "sellQrWaiting": "Warten auf die Zahlung…",
     "sellQrPaid": "{count, plural, one {Bezahlt: # Ticket, Einlass bestätigt.} other {Bezahlt: # Tickets, Einlass bestätigt.}}",
     "sellQrExpired": "Die Zahlung kam nicht rechtzeitig zustande: Beginnen Sie bei Bedarf neu.",
-    "sellQrNew": "Neuer Verkauf"
+    "sellQrNew": "Neuer Verkauf",
+    "bar_OFFLINE_LIST": "Offline: Optionen laut Liste des Telefons.",
+    "bar_QUEUED": "Offline: Einlösung gespeichert, wird gesendet, sobald das Netz zurück ist.",
+    "barPending": "{count, plural, one {# Einlösung ausstehend.} other {# Einlösungen ausstehend.}}",
+    "barRefused": "{count, plural, one {# Einlösung beim erneuten Verbinden abgelehnt: bereits anderswo eingelöst oder erstattet.} other {# Einlösungen beim erneuten Verbinden abgelehnt: bereits anderswo eingelöst oder erstattet.}}"
   },
   "scannerAccess": {
     "title": "Tickets scannen",
@@ -2254,7 +2258,10 @@
     "cashLine": "{sales, plural, one {# Verkauf} other {# Verkäufe}}",
     "cashExport": "Verkäufe exportieren (CSV)",
     "cashDevice": "Gerät {device}",
-    "cashHandOver": "Abzugebendes Bargeld"
+    "cashHandOver": "Abzugebendes Bargeld",
+    "conflictsTitle": "Doppelte Einlösungen (offline)",
+    "conflictsHint": "Offline erfolgte Einlösungen, die bei der Synchronisierung abgelehnt wurden: Die Option war bereits auf einem anderen Telefon eingelöst oder erstattet. Nichts wurde doppelt eingelöst.",
+    "conflictLine": "{option} · Bestellung {reference} · {refused} von {requested} abgelehnt"
   },
   "resaleAdmin": {
     "statActive": "Im Verkauf",

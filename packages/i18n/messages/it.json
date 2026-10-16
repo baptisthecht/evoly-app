@@ -632,7 +632,11 @@
     "sellQrWaiting": "In attesa del pagamento…",
     "sellQrPaid": "{count, plural, one {Pagato: # biglietto, ingresso convalidato.} other {Pagato: # biglietti, ingresso convalidato.}}",
     "sellQrExpired": "Il pagamento non è andato a buon fine in tempo: ricomincia se serve.",
-    "sellQrNew": "Nuova vendita"
+    "sellQrNew": "Nuova vendita",
+    "bar_OFFLINE_LIST": "Senza rete: opzioni secondo l'elenco del telefono.",
+    "bar_QUEUED": "Senza rete: ritiro salvato, inviato appena torna la rete.",
+    "barPending": "{count, plural, one {# ritiro in attesa.} other {# ritiri in attesa.}}",
+    "barRefused": "{count, plural, one {# ritiro rifiutato alla riconnessione: già ritirato altrove o rimborsato.} other {# ritiri rifiutati alla riconnessione: già ritirati altrove o rimborsati.}}"
   },
   "scannerAccess": {
     "title": "Scansiona i biglietti",
@@ -2254,7 +2258,10 @@
     "cashLine": "{sales, plural, one {# vendita} other {# vendite}}",
     "cashExport": "Esporta le vendite (CSV)",
     "cashDevice": "dispositivo {device}",
-    "cashHandOver": "Contanti da consegnare"
+    "cashHandOver": "Contanti da consegnare",
+    "conflictsTitle": "Ritiri doppi (senza rete)",
+    "conflictsHint": "Ritiri fatti senza rete e rifiutati alla sincronizzazione: l'opzione era già stata ritirata su un altro telefono, o rimborsata. Niente è stato ritirato in più.",
+    "conflictLine": "{option} · ordine {reference} · {refused} rifiutato/i su {requested}"
   },
   "resaleAdmin": {
     "statActive": "In vendita",

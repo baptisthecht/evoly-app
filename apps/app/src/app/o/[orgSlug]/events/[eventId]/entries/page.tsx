@@ -13,6 +13,7 @@ import { LinkActions, NewScannerLink, OpenScanner } from "./EntriesClient";
 import { OccupancyPlan } from "@/components/seating/OccupancyPlan";
 import { seatOccupancy } from "@/server/seatingEditor";
 import { cashHandOver, cashReport } from "@/server/boxOffice";
+import { optionConflicts } from "@/server/options";
 import { db } from "@/lib/db";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,6 +35,7 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
   // section 9.27 : rapport de caisse des ventes sur place
   const cashCtx = await requireOrgContext((await params).orgSlug);
   const cash = await cashReport(cashCtx, (await params).eventId);
+  const conflicts = await optionConflicts(cashCtx, (await params).eventId); // RG-OPT-05
   const cashCurrency = (await db.event.findUniqueOrThrow({ where: { id: (await params).eventId }, select: { currency: true } })).currency;
   const cashLocale = (await getLocale()) as Locale;
   const locale = (await getLocale()) as Locale;
@@ -75,6 +77,21 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
               <span className="font-semibold tabular-nums">{formatMoney(h.amountMinor, cashCurrency, cashLocale, { trimZeroCents: true })}</span>
             </p>
           ))}
+        </section>
+      ) : null}
+      {conflicts.length > 0 ? (
+        <section className="grid gap-2 rounded-2xl bg-surface-raised p-4 ring-1 ring-danger" aria-label={t("conflictsTitle")}>
+          <h2 className="font-semibold">{t("conflictsTitle")}</h2>
+          <p className="text-sm text-ink-muted">{t("conflictsHint")}</p>
+          <ul className="grid gap-1 text-sm">
+            {conflicts.map((c) => (
+              <li key={c.id}>
+                {formatDateTime(c.happenedAt, event.timezone, cashLocale, "short")} ·{" "}
+                {t("conflictLine", { option: c.line.option.name, reference: c.line.order.reference, refused: c.refused, requested: c.requested })}
+                {c.staffName ? ` · ${c.staffName}` : ""}
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
       {occupancy ? <OccupancyPlan data={occupancy} /> : null}

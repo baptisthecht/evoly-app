@@ -632,7 +632,11 @@
     "sellQrWaiting": "Esperando el pago…",
     "sellQrPaid": "{count, plural, one {Pagado: # entrada, acceso validado.} other {Pagado: # entradas, acceso validado.}}",
     "sellQrExpired": "El pago no se completó a tiempo: vuelve a empezar si hace falta.",
-    "sellQrNew": "Nueva venta"
+    "sellQrNew": "Nueva venta",
+    "bar_OFFLINE_LIST": "Sin red: opciones según la lista del teléfono.",
+    "bar_QUEUED": "Sin red: canje guardado, se enviará en cuanto vuelva la red.",
+    "barPending": "{count, plural, one {# canje pendiente.} other {# canjes pendientes.}}",
+    "barRefused": "{count, plural, one {# canje rechazado al reconectar: ya canjeado en otro lugar o reembolsado.} other {# canjes rechazados al reconectar: ya canjeados en otro lugar o reembolsados.}}"
   },
   "scannerAccess": {
     "title": "Escanear las entradas",
@@ -2254,7 +2258,10 @@
     "cashLine": "{sales, plural, one {# venta} other {# ventas}}",
     "cashExport": "Exportar las ventas (CSV)",
     "cashDevice": "dispositivo {device}",
-    "cashHandOver": "Efectivo a entregar"
+    "cashHandOver": "Efectivo a entregar",
+    "conflictsTitle": "Canjes duplicados (sin red)",
+    "conflictsHint": "Canjes hechos sin red y rechazados al sincronizar: la opción ya se había canjeado en otro teléfono o se había reembolsado. No se canjeó nada de más.",
+    "conflictLine": "{option} · pedido {reference} · {refused} rechazado(s) de {requested}"
   },
   "resaleAdmin": {
     "statActive": "A la venta",

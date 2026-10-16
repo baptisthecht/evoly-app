@@ -641,7 +641,11 @@
     "sellQrWaiting": "Waiting for payment…",
     "sellQrPaid": "{count, plural, one {Paid: # ticket, entry validated.} other {Paid: # tickets, entry validated.}}",
     "sellQrExpired": "The payment did not go through in time: start again if needed.",
-    "sellQrNew": "New sale"
+    "sellQrNew": "New sale",
+    "bar_OFFLINE_LIST": "Offline: add-ons from the phone's list.",
+    "bar_QUEUED": "Offline: redemption saved, sent as soon as the network is back.",
+    "barPending": "{count, plural, one {# redemption pending.} other {# redemptions pending.}}",
+    "barRefused": "{count, plural, one {# redemption refused on reconnection: already redeemed elsewhere or refunded.} other {# redemptions refused on reconnection: already redeemed elsewhere or refunded.}}"
   },
   "plans": {
     "free": "Free",
@@ -1270,7 +1274,10 @@
     "cashLine": "{sales, plural, one {# sale} other {# sales}}",
     "cashExport": "Export the sales (CSV)",
     "cashDevice": "device {device}",
-    "cashHandOver": "Cash to hand over"
+    "cashHandOver": "Cash to hand over",
+    "conflictsTitle": "Duplicate redemptions (offline)",
+    "conflictsHint": "Redemptions made offline and refused at synchronisation: the add-on had already been redeemed on another phone, or refunded. Nothing was redeemed twice.",
+    "conflictLine": "{option} · order {reference} · {refused} refused out of {requested}"
   },
   "resaleAdmin": {
     "statActive": "Listed",

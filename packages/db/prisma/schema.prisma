@@ -1982,6 +1982,7 @@ model OrderOption {
   option         EventOption        @relation(fields: [optionId], references: [id])
   redemptions    OptionRedemption[]
   refundItems RefundOptionItem[]
+  conflicts OptionRedemptionConflict[]
 
   @@index([orderId])
   @@index([optionId])
@@ -1994,6 +1995,22 @@ model OptionRedemption {
   quantity      Int
   deviceId      String?
   staffName     String?
+  offline Boolean @default(false) // fait sans réseau, synchronisé ensuite (RG-OPT-05)
+  createdAt     DateTime    @default(now())
+  line          OrderOption @relation(fields: [orderOptionId], references: [id], onDelete: Cascade)
+
+  @@index([orderOptionId])
+}
+
+/// Retrait fait sans réseau et refusé à la synchronisation : déjà retiré ailleurs ou remboursé entre-temps (RG-OPT-05).
+model OptionRedemptionConflict {
+  id            String      @id @default(cuid())
+  orderOptionId String
+  requested     Int
+  refused       Int
+  deviceId      String?
+  staffName     String?
+  happenedAt    DateTime // heure du retrait sur l'appareil
   createdAt     DateTime    @default(now())
   line          OrderOption @relation(fields: [orderOptionId], references: [id], onDelete: Cascade)
 

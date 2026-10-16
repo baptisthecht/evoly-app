@@ -632,7 +632,11 @@
     "sellQrWaiting": "Wachten op de betaling…",
     "sellQrPaid": "{count, plural, one {Betaald: # ticket, toegang gevalideerd.} other {Betaald: # tickets, toegang gevalideerd.}}",
     "sellQrExpired": "De betaling is niet op tijd gelukt: begin opnieuw indien nodig.",
-    "sellQrNew": "Nieuwe verkoop"
+    "sellQrNew": "Nieuwe verkoop",
+    "bar_OFFLINE_LIST": "Zonder netwerk: opties volgens de lijst van de telefoon.",
+    "bar_QUEUED": "Zonder netwerk: afhaling bewaard, verstuurd zodra het netwerk terug is.",
+    "barPending": "{count, plural, one {# afhaling in afwachting.} other {# afhalingen in afwachting.}}",
+    "barRefused": "{count, plural, one {# afhaling geweigerd bij het opnieuw verbinden: al elders afgehaald of terugbetaald.} other {# afhalingen geweigerd bij het opnieuw verbinden: al elders afgehaald of terugbetaald.}}"
   },
   "scannerAccess": {
     "title": "Tickets scannen",
@@ -2254,7 +2258,10 @@
     "cashLine": "{sales, plural, one {# verkoop} other {# verkopen}}",
     "cashExport": "Verkopen exporteren (CSV)",
     "cashDevice": "toestel {device}",
-    "cashHandOver": "Af te geven cash"
+    "cashHandOver": "Af te geven cash",
+    "conflictsTitle": "Dubbele afhalingen (zonder netwerk)",
+    "conflictsHint": "Afhalingen zonder netwerk die bij de synchronisatie geweigerd werden: de optie was al op een andere telefoon afgehaald, of terugbetaald. Er is niets te veel afgehaald.",
+    "conflictLine": "{option} · bestelling {reference} · {refused} geweigerd van {requested}"
   },
   "resaleAdmin": {
     "statActive": "Te koop",

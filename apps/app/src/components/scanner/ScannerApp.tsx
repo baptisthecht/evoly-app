@@ -17,6 +17,7 @@ interface LocalTicket {
   status: TicketStatus;
   checkedInAt: string | null;
   voidReason: string | null;
+  orderId?: string;
 }
 interface Manifest {
   serverTime: string;
@@ -25,6 +26,8 @@ interface Manifest {
   link: { label: string; allowManualSearch: boolean; checkOnly?: boolean; canSell?: boolean; expiresAt: string };
   sale?: { currency: string; ticketTypes: Array<{ id: string; name: string; priceMinor: number; remaining: number }> } | null;
   tickets: LocalTicket[];
+  /** options de chaque commande, pour retirer au bar sans réseau (RG-OPT-05) */
+  options?: Record<string, Array<{ id: string; name: string; quantity: number; redeemed: number; left: number }>>;
   hasOptions?: boolean;
 }
 /** Mode « Bar et options » : ce qui reste à retirer sur le billet scanné (section 9.29). */
@@ -32,6 +35,7 @@ interface BarView {
   holder: string | null;
   options: Array<{ id: string; name: string; quantity: number; redeemed: number; left: number }>;
   error?: "NOT_FOUND" | "OFFLINE" | "FAILED";
+  note?: "OFFLINE_LIST" | "QUEUED";
 }
 interface PendingScan {
   clientId: string;
@@ -40,6 +44,13 @@ interface PendingScan {
   ticketId?: string;
   method: "QR" | "MANUAL_CODE" | "LIST";
   scannedAt: string;
+}
+/** Retrait au bar fait sans réseau, envoyé à la reconnexion (RG-OPT-05). */
+interface PendingRedemption {
+  clientId: string;
+  orderOptionId: string;
+  quantity: number;
+  at: string;
 }
 type Kind = "VALID" | "CHECKED" | "ALREADY_USED" | "VOID" | "WRONG_EVENT" | "INVALID";
 interface Feedback {
@@ -59,7 +70,7 @@ type Dead = "EXPIRED" | "REVOKED" | "UNKNOWN_LINK";
 
 const read = (key: string) => {
   try {
-    return JSON.parse(localStorage.getItem(key) ?? "null") as { manifest?: Manifest; pending?: PendingScan[] } | null;
+    return JSON.parse(localStorage.getItem(key) ?? "null") as { manifest?: Manifest; pending?: PendingScan[]; redemptions?: PendingRedemption[] } | null;
   } catch {
     return null;
   }
@@ -126,6 +137,8 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
   const key = `evoly-scan:${token.slice(0, 16)}`;
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [pending, setPending] = useState<PendingScan[]>([]);
+  const [redemptions, setRedemptions] = useState<PendingRedemption[]>([]);
+  const [refused, setRefused] = useState(0);
   const [checkMode, setCheckMode] = useState(false); // vérification seule choisie dans le scanner
   const [barMode, setBarMode] = useState(false);
   const [bar, setBar] = useState<BarView | null>(null);
@@ -148,6 +161,8 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
   const pendingRef = useRef(pending);
   const busy = useRef(false);
   pendingRef.current = pending;
+  const redemptionsRef = useRef(redemptions);
+  redemptionsRef.current = redemptions;
   const deviceId = useMemo(() => {
     try {
       const existing = localStorage.getItem("evoly-scan:device");
@@ -188,18 +203,27 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
 
   const sync = useCallback(async () => {
     const queue = pendingRef.current;
-    if (queue.length === 0) return;
+    const withdrawals = redemptionsRef.current;
+    if (queue.length === 0 && withdrawals.length === 0) return;
     try {
       const res = await fetch(`/api/scanner/${token}/sync`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ deviceId, scans: queue }),
+        body: JSON.stringify({ deviceId, scans: queue, redemptions: withdrawals }),
       });
       if (res.status === 404 || res.status === 410) return kill(((await res.json().catch(() => ({}))) as { error?: Dead }).error ?? "UNKNOWN_LINK");
       if (!res.ok) throw new Error(String(res.status));
-      const { results } = (await res.json()) as { results: Array<{ clientId: string }> };
+      const { results, redemptions: replayed = [] } = (await res.json()) as {
+        results: Array<{ clientId: string }>;
+        redemptions?: Array<{ clientId: string; refused: number }>;
+      };
       const done = new Set(results.map((r) => r.clientId));
       setPending((p) => p.filter((x) => !done.has(x.clientId)));
+      // retraits rejoués : ceux refusés (déjà retirés ailleurs ou remboursés) sont signalés au barman (RG-OPT-05)
+      const synced = new Set(replayed.map((r) => r.clientId));
+      setRedemptions((q) => q.filter((x) => !synced.has(x.clientId)));
+      const nRefused = replayed.reduce((n, r) => n + r.refused, 0);
+      if (nRefused > 0) setRefused((n) => n + nRefused);
       setOnline(true);
     } catch {
       setOnline(false);
@@ -211,6 +235,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     const cached = read(key);
     if (cached?.manifest) setManifest(cached.manifest);
     if (cached?.pending) setPending(cached.pending);
+    if (cached?.redemptions) setRedemptions(cached.redemptions);
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/scanner-sw.js", { scope: "/s/" }).catch(() => undefined);
     refresh();
     const onOnline = () => {
@@ -232,9 +257,9 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
   }, [key, refresh, sync, gone]);
 
   useEffect(() => {
-    if (manifest) write(key, { manifest, pending });
+    if (manifest) write(key, { manifest, pending, redemptions });
     if (manifest && new Date(manifest.link.expiresAt) <= new Date()) kill("EXPIRED");
-  }, [key, manifest, pending, kill]);
+  }, [key, manifest, pending, redemptions, kill]);
 
   useEffect(() => {
     let cancelled = false;
@@ -268,18 +293,47 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     if (!res.ok) throw new Error(data?.error === "NOT_FOUND" ? "NOT_FOUND" : "FAILED");
     return data;
   };
+  /** Sans réseau : le billet et ses options d'après la liste du téléphone, moins les retraits en attente (RG-OPT-05). */
+  const localBar = async (input: { code?: string; shortCode?: string }): Promise<BarView> => {
+    if (!manifest) return { holder: null, options: [], error: "OFFLINE" };
+    let tk: LocalTicket | undefined;
+    if (input.code) {
+      const h = await sha256(`${manifest.salt}:${input.code.trim()}`);
+      tk = manifest.tickets.find((x) => x.codeHash === h);
+    } else if (input.shortCode) tk = manifest.tickets.find((x) => x.shortCode === shortOf(input.shortCode!));
+    if (!tk) return { holder: null, options: [], error: "NOT_FOUND" };
+    const queued = (id: string) => redemptionsRef.current.filter((r) => r.orderOptionId === id).reduce((n, r) => n + r.quantity, 0);
+    const options = (manifest.options?.[tk.orderId ?? ""] ?? []).map((o) => ({
+      ...o,
+      redeemed: o.redeemed + queued(o.id),
+      left: Math.max(0, o.left - queued(o.id)),
+    }));
+    return { holder: tk.holder, options, note: "OFFLINE_LIST" };
+  };
   const barLookup = async (input: { code?: string; shortCode?: string }) => {
     try {
       setBar(await barCall({ action: "lookup", code: input.code, shortCode: input.shortCode }));
     } catch (err) {
-      setBar({
-        holder: null,
-        options: [],
-        error: (err as Error).message === "OFFLINE" ? "OFFLINE" : (err as Error).message === "NOT_FOUND" ? "NOT_FOUND" : "FAILED",
-      });
+      const m = (err as Error).message;
+      if (m === "NOT_FOUND") setBar({ holder: null, options: [], error: "NOT_FOUND" });
+      else if (m === "FAILED") setBar({ holder: null, options: [], error: "FAILED" });
+      else setBar(await localBar(input)); // sans réseau : la liste du téléphone
     }
   };
+  /** Retrait mis en file d'attente, envoyé à la reconnexion ; le reste diminue aussitôt (RG-OPT-05). */
+  const queueRedeem = (id: string) => {
+    const line = bar?.options.find((o) => o.id === id);
+    if (!line || line.left <= 0) return;
+    setRedemptions((q) => [...q, { clientId: crypto.randomUUID(), orderOptionId: id, quantity: 1, at: new Date().toISOString() }]);
+    setBar((b) =>
+      b
+        ? { ...b, error: undefined, note: "QUEUED", options: b.options.map((o) => (o.id === id ? { ...o, left: o.left - 1, redeemed: o.redeemed + 1 } : o)) }
+        : b,
+    );
+    navigator.vibrate?.(60);
+  };
   const barRedeem = async (id: string) => {
+    if (bar?.note === "OFFLINE_LIST" || bar?.note === "QUEUED" || !navigator.onLine) return queueRedeem(id);
     try {
       const r = (await barCall({ action: "redeem", orderOptionId: id, quantity: 1 })) as { left: number };
       setBar((b) =>
@@ -287,7 +341,9 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       );
       navigator.vibrate?.(60);
     } catch (err) {
-      setBar((b) => (b ? { ...b, error: (err as Error).message === "OFFLINE" ? "OFFLINE" : "FAILED" } : b));
+      // réseau perdu pendant le retrait : mis en file d'attente ; refus du serveur : affiché
+      if ((err as Error).message !== "FAILED" && (err as Error).message !== "NOT_FOUND") return queueRedeem(id);
+      setBar((b) => (b ? { ...b, error: "FAILED" } : b));
     }
   };
   const scan = async (input: { code?: string; shortCode?: string; ticketId?: string; method: PendingScan["method"] }) => {
@@ -594,6 +650,17 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       {barMode ? (
         <section aria-live="polite" aria-label={t("modeBar")} className="mx-4 mb-4 grid gap-3 rounded-2xl bg-blanc p-4 text-[var(--evoly-charbon)]">
           {!bar ? <p className="text-sm">{t("barHint")}</p> : null}
+          {refused > 0 ? (
+            <p role="alert" className="rounded-md bg-[var(--evoly-rose)] p-2 text-sm font-semibold text-[var(--evoly-charbon)]">
+              {t("barRefused", { count: refused })}
+            </p>
+          ) : null}
+          {bar?.note ? (
+            <p role="status" className="text-sm">
+              {t(`bar_${bar.note}`)}
+              {redemptions.length > 0 ? ` ${t("barPending", { count: redemptions.length })}` : ""}
+            </p>
+          ) : null}
           {bar?.holder ? <p className="font-display text-lg">{bar.holder}</p> : null}
           {bar?.error ? (
             <p role="alert" className="text-sm font-semibold text-danger">

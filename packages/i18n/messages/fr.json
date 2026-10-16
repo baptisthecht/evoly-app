@@ -641,7 +641,11 @@
     "sellQrWaiting": "En attente du paiement…",
     "sellQrPaid": "{count, plural, one {Payé : # billet, entrée validée.} other {Payé : # billets, entrée validée.}}",
     "sellQrExpired": "Le paiement n'a pas abouti à temps : recommencez si besoin.",
-    "sellQrNew": "Nouvelle vente"
+    "sellQrNew": "Nouvelle vente",
+    "bar_OFFLINE_LIST": "Sans réseau : options d'après la liste du téléphone.",
+    "bar_QUEUED": "Sans réseau : retrait enregistré, envoyé dès le retour du réseau.",
+    "barPending": "{count, plural, one {# retrait en attente.} other {# retraits en attente.}}",
+    "barRefused": "{count, plural, one {# retrait refusé à la reconnexion : déjà retiré ailleurs ou remboursé.} other {# retraits refusés à la reconnexion : déjà retirés ailleurs ou remboursés.}}"
   },
   "plans": {
     "free": "Free",
@@ -1270,7 +1274,10 @@
     "cashLine": "{sales, plural, one {# vente} other {# ventes}}",
     "cashExport": "Exporter les ventes (CSV)",
     "cashDevice": "appareil {device}",
-    "cashHandOver": "Espèces à remettre"
+    "cashHandOver": "Espèces à remettre",
+    "conflictsTitle": "Retraits en double (sans réseau)",
+    "conflictsHint": "Retraits faits sans réseau puis refusés à la synchronisation : l'option avait déjà été retirée sur un autre téléphone, ou remboursée. Rien n'a été retiré en trop.",
+    "conflictLine": "{option} · commande {reference} · {refused} refusé(s) sur {requested}"
   },
   "resaleAdmin": {
     "statActive": "En vente",

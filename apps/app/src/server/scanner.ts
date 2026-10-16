@@ -180,15 +180,26 @@ export async function scannerManifest(link: ResolvedLink) {
       holderLastName: true,
       tableLabel: true,
       ticketType: { select: { name: true } },
+      orderId: true,
       order: { select: { buyerFirstName: true, buyerLastName: true, buyerEmail: true } },
     },
     orderBy: { createdAt: "asc" },
   });
   const salt = link.id;
+  // options de chaque commande, pour retirer au bar sans réseau (RG-OPT-05)
+  const optionLines = await db.orderOption.findMany({
+    where: { order: { eventId: link.eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
+    select: { id: true, orderId: true, quantity: true, redeemed: true, refunded: true, option: { select: { name: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  const options: Record<string, Array<{ id: string; name: string; quantity: number; redeemed: number; left: number }>> = {};
+  for (const l of optionLines)
+    (options[l.orderId] ??= []).push({ id: l.id, name: l.option.name, quantity: l.quantity, redeemed: l.redeemed, left: l.quantity - l.redeemed - l.refunded });
   return {
     serverTime: new Date().toISOString(),
     salt,
     hasOptions: (await db.eventOption.count({ where: { eventId: link.eventId } })) > 0, // mode « Bar et options » (section 9.29)
+    options, // par commande (RG-OPT-05)
     sale: link.canSell ? await saleCatalog(link.eventId) : null, // vente sur place (section 9.27)
     event: {
       title: link.event.title,
@@ -214,6 +225,7 @@ export async function scannerManifest(link: ResolvedLink) {
       status: t.status,
       checkedInAt: t.checkedInAt?.toISOString() ?? null,
       voidReason: t.voidReason,
+      orderId: t.orderId, // ses options, au bar sans réseau (RG-OPT-05)
     })),
   };
 }

@@ -632,7 +632,11 @@
     "sellQrWaiting": "À espera do pagamento…",
     "sellQrPaid": "{count, plural, one {Pago: # bilhete, entrada validada.} other {Pago: # bilhetes, entrada validada.}}",
     "sellQrExpired": "O pagamento não foi concluído a tempo: recomece se necessário.",
-    "sellQrNew": "Nova venda"
+    "sellQrNew": "Nova venda",
+    "bar_OFFLINE_LIST": "Sem rede: opções segundo a lista do telefone.",
+    "bar_QUEUED": "Sem rede: levantamento guardado, enviado assim que a rede voltar.",
+    "barPending": "{count, plural, one {# levantamento pendente.} other {# levantamentos pendentes.}}",
+    "barRefused": "{count, plural, one {# levantamento recusado ao religar: já levantado noutro lado ou reembolsado.} other {# levantamentos recusados ao religar: já levantados noutro lado ou reembolsados.}}"
   },
   "scannerAccess": {
     "title": "Ler os bilhetes",
@@ -2254,7 +2258,10 @@
     "cashLine": "{sales, plural, one {# venda} other {# vendas}}",
     "cashExport": "Exportar as vendas (CSV)",
     "cashDevice": "dispositivo {device}",
-    "cashHandOver": "Dinheiro a entregar"
+    "cashHandOver": "Dinheiro a entregar",
+    "conflictsTitle": "Levantamentos duplicados (sem rede)",
+    "conflictsHint": "Levantamentos feitos sem rede e recusados na sincronização: a opção já tinha sido levantada noutro telefone, ou reembolsada. Nada foi levantado a mais.",
+    "conflictLine": "{option} · encomenda {reference} · {refused} recusado(s) de {requested}"
   },
   "resaleAdmin": {
     "statActive": "À venda",
