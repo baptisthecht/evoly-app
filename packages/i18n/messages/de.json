@@ -137,7 +137,8 @@
     "payUnavailable": "Diese Zahlung ist nicht mehr verfügbar: Bitten Sie das Team um einen neuen Code.",
     "payCancelled": "Zahlung abgebrochen.",
     "tablePeople": "Tisch für {count} Personen",
-    "tableIncludes": "Inklusive: {items}"
+    "tableIncludes": "Inklusive: {items}",
+    "optionsStandaloneHint": "Manche Optionen gibt es ohne Ticket; die anderen erfordern mindestens ein Ticket."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -2608,7 +2609,9 @@
     "refundAfterStart": "Optionen nach Beginn der Veranstaltung erstattbar",
     "refundAfterStartHint": "Standardmäßig sind nicht eingelöste Optionen nach Beginn der Veranstaltung nicht mehr erstattbar.",
     "refundPolicySave": "Einstellung speichern",
-    "refundPolicySaved": "Einstellung gespeichert."
+    "refundPolicySaved": "Einstellung gespeichert.",
+    "standalone": "Ohne Ticket erhältlich",
+    "standaloneHint": "Eine Garderobe zum Beispiel: Die Option ist einzeln erhältlich, online und vor Ort, und der Käufer erhält einen QR-Code zum Abholen."
   },
   "ambassadors": {
     "intro": "Geben Sie jedem Teammitglied oder Promoter einen eigenen Verkaufslink und sehen Sie, wer am meisten verkauft.",

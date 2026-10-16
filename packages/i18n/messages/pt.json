@@ -137,7 +137,8 @@
     "payUnavailable": "Este pagamento já não está disponível: peça um novo código à equipa.",
     "payCancelled": "Pagamento cancelado.",
     "tablePeople": "Mesa para {count} pessoas",
-    "tableIncludes": "Inclui: {items}"
+    "tableIncludes": "Inclui: {items}",
+    "optionsStandaloneHint": "Algumas opções compram-se sem bilhete; as outras exigem pelo menos um bilhete."
   },
   "checkout": {
     "tickets": "Bilhetes",
@@ -2608,7 +2609,9 @@
     "refundAfterStart": "Opções reembolsáveis após o início do evento",
     "refundAfterStartHint": "Por predefinição, as opções não levantadas deixam de ser reembolsáveis assim que o evento começa.",
     "refundPolicySave": "Guardar a definição",
-    "refundPolicySaved": "Definição guardada."
+    "refundPolicySaved": "Definição guardada.",
+    "standalone": "Vendável sem bilhete",
+    "standaloneHint": "Um bengaleiro, por exemplo: a opção compra-se sozinha, online e no local, e o comprador recebe um código QR de levantamento."
   },
   "ambassadors": {
     "intro": "Dê a cada membro da equipa ou promotor a sua própria ligação de venda e veja quem vende mais.",

@@ -137,7 +137,8 @@
     "payUnavailable": "Questo pagamento non è più disponibile: chiedi un nuovo codice allo staff.",
     "payCancelled": "Pagamento annullato.",
     "tablePeople": "Tavolo per {count} persone",
-    "tableIncludes": "Include: {items}"
+    "tableIncludes": "Include: {items}",
+    "optionsStandaloneHint": "Alcune opzioni si acquistano senza biglietto; le altre richiedono almeno un biglietto."
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -2608,7 +2609,9 @@
     "refundAfterStart": "Opzioni rimborsabili dopo l'inizio dell'evento",
     "refundAfterStartHint": "Per impostazione predefinita, le opzioni non ritirate non sono più rimborsabili una volta iniziato l'evento.",
     "refundPolicySave": "Salva l'impostazione",
-    "refundPolicySaved": "Impostazione salvata."
+    "refundPolicySaved": "Impostazione salvata.",
+    "standalone": "Vendibile senza biglietto",
+    "standaloneHint": "Un guardaroba, per esempio: l'opzione si acquista da sola, online e sul posto, e l'acquirente riceve un codice QR di ritiro."
   },
   "ambassadors": {
     "intro": "Dai a ogni membro del team o promoter il proprio link di vendita e scopri chi vende di più.",

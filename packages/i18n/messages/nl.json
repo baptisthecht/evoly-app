@@ -137,7 +137,8 @@
     "payUnavailable": "Deze betaling is niet meer beschikbaar: vraag het team om een nieuwe code.",
     "payCancelled": "Betaling geannuleerd.",
     "tablePeople": "Tafel voor {count} personen",
-    "tableIncludes": "Inbegrepen: {items}"
+    "tableIncludes": "Inbegrepen: {items}",
+    "optionsStandaloneHint": "Sommige opties kun je zonder ticket kopen; de andere vragen minstens één ticket."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -2608,7 +2609,9 @@
     "refundAfterStart": "Opties terugbetaalbaar na het begin van het evenement",
     "refundAfterStartHint": "Standaard zijn niet afgehaalde opties niet meer terugbetaalbaar zodra het evenement begonnen is.",
     "refundPolicySave": "Instelling opslaan",
-    "refundPolicySaved": "Instelling opgeslagen."
+    "refundPolicySaved": "Instelling opgeslagen.",
+    "standalone": "Verkrijgbaar zonder ticket",
+    "standaloneHint": "Een vestiaire bijvoorbeeld: de optie is apart te koop, online en ter plaatse, en de koper krijgt een QR-code om af te halen."
   },
   "ambassadors": {
     "intro": "Geef elk teamlid of elke promotor een eigen verkooplink en zie wie het meest verkoopt.",

@@ -65,6 +65,8 @@ const linesSchema = z
   .array(z.object({ ticketTypeId: z.string().min(1).max(40), quantity: z.number().int().min(1).max(50) }))
   .min(1)
   .max(20);
+// réservation : un panier sans billet est admis s'il contient des options, contrôlées au paiement (vendables sans billet, RG-OPT-03)
+const reserveLinesSchema = z.array(z.object({ ticketTypeId: z.string().min(1).max(40), quantity: z.number().int().min(1).max(50) })).max(20);
 const buyerSchema = z.object({
   firstName: z.string().trim().min(1).max(60),
   lastName: z.string().trim().min(1).max(60),
@@ -112,8 +114,9 @@ export async function reserveAction(
 ): Promise<Result<ReservationView>> {
   // RG-BUY-10 : preuve anti-robots exigée sur les événements où l'organisateur l'a activée
   if ((await botProtected(eventId.slice(0, 40))) && !(await verifyProof(eventId.slice(0, 40), botProof))) return { ok: false, error: "BOT_CHECK_FAILED" };
-  const parsed = linesSchema.safeParse(lines);
-  if (!parsed.success) return { ok: false, error: "CART_EMPTY_CART" };
+  const parsed = reserveLinesSchema.safeParse(lines);
+  const wantsOptions = Array.isArray(options) && options.some((o) => Number((o as { quantity?: unknown } | null)?.quantity) > 0);
+  if (!parsed.success || (parsed.data.length === 0 && !wantsOptions)) return { ok: false, error: "CART_EMPTY_CART" };
   if ((await hit(`checkout:reserve:${await clientIp()}`, 600)) > 30) return { ok: false, error: "RATE_LIMITED" };
   try {
     // RG-PUB-06 : sans le code d'accès, pas de réservation pour un événement privé

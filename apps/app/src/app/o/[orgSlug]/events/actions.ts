@@ -729,6 +729,7 @@ const optionSchema = z.object({
   price: text(12).min(1, { message: "validation.required" }),
   stock: optionalText(9),
   maxPerOrder: optionalText(3),
+  standalone: optionalText(5), // case cochée : « on » (RG-OPT-03)
 });
 const optionInput = (d: z.infer<typeof optionSchema>) => ({
   name: d.name,
@@ -736,6 +737,7 @@ const optionInput = (d: z.infer<typeof optionSchema>) => ({
   price: d.price,
   stock: d.stock ?? undefined,
   maxPerOrder: d.maxPerOrder ?? undefined,
+  standalone: d.standalone === "on",
 });
 
 export async function createOptionAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {

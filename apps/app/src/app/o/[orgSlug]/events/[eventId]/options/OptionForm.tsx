@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/Card";
 import { Field, Input } from "@/components/ui/Field";
 import { createOptionAction, optionCommandAction, updateOptionAction } from "../../actions";
 
-type Initial = { id: string; name: string; description: string; price: string; stock: string; maxPerOrder: string };
+type Initial = { id: string; name: string; description: string; price: string; stock: string; maxPerOrder: string; standalone: boolean };
 
 /** Ajout ou modification d'une option (section 9.29). */
 export function OptionForm({ orgSlug, eventId, symbol, option }: { orgSlug: string; eventId: string; symbol: string; option?: Initial }) {
@@ -37,6 +37,13 @@ export function OptionForm({ orgSlug, eventId, symbol, option }: { orgSlug: stri
       <Field label={t("description")} htmlFor={`${p}-desc`} error={error("description")}>
         <Input id={`${p}-desc`} name="description" maxLength={300} defaultValue={option?.description} />
       </Field>
+      <label className="flex items-start gap-3">
+        <input type="checkbox" name="standalone" defaultChecked={option?.standalone ?? false} className="mt-1 size-5 accent-[var(--ink)]" />
+        <span>
+          <span className="font-semibold">{t("standalone")}</span>
+          <span className="block text-sm text-ink-muted">{t("standaloneHint")}</span>
+        </span>
+      </label>
       {state?.ok ? (
         <p role="status" className="text-sm text-ink-muted">
           {t("saved")}

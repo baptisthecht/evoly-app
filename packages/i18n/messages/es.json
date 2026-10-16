@@ -137,7 +137,8 @@
     "payUnavailable": "Este pago ya no está disponible: pide un nuevo código al equipo.",
     "payCancelled": "Pago cancelado.",
     "tablePeople": "Mesa para {count} personas",
-    "tableIncludes": "Incluye: {items}"
+    "tableIncludes": "Incluye: {items}",
+    "optionsStandaloneHint": "Algunas opciones se compran sin entrada; las demás requieren al menos una entrada."
   },
   "checkout": {
     "tickets": "Entradas",
@@ -2608,7 +2609,9 @@
     "refundAfterStart": "Opciones reembolsables tras el inicio del evento",
     "refundAfterStartHint": "Por defecto, las opciones no canjeadas dejan de ser reembolsables cuando empieza el evento.",
     "refundPolicySave": "Guardar el ajuste",
-    "refundPolicySaved": "Ajuste guardado."
+    "refundPolicySaved": "Ajuste guardado.",
+    "standalone": "Se vende sin entrada",
+    "standaloneHint": "Un guardarropa, por ejemplo: la opción se compra sola, en línea y en el lugar, y el comprador recibe un código QR de recogida."
   },
   "ambassadors": {
     "intro": "Da a cada miembro de tu equipo o promotor su propio enlace de venta y mira quién vende más.",

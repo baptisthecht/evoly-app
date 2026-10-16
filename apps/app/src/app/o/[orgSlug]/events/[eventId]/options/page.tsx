@@ -80,6 +80,7 @@ export default async function OptionsPage({ params }: { params: Promise<{ orgSlu
                       price: (o.priceMinor / 100).toFixed(2),
                       stock: o.stock?.toString() ?? "",
                       maxPerOrder: String(o.maxPerOrder),
+                      standalone: o.standalone,
                     }}
                   />
                 </details>

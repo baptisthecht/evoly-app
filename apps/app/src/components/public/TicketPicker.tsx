@@ -56,7 +56,7 @@ export function TicketPicker({
   state: "OPEN" | "NOT_STARTED" | "PAUSED" | "CLOSED" | "PREVIEW";
   checkout?: { eventId: string; organizationName: string; requirePhone: boolean; publishableKey: string | null };
   seatMap?: PublicSeatMap | null;
-  options?: Array<{ id: string; name: string; description: string | null; priceMinor: number; maxPerOrder: number; left: number | null }>;
+  options?: Array<{ id: string; name: string; description: string | null; priceMinor: number; maxPerOrder: number; left: number | null; standalone?: boolean }>;
   waitlistOffer?: { token: string; ticketTypeId: string; quantity: number; expiresAt: string } | null;
 }) {
   const t = useTranslations("public");
@@ -119,6 +119,10 @@ export function TicketPicker({
   const setOpt = (o: (typeof options)[number], next: number) =>
     setOptQty((q) => ({ ...q, [o.id]: Math.max(0, Math.min(next, o.maxPerOrder, o.left ?? o.maxPerOrder)) }));
   const count = Object.values(qty).reduce((a, b) => a + b, 0);
+  // RG-OPT-03 : options seules (vestiaire seul…) : aucun billet, et seulement des options vendables sans billet
+  const optCount = options.reduce((n, o) => n + (optQty[o.id] ?? 0), 0);
+  const optionsOnly = count === 0 && optCount > 0 && options.every((o) => !(optQty[o.id] ?? 0) || o.standalone);
+  const canBuy = count > 0 || optionsOnly;
   const money = (v: number) => (v === 0 ? t("free") : formatMoney(v, currency, locale, { trimZeroCents: true }));
   const set = (tt: PickerTicket, next: number) => {
     const others = count - (qty[tt.id] ?? 0);
@@ -142,8 +146,11 @@ export function TicketPicker({
       const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(ticketTypeId));
       if (c && !c.standing && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n;
     }
+  useEffect(() => {
+    if (count === 0) setOptQty((q) => Object.fromEntries(Object.entries(q).filter(([id]) => options.find((o) => o.id === id)?.standalone)));
+  }, [count, options]);
   const reserve = async () => {
-    if (!checkout || count === 0) return;
+    if (!checkout || !canBuy) return;
     setPending(true);
     setError(null);
     const lines = Object.entries(qty)
@@ -289,7 +296,9 @@ export function TicketPicker({
         <section className="grid gap-3" aria-label={t("optionsTitle")}>
           <div className="grid gap-1">
             <h3 className="font-semibold">{t("optionsTitle")}</h3>
-            <p className="text-sm text-ink-muted">{count === 0 ? t("optionsNeedTicket") : t("optionsHint")}</p>
+            <p className="text-sm text-ink-muted">
+              {count === 0 ? t(options.some((o) => o.standalone) ? "optionsStandaloneHint" : "optionsNeedTicket") : t("optionsHint")}
+            </p>
           </div>
           <ul className="grid gap-2">
             {options.map((o) => {
@@ -323,7 +332,7 @@ export function TicketPicker({
                       size="sm"
                       className="size-10 px-0 text-lg"
                       onClick={() => setOpt(o, n + 1)}
-                      disabled={count === 0 || n >= cap}
+                      disabled={(count === 0 && !o.standalone) || n >= cap}
                       aria-label={t("more", { name: o.name })}
                     >
                       +
@@ -375,7 +384,7 @@ export function TicketPicker({
         <div className="grid gap-3 border-t border-line pt-4">
           <div className="flex items-baseline justify-between">
             <span className="font-semibold">{t("total")}</span>
-            <span className="font-display text-2xl tracking-[-0.03em] tabular-nums">{count === 0 ? "-" : money(total)}</span>
+            <span className="font-display text-2xl tracking-[-0.03em] tabular-nums">{!canBuy ? "-" : money(total)}</span>
           </div>
           {error ? (
             <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
@@ -385,7 +394,7 @@ export function TicketPicker({
           <Button
             type="button"
             size="lg"
-            disabled={state !== "OPEN" || !checkout || count === 0 || pending}
+            disabled={state !== "OPEN" || !checkout || !canBuy || pending}
             aria-busy={pending}
             className="w-full"
             onClick={reserve}
