@@ -198,14 +198,14 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     expect(await referringVenueName(orga.org.id)).toBe("Le Hangar");
     expect(await referringVenueName(lieu.org.id)).toBeNull();
     const ev = await evenement(orga.ctx, true, "100");
-    await acheter(ev, 20);
+    await acheter(ev, 10);
     await setVenueThreshold(lieu.ctx, { enabled: false, amount: "" });
     await db.stripeAccount.create({ data: { organizationId: lieu.org.id, stripeAccountId: `acct_${rid()}`, country: "BE", defaultCurrency: "EUR" } });
     const transfer = async () => ({ id: `tr_${rid()}` });
     const releves = () => db.emailMessage.count({ where: { organizationId: lieu.org.id, template: "venue.payout" } });
     expect((await monthlyVenuePayouts(new Date(), transfer)).results.find((r) => r.id === v.id)!.status).toBe("PAID");
     expect(await releves()).toBe(1);
-    await acheter(ev, 20);
+    await acheter(ev, 10);
     expect((await payVenueNow(lieu.ctx, transfer)).status).toBe("PAID");
     expect(await releves()).toBe(2);
     expect(await venueBalance(v.id)).toBe(0);
@@ -237,7 +237,7 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     const orga = await organisation("Orga");
     await attachVenueReferral(orga.org.id, v.code);
     const ev = await evenement(orga.ctx, true, "100");
-    await acheter(ev, 20);
+    await acheter(ev, 10);
     const transfer = async () => ({ id: `tr_${rid()}` });
     const run = async () => (await monthlyVenuePayouts(new Date(), transfer)).results.find((r) => r.id === v.id)!.status;
     expect(await run()).toBe("INFO_MISSING");
@@ -254,7 +254,7 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     const pdf = (await selfBillingPdf(p1.id))!;
     expect(pdf.number).toBe(p1.invoiceNumber);
     expect((await PDFDocument.load(pdf.bytes)).getPageCount()).toBe(1);
-    await acheter(ev, 20);
+    await acheter(ev, 10);
     await payVenueNow(lieu.ctx, transfer);
     expect(
       (await db.venuePayout.findMany({ where: { venuePartnerId: v.id, status: "PAID" }, orderBy: { createdAt: "asc" } })).map((p) => p.invoiceNumber),

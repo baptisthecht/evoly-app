@@ -15,5 +15,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ orgSlug
   if (!owned) return new Response("Introuvable", { status: 404 });
   const pdf = await selfBillingPdf(payoutId);
   if (!pdf) return new Response("Introuvable", { status: 404 });
-  return new Response(Buffer.from(pdf.bytes), { headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="${pdf.number}.pdf"` } });
+  return new Response(Buffer.from(pdf.bytes), {
+    headers: { "content-type": "application/pdf", "content-disposition": `inline; filename="${pdf.number}.pdf"` },
+  });
 }
