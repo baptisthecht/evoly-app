@@ -30,7 +30,7 @@ type Resolver = (domain: string) => Promise<unknown[]>;
  */
 export async function checkAddress(
   email: string,
-  resolve: Resolver | null = process.env.VITEST ? null : resolveMx,
+  resolve: Resolver | null = process.env.VITEST || process.env.PROSPECTION_SKIP_MX ? null : resolveMx,
   cache = new Map<string, Promise<boolean | null>>(),
 ): Promise<AddressCheck> {
   const a = email.trim().toLowerCase();

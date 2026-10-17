@@ -51,6 +51,7 @@ jobs:
       GOOGLE_WALLET_ISSUER_ID: "3388000000012345678"
       GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL: wallet@evoly-test.iam.gserviceaccount.com
       EMAIL_OUTBOX_DIR: /tmp/evoly-outbox
+      PROSPECTION_SKIP_MX: "1" # adresses de test aux domaines fictifs : pas de requête DNS
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - uses: actions/checkout@v7.0.1
