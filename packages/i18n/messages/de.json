@@ -431,7 +431,15 @@
     "AMBASSADOR_PROMO_EXISTS": "Dieser Botschafter hat bereits einen Rabatt.",
     "PROMO_CODE_TAKEN": "Dieser Code wird bereits von einem anderen Aktionscode dieser Veranstaltung verwendet.",
     "OPTION_NOT_REFUNDABLE": "Diese Menge ist nicht mehr erstattbar: Sie wurde vielleicht schon eingelöst oder erstattet.",
-    "OPTIONS_REFUND_CLOSED": "Die Veranstaltung hat begonnen: Optionen sind nicht mehr erstattbar, außer Sie erlauben es im Tab Optionen der Veranstaltung."
+    "OPTIONS_REFUND_CLOSED": "Die Veranstaltung hat begonnen: Optionen sind nicht mehr erstattbar, außer Sie erlauben es im Tab Optionen der Veranstaltung.",
+    "VENUE_NOT_FOUND": "No partner venue matches this code.",
+    "VENUE_SELF": "A venue cannot link to itself.",
+    "VENUE_THRESHOLD_INVALID": "The minimum amount must be between €1 and €10,000.",
+    "VENUE_BALANCE_TOO_LOW": "The balance must reach at least €1 to be paid out.",
+    "VENUE_PAYOUT_TOO_SOON": "An on-demand payout was already made today: try again tomorrow.",
+    "VENUE_NO_STRIPE": "First connect your Stripe account in Finances to receive your payouts.",
+    "VENUE_PAYOUT_FAILED": "The payout could not be made: try again later.",
+    "VENUE_CODE_FAILED": "The partner code could not be created: try again."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -2768,5 +2776,32 @@
     "downloadTest": "Ausrichtungstestseite",
     "preview": "Vorschau des ersten Blatts",
     "summaryLine": "{labels} Etiketten · {sheets} Blätter"
+  },
+  "venue": {
+    "title": "Partner-Location",
+    "intro": "Empfangen Sie Veranstalter in Ihrem Saal? Empfehlen Sie ihnen Evoly und erhalten Sie 20 % unserer Provision auf die Tickets ihrer Veranstaltungen bei Ihnen, ohne Mehrkosten für sie oder ihre Käufer.",
+    "activate": "Partner-Location werden",
+    "activeIntro": "Geben Sie Ihren Code oder Link den Veranstaltern, die Ihren Saal mieten: Sie erhalten 20 % der Evoly-Provision auf die Tickets ihrer Veranstaltungen bei Ihnen.",
+    "code": "Ihr Code",
+    "link": "Ihr Link",
+    "copyLink": "Link kopieren",
+    "events": "{count, plural, =0 {Noch keine verknüpfte Veranstaltung.} one {# verknüpfte Veranstaltung.} other {# verknüpfte Veranstaltungen.}}",
+    "balance": "Auszuzahlender Saldo",
+    "payNow": "Jetzt auszahlen",
+    "payNowHint": "Ab 1 €, einmal pro Tag, auf Ihr Stripe-Konto.",
+    "paid": "Auszahlung erfolgt.",
+    "thresholdEnabled": "Vor jeder monatlichen Auszahlung einen Mindestbetrag abwarten",
+    "thresholdAmount": "Mindestbetrag (€)",
+    "thresholdHint": "Darunter wird Ihr Anteil auf den nächsten Monat übertragen; Sie verlieren nie etwas.",
+    "save": "Speichern",
+    "saved": "Einstellung gespeichert.",
+    "months": "Pro Monat",
+    "monthLine": "{tickets} Ticket(s) · {share}",
+    "empty": "Noch keine verknüpften Verkäufe.",
+    "payouts": "Auszahlungen",
+    "payoutManual": "auf Anfrage",
+    "payoutAuto": "monatlich",
+    "payoutFailed": "fehlgeschlagen",
+    "privacy": "Sie sehen nur Summen: nie die Käufer oder die Details der Verkäufe eines Veranstalters."
   }
 }

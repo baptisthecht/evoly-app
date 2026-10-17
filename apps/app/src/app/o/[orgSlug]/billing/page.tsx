@@ -7,6 +7,8 @@ import { billingState } from "@/server/billing";
 import { requireOrgContext } from "@/server/context";
 import { referralLink } from "@/server/referrals";
 import { ReferralCard } from "./ReferralCard";
+import { VenueCard } from "./VenueCard";
+import { venueSummary } from "@/server/venues";
 import { getPlans } from "@/server/plans";
 import { ManageSubscription, PlanPicker } from "./PlanPicker";
 import { SwitchInterval } from "./SwitchInterval";
@@ -173,7 +175,8 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
         </div>
         <p className="text-xs text-ink-muted">{t("pricesTtc")}</p>
       </Card>
-      {can(ctx.membership, "BILLING_MANAGE") ? <ReferralCard {...await referralLink(ctx.organization.id)} /> : null}
+      {can(ctx.membership, "BILLING_MANAGE") ? <ReferralCard {...await referralLink(ctx.organization.id)} />
+      {can(ctx.membership, "BILLING_MANAGE") ? <VenueCard orgSlug={orgSlug} currency={ctx.organization.currency} venue={await venueSummary(ctx)} manage={manage} /> : null}
     </div>
   );
 }

@@ -431,7 +431,15 @@
     "AMBASSADOR_PROMO_EXISTS": "Este embajador ya tiene un descuento.",
     "PROMO_CODE_TAKEN": "Este código ya lo usa otro código promocional de este evento.",
     "OPTION_NOT_REFUNDABLE": "Esta cantidad ya no es reembolsable: quizá ya se canjeó o se reembolsó.",
-    "OPTIONS_REFUND_CLOSED": "El evento ha comenzado: las opciones ya no son reembolsables, salvo que lo autorices en la pestaña Opciones del evento."
+    "OPTIONS_REFUND_CLOSED": "El evento ha comenzado: las opciones ya no son reembolsables, salvo que lo autorices en la pestaña Opciones del evento.",
+    "VENUE_NOT_FOUND": "No partner venue matches this code.",
+    "VENUE_SELF": "A venue cannot link to itself.",
+    "VENUE_THRESHOLD_INVALID": "The minimum amount must be between €1 and €10,000.",
+    "VENUE_BALANCE_TOO_LOW": "The balance must reach at least €1 to be paid out.",
+    "VENUE_PAYOUT_TOO_SOON": "An on-demand payout was already made today: try again tomorrow.",
+    "VENUE_NO_STRIPE": "First connect your Stripe account in Finances to receive your payouts.",
+    "VENUE_PAYOUT_FAILED": "The payout could not be made: try again later.",
+    "VENUE_CODE_FAILED": "The partner code could not be created: try again."
   },
   "validation": {
     "required": "Este campo es obligatorio.",
@@ -2768,5 +2776,32 @@
     "downloadTest": "Página de prueba de alineación",
     "preview": "Vista previa de la primera hoja",
     "summaryLine": "{labels} etiquetas · {sheets} hojas"
+  },
+  "venue": {
+    "title": "Local asociado",
+    "intro": "¿Acoges organizadores en tu sala? Recomiéndales Evoly y recibe el 20 % de nuestra comisión sobre las entradas de sus eventos en tu local, sin coste adicional para ellos ni para sus compradores.",
+    "activate": "Hacerse local asociado",
+    "activeIntro": "Da tu código o tu enlace a los organizadores que alquilan tu sala: recibes el 20 % de la comisión de Evoly sobre las entradas de sus eventos en tu local.",
+    "code": "Tu código",
+    "link": "Tu enlace",
+    "copyLink": "Copiar el enlace",
+    "events": "{count, plural, =0 {Aún no hay eventos vinculados.} one {# evento vinculado.} other {# eventos vinculados.}}",
+    "balance": "Saldo por pagar",
+    "payNow": "Pagar ahora",
+    "payNowHint": "Desde 1 €, una vez al día, en tu cuenta de Stripe.",
+    "paid": "Pago realizado.",
+    "thresholdEnabled": "Esperar un importe mínimo antes de cada pago mensual",
+    "thresholdAmount": "Importe mínimo (€)",
+    "thresholdHint": "Por debajo, tu parte se traslada al mes siguiente; nunca pierdes nada.",
+    "save": "Guardar",
+    "saved": "Ajuste guardado.",
+    "months": "Por mes",
+    "monthLine": "{tickets} entrada(s) · {share}",
+    "empty": "Aún no hay ventas vinculadas.",
+    "payouts": "Pagos",
+    "payoutManual": "a petición",
+    "payoutAuto": "mensual",
+    "payoutFailed": "fallido",
+    "privacy": "Solo ves totales: nunca los compradores ni el detalle de las ventas de un organizador."
   }
 }

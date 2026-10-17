@@ -431,7 +431,15 @@
     "AMBASSADOR_PROMO_EXISTS": "Questo ambasciatore ha già uno sconto.",
     "PROMO_CODE_TAKEN": "Questo codice è già usato da un altro codice promozionale di questo evento.",
     "OPTION_NOT_REFUNDABLE": "Questa quantità non è più rimborsabile: forse è già stata ritirata o rimborsata.",
-    "OPTIONS_REFUND_CLOSED": "L'evento è iniziato: le opzioni non sono più rimborsabili, salvo autorizzazione nella scheda Opzioni dell'evento."
+    "OPTIONS_REFUND_CLOSED": "L'evento è iniziato: le opzioni non sono più rimborsabili, salvo autorizzazione nella scheda Opzioni dell'evento.",
+    "VENUE_NOT_FOUND": "No partner venue matches this code.",
+    "VENUE_SELF": "A venue cannot link to itself.",
+    "VENUE_THRESHOLD_INVALID": "The minimum amount must be between €1 and €10,000.",
+    "VENUE_BALANCE_TOO_LOW": "The balance must reach at least €1 to be paid out.",
+    "VENUE_PAYOUT_TOO_SOON": "An on-demand payout was already made today: try again tomorrow.",
+    "VENUE_NO_STRIPE": "First connect your Stripe account in Finances to receive your payouts.",
+    "VENUE_PAYOUT_FAILED": "The payout could not be made: try again later.",
+    "VENUE_CODE_FAILED": "The partner code could not be created: try again."
   },
   "validation": {
     "required": "Questo campo è obbligatorio.",
@@ -2768,5 +2776,32 @@
     "downloadTest": "Pagina di prova dell'allineamento",
     "preview": "Anteprima del primo foglio",
     "summaryLine": "{labels} etichette · {sheets} fogli"
+  },
+  "venue": {
+    "title": "Locale partner",
+    "intro": "Ospiti organizzatori nella tua sala? Consiglia loro Evoly e ricevi il 20 % della nostra commissione sui biglietti dei loro eventi da te, senza costi aggiuntivi per loro né per i loro acquirenti.",
+    "activate": "Diventa locale partner",
+    "activeIntro": "Dai il tuo codice o il tuo link agli organizzatori che affittano la tua sala: ricevi il 20 % della commissione di Evoly sui biglietti dei loro eventi da te.",
+    "code": "Il tuo codice",
+    "link": "Il tuo link",
+    "copyLink": "Copia il link",
+    "events": "{count, plural, =0 {Ancora nessun evento collegato.} one {# evento collegato.} other {# eventi collegati.}}",
+    "balance": "Saldo da versare",
+    "payNow": "Versa ora",
+    "payNowHint": "Da 1 €, una volta al giorno, sul tuo conto Stripe.",
+    "paid": "Versamento effettuato.",
+    "thresholdEnabled": "Attendere un importo minimo prima di ogni versamento mensile",
+    "thresholdAmount": "Importo minimo (€)",
+    "thresholdHint": "Sotto, la tua quota passa al mese successivo; non perdi mai nulla.",
+    "save": "Salva",
+    "saved": "Impostazione salvata.",
+    "months": "Per mese",
+    "monthLine": "{tickets} biglietto/i · {share}",
+    "empty": "Ancora nessuna vendita collegata.",
+    "payouts": "Versamenti",
+    "payoutManual": "su richiesta",
+    "payoutAuto": "mensile",
+    "payoutFailed": "fallito",
+    "privacy": "Vedi solo i totali: mai gli acquirenti né il dettaglio delle vendite di un organizzatore."
   }
 }
