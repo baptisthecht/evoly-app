@@ -5,6 +5,7 @@ import { findOrgContext } from "@/server/context";
 import {
   activateVenueProgram,
   attachEventToVenue,
+  attachVenueReferral,
   monthlyVenuePayouts,
   netVenueShare,
   payVenueNow,
@@ -126,5 +127,24 @@ describe("lieux partenaires (section 9.32, décision n° 21)", () => {
     expect((await payVenueNow(lieu.ctx, transfer)).status).toBe("PAID");
     await acheter(ev, 10);
     await expect(payVenueNow(lieu.ctx, transfer)).rejects.toMatchObject({ code: "VENUE_PAYOUT_TOO_SOON" });
+  });
+
+  it("lien d'inscription : l'organisateur rattaché au lieu une fois pour toutes, à cette date ; code inconnu ignoré ; jamais remplacé ; pas le lieu lui-même", async () => {
+    const lieu = await organisation("Le Hangar");
+    const autreLieu = await organisation("La Cave");
+    const v = await activateVenueProgram(lieu.ctx);
+    const w = await activateVenueProgram(autreLieu.ctx);
+    const orga = await organisation("Nuit Blanche");
+    expect(await attachVenueReferral(orga.org.id, "INCONNU1")).toBeNull();
+    expect(await attachVenueReferral(orga.org.id, null)).toBeNull();
+    const quand = new Date("2026-10-19T10:00:00Z");
+    expect(await attachVenueReferral(orga.org.id, v.code.toLowerCase(), quand)).toBe(v.id);
+    expect(await attachVenueReferral(orga.org.id, w.code)).toBeNull(); // déjà rattaché : jamais remplacé
+    expect(await db.organization.findUniqueOrThrow({ where: { id: orga.org.id }, select: { referredByVenueId: true, referredByVenueAt: true } })).toEqual({
+      referredByVenueId: v.id,
+      referredByVenueAt: quand,
+    });
+    expect(await attachVenueReferral(lieu.org.id, v.code)).toBeNull(); // un lieu ne se rattache pas à lui-même
+    expect((await venueSummary(lieu.ctx))!.organizers).toBe(1);
   });
 });
