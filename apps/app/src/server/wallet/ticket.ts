@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { effectiveEnd, PALETTE } from "@evoly/core";
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import { inkOn } from "@evoly/ui";
@@ -25,18 +26,26 @@ export interface WalletTicket {
   locale: Locale;
   background: string;
   foreground: string;
+  /** faux : billet désactivé, son pass est annulé (RG-POST-04) */
+  valid?: boolean;
 }
 
 /** US-POST-03 : données d'un billet valable, trouvé par le lien personnel de l'acheteur (jamais par son seul identifiant). */
 export async function walletTicket(token: string, ticketId: string): Promise<WalletTicket | null> {
   const orderId = await findOrderIdByToken(token);
   if (!orderId) return null;
+  const t = await walletTicketById(ticketId, orderId);
+  return t && t.valid ? t : null;
+}
+
+/** Côté serveur seulement (mise à jour des passes, RG-POST-04) : y compris un billet désactivé, signalé par valid. */
+export async function walletTicketById(ticketId: string, orderId?: string): Promise<(WalletTicket & { valid: boolean }) | null> {
   const t = await db.ticket.findFirst({
-    where: { id: ticketId, orderId, status: { in: ["VALID", "CHECKED_IN"] }, order: { status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
+    where: { id: ticketId, ...(orderId ? { orderId } : {}) },
     include: {
       ticketType: { select: { name: true } },
       seat: { select: { label: true, row: { select: { name: true } } } },
-      order: { select: { reference: true, buyerLocale: true, organizationId: true } },
+      order: { select: { reference: true, buyerLocale: true, organizationId: true, status: true } },
       event: {
         select: {
           id: true,
@@ -76,7 +85,15 @@ export async function walletTicket(token: string, ticketId: string): Promise<Wal
     locale,
     background,
     foreground: inkOn(background),
+    valid: ["VALID", "CHECKED_IN"].includes(t.status) && ["PAID", "PARTIALLY_REFUNDED"].includes(t.order.status),
   };
+}
+
+/** RG-POST-04 : empreinte de ce qu'affiche le pass ; un passage à l'entrée ne la change pas. */
+export function walletFingerprint(t: WalletTicket & { valid: boolean }): string {
+  return createHash("sha256")
+    .update(JSON.stringify([t.title, t.startsAt.toISOString(), t.endsAt.toISOString(), t.when, t.place, t.address, t.typeName, t.holder, t.seat, t.organizationName, t.background, t.valid]))
+    .digest("hex");
 }
 
 export const rgb = (hex: string) => `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`;

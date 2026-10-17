@@ -6,6 +6,7 @@
 */5 * * * *  /opt/evoly/ops/cron.sh webhooks 2>&1 | logger -t evoly-cron
 17 * * * *   /opt/evoly/ops/cron.sh maintenance 2>&1 | logger -t evoly-cron
 20 4 * * *   /opt/evoly/ops/cron.sh retention 2>&1 | logger -t evoly-cron
+*/5 * * * *  /opt/evoly/ops/cron.sh wallet 2>&1 | logger -t evoly-cron
 */5 * * * *  /opt/evoly/ops/cron.sh campaigns 2>&1 | logger -t evoly-cron
 */5 * * * *  /opt/evoly/ops/cron.sh emails 2>&1 | logger -t evoly-cron
 */10 * * * * /opt/evoly/ops/cron.sh domains 2>&1 | logger -t evoly-cron

@@ -35,6 +35,7 @@ sonde prospection "Prospection" "* * * * *" 300 "Envoie les e-mails de prospecti
 sonde webhooks "Relance des webhooks" "*/5 * * * *" 600 "Rejoue les webhooks Stripe en échec, jusqu'à 10 tentatives sur 3 jours (section 11)."
 sonde maintenance "Maintenance" "17 * * * *" 3600 "Jetons et redirections expirés, agrégats quotidiens des événements (section 11)."
 sonde retention "Conservation des données" "20 4 * * *" 7200 "Anonymisation au-delà des durées de conservation (RG-RGPD-02)."
+sonde wallet "Cartes Wallet" "*/5 * * * *" 900 "Renvoie aux téléphones les passes Apple et Google Wallet modifiés (RG-POST-04)."
 sonde campaigns "Campagnes" "*/5 * * * *" 600 "Envoie les campagnes programmées."
 sonde emails "E-mails" "*/5 * * * *" 600 "Relance les e-mails en attente."
 sonde domains "Domaines" "*/10 * * * *" 1200 "Vérifie le DNS des domaines personnalisés."

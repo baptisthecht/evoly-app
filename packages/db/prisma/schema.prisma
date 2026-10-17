@@ -1072,6 +1072,10 @@ model Ticket {
   holderEmail      String?
   faceValueMinor   Int // prix réellement payé pour ce billet (plafond de revente)
   status           TicketStatus @default(VALID)
+  walletGoogle Boolean @default(false) // ajouté à Google Wallet (RG-POST-04)
+  walletHash String? // empreinte de ce qu'affiche son pass, au dernier envoi
+  walletUpdatedAt DateTime? // dernière modification de son pass
+  walletRegistrations WalletRegistration[]
   seatId           String?      @unique
   checkedInAt      DateTime?
   voidedAt         DateTime?
@@ -2088,3 +2092,16 @@ model IncludedOption {
   @@unique([ticketTypeId, optionId])
 }
 
+/// Téléphone inscrit aux mises à jour d'un pass Apple Wallet (RG-POST-04).
+model WalletRegistration {
+  id                      String   @id @default(cuid())
+  deviceLibraryIdentifier String
+  pushToken               String
+  ticketId                String
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  ticket                  Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@unique([deviceLibraryIdentifier, ticketId])
+  @@index([ticketId])
+}

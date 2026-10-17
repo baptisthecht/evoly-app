@@ -1,6 +1,6 @@
 import { pick } from "@evoly/i18n";
 import "server-only";
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { strToU8, zipSync } from "fflate";
 import forge from "node-forge";
 import { env } from "@/lib/env";
@@ -127,6 +127,13 @@ const LABELS = {
 } as const;
 
 /** Contenu du pass (format Apple « eventTicket »). */
+/** Jeton du service de mise à jour d'un pass (RG-POST-04) : dérivé du billet, rien à stocker. */
+export function applePassToken(ticketId: string): string {
+  return createHmac("sha256", env().ORDER_TOKEN_SECRET ?? env().BETTER_AUTH_SECRET)
+    .update(`apple-pass:${ticketId}`)
+    .digest("hex");
+}
+
 export function passJson(t: WalletTicket, creds: Pick<AppleCredentials, "passTypeIdentifier" | "teamIdentifier">) {
   const L = pick(LABELS, t.locale);
   return {
@@ -134,6 +141,10 @@ export function passJson(t: WalletTicket, creds: Pick<AppleCredentials, "passTyp
     passTypeIdentifier: creds.passTypeIdentifier,
     teamIdentifier: creds.teamIdentifier,
     serialNumber: t.ticketId,
+    // RG-POST-04 : service de mise à jour du pass ; un billet désactivé donne un pass annulé
+    webServiceURL: `${env().NEXT_PUBLIC_APP_URL}/api/wallet/apple`,
+    authenticationToken: applePassToken(t.ticketId),
+    ...(t.valid === false ? { voided: true } : {}),
     organizationName: t.organizationName,
     description: `${t.title} - ${t.typeName}`,
     logoText: t.organizationName,
