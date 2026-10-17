@@ -2802,6 +2802,7 @@
     "payoutManual": "a petición",
     "payoutAuto": "mensual",
     "payoutFailed": "fallido",
-    "privacy": "Solo ves totales: nunca los compradores ni el detalle de las ventas de un organizador."
+    "privacy": "Solo ves totales: nunca los compradores ni el detalle de las ventas de un organizador.",
+    "organizers": "{count, plural, =0 {Aún ningún organizador inscrito con tu enlace.} one {# organizador inscrito con tu enlace.} other {# organizadores inscritos con tu enlace.}}"
   }
 }

@@ -9,6 +9,25 @@ import { findEvent } from "./events";
 /** Lien partenaire du lieu (US-LIEU-01) : l'organisateur qui s'inscrit par ce lien voit le lieu préproposé pour ses événements. */
 export const venueLink = (code: string) => `${env().NEXT_PUBLIC_APP_URL}/register?lieu=${code}`;
 
+/** Lien du lieu mémorisé 30 jours à l'arrivée sur l'app (proxy), lu à la création de l'organisation. */
+export const VENUE_COOKIE = "evoly_lieu";
+
+/**
+ * RG-LIEU-02 : l'organisateur qui s'inscrit par le lien d'un lieu lui est rattaché une fois pour toutes, à cette date ;
+ * un code inconnu est ignoré, un rattachement existant n'est jamais remplacé, un lieu ne se rattache pas à lui-même.
+ */
+export async function attachVenueReferral(organizationId: string, code: string | null | undefined, now = new Date()) {
+  const clean = (code ?? "").trim().toUpperCase().slice(0, 20);
+  if (!clean) return null;
+  const venue = await db.venuePartner.findFirst({ where: { code: clean, active: true }, select: { id: true, organizationId: true } });
+  if (!venue || venue.organizationId === organizationId) return null;
+  const done = await db.organization.updateMany({
+    where: { id: organizationId, referredByVenueId: null },
+    data: { referredByVenueId: venue.id, referredByVenueAt: now },
+  });
+  return done.count === 1 ? venue.id : null;
+}
+
 /** RG-LIEU-01 : le lieu active le programme ; il reçoit un code et un lien uniques. */
 export async function activateVenueProgram(ctx: OrgContext) {
   const existing = await db.venuePartner.findUnique({ where: { organizationId: ctx.organization.id } });
@@ -105,6 +124,7 @@ export async function venueSummary(ctx: OrgContext) {
     thresholdMinor: venue.thresholdMinor,
     balanceMinor: await venueBalance(venue.id),
     events: await db.event.count({ where: { venuePartnerId: venue.id } }),
+    organizers: await db.organization.count({ where: { referredByVenueId: venue.id } }),
     months: [...months.values()].sort((a, b) => b.month.localeCompare(a.month)),
     payouts: await db.venuePayout.findMany({
       where: { venuePartnerId: venue.id },

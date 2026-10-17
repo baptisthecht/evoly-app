@@ -2802,6 +2802,7 @@
     "payoutManual": "on demand",
     "payoutAuto": "monthly",
     "payoutFailed": "failed",
-    "privacy": "You only see totals: never the buyers nor the details of an organiser's sales."
+    "privacy": "You only see totals: never the buyers nor the details of an organiser's sales.",
+    "organizers": "{count, plural, =0 {No organiser has signed up with your link yet.} one {# organiser signed up with your link.} other {# organisers signed up with your link.}}"
   }
 }

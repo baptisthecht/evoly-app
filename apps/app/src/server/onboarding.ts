@@ -68,6 +68,9 @@ export async function createOrganization(userId: string, input: CreateOrganizati
     const { cookies } = await import("next/headers");
     const { attachReferral, REFERRAL_COOKIE } = await import("./referrals");
     await attachReferral(org.id, userId, (await cookies()).get(REFERRAL_COOKIE)?.value);
+    // section 9.32 : organisateur inscrit par le lien d'un lieu partenaire
+    const { attachVenueReferral, VENUE_COOKIE } = await import("./venues");
+    await attachVenueReferral(org.id, (await cookies()).get(VENUE_COOKIE)?.value);
   } catch {
     // hors requête (tests, scripts) : pas de parrainage
   }

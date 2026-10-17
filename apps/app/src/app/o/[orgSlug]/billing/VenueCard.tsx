@@ -15,6 +15,7 @@ type Summary = {
   thresholdMinor: number;
   balanceMinor: number;
   events: number;
+  organizers: number;
   months: Array<{ month: string; tickets: number; shareMinor: number }>;
   payouts: Array<{ id: string; amountMinor: number; manual: boolean; status: string; createdAt: Date | string }>;
 };
@@ -55,7 +56,7 @@ export function VenueCard({ orgSlug, currency, venue, manage }: { orgSlug: strin
           <span className="font-semibold">{t("link")}</span>
           <CopyButton value={venue.link} label={t("copyLink")} />
         </div>
-        <p className="text-ink-muted">{t("events", { count: venue.events })}</p>
+        <p className="text-ink-muted">{t("organizers", { count: venue.organizers })}</p>
       </div>
       <div className="grid gap-2">
         <p className="text-sm">

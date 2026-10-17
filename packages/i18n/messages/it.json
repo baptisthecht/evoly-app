@@ -2802,6 +2802,7 @@
     "payoutManual": "su richiesta",
     "payoutAuto": "mensile",
     "payoutFailed": "fallito",
-    "privacy": "Vedi solo i totali: mai gli acquirenti né il dettaglio delle vendite di un organizzatore."
+    "privacy": "Vedi solo i totali: mai gli acquirenti né il dettaglio delle vendite di un organizzatore.",
+    "organizers": "{count, plural, =0 {Ancora nessun organizzatore iscritto con il tuo link.} one {# organizzatore iscritto con il tuo link.} other {# organizzatori iscritti con il tuo link.}}"
   }
 }

@@ -279,7 +279,10 @@ model Organization {
 
   subscription     Subscription?
   stripeAccount    StripeAccount?
-  venuePartner VenuePartner? // programme « Lieu partenaire » (section 9.32)
+  venuePartner VenuePartner? @relation("VenueOwner") // programme « Lieu partenaire » (section 9.32)
+  referredByVenueId String? // organisateur inscrit par le lien d'un lieu partenaire (RG-LIEU-02)
+  referredByVenue VenuePartner? @relation("VenueReferrals", fields: [referredByVenueId], references: [id], onDelete: SetNull)
+  referredByVenueAt DateTime?
   brand            OrganizationBrand?
   members          OrganizationMember[]
   roles            Role[]
@@ -2123,7 +2126,8 @@ model VenuePartner {
   active           Boolean       @default(true)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
-  organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization     Organization  @relation("VenueOwner", fields: [organizationId], references: [id], onDelete: Cascade)
+  referredOrganizations Organization[] @relation("VenueReferrals")
   events           Event[]
   orders           Order[]
   payouts          VenuePayout[]

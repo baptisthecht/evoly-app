@@ -2802,6 +2802,7 @@
     "payoutManual": "auf Anfrage",
     "payoutAuto": "monatlich",
     "payoutFailed": "fehlgeschlagen",
-    "privacy": "Sie sehen nur Summen: nie die Käufer oder die Details der Verkäufe eines Veranstalters."
+    "privacy": "Sie sehen nur Summen: nie die Käufer oder die Details der Verkäufe eines Veranstalters.",
+    "organizers": "{count, plural, =0 {Noch kein Veranstalter über Ihren Link angemeldet.} one {# Veranstalter über Ihren Link angemeldet.} other {# Veranstalter über Ihren Link angemeldet.}}"
   }
 }

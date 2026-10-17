@@ -2802,6 +2802,7 @@
     "payoutManual": "op aanvraag",
     "payoutAuto": "maandelijks",
     "payoutFailed": "mislukt",
-    "privacy": "Je ziet alleen totalen: nooit de kopers of het detail van de verkoop van een organisator."
+    "privacy": "Je ziet alleen totalen: nooit de kopers of het detail van de verkoop van een organisator.",
+    "organizers": "{count, plural, =0 {Nog geen organisator ingeschreven via je link.} one {# organisator ingeschreven via je link.} other {# organisatoren ingeschreven via je link.}}"
   }
 }

@@ -135,8 +135,11 @@ export async function proxy(request: NextRequest) {
   // section 9.22 et RG-AUTH-08 : parrainage et intention Pro mémorisés 30 jours (inscription souvent faite plus tard)
   const ref = request.nextUrl.searchParams.get("ref");
   const wantsPro = request.nextUrl.searchParams.get("plan") === "pro";
-  if ((ref && /^[a-z0-9]{4,20}$/i.test(ref)) || wantsPro) {
+  const lieu = request.nextUrl.searchParams.get("lieu"); // section 9.32 : lien d'un lieu partenaire
+  const lieuOk = !!lieu && /^[a-z0-9]{4,20}$/i.test(lieu);
+  if ((ref && /^[a-z0-9]{4,20}$/i.test(ref)) || wantsPro || lieuOk) {
     const res = NextResponse.next();
+    if (lieuOk) res.cookies.set("evoly_lieu", lieu!.toUpperCase(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
     if (ref && /^[a-z0-9]{4,20}$/i.test(ref))
       res.cookies.set("evoly_ref", ref.toLowerCase(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
     if (wantsPro) res.cookies.set("evoly_plan", "pro", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
