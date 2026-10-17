@@ -2131,6 +2131,13 @@ model VenuePartner {
   active           Boolean       @default(true)
   selfBillingAcceptedAt DateTime? // accord préalable à l'autofacturation (RG-LIEU-07)
   invoiceSeq Int @default(0) // numérotation propre au lieu
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  organization     Organization  @relation("VenueOwner", fields: [organizationId], references: [id], onDelete: Cascade)
+  referredOrganizations Organization[] @relation("VenueReferrals")
+  events           Event[]
+  orders           Order[]
+  payouts          VenuePayout[]
 }
 
 /// Versement de sa part à un lieu partenaire (RG-LIEU-06).
@@ -2148,4 +2155,8 @@ model VenuePayout {
   vatMinor Int?
   vatRateBps Int?
   vatMention String? // BE_VAT, FRANCHISE ou NOT_REGISTERED
+  createdAt        DateTime     @default(now())
+  venuePartner     VenuePartner @relation(fields: [venuePartnerId], references: [id], onDelete: Cascade)
+
+  @@index([venuePartnerId, createdAt])
 }
