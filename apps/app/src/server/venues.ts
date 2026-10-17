@@ -1,0 +1,153 @@
+import { CoreError, humanCode } from "@evoly/core";
+import { Prisma } from "@evoly/db";
+import { db } from "@/lib/db";
+import { env } from "@/lib/env";
+import { stripe } from "@/lib/stripe";
+import type { OrgContext } from "./context";
+import { findEvent } from "./events";
+
+/** Lien partenaire du lieu (US-LIEU-01) : l'organisateur qui s'inscrit par ce lien voit le lieu préproposé pour ses événements. */
+export const venueLink = (code: string) => `${env().NEXT_PUBLIC_APP_URL}/register?lieu=${code}`;
+
+/** RG-LIEU-01 : le lieu active le programme ; il reçoit un code et un lien uniques. */
+export async function activateVenueProgram(ctx: OrgContext) {
+  const existing = await db.venuePartner.findUnique({ where: { organizationId: ctx.organization.id } });
+  if (existing) return existing.active ? existing : db.venuePartner.update({ where: { id: existing.id }, data: { active: true } });
+  for (let i = 0; i < 5; i++) {
+    try {
+      return await db.venuePartner.create({ data: { organizationId: ctx.organization.id, code: humanCode(8).toUpperCase() } });
+    } catch (err) {
+      if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) throw err;
+    }
+  }
+  throw new CoreError("VENUE_CODE_FAILED");
+}
+
+/** RG-LIEU-06 : seuil de versement réglé par le lieu (activable, montant au choix, 1 € à 10 000 €). */
+export async function setVenueThreshold(ctx: OrgContext, input: { enabled: boolean; amount: string }) {
+  const venue = await db.venuePartner.findUnique({ where: { organizationId: ctx.organization.id } });
+  if (!venue) throw new CoreError("NOT_FOUND");
+  const euros = Number(input.amount.replace(",", ".").trim());
+  if (input.enabled && (!Number.isFinite(euros) || euros < 1 || euros > 10_000)) throw new CoreError("VENUE_THRESHOLD_INVALID");
+  return db.venuePartner.update({
+    where: { id: venue.id },
+    data: { thresholdEnabled: input.enabled, ...(input.enabled ? { thresholdMinor: Math.round(euros * 100) } : {}) },
+  });
+}
+
+/** RG-LIEU-02 : l'événement rattaché au lieu par son code ; les ventes antérieures ne rapportent rien (part figée au paiement). */
+export async function attachEventToVenue(ctx: OrgContext, eventId: string, code: string | null) {
+  await findEvent(ctx, eventId);
+  const clean = (code ?? "").trim().toUpperCase();
+  if (!clean) {
+    await db.event.update({ where: { id: eventId }, data: { venuePartnerId: null } });
+    return null;
+  }
+  const venue = await db.venuePartner.findFirst({ where: { code: clean, active: true }, select: { id: true, organizationId: true, organization: { select: { name: true } } } });
+  if (!venue) throw new CoreError("VENUE_NOT_FOUND");
+  if (venue.organizationId === ctx.organization.id) throw new CoreError("VENUE_SELF"); // un lieu ne touche pas de part sur ses propres événements
+  await db.event.update({ where: { id: eventId }, data: { venuePartnerId: venue.id } });
+  return { name: venue.organization.name };
+}
+
+/** Part nette d'une commande (RG-LIEU-04) : les remboursements et annulations en sont déduits au prorata. */
+export function netVenueShare(o: { totalMinor: number; refundedMinor: number; venueShareMinor: number }) {
+  if (o.totalMinor <= 0 || o.venueShareMinor <= 0) return 0;
+  return Math.floor((o.venueShareMinor * Math.max(0, o.totalMinor - o.refundedMinor)) / o.totalMinor);
+}
+
+const COUNTED = ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] as const;
+
+/** Solde du lieu : parts nettes gagnées, moins les versements effectués. */
+export async function venueBalance(venuePartnerId: string) {
+  const orders = await db.order.findMany({ where: { venuePartnerId, status: { in: [...COUNTED] } }, select: { totalMinor: true, refundedMinor: true, venueShareMinor: true } });
+  const earned = orders.reduce((n, o) => n + netVenueShare(o), 0);
+  const paid = (await db.venuePayout.aggregate({ where: { venuePartnerId, status: "PAID" }, _sum: { amountMinor: true } }))._sum.amountMinor ?? 0;
+  return earned - paid;
+}
+
+/**
+ * RG-LIEU-05 : ce que voit le lieu : des totaux seulement (billets et part, par mois), jamais les acheteurs ni le détail
+ * des ventes d'un organisateur.
+ */
+export async function venueSummary(ctx: OrgContext) {
+  const venue = await db.venuePartner.findUnique({ where: { organizationId: ctx.organization.id } });
+  if (!venue) return null;
+  const orders = await db.order.findMany({
+    where: { venuePartnerId: venue.id, status: { in: [...COUNTED] } },
+    select: { paidAt: true, totalMinor: true, refundedMinor: true, venueShareMinor: true, _count: { select: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } } } },
+  });
+  const months = new Map<string, { month: string; tickets: number; shareMinor: number }>();
+  for (const o of orders) {
+    const month = (o.paidAt ?? new Date()).toISOString().slice(0, 7);
+    const m = months.get(month) ?? { month, tickets: 0, shareMinor: 0 };
+    m.tickets += o._count.tickets;
+    m.shareMinor += netVenueShare(o);
+    months.set(month, m);
+  }
+  return {
+    code: venue.code,
+    link: venueLink(venue.code),
+    active: venue.active,
+    thresholdEnabled: venue.thresholdEnabled,
+    thresholdMinor: venue.thresholdMinor,
+    balanceMinor: await venueBalance(venue.id),
+    events: await db.event.count({ where: { venuePartnerId: venue.id } }),
+    months: [...months.values()].sort((a, b) => b.month.localeCompare(a.month)),
+    payouts: await db.venuePayout.findMany({ where: { venuePartnerId: venue.id }, orderBy: { createdAt: "desc" }, take: 24, select: { id: true, amountMinor: true, currency: true, manual: true, status: true, createdAt: true } }),
+  };
+}
+
+type Transfer = (p: { amount: number; currency: string; destination: string; idempotencyKey: string }) => Promise<{ id: string }>;
+const stripeTransfer: Transfer = async (p) => {
+  const s = stripe();
+  if (!s) throw new Error("Stripe indisponible");
+  return s.transfers.create({ amount: p.amount, currency: p.currency, destination: p.destination }, { idempotencyKey: p.idempotencyKey });
+};
+
+/**
+ * RG-LIEU-06 : versement du solde sur le compte Stripe du lieu. Chaque mois : sous le seuil (s'il est activé), la part est
+ * reportée. À la demande (« Verser maintenant ») : dès 1 €, une fois par jour au plus.
+ */
+export async function payVenue(venuePartnerId: string, opts: { manual: boolean; now?: Date; transfer?: Transfer }) {
+  const now = opts.now ?? new Date();
+  const venue = await db.venuePartner.findUniqueOrThrow({ where: { id: venuePartnerId }, include: { organization: { select: { currency: true } } } });
+  const balance = await venueBalance(venue.id);
+  if (opts.manual) {
+    if (balance < 100) throw new CoreError("VENUE_BALANCE_TOO_LOW");
+    const recent = await db.venuePayout.count({ where: { venuePartnerId: venue.id, manual: true, status: "PAID", createdAt: { gt: new Date(now.getTime() - 86_400_000) } } });
+    if (recent > 0) throw new CoreError("VENUE_PAYOUT_TOO_SOON");
+  } else if (balance <= 0 || (venue.thresholdEnabled && balance < venue.thresholdMinor)) {
+    return { status: "CARRIED_OVER" as const, balanceMinor: balance };
+  }
+  const account = await db.stripeAccount.findUnique({ where: { organizationId: venue.organizationId }, select: { stripeAccountId: true } });
+  if (!account) {
+    if (opts.manual) throw new CoreError("VENUE_NO_STRIPE");
+    return { status: "NO_STRIPE" as const, balanceMinor: balance };
+  }
+  const currency = venue.organization.currency.toLowerCase();
+  try {
+    const t = await (opts.transfer ?? stripeTransfer)({ amount: balance, currency, destination: account.stripeAccountId, idempotencyKey: `venue-${venue.id}-${now.toISOString().slice(0, 10)}-${balance}` });
+    await db.venuePayout.create({ data: { venuePartnerId: venue.id, amountMinor: balance, currency: venue.organization.currency, manual: opts.manual, status: "PAID", stripeTransferId: t.id, createdAt: now } });
+    return { status: "PAID" as const, balanceMinor: balance };
+  } catch (err) {
+    await db.venuePayout.create({ data: { venuePartnerId: venue.id, amountMinor: balance, currency: venue.organization.currency, manual: opts.manual, status: "FAILED", error: String(err).slice(0, 500), createdAt: now } });
+    if (opts.manual) throw new CoreError("VENUE_PAYOUT_FAILED");
+    return { status: "FAILED" as const, balanceMinor: balance };
+  }
+}
+
+/** « Verser maintenant », par le lieu lui-même. */
+export async function payVenueNow(ctx: OrgContext, transfer?: Transfer) {
+  const venue = await db.venuePartner.findUnique({ where: { organizationId: ctx.organization.id } });
+  if (!venue) throw new CoreError("NOT_FOUND");
+  return payVenue(venue.id, { manual: true, transfer });
+}
+
+/** Le 1er de chaque mois : versement à chaque lieu actif, selon son seuil. */
+export async function monthlyVenuePayouts(now = new Date(), transfer?: Transfer) {
+  const venues = await db.venuePartner.findMany({ where: { active: true }, select: { id: true } });
+  const results: Array<{ id: string; status: string; balanceMinor: number }> = [];
+  for (const v of venues) results.push({ id: v.id, ...(await payVenue(v.id, { manual: false, now, transfer })) });
+  return { venues: venues.length, paid: results.filter((r) => r.status === "PAID").length, results };
+}

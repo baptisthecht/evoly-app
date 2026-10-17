@@ -42,6 +42,7 @@ sonde domains "Domaines" "*/10 * * * *" 1200 "Vérifie le DNS des domaines perso
 sonde automations "Rappels et e-mails automatiques" "*/15 * * * *" 1800 "Rappels J-7, J-1, jour J et e-mails marketing automatiques."
 sonde certificates "Certificats" "30 5 * * *" 3600 "Contrôle quotidien des certificats des domaines."
 sonde statements "Relevés de commissions" "0 6 1 * *" 7200 "Émet les relevés de commissions du mois écoulé."
+sonde venues "Lieux partenaires" "0 7 1 * *" 7200 "Verse leur part aux lieux partenaires, selon leur seuil (RG-LIEU-06)."
 sonde backup "Sauvegarde" "15 3 * * *" 7200 "Sauvegarde nocturne de la base vers R2."
 
 if [ "$failures" -gt 0 ]; then

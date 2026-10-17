@@ -279,6 +279,7 @@ model Organization {
 
   subscription     Subscription?
   stripeAccount    StripeAccount?
+  venuePartner VenuePartner? // programme « Lieu partenaire » (section 9.32)
   brand            OrganizationBrand?
   members          OrganizationMember[]
   roles            Role[]
@@ -529,6 +530,8 @@ model Event {
   options      EventOption[]
   id                  String          @id @default(cuid())
   organizationId      String
+  venuePartnerId String? // lieu partenaire où a lieu l'événement (RG-LIEU-02)
+  venuePartner VenuePartner? @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
   slug                String // unique par organisation
   publicCode          String          @unique // court et global : evoly.me/e/7KQ2XM
   title               String
@@ -952,6 +955,9 @@ model Order {
   soldByDeviceId String? // appareil de la vente sur place (RG-POS-07)
   soldBy        ScannerLink? @relation("BoxOfficeSales", fields: [soldByLinkId], references: [id], onDelete: SetNull)
   ambassadorId String? // ambassadeur dont le lien a amené la commande (section 9.28)
+  venuePartnerId String? // part du lieu partenaire, figée au paiement (RG-LIEU-03)
+  venueShareMinor Int @default(0)
+  venuePartner VenuePartner? @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
   optionsCode String? @unique // QR code de retrait d'options achetées sans billet (RG-OPT-03)
   optionsShortCode String? @unique // son code court
   ambassador   Ambassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
@@ -2104,4 +2110,37 @@ model WalletRegistration {
 
   @@unique([deviceLibraryIdentifier, ticketId])
   @@index([ticketId])
+}
+
+/// Lieu partenaire (section 9.32) : organisation qui recommande Evoly aux organisateurs qui louent sa salle.
+model VenuePartner {
+  id               String        @id @default(cuid())
+  organizationId   String        @unique
+  code             String        @unique
+  shareBps         Int           @default(2000) // 20 % de la commission d'Evoly (décision n° 21)
+  thresholdEnabled Boolean       @default(true) // seuil de versement réglé par le lieu (RG-LIEU-06)
+  thresholdMinor   Int           @default(2000)
+  active           Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  organization     Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  events           Event[]
+  orders           Order[]
+  payouts          VenuePayout[]
+}
+
+/// Versement de sa part à un lieu partenaire (RG-LIEU-06).
+model VenuePayout {
+  id               String       @id @default(cuid())
+  venuePartnerId   String
+  amountMinor      Int
+  currency         String
+  manual           Boolean      @default(false)
+  status           String // PAID ou FAILED
+  stripeTransferId String?
+  error            String?
+  createdAt        DateTime     @default(now())
+  venuePartner     VenuePartner @relation(fields: [venuePartnerId], references: [id], onDelete: Cascade)
+
+  @@index([venuePartnerId, createdAt])
 }

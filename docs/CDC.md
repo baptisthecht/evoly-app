@@ -1386,12 +1386,12 @@ Beaucoup de lieux (salles de fêtes, salles de concert, clubs) accueillent des o
 
 - RG-LIEU-01 : un lieu partenaire est une organisation Evoly qui a activé le programme ; elle reçoit un lien et un code partenaire uniques.
 - RG-LIEU-02 : un organisateur est rattaché à un lieu en s'inscrivant par son lien (parrainage, section 9.22), ou en choisissant le lieu à la création d'un événement, selon la base retenue (section 17) ; les ventes antérieures au rattachement ne rapportent rien au lieu.
-- RG-LIEU-03 : le lieu reçoit une part de la commission d'Evoly, jamais un surcoût pour l'organisateur ni pour l'acheteur ; taux, base et durée à valider (section 17).
+- RG-LIEU-03 : le lieu reçoit 20 % de la commission d'Evoly sur les ventes des événements organisés dans sa salle, sans limite de durée ; jamais un surcoût pour l'organisateur ni pour l'acheteur (décision n° 21, section 17).
 - RG-LIEU-04 : remboursements et annulations sont déduits de la part du lieu, comme de la commission d'Evoly.
 - RG-LIEU-05 : le lieu ne voit que des totaux (nombre de billets, part due), jamais les acheteurs ni le détail des ventes d'un organisateur ; l'organisateur est informé de son rattachement et de ce que le lieu voit.
-- RG-LIEU-06 : la part est versée chaque mois sur le compte Stripe du lieu, avec un relevé ; sous le seuil de versement, elle est reportée au mois suivant.
+- RG-LIEU-06 : la part est versée chaque mois sur le compte Stripe du lieu, avec un relevé ; le lieu règle son seuil de versement (activable, montant au choix, 20 € par défaut) : en dessous, la part est reportée au mois suivant ; un bouton « Verser maintenant » verse le solde dès 1 €, une fois par jour au plus.
 - RG-LIEU-07 : fiscalité à valider avec l'expert-comptable : le lieu facture sa part ; TVA belge à 21 % non récupérable sous la franchise d'Evoly ; autoliquidation pour un lieu d'un autre pays de l'Union européenne.
-- RG-LIEU-08 : si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fois.
+- RG-LIEU-08 : base retenue : les ventes des événements organisés dans la salle ; le rattachement se fait donc par événement, et un organisateur peut travailler avec plusieurs lieux.
 
 ### 9.33 Kit d'installation de salle : étiquettes de place et guide de pose (P2, Pro)
 
@@ -1659,7 +1659,7 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 | 18  | Données de production v1                                                                    | ✅ Aucune donnée réelle : scénario A                                                                                                                    |
 | 19  | Comptes Stripe v1                                                                           | ✅ Sans objet (comptes de test non repris)                                                                                                              |
 | 20  | Réponses de la FAQ du site (versements, essai, résiliation, domaine, annulation, HelloAsso) | À relire avec les règles de ce document                                                                                                                 |
-| 21  | Lieux partenaires (section 9.32) : nom, part du lieu, base, durée, seuil de versement       | Nom « Lieu partenaire » ; 20 % de la commission d'Evoly ; toutes les ventes des organisateurs rattachés ; 12 mois par organisateur ; versement dès 20 € |
+| 21  | Lieux partenaires (section 9.32) : nom, part du lieu, base, durée, seuil de versement       | Validé le 19 octobre 2026 : nom « Lieu partenaire » ; 20 % de la commission d'Evoly ; seulement les ventes des événements organisés dans la salle ; sans limite de durée ; seuil de versement réglé par le lieu (activable, montant au choix, 20 € par défaut) et bouton « Verser maintenant » (dès 1 €, une fois par jour) |
 
 ---
 

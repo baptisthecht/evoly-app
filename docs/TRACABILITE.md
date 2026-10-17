@@ -2,7 +2,7 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 177 · fait : 164 · à faire : 11 · hors périmètre : 2.
+**Bilan** : fait, testé : 181 · fait : 165 · partiel : 2 · à faire : 4 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -349,14 +349,14 @@
 | US-LIEU-01 | P2 | en tant que gérant d'un lieu, j'obtiens un lien et un code partenaire à donner aux organisateurs qui louent ma salle. | à faire | section 9.32, à développer |
 | US-LIEU-02 | P2 | en tant que gérant d'un lieu, je vois ce que me rapportent les ventes des organisateurs rattachés à mon lieu, et je reço | à faire | section 9.32, à développer |
 | US-LIEU-03 | P2 | en tant qu'organisateur, je sais que je suis rattaché à un lieu partenaire, et ce que ce lieu voit de mes ventes. | à faire | section 9.32, à développer |
-| RG-LIEU-01 | P2 | un lieu partenaire est une organisation Evoly qui a activé le programme ; elle reçoit un lien et un code partenaire uniq | à faire | section 9.32, à développer |
-| RG-LIEU-02 | P2 | un organisateur est rattaché à un lieu en s'inscrivant par son lien (parrainage, section 9.22), ou en choisissant le lie | à faire | section 9.32, à développer |
-| RG-LIEU-03 | P2 | le lieu reçoit une part de la commission d'Evoly, jamais un surcoût pour l'organisateur ni pour l'acheteur ; taux, base | à faire | section 9.32, à développer |
-| RG-LIEU-04 | P2 | remboursements et annulations sont déduits de la part du lieu, comme de la commission d'Evoly. | à faire | section 9.32, à développer |
-| RG-LIEU-05 | P2 | le lieu ne voit que des totaux (nombre de billets, part due), jamais les acheteurs ni le détail des ventes d'un organisa | à faire | section 9.32, à développer |
-| RG-LIEU-06 | P2 | la part est versée chaque mois sur le compte Stripe du lieu, avec un relevé ; sous le seuil de versement, elle est repor | à faire | section 9.32, à développer |
+| RG-LIEU-01 | P2 | un lieu partenaire est une organisation Evoly qui a activé le programme ; elle reçoit un lien et un code partenaire uniq | fait, testé | activation, code et lien uniques (venues.ts, venues.test.ts) ; écrans à suivre |
+| RG-LIEU-02 | P2 | un organisateur est rattaché à un lieu en s'inscrivant par son lien (parrainage, section 9.22), ou en choisissant le lie | partiel | rattachement d'un événement par le code, part figée au paiement (venues.ts, checkout.ts) ; lien d'inscription et écrans à suivre |
+| RG-LIEU-03 | P2 | le lieu reçoit une part de la commission d'Evoly, jamais un surcoût pour l'organisateur ni pour l'acheteur ; taux, base | fait, testé | 20 % de la commission, figée au paiement, sans surcoût (checkout.ts, venues.test.ts) |
+| RG-LIEU-04 | P2 | remboursements et annulations sont déduits de la part du lieu, comme de la commission d'Evoly. | fait, testé | remboursements déduits au prorata (netVenueShare, venues.test.ts) |
+| RG-LIEU-05 | P2 | le lieu ne voit que des totaux (nombre de billets, part due), jamais les acheteurs ni le détail des ventes d'un organisa | partiel | totaux seulement, par mois (venueSummary) ; écrans à suivre |
+| RG-LIEU-06 | P2 | la part est versée chaque mois sur le compte Stripe du lieu, avec un relevé ; sous le seuil de versement, elle est repor | fait, testé | versement mensuel selon le seuil, reporté en dessous, Verser maintenant dès 1 € une fois par jour (venues.ts, cron venues, venues.test.ts) |
 | RG-LIEU-07 | P2 | fiscalité à valider avec l'expert-comptable : le lieu facture sa part ; TVA belge à 21 % non récupérable sous la franchi | à faire | section 9.32, à développer |
-| RG-LIEU-08 | P2 | si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fo | à faire | section 9.32, à développer |
+| RG-LIEU-08 | P2 | si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fo | fait | rattachement par événement : un organisateur peut travailler avec plusieurs lieux |
 | RG-ADM-01 | P1 | accès complet à la base (pgAdmin) réservé aux administrateurs, derrière la session Evoly et la double authentification | fait, testé | route.ts, db-access.test.ts, Caddyfile, compose.yaml |
 | RG-ADM-02 | P1 | le back-office n'écrase jamais un abonnement Stripe en cours ; erreur affichée en clair | fait, testé | platform.ts, billing.ts, actions.ts, admin-plan-stripe.test.ts, admin-offres.spec.ts |
 | US-ETIQ-01 | P2 | en tant qu'organisateur, j'imprime des étiquettes à mes couleurs pour numéroter mes chaises d'après mon plan de salle, d | fait, testé | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |

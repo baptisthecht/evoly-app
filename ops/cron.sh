@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Appel d'une tâche planifiée de l'app, depuis le serveur uniquement :
-#   ops/cron.sh holds|campaigns|emails|domains|automations|statements|certificates|retention|wallet
+#   ops/cron.sh holds|campaigns|emails|domains|automations|statements|certificates|retention|wallet|venues
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
