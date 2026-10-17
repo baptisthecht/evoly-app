@@ -224,7 +224,8 @@
     "tabAmbassadors": "Ambassadeurs",
     "tabEmbed": "Intégrer",
     "tabTables": "Tables",
-    "atVenue": "Cet événement a lieu à {name} (lieu partenaire)"
+    "atVenue": "Cet événement a lieu à {name} (lieu partenaire)",
+    "atVenueInfo": "Le lieu voit seulement le nombre total de billets et sa part, jamais vos acheteurs."
   },
   "tickets": {
     "addTicketType": "Ajouter un tarif",
@@ -2811,6 +2812,8 @@
     "hallName": "Nom de la salle",
     "hallAddress": "Adresse",
     "hallPostalCode": "Code postal",
-    "hallCity": "Ville"
+    "hallCity": "Ville",
+    "referredTitle": "Lieu partenaire",
+    "referredBody": "Vous êtes rattaché à {name}. Vos événements organisés dans sa salle lui rapportent une part de la commission d'Evoly, sans aucun surcoût pour vous ni pour vos acheteurs. Le lieu ne voit que des totaux (nombre de billets, sa part), jamais vos acheteurs ni le détail de vos ventes."
   }
 }

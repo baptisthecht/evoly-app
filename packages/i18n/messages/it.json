@@ -883,7 +883,8 @@
     "tabAmbassadors": "Ambasciatori",
     "tabEmbed": "Integra",
     "tabTables": "Tavoli",
-    "atVenue": "Questo evento si svolge presso {name} (locale partner)"
+    "atVenue": "Questo evento si svolge presso {name} (locale partner)",
+    "atVenueInfo": "Il locale vede solo il numero totale di biglietti e la sua quota, mai i tuoi acquirenti."
   },
   "tickets": {
     "addTicketType": "Aggiungi una tariffa",
@@ -2811,6 +2812,8 @@
     "hallName": "Nome della sala",
     "hallAddress": "Indirizzo",
     "hallPostalCode": "CAP",
-    "hallCity": "Città"
+    "hallCity": "Città",
+    "referredTitle": "Locale partner",
+    "referredBody": "Sei collegato a {name}. I tuoi eventi nella sua sala gli fruttano una quota della commissione di Evoly, senza costi aggiuntivi per te né per i tuoi acquirenti. Il locale vede solo i totali (numero di biglietti, la sua quota), mai i tuoi acquirenti né il dettaglio delle tue vendite."
   }
 }

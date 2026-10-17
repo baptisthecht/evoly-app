@@ -8,7 +8,7 @@ import { requireOrgContext } from "@/server/context";
 import { referralLink } from "@/server/referrals";
 import { ReferralCard } from "./ReferralCard";
 import { VenueCard } from "./VenueCard";
-import { venueSummary } from "@/server/venues";
+import { referringVenueName, venueSummary } from "@/server/venues";
 import { getPlans } from "@/server/plans";
 import { ManageSubscription, PlanPicker } from "./PlanPicker";
 import { SwitchInterval } from "./SwitchInterval";
@@ -42,6 +42,8 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
   const money = (v: number) => formatMoney(v, state.currency, locale, { trimZeroCents: true });
   const sub = state.sub;
   const manage = can(ctx.membership, "BILLING_MANAGE");
+  const referredBy = await referringVenueName(ctx.organization.id); // US-LIEU-03
+  const tv = await getTranslations("venue");
   const isPro = state.plan === "pro";
   const isPartner = state.plan === "partner"; // offre Partenaire, attribuée par Evoly
   const status = !sub || !isPro ? "FREE" : sub.cancelAtPeriodEnd || sub.status === "CANCELED" ? "ENDING" : sub.status;
@@ -178,6 +180,12 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
       {can(ctx.membership, "BILLING_MANAGE") ? <ReferralCard {...await referralLink(ctx.organization.id)} /> : null}
       {can(ctx.membership, "BILLING_MANAGE") ? (
         <VenueCard orgSlug={orgSlug} currency={ctx.organization.currency} venue={await venueSummary(ctx)} manage={manage} />
+      ) : null}
+      {referredBy ? (
+        <Card className="grid gap-2">
+          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{tv("referredTitle")}</h2>
+          <p className="text-sm text-ink-muted">{tv("referredBody", { name: referredBy })}</p>
+        </Card>
       ) : null}
     </div>
   );

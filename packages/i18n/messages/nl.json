@@ -883,7 +883,8 @@
     "tabAmbassadors": "Ambassadeurs",
     "tabEmbed": "Integreren",
     "tabTables": "Tafels",
-    "atVenue": "Dit evenement vindt plaats in {name} (partnerlocatie)"
+    "atVenue": "Dit evenement vindt plaats in {name} (partnerlocatie)",
+    "atVenueInfo": "De locatie ziet alleen het totale aantal tickets en haar deel, nooit je kopers."
   },
   "tickets": {
     "addTicketType": "Tarief toevoegen",
@@ -2811,6 +2812,8 @@
     "hallName": "Naam van de zaal",
     "hallAddress": "Adres",
     "hallPostalCode": "Postcode",
-    "hallCity": "Stad"
+    "hallCity": "Stad",
+    "referredTitle": "Partnerlocatie",
+    "referredBody": "Je bent gekoppeld aan {name}. Je evenementen in haar zaal leveren haar een deel van de commissie van Evoly op, zonder meerkost voor jou of je kopers. De locatie ziet alleen totalen (aantal tickets, haar deel), nooit je kopers of het detail van je verkoop."
   }
 }

@@ -224,7 +224,8 @@
     "tabAmbassadors": "Ambassadors",
     "tabEmbed": "Embed",
     "tabTables": "Tables",
-    "atVenue": "This event takes place at {name} (partner venue)"
+    "atVenue": "This event takes place at {name} (partner venue)",
+    "atVenueInfo": "The venue only sees the total number of tickets and its share, never your buyers."
   },
   "tickets": {
     "addTicketType": "Add a ticket type",
@@ -2811,6 +2812,8 @@
     "hallName": "Venue name",
     "hallAddress": "Address",
     "hallPostalCode": "Postal code",
-    "hallCity": "City"
+    "hallCity": "City",
+    "referredTitle": "Partner venue",
+    "referredBody": "You are linked to {name}. Your events held at its venue earn it a share of Evoly's commission, at no extra cost to you or your buyers. The venue only sees totals (number of tickets, its share), never your buyers nor the details of your sales."
   }
 }

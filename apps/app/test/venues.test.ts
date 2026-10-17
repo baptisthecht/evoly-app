@@ -9,6 +9,7 @@ import {
   monthlyVenuePayouts,
   netVenueShare,
   payVenueNow,
+  referringVenueName,
   setVenueHall,
   setVenueThreshold,
   venueBalance,
@@ -180,5 +181,23 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     });
     expect(await attachVenueReferral(lieu.org.id, v.code)).toBeNull();
     expect((await venueSummary(lieu.ctx))!.organizers).toBe(1);
+  });
+
+  it("relevé envoyé au lieu à chaque versement réussi, mensuel ou à la demande (RG-LIEU-06) ; l'organisateur sait à quel lieu il est rattaché (US-LIEU-03)", async () => {
+    const { lieu, orga, v } = await lieuEtOrganisateur();
+    expect(await referringVenueName(orga.org.id)).toBe("Le Hangar");
+    expect(await referringVenueName(lieu.org.id)).toBeNull();
+    const ev = await evenement(orga.ctx, true, "100");
+    await acheter(ev, 20);
+    await setVenueThreshold(lieu.ctx, { enabled: false, amount: "" });
+    await db.stripeAccount.create({ data: { organizationId: lieu.org.id, stripeAccountId: `acct_${rid()}`, country: "BE", defaultCurrency: "EUR" } });
+    const transfer = async () => ({ id: `tr_${rid()}` });
+    const releves = () => db.emailMessage.count({ where: { organizationId: lieu.org.id, template: "venue.payout" } });
+    expect((await monthlyVenuePayouts(new Date(), transfer)).results.find((r) => r.id === v.id)!.status).toBe("PAID");
+    expect(await releves()).toBe(1);
+    await acheter(ev, 20);
+    expect((await payVenueNow(lieu.ctx, transfer)).status).toBe("PAID");
+    expect(await releves()).toBe(2);
+    expect(await venueBalance(v.id)).toBe(0);
   });
 });

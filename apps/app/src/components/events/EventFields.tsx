@@ -120,6 +120,7 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
               <span className="block text-sm text-ink-muted">
                 {[venue.addressLine1, [venue.postalCode, venue.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
               </span>
+              <span className="block text-xs text-ink-muted">{t("atVenueInfo")}</span>
             </span>
           </label>
         ) : null}

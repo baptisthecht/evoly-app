@@ -1,8 +1,10 @@
 import { CoreError, humanCode } from "@evoly/core";
 import { Prisma } from "@evoly/db";
+import { formatMoney, type Locale } from "@evoly/i18n";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
+import { sendEmail } from "./email/send";
 import type { OrgContext } from "./context";
 
 /** Lien partenaire du lieu (US-LIEU-01) : l'organisateur qui s'inscrit par ce lien voit le lieu préproposé pour ses événements. */
@@ -183,6 +185,7 @@ export async function payVenue(venuePartnerId: string, opts: { manual: boolean; 
         createdAt: now,
       },
     });
+    await mailVenuePayout(venue.organizationId, balance, venue.organization.currency).catch(() => undefined); // le relevé ne bloque jamais le versement
     return { status: "PAID" as const, balanceMinor: balance };
   } catch (err) {
     await db.venuePayout.create({
@@ -214,4 +217,39 @@ export async function monthlyVenuePayouts(now = new Date(), transfer?: Transfer)
   const results: Array<{ id: string; status: string; balanceMinor: number }> = [];
   for (const v of venues) results.push({ id: v.id, ...(await payVenue(v.id, { manual: false, now, transfer })) });
   return { venues: venues.length, paid: results.filter((r) => r.status === "PAID").length, results };
+}
+
+/** RG-LIEU-06 : relevé envoyé au propriétaire du lieu à chaque versement réussi. */
+async function mailVenuePayout(organizationId: string, amountMinor: number, currency: string) {
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: organizationId },
+    include: { members: { where: { role: { systemKey: "OWNER" } }, include: { user: { select: { email: true, name: true } } }, take: 1 } },
+  });
+  const owner = org.members[0]?.user;
+  if (!owner) return;
+  const fr = org.locale !== "en";
+  const amount = formatMoney(amountMinor, currency, (fr ? "fr" : "en") as Locale);
+  await sendEmail({
+    to: owner.email,
+    template: "venue.payout",
+    category: "SERVICE",
+    organizationId,
+    subject: fr ? `Lieu partenaire : ${amount} versés sur votre compte` : `Partner venue: ${amount} paid to your account`,
+    text: fr
+      ? `Bonjour ${owner.name},\n\nNous venons de verser ${amount} sur votre compte Stripe : votre part de la commission d'Evoly sur les événements organisés dans votre salle. Le détail par mois est sur la page Abonnement.\n\nEvoly`
+      : `Hi ${owner.name},\n\nWe have just paid ${amount} to your Stripe account: your share of Evoly's commission on the events held at your venue. The monthly breakdown is on the Billing page.\n\nEvoly`,
+    html: fr
+      ? `<p>Bonjour ${owner.name},</p><p>Nous venons de verser <strong>${amount}</strong> sur votre compte Stripe : votre part de la commission d'Evoly sur les événements organisés dans votre salle.</p><p>Le détail par mois est sur la page Abonnement.</p><p>Evoly</p>`
+      : `<p>Hi ${owner.name},</p><p>We have just paid <strong>${amount}</strong> to your Stripe account: your share of Evoly's commission on the events held at your venue.</p><p>The monthly breakdown is on the Billing page.</p><p>Evoly</p>`,
+  });
+}
+
+/** US-LIEU-03 : le lieu partenaire auquel l'organisation est rattachée, pour l'en informer. */
+export async function referringVenueName(organizationId: string) {
+  const org = await db.organization.findUnique({
+    where: { id: organizationId },
+    select: { referredByVenue: { select: { active: true, hallName: true, organization: { select: { name: true } } } } },
+  });
+  const v = org?.referredByVenue;
+  return v?.active ? v.hallName || v.organization.name : null;
 }

@@ -883,7 +883,8 @@
     "tabAmbassadors": "Embaixadores",
     "tabEmbed": "Integrar",
     "tabTables": "Mesas",
-    "atVenue": "Este evento decorre em {name} (espaço parceiro)"
+    "atVenue": "Este evento decorre em {name} (espaço parceiro)",
+    "atVenueInfo": "O espaço só vê o número total de bilhetes e a sua parte, nunca os seus compradores."
   },
   "tickets": {
     "addTicketType": "Adicionar uma tarifa",
@@ -2811,6 +2812,8 @@
     "hallName": "Nome da sala",
     "hallAddress": "Morada",
     "hallPostalCode": "Código postal",
-    "hallCity": "Cidade"
+    "hallCity": "Cidade",
+    "referredTitle": "Espaço parceiro",
+    "referredBody": "Está associado a {name}. Os seus eventos na sala dele rendem-lhe uma parte da comissão da Evoly, sem custo adicional para si nem para os seus compradores. O espaço só vê totais (número de bilhetes, a sua parte), nunca os seus compradores nem o detalhe das suas vendas."
   }
 }
