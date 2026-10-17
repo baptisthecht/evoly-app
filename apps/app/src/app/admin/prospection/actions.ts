@@ -67,7 +67,7 @@ export async function scheduleWaitingAction() {
 export async function checkPendingAddressesAction() {
   await requireStaff("ADMIN");
   const r = await cleanPendingAddresses();
-  back(undefined, r.enAttente > 0 ? "limite" : "programme");
+  back(undefined, r.ecartees.length > 0 ? "adresses_ecartees" : "adresses_ok");
 }
 
 export async function sendNowAction(id: string, lot: string) {

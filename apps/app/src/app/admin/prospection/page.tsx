@@ -12,6 +12,8 @@ const card = "rounded-2xl bg-surface-raised p-5 ring-1 ring-line";
 const ETAT: Record<string, string> = { A_ENVOYER: "En attente", PROGRAMME: "Programmé", ENVOYE: "Envoyé", ECHEC: "Échec", RETIRE: "Retiré" };
 const INFO: Record<string, string> = {
   programme: "E-mails programmés : ils partent un à un depuis chaque boîte.",
+  adresses_ecartees: "Adresses vérifiées : celles qui rebondiraient ont été écartées, avec la raison en note du prospect (statut Exclu).",
+  adresses_ok: "Adresses vérifiées : toutes les adresses en attente sont valides.",
   limite: "Plus de place aujourd'hui : les e-mails restants attendent demain.",
   envoye: "E-mail envoyé.",
   echec: "L'envoi a échoué : le détail est indiqué sous l'e-mail.",
