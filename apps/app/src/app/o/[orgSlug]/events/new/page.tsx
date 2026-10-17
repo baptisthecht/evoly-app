@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
 import { getPlans } from "@/server/plans";
 import { NewEventForm } from "./NewEventForm";
+import { partnerVenueFor } from "@/server/events";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -33,6 +34,7 @@ export default async function NewEventPage({ params }: { params: Promise<{ orgSl
       </header>
       <NewEventForm
         orgSlug={orgSlug}
+        venue={await partnerVenueFor(ctx.organization.id)}
         terms={terms}
         timezone={ctx.organization.timezone}
         country={ctx.organization.country}

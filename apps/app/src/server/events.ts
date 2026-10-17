@@ -34,6 +34,8 @@ export interface EventEssentials {
   city?: string | null;
   country?: string | null;
   onlineUrl?: string | null;
+  /** l'événement a lieu dans la salle du lieu partenaire qui a parrainé l'organisation (section 9.32) */
+  atVenue?: boolean;
 }
 
 export interface EventSettingsInput extends EventEssentials {
@@ -110,10 +112,46 @@ function isUniqueViolation(err: unknown): boolean {
 }
 
 /** Création rapide (US-EVT-01) : l'essentiel, le lieu et un premier tarif. L'événement reste un brouillon. */
+/**
+ * Section 9.32 : la salle du lieu partenaire qui a parrainé l'organisation, si le lieu est actif et que sa salle a une adresse.
+ * Seuls les événements qui y ont lieu rapportent au lieu (décision du 19 octobre 2026).
+ */
+export async function partnerVenueFor(organizationId: string) {
+  const org = await db.organization.findUnique({
+    where: { id: organizationId },
+    select: {
+      referredByVenue: {
+        select: {
+          id: true,
+          active: true,
+          hallName: true,
+          addressLine1: true,
+          postalCode: true,
+          city: true,
+          country: true,
+          organization: { select: { name: true } },
+        },
+      },
+    },
+  });
+  const v = org?.referredByVenue;
+  if (!v || !v.active || !v.addressLine1) return null;
+  return { id: v.id, name: v.hallName || v.organization.name, addressLine1: v.addressLine1, postalCode: v.postalCode, city: v.city, country: v.country };
+}
+
+const venueAddress = (v: { name: string; addressLine1: string; postalCode: string | null; city: string | null; country: string | null }) => ({
+  locationName: v.name,
+  addressLine1: v.addressLine1,
+  postalCode: v.postalCode,
+  city: v.city,
+  country: v.country,
+});
+
 export async function createEvent(ctx: OrgContext, e: EventEssentials, firstTicket: { name: string; price: string; quantity?: number | null }) {
   const o = ctx.organization;
   const { startsAt, endsAt } = resolveDates(e);
-  const location = resolveLocation(e, o.country);
+  const venue = e.atVenue && e.locationType !== "ONLINE" ? await partnerVenueFor(o.id) : null; // section 9.32
+  const location = resolveLocation(venue ? { ...e, ...venueAddress(venue) } : e, o.country);
   const priceMinor = parsePrice(firstTicket.price, o.currency);
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
@@ -130,6 +168,7 @@ export async function createEvent(ctx: OrgContext, e: EventEssentials, firstTick
           startsAt,
           endsAt,
           ...location,
+          ...(venue ? { venuePartnerId: venue.id } : {}),
           createdById: ctx.user.id,
           ticketTypes: { create: { name: firstTicket.name.trim(), priceMinor, currency: o.currency, quantity: firstTicket.quantity ?? null, sortOrder: 0 } },
         },
@@ -158,7 +197,9 @@ export async function updateEventSettings(ctx: OrgContext, eventId: string, inpu
   const event = await findEvent(ctx, eventId);
   assertEditable(event);
   const { startsAt, endsAt } = resolveDates(input);
-  const location = resolveLocation(input, ctx.organization.country);
+  const partner = await partnerVenueFor(ctx.organization.id); // section 9.32
+  const venue = partner && input.atVenue && input.locationType !== "ONLINE" ? partner : null;
+  const location = resolveLocation(venue ? { ...input, ...venueAddress(venue) } : input, ctx.organization.country);
   const toUtc = (v?: string | null) => (v ? zonedLocalToUtc(v, input.timezone) : null);
   const salesStartAt = toUtc(input.salesStartLocal);
   const salesEndAt = toUtc(input.salesEndLocal);
@@ -189,6 +230,7 @@ export async function updateEventSettings(ctx: OrgContext, eventId: string, inpu
       startsAt,
       endsAt,
       ...location,
+      ...(partner ? { venuePartnerId: venue ? venue.id : null } : {}),
       capacity: input.capacity ?? null,
       maxTicketsPerOrder: input.maxTicketsPerOrder,
       maxTicketsPerBuyer: input.maxTicketsPerBuyer ?? null,

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { runOrgAction, type ActionState } from "@/server/guard";
-import { activateVenueProgram, payVenueNow, setVenueThreshold } from "@/server/venues";
+import { activateVenueProgram, payVenueNow, setVenueHall, setVenueThreshold } from "@/server/venues";
 
 const path = (orgSlug: string) => `/o/${orgSlug}/billing`;
 
@@ -38,6 +38,31 @@ export async function venuePayNowAction(orgSlug: string, _: ActionState): Promis
     await payVenueNow(ctx);
     return null;
   });
+  if (r?.ok) revalidatePath(path(orgSlug));
+  return r;
+}
+
+/** Section 9.32 : la salle du lieu, proposée aux organisateurs qu'il a parrainés. */
+export async function venueHallAction(orgSlug: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const f = (k: string) => String(form.get(k) ?? "");
+  const r = await runOrgAction(
+    orgSlug,
+    { hallName: f("hallName"), addressLine1: f("addressLine1"), postalCode: f("postalCode"), city: f("city"), country: f("country") },
+    {
+      schema: z.object({
+        hallName: z.string().max(120),
+        addressLine1: z.string().max(160),
+        postalCode: z.string().max(16),
+        city: z.string().max(80),
+        country: z.string().max(2),
+      }),
+      permission: "BILLING_MANAGE",
+    },
+    async (d, ctx) => {
+      await setVenueHall(ctx, d);
+      return null;
+    },
+  );
   if (r?.ok) revalidatePath(path(orgSlug));
   return r;
 }

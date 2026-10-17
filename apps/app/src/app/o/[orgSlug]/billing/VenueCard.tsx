@@ -6,13 +6,14 @@ import { CopyButton } from "@/components/CopyButton";
 import { FormError, SubmitButton, useActionForm } from "@/components/forms";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Field";
-import { activateVenueAction, venuePayNowAction, venueThresholdAction } from "./venueActions";
+import { activateVenueAction, venueHallAction, venuePayNowAction, venueThresholdAction } from "./venueActions";
 
 type Summary = {
   code: string;
   link: string;
   thresholdEnabled: boolean;
   thresholdMinor: number;
+  hall: { name: string; addressLine1: string; postalCode: string; city: string };
   balanceMinor: number;
   events: number;
   organizers: number;
@@ -28,6 +29,7 @@ export function VenueCard({ orgSlug, currency, venue, manage }: { orgSlug: strin
   const activate = useActionForm(activateVenueAction.bind(null, orgSlug), null);
   const threshold = useActionForm(venueThresholdAction.bind(null, orgSlug), null);
   const payNow = useActionForm(venuePayNowAction.bind(null, orgSlug), null);
+  const hall = useActionForm(venueHallAction.bind(null, orgSlug), null);
   const title = <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("title")}</h2>;
   if (!venue)
     return (
@@ -77,6 +79,39 @@ export function VenueCard({ orgSlug, currency, venue, manage }: { orgSlug: strin
           </form>
         ) : null}
       </div>
+      {manage ? (
+        <form {...hall.formProps} className="grid gap-3" noValidate>
+          <FormError state={hall.state} />
+          <h3 className="font-semibold">{t("hallTitle")}</h3>
+          <p className="text-xs text-ink-muted">{t("hallHint")}</p>
+          <label className="grid gap-1 text-sm">
+            <span>{t("hallName")}</span>
+            <Input name="hallName" defaultValue={venue.hall.name} maxLength={120} />
+          </label>
+          <label className="grid gap-1 text-sm">
+            <span>{t("hallAddress")}</span>
+            <Input name="addressLine1" defaultValue={venue.hall.addressLine1} maxLength={160} autoComplete="street-address" />
+          </label>
+          <div className="flex flex-wrap gap-3">
+            <label className="grid gap-1 text-sm">
+              <span>{t("hallPostalCode")}</span>
+              <Input name="postalCode" defaultValue={venue.hall.postalCode} maxLength={16} className="w-28" />
+            </label>
+            <label className="grid gap-1 text-sm">
+              <span>{t("hallCity")}</span>
+              <Input name="city" defaultValue={venue.hall.city} maxLength={80} />
+            </label>
+          </div>
+          <div>
+            <SubmitButton pending={hall.pending}>{t("save")}</SubmitButton>
+          </div>
+          {hall.state?.ok ? (
+            <p role="status" className="text-sm text-ink-muted">
+              {t("saved")}
+            </p>
+          ) : null}
+        </form>
+      ) : null}
       {manage ? (
         <form {...threshold.formProps} className="grid gap-3" noValidate>
           <FormError state={threshold.state} />

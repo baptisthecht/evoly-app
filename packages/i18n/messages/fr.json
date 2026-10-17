@@ -223,7 +223,8 @@
     "tabOptions": "Options",
     "tabAmbassadors": "Ambassadeurs",
     "tabEmbed": "Intégrer",
-    "tabTables": "Tables"
+    "tabTables": "Tables",
+    "atVenue": "Cet événement a lieu à {name} (lieu partenaire)"
   },
   "tickets": {
     "addTicketType": "Ajouter un tarif",
@@ -721,7 +722,8 @@
     "VENUE_PAYOUT_TOO_SOON": "Un versement à la demande a déjà été fait aujourd'hui : réessayez demain.",
     "VENUE_NO_STRIPE": "Connectez d'abord votre compte Stripe dans Finances pour recevoir vos versements.",
     "VENUE_PAYOUT_FAILED": "Le versement n'a pas pu être fait : réessayez plus tard.",
-    "VENUE_CODE_FAILED": "Le code partenaire n'a pas pu être créé : réessayez."
+    "VENUE_CODE_FAILED": "Le code partenaire n'a pas pu être créé : réessayez.",
+    "VENUE_HALL_INVALID": "Indiquez au moins l'adresse de votre salle."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -2803,6 +2805,12 @@
     "payoutAuto": "mensuel",
     "payoutFailed": "échoué",
     "privacy": "Vous ne voyez que des totaux : jamais les acheteurs ni le détail des ventes d'un organisateur.",
-    "organizers": "{count, plural, =0 {Aucun organisateur inscrit par votre lien pour l'instant.} one {# organisateur inscrit par votre lien.} other {# organisateurs inscrits par votre lien.}}"
+    "organizers": "{count, plural, =0 {Aucun organisateur inscrit par votre lien pour l'instant.} one {# organisateur inscrit par votre lien.} other {# organisateurs inscrits par votre lien.}}",
+    "hallTitle": "Votre salle",
+    "hallHint": "Proposée d'office aux organisateurs inscrits par votre lien ; seuls les événements qui y ont lieu vous rapportent.",
+    "hallName": "Nom de la salle",
+    "hallAddress": "Adresse",
+    "hallPostalCode": "Code postal",
+    "hallCity": "Ville"
   }
 }

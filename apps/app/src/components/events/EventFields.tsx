@@ -23,6 +23,7 @@ export const TIMEZONES = [
 ];
 
 export interface EventFieldValues {
+  atVenue?: boolean;
   title: string;
   summary: string;
   startsAtLocal: string;
@@ -38,9 +39,13 @@ export interface EventFieldValues {
 }
 
 /** Champs communs à la création et aux réglages : l'essentiel et le lieu (section 9.6). */
-export function EventFields({ values, error }: { values: EventFieldValues; error: (name: string) => string | null }) {
+/** Salle du lieu partenaire qui a parrainé l'organisation (section 9.32). */
+export type PartnerVenueOption = { name: string; addressLine1: string; postalCode: string | null; city: string | null };
+
+export function EventFields({ values, error, venue }: { values: EventFieldValues; error: (name: string) => string | null; venue?: PartnerVenueOption | null }) {
   const t = useTranslations("events");
   const [locationType, setLocationType] = useState(values.locationType);
+  const [atVenue, setAtVenue] = useState(!!venue && values.atVenue !== false);
   const zones = TIMEZONES.includes(values.timezone) ? TIMEZONES : [values.timezone, ...TIMEZONES];
   return (
     <>
@@ -101,7 +106,24 @@ export function EventFields({ values, error }: { values: EventFieldValues; error
             </label>
           ))}
         </div>
-        {locationType !== "ONLINE" ? (
+        {venue && locationType !== "ONLINE" ? (
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              name="atVenue"
+              checked={atVenue}
+              onChange={(e) => setAtVenue(e.target.checked)}
+              className="mt-1 size-5 accent-[var(--ink)]"
+            />
+            <span>
+              <span className="font-semibold">{t("atVenue", { name: venue.name })}</span>
+              <span className="block text-sm text-ink-muted">
+                {[venue.addressLine1, [venue.postalCode, venue.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+              </span>
+            </span>
+          </label>
+        ) : null}
+        {locationType !== "ONLINE" && !(venue && atVenue) ? (
           <div className="grid gap-5">
             <Field label={t("locationName")} htmlFor="locationName" error={error("locationName")}>
               <Input id="locationName" name="locationName" defaultValue={values.locationName} maxLength={120} placeholder={t("locationNamePlaceholder")} />

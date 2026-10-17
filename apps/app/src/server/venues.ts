@@ -4,7 +4,6 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import type { OrgContext } from "./context";
-import { findEvent } from "./events";
 
 /** Lien partenaire du lieu (US-LIEU-01) : l'organisateur qui s'inscrit par ce lien voit le lieu préproposé pour ses événements. */
 export const venueLink = (code: string) => `${env().NEXT_PUBLIC_APP_URL}/register?lieu=${code}`;
@@ -54,22 +53,22 @@ export async function setVenueThreshold(ctx: OrgContext, input: { enabled: boole
   });
 }
 
-/** RG-LIEU-02 : l'événement rattaché au lieu par son code ; les ventes antérieures ne rapportent rien (part figée au paiement). */
-export async function attachEventToVenue(ctx: OrgContext, eventId: string, code: string | null) {
-  await findEvent(ctx, eventId);
-  const clean = (code ?? "").trim().toUpperCase();
-  if (!clean) {
-    await db.event.update({ where: { id: eventId }, data: { venuePartnerId: null } });
-    return null;
-  }
-  const venue = await db.venuePartner.findFirst({
-    where: { code: clean, active: true },
-    select: { id: true, organizationId: true, organization: { select: { name: true } } },
+/** Section 9.32 : la salle du lieu, proposée d'office aux organisateurs qu'il a parrainés ; seuls les événements qui y ont lieu comptent. */
+export async function setVenueHall(ctx: OrgContext, input: { hallName: string; addressLine1: string; postalCode: string; city: string; country: string }) {
+  const venue = await db.venuePartner.findUnique({ where: { organizationId: ctx.organization.id } });
+  if (!venue) throw new CoreError("NOT_FOUND");
+  const clean = (v: string, max: number) => v.trim().slice(0, max) || null;
+  if (!clean(input.addressLine1, 160)) throw new CoreError("VENUE_HALL_INVALID");
+  return db.venuePartner.update({
+    where: { id: venue.id },
+    data: {
+      hallName: clean(input.hallName, 120),
+      addressLine1: clean(input.addressLine1, 160),
+      postalCode: clean(input.postalCode, 16),
+      city: clean(input.city, 80),
+      country: (clean(input.country, 2) ?? ctx.organization.country).toUpperCase(),
+    },
   });
-  if (!venue) throw new CoreError("VENUE_NOT_FOUND");
-  if (venue.organizationId === ctx.organization.id) throw new CoreError("VENUE_SELF"); // un lieu ne touche pas de part sur ses propres événements
-  await db.event.update({ where: { id: eventId }, data: { venuePartnerId: venue.id } });
-  return { name: venue.organization.name };
 }
 
 /** Part nette d'une commande (RG-LIEU-04) : les remboursements et annulations en sont déduits au prorata. */
@@ -122,6 +121,7 @@ export async function venueSummary(ctx: OrgContext) {
     active: venue.active,
     thresholdEnabled: venue.thresholdEnabled,
     thresholdMinor: venue.thresholdMinor,
+    hall: { name: venue.hallName ?? "", addressLine1: venue.addressLine1 ?? "", postalCode: venue.postalCode ?? "", city: venue.city ?? "" },
     balanceMinor: await venueBalance(venue.id),
     events: await db.event.count({ where: { venuePartnerId: venue.id } }),
     organizers: await db.organization.count({ where: { referredByVenueId: venue.id } }),

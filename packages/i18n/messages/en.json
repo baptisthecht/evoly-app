@@ -223,7 +223,8 @@
     "tabOptions": "Add-ons",
     "tabAmbassadors": "Ambassadors",
     "tabEmbed": "Embed",
-    "tabTables": "Tables"
+    "tabTables": "Tables",
+    "atVenue": "This event takes place at {name} (partner venue)"
   },
   "tickets": {
     "addTicketType": "Add a ticket type",
@@ -721,7 +722,8 @@
     "VENUE_PAYOUT_TOO_SOON": "An on-demand payout was already made today: try again tomorrow.",
     "VENUE_NO_STRIPE": "First connect your Stripe account in Finances to receive your payouts.",
     "VENUE_PAYOUT_FAILED": "The payout could not be made: try again later.",
-    "VENUE_CODE_FAILED": "The partner code could not be created: try again."
+    "VENUE_CODE_FAILED": "The partner code could not be created: try again.",
+    "VENUE_HALL_INVALID": "Enter at least the address of your venue."
   },
   "brand": {
     "sloganStart": "your next",
@@ -2803,6 +2805,12 @@
     "payoutAuto": "monthly",
     "payoutFailed": "failed",
     "privacy": "You only see totals: never the buyers nor the details of an organiser's sales.",
-    "organizers": "{count, plural, =0 {No organiser has signed up with your link yet.} one {# organiser signed up with your link.} other {# organisers signed up with your link.}}"
+    "organizers": "{count, plural, =0 {No organiser has signed up with your link yet.} one {# organiser signed up with your link.} other {# organisers signed up with your link.}}",
+    "hallTitle": "Your venue",
+    "hallHint": "Offered by default to the organisers who signed up with your link; only the events held there earn you a share.",
+    "hallName": "Venue name",
+    "hallAddress": "Address",
+    "hallPostalCode": "Postal code",
+    "hallCity": "City"
   }
 }

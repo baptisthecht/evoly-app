@@ -439,7 +439,8 @@
     "VENUE_PAYOUT_TOO_SOON": "An on-demand payout was already made today: try again tomorrow.",
     "VENUE_NO_STRIPE": "First connect your Stripe account in Finances to receive your payouts.",
     "VENUE_PAYOUT_FAILED": "The payout could not be made: try again later.",
-    "VENUE_CODE_FAILED": "The partner code could not be created: try again."
+    "VENUE_CODE_FAILED": "The partner code could not be created: try again.",
+    "VENUE_HALL_INVALID": "Enter at least the address of your venue."
   },
   "validation": {
     "required": "Dieses Feld ist ein Pflichtfeld.",
@@ -881,7 +882,8 @@
     "tabOptions": "Extras",
     "tabAmbassadors": "Botschafter",
     "tabEmbed": "Einbinden",
-    "tabTables": "Tische"
+    "tabTables": "Tische",
+    "atVenue": "Diese Veranstaltung findet in {name} statt (Partner-Location)"
   },
   "tickets": {
     "addTicketType": "Tarif hinzufügen",
@@ -2803,6 +2805,12 @@
     "payoutAuto": "monatlich",
     "payoutFailed": "fehlgeschlagen",
     "privacy": "Sie sehen nur Summen: nie die Käufer oder die Details der Verkäufe eines Veranstalters.",
-    "organizers": "{count, plural, =0 {Noch kein Veranstalter über Ihren Link angemeldet.} one {# Veranstalter über Ihren Link angemeldet.} other {# Veranstalter über Ihren Link angemeldet.}}"
+    "organizers": "{count, plural, =0 {Noch kein Veranstalter über Ihren Link angemeldet.} one {# Veranstalter über Ihren Link angemeldet.} other {# Veranstalter über Ihren Link angemeldet.}}",
+    "hallTitle": "Ihr Saal",
+    "hallHint": "Den über Ihren Link angemeldeten Veranstaltern standardmäßig vorgeschlagen; nur die Veranstaltungen dort bringen Ihnen einen Anteil.",
+    "hallName": "Name des Saals",
+    "hallAddress": "Adresse",
+    "hallPostalCode": "Postleitzahl",
+    "hallCity": "Stadt"
   }
 }

@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState, startTransition } from "react";
-import { EventFields, type EventFieldValues } from "@/components/events/EventFields";
+import { EventFields, type EventFieldValues, type PartnerVenueOption } from "@/components/events/EventFields";
 import { FormError, useFieldError } from "@/components/forms";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { saveEventSettingsAction } from "../../actions";
@@ -26,7 +26,19 @@ export interface SettingsValues extends EventFieldValues {
 }
 
 /** RG-EVT-01 : sauvegarde automatique après une seconde sans modification, avec indicateur. */
-export function SettingsForm({ orgSlug, eventId, values, readOnly }: { orgSlug: string; eventId: string; values: SettingsValues; readOnly: boolean }) {
+export function SettingsForm({
+  orgSlug,
+  eventId,
+  values,
+  readOnly,
+  venue,
+}: {
+  orgSlug: string;
+  eventId: string;
+  values: SettingsValues;
+  venue?: PartnerVenueOption | null;
+  readOnly: boolean;
+}) {
   const t = useTranslations("eventSettings");
   const tc = useTranslations("common");
   const [state, action, pending] = useActionState(saveEventSettingsAction.bind(null, orgSlug, eventId), null);
@@ -77,7 +89,7 @@ export function SettingsForm({ orgSlug, eventId, values, readOnly }: { orgSlug: 
       </div>
       <FormError state={state} />
       <fieldset disabled={readOnly} className="grid gap-10">
-        <EventFields values={values} error={error} />
+        <EventFields values={values} error={error} venue={venue} />
 
         <fieldset className="grid gap-5">
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionSales")}</legend>

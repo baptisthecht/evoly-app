@@ -2,7 +2,7 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 181 · fait : 165 · partiel : 2 · à faire : 4 · hors périmètre : 2.
+**Bilan** : fait, testé : 183 · fait : 167 · partiel : 1 · à faire : 1 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -346,14 +346,14 @@
 | RG-TAB-04 | | la table est réservée pendant le paiement, comme un billet (section 8.5) : aucune double vente. | fait | même réservation que les billets (checkout.ts) |
 | RG-TAB-05 | | réservation sur demande (validée par l'organisateur) et acompte : hors du premier livrable, à valider en section 17. | hors périmètre | hors du premier livrable |
 | RG-TAB-06 | | réservé à l'offre Pro, comme le plan de salle. | fait, testé | tables.test.ts |
-| US-LIEU-01 | P2 | en tant que gérant d'un lieu, j'obtiens un lien et un code partenaire à donner aux organisateurs qui louent ma salle. | à faire | section 9.32, à développer |
-| US-LIEU-02 | P2 | en tant que gérant d'un lieu, je vois ce que me rapportent les ventes des organisateurs rattachés à mon lieu, et je reço | à faire | section 9.32, à développer |
-| US-LIEU-03 | P2 | en tant qu'organisateur, je sais que je suis rattaché à un lieu partenaire, et ce que ce lieu voit de mes ventes. | à faire | section 9.32, à développer |
+| US-LIEU-01 | P2 | en tant que gérant d'un lieu, j'obtiens un lien et un code partenaire à donner aux organisateurs qui louent ma salle. | fait | code et lien du lieu sur la page Abonnement |
+| US-LIEU-02 | P2 | en tant que gérant d'un lieu, je vois ce que me rapportent les ventes des organisateurs rattachés à mon lieu, et je reço | fait | solde, totaux par mois, versements mensuels et à la demande |
+| US-LIEU-03 | P2 | en tant qu'organisateur, je sais que je suis rattaché à un lieu partenaire, et ce que ce lieu voit de mes ventes. | partiel | case « a lieu à … (lieu partenaire) » dans l'événement ; information sur ce que voit le lieu à compléter |
 | RG-LIEU-01 | P2 | un lieu partenaire est une organisation Evoly qui a activé le programme ; elle reçoit un lien et un code partenaire uniq | fait, testé | activation, code et lien uniques (venues.ts, venues.test.ts) ; écrans à suivre |
-| RG-LIEU-02 | P2 | un organisateur est rattaché à un lieu en s'inscrivant par son lien (parrainage, section 9.22), ou en choisissant le lie | partiel | rattachement d'un événement par le code, part figée au paiement (venues.ts, checkout.ts) ; lien d'inscription et écrans à suivre |
+| RG-LIEU-02 | P2 | un organisateur est rattaché à un lieu en s'inscrivant par son lien (parrainage, section 9.22), ou en choisissant le lie | fait, testé | organisateur rattaché par le lien du lieu, sans code ; seuls les événements qui ont lieu dans sa salle comptent (salle proposée d'office) (venues.ts, events.ts, venues.test.ts) |
 | RG-LIEU-03 | P2 | le lieu reçoit une part de la commission d'Evoly, jamais un surcoût pour l'organisateur ni pour l'acheteur ; taux, base | fait, testé | 20 % de la commission, figée au paiement, sans surcoût (checkout.ts, venues.test.ts) |
 | RG-LIEU-04 | P2 | remboursements et annulations sont déduits de la part du lieu, comme de la commission d'Evoly. | fait, testé | remboursements déduits au prorata (netVenueShare, venues.test.ts) |
-| RG-LIEU-05 | P2 | le lieu ne voit que des totaux (nombre de billets, part due), jamais les acheteurs ni le détail des ventes d'un organisa | partiel | totaux seulement, par mois (venueSummary) ; écrans à suivre |
+| RG-LIEU-05 | P2 | le lieu ne voit que des totaux (nombre de billets, part due), jamais les acheteurs ni le détail des ventes d'un organisa | fait, testé | totaux seulement, par mois, carte Lieu partenaire (venueSummary, VenueCard) |
 | RG-LIEU-06 | P2 | la part est versée chaque mois sur le compte Stripe du lieu, avec un relevé ; sous le seuil de versement, elle est repor | fait, testé | versement mensuel selon le seuil, reporté en dessous, Verser maintenant dès 1 € une fois par jour (venues.ts, cron venues, venues.test.ts) |
 | RG-LIEU-07 | P2 | fiscalité à valider avec l'expert-comptable : le lieu facture sa part ; TVA belge à 21 % non récupérable sous la franchi | à faire | section 9.32, à développer |
 | RG-LIEU-08 | P2 | si la base retenue est « toutes les ventes de l'organisateur », un organisateur n'est rattaché qu'à un seul lieu à la fo | fait | rattachement par événement : un organisateur peut travailler avec plusieurs lieux |

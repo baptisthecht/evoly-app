@@ -2123,6 +2123,11 @@ model VenuePartner {
   shareBps         Int           @default(2000) // 20 % de la commission d'Evoly (décision n° 21)
   thresholdEnabled Boolean       @default(true) // seuil de versement réglé par le lieu (RG-LIEU-06)
   thresholdMinor   Int           @default(2000)
+  hallName         String? // la salle où ont lieu les événements comptés (section 9.32)
+  addressLine1     String?
+  postalCode       String?
+  city             String?
+  country          String?
   active           Boolean       @default(true)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt

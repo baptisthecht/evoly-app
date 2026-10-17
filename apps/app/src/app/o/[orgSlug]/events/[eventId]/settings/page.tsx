@@ -21,6 +21,7 @@ import { EventMarketingEmails } from "./EventMarketingEmails";
 import { eventMarketingAutomations, eventReminders, automationDoc } from "@/server/automations";
 import { hasFeature } from "@evoly/core";
 import { env } from "@/lib/env";
+import { partnerVenueFor } from "@/server/events";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -45,6 +46,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
     <div className="max-w-3xl">
       <SettingsForm
         orgSlug={orgSlug}
+        venue={await partnerVenueFor(ctx.organization.id)}
         eventId={eventId}
         readOnly={readOnly}
         values={{
@@ -58,6 +60,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
           addressLine1: e.addressLine1 ?? "",
           postalCode: e.postalCode ?? "",
           city: e.city ?? "",
+          atVenue: !!e.venuePartnerId,
           country: e.country ?? ctx.organization.country,
           onlineUrl: e.onlineUrl ?? "",
           capacity: e.capacity != null ? String(e.capacity) : "",

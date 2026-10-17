@@ -70,6 +70,10 @@ const essentials = {
   city: optionalText(80),
   country: optionalText(2),
   onlineUrl: optionalText(500),
+  atVenue: z
+    .literal("on")
+    .optional()
+    .transform((v) => v === "on"), // section 9.32
 };
 
 const createSchema = z.object({

@@ -3,7 +3,7 @@
 import type { FeeTerms } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { EventFields } from "@/components/events/EventFields";
+import { EventFields, type PartnerVenueOption } from "@/components/events/EventFields";
 import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
 import { Field, Input } from "@/components/ui/Field";
 import { createEventAction } from "../actions";
@@ -16,6 +16,7 @@ export function NewEventForm({
   defaultStart,
   currencySymbol,
   terms,
+  venue,
 }: {
   orgSlug: string;
   timezone: string;
@@ -23,6 +24,7 @@ export function NewEventForm({
   defaultStart: string;
   currencySymbol: string;
   terms: FeeTerms;
+  venue?: PartnerVenueOption | null;
 }) {
   const [price, setPrice] = useState("0");
   const t = useTranslations("events");
@@ -45,8 +47,10 @@ export function NewEventForm({
           city: "",
           country,
           onlineUrl: "",
+          atVenue: true, // section 9.32 : la salle du lieu partenaire proposée d'office
         }}
         error={error}
+        venue={venue}
       />
       <fieldset className="grid gap-5">
         <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionTickets")}</legend>
