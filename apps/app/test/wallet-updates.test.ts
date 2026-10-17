@@ -22,9 +22,21 @@ const GOOGLE = {
 /** Un billet payé, par le vrai parcours d'achat. */
 async function billet() {
   const id = rid();
-  const org = await db.organization.create({ data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
+  const org = await db.organization.create({
+    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
   const event = await db.event.create({
-    data: { organizationId: org.id, slug: `soiree-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Soirée ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 20 * DAY), status: "PUBLISHED", ticketTypes: { create: { name: "Entrée", priceMinor: 1000, currency: "EUR", quantity: 100 } } },
+    data: {
+      organizationId: org.id,
+      slug: `soiree-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: `Soirée ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: new Date(Date.now() + 20 * DAY),
+      status: "PUBLISHED",
+      ticketTypes: { create: { name: "Entrée", priceMinor: 1000, currency: "EUR", quantity: 100 } },
+    },
     include: { ticketTypes: true },
   });
   const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" });

@@ -786,7 +786,9 @@ export async function finalizeOrder(
         },
       });
       // RG-LIEU-02 et 03 : part du lieu partenaire figée au paiement, si l'événement est rattaché à un lieu à ce moment
-      const venue = (await tx.event.findUnique({ where: { id: order.eventId }, select: { venuePartner: { select: { id: true, shareBps: true, active: true } } } }))?.venuePartner;
+      const venue = (
+        await tx.event.findUnique({ where: { id: order.eventId }, select: { venuePartner: { select: { id: true, shareBps: true, active: true } } } })
+      )?.venuePartner;
       await tx.order.update({
         where: { id: order.id },
         data: {

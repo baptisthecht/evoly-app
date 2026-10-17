@@ -9,7 +9,13 @@ export async function googleAccessToken(creds: GoogleCredentials, fetchImpl: typ
   const now = Math.floor(Date.now() / 1000);
   const head = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const claims = b64url(
-    JSON.stringify({ iss: creds.serviceAccountEmail, scope: "https://www.googleapis.com/auth/wallet_object.issuer", aud: "https://oauth2.googleapis.com/token", iat: now, exp: now + 3600 }),
+    JSON.stringify({
+      iss: creds.serviceAccountEmail,
+      scope: "https://www.googleapis.com/auth/wallet_object.issuer",
+      aud: "https://oauth2.googleapis.com/token",
+      iat: now,
+      exp: now + 3600,
+    }),
   );
   const sig = createSign("RSA-SHA256").update(`${head}.${claims}`).sign(creds.privateKeyPem).toString("base64url");
   const res = await fetchImpl("https://oauth2.googleapis.com/token", {

@@ -2,7 +2,16 @@ import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { finalizeOrder, reserveOrder } from "@/server/checkout";
 import { findOrgContext } from "@/server/context";
-import { activateVenueProgram, attachEventToVenue, monthlyVenuePayouts, netVenueShare, payVenueNow, setVenueThreshold, venueBalance, venueSummary } from "@/server/venues";
+import {
+  activateVenueProgram,
+  attachEventToVenue,
+  monthlyVenuePayouts,
+  netVenueShare,
+  payVenueNow,
+  setVenueThreshold,
+  venueBalance,
+  venueSummary,
+} from "@/server/venues";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 const DAY = 86_400_000;
@@ -10,7 +19,9 @@ const DAY = 86_400_000;
 async function organisation(name: string) {
   const id = rid();
   const owner = await db.user.create({ data: { name: "Camille Dupont", email: `own.${id}@exemple.be`, emailVerified: true } });
-  const org = await db.organization.create({ data: { name: `${name} ${id}`, slug: `org-${id}`, subdomain: `org-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" } });
+  const org = await db.organization.create({
+    data: { name: `${name} ${id}`, slug: `org-${id}`, subdomain: `org-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+  });
   const ownerRole = await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } });
   await db.organizationMember.create({ data: { organizationId: org.id, userId: owner.id, roleId: ownerRole.id, status: "ACTIVE" } });
   const ctx = { ...(await findOrgContext(owner.id, org.slug))!, user: { id: owner.id, name: owner.name ?? "", email: owner.email } };
@@ -19,7 +30,17 @@ async function organisation(name: string) {
 async function evenement(orgId: string, priceMinor: number) {
   const id = rid();
   return db.event.create({
-    data: { organizationId: orgId, slug: `soiree-${id}`, publicCode: id.toUpperCase().slice(0, 8), title: `Soirée ${id}`, currency: "EUR", timezone: "Europe/Brussels", startsAt: new Date(Date.now() + 20 * DAY), status: "PUBLISHED", ticketTypes: { create: { name: "Entrée", priceMinor, currency: "EUR", quantity: 500 } } },
+    data: {
+      organizationId: orgId,
+      slug: `soiree-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: `Soirée ${id}`,
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: new Date(Date.now() + 20 * DAY),
+      status: "PUBLISHED",
+      ticketTypes: { create: { name: "Entrée", priceMinor, currency: "EUR", quantity: 500 } },
+    },
     include: { ticketTypes: true },
   });
 }

@@ -30,7 +30,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ sub: str
     if (!creds) return new Response("Google Wallet n’est pas configuré", { status: 404 });
     const origin = `${req.headers.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(":", "")}://${req.headers.get("host") ?? new URL(req.url).host}`;
     // RG-POST-04 : billet suivi pour ses mises à jour, avec l'empreinte de ce qu'il affiche
-    await db.ticket.update({ where: { id: ticket.ticketId }, data: { walletGoogle: true, walletHash: walletFingerprint({ ...ticket, valid: true }), walletUpdatedAt: new Date() } });
+    await db.ticket.update({
+      where: { id: ticket.ticketId },
+      data: { walletGoogle: true, walletHash: walletFingerprint({ ...ticket, valid: true }), walletUpdatedAt: new Date() },
+    });
     return new Response(null, { status: 303, headers: { ...headers, location: googleSaveUrl(ticket, creds, origin) } });
   }
   return new Response("Introuvable", { status: 404 });

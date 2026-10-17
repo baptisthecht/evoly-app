@@ -29,7 +29,10 @@ export async function unregisterDevice(device: string, serial: string) {
 /** Passes de ce téléphone modifiés depuis sa dernière synchronisation ; null : rien de nouveau. */
 export async function updatedSerials(device: string, since: string | null) {
   const after = since && Number.isFinite(Date.parse(since)) ? new Date(since) : null;
-  const regs = await db.walletRegistration.findMany({ where: { deviceLibraryIdentifier: device }, select: { ticket: { select: { id: true, walletUpdatedAt: true } } } });
+  const regs = await db.walletRegistration.findMany({
+    where: { deviceLibraryIdentifier: device },
+    select: { ticket: { select: { id: true, walletUpdatedAt: true } } },
+  });
   const changed = regs.map((r) => r.ticket).filter((t) => t.walletUpdatedAt && (!after || t.walletUpdatedAt > after));
   if (changed.length === 0) return null;
   const last = new Date(Math.max(...changed.map((t) => t.walletUpdatedAt!.getTime())));

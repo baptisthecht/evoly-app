@@ -43,7 +43,10 @@ export async function attachEventToVenue(ctx: OrgContext, eventId: string, code:
     await db.event.update({ where: { id: eventId }, data: { venuePartnerId: null } });
     return null;
   }
-  const venue = await db.venuePartner.findFirst({ where: { code: clean, active: true }, select: { id: true, organizationId: true, organization: { select: { name: true } } } });
+  const venue = await db.venuePartner.findFirst({
+    where: { code: clean, active: true },
+    select: { id: true, organizationId: true, organization: { select: { name: true } } },
+  });
   if (!venue) throw new CoreError("VENUE_NOT_FOUND");
   if (venue.organizationId === ctx.organization.id) throw new CoreError("VENUE_SELF"); // un lieu ne touche pas de part sur ses propres événements
   await db.event.update({ where: { id: eventId }, data: { venuePartnerId: venue.id } });
@@ -60,7 +63,10 @@ const COUNTED = ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] as const;
 
 /** Solde du lieu : parts nettes gagnées, moins les versements effectués. */
 export async function venueBalance(venuePartnerId: string) {
-  const orders = await db.order.findMany({ where: { venuePartnerId, status: { in: [...COUNTED] } }, select: { totalMinor: true, refundedMinor: true, venueShareMinor: true } });
+  const orders = await db.order.findMany({
+    where: { venuePartnerId, status: { in: [...COUNTED] } },
+    select: { totalMinor: true, refundedMinor: true, venueShareMinor: true },
+  });
   const earned = orders.reduce((n, o) => n + netVenueShare(o), 0);
   const paid = (await db.venuePayout.aggregate({ where: { venuePartnerId, status: "PAID" }, _sum: { amountMinor: true } }))._sum.amountMinor ?? 0;
   return earned - paid;
@@ -75,7 +81,13 @@ export async function venueSummary(ctx: OrgContext) {
   if (!venue) return null;
   const orders = await db.order.findMany({
     where: { venuePartnerId: venue.id, status: { in: [...COUNTED] } },
-    select: { paidAt: true, totalMinor: true, refundedMinor: true, venueShareMinor: true, _count: { select: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } } } },
+    select: {
+      paidAt: true,
+      totalMinor: true,
+      refundedMinor: true,
+      venueShareMinor: true,
+      _count: { select: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } } },
+    },
   });
   const months = new Map<string, { month: string; tickets: number; shareMinor: number }>();
   for (const o of orders) {
@@ -94,7 +106,12 @@ export async function venueSummary(ctx: OrgContext) {
     balanceMinor: await venueBalance(venue.id),
     events: await db.event.count({ where: { venuePartnerId: venue.id } }),
     months: [...months.values()].sort((a, b) => b.month.localeCompare(a.month)),
-    payouts: await db.venuePayout.findMany({ where: { venuePartnerId: venue.id }, orderBy: { createdAt: "desc" }, take: 24, select: { id: true, amountMinor: true, currency: true, manual: true, status: true, createdAt: true } }),
+    payouts: await db.venuePayout.findMany({
+      where: { venuePartnerId: venue.id },
+      orderBy: { createdAt: "desc" },
+      take: 24,
+      select: { id: true, amountMinor: true, currency: true, manual: true, status: true, createdAt: true },
+    }),
   };
 }
 
@@ -115,7 +132,9 @@ export async function payVenue(venuePartnerId: string, opts: { manual: boolean; 
   const balance = await venueBalance(venue.id);
   if (opts.manual) {
     if (balance < 100) throw new CoreError("VENUE_BALANCE_TOO_LOW");
-    const recent = await db.venuePayout.count({ where: { venuePartnerId: venue.id, manual: true, status: "PAID", createdAt: { gt: new Date(now.getTime() - 86_400_000) } } });
+    const recent = await db.venuePayout.count({
+      where: { venuePartnerId: venue.id, manual: true, status: "PAID", createdAt: { gt: new Date(now.getTime() - 86_400_000) } },
+    });
     if (recent > 0) throw new CoreError("VENUE_PAYOUT_TOO_SOON");
   } else if (balance <= 0 || (venue.thresholdEnabled && balance < venue.thresholdMinor)) {
     return { status: "CARRIED_OVER" as const, balanceMinor: balance };
@@ -127,11 +146,36 @@ export async function payVenue(venuePartnerId: string, opts: { manual: boolean; 
   }
   const currency = venue.organization.currency.toLowerCase();
   try {
-    const t = await (opts.transfer ?? stripeTransfer)({ amount: balance, currency, destination: account.stripeAccountId, idempotencyKey: `venue-${venue.id}-${now.toISOString().slice(0, 10)}-${balance}` });
-    await db.venuePayout.create({ data: { venuePartnerId: venue.id, amountMinor: balance, currency: venue.organization.currency, manual: opts.manual, status: "PAID", stripeTransferId: t.id, createdAt: now } });
+    const t = await (opts.transfer ?? stripeTransfer)({
+      amount: balance,
+      currency,
+      destination: account.stripeAccountId,
+      idempotencyKey: `venue-${venue.id}-${now.toISOString().slice(0, 10)}-${balance}`,
+    });
+    await db.venuePayout.create({
+      data: {
+        venuePartnerId: venue.id,
+        amountMinor: balance,
+        currency: venue.organization.currency,
+        manual: opts.manual,
+        status: "PAID",
+        stripeTransferId: t.id,
+        createdAt: now,
+      },
+    });
     return { status: "PAID" as const, balanceMinor: balance };
   } catch (err) {
-    await db.venuePayout.create({ data: { venuePartnerId: venue.id, amountMinor: balance, currency: venue.organization.currency, manual: opts.manual, status: "FAILED", error: String(err).slice(0, 500), createdAt: now } });
+    await db.venuePayout.create({
+      data: {
+        venuePartnerId: venue.id,
+        amountMinor: balance,
+        currency: venue.organization.currency,
+        manual: opts.manual,
+        status: "FAILED",
+        error: String(err).slice(0, 500),
+        createdAt: now,
+      },
+    });
     if (opts.manual) throw new CoreError("VENUE_PAYOUT_FAILED");
     return { status: "FAILED" as const, balanceMinor: balance };
   }

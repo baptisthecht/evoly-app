@@ -8,7 +8,11 @@ import type { AppleCredentials } from "./apple";
  */
 export async function sendApplePushes(tokens: string[], creds: AppleCredentials): Promise<string[]> {
   if (tokens.length === 0) return [];
-  const client = connect("https://api.push.apple.com", { cert: creds.certPem, key: creds.keyPem, ...(creds.passphrase ? { passphrase: creds.passphrase } : {}) });
+  const client = connect("https://api.push.apple.com", {
+    cert: creds.certPem,
+    key: creds.keyPem,
+    ...(creds.passphrase ? { passphrase: creds.passphrase } : {}),
+  });
   client.on("error", () => undefined);
   const gone: string[] = [];
   try {
@@ -16,7 +20,12 @@ export async function sendApplePushes(tokens: string[], creds: AppleCredentials)
       tokens.map(
         (token) =>
           new Promise<void>((resolve) => {
-            const req = client.request({ ":method": "POST", ":path": `/3/device/${token}`, "apns-topic": creds.passTypeIdentifier, "content-type": "application/json" });
+            const req = client.request({
+              ":method": "POST",
+              ":path": `/3/device/${token}`,
+              "apns-topic": creds.passTypeIdentifier,
+              "content-type": "application/json",
+            });
             req.on("response", (h) => {
               if (h[":status"] === 410) gone.push(token);
             });

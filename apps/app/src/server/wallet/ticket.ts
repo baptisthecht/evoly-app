@@ -92,7 +92,22 @@ export async function walletTicketById(ticketId: string, orderId?: string): Prom
 /** RG-POST-04 : empreinte de ce qu'affiche le pass ; un passage à l'entrée ne la change pas. */
 export function walletFingerprint(t: WalletTicket & { valid: boolean }): string {
   return createHash("sha256")
-    .update(JSON.stringify([t.title, t.startsAt.toISOString(), t.endsAt.toISOString(), t.when, t.place, t.address, t.typeName, t.holder, t.seat, t.organizationName, t.background, t.valid]))
+    .update(
+      JSON.stringify([
+        t.title,
+        t.startsAt.toISOString(),
+        t.endsAt.toISOString(),
+        t.when,
+        t.place,
+        t.address,
+        t.typeName,
+        t.holder,
+        t.seat,
+        t.organizationName,
+        t.background,
+        t.valid,
+      ]),
+    )
     .digest("hex");
 }
 

@@ -5,7 +5,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type P = { params: Promise<{ device: string; passType: string; serial: string }> };
-const allowed = (req: Request, passType: string, serial: string) => appleCredentials()?.passTypeIdentifier === passType && passAuthorized(serial, req.headers.get("authorization"));
+const allowed = (req: Request, passType: string, serial: string) =>
+  appleCredentials()?.passTypeIdentifier === passType && passAuthorized(serial, req.headers.get("authorization"));
 
 /** RG-POST-04 : un téléphone s'inscrit aux mises à jour d'un pass. */
 export async function POST(req: Request, { params }: P) {
