@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/server/platform";
 import {
+  cleanPendingAddresses,
   deleteMailbox,
   importLot,
   rebalance,
@@ -16,9 +17,9 @@ import {
   setMailboxActive,
   setMailboxLimit,
   testMailbox,
+  type ImportReport,
   updateProspect,
   withdrawEmail,
-  type ImportReport,
 } from "@/server/prospection";
 
 export type ImportState = { ok: true; report: ImportReport } | { ok: false; error: string } | null;
@@ -59,6 +60,13 @@ export async function importLotAction(_prev: ImportState, form: FormData): Promi
 export async function scheduleWaitingAction() {
   await requireStaff("ADMIN");
   const r = await scheduleWaiting();
+  back(undefined, r.enAttente > 0 ? "limite" : "programme");
+}
+
+/** Vérifie les adresses des e-mails pas encore partis et écarte celles qui rebondiraient. */
+export async function checkPendingAddressesAction() {
+  await requireStaff("ADMIN");
+  const r = await cleanPendingAddresses();
   back(undefined, r.enAttente > 0 ? "limite" : "programme");
 }
 

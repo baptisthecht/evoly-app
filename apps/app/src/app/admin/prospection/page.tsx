@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireStaff } from "@/server/platform";
 import { lotEmails, pipelineStats, prospectionOverview } from "@/server/prospection";
-import { retryAction, scheduleWaitingAction, sendNowAction, withdrawAction } from "./actions";
+import { checkPendingAddressesAction, retryAction, scheduleWaitingAction, sendNowAction, withdrawAction } from "./actions";
 import { UploadForm } from "./UploadForm";
 
 export const dynamic = "force-dynamic";
@@ -100,6 +100,12 @@ export default async function ProspectionPage({ searchParams }: { searchParams: 
             </button>
           </form>
         ) : null}
+        {/* adresses qui rebondiraient : e-mails retirés, prospects écartés avec la raison en note */}
+        <form action={checkPendingAddressesAction}>
+          <button type="submit" className="h-11 rounded-full px-5 font-semibold ring-1 ring-[var(--evoly-charbon)]">
+            Vérifier les adresses en attente
+          </button>
+        </form>
         {o.lots.length ? (
           <nav className="flex flex-wrap gap-2" aria-label="Lots">
             {o.lots.map((l) => (

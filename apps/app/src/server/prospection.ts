@@ -9,6 +9,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { safeError } from "@/lib/redact";
+import { checkAddress } from "./emailCheck";
 
 /**
  * Prospection d'Evoly (back-office) : boîtes d'envoi configurées dans le back-office (mot de passe chiffré), capacité
@@ -351,6 +352,7 @@ export async function importLot(raw: unknown, now = new Date(), rand: Rand = def
   if (top.emails.length > 500) throw new CoreError("PROSPECTION_LOT_TOO_LARGE");
   const lot = (typeof top.lot === "string" && top.lot.trim().slice(0, 60)) || new Intl.DateTimeFormat("en-CA", { timeZone: FUSEAU }).format(now);
   const ignores: ImportReport["ignores"] = [];
+  const mxCache = new Map<string, Promise<boolean | null>>();
   const created: string[] = [];
   let misAJour = 0;
   for (const item of top.emails) {
@@ -370,6 +372,12 @@ export async function importLot(raw: unknown, now = new Date(), rand: Rand = def
       });
       if (updated.count) misAJour++;
       else ignores.push({ id: e.id, a: e.a, raison: existing.status === "ENVOYE" ? "déjà envoyé" : "déjà importé (même identifiant)" });
+      continue;
+    }
+    // adresse qui rebondirait : ignorée, avec sa raison (et l'adresse probable pour un mot collé au domaine)
+    const check = await checkAddress(e.a, undefined, mxCache);
+    if (!check.ok) {
+      ignores.push({ id: e.id, a: e.a, raison: `adresse invalide : ${check.reason}${check.suggestion ? ` (sans doute ${check.suggestion})` : ""}` });
       continue;
     }
     const prospect = await db.prospect.findUnique({ where: { email: e.a }, select: { id: true, status: true } });
@@ -729,4 +737,32 @@ export async function prospectsCsv() {
         .join(";"),
     );
   return "\uFEFF" + lines.join("\r\n") + "\r\n";
+}
+
+/**
+ * Vérifie les adresses des e-mails pas encore partis : une adresse invalide voit son e-mail retiré et son prospect écarté,
+ * avec la raison en note (et l'adresse probable pour un mot collé au domaine, à corriger à la main).
+ */
+export async function cleanPendingAddresses(
+  check: (a: string) => Promise<import("./emailCheck").AddressCheck> = (() => {
+    const cache = new Map<string, Promise<boolean | null>>();
+    return (a: string) => checkAddress(a, undefined, cache);
+  })(),
+  only: { lot?: string } = {},
+) {
+  const pending = await db.prospectEmail.findMany({
+    where: { status: { in: ["A_ENVOYER", "PROGRAMME"] }, ...(only.lot ? { lot: only.lot } : {}) },
+    select: { id: true, toEmail: true, prospectId: true },
+  });
+  const ecartees: { a: string; raison: string; suggestion?: string }[] = [];
+  for (const em of pending) {
+    const c = await check(em.toEmail);
+    if (c.ok) continue;
+    await withdrawEmail(em.id);
+    const p = await db.prospect.findUnique({ where: { id: em.prospectId }, select: { notes: true } });
+    const note = `Adresse invalide : ${c.reason}${c.suggestion ? ` (sans doute ${c.suggestion})` : ""}.`;
+    await db.prospect.update({ where: { id: em.prospectId }, data: { status: "EXCLU", notes: p?.notes ? `${p.notes}\n${note}` : note } });
+    ecartees.push({ a: em.toEmail, raison: c.reason, ...(c.suggestion ? { suggestion: c.suggestion } : {}) });
+  }
+  return { verifiees: pending.length, ecartees };
 }
