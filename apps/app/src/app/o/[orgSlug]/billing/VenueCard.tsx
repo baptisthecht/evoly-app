@@ -1,0 +1,134 @@
+"use client";
+
+import { formatMoney, type Locale } from "@evoly/i18n";
+import { useLocale, useTranslations } from "next-intl";
+import { CopyButton } from "@/components/CopyButton";
+import { FormError, SubmitButton, useActionForm } from "@/components/forms";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Field";
+import { activateVenueAction, venuePayNowAction, venueThresholdAction } from "./venueActions";
+
+type Summary = {
+  code: string;
+  link: string;
+  thresholdEnabled: boolean;
+  thresholdMinor: number;
+  balanceMinor: number;
+  events: number;
+  months: Array<{ month: string; tickets: number; shareMinor: number }>;
+  payouts: Array<{ id: string; amountMinor: number; manual: boolean; status: string; createdAt: Date | string }>;
+};
+
+/** Lieux partenaires (section 9.32) : activation, code et lien, solde et versements, seuil ; des totaux seulement (RG-LIEU-05). */
+export function VenueCard({ orgSlug, currency, venue, manage }: { orgSlug: string; currency: string; venue: Summary | null; manage: boolean }) {
+  const t = useTranslations("venue");
+  const locale = useLocale() as Locale;
+  const money = (v: number) => formatMoney(v, currency, locale);
+  const activate = useActionForm(activateVenueAction.bind(null, orgSlug), null);
+  const threshold = useActionForm(venueThresholdAction.bind(null, orgSlug), null);
+  const payNow = useActionForm(venuePayNowAction.bind(null, orgSlug), null);
+  const title = <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("title")}</h2>;
+  if (!venue)
+    return (
+      <Card className="grid gap-3">
+        {title}
+        <p className="text-sm text-ink-muted">{t("intro")}</p>
+        {manage ? (
+          <form {...activate.formProps} className="grid gap-2">
+            <FormError state={activate.state} />
+            <div>
+              <SubmitButton pending={activate.pending}>{t("activate")}</SubmitButton>
+            </div>
+          </form>
+        ) : null}
+      </Card>
+    );
+  return (
+    <Card className="grid gap-4">
+      {title}
+      <p className="text-sm text-ink-muted">{t("activeIntro")}</p>
+      <div className="grid gap-2 text-sm">
+        <p>
+          <span className="font-semibold">{t("code")}</span> <code className="rounded bg-surface-sunken px-2 py-1 font-mono">{venue.code}</code>
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold">{t("link")}</span>
+          <CopyButton value={venue.link} label={t("copyLink")} />
+        </div>
+        <p className="text-ink-muted">{t("events", { count: venue.events })}</p>
+      </div>
+      <div className="grid gap-2">
+        <p className="text-sm">
+          <span className="font-semibold">{t("balance")}</span> <span className="font-display text-xl tabular-nums">{money(venue.balanceMinor)}</span>
+        </p>
+        {manage ? (
+          <form {...payNow.formProps} className="grid gap-2">
+            <FormError state={payNow.state} />
+            <div>
+              <SubmitButton pending={payNow.pending}>{t("payNow")}</SubmitButton>
+            </div>
+            <p className="text-xs text-ink-muted">{t("payNowHint")}</p>
+            {payNow.state?.ok ? (
+              <p role="status" className="text-sm font-semibold">
+                {t("paid")}
+              </p>
+            ) : null}
+          </form>
+        ) : null}
+      </div>
+      {manage ? (
+        <form {...threshold.formProps} className="grid gap-3" noValidate>
+          <FormError state={threshold.state} />
+          <label className="flex items-center gap-3">
+            <input type="checkbox" name="enabled" defaultChecked={venue.thresholdEnabled} className="size-5 accent-[var(--ink)]" />
+            <span className="font-semibold">{t("thresholdEnabled")}</span>
+          </label>
+          <label className="grid gap-1 text-sm">
+            <span>{t("thresholdAmount")}</span>
+            <Input name="amount" inputMode="decimal" defaultValue={String(venue.thresholdMinor / 100)} className="w-32" />
+          </label>
+          <p className="text-xs text-ink-muted">{t("thresholdHint")}</p>
+          <div>
+            <SubmitButton pending={threshold.pending}>{t("save")}</SubmitButton>
+          </div>
+          {threshold.state?.ok ? (
+            <p role="status" className="text-sm text-ink-muted">
+              {t("saved")}
+            </p>
+          ) : null}
+        </form>
+      ) : null}
+      {venue.months.length > 0 ? (
+        <div className="grid gap-1 text-sm">
+          <h3 className="font-semibold">{t("months")}</h3>
+          <ul className="grid gap-1">
+            {venue.months.map((m) => (
+              <li key={m.month} className="flex justify-between gap-3">
+                <span>{m.month}</span>
+                <span className="tabular-nums">{t("monthLine", { tickets: m.tickets, share: money(m.shareMinor) })}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="text-sm text-ink-muted">{t("empty")}</p>
+      )}
+      {venue.payouts.length > 0 ? (
+        <div className="grid gap-1 text-sm">
+          <h3 className="font-semibold">{t("payouts")}</h3>
+          <ul className="grid gap-1">
+            {venue.payouts.map((p) => (
+              <li key={p.id} className="flex justify-between gap-3">
+                <span>
+                  {new Date(p.createdAt).toLocaleDateString(locale)} · {p.manual ? t("payoutManual") : t("payoutAuto")}
+                </span>
+                <span className="tabular-nums">{p.status === "PAID" ? money(p.amountMinor) : t("payoutFailed")}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      <p className="text-xs text-ink-muted">{t("privacy")}</p>
+    </Card>
+  );
+}
