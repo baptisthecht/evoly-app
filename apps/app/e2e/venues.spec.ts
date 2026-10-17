@@ -8,7 +8,7 @@ test("lieu partenaire : le lieu active le programme et renseigne sa salle ; l'or
   const { slug } = await organizer(page);
   await page.goto(appUrl(`/o/${slug}/billing`));
   await page.getByRole("button", { name: "Devenir lieu partenaire" }).click();
-  await expect(page.getByText("Votre code")).toBeVisible();
+  await expect(page.getByRole("button", { name: "J'accepte l'autofacturation" })).toBeVisible(); // la carte du lieu, une fois le programme activé
   await page.getByLabel("Nom de la salle").fill("Le Hangar");
   await page.getByLabel("Adresse", { exact: true }).fill("Rue du Port 12");
   await page.getByLabel("Code postal").fill("1000");
