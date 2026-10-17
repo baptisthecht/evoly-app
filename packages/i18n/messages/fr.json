@@ -724,7 +724,9 @@
     "VENUE_NO_STRIPE": "Connectez d'abord votre compte Stripe dans Finances pour recevoir vos versements.",
     "VENUE_PAYOUT_FAILED": "Le versement n'a pas pu être fait : réessayez plus tard.",
     "VENUE_CODE_FAILED": "Le code partenaire n'a pas pu être créé : réessayez.",
-    "VENUE_HALL_INVALID": "Indiquez au moins l'adresse de votre salle."
+    "VENUE_HALL_INVALID": "Indiquez au moins l'adresse de votre salle.",
+    "VENUE_COUNTRY_UNSUPPORTED": "Le programme Lieu partenaire est pour l'instant réservé aux lieux situés en Belgique.",
+    "VENUE_BILLING_INFO": "Acceptez l'autofacturation et complétez vos informations de facturation (raison sociale, adresse, numéro de TVA si vous êtes assujetti) avant de recevoir un versement."
   },
   "brand": {
     "sloganStart": "ton prochain",
@@ -2814,6 +2816,11 @@
     "hallPostalCode": "Code postal",
     "hallCity": "Ville",
     "referredTitle": "Lieu partenaire",
-    "referredBody": "Vous êtes rattaché à {name}. Vos événements organisés dans sa salle lui rapportent une part de la commission d'Evoly, sans aucun surcoût pour vous ni pour vos acheteurs. Le lieu ne voit que des totaux (nombre de billets, sa part), jamais vos acheteurs ni le détail de vos ventes."
+    "referredBody": "Vous êtes rattaché à {name}. Vos événements organisés dans sa salle lui rapportent une part de la commission d'Evoly, sans aucun surcoût pour vous ni pour vos acheteurs. Le lieu ne voit que des totaux (nombre de billets, sa part), jamais vos acheteurs ni le détail de vos ventes.",
+    "selfBillingTitle": "Autofacturation",
+    "selfBillingBody": "Pour vous éviter de nous facturer votre part, Evoly établit chaque mois la facture en votre nom et pour votre compte (autofacturation), avec une numérotation propre à votre lieu. La part versée est TVA comprise : si vous êtes assujetti, la facture fait apparaître 21 % de TVA belge, que vous déclarez. Chaque facture est réputée acceptée sauf contestation dans les 15 jours. Vos versements commencent dès que vous avez accepté et que vos informations de facturation (raison sociale, adresse, numéro de TVA si vous êtes assujetti) sont complètes dans les paramètres.",
+    "selfBillingAccept": "J'accepte l'autofacturation",
+    "selfBillingAccepted": "Autofacturation acceptée le {date}.",
+    "invoice": "Facture"
   }
 }

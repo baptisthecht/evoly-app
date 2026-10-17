@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { runOrgAction, type ActionState } from "@/server/guard";
-import { activateVenueProgram, payVenueNow, setVenueHall, setVenueThreshold } from "@/server/venues";
+import { acceptSelfBilling, activateVenueProgram, payVenueNow, setVenueHall, setVenueThreshold } from "@/server/venues";
 
 const path = (orgSlug: string) => `/o/${orgSlug}/billing`;
 
@@ -63,6 +63,16 @@ export async function venueHallAction(orgSlug: string, _: ActionState, form: For
       return null;
     },
   );
+  if (r?.ok) revalidatePath(path(orgSlug));
+  return r;
+}
+
+/** RG-LIEU-07 : le lieu accepte l'autofacturation de sa part. */
+export async function acceptSelfBillingAction(orgSlug: string, _: ActionState): Promise<ActionState> {
+  const r = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "BILLING_MANAGE" }, async (_d, ctx) => {
+    await acceptSelfBilling(ctx);
+    return null;
+  });
   if (r?.ok) revalidatePath(path(orgSlug));
   return r;
 }

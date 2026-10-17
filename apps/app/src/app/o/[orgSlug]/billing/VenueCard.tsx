@@ -6,7 +6,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { FormError, SubmitButton, useActionForm } from "@/components/forms";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Field";
-import { activateVenueAction, venueHallAction, venuePayNowAction, venueThresholdAction } from "./venueActions";
+import { acceptSelfBillingAction, activateVenueAction, venueHallAction, venuePayNowAction, venueThresholdAction } from "./venueActions";
 
 type Summary = {
   code: string;
@@ -18,7 +18,8 @@ type Summary = {
   events: number;
   organizers: number;
   months: Array<{ month: string; tickets: number; shareMinor: number }>;
-  payouts: Array<{ id: string; amountMinor: number; manual: boolean; status: string; createdAt: Date | string }>;
+  selfBillingAcceptedAt: Date | string | null;
+  payouts: Array<{ id: string; amountMinor: number; manual: boolean; status: string; createdAt: Date | string; invoiceNumber: string | null }>;
 };
 
 /** Lieux partenaires (section 9.32) : activation, code et lien, solde et versements, seuil ; des totaux seulement (RG-LIEU-05). */
@@ -30,6 +31,7 @@ export function VenueCard({ orgSlug, currency, venue, manage }: { orgSlug: strin
   const threshold = useActionForm(venueThresholdAction.bind(null, orgSlug), null);
   const payNow = useActionForm(venuePayNowAction.bind(null, orgSlug), null);
   const hall = useActionForm(venueHallAction.bind(null, orgSlug), null);
+  const accept = useActionForm(acceptSelfBillingAction.bind(null, orgSlug), null);
   const title = <h2 className="font-display text-lg tracking-[var(--tracking-title)]">{t("title")}</h2>;
   if (!venue)
     return (
@@ -60,6 +62,20 @@ export function VenueCard({ orgSlug, currency, venue, manage }: { orgSlug: strin
         </div>
         <p className="text-ink-muted">{t("organizers", { count: venue.organizers })}</p>
       </div>
+      {!venue.selfBillingAcceptedAt ? (
+        <form {...accept.formProps} className="grid gap-2 rounded-md bg-surface-sunken p-3">
+          <FormError state={accept.state} />
+          <h3 className="font-semibold">{t("selfBillingTitle")}</h3>
+          <p className="text-sm text-ink-muted">{t("selfBillingBody")}</p>
+          {manage ? (
+            <div>
+              <SubmitButton pending={accept.pending}>{t("selfBillingAccept")}</SubmitButton>
+            </div>
+          ) : null}
+        </form>
+      ) : (
+        <p className="text-xs text-ink-muted">{t("selfBillingAccepted", { date: new Date(venue.selfBillingAcceptedAt).toLocaleDateString(locale) })}</p>
+      )}
       <div className="grid gap-2">
         <p className="text-sm">
           <span className="font-semibold">{t("balance")}</span> <span className="font-display text-xl tabular-nums">{money(venue.balanceMinor)}</span>
@@ -159,6 +175,11 @@ export function VenueCard({ orgSlug, currency, venue, manage }: { orgSlug: strin
                   {new Date(p.createdAt).toLocaleDateString(locale)} · {p.manual ? t("payoutManual") : t("payoutAuto")}
                 </span>
                 <span className="tabular-nums">{p.status === "PAID" ? money(p.amountMinor) : t("payoutFailed")}</span>
+                {p.invoiceNumber ? (
+                  <a href={`/o/${orgSlug}/billing/venue-invoices/${p.id}`} className="underline">
+                    {t("invoice")}
+                  </a>
+                ) : null}
               </li>
             ))}
           </ul>

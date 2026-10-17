@@ -440,7 +440,9 @@
     "VENUE_NO_STRIPE": "First connect your Stripe account in Finances to receive your payouts.",
     "VENUE_PAYOUT_FAILED": "The payout could not be made: try again later.",
     "VENUE_CODE_FAILED": "The partner code could not be created: try again.",
-    "VENUE_HALL_INVALID": "Enter at least the address of your venue."
+    "VENUE_HALL_INVALID": "Enter at least the address of your venue.",
+    "VENUE_COUNTRY_UNSUPPORTED": "The Partner venue programme is currently limited to venues located in Belgium.",
+    "VENUE_BILLING_INFO": "Accept self-billing and complete your billing details (legal name, address, VAT number if registered) before receiving a payout."
   },
   "validation": {
     "required": "Dit veld is verplicht.",
@@ -2814,6 +2816,11 @@
     "hallPostalCode": "Postcode",
     "hallCity": "Stad",
     "referredTitle": "Partnerlocatie",
-    "referredBody": "Je bent gekoppeld aan {name}. Je evenementen in haar zaal leveren haar een deel van de commissie van Evoly op, zonder meerkost voor jou of je kopers. De locatie ziet alleen totalen (aantal tickets, haar deel), nooit je kopers of het detail van je verkoop."
+    "referredBody": "Je bent gekoppeld aan {name}. Je evenementen in haar zaal leveren haar een deel van de commissie van Evoly op, zonder meerkost voor jou of je kopers. De locatie ziet alleen totalen (aantal tickets, haar deel), nooit je kopers of het detail van je verkoop.",
+    "selfBillingTitle": "Zelffacturatie",
+    "selfBillingBody": "Om je te besparen ons je deel te factureren, maakt Evoly elke maand de factuur op in jouw naam en voor jouw rekening (zelffacturatie), met een eigen nummering voor je locatie. Het uitbetaalde deel is inclusief btw: ben je btw-plichtig, dan vermeldt de factuur 21 % Belgische btw, die jij aangeeft. Elke factuur wordt als aanvaard beschouwd tenzij binnen 15 dagen betwist. Je uitbetalingen starten zodra je aanvaard hebt en je factuurgegevens (maatschappelijke naam, adres, btw-nummer indien btw-plichtig) volledig zijn in de instellingen.",
+    "selfBillingAccept": "Ik aanvaard zelffacturatie",
+    "selfBillingAccepted": "Zelffacturatie aanvaard op {date}.",
+    "invoice": "Factuur"
   }
 }

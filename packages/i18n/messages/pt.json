@@ -440,7 +440,9 @@
     "VENUE_NO_STRIPE": "First connect your Stripe account in Finances to receive your payouts.",
     "VENUE_PAYOUT_FAILED": "The payout could not be made: try again later.",
     "VENUE_CODE_FAILED": "The partner code could not be created: try again.",
-    "VENUE_HALL_INVALID": "Enter at least the address of your venue."
+    "VENUE_HALL_INVALID": "Enter at least the address of your venue.",
+    "VENUE_COUNTRY_UNSUPPORTED": "The Partner venue programme is currently limited to venues located in Belgium.",
+    "VENUE_BILLING_INFO": "Accept self-billing and complete your billing details (legal name, address, VAT number if registered) before receiving a payout."
   },
   "validation": {
     "required": "Este campo é obrigatório.",
@@ -2814,6 +2816,11 @@
     "hallPostalCode": "Código postal",
     "hallCity": "Cidade",
     "referredTitle": "Espaço parceiro",
-    "referredBody": "Está associado a {name}. Os seus eventos na sala dele rendem-lhe uma parte da comissão da Evoly, sem custo adicional para si nem para os seus compradores. O espaço só vê totais (número de bilhetes, a sua parte), nunca os seus compradores nem o detalhe das suas vendas."
+    "referredBody": "Está associado a {name}. Os seus eventos na sala dele rendem-lhe uma parte da comissão da Evoly, sem custo adicional para si nem para os seus compradores. O espaço só vê totais (número de bilhetes, a sua parte), nunca os seus compradores nem o detalhe das suas vendas.",
+    "selfBillingTitle": "Autofaturação",
+    "selfBillingBody": "Para lhe poupar faturar-nos a sua parte, a Evoly emite todos os meses a fatura em seu nome e por sua conta (autofaturação), com uma numeração própria do seu espaço. A parte paga inclui o IVA: se estiver sujeito, a fatura mostra 21 % de IVA belga, que declara. Cada fatura considera-se aceite salvo contestação em 15 dias. Os seus pagamentos começam quando tiver aceitado e os seus dados de faturação (denominação, morada, número de IVA se sujeito) estiverem completos nas definições.",
+    "selfBillingAccept": "Aceito a autofaturação",
+    "selfBillingAccepted": "Autofaturação aceite em {date}.",
+    "invoice": "Fatura"
   }
 }

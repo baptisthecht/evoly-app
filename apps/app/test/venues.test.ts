@@ -1,18 +1,22 @@
+import { PDFDocument } from "pdf-lib";
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { finalizeOrder, reserveOrder } from "@/server/checkout";
 import { findOrgContext } from "@/server/context";
 import { createEvent } from "@/server/events";
 import {
+  acceptSelfBilling,
   activateVenueProgram,
   attachVenueReferral,
   monthlyVenuePayouts,
   netVenueShare,
   payVenueNow,
   referringVenueName,
+  selfBillingPdf,
   setVenueHall,
   setVenueThreshold,
   venueBalance,
+  venueShareVat,
   venueSummary,
 } from "@/server/venues";
 
@@ -37,6 +41,12 @@ async function lieuEtOrganisateur() {
   const lieu = await organisation("Le Hangar");
   const v = await activateVenueProgram(lieu.ctx);
   await setVenueHall(lieu.ctx, { hallName: "Le Hangar", addressLine1: "Rue du Port 12", postalCode: "1000", city: "Bruxelles", country: "be" });
+  // RG-LIEU-07 : informations de facturation et accord d'autofacturation, conditions de tout versement
+  await db.organization.update({
+    where: { id: lieu.org.id },
+    data: { legalName: "Le Hangar SRL", addressLine1: "Rue du Port 12", postalCode: "1000", city: "Bruxelles" },
+  });
+  await acceptSelfBilling(lieu.ctx);
   const orga = await organisation("Nuit Blanche");
   expect(await attachVenueReferral(orga.org.id, v.code)).toBe(v.id);
   return { lieu, orga, v };
@@ -199,5 +209,56 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     expect((await payVenueNow(lieu.ctx, transfer)).status).toBe("PAID");
     expect(await releves()).toBe(2);
     expect(await venueBalance(v.id)).toBe(0);
+  });
+
+  it("fiscalité (RG-LIEU-07, décidée au mieux) : TVA comprise ; lieux en Belgique ; aucun versement sans accord d'autofacturation ni informations de facturation ; facture numérotée pour le lieu", async () => {
+    expect(venueShareVat(1210, { vatRegistered: true, vatNumber: "BE0123456789" })).toEqual({
+      netMinor: 1000,
+      vatMinor: 210,
+      vatRateBps: 2100,
+      mention: "BE_VAT",
+    });
+    expect(venueShareVat(1000, { vatRegistered: false, vatNumber: "BE0123456789" })).toEqual({
+      netMinor: 1000,
+      vatMinor: 0,
+      vatRateBps: 0,
+      mention: "FRANCHISE",
+    });
+    expect(venueShareVat(1000, { vatRegistered: false, vatNumber: null })).toMatchObject({ vatMinor: 0, mention: "NOT_REGISTERED" });
+    const fr = await organisation("Salle française");
+    await expect(activateVenueProgram({ ...fr.ctx, organization: { ...fr.ctx.organization, country: "FR" } })).rejects.toMatchObject({
+      code: "VENUE_COUNTRY_UNSUPPORTED",
+    });
+    const lieu = await organisation("Le Dôme");
+    const v = await activateVenueProgram(lieu.ctx);
+    await setVenueHall(lieu.ctx, { hallName: "Le Dôme", addressLine1: "Place 1", postalCode: "7700", city: "Mouscron", country: "BE" });
+    await setVenueThreshold(lieu.ctx, { enabled: false, amount: "" });
+    await db.stripeAccount.create({ data: { organizationId: lieu.org.id, stripeAccountId: `acct_${rid()}`, country: "BE", defaultCurrency: "EUR" } });
+    const orga = await organisation("Orga");
+    await attachVenueReferral(orga.org.id, v.code);
+    const ev = await evenement(orga.ctx, true, "100");
+    await acheter(ev, 20);
+    const transfer = async () => ({ id: `tr_${rid()}` });
+    const run = async () => (await monthlyVenuePayouts(new Date(), transfer)).results.find((r) => r.id === v.id)!.status;
+    expect(await run()).toBe("INFO_MISSING");
+    await expect(payVenueNow(lieu.ctx, transfer)).rejects.toMatchObject({ code: "VENUE_BILLING_INFO" });
+    await db.organization.update({
+      where: { id: lieu.org.id },
+      data: { legalName: "Le Dôme SRL", addressLine1: "Place 1", postalCode: "7700", city: "Mouscron", vatRegistered: true, vatNumber: "BE0123456789" },
+    });
+    expect(await run()).toBe("INFO_MISSING"); // toujours sans accord
+    await acceptSelfBilling(lieu.ctx);
+    expect(await run()).toBe("PAID");
+    const p1 = await db.venuePayout.findFirstOrThrow({ where: { venuePartnerId: v.id, status: "PAID" } });
+    expect([p1.invoiceNumber, p1.vatMention, p1.netMinor! + p1.vatMinor!]).toEqual([`AF-${v.code}-0001`, "BE_VAT", p1.amountMinor]);
+    const pdf = (await selfBillingPdf(p1.id))!;
+    expect(pdf.number).toBe(p1.invoiceNumber);
+    expect((await PDFDocument.load(pdf.bytes)).getPageCount()).toBe(1);
+    await acheter(ev, 20);
+    await payVenueNow(lieu.ctx, transfer);
+    expect(
+      (await db.venuePayout.findMany({ where: { venuePartnerId: v.id, status: "PAID" }, orderBy: { createdAt: "asc" } })).map((p) => p.invoiceNumber),
+    ).toEqual([`AF-${v.code}-0001`, `AF-${v.code}-0002`]);
+    expect(await db.emailMessage.count({ where: { organizationId: lieu.org.id, template: "venue.payout" } })).toBe(2);
   });
 });
