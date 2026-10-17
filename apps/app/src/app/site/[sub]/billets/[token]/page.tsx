@@ -71,6 +71,11 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
           ),
         )
       : [];
+  // options achetées sans billet : leur QR code de retrait (RG-OPT-03)
+  const passQr =
+    order.optionsCode && (order.status === "PAID" || order.status === "PARTIALLY_REFUNDED")
+      ? await QRCode.toString(order.optionsCode, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: palette.charbon, light: palette.blanc } })
+      : null;
   // revente (section 9.13) : annonces ouvertes et conditions, billet par billet
   const openListings = await db.resaleListing.findMany({
     where: { sellerOrderId: order.id, status: { in: ["ACTIVE", "RESERVED"] } },
@@ -142,10 +147,22 @@ export default async function BuyerTicketsPage({ params }: { params: Promise<{ s
                       <span>
                         {o.quantity} × {o.option.name}
                       </span>
-                      <span className="tabular-nums">{t("optionsLeft", { left: o.quantity - o.redeemed, quantity: o.quantity })}</span>
+                      <span className="tabular-nums">{t("optionsLeft", { left: o.quantity - o.redeemed - o.refunded, quantity: o.quantity })}</span>
                     </li>
                   ))}
                 </ul>
+                {passQr ? (
+                  <div className="grid justify-items-center gap-2 pt-2">
+                    <p className="text-sm font-semibold">{t("optionsPass")}</p>
+                    <div
+                      className="w-full max-w-[15rem] rounded-md bg-blanc p-2 [&_svg]:h-auto [&_svg]:w-full"
+                      role="img"
+                      aria-label={t("qrLabel", { code: order.optionsShortCode ?? "" })}
+                      dangerouslySetInnerHTML={{ __html: passQr }}
+                    />
+                    <p className="font-mono text-lg tracking-[0.2em]">{order.optionsShortCode}</p>
+                  </div>
+                ) : null}
               </section>
             ) : null}
             <ol className="grid gap-4 sm:grid-cols-2">

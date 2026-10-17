@@ -545,7 +545,8 @@
     "friendsCopied": "Link gekopieerd.",
     "optionsTitle": "Je opties",
     "optionsHint": "In te wisselen aan de bar met een simpele scan van je ticket.",
-    "optionsLeft": "Nog {left} van {quantity} in te wisselen"
+    "optionsLeft": "Nog {left} van {quantity} in te wisselen",
+    "optionsPass": "Je afhaal-QR-code: toon hem aan de bar of de vestiaire."
   },
   "scanner": {
     "valid": "Geldig ticket",
@@ -639,7 +640,10 @@
     "bar_OFFLINE_LIST": "Zonder netwerk: opties volgens de lijst van de telefoon.",
     "bar_QUEUED": "Zonder netwerk: afhaling bewaard, verstuurd zodra het netwerk terug is.",
     "barPending": "{count, plural, one {# afhaling in afwachting.} other {# afhalingen in afwachting.}}",
-    "barRefused": "{count, plural, one {# afhaling geweigerd bij het opnieuw verbinden: al elders afgehaald of terugbetaald.} other {# afhalingen geweigerd bij het opnieuw verbinden: al elders afgehaald of terugbetaald.}}"
+    "barRefused": "{count, plural, one {# afhaling geweigerd bij het opnieuw verbinden: al elders afgehaald of terugbetaald.} other {# afhalingen geweigerd bij het opnieuw verbinden: al elders afgehaald of terugbetaald.}}",
+    "sellOptions": "Opties zonder ticket",
+    "sellPassCode": "Afhaalcode voor de klant",
+    "sellDoneOptions": "Verkoop geregistreerd."
   },
   "scannerAccess": {
     "title": "Tickets scannen",

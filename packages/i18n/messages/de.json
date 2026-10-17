@@ -545,7 +545,8 @@
     "friendsCopied": "Link kopiert.",
     "optionsTitle": "Ihre Extras",
     "optionsHint": "An der Bar mit einem einfachen Scan Ihres Tickets einzulösen.",
-    "optionsLeft": "Noch {left} von {quantity} einzulösen"
+    "optionsLeft": "Noch {left} von {quantity} einzulösen",
+    "optionsPass": "Ihr Abhol-QR-Code: Zeigen Sie ihn an der Bar oder Garderobe."
   },
   "scanner": {
     "valid": "Gültiges Ticket",
@@ -639,7 +640,10 @@
     "bar_OFFLINE_LIST": "Offline: Optionen laut Liste des Telefons.",
     "bar_QUEUED": "Offline: Einlösung gespeichert, wird gesendet, sobald das Netz zurück ist.",
     "barPending": "{count, plural, one {# Einlösung ausstehend.} other {# Einlösungen ausstehend.}}",
-    "barRefused": "{count, plural, one {# Einlösung beim erneuten Verbinden abgelehnt: bereits anderswo eingelöst oder erstattet.} other {# Einlösungen beim erneuten Verbinden abgelehnt: bereits anderswo eingelöst oder erstattet.}}"
+    "barRefused": "{count, plural, one {# Einlösung beim erneuten Verbinden abgelehnt: bereits anderswo eingelöst oder erstattet.} other {# Einlösungen beim erneuten Verbinden abgelehnt: bereits anderswo eingelöst oder erstattet.}}",
+    "sellOptions": "Optionen ohne Ticket",
+    "sellPassCode": "Abholcode für den Kunden",
+    "sellDoneOptions": "Verkauf erfasst."
   },
   "scannerAccess": {
     "title": "Tickets scannen",

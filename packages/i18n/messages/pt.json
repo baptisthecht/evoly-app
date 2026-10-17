@@ -545,7 +545,8 @@
     "friendsCopied": "Link copiado.",
     "optionsTitle": "Os seus extras",
     "optionsHint": "A levantar no bar com uma simples leitura do seu bilhete.",
-    "optionsLeft": "Restam {left} de {quantity} por levantar"
+    "optionsLeft": "Restam {left} de {quantity} por levantar",
+    "optionsPass": "O seu código QR de levantamento: mostre-o no bar ou no bengaleiro."
   },
   "scanner": {
     "valid": "Bilhete válido",
@@ -639,7 +640,10 @@
     "bar_OFFLINE_LIST": "Sem rede: opções segundo a lista do telefone.",
     "bar_QUEUED": "Sem rede: levantamento guardado, enviado assim que a rede voltar.",
     "barPending": "{count, plural, one {# levantamento pendente.} other {# levantamentos pendentes.}}",
-    "barRefused": "{count, plural, one {# levantamento recusado ao religar: já levantado noutro lado ou reembolsado.} other {# levantamentos recusados ao religar: já levantados noutro lado ou reembolsados.}}"
+    "barRefused": "{count, plural, one {# levantamento recusado ao religar: já levantado noutro lado ou reembolsado.} other {# levantamentos recusados ao religar: já levantados noutro lado ou reembolsados.}}",
+    "sellOptions": "Opções sem bilhete",
+    "sellPassCode": "Código de levantamento para o cliente",
+    "sellDoneOptions": "Venda registada."
   },
   "scannerAccess": {
     "title": "Ler os bilhetes",

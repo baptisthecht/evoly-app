@@ -66,4 +66,16 @@ test("vestiaire acheté seul : option vendable sans billet, panier sans billet, 
   await bar.getByRole("button", { name: "Retirer 1" }).click();
   await expect(bar.getByText("0 sur 1 restant(s)")).toBeVisible();
   await expect.poll(() => sql(`select redeemed from "OrderOption" where "orderId" = '${orderId}'`)).toBe("1");
+
+  // vente sur place : le vendeur encaisse un vestiaire depuis l'onglet Vente et donne le code de retrait au client
+  sql(`update "ScannerLink" set "canSell" = true where "eventId" = '${eventId}' and label = 'Vestiaire'`);
+  await bar.reload();
+  await bar.getByRole("button", { name: "Vente" }).click();
+  await bar.getByRole("button", { name: "+ Vestiaire" }).click();
+  await bar.getByRole("button", { name: /^Encaisser .* en espèces$/ }).click();
+  await expect(bar.getByText("Vente enregistrée.")).toBeVisible();
+  await expect(bar.getByText("Code de retrait à donner au client")).toBeVisible();
+  await expect
+    .poll(() => sql(`select count(*) from "Order" where "eventId" = '${eventId}' and source = 'BOX_OFFICE' and "optionsShortCode" is not null`))
+    .toBe("1");
 });

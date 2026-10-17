@@ -12,15 +12,21 @@ export function SellPanel({
 }: {
   token: string;
   deviceId: string;
-  sale: { currency: string; ticketTypes: Array<{ id: string; name: string; priceMinor: number; remaining: number }> };
+  sale: {
+    currency: string;
+    ticketTypes: Array<{ id: string; name: string; priceMinor: number; remaining: number }>;
+    options?: Array<{ id: string; name: string; priceMinor: number; left: number }>;
+  };
 }) {
   const t = useTranslations("scanner");
   const locale = useLocale() as Locale;
   const [qty, setQty] = useState<Record<string, number>>({});
   const [email, setEmail] = useState("");
   const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<{ ok: true; tickets: number } | { ok: false; error: string } | null>(null);
-  const [left, setLeft] = useState<Record<string, number>>(Object.fromEntries(sale.ticketTypes.map((tt) => [tt.id, tt.remaining])));
+  const [result, setResult] = useState<{ ok: true; tickets: number; passCode?: string | null } | { ok: false; error: string } | null>(null);
+  const [left, setLeft] = useState<Record<string, number>>(
+    Object.fromEntries([...sale.ticketTypes.map((tt) => [tt.id, tt.remaining] as const), ...(sale.options ?? []).map((o) => [o.id, o.left] as const)]),
+  );
   // paiement par QR code : le client scanne et paie sur son téléphone, l'écran suit le paiement
   const [qr, setQr] = useState<{ orderId: string; qrSvg: string; totalMinor: number; status: string; tickets?: number } | null>(null);
   useEffect(() => {
@@ -36,7 +42,9 @@ export function SellPanel({
     }, 2500);
     return () => clearInterval(id);
   }, [qr, token, deviceId]);
-  const total = sale.ticketTypes.reduce((n, tt) => n + (qty[tt.id] ?? 0) * tt.priceMinor, 0);
+  const total =
+    sale.ticketTypes.reduce((n, tt) => n + (qty[tt.id] ?? 0) * tt.priceMinor, 0) +
+    (sale.options ?? []).reduce((n, o) => n + (qty[o.id] ?? 0) * o.priceMinor, 0);
   const count = Object.values(qty).reduce((n, q) => n + q, 0);
   const money = (v: number) => formatMoney(v, sale.currency, locale, { trimZeroCents: true });
   const set = (id: string, v: number) => setQty((q) => ({ ...q, [id]: Math.max(0, Math.min(v, left[id] ?? 0, 50)) }));
@@ -44,34 +52,42 @@ export function SellPanel({
     if (count === 0) return setResult({ ok: false, error: "EMPTY" });
     if (!navigator.onLine) return setResult({ ok: false, error: "OFFLINE" });
     setPending(true);
+    const isOption = (id: string) => (sale.options ?? []).some((o) => o.id === id);
     const lines = Object.entries(qty)
-      .filter(([, q]) => q > 0)
+      .filter(([id, q]) => q > 0 && !isOption(id))
       .map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
+    const options = Object.entries(qty)
+      .filter(([id, q]) => q > 0 && isOption(id))
+      .map(([optionId, quantity]) => ({ optionId, quantity }));
     const res = await fetch(`/api/scanner/${token}/sell`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "cash", lines, email: email.trim() || undefined, deviceId }),
+      body: JSON.stringify({ action: "cash", lines, options, email: email.trim() || undefined, deviceId }),
     }).catch(() => null);
     setPending(false);
     if (!res || !res.ok) return setResult({ ok: false, error: "FAILED" });
-    const data = (await res.json()) as { tickets: number };
+    const data = (await res.json()) as { tickets: number; optionsShortCode?: string | null };
     setLeft((l) => Object.fromEntries(Object.entries(l).map(([id, n]) => [id, n - (qty[id] ?? 0)])));
     setQty({});
     setEmail("");
-    setResult({ ok: true, tickets: data.tickets });
+    setResult({ ok: true, tickets: data.tickets, passCode: data.optionsShortCode ?? null });
     navigator.vibrate?.(80);
   };
   const startQr = async () => {
     if (count === 0) return setResult({ ok: false, error: "EMPTY" });
     if (!navigator.onLine) return setResult({ ok: false, error: "OFFLINE" });
     setPending(true);
+    const isOption = (id: string) => (sale.options ?? []).some((o) => o.id === id);
     const lines = Object.entries(qty)
-      .filter(([, q]) => q > 0)
+      .filter(([id, q]) => q > 0 && !isOption(id))
       .map(([ticketTypeId, quantity]) => ({ ticketTypeId, quantity }));
+    const options = Object.entries(qty)
+      .filter(([id, q]) => q > 0 && isOption(id))
+      .map(([optionId, quantity]) => ({ optionId, quantity }));
     const res = await fetch(`/api/scanner/${token}/sell`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "qr", lines, deviceId }),
+      body: JSON.stringify({ action: "qr", lines, options, deviceId }),
     }).catch(() => null);
     setPending(false);
     if (!res || !res.ok) return setResult({ ok: false, error: "FAILED" });
@@ -152,6 +168,48 @@ export function SellPanel({
           );
         })}
       </ul>
+      {sale.options?.length ? (
+        <ul className="grid gap-2" aria-label={t("sellOptions")}>
+          {sale.options.map((o) => {
+            const n = qty[o.id] ?? 0;
+            return (
+              <li key={o.id} className="flex items-center justify-between gap-3">
+                <div className="grid">
+                  <span className="font-semibold">{o.name}</span>
+                  <span className="text-sm tabular-nums">{(left[o.id] ?? 0) > 0 ? money(o.priceMinor) : t("sellSoldOut")}</span>
+                </div>
+                <div className="flex items-center gap-2" role="group" aria-label={o.name}>
+                  <button
+                    type="button"
+                    onClick={() => set(o.id, n - 1)}
+                    disabled={n === 0}
+                    className="size-11 rounded-full text-lg font-semibold ring-1 ring-[var(--evoly-charbon)] disabled:opacity-40"
+                    aria-label={`− ${o.name}`}
+                  >
+                    −
+                  </button>
+                  <output className="w-8 text-center font-display text-lg tabular-nums">{n}</output>
+                  <button
+                    type="button"
+                    onClick={() => set(o.id, n + 1)}
+                    disabled={n >= (left[o.id] ?? 0)}
+                    className="size-11 rounded-full bg-[var(--evoly-charbon)] text-lg font-semibold text-[var(--evoly-creme)] disabled:opacity-40"
+                    aria-label={`+ ${o.name}`}
+                  >
+                    +
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      {result?.ok && result.passCode ? (
+        <p role="status" className="rounded-md bg-[var(--evoly-creme)] p-3 text-center">
+          <span className="block text-sm">{t("sellPassCode")}</span>
+          <span className="font-mono text-2xl tracking-[0.2em]">{result.passCode}</span>
+        </p>
+      ) : null}
       <label className="grid gap-1 text-sm">
         <span>{t("sellEmail")}</span>
         <input
@@ -180,7 +238,7 @@ export function SellPanel({
       </button>
       {result?.ok ? (
         <p role="status" className="text-sm font-semibold">
-          {t("sellDone", { count: result.tickets })}
+          {result.tickets === 0 ? t("sellDoneOptions") : t("sellDone", { count: result.tickets })}
         </p>
       ) : null}
       {result && !result.ok ? (

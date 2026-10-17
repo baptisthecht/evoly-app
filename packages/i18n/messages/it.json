@@ -545,7 +545,8 @@
     "friendsCopied": "Link copiato.",
     "optionsTitle": "I tuoi extra",
     "optionsHint": "Da riscattare al bar con una semplice scansione del biglietto.",
-    "optionsLeft": "Ne restano {left} su {quantity} da riscattare"
+    "optionsLeft": "Ne restano {left} su {quantity} da riscattare",
+    "optionsPass": "Il tuo codice QR di ritiro: mostralo al bar o al guardaroba."
   },
   "scanner": {
     "valid": "Biglietto valido",
@@ -639,7 +640,10 @@
     "bar_OFFLINE_LIST": "Senza rete: opzioni secondo l'elenco del telefono.",
     "bar_QUEUED": "Senza rete: ritiro salvato, inviato appena torna la rete.",
     "barPending": "{count, plural, one {# ritiro in attesa.} other {# ritiri in attesa.}}",
-    "barRefused": "{count, plural, one {# ritiro rifiutato alla riconnessione: già ritirato altrove o rimborsato.} other {# ritiri rifiutati alla riconnessione: già ritirati altrove o rimborsati.}}"
+    "barRefused": "{count, plural, one {# ritiro rifiutato alla riconnessione: già ritirato altrove o rimborsato.} other {# ritiri rifiutati alla riconnessione: già ritirati altrove o rimborsati.}}",
+    "sellOptions": "Opzioni senza biglietto",
+    "sellPassCode": "Codice di ritiro da dare al cliente",
+    "sellDoneOptions": "Vendita registrata."
   },
   "scannerAccess": {
     "title": "Scansiona i biglietti",

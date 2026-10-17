@@ -7,6 +7,7 @@ import { findOrgContext } from "@/server/context";
 import { createOption, optionsForScan, redeemOption, saleOptions, updateOption } from "@/server/options";
 import { ticketsPdfFor } from "@/server/orders";
 import { createScannerLink, resolveScannerLink, scannerManifest, scannerToken } from "@/server/scanner";
+import { sellCash } from "@/server/boxOffice";
 import { refundOptions } from "@/server/refunds";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -156,5 +157,26 @@ describe("options achetées sans billet (RG-OPT-03)", () => {
       },
     });
     expect((await PDFDocument.load(await ticketsPdfFor(full, "fr"))).getPageCount()).toBe(1);
+  });
+
+  it("vente sur place : seules les options vendables sans billet au catalogue ; en espèces, sans commission, aucun billet, un code de retrait qui retrouve la commande au bar", async () => {
+    const s = await setup();
+    const created = await createScannerLink(s.ctx, s.event.id, { label: "Vestiaire", duration: "24H", allowManualSearch: true, canSell: true });
+    const link = (await resolveScannerLink(scannerToken(created.id)))!.link;
+    expect((await scannerManifest(link)).sale!.options.map((o) => [o.name, o.priceMinor])).toEqual([["Vestiaire", 200]]); // le jeton exige un billet : absent
+    const vente = await sellCash(link, { lines: [], options: [{ optionId: s.vestiaire.id, quantity: 2 }] });
+    expect(vente.optionsShortCode).toBeTruthy();
+    const o = await db.order.findUniqueOrThrow({ where: { id: vente.orderId }, include: { tickets: true, options: true } });
+    expect([o.source, o.boxOfficeMode, o.status, o.totalMinor, o.applicationFeeMinor, o.tickets.length, o.options[0]!.unitFeeMinor]).toEqual([
+      "BOX_OFFICE",
+      "CASH",
+      "PAID",
+      400,
+      0,
+      0,
+      0,
+    ]);
+    expect((await optionsForScan(s.event.id, { shortCode: vente.optionsShortCode! })).options[0]).toMatchObject({ name: "Vestiaire", left: 2 });
+    await expect(sellCash(link, { lines: [], options: [{ optionId: s.jeton.id, quantity: 1 }] })).rejects.toMatchObject({ code: "OPTION_NEEDS_TICKET" });
   });
 });

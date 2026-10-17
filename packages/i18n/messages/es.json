@@ -545,7 +545,8 @@
     "friendsCopied": "Enlace copiado.",
     "optionsTitle": "Tus extras",
     "optionsHint": "Se canjean en la barra con un simple escaneo de tu entrada.",
-    "optionsLeft": "Quedan {left} de {quantity} por canjear"
+    "optionsLeft": "Quedan {left} de {quantity} por canjear",
+    "optionsPass": "Tu código QR de recogida: muéstralo en la barra o el guardarropa."
   },
   "scanner": {
     "valid": "Entrada válida",
@@ -639,7 +640,10 @@
     "bar_OFFLINE_LIST": "Sin red: opciones según la lista del teléfono.",
     "bar_QUEUED": "Sin red: canje guardado, se enviará en cuanto vuelva la red.",
     "barPending": "{count, plural, one {# canje pendiente.} other {# canjes pendientes.}}",
-    "barRefused": "{count, plural, one {# canje rechazado al reconectar: ya canjeado en otro lugar o reembolsado.} other {# canjes rechazados al reconectar: ya canjeados en otro lugar o reembolsados.}}"
+    "barRefused": "{count, plural, one {# canje rechazado al reconectar: ya canjeado en otro lugar o reembolsado.} other {# canjes rechazados al reconectar: ya canjeados en otro lugar o reembolsados.}}",
+    "sellOptions": "Opciones sin entrada",
+    "sellPassCode": "Código de recogida para el cliente",
+    "sellDoneOptions": "Venta registrada."
   },
   "scannerAccess": {
     "title": "Escanear las entradas",

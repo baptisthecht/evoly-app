@@ -493,7 +493,8 @@
     "friendsCopied": "Lien copié.",
     "optionsTitle": "Vos options",
     "optionsHint": "À retirer au bar, sur un simple scan de votre billet.",
-    "optionsLeft": "{left} sur {quantity} à retirer"
+    "optionsLeft": "{left} sur {quantity} à retirer",
+    "optionsPass": "Votre QR code de retrait : présentez-le au bar ou au vestiaire."
   },
   "resale": {
     "sell": "Revendre ma place",
@@ -645,7 +646,10 @@
     "bar_OFFLINE_LIST": "Sans réseau : options d'après la liste du téléphone.",
     "bar_QUEUED": "Sans réseau : retrait enregistré, envoyé dès le retour du réseau.",
     "barPending": "{count, plural, one {# retrait en attente.} other {# retraits en attente.}}",
-    "barRefused": "{count, plural, one {# retrait refusé à la reconnexion : déjà retiré ailleurs ou remboursé.} other {# retraits refusés à la reconnexion : déjà retirés ailleurs ou remboursés.}}"
+    "barRefused": "{count, plural, one {# retrait refusé à la reconnexion : déjà retiré ailleurs ou remboursé.} other {# retraits refusés à la reconnexion : déjà retirés ailleurs ou remboursés.}}",
+    "sellOptions": "Options sans billet",
+    "sellPassCode": "Code de retrait à donner au client",
+    "sellDoneOptions": "Vente enregistrée."
   },
   "plans": {
     "free": "Free",

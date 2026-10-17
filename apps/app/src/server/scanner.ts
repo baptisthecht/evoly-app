@@ -163,6 +163,10 @@ async function saleCatalog(eventId: string) {
   return {
     currency: data.event.currency,
     ticketTypes: data.ticketTypes.map((t) => ({ id: t.id, name: t.name, priceMinor: t.priceMinor, remaining: t.remaining })),
+    // options vendables sans billet (offre Pro contrôlée par saleOptions) : vestiaire seul… (RG-OPT-03)
+    options: (await (await import("./options")).saleOptions(eventId))
+      .filter((o) => o.standalone)
+      .map((o) => ({ id: o.id, name: o.name, priceMinor: o.priceMinor, left: o.left === null ? o.maxPerOrder : Math.min(o.left, o.maxPerOrder) })),
   };
 }
 

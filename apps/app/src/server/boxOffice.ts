@@ -15,6 +15,7 @@ import { organizationPublicUrl } from "./urls";
 export type SellingLink = { id: string; eventId: string; label: string; canSell: boolean; checkOnly: boolean };
 export type SaleInput = {
   lines: Array<{ ticketTypeId: string; quantity: number }>;
+  options?: Array<{ optionId: string; quantity: number }>; // options vendables sans billet (RG-OPT-03)
   email?: string | null;
   firstName?: string | null;
   lastName?: string | null;
@@ -46,7 +47,7 @@ export async function sellCash(link: SellingLink, input: SaleInput, now = new Da
   if (!link.canSell || link.checkOnly) throw new CoreError("BOX_OFFICE_FORBIDDEN");
   const email = input.email?.trim().toLowerCase() || null;
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new CoreError("INVALID_EMAIL");
-  const r = await reserveOrder({ eventId: link.eventId, lines: input.lines, locale: "fr" }, now);
+  const r = await reserveOrder({ eventId: link.eventId, lines: input.lines, options: input.options ?? [], locale: "fr" }, now);
   await db.$transaction([
     db.order.update({
       where: { id: r.orderId },
@@ -62,11 +63,14 @@ export async function sellCash(link: SellingLink, input: SaleInput, now = new Da
       },
     }),
     db.orderItem.updateMany({ where: { orderId: r.orderId }, data: { unitFeeMinor: 0 } }),
+    db.orderOption.updateMany({ where: { orderId: r.orderId }, data: { unitFeeMinor: 0 } }), // en espèces, sans commission, options comprises
   ]);
   if ((await finalizeOrder(r.orderId)) !== "PAID") throw new CoreError("BOX_OFFICE_FAILED");
   const tickets = await markEntered(r.orderId, link, input.deviceId, now);
   if (email) await afterOrderPaid(r.orderId); // billets et reçu envoyés au client
-  return { orderId: r.orderId, reference: r.reference, totalMinor: r.totalMinor, tickets };
+  // options achetées sans billet : le code de retrait à donner au client (RG-OPT-03)
+  const { optionsShortCode } = await db.order.findUniqueOrThrow({ where: { id: r.orderId }, select: { optionsShortCode: true } });
+  return { orderId: r.orderId, reference: r.reference, totalMinor: r.totalMinor, tickets, optionsShortCode };
 }
 
 /**
@@ -75,7 +79,7 @@ export async function sellCash(link: SellingLink, input: SaleInput, now = new Da
  */
 export async function startQrSale(link: SellingLink, input: SaleInput, now = new Date()) {
   if (!link.canSell || link.checkOnly) throw new CoreError("BOX_OFFICE_FORBIDDEN");
-  const r = await reserveOrder({ eventId: link.eventId, lines: input.lines, locale: "fr" }, now);
+  const r = await reserveOrder({ eventId: link.eventId, lines: input.lines, options: input.options ?? [], locale: "fr" }, now);
   await db.order.update({
     where: { id: r.orderId },
     data: { source: "BOX_OFFICE", boxOfficeMode: "QR", soldByLinkId: link.id, soldByDeviceId: input.deviceId ?? null },

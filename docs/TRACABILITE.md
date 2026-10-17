@@ -2,7 +2,7 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 175 · fait : 164 · partiel : 2 · à faire : 11 · hors périmètre : 2.
+**Bilan** : fait, testé : 176 · fait : 164 · partiel : 1 · à faire : 11 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -321,7 +321,7 @@
 | US-OPT-04 | | en tant qu'organisateur, je suis en direct les ventes et les retraits de chaque option. | fait | section 9.26 à 9.31 |
 | RG-OPT-01 | | une option a un nom, un prix, un stock facultatif et un maximum par commande ; elle peut être réservée à certains tarifs | fait, testé | options.test.ts |
 | RG-OPT-02 | | une option est un article (« 3 jetons boisson »), jamais un solde d'argent : aucun porte-monnaie, donc aucune monnaie él | fait | conception : un article, jamais un solde |
-| RG-OPT-03 | | les options achetées sont rattachées au billet et à son QR code ; un QR code de retrait est émis pour des options acheté | partiel | options rattachées au billet ; achat sans billet (case de l'option), codes de retrait, bar en ligne et sans réseau, page de retrait du PDF (options-standalone.test.ts, options-standalone.spec.ts) ; restent la page des billets et la vente sur place |
+| RG-OPT-03 | | les options achetées sont rattachées au billet et à son QR code ; un QR code de retrait est émis pour des options acheté | fait, testé | options rattachées au billet ; achat sans billet (case de l'option), codes de retrait, bar en ligne et sans réseau, PDF et page des billets, vente sur place (options-standalone.test.ts, options-standalone.spec.ts) |
 | RG-OPT-04 | | retrait par le scanner, en mode « Bar et options » : le scan affiche les options restantes, l'équipe retire la quantité | fait, testé | options.test.ts, options.ts |
 | RG-OPT-05 | | retrait possible hors ligne ; à la reconnexion, un retrait en double est signalé à l'organisateur, comme pour le scan de | fait, testé | liste du téléphone, file des retraits, synchronisation, retraits en double (options.ts, scanner.ts, ScannerApp.tsx, options-offline.test.ts, bar-offline.spec.ts) |
 | RG-OPT-06 | | commission sur les options : 2 % du prix, sans part fixe, même plafond que les billets (validé le 16 octobre 2026) | fait, testé | coverage-gaps.test.ts, fees.ts, options.test.ts |

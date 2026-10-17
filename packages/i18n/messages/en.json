@@ -493,7 +493,8 @@
     "friendsCopied": "Link copied.",
     "optionsTitle": "Your add-ons",
     "optionsHint": "Redeem them at the bar with a simple scan of your ticket.",
-    "optionsLeft": "{left} of {quantity} left to redeem"
+    "optionsLeft": "{left} of {quantity} left to redeem",
+    "optionsPass": "Your pickup QR code: show it at the bar or cloakroom."
   },
   "resale": {
     "sell": "Resell my ticket",
@@ -645,7 +646,10 @@
     "bar_OFFLINE_LIST": "Offline: add-ons from the phone's list.",
     "bar_QUEUED": "Offline: redemption saved, sent as soon as the network is back.",
     "barPending": "{count, plural, one {# redemption pending.} other {# redemptions pending.}}",
-    "barRefused": "{count, plural, one {# redemption refused on reconnection: already redeemed elsewhere or refunded.} other {# redemptions refused on reconnection: already redeemed elsewhere or refunded.}}"
+    "barRefused": "{count, plural, one {# redemption refused on reconnection: already redeemed elsewhere or refunded.} other {# redemptions refused on reconnection: already redeemed elsewhere or refunded.}}",
+    "sellOptions": "Add-ons without a ticket",
+    "sellPassCode": "Pickup code to give the customer",
+    "sellDoneOptions": "Sale recorded."
   },
   "plans": {
     "free": "Free",
