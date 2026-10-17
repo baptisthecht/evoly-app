@@ -175,8 +175,10 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
         </div>
         <p className="text-xs text-ink-muted">{t("pricesTtc")}</p>
       </Card>
-      {can(ctx.membership, "BILLING_MANAGE") ? <ReferralCard {...await referralLink(ctx.organization.id)} />
-      {can(ctx.membership, "BILLING_MANAGE") ? <VenueCard orgSlug={orgSlug} currency={ctx.organization.currency} venue={await venueSummary(ctx)} manage={manage} /> : null}
+      {can(ctx.membership, "BILLING_MANAGE") ? <ReferralCard {...await referralLink(ctx.organization.id)} /> : null}
+      {can(ctx.membership, "BILLING_MANAGE") ? (
+        <VenueCard orgSlug={orgSlug} currency={ctx.organization.currency} venue={await venueSummary(ctx)} manage={manage} />
+      ) : null}
     </div>
   );
 }
