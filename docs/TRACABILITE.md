@@ -2,7 +2,7 @@
 
 État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 176 · fait : 164 · partiel : 1 · à faire : 11 · hors périmètre : 2.
+**Bilan** : fait, testé : 177 · fait : 164 · à faire : 11 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -196,7 +196,7 @@
 | RG-POST-01  |          | le lien magique est un jeton aléatoire dont seul le hachage est stocké. Il ne donne accès qu'à une commande.              | fait           | page.tsx, checkout.ts                                                                                  |
 | RG-POST-02  |          | « Retrouver mes billets » : l'acheteur saisit son e-mail et reçoit un nouveau lien pour chacune de ses commandes à venir  | fait           | actions.ts, templates.ts, orders.ts                                                                    |
 | RG-POST-03  |          | un billet désactivé (revendu, remboursé, annulé) affiche son statut à la place du QR code.                                | fait           | statut à la place du QR code, PDF barré                                                                |
-| RG-POST-04  | P1       | un pass wallet par billet ; mis à jour si l'événement change ; invalidé si le billet est désactivé.                       | partiel        | un pass par billet ; pas de mise à jour ni d'invalidation automatiques (le scanner reste la référence) |
+| RG-POST-04 | P1 | un pass wallet par billet ; mis à jour si l'événement change ; invalidé si le billet est désactivé. | fait, testé | service web Apple, notifications, mise à jour Google, tâche toutes les 5 minutes (wallet/service.ts, wallet/sync.ts, wallet-updates.test.ts) ; à vérifier en vrai une fois Apple et Google Wallet configurés |
 | US-RSL-01   |          | en tant que participant qui ne peut plus venir, je mets ma place en revente et je partage un lien, sans rien d'autre à f  | fait, testé    | resale.spec.ts                                                                                         |
 | US-RSL-02   |          | en tant que participant, je vois les places en revente dans une section dédiée de la page de vente.                       | fait           | section revente                                                                                        |
 | US-RSL-03   |          | en tant qu'acheteur d'une place en revente, je paie en un tap et je reçois un billet à mon nom.                           | fait, testé    | page.tsx, resale.spec.ts                                                                               |
