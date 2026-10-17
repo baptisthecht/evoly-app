@@ -42,7 +42,7 @@ describe("adresses de prospection qui rebondiraient", () => {
     });
     expect(report.ignores.map((r) => r.raison)).toEqual([
       "adresse invalide : adresse d'exemple",
-      "adresse invalide : extension inconnue (mot collé au domaine)",
+      expect.stringMatching(/^adresse invalide : extension inconnue \(mot collé au domaine\) \(sans doute x\.[a-z0-9]+@cdbm\.org\)$/), // sans DNS pendant les tests : l'adresse probable est quand même proposée
     ]);
     expect(report.ajoutes).toBe(1);
     const bad = `contact.${rid()}@groupepoteletchabot.com`;
