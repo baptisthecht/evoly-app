@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
-test("vestiaire acheté seul : option vendable sans billet, panier sans billet, commande avec ses codes de retrait (RG-OPT-03)", async ({ page }) => {
+test("vestiaire acheté seul : option vendable sans billet, panier sans billet, commande avec ses codes de retrait (RG-OPT-03)", async ({ page, browser }) => {
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Gala ${id}`, 20);
   const eventId = eventUrl.split("/").pop()!;
@@ -30,14 +30,15 @@ test("vestiaire acheté seul : option vendable sans billet, panier sans billet, 
   const eventSlug = sql(`select slug from "Event" where id = '${eventId}'`);
   await page.goto(siteUrl(slug, `/${eventSlug}`));
   const box = page.locator("#billets");
-  await expect(box.getByRole("button", { name: "Un billet Jeton boisson de plus" })).toBeDisabled();
+  await expect(box.getByRole("button", { name: "Jeton boisson, un de plus" })).toBeDisabled();
   await expect(box.getByRole("button", { name: "Continuer" })).toBeDisabled();
-  await box.getByRole("button", { name: "Un billet Vestiaire de plus" }).click();
+  await box.getByRole("button", { name: "Vestiaire, un de plus" }).click();
   await box.getByRole("button", { name: "Continuer" }).click();
   await box.getByLabel("Prénom").first().fill("Léa");
   await box.getByLabel("Nom", { exact: true }).fill("Martin");
   await box.getByLabel("Adresse e-mail").fill(`vestiaire${id}@exemple.be`);
   await box.getByRole("button", { name: "Confirmer ma réservation" }).click();
+  await page.waitForURL(/\/billets\//, { timeout: 20_000 }); // la confirmation mène à la page des billets
 
   // la commande : aucun billet, le vestiaire, et ses codes de retrait
   await expect.poll(() => sql(`select status from "Order" where "eventId" = '${eventId}'`), { timeout: 20_000 }).toBe("PAID");
@@ -47,4 +48,22 @@ test("vestiaire acheté seul : option vendable sans billet, panier sans billet, 
     "Vestiaire x1",
   );
   expect(sql(`select ("optionsCode" is not null and "optionsShortCode" is not null)::text from "Order" where id = '${orderId}'`)).toBe("true");
+
+  // au bar : le code court de retrait retrouve le vestiaire, et le retrait se fait comme pour un billet
+  const passCode = sql(`select "optionsShortCode" from "Order" where id = '${orderId}'`);
+  await page.goto(`${eventUrl}/entries`);
+  await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
+  await page.getByLabel("Libellé").fill("Vestiaire");
+  await page.getByRole("button", { name: "Créer le lien" }).click();
+  const url = (await page.getByTestId("scanner-url").textContent())!;
+  const staff = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: "fr-BE" });
+  const bar = await staff.newPage();
+  await bar.goto(url);
+  await bar.getByRole("button", { name: "Bar et options" }).click();
+  await bar.getByLabel("Code court").fill(passCode);
+  await bar.getByRole("button", { name: "Valider" }).click();
+  await expect(bar.getByText("1 sur 1 restant(s)")).toBeVisible();
+  await bar.getByRole("button", { name: "Retirer 1" }).click();
+  await expect(bar.getByText("0 sur 1 restant(s)")).toBeVisible();
+  await expect.poll(() => sql(`select redeemed from "OrderOption" where "orderId" = '${orderId}'`)).toBe("1");
 });

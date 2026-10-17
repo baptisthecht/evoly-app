@@ -1183,7 +1183,9 @@
     "payCancelled": "Paiement annulé.",
     "tablePeople": "Table pour {count} personnes",
     "tableIncludes": "Comprend : {items}",
-    "optionsStandaloneHint": "Certaines options s'achètent sans billet ; les autres demandent au moins un billet."
+    "optionsStandaloneHint": "Certaines options s'achètent sans billet ; les autres demandent au moins un billet.",
+    "optionMore": "{name}, un de plus",
+    "optionLess": "{name}, un de moins"
   },
   "promo": {
     "new": "Nouveau code",

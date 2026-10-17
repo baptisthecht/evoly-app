@@ -138,7 +138,9 @@
     "payCancelled": "Betaling geannuleerd.",
     "tablePeople": "Tafel voor {count} personen",
     "tableIncludes": "Inbegrepen: {items}",
-    "optionsStandaloneHint": "Sommige opties kun je zonder ticket kopen; de andere vragen minstens één ticket."
+    "optionsStandaloneHint": "Sommige opties kun je zonder ticket kopen; de andere vragen minstens één ticket.",
+    "optionMore": "{name}, één meer",
+    "optionLess": "{name}, één minder"
   },
   "checkout": {
     "tickets": "Tickets",

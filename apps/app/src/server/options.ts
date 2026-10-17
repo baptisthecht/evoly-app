@@ -155,8 +155,12 @@ export async function priceOptionsInTx(
 export async function optionsForTicket(eventId: string, ticketId: string) {
   const ticket = await db.ticket.findFirst({ where: { id: ticketId, eventId }, select: { orderId: true } });
   if (!ticket) throw new CoreError("NOT_FOUND");
+  return optionsOfOrder(ticket.orderId);
+}
+
+async function optionsOfOrder(orderId: string) {
   const lines = await db.orderOption.findMany({
-    where: { orderId: ticket.orderId, order: { status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
+    where: { orderId: orderId, order: { status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
     include: { option: { select: { name: true } } },
     orderBy: { createdAt: "asc" },
   });
@@ -178,7 +182,17 @@ export async function optionsForScan(eventId: string, input: { code?: string; sh
     : input.shortCode
       ? await db.ticket.findUnique({ where: { eventId_shortCode: { eventId, shortCode: normalizeShortCode(input.shortCode) } }, select })
       : null;
-  if (!ticket || ticket.eventId !== eventId) throw new CoreError("NOT_FOUND");
+  if (!ticket || ticket.eventId !== eventId) {
+    // options achetées sans billet : la commande retrouvée par son code de retrait, dans cet événement seulement (RG-OPT-03)
+    const pass = { id: true, eventId: true, buyerFirstName: true, buyerLastName: true } as const;
+    const order = input.code
+      ? await db.order.findUnique({ where: { optionsCode: input.code.trim() }, select: pass })
+      : input.shortCode
+        ? await db.order.findUnique({ where: { optionsShortCode: normalizeShortCode(input.shortCode) }, select: pass })
+        : null;
+    if (!order || order.eventId !== eventId) throw new CoreError("NOT_FOUND");
+    return { holder: `${order.buyerFirstName} ${order.buyerLastName}`.trim() || null, options: await optionsOfOrder(order.id) };
+  }
   const holder = [ticket.holderFirstName, ticket.holderLastName].filter(Boolean).join(" ") || null;
   return { holder, options: await optionsForTicket(eventId, ticket.id) };
 }

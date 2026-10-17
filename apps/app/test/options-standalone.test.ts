@@ -1,8 +1,12 @@
+import { createHash } from "node:crypto";
+import { PDFDocument } from "pdf-lib";
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { finalizeOrder, reserveOrder } from "@/server/checkout";
 import { findOrgContext } from "@/server/context";
-import { createOption, saleOptions, updateOption } from "@/server/options";
+import { createOption, optionsForScan, redeemOption, saleOptions, updateOption } from "@/server/options";
+import { ticketsPdfFor } from "@/server/orders";
+import { createScannerLink, resolveScannerLink, scannerManifest, scannerToken } from "@/server/scanner";
 import { refundOptions } from "@/server/refunds";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -105,5 +109,52 @@ describe("options achetées sans billet (RG-OPT-03)", () => {
     expect(await db.order.findUniqueOrThrow({ where: { id: o.id } })).toMatchObject({ refundedMinor: 200, status: "PARTIALLY_REFUNDED" });
     await refundOptions(s.ctx, o.id, [{ orderOptionId: o.options[0]!.id, quantity: 1 }], null);
     expect(await db.order.findUniqueOrThrow({ where: { id: o.id } })).toMatchObject({ refundedMinor: 400, status: "REFUNDED" });
+  });
+
+  it("au bar : la commande retrouvée par son QR code de retrait et par son code court, dans cet événement seulement ; retrait comme d'habitude", async () => {
+    const s = await setup();
+    const o = await payer((await seules(s, s.vestiaire.id, 2)).orderId);
+    const parQr = await optionsForScan(s.event.id, { code: o.optionsCode! });
+    expect(parQr).toEqual({ holder: "Alex Martin", options: [expect.objectContaining({ id: o.options[0]!.id, name: "Vestiaire", quantity: 2, left: 2 })] });
+    expect((await optionsForScan(s.event.id, { shortCode: o.optionsShortCode!.toLowerCase() })).options[0]!.id).toBe(o.options[0]!.id); // code court saisi en minuscules
+    expect(await redeemOption(s.event.id, o.options[0]!.id, 1, { staffName: "Vestiaire" })).toEqual({ left: 1 });
+    // un autre événement, ou un code inconnu : rien
+    const autre = await setup();
+    await expect(optionsForScan(autre.event.id, { code: o.optionsCode! })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(optionsForScan(s.event.id, { code: "inconnu-0000000000000000" })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(optionsForScan(s.event.id, { shortCode: "ZZZZ-9999" })).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("liste du téléphone : le code de retrait y figure haché, jamais en clair, avec son code court et les options de la commande", async () => {
+    const s = await setup();
+    const o = await payer((await seules(s, s.vestiaire.id, 1)).orderId);
+    const created = await createScannerLink(s.ctx, s.event.id, { label: "Vestiaire", duration: "24H", allowManualSearch: true });
+    const link = (await resolveScannerLink(scannerToken(created.id)))!.link;
+    const m = await scannerManifest(link);
+    expect(m.passes).toEqual([
+      {
+        orderId: o.id,
+        codeHash: createHash("sha256").update(`${link.id}:${o.optionsCode}`).digest("hex"),
+        shortCode: o.optionsShortCode,
+        holder: "Alex Martin",
+      },
+    ]);
+    expect(JSON.stringify(m)).not.toContain(o.optionsCode!);
+    expect(m.options[o.id]).toEqual([{ id: o.options[0]!.id, name: "Vestiaire", quantity: 1, redeemed: 0, left: 1 }]);
+  });
+
+  it("e-mail : le PDF d'une commande d'options seules a sa page « Retrait des options », jamais un PDF vide", async () => {
+    const s = await setup();
+    const o = await payer((await seules(s, s.vestiaire.id, 1)).orderId);
+    const full = await db.order.findUniqueOrThrow({
+      where: { id: o.id },
+      include: {
+        organization: true,
+        event: true,
+        tickets: { include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } } },
+        options: { include: { option: { select: { name: true } } } },
+      },
+    });
+    expect((await PDFDocument.load(await ticketsPdfFor(full, "fr"))).getPageCount()).toBe(1);
   });
 });

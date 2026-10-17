@@ -81,6 +81,17 @@ export async function sendOrderConfirmation(orderId: string, template = "order.c
   });
 }
 
+/** Page de retrait des options achetées sans billet (RG-OPT-03). */
+const OPTIONS_PASS: Record<Locale, string> = {
+  fr: "Retrait des options",
+  en: "Add-ons pickup",
+  nl: "Afhalen van opties",
+  de: "Abholung der Optionen",
+  es: "Recogida de opciones",
+  it: "Ritiro delle opzioni",
+  pt: "Levantamento das opções",
+};
+
 const PDF_LABELS = {
   fr: {
     ticket: (i: number, n: number) => `Billet ${i} sur ${n}`,
@@ -159,6 +170,12 @@ export async function ticketsPdfFor(
       voidReason?: string | null;
       seat?: { label: string; row: { name: string } } | null;
     }>;
+    // options achetées sans billet : leur QR code de retrait (RG-OPT-03)
+    optionsCode?: string | null;
+    optionsShortCode?: string | null;
+    buyerFirstName?: string | null;
+    buyerLastName?: string | null;
+    options?: Array<{ quantity: number; option: { name: string } }>;
   },
   locale: Locale,
 ): Promise<Uint8Array> {
@@ -173,15 +190,29 @@ export async function ticketsPdfFor(
     when: formatDateTime(e.startsAt, e.timezone, locale),
     where: e.locationType === "ONLINE" ? null : [e.locationName, e.addressLine1, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
     reference: order.reference,
-    tickets: order.tickets.map((t) => ({
-      code: t.code,
-      shortCode: t.shortCode,
-      typeName: t.seat
-        ? `${t.ticketType.name} · ${locale === "en" ? "Row" : "Rang"} ${t.seat.row.name} · ${locale === "en" ? "Seat" : "Place"} ${t.seat.label}`
-        : t.ticketType.name,
-      holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : null,
-      invalidLabel: t.status && !["VALID", "CHECKED_IN"].includes(t.status) ? invalidTicketLabel(t.voidReason ?? t.status, locale) : null,
-    })),
+    tickets: order.tickets
+      .map((t) => ({
+        code: t.code,
+        shortCode: t.shortCode,
+        typeName: t.seat
+          ? `${t.ticketType.name} · ${locale === "en" ? "Row" : "Rang"} ${t.seat.row.name} · ${locale === "en" ? "Seat" : "Place"} ${t.seat.label}`
+          : t.ticketType.name,
+        holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : null,
+        invalidLabel: t.status && !["VALID", "CHECKED_IN"].includes(t.status) ? invalidTicketLabel(t.voidReason ?? t.status, locale) : null,
+      }))
+      .concat(
+        order.optionsCode
+          ? [
+              {
+                code: order.optionsCode,
+                shortCode: order.optionsShortCode ?? "",
+                typeName: [OPTIONS_PASS[locale], (order.options ?? []).map((o) => `${o.quantity} × ${o.option.name}`).join(", ")].filter(Boolean).join(" · "),
+                holder: [order.buyerFirstName, order.buyerLastName].filter(Boolean).join(" ") || null,
+                invalidLabel: null,
+              },
+            ]
+          : [],
+      ),
     labels: pick(PDF_LABELS, locale),
   };
   // RG-FILE-02 : PDF gardé en mémoire, indexé par l'empreinte de tout ce qui le compose (marque, logo, événement,

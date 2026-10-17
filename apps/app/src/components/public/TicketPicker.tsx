@@ -319,7 +319,7 @@ export function TicketPicker({
                       className="size-10 px-0 text-lg"
                       onClick={() => setOpt(o, n - 1)}
                       disabled={n === 0}
-                      aria-label={t("less", { name: o.name })}
+                      aria-label={t("optionLess", { name: o.name })}
                     >
                       −
                     </Button>
@@ -333,7 +333,7 @@ export function TicketPicker({
                       className="size-10 px-0 text-lg"
                       onClick={() => setOpt(o, n + 1)}
                       disabled={(count === 0 && !o.standalone) || n >= cap}
-                      aria-label={t("more", { name: o.name })}
+                      aria-label={t("optionMore", { name: o.name })}
                     >
                       +
                     </Button>

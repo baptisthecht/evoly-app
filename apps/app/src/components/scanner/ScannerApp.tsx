@@ -28,6 +28,8 @@ interface Manifest {
   tickets: LocalTicket[];
   /** options de chaque commande, pour retirer au bar sans réseau (RG-OPT-05) */
   options?: Record<string, Array<{ id: string; name: string; quantity: number; redeemed: number; left: number }>>;
+  /** QR codes de retrait d'options achetées sans billet (RG-OPT-03) */
+  passes?: Array<{ orderId: string; codeHash: string; shortCode: string | null; holder: string }>;
   hasOptions?: boolean;
 }
 /** Mode « Bar et options » : ce qui reste à retirer sur le billet scanné (section 9.29). */
@@ -301,14 +303,23 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       const h = await sha256(`${manifest.salt}:${input.code.trim()}`);
       tk = manifest.tickets.find((x) => x.codeHash === h);
     } else if (input.shortCode) tk = manifest.tickets.find((x) => x.shortCode === shortOf(input.shortCode!));
-    if (!tk) return { holder: null, options: [], error: "NOT_FOUND" };
+    let orderId = tk?.orderId ?? "";
+    let holder = tk?.holder ?? null;
+    if (!tk) {
+      // options achetées sans billet : leur QR code de retrait (RG-OPT-03)
+      const h = input.code ? await sha256(`${manifest.salt}:${input.code.trim()}`) : null;
+      const pass = manifest.passes?.find((x) => (h !== null && x.codeHash === h) || (!!input.shortCode && x.shortCode === shortOf(input.shortCode)));
+      if (!pass) return { holder: null, options: [], error: "NOT_FOUND" };
+      orderId = pass.orderId;
+      holder = pass.holder;
+    }
     const queued = (id: string) => redemptionsRef.current.filter((r) => r.orderOptionId === id).reduce((n, r) => n + r.quantity, 0);
-    const options = (manifest.options?.[tk.orderId ?? ""] ?? []).map((o) => ({
+    const options = (manifest.options?.[orderId] ?? []).map((o) => ({
       ...o,
       redeemed: o.redeemed + queued(o.id),
       left: Math.max(0, o.left - queued(o.id)),
     }));
-    return { holder: tk.holder, options, note: "OFFLINE_LIST" };
+    return { holder, options, note: "OFFLINE_LIST" };
   };
   const barLookup = async (input: { code?: string; shortCode?: string }) => {
     try {

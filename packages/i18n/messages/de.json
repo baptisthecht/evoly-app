@@ -138,7 +138,9 @@
     "payCancelled": "Zahlung abgebrochen.",
     "tablePeople": "Tisch für {count} Personen",
     "tableIncludes": "Inklusive: {items}",
-    "optionsStandaloneHint": "Manche Optionen gibt es ohne Ticket; die anderen erfordern mindestens ein Ticket."
+    "optionsStandaloneHint": "Manche Optionen gibt es ohne Ticket; die anderen erfordern mindestens ein Ticket.",
+    "optionMore": "{name}, eins mehr",
+    "optionLess": "{name}, eins weniger"
   },
   "checkout": {
     "tickets": "Tickets",

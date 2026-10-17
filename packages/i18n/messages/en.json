@@ -1183,7 +1183,9 @@
     "payCancelled": "Payment cancelled.",
     "tablePeople": "Table for {count} people",
     "tableIncludes": "Includes: {items}",
-    "optionsStandaloneHint": "Some add-ons can be bought without a ticket; the others need at least one ticket."
+    "optionsStandaloneHint": "Some add-ons can be bought without a ticket; the others need at least one ticket.",
+    "optionMore": "{name}, one more",
+    "optionLess": "{name}, one less"
   },
   "promo": {
     "new": "New code",

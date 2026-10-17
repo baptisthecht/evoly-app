@@ -195,11 +195,23 @@ export async function scannerManifest(link: ResolvedLink) {
   const options: Record<string, Array<{ id: string; name: string; quantity: number; redeemed: number; left: number }>> = {};
   for (const l of optionLines)
     (options[l.orderId] ??= []).push({ id: l.id, name: l.option.name, quantity: l.quantity, redeemed: l.redeemed, left: l.quantity - l.redeemed - l.refunded });
+  // QR codes de retrait d'options achetées sans billet, hachés comme les codes des billets (RG-OPT-03)
+  const passOrders = await db.order.findMany({
+    where: { eventId: link.eventId, optionsCode: { not: null }, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
+    select: { id: true, optionsCode: true, optionsShortCode: true, buyerFirstName: true, buyerLastName: true },
+  });
+  const passes = passOrders.map((o) => ({
+    orderId: o.id,
+    codeHash: sha256(`${salt}:${o.optionsCode}`),
+    shortCode: o.optionsShortCode,
+    holder: `${o.buyerFirstName} ${o.buyerLastName}`.trim(),
+  }));
   return {
     serverTime: new Date().toISOString(),
     salt,
     hasOptions: (await db.eventOption.count({ where: { eventId: link.eventId } })) > 0, // mode « Bar et options » (section 9.29)
     options, // par commande (RG-OPT-05)
+    passes, // retrait d'options achetées sans billet (RG-OPT-03)
     sale: link.canSell ? await saleCatalog(link.eventId) : null, // vente sur place (section 9.27)
     event: {
       title: link.event.title,

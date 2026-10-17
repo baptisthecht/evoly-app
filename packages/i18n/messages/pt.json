@@ -138,7 +138,9 @@
     "payCancelled": "Pagamento cancelado.",
     "tablePeople": "Mesa para {count} pessoas",
     "tableIncludes": "Inclui: {items}",
-    "optionsStandaloneHint": "Algumas opções compram-se sem bilhete; as outras exigem pelo menos um bilhete."
+    "optionsStandaloneHint": "Algumas opções compram-se sem bilhete; as outras exigem pelo menos um bilhete.",
+    "optionMore": "{name}, mais um",
+    "optionLess": "{name}, menos um"
   },
   "checkout": {
     "tickets": "Bilhetes",
