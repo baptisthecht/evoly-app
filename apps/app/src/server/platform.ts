@@ -1,6 +1,6 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { CoreError, normalizeShortCode, ratePercent, riskSignals, type RiskSignal } from "@evoly/core";
+import { CoreError, effectivePlan, normalizeShortCode, ratePercent, type RiskSignal, riskSignals } from "@evoly/core";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -255,56 +255,95 @@ export async function reactivateOrganization(st: Staff, id: string) {
 }
 
 /** Prolonge l'essai en cours (et chez Stripe s'il y a un abonnement), ou ouvre un essai Pro géré par Evoly. */
+/** Abonnement Stripe actif ou en essai : c'est Stripe qui gère l'offre. */
+const STRIPE_LIVE = ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"];
+/** Stripe ne connaît pas l'abonnement : supprimé chez Stripe, ou créé dans l'autre mode (test ou réel). */
+const stripeMissing = (err: unknown) => (err as { code?: string } | null)?.code === "resource_missing";
+const stripeError = (err: unknown) => new CoreError(`STRIPE_${String((err as { code?: string } | null)?.code ?? "ERROR").toUpperCase()}`);
+
+/**
+ * Prolonger l'essai Pro. Abonnement Stripe : prolongé chez Stripe, qui reste la référence (s'il n'existe plus chez Stripe,
+ * il est retiré et l'offre continue sans lui). Offre gérée par Evoly : la fin en cours recule (essai ou offre datée), sans
+ * changer de formule ; en Free, un essai Pro commence, qui expire vraiment ; une offre sans limite n'a rien à prolonger.
+ */
 export async function extendTrial(st: Staff, id: string, days: number, now = new Date()) {
   if (!Number.isInteger(days) || days < 1 || days > 90) throw new CoreError("TRIAL_DAYS_INVALID");
-  const sub = await db.subscription.findUnique({ where: { organizationId: id } });
-  const base = sub?.status === "TRIALING" && sub.trialEndsAt && sub.trialEndsAt > now ? sub.trialEndsAt : now;
-  const end = new Date(base.getTime() + days * 86_400_000);
-  if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"].includes(sub.status)) {
-    // abonnement géré par Stripe : la prolongation se fait chez Stripe, qui reste la référence ; sa notification resynchronise
-    // l'abonnement, donc on n'écrit ici que la fin d'essai, la même que celle envoyée à Stripe (jamais des valeurs contradictoires)
+  let sub = await db.subscription.findUnique({ where: { organizationId: id } });
+  if (sub?.stripeSubscriptionId && STRIPE_LIVE.includes(sub.status)) {
     const s = stripe();
     if (!s) throw new CoreError("STRIPE_UNAVAILABLE");
-    const trialEnd = Math.floor(end.getTime() / 1000); // Stripe compte en secondes : la base garde exactement la même date
-    await s.subscriptions.update(sub.stripeSubscriptionId, { trial_end: trialEnd, proration_behavior: "none" }).catch((err) => {
-      throw new CoreError(`STRIPE_${String(err?.code ?? "ERROR").toUpperCase()}`);
-    });
-    await db.subscription.update({ where: { organizationId: id }, data: { trialEndsAt: new Date(trialEnd * 1000) } });
-    await log(st, "platform.trial_extended", id, { days, until: new Date(trialEnd * 1000).toISOString(), stripe: true });
-    return;
+    const base = sub.status === "TRIALING" && sub.trialEndsAt && sub.trialEndsAt > now ? sub.trialEndsAt : now;
+    const trialEnd = Math.floor((base.getTime() + days * 86_400_000) / 1000); // Stripe compte en secondes : la base garde la même date
+    const updated = await s.subscriptions.update(sub.stripeSubscriptionId, { trial_end: trialEnd, proration_behavior: "none" }).then(
+      () => true,
+      (err) => {
+        if (stripeMissing(err)) return false;
+        throw stripeError(err);
+      },
+    );
+    if (updated) {
+      await db.subscription.update({ where: { organizationId: id }, data: { trialEndsAt: new Date(trialEnd * 1000) } });
+      await log(st, "platform.trial_extended", id, { days, until: new Date(trialEnd * 1000).toISOString(), stripe: true });
+      return;
+    }
+    // disparu chez Stripe : retiré, l'offre est désormais gérée par Evoly
+    sub = await db.subscription.update({ where: { organizationId: id }, data: { stripeSubscriptionId: null, cancelAtPeriodEnd: false } });
+    await log(st, "platform.stripe_subscription_missing", id, {});
   }
+  const paid = sub && (sub.planId === "pro" || sub.planId === "partner") && effectivePlan({ ...sub, stripeSubscriptionId: null }, now) !== "free" ? sub : null;
+  if (paid && paid.status === "ACTIVE" && !paid.currentPeriodEnd) throw new CoreError("PLAN_UNLIMITED");
+  const running = paid ? [paid.status === "TRIALING" ? paid.trialEndsAt : null, paid.currentPeriodEnd].filter((d): d is Date => !!d && d > now) : [];
+  const base = running.length > 0 ? new Date(Math.max(...running.map((d) => d.getTime()))) : now;
+  const end = new Date(base.getTime() + days * 86_400_000);
+  const data =
+    paid && paid.status === "ACTIVE"
+      ? { currentPeriodEnd: end } // offre datée : sa fin recule, même formule
+      : { planId: paid ? paid.planId : "pro", status: "TRIALING" as const, trialEndsAt: end, currentPeriodEnd: end };
   await db.subscription.upsert({
     where: { organizationId: id },
     create: { organizationId: id, planId: "pro", status: "TRIALING", trialEndsAt: end, currentPeriodEnd: end },
-    update: { planId: "pro", status: "TRIALING", trialEndsAt: end, currentPeriodEnd: end },
+    update: { ...data, stripeSubscriptionId: null, cancelAtPeriodEnd: false, pastDueSince: null },
   });
   await log(st, "platform.trial_extended", id, { days, until: end.toISOString() });
 }
 
 /** Offre attribuée par Evoly (sans abonnement Stripe) : Pro jusqu'à une date, ou sans limite ; ou retour en Free. */
 /** Offre attribuée par un administrateur : Free, Pro offert, ou Partenaire (Pro sans commission), avec date de fin facultative. */
-export async function assignPlan(st: Staff, id: string, planId: "pro" | "free" | "partner", until: Date | null, opts: { resilierStripe?: boolean } = {}) {
+export async function assignPlan(
+  st: Staff,
+  id: string,
+  planId: "pro" | "free" | "partner",
+  until: Date | null,
+  opts: { resilierStripe?: boolean } = {},
+  now = new Date(),
+) {
+  if (until && Number.isNaN(until.getTime())) throw new CoreError("PLAN_UNTIL_INVALID");
+  if (until && until.getTime() <= now.getTime()) throw new CoreError("PLAN_UNTIL_PAST");
   const sub = await db.subscription.findUnique({ where: { organizationId: id } });
-  let detache = {};
-  if (sub?.stripeSubscriptionId && ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"].includes(sub.status)) {
+  let stripeResilie = false;
+  if (sub?.stripeSubscriptionId && STRIPE_LIVE.includes(sub.status)) {
     // abonnement payant en cours : jamais remplacé en silence ; l'administrateur doit demander sa résiliation explicitement
     if (!opts.resilierStripe) throw new CoreError("PLAN_MANAGED_BY_STRIPE");
     const s = stripe();
     if (!s) throw new CoreError("STRIPE_UNAVAILABLE");
     await s.subscriptions.cancel(sub.stripeSubscriptionId).catch((err) => {
-      throw new CoreError(`STRIPE_${String(err?.code ?? "ERROR").toUpperCase()}`);
+      if (!stripeMissing(err)) throw stripeError(err); // introuvable chez Stripe : déjà terminé, rien à résilier
     });
-    // détaché de l'organisation : les notifications de cet ancien abonnement ne réécrivent plus l'offre (syncSubscription)
-    detache = { stripeSubscriptionId: null, cancelAtPeriodEnd: false, canceledAt: new Date(), trialEndsAt: null };
+    stripeResilie = true;
   }
+  // l'offre est désormais gérée par Evoly : plus aucun lien Stripe ni ancien essai (sinon ses actions passeraient encore par
+  // Stripe, et les notifications de cet ancien abonnement réécriraient l'offre) ; à sa date de fin, retour en Free
+  const clean = {
+    stripeSubscriptionId: null,
+    cancelAtPeriodEnd: false,
+    pastDueSince: null,
+    trialEndsAt: null,
+    ...(sub?.stripeSubscriptionId ? { canceledAt: now } : {}),
+  };
   const data =
-    planId === "free"
-      ? { planId: "free", status: "NONE" as const, currentPeriodEnd: null }
-      : until
-        ? { planId, status: "CANCELED" as const, currentPeriodEnd: until, cancelAtPeriodEnd: true }
-        : { planId, status: "ACTIVE" as const, currentPeriodEnd: null };
-  await db.subscription.upsert({ where: { organizationId: id }, create: { organizationId: id, ...data, ...detache }, update: { ...data, ...detache } });
-  await log(st, "platform.plan_assigned", id, { planId, until: until?.toISOString() ?? null, stripeResilie: Object.keys(detache).length > 0 });
+    planId === "free" ? { planId: "free", status: "NONE" as const, currentPeriodEnd: null } : { planId, status: "ACTIVE" as const, currentPeriodEnd: until };
+  await db.subscription.upsert({ where: { organizationId: id }, create: { organizationId: id, ...data, ...clean }, update: { ...data, ...clean } });
+  await log(st, "platform.plan_assigned", id, { planId, until: until?.toISOString() ?? null, stripeResilie });
 }
 
 export async function resendOrderEmail(st: Staff, orderId: string) {

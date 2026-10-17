@@ -29,17 +29,27 @@ const RISK: Record<string, string> = {
 /** Section 9.24 : fiche organisation et actions du back-office. */
 const ERREURS: Record<string, string> = {
   PLAN_MANAGED_BY_STRIPE:
-    "Cette organisation a un abonnement Stripe en cours : cochez « Résilier l'abonnement Stripe en cours » pour lui attribuer une autre offre.",
+    "Cette organisation a un abonnement Stripe en cours : cochez « Résilier l'abonnement Stripe en cours » pour lui attribuer une autre offre (s'il n'existe plus chez Stripe, il sera simplement retiré).",
   STRIPE_UNAVAILABLE: "Stripe n'est pas configuré sur ce serveur : l'abonnement ne peut pas être modifié.",
   TRIAL_DAYS_INVALID: "Le nombre de jours doit être compris entre 1 et 90.",
+  PLAN_UNTIL_PAST: "La date de fin doit être dans le futur.",
+  PLAN_UNTIL_INVALID: "La date de fin n'est pas valide.",
+  PLAN_UNLIMITED:
+    "Cette organisation a déjà son offre sans limite de durée : il n'y a rien à prolonger. Pour la limiter, attribuez l'offre avec une date de fin.",
 };
 const erreurEnClair = (code: string) =>
   ERREURS[code] ?? (code.startsWith("STRIPE_") ? `Stripe a refusé la modification (${code}).` : `Action impossible (${code}).`);
 
-export default async function OrganizationSheetPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ erreur?: string }> }) {
+export default async function OrganizationSheetPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ erreur?: string; ok?: string }>;
+}) {
   const st = await requireStaff("SUPPORT");
   const { id } = await params;
-  const { erreur } = await searchParams;
+  const { erreur, ok } = await searchParams;
   const sheet = await organizationSheet(id);
   if (!sheet) notFound();
   const { org } = sheet;
@@ -127,6 +137,11 @@ export default async function OrganizationSheetPage({ params, searchParams }: { 
                 </button>
               </form>
             )}
+            {ok && !erreur ? (
+              <p role="status" className="rounded-xl bg-surface-sunken p-3 text-sm font-semibold">
+                Modification enregistrée.
+              </p>
+            ) : null}
             {erreur ? (
               <p role="alert" className="rounded-2xl p-4 text-sm font-semibold text-danger ring-1 ring-danger">
                 {erreurEnClair(erreur)}

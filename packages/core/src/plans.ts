@@ -32,6 +32,10 @@ export interface SubscriptionInput {
   status: SubscriptionStatus;
   currentPeriodEnd?: Date | null;
   pastDueSince?: Date | null;
+  /** fin de l'essai : pour une offre attribuée par Evoly (sans abonnement Stripe), elle fait foi */
+  trialEndsAt?: Date | null;
+  /** abonnement Stripe : Stripe met lui-même fin à l'essai ou à la période ; null : offre attribuée par Evoly, dont les dates font foi */
+  stripeSubscriptionId?: string | null;
 }
 
 /** Délai d'impayé avant rétrogradation (RG-SUB-06). */
@@ -44,10 +48,14 @@ export const PAST_DUE_GRACE_DAYS = 7;
 export function effectivePlan(sub: SubscriptionInput | null | undefined, now: Date): PlanId {
   if (!sub || (sub.planId !== "pro" && sub.planId !== "partner")) return "free";
   const paid: PlanId = sub.planId; // Pro, ou Partenaire (mêmes règles de période)
+  // offre attribuée par Evoly (aucun abonnement Stripe, champ lu et vide) : à sa date de fin, retour en Free
+  const local = sub.stripeSubscriptionId === null;
+  const over = (d: Date | null | undefined) => !!d && d.getTime() <= now.getTime();
   switch (sub.status) {
     case "TRIALING":
+      return local && over(sub.trialEndsAt) ? "free" : paid;
     case "ACTIVE":
-      return paid;
+      return local && over(sub.currentPeriodEnd) ? "free" : paid;
     case "PAST_DUE":
       if (!sub.pastDueSince) return paid;
       return now.getTime() - sub.pastDueSince.getTime() < PAST_DUE_GRACE_DAYS * 86_400_000 ? paid : "free";

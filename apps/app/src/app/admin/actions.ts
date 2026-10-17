@@ -27,7 +27,7 @@ async function tenter(id: string, action: () => Promise<unknown>) {
     code = err.code;
   }
   revalidatePath(orgPath(id));
-  if (code) redirect(`${orgPath(id)}?erreur=${encodeURIComponent(code)}`);
+  redirect(code ? `${orgPath(id)}?erreur=${encodeURIComponent(code)}` : `${orgPath(id)}?ok=1`); // la réussite est confirmée
 }
 const text = (f: FormData, k: string, max = 300) =>
   String(f.get(k) ?? "")
