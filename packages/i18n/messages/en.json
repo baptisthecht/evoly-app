@@ -2077,7 +2077,8 @@
     "prefsInApp": "In the app",
     "prefsEmail": "By email",
     "prefsSave": "Save",
-    "prefsSaved": "Preferences saved."
+    "prefsSaved": "Preferences saved.",
+    "type_EVENT_PUBLISHED": "Event published"
   },
   "scannerAccess": {
     "title": "Scan tickets",

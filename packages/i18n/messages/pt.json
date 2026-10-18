@@ -2253,7 +2253,8 @@
     "prefsInApp": "Na app",
     "prefsEmail": "Por e-mail",
     "prefsSave": "Guardar",
-    "prefsSaved": "Preferências guardadas."
+    "prefsSaved": "Preferências guardadas.",
+    "type_EVENT_PUBLISHED": "Evento publicado"
   },
   "entries": {
     "result_VALID": "Entrada validada",

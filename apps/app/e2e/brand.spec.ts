@@ -24,7 +24,7 @@ test("marque, sous-domaine d'événement, changement d'adresse et domaine person
   expect(await page.locator("article > header").evaluate((el) => getComputedStyle(el).backgroundColor)).toBe("rgb(27, 77, 140)");
 
   // US-BRD-05 : sous-domaine dédié à l'événement
-  await page.goto(`${eventUrl}/settings`);
+  await page.goto(`${eventUrl}/appearance`);
   await page.getByLabel("Sous-domaine de l’événement").fill(`soir-${id}`);
   await expect(page.getByText("Cette adresse est disponible.")).toBeVisible();
   await page.getByRole("button", { name: "Enregistrer le sous-domaine" }).click();

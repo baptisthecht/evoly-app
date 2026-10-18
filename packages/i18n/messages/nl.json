@@ -2253,7 +2253,8 @@
     "prefsInApp": "In de app",
     "prefsEmail": "Per e-mail",
     "prefsSave": "Opslaan",
-    "prefsSaved": "Voorkeuren opgeslagen."
+    "prefsSaved": "Voorkeuren opgeslagen.",
+    "type_EVENT_PUBLISHED": "Evenement gepubliceerd"
   },
   "entries": {
     "result_VALID": "Toegang bevestigd",

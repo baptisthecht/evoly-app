@@ -12,7 +12,7 @@ test("remerciement après l'événement, image importée et modèle personnel r�
   const eventUrl = await publishedFreeEvent(page, slug, `Salon ${id}`, 30);
 
   // US-MKT-02 : remerciement activé, objet personnalisé
-  await page.goto(`${eventUrl}/settings`);
+  await page.goto(`${eventUrl}/emails`);
   const card = page.getByRole("heading", { name: "E-mails marketing de l’événement" }).locator("xpath=..");
   await card.getByLabel("Activer : Remerciement après l’événement").check();
   await card.getByLabel("Objet").first().fill(`Merci d’être venu·e au Salon ${id}`);

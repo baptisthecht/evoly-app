@@ -2077,7 +2077,8 @@
     "prefsInApp": "Dans l’app",
     "prefsEmail": "Par e-mail",
     "prefsSave": "Enregistrer",
-    "prefsSaved": "Préférences enregistrées."
+    "prefsSaved": "Préférences enregistrées.",
+    "type_EVENT_PUBLISHED": "Événement publié"
   },
   "scannerAccess": {
     "title": "Scanner les billets",

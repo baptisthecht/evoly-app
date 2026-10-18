@@ -2253,7 +2253,8 @@
     "prefsInApp": "In der App",
     "prefsEmail": "Per E-Mail",
     "prefsSave": "Speichern",
-    "prefsSaved": "Einstellungen gespeichert."
+    "prefsSaved": "Einstellungen gespeichert.",
+    "type_EVENT_PUBLISHED": "Veranstaltung veröffentlicht"
   },
   "entries": {
     "result_VALID": "Einlass bestätigt",

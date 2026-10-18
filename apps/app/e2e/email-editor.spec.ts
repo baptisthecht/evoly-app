@@ -60,7 +60,7 @@ test("éditeur d'e-mails : mise en forme, bouton, aperçu en temps réel, bloc H
 test("bloc personnalisé de l'e-mail des billets : écrit par l'organisateur, reçu par l'acheteur", async ({ page }) => {
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Concert ${id}`, 20);
-  await page.goto(`${eventUrl}/settings`);
+  await page.goto(`${eventUrl}/emails`);
   const block = page.getByRole("region", { name: "E-mail des billets" });
   await block.getByRole("textbox", { name: "Contenu de l'e-mail" }).click();
   await page.keyboard.type("Parking gratuit rue des Lilas");
