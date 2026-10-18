@@ -15,6 +15,8 @@ SLUGS = {
     'seating': {'fr': 'plan-de-salle', 'en': 'seating-plan', 'es': 'plano-de-sala', 'de': 'saalplan', 'it': 'mappa-dei-posti', 'pt': 'planta-da-sala', 'nl': 'zaalplan'},
     'associations': {'fr': 'associations', 'en': 'nonprofits', 'es': 'asociaciones', 'de': 'vereine', 'it': 'associazioni', 'pt': 'associacoes', 'nl': 'verenigingen'},
     'eventbrite': {'fr': 'evoly-ou-eventbrite', 'en': 'evoly-vs-eventbrite', 'es': 'evoly-o-eventbrite', 'de': 'evoly-oder-eventbrite', 'it': 'evoly-o-eventbrite', 'pt': 'evoly-ou-eventbrite', 'nl': 'evoly-of-eventbrite'},
+    'weezevent': {'fr': 'evoly-ou-weezevent', 'en': 'evoly-vs-weezevent', 'es': 'evoly-o-weezevent', 'de': 'evoly-oder-weezevent', 'it': 'evoly-o-weezevent', 'pt': 'evoly-ou-weezevent', 'nl': 'evoly-of-weezevent'},
+    'billetweb': {'fr': 'evoly-ou-billetweb', 'en': 'evoly-vs-billetweb', 'es': 'evoly-o-billetweb', 'de': 'evoly-oder-billetweb', 'it': 'evoly-o-billetweb', 'pt': 'evoly-ou-billetweb', 'nl': 'evoly-of-billetweb'},
     'about': {'fr': 'a-propos', 'en': 'about', 'es': 'sobre-nosotros', 'de': 'ueber-uns', 'it': 'chi-siamo', 'pt': 'sobre-nos', 'nl': 'over-ons'},
 }
 
@@ -38,6 +40,34 @@ def cta(title, text, button):
     return f'<section class="pg__cta"><h2 class="pg__h">{title}</h2><p>{text}</p><a class="btn btn--pink" href="{REGISTER}" target="_blank" rel="noopener">{button}</a></section>'
 
 PAGES = {
+    'weezevent': {
+        'title': 'Evoly ou Weezevent : comparatif des tarifs et des fonctions - Evoly',
+        'desc': 'Evoly ou Weezevent ? Tarifs publics, revente, contrôle des entrées, paiement en un geste : ce qui change pour vous et pour vos participants.',
+        'crumb': 'Evoly ou Weezevent',
+        'faq': [('Puis-je passer de Weezevent à Evoly en cours de saison ?', 'Oui : créez vos prochains événements sur Evoly en quelques minutes, et laissez les ventes déjà ouvertes se terminer sur Weezevent.'), ('Evoly impose-t-il un abonnement ?', 'Non : l’offre Free est sans abonnement ni engagement. L’offre Pro plafonne la commission à 1 € par billet et ajoute des fonctions avancées, avec 14 jours d’essai gratuit.')],
+        'main': lambda p: (
+            hero('Evoly ou <span class="script">Weezevent ?</span>', 'Deux billetteries en ligne sans abonnement obligatoire. Voici ce qui les distingue, tarifs publics à l’appui.', 'Essayer Evoly gratuitement')
+            + block('Les tarifs publics', '<div class="pg__table pg__table--wide" role="region" aria-label="Tarifs publics, Evoly et Weezevent" tabindex="0"><table><thead><tr><th scope="col"></th><th scope="col">Evoly Free</th><th scope="col">Evoly Pro</th><th scope="col">Weezevent</th></tr></thead><tbody><tr><th scope="row">Commission par billet</th><td>0,29 € + 2 %, plafonnée à 2,50 €</td><td>0,29 € + 2 %, plafonnée à 1 €</td><td>2,5 %, minimum 0,99 €</td></tr><tr><th scope="row">Frais de paiement</th><td>Frais de Stripe au coût réel, en plus de la commission</td><td>Frais de Stripe au coût réel, en plus de la commission</td><td>Inclus</td></tr><tr><th scope="row">Billets gratuits</th><td>0 €</td><td>0 €</td><td>Gratuits</td></tr><tr><th scope="row">Versement des recettes</th><td>Sur votre compte Stripe, au fil des ventes</td><td>Sur votre compte Stripe, au fil des ventes</td><td>Tous les 15 jours</td></tr><tr><th scope="row">Revente sécurisée</th><td>Incluse</td><td>Incluse</td><td>Parmi les services sur mesure</td></tr></tbody></table></div><p class="pg__note">Tarifs publics relevés sur weezevent.com le 18 octobre 2026, pour une vente en ligne en euros.</p>')
+            + block('Ce qu’Evoly inclut d’office', items(['La revente entre participants, intégrée et jamais au-dessus du prix d’achat : vous n’avez plus de remboursements à gérer.', 'Le paiement en un geste avec Apple Pay et Google Pay, et les moyens de paiement locaux des pays européens.', 'Le contrôle des entrées depuis n’importe quel téléphone, même sans réseau, avec un simple lien.', 'Une liste d’attente qui propose automatiquement les places libérées sur les événements complets.', 'Une billetterie en 7 langues : chaque acheteur achète et reçoit ses billets dans sa langue.', 'Les prix dynamiques, le plan de salle, les ambassadeurs, et les options comme le vestiaire ou les jetons boissons.']), dark=True)
+            + block('Quand choisir Weezevent ?', '<p>Si vous vendez surtout des billets à petit prix, la commission de Weezevent, frais bancaires compris, revient souvent moins cher. Pour un festival qui veut le paiement sans espèces sur place, Weezevent propose aussi une solution complète. Evoly fait la différence sur tout ce qui est inclus d’office, sans service sur mesure à demander.</p>')
+            + block('Questions fréquentes', faq(p['faq']))
+            + cta('Mettez votre prochain événement en ligne en quelques minutes.', 'Gratuit, sans engagement et sans carte bancaire.', 'Commencer gratuitement')
+        ),
+    },
+    'billetweb': {
+        'title': 'Evoly ou Billetweb : comparatif des tarifs et des fonctions - Evoly',
+        'desc': 'Evoly ou Billetweb ? Tarifs publics, revente, contrôle des entrées, paiement en un geste : ce qui change pour vous et pour vos participants.',
+        'crumb': 'Evoly ou Billetweb',
+        'faq': [('Puis-je passer de Billetweb à Evoly en cours de saison ?', 'Oui : créez vos prochains événements sur Evoly en quelques minutes, et laissez les ventes déjà ouvertes se terminer sur Billetweb.'), ('Evoly impose-t-il un abonnement ?', 'Non : l’offre Free est sans abonnement ni engagement. L’offre Pro plafonne la commission à 1 € par billet et ajoute des fonctions avancées, avec 14 jours d’essai gratuit.')],
+        'main': lambda p: (
+            hero('Evoly ou <span class="script">Billetweb ?</span>', 'Deux billetteries en ligne sans abonnement obligatoire. Voici ce qui les distingue, tarifs publics à l’appui.', 'Essayer Evoly gratuitement')
+            + block('Les tarifs publics', '<div class="pg__table pg__table--wide" role="region" aria-label="Tarifs publics, Evoly et Billetweb" tabindex="0"><table><thead><tr><th scope="col"></th><th scope="col">Evoly Free</th><th scope="col">Evoly Pro</th><th scope="col">Billetweb</th></tr></thead><tbody><tr><th scope="row">Commission par billet</th><td>0,29 € + 2 %, plafonnée à 2,50 €</td><td>0,29 € + 2 %, plafonnée à 1 €</td><td>0,29 € + 1 %</td></tr><tr><th scope="row">Frais de paiement</th><td>Frais de Stripe au coût réel, en plus de la commission</td><td>Frais de Stripe au coût réel, en plus de la commission</td><td>Annoncés comme compris : « et c’est tout »</td></tr><tr><th scope="row">Billets gratuits</th><td>0 €</td><td>0 €</td><td>Gratuits</td></tr></tbody></table></div><p class="pg__note">Tarif public relevé sur billetweb.fr le 18 octobre 2026.</p>')
+            + block('Ce qu’Evoly inclut d’office', items(['La revente entre participants, intégrée et jamais au-dessus du prix d’achat : vous n’avez plus de remboursements à gérer.', 'Le paiement en un geste avec Apple Pay et Google Pay, et les moyens de paiement locaux des pays européens.', 'Le contrôle des entrées depuis n’importe quel téléphone, même sans réseau, avec un simple lien.', 'Une liste d’attente qui propose automatiquement les places libérées sur les événements complets.', 'Une billetterie en 7 langues : chaque acheteur achète et reçoit ses billets dans sa langue.', 'Les prix dynamiques, le plan de salle, les ambassadeurs, et les options comme le vestiaire ou les jetons boissons.']), dark=True)
+            + block('Quand choisir Billetweb ?', '<p>Si votre priorité absolue est la commission la plus basse, Billetweb est très compétitif. Evoly s’adresse aux organisateurs qui veulent une billetterie moderne, avec la revente, la liste d’attente, le paiement en un geste et le contrôle des entrées hors ligne inclus d’office.</p>')
+            + block('Questions fréquentes', faq(p['faq']))
+            + cta('Mettez votre prochain événement en ligne en quelques minutes.', 'Gratuit, sans engagement et sans carte bancaire.', 'Commencer gratuitement')
+        ),
+    },
     'launch': {
         'title': 'Ouverture des ventes programmée, décompte et prévente privée - Evoly',
         'desc': 'Programmez la mise en ligne, faites patienter avec une annonce et un décompte, prévenez les intéressés et ouvrez une prévente privée par codes.',
