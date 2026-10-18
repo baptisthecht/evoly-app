@@ -759,7 +759,9 @@
     "VENUE_CODE_FAILED": "Le code partenaire n'a pas pu être créé : réessayez.",
     "VENUE_HALL_INVALID": "Indiquez au moins l'adresse de votre salle.",
     "VENUE_COUNTRY_UNSUPPORTED": "Le programme Lieu partenaire est pour l'instant réservé aux lieux situés en Belgique.",
-    "VENUE_BILLING_INFO": "Acceptez l'autofacturation et complétez vos informations de facturation (raison sociale, adresse, numéro de TVA si vous êtes assujetti) avant de recevoir un versement."
+    "VENUE_BILLING_INFO": "Acceptez l'autofacturation et complétez vos informations de facturation (raison sociale, adresse, numéro de TVA si vous êtes assujetti) avant de recevoir un versement.",
+    "ORDER_EMAIL_INVALID": "Indiquez une adresse e-mail valide.",
+    "HOLDER_NAME_REQUIRED": "Indiquez le prénom et le nom du titulaire."
   },
   "brand": {
     "sloganStart": "ton prochain",

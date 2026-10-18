@@ -442,7 +442,9 @@
     "VENUE_CODE_FAILED": "The partner code could not be created: try again.",
     "VENUE_HALL_INVALID": "Enter at least the address of your venue.",
     "VENUE_COUNTRY_UNSUPPORTED": "The Partner venue programme is currently limited to venues located in Belgium.",
-    "VENUE_BILLING_INFO": "Accept self-billing and complete your billing details (legal name, address, VAT number if registered) before receiving a payout."
+    "VENUE_BILLING_INFO": "Accept self-billing and complete your billing details (legal name, address, VAT number if registered) before receiving a payout.",
+    "ORDER_EMAIL_INVALID": "Indique um endereço de e-mail válido.",
+    "HOLDER_NAME_REQUIRED": "Indique o nome e o apelido do titular."
   },
   "validation": {
     "required": "Este campo é obrigatório.",

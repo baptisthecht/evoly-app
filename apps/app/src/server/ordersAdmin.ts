@@ -105,6 +105,8 @@ export async function correctBuyerEmail(ctx: OrgContext, orderId: string, email:
   const order = await db.order.findFirst({ where: { id: orderId, organizationId: ctx.organization.id } });
   if (!order) throw new CoreError("NOT_FOUND");
   const next = email.trim().toLowerCase();
+  // refusée avant tout changement : l'ancien lien de l'acheteur ne doit pas être invalidé pour une adresse inutilisable
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(next)) throw new CoreError("ORDER_EMAIL_INVALID");
   const version = order.accessTokenVersion + 1;
   await db.order.update({
     where: { id: order.id },
@@ -126,6 +128,9 @@ export async function correctBuyerEmail(ctx: OrgContext, orderId: string, email:
 export async function updateHolderByOrganizer(ctx: OrgContext, orderId: string, ticketId: string, holder: { firstName: string; lastName: string }) {
   const ticket = await db.ticket.findFirst({ where: { id: ticketId, orderId, order: { organizationId: ctx.organization.id } } });
   if (!ticket) throw new CoreError("NOT_FOUND");
-  await db.ticket.update({ where: { id: ticket.id }, data: { holderFirstName: holder.firstName.trim(), holderLastName: holder.lastName.trim() } });
+  const firstName = holder.firstName.trim();
+  const lastName = holder.lastName.trim();
+  if (!firstName || !lastName) throw new CoreError("HOLDER_NAME_REQUIRED"); // un billet nominatif garde toujours un titulaire
+  await db.ticket.update({ where: { id: ticket.id }, data: { holderFirstName: firstName, holderLastName: lastName } });
   await audit({ action: "ticket.holder_updated", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Ticket", targetId: ticket.id });
 }

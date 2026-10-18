@@ -759,7 +759,9 @@
     "VENUE_CODE_FAILED": "The partner code could not be created: try again.",
     "VENUE_HALL_INVALID": "Enter at least the address of your venue.",
     "VENUE_COUNTRY_UNSUPPORTED": "The Partner venue programme is currently limited to venues located in Belgium.",
-    "VENUE_BILLING_INFO": "Accept self-billing and complete your billing details (legal name, address, VAT number if registered) before receiving a payout."
+    "VENUE_BILLING_INFO": "Accept self-billing and complete your billing details (legal name, address, VAT number if registered) before receiving a payout.",
+    "ORDER_EMAIL_INVALID": "Enter a valid email address.",
+    "HOLDER_NAME_REQUIRED": "Enter the holder’s first and last name."
   },
   "brand": {
     "sloganStart": "your next",
