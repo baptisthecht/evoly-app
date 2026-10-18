@@ -15,7 +15,7 @@ export default defineConfig({
       include: ["src/components/**/*.tsx"],
       reporter: ["text-summary", "json-summary"],
       reportsDirectory: "coverage-components",
-      thresholds: { statements: 26, branches: 22, functions: 22, lines: 28 }, // 18 octobre 2026 : 44 tests (questions à l'achat ajoutées)
+      thresholds: { statements: 36, branches: 29, functions: 30, lines: 39 }, // 18 octobre 2026 : 74 tests (remboursement, attente, revente, titulaires, alertes, prévente, installation)
     },
   },
 });
