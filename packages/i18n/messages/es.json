@@ -783,7 +783,11 @@
     "cash": "Caja y venta in situ",
     "offline": "Retiradas sin conexión",
     "cashEmpty": "Aún no hay ventas in situ.",
-    "offlineEmpty": "No hay retiradas duplicadas que revisar."
+    "offlineEmpty": "No hay retiradas duplicadas que revisar.",
+    "addFeature": "Añadir una función",
+    "hint_seating": "Asientos numerados y mapa de ventas",
+    "hint_options": "Guardarropa, fichas de bebida y otras opciones",
+    "hint_ambassadors": "Enlaces y códigos de tus embajadores"
   },
   "dashboard": {
     "greeting": "hola, {name},",

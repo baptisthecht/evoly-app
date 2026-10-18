@@ -783,7 +783,11 @@
     "cash": "Kassa en verkoop ter plaatse",
     "offline": "Offline afhalingen",
     "cashEmpty": "Nog geen verkoop ter plaatse.",
-    "offlineEmpty": "Geen dubbele afhalingen om te controleren."
+    "offlineEmpty": "Geen dubbele afhalingen om te controleren.",
+    "addFeature": "Functie toevoegen",
+    "hint_seating": "Genummerde plaatsen en verkoopkaart",
+    "hint_options": "Vestiaire, drankjetons en andere opties",
+    "hint_ambassadors": "Links en codes van je ambassadeurs"
   },
   "dashboard": {
     "greeting": "hallo {name},",

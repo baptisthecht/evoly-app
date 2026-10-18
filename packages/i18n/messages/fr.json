@@ -71,7 +71,11 @@
     "cash": "Caisse et vente sur place",
     "offline": "Retraits hors ligne",
     "cashEmpty": "Aucune vente sur place pour l’instant.",
-    "offlineEmpty": "Aucun retrait en double à vérifier."
+    "offlineEmpty": "Aucun retrait en double à vérifier.",
+    "addFeature": "Ajouter une fonctionnalité",
+    "hint_seating": "Places numérotées et carte des ventes",
+    "hint_options": "Vestiaire, jetons boissons et autres options",
+    "hint_ambassadors": "Liens et codes de vos ambassadeurs"
   },
   "auth": {
     "loginTitle": "Connexion",

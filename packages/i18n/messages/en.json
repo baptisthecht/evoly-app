@@ -71,7 +71,11 @@
     "cash": "Cash desk and on-site sales",
     "offline": "Offline redemptions",
     "cashEmpty": "No on-site sales yet.",
-    "offlineEmpty": "No duplicate redemptions to check."
+    "offlineEmpty": "No duplicate redemptions to check.",
+    "addFeature": "Add a feature",
+    "hint_seating": "Numbered seats and a sales map",
+    "hint_options": "Cloakroom, drink tokens and other add-ons",
+    "hint_ambassadors": "Links and codes for your ambassadors"
   },
   "auth": {
     "loginTitle": "Log in",

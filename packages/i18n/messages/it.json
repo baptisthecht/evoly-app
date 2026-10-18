@@ -783,7 +783,11 @@
     "cash": "Cassa e vendita sul posto",
     "offline": "Ritiri offline",
     "cashEmpty": "Ancora nessuna vendita sul posto.",
-    "offlineEmpty": "Nessun ritiro doppio da verificare."
+    "offlineEmpty": "Nessun ritiro doppio da verificare.",
+    "addFeature": "Aggiungi una funzione",
+    "hint_seating": "Posti numerati e mappa delle vendite",
+    "hint_options": "Guardaroba, gettoni per le bevande e altre opzioni",
+    "hint_ambassadors": "Link e codici dei tuoi ambasciatori"
   },
   "dashboard": {
     "greeting": "ciao {name},",

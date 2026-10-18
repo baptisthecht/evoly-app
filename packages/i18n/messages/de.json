@@ -783,7 +783,11 @@
     "cash": "Kasse und Vor-Ort-Verkauf",
     "offline": "Offline-Einlösungen",
     "cashEmpty": "Noch keine Vor-Ort-Verkäufe.",
-    "offlineEmpty": "Keine doppelten Einlösungen zu prüfen."
+    "offlineEmpty": "Keine doppelten Einlösungen zu prüfen.",
+    "addFeature": "Funktion hinzufügen",
+    "hint_seating": "Nummerierte Plätze und Verkaufsplan",
+    "hint_options": "Garderobe, Getränkemarken und weitere Optionen",
+    "hint_ambassadors": "Links und Codes Ihrer Botschafter"
   },
   "dashboard": {
     "greeting": "hallo {name},",

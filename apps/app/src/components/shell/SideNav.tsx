@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { cn } from "../ui/cn";
 
-export type NavIcon = "pilot" | "grow" | "org" | "grid" | "ticket" | "megaphone" | "scan" | "users" | "settings" | "back";
+export type NavIcon = "pilot" | "grow" | "org" | "grid" | "ticket" | "megaphone" | "scan" | "users" | "settings" | "back" | "plus";
 export interface NavItem {
   label: string;
   href: string;
@@ -79,6 +79,7 @@ const ICONS: Record<NavIcon, ReactNode> = {
     </>
   ),
   back: <path d="M15 18l-6-6 6-6" />,
+  plus: <path d="M12 5v14M5 12h14" />,
 };
 
 export function NavGlyph({ name, className }: { name: NavIcon; className?: string }) {
@@ -112,12 +113,14 @@ export function SideNav({
   before,
   top,
   sections,
+  after,
   bottom = [],
 }: {
   label: string;
   before?: ReactNode;
   top?: NavSolo;
   sections: NavSection[];
+  after?: ReactNode;
   bottom?: NavSolo[];
 }) {
   const pathname = usePathname();
@@ -156,6 +159,7 @@ export function SideNav({
           </div>
         );
       })}
+      {after}
       {bottom.length > 0 ? <div className="mt-3 grid gap-0.5 border-t border-line pt-2">{bottom.map(solo)}</div> : null}
     </nav>
   );

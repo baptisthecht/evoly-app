@@ -783,7 +783,11 @@
     "cash": "Caixa e venda no local",
     "offline": "Levantamentos offline",
     "cashEmpty": "Ainda não há vendas no local.",
-    "offlineEmpty": "Não há levantamentos duplicados para verificar."
+    "offlineEmpty": "Não há levantamentos duplicados para verificar.",
+    "addFeature": "Adicionar uma função",
+    "hint_seating": "Lugares numerados e mapa de vendas",
+    "hint_options": "Bengaleiro, fichas de bebidas e outras opções",
+    "hint_ambassadors": "Ligações e códigos dos seus embaixadores"
   },
   "dashboard": {
     "greeting": "olá {name},",
