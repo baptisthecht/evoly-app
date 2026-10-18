@@ -6,7 +6,7 @@ test("offre gratuite : les fonctions Pro restent visibles, gris√©es, avec l'acc√
   const eventUrl = await publishedFreeEvent(page, slug, `Concert ${id}`, 20);
   for (const [path, title] of [
     ["/seating", "Plan de salle"],
-    ["/settings", "E-mails marketing automatiques"],
+    ["/emails", "E-mails marketing automatiques"],
   ] as const) {
     await page.goto(`${eventUrl}${path}`);
     const block = page.getByRole("region", { name: title });

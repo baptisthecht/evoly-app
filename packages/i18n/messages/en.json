@@ -63,7 +63,11 @@
     "eventSettings": "Settings",
     "eventNav": "Event navigation",
     "backToEvents": "All events",
-    "viewPage": "View page"
+    "viewPage": "View page",
+    "eventPage": "Event page",
+    "launch": "Going live",
+    "emails": "Emails",
+    "readOnlyPage": "This page is read-only for this event."
   },
   "auth": {
     "loginTitle": "Log in",

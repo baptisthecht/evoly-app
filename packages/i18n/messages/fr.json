@@ -63,7 +63,11 @@
     "eventSettings": "Réglages",
     "eventNav": "Navigation de l’événement",
     "backToEvents": "Tous les événements",
-    "viewPage": "Voir la page"
+    "viewPage": "Voir la page",
+    "eventPage": "Page de l’événement",
+    "launch": "Mise en ligne",
+    "emails": "E-mails",
+    "readOnlyPage": "Cette page est en lecture seule pour cet événement."
   },
   "auth": {
     "loginTitle": "Connexion",

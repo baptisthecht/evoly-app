@@ -775,7 +775,11 @@
     "eventSettings": "Einstellungen",
     "eventNav": "Navigation der Veranstaltung",
     "backToEvents": "Alle Veranstaltungen",
-    "viewPage": "Seite ansehen"
+    "viewPage": "Seite ansehen",
+    "eventPage": "Veranstaltungsseite",
+    "launch": "Veröffentlichung",
+    "emails": "E-Mails",
+    "readOnlyPage": "Diese Seite ist für diese Veranstaltung schreibgeschützt."
   },
   "dashboard": {
     "greeting": "hallo {name},",

@@ -775,7 +775,11 @@
     "eventSettings": "Instellingen",
     "eventNav": "Navigatie van het evenement",
     "backToEvents": "Alle evenementen",
-    "viewPage": "Pagina bekijken"
+    "viewPage": "Pagina bekijken",
+    "eventPage": "Evenementpagina",
+    "launch": "Online zetten",
+    "emails": "E-mails",
+    "readOnlyPage": "Deze pagina is alleen-lezen voor dit evenement."
   },
   "dashboard": {
     "greeting": "hallo {name},",

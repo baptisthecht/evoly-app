@@ -775,7 +775,11 @@
     "eventSettings": "Definições",
     "eventNav": "Navegação do evento",
     "backToEvents": "Todos os eventos",
-    "viewPage": "Ver a página"
+    "viewPage": "Ver a página",
+    "eventPage": "Página do evento",
+    "launch": "Publicação",
+    "emails": "E-mails",
+    "readOnlyPage": "Esta página é só de leitura para este evento."
   },
   "dashboard": {
     "greeting": "olá {name},",

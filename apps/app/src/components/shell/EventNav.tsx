@@ -1,3 +1,4 @@
+import { can } from "@evoly/core";
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -33,6 +34,8 @@ export async function EventNav({ orgSlug, eventId }: { orgSlug: string; eventId:
       label: t("groupSales"),
       icon: "megaphone",
       items: [
+        { label: t("eventPage"), href: `${base}/appearance` },
+        ...(can(ctx.membership, "EVENTS_PUBLISH") ? [{ label: t("launch"), href: `${base}/launch` }] : []),
         { label: t("promo"), href: `${base}/promo` },
         { label: t("ambassadors"), href: `${base}/ambassadors` },
         { label: t("embed"), href: `${base}/embed` },
@@ -52,6 +55,7 @@ export async function EventNav({ orgSlug, eventId }: { orgSlug: string; eventId:
       items: [
         { label: t("orders"), href: `${org}/orders?event=${eventId}` },
         { label: t("resale"), href: `${base}/resale` },
+        { label: t("emails"), href: `${base}/emails` },
       ],
     },
   ];
