@@ -64,16 +64,21 @@ export async function qualifyReferral(referredOrganizationId: string, now = new 
   if (r.referrerOrg.status !== "ACTIVE") return false;
   const sub = r.referrerOrg.subscription;
   let how = "PRO_DAYS";
-  if (sub?.stripeSubscriptionId && sub.stripeCustomerId && ["ACTIVE", "TRIALING", "PAST_DUE"].includes(sub.status)) {
+  // abonnement Stripe en cours : crédit sur la prochaine facture ; Stripe indisponible : récompense reportée à la vente
+  // suivante (jamais perdue, jamais donnée deux fois), sans toucher à l'abonnement géré par Stripe
+  if (sub?.stripeSubscriptionId && ["ACTIVE", "TRIALING", "PAST_DUE"].includes(sub.status)) {
     const s = stripe();
-    if (s) {
-      await s.customers.createBalanceTransaction(sub.stripeCustomerId, {
-        amount: -REWARD_CREDIT_MINOR,
-        currency: "eur",
-        description: `Parrainage Evoly : ${r.referredOrg?.name ?? "organisation parrainée"}`,
-      });
-      how = "STRIPE_CREDIT";
+    if (!s || !sub.stripeCustomerId) {
+      await db.referral.update({ where: { id: r.id }, data: { status: "SIGNED_UP", qualifiedAt: null } });
+      console.error("parrainage : crédit Stripe impossible pour l'instant, récompense reportée", r.id);
+      return false;
     }
+    await s.customers.createBalanceTransaction(sub.stripeCustomerId, {
+      amount: -REWARD_CREDIT_MINOR,
+      currency: "eur",
+      description: `Parrainage Evoly : ${r.referredOrg?.name ?? "organisation parrainée"}`,
+    });
+    how = "STRIPE_CREDIT";
   }
   if (how === "PRO_DAYS") {
     const from =
@@ -86,7 +91,9 @@ export async function qualifyReferral(referredOrganizationId: string, now = new 
       await db.subscription.upsert({
         where: { organizationId: r.referrerOrgId },
         create: { organizationId: r.referrerOrgId, planId: "pro", status: "CANCELED", currentPeriodEnd: until, cancelAtPeriodEnd: true },
-        update: sub?.stripeSubscriptionId ? {} : { planId: "pro", status: "CANCELED", currentPeriodEnd: until, cancelAtPeriodEnd: true },
+        // ici, jamais un abonnement Stripe en cours (crédit ci-dessus) : un abonnement Stripe terminé reçoit aussi ses jours,
+        // gérés par Evoly (avant : rien n'était ajouté, mais le parrain recevait l'e-mail « un mois de Pro offert »)
+        update: { planId: "pro", status: "CANCELED", currentPeriodEnd: until, cancelAtPeriodEnd: true, stripeSubscriptionId: null },
       });
   }
   await db.referral.update({ where: { id: r.id }, data: { status: "REWARDED", rewardGrantedAt: now } });
