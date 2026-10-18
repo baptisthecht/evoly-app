@@ -75,7 +75,10 @@ describe("tables et forfaits (section 9.31)", () => {
     const s = await setup("pro", 25_000);
     await saveTableSettings(s.ctx, s.event.id, s.type.id, { groupSize: 6, tableLabels: [], included: [] });
     const o = await acheter(s);
-    expect(o.tickets.map((t) => t.faceValueMinor)).toEqual([4170, 4166, 4166, 4166, 4166, 4166]);
-    expect(o.tickets[0]!.tableLabel).toBe("Table 1");
+    // billets créés ensemble, dans la même milliseconde : la base les rend dans un ordre quelconque (test instable, 18 octobre 2026)
+    const values = o.tickets.map((t) => t.faceValueMinor).sort((x, y) => y - x);
+    expect(values).toEqual([4170, 4166, 4166, 4166, 4166, 4166]); // une seule place porte les centimes d'arrondi
+    expect(values.reduce((n, v) => n + v, 0)).toBe(25_000); // la somme tombe juste
+    expect(o.tickets.every((t) => t.tableLabel === "Table 1")).toBe(true);
   });
 });
