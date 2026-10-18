@@ -101,10 +101,18 @@ export function NavGlyph({ name, className }: { name: NavIcon; className?: strin
 
 const pathOf = (href: string) => href.split("?")[0]!;
 
+// page active : texte en gras et son segment du trait en rose ; survol : texte en gras seulement (ni fond, ni arrondi)
 const itemClass = (on: boolean) =>
   cn(
-    "flex h-8 items-center gap-2 rounded-lg px-2.5 text-[0.84rem] transition-colors",
-    on ? "bg-lilas font-semibold text-charbon" : "font-medium text-ink-muted hover:bg-surface-sunken hover:text-ink",
+    "flex h-8 items-center gap-2 pr-2.5 text-[0.84rem] transition-colors",
+    on
+      ? "border-l-2 border-rose pl-[calc(0.75rem-1px)] font-semibold text-ink"
+      : "border-l border-line pl-3 font-medium text-ink-muted hover:font-semibold hover:text-ink",
+  );
+const soloClass = (on: boolean) =>
+  cn(
+    "flex h-8 items-center gap-2.5 border-l-2 pr-2.5 pl-2 text-[0.84rem] transition-colors",
+    on ? "border-rose font-semibold text-ink" : "border-transparent font-medium text-ink-muted hover:font-semibold hover:text-ink",
   );
 
 /** Barre latérale : une entrée seule en haut, des catégories (icône, puis pages décalées sous un filet), des entrées en bas. */
@@ -129,7 +137,7 @@ export function SideNav({
     return i.exact ? pathname === h : pathname === h || pathname.startsWith(`${h}/`);
   };
   const solo = (i: NavSolo) => (
-    <Link key={i.href} href={i.href} aria-current={active(i) ? "page" : undefined} className={cn(itemClass(active(i)), "gap-2.5")}>
+    <Link key={i.href} href={i.href} aria-current={active(i) ? "page" : undefined} className={soloClass(active(i))}>
       <NavGlyph name={i.icon} />
       {i.label}
     </Link>
@@ -146,7 +154,7 @@ export function SideNav({
               <NavGlyph name={s.icon} />
               {s.label}
             </p>
-            <ul className="ml-[1.1rem] grid gap-0.5 border-l border-line pl-2">
+            <ul className="ml-[1.1rem] grid">
               {s.items.map((i) => (
                 <li key={i.href}>
                   <Link href={i.href} aria-current={active(i) ? "page" : undefined} className={cn(itemClass(active(i)), "justify-between")}>

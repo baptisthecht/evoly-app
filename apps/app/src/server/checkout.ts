@@ -623,7 +623,7 @@ async function resaleTransfer(
   });
   if (!listing || (listing.status !== "RESERVED" && listing.status !== "ACTIVE")) throw new NoStockLeft();
   const voided =
-    await tx.$executeRaw`UPDATE "Ticket" SET status = 'VOID', "voidReason" = 'RESOLD', "voidedAt" = ${now}, "updatedAt" = now() WHERE id = ${listing.ticketId} AND status = 'VALID'`;
+    await tx.$executeRaw`UPDATE "Ticket" SET status = 'VOID', "voidReason" = 'RESOLD', "voidedAt" = ${now}, "seatId" = NULL, "updatedAt" = now() WHERE id = ${listing.ticketId} AND status = 'VALID'`; // la place numérotée passe au nouveau billet
   if (voided !== 1) throw new NoStockLeft();
   const item = order.items[0]!;
   await tx.ticket.create({
@@ -636,10 +636,51 @@ async function resaleTransfer(
       shortCode: ticketShortCode(),
       faceValueMinor: item.unitPriceMinor - item.unitDiscountMinor, // RG-RSL-11 : valeur faciale = prix payé en revente
       replacesTicketId: listing.ticketId,
+      seatId: listing.ticket.seatId ?? null, // la place numérotée et la table suivent le billet revendu
+      tableLabel: listing.ticket.tableLabel ?? null,
       ...(listing.ticket.ticketType.isNominative ? { holderFirstName: order.buyerFirstName, holderLastName: order.buyerLastName } : {}),
     },
   });
+  await moveIncludedOptions(tx, listing.ticket, order.id);
   await tx.resaleListing.update({ where: { id: listing.id }, data: { status: "SOLD", soldAt: now, reservedUntil: null } });
+}
+
+/**
+ * Section 9.31 : une place revendue emporte sa part des options incluses dans sa table (la quantité incluse divisée par le
+ * nombre de places, arrondie à l'inférieur) ; la dernière place de la table encore au vendeur emporte le reste. Jamais ce
+ * qui a déjà été servi au bar ou remboursé. Les lignes sont déplacées, à 0 € : les finances ne changent pas.
+ */
+export async function moveIncludedOptions(
+  tx: Prisma.TransactionClient,
+  sold: { orderId: string; orderItemId: string; ticketTypeId: string; tableLabel: string | null },
+  toOrderId: string,
+) {
+  const type = await tx.ticketType.findUnique({
+    where: { id: sold.ticketTypeId },
+    select: { groupSize: true, includedOptions: { select: { optionId: true, quantity: true } } },
+  });
+  if (!type || type.includedOptions.length === 0) return;
+  const size = Math.max(1, type.groupSize);
+  // places de la même table encore au vendeur (le billet revendu vient d'être annulé)
+  const left = await tx.ticket.count({
+    where: { orderId: sold.orderId, orderItemId: sold.orderItemId, tableLabel: sold.tableLabel, status: { in: ["VALID", "CHECKED_IN"] } },
+  });
+  for (const inc of type.includedOptions) {
+    const share = Math.floor(inc.quantity / size) + (left === 0 ? inc.quantity % size : 0);
+    if (share <= 0) continue;
+    const lines = await tx.orderOption.findMany({ where: { orderId: sold.orderId, optionId: inc.optionId, unitPriceMinor: 0 }, orderBy: { createdAt: "asc" } });
+    let rest = share;
+    for (const l of lines) {
+      const take = Math.min(l.quantity - l.redeemed - l.refunded, rest);
+      if (take <= 0) continue;
+      if (take === l.quantity) await tx.orderOption.delete({ where: { id: l.id } });
+      else await tx.orderOption.update({ where: { id: l.id }, data: { quantity: { decrement: take } } });
+      rest -= take;
+      if (rest === 0) break;
+    }
+    if (share - rest > 0)
+      await tx.orderOption.create({ data: { orderId: toOrderId, optionId: inc.optionId, quantity: share - rest, unitPriceMinor: 0, unitFeeMinor: 0 } });
+  }
 }
 
 /**
