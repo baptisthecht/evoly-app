@@ -30,7 +30,7 @@ test("vente sur place : onglet Vente du scanner en espèces, rapport de caisse, 
   await expect(scan.getByText("Vente enregistrée : 2 billets, entrée validée.")).toBeVisible();
 
   // rapport de caisse de l'organisateur
-  await page.goto(`${eventUrl}/entries`);
+  await page.goto(`${eventUrl}/cash`); // la caisse a sa page (refonte de la navigation)
   await expect(page.getByText("Rapport de caisse")).toBeVisible();
   await expect(page.getByText("Caisse 1 · espèces")).toBeVisible();
   // par appareil, avec les espèces à remettre, et l'appareil dans l'export (RG-POS-07)

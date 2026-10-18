@@ -67,7 +67,11 @@
     "eventPage": "Page de l’événement",
     "launch": "Mise en ligne",
     "emails": "E-mails",
-    "readOnlyPage": "Cette page est en lecture seule pour cet événement."
+    "readOnlyPage": "Cette page est en lecture seule pour cet événement.",
+    "cash": "Caisse et vente sur place",
+    "offline": "Retraits hors ligne",
+    "cashEmpty": "Aucune vente sur place pour l’instant.",
+    "offlineEmpty": "Aucun retrait en double à vérifier."
   },
   "auth": {
     "loginTitle": "Connexion",

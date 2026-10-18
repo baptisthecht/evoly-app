@@ -1,5 +1,5 @@
 import { can, hasFeature } from "@evoly/core";
-import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
+import { formatDateTime, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -12,9 +12,6 @@ import { attendanceStats, listScannerLinks } from "@/server/scanner";
 import { LinkActions, NewScannerLink, OpenScanner } from "./EntriesClient";
 import { OccupancyPlan } from "@/components/seating/OccupancyPlan";
 import { seatOccupancy } from "@/server/seatingEditor";
-import { cashHandOver, cashReport } from "@/server/boxOffice";
-import { optionConflicts } from "@/server/options";
-import { db } from "@/lib/db";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -33,11 +30,6 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
   const [stats, links] = await Promise.all([attendanceStats(eventId), canManage ? listScannerLinks(ctx, eventId) : Promise.resolve([])]);
   const t = await getTranslations("entries");
   // section 9.27 : rapport de caisse des ventes sur place
-  const cashCtx = await requireOrgContext((await params).orgSlug);
-  const cash = await cashReport(cashCtx, (await params).eventId);
-  const conflicts = await optionConflicts(cashCtx, (await params).eventId); // RG-OPT-05
-  const cashCurrency = (await db.event.findUniqueOrThrow({ where: { id: (await params).eventId }, select: { currency: true } })).currency;
-  const cashLocale = (await getLocale()) as Locale;
   const locale = (await getLocale()) as Locale;
   const now = new Date();
   const time = (d: Date) => new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", timeZone: event.timezone }).format(d);
@@ -45,55 +37,6 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
   const pct = (n: number, total: number) => (total ? Math.round((n * 100) / total) : 0);
   return (
     <div className="grid max-w-5xl gap-6">
-      {cash.length ? (
-        <section className="grid gap-2 rounded-lg bg-surface-sunken p-4 text-sm" aria-label={t("cashTitle")}>
-          <h2 className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
-            {t("cashTitle")}
-            <a
-              href={`/o/${cashCtx.organization.slug}/events/${(await params).eventId}/caisse.csv`}
-              className="text-sm font-normal underline underline-offset-4"
-            >
-              {t("cashExport")}
-            </a>
-          </h2>
-          {cash.map((c) => (
-            <p key={`${c.label}-${c.device}-${c.mode}`} className="flex flex-wrap justify-between gap-3">
-              <span>
-                {c.label} · {c.mode === "CASH" ? t("cashModeCash") : t("cashModeQr")}
-                {c.device ? ` · ${t("cashDevice", { device: c.device })}` : ""}
-              </span>
-              <span className="tabular-nums">
-                {t("cashLine", { sales: c.sales })} · {formatMoney(c.amountMinor, cashCurrency, cashLocale, { trimZeroCents: true })}
-              </span>
-            </p>
-          ))}
-          <h3 className="mt-2 font-semibold">{t("cashHandOver")}</h3>
-          {cashHandOver(cash).map((h) => (
-            <p key={`${h.label}-${h.device}`} className="flex flex-wrap justify-between gap-3">
-              <span>
-                {h.label}
-                {h.device ? ` · ${t("cashDevice", { device: h.device })}` : ""}
-              </span>
-              <span className="font-semibold tabular-nums">{formatMoney(h.amountMinor, cashCurrency, cashLocale, { trimZeroCents: true })}</span>
-            </p>
-          ))}
-        </section>
-      ) : null}
-      {conflicts.length > 0 ? (
-        <section className="grid gap-2 rounded-2xl bg-surface-raised p-4 ring-1 ring-danger" aria-label={t("conflictsTitle")}>
-          <h2 className="font-semibold">{t("conflictsTitle")}</h2>
-          <p className="text-sm text-ink-muted">{t("conflictsHint")}</p>
-          <ul className="grid gap-1 text-sm">
-            {conflicts.map((c) => (
-              <li key={c.id}>
-                {formatDateTime(c.happenedAt, event.timezone, cashLocale, "short")} ·{" "}
-                {t("conflictLine", { option: c.line.option.name, reference: c.line.order.reference, refused: c.refused, requested: c.requested })}
-                {c.staffName ? ` · ${c.staffName}` : ""}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
       {occupancy ? <OccupancyPlan data={occupancy} /> : null}
       <AutoRefresh everyMs={10_000} maxTimes={2_000} />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">

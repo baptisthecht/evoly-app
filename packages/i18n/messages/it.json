@@ -779,7 +779,11 @@
     "eventPage": "Pagina dell’evento",
     "launch": "Pubblicazione",
     "emails": "E-mail",
-    "readOnlyPage": "Questa pagina è in sola lettura per questo evento."
+    "readOnlyPage": "Questa pagina è in sola lettura per questo evento.",
+    "cash": "Cassa e vendita sul posto",
+    "offline": "Ritiri offline",
+    "cashEmpty": "Ancora nessuna vendita sul posto.",
+    "offlineEmpty": "Nessun ritiro doppio da verificare."
   },
   "dashboard": {
     "greeting": "ciao {name},",

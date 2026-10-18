@@ -779,7 +779,11 @@
     "eventPage": "Evenementpagina",
     "launch": "Online zetten",
     "emails": "E-mails",
-    "readOnlyPage": "Deze pagina is alleen-lezen voor dit evenement."
+    "readOnlyPage": "Deze pagina is alleen-lezen voor dit evenement.",
+    "cash": "Kassa en verkoop ter plaatse",
+    "offline": "Offline afhalingen",
+    "cashEmpty": "Nog geen verkoop ter plaatse.",
+    "offlineEmpty": "Geen dubbele afhalingen om te controleren."
   },
   "dashboard": {
     "greeting": "hallo {name},",

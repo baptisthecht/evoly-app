@@ -46,7 +46,9 @@ export async function EventNav({ orgSlug, eventId }: { orgSlug: string; eventId:
       icon: "scan",
       items: [
         { label: t("entries"), href: `${base}/entries` },
+        { label: t("cash"), href: `${base}/cash` },
         { label: t("labels"), href: `${base}/etiquettes` },
+        { label: t("offline"), href: `${base}/offline` },
       ],
     },
     {

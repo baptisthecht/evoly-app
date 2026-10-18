@@ -67,7 +67,11 @@
     "eventPage": "Event page",
     "launch": "Going live",
     "emails": "Emails",
-    "readOnlyPage": "This page is read-only for this event."
+    "readOnlyPage": "This page is read-only for this event.",
+    "cash": "Cash desk and on-site sales",
+    "offline": "Offline redemptions",
+    "cashEmpty": "No on-site sales yet.",
+    "offlineEmpty": "No duplicate redemptions to check."
   },
   "auth": {
     "loginTitle": "Log in",

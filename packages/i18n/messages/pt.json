@@ -779,7 +779,11 @@
     "eventPage": "Página do evento",
     "launch": "Publicação",
     "emails": "E-mails",
-    "readOnlyPage": "Esta página é só de leitura para este evento."
+    "readOnlyPage": "Esta página é só de leitura para este evento.",
+    "cash": "Caixa e venda no local",
+    "offline": "Levantamentos offline",
+    "cashEmpty": "Ainda não há vendas no local.",
+    "offlineEmpty": "Não há levantamentos duplicados para verificar."
   },
   "dashboard": {
     "greeting": "olá {name},",

@@ -779,7 +779,11 @@
     "eventPage": "Veranstaltungsseite",
     "launch": "Veröffentlichung",
     "emails": "E-Mails",
-    "readOnlyPage": "Diese Seite ist für diese Veranstaltung schreibgeschützt."
+    "readOnlyPage": "Diese Seite ist für diese Veranstaltung schreibgeschützt.",
+    "cash": "Kasse und Vor-Ort-Verkauf",
+    "offline": "Offline-Einlösungen",
+    "cashEmpty": "Noch keine Vor-Ort-Verkäufe.",
+    "offlineEmpty": "Keine doppelten Einlösungen zu prüfen."
   },
   "dashboard": {
     "greeting": "hallo {name},",
