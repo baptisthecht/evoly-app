@@ -64,6 +64,7 @@ export function googleWalletClaims(t: WalletTicket, creds: Pick<GoogleCredential
           barcode: { type: "QR_CODE", value: t.code, alternateText: t.shortCode },
           ticketType: text(t.typeName, lang),
           ...(t.holder ? { ticketHolderName: t.holder } : {}),
+          ...(t.seat ? { seatInfo: { seat: text(t.seat, lang) } } : {}), // comme sur la carte Apple : la place numérotée sur le billet
           reservationInfo: { confirmationCode: t.reference },
           validTimeInterval: { end: { date: new Date(t.endsAt.getTime() + 24 * 3_600_000).toISOString() } },
         },
