@@ -55,7 +55,7 @@ export async function EventNav({ orgSlug, eventId }: { orgSlug: string; eventId:
       label: t("groupAttendees"),
       icon: "users",
       items: [
-        { label: t("orders"), href: `${org}/orders?event=${eventId}` },
+        { label: t("orders"), href: `${base}/orders` },
         { label: t("resale"), href: `${base}/resale` },
         { label: t("emails"), href: `${base}/emails` },
       ],
