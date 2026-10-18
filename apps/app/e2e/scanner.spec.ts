@@ -133,7 +133,7 @@ test("vérification seule : le billet est contrôlé sans être validé, puis en
   await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
   await page.getByLabel("Libellé").fill("Salle");
   await page.getByRole("button", { name: "Créer le lien" }).click();
-  await expect(page.getByText("Salle").first()).toBeVisible();
+  await expect(page.getByText("Salle", { exact: true }).first()).toBeVisible(); // le libellé du lien, pas « Plan de salle » de la barre latérale
   // l'adresse du nouveau lien : celle qui n'est pas l'adresse du périmètre, quel que soit l'ordre d'affichage
   const others = async () => (await page.getByTestId("scanner-url").allTextContents()).filter((u) => u.trim() && u !== perimeterUrl);
   await expect.poll(async () => (await others()).length).toBeGreaterThan(0);
