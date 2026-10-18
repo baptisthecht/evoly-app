@@ -54,3 +54,12 @@ Les dépendances npm passent par la vérification hebdomadaire ci-dessus (âge m
 | Serveur de l'app (`apps/app/src/server`, `src/lib`) | 82,5 %       | 70,1 %   | 83,8 %    | 87,7 % | 12 octobre 2026, après les séries « argent et sécurité », « événements, tarifs, e-mails et finances », « équipe, questions, campagnes, back-office, domaines, marque, scanner, revente » |
 
 Les écrans sont couverts par les parcours complets (Playwright, `apps/app/e2e`). `pnpm traceability` liste les règles du cahier des charges qu'aucun test ne cite : chaque nouveau test nomme la règle qu'il vérifie (par exemple « RG-POS-04 »).
+
+## Tests des composants du navigateur (depuis le 18 octobre 2026)
+
+Les composants React sont testés dans un navigateur simulé (Vitest, jsdom, Testing Library), sans base de données :
+`pnpm --filter @evoly/app test:components`, lancé aussi par `pnpm -r test` et donc par la CI. La couverture est mesurée
+sur tous les composants de `src/components`, y compris ceux qui n'ont pas encore de test : le chiffre est bas au départ,
+mais honnête. Même cliquet que pour le serveur : les planchers de `vitest.components.config.ts` sont relevés à chaque
+série de tests ajoutés, jamais abaissés. Un bug corrigé dans un composant reçoit un test qui échoue avec l'ancien code
+(vérifié en remettant l'ancien code le temps d'un essai), comme celui de la caméra du scanner.
