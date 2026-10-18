@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { sendComplimentaryTickets } from "@/server/complimentary";
+import { optionsForScan } from "@/server/options";
 import type { OrgContext } from "@/server/context";
 import { searchOrders } from "@/server/ordersAdmin";
 
@@ -80,5 +81,35 @@ describe("billets offerts (US-ORD-03)", () => {
         recipients: [{ email: `c.${s.id}@exemple.be`, firstName: null, lastName: null }],
       }),
     ).rejects.toThrow("COMPLIMENTARY_EVENT_CLOSED");
+  });
+
+  it("une table VIP offerte reçoit ses options incluses, retrouvées au bar en scannant un de ses billets (section 9.31)", async () => {
+    const s = await setup(3);
+    const option = await db.eventOption.create({ data: { eventId: s.event.id, name: "Bouteille VIP", priceMinor: 0 } });
+    const table = await db.ticketType.create({
+      data: {
+        eventId: s.event.id,
+        name: "Table VIP",
+        priceMinor: 0,
+        currency: "EUR",
+        quantity: 5,
+        sortOrder: 2,
+        groupSize: 4,
+        includedOptions: { create: [{ optionId: option.id, quantity: 2 }] },
+      },
+    });
+    const r = await sendComplimentaryTickets(s.ctx, s.event.id, {
+      ticketTypeId: table.id,
+      quantityEach: 1,
+      recipients: [{ email: `vip.${s.id}@exemple.be`, firstName: "Vic", lastName: "Martin" }],
+    });
+    expect(r.every((x) => x.ok)).toBe(true);
+    const order = await db.order.findFirstOrThrow({
+      where: { eventId: s.event.id, buyerEmail: `vip.${s.id}@exemple.be` },
+      include: { tickets: true, options: true },
+    });
+    expect(order.options.map((o) => [o.optionId, o.quantity, o.unitPriceMinor])).toEqual([[option.id, 2, 0]]);
+    const bar = await optionsForScan(s.event.id, { code: order.tickets[0]!.code });
+    expect(bar.options.map((o) => [o.name, o.left])).toEqual([["Bouteille VIP", 2]]);
   });
 });

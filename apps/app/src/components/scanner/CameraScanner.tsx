@@ -19,6 +19,10 @@ export function CameraScanner({ onCode, paused }: { onCode: (code: string) => vo
   const pausedRef = useRef(paused);
   const [state, setState] = useState<"idle" | "starting" | "on" | "denied" | "unsupported">("idle");
   pausedRef.current = paused;
+  // la boucle de lecture vit aussi longtemps que la caméra : elle appelle toujours la dernière fonction reçue, sinon le mode
+  // choisi après l'allumage (vérification seule, bar et options) serait ignoré et le billet validé à l'entrée
+  const onCodeRef = useRef(onCode);
+  onCodeRef.current = onCode;
 
   useEffect(() => () => stream.current?.getTracks().forEach((track) => track.stop()), []);
 
@@ -54,7 +58,7 @@ export function CameraScanner({ onCode, paused }: { onCode: (code: string) => vo
           const now = Date.now();
           if (value && !(last.current && last.current.value === value && now - last.current.at < 3000)) {
             last.current = { value, at: now };
-            onCode(value);
+            onCodeRef.current(value);
           }
         }
         setTimeout(tick, 140);

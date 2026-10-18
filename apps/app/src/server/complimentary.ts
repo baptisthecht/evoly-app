@@ -40,6 +40,7 @@ export async function sendComplimentaryTickets(
         const held =
           await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${type.id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${n})`;
         if (held !== 1) throw new CoreError("COMPLIMENTARY_NO_STOCK");
+        const included = await tx.includedOption.findMany({ where: { ticketTypeId: type.id } }); // section 9.31 : options comprises dans la table
         await tx.order.create({
           data: {
             id: orderId,
@@ -68,6 +69,7 @@ export async function sendComplimentaryTickets(
             marketingOptIn: false,
             holdExpiresAt: new Date(now.getTime() + 15 * 60_000),
             accessTokenHash,
+            options: { create: included.map((inc) => ({ optionId: inc.optionId, quantity: inc.quantity * n, unitPriceMinor: 0, unitFeeMinor: 0 })) },
             items: { create: [{ ticketTypeId: type.id, quantity: n, unitPriceMinor: 0, unitDiscountMinor: 0, unitFeeMinor: 0 }] },
           },
         });
