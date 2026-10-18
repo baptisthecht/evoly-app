@@ -19,6 +19,7 @@ import { emailBrandFor, logoBytes } from "./email/brand";
 import { organizationPublicUrl } from "./urls";
 import { safeError } from "@/lib/redact";
 import { markWaitlistPurchased } from "./waitlist";
+import { createBytesCache } from "@/lib/bytesCache";
 
 export function ticketsUrl(org: { subdomain: string | null; slug: string }, orderId: string, version: number): string {
   return `${organizationPublicUrl(org.subdomain ?? org.slug)}/billets/${orderAccessToken(orderId, version)}`;
@@ -222,29 +223,15 @@ export async function ticketsPdfFor(
     .update(JSON.stringify({ ...input, brand: input.brand ? { ...input.brand, logo: logoHash } : null, labels: locale }))
     .digest("hex");
   const hit = pdfCache.get(key);
-  if (hit) {
-    pdfCache.delete(key);
-    pdfCache.set(key, hit); // le plus récemment utilisé passe en dernier
-    pdfCacheStats.hits += 1;
-    return hit;
-  }
+  if (hit) return hit;
   const bytes = await buildTicketsPdf(input);
-  pdfCacheStats.misses += 1;
   pdfCache.set(key, bytes);
-  pdfCacheBytes += bytes.length;
-  while (pdfCacheBytes > PDF_CACHE_MAX_BYTES && pdfCache.size > 1) {
-    const [oldest, old] = pdfCache.entries().next().value!;
-    pdfCache.delete(oldest);
-    pdfCacheBytes -= old.length;
-  }
   return bytes;
 }
 
-const PDF_CACHE_MAX_BYTES = 64 * 1024 * 1024;
-const pdfCache = new Map<string, Uint8Array>();
-let pdfCacheBytes = 0;
+const pdfCache = createBytesCache(64 * 1024 * 1024);
 /** Tests : réussites et échecs du cache des PDF. */
-export const pdfCacheStats = { hits: 0, misses: 0 };
+export const pdfCacheStats = pdfCache.stats;
 
 /**
  * Frais Stripe réels, net de l'organisateur et moyen de paiement réellement utilisé, relevés sur le paiement du compte
