@@ -20,6 +20,15 @@
 # Site vitrine et documents légaux (apps/web/dist) ; liens courts d'événement (/e/…) et de revente (/r/…) servis par l'app
 {$SITE_DOMAIN} {
 	encode zstd gzip
+	# adresses devinées ou anciennes (« Introuvable (404) » dans la Search Console) : renvoyées vers la bonne page
+	# le français est servi à la racine ; les prix sont une section de l'accueil
+	redir /fr / permanent
+	redir /fr/ / permanent
+	@ancienFr path_regexp ancienFr ^/fr/(.+)$
+	redir @ancienFr /{re.ancienFr.1} permanent
+	redir /index.html / permanent
+	redir /tarifs /#tarifs permanent
+	redir /tarifs/ /#tarifs permanent
 	@app path /e/* /r/*
 	handle @app {
 		import app
