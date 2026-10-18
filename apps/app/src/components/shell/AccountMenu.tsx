@@ -14,7 +14,7 @@ export async function AccountMenu({ name, email }: { name: string; email: string
       <LocaleSwitch className="justify-self-start" align="start" direction="up" />
       <InstallAppButton label={tp("install")} iosHint={tp("iosHint")} />
       <form action={logoutAction}>
-        <button className="h-8 w-full rounded-lg px-2.5 text-left text-[0.8rem] font-medium whitespace-nowrap text-ink-muted hover:bg-[var(--evoly-creme)] hover:text-ink">
+        <button className="h-8 w-full rounded-lg px-2.5 text-left text-[0.8rem] font-medium whitespace-nowrap text-ink-muted hover:bg-surface-sunken hover:text-ink">
           {t("logout")}
         </button>
       </form>

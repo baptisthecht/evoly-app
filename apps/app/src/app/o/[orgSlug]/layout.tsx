@@ -28,7 +28,7 @@ export default async function OrgLayout({ children, sidebar, params }: { childre
         <Link
           href={`/o/${ctx.organization.slug}/notifications`}
           aria-label={(await getTranslations("notifications"))("bell", { count: unread })}
-          className="relative inline-flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[0.84rem] font-medium text-ink-muted hover:bg-[var(--evoly-creme)] hover:text-ink lg:w-full"
+          className="relative inline-flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[0.84rem] font-medium text-ink-muted hover:bg-surface-sunken hover:text-ink lg:w-full"
         >
           <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.75">
             <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
@@ -47,7 +47,7 @@ export default async function OrgLayout({ children, sidebar, params }: { childre
       account={
         <>
           <AccountMenu name={ctx.user.name} email={ctx.user.email} />
-          <Link href="/compte/securite" className="block rounded-lg px-2.5 py-1.5 text-[0.8rem] text-ink-muted hover:bg-[var(--evoly-creme)] hover:text-ink">
+          <Link href="/compte/securite" className="block rounded-lg px-2.5 py-1.5 text-[0.8rem] text-ink-muted hover:bg-surface-sunken hover:text-ink">
             {(await getTranslations("twoFactor"))("accountLink")}
           </Link>
         </>

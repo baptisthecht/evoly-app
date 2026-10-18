@@ -1,7 +1,6 @@
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { EventStatusBadge } from "@/components/events/StatusBadge";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
 import { OrgNav } from "./OrgNav";
@@ -12,7 +11,7 @@ export async function EventNav({ orgSlug, eventId }: { orgSlug: string; eventId:
   const ctx = await requireOrgContext(orgSlug);
   const event = await db.event.findFirst({
     where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null },
-    select: { title: true, status: true, startsAt: true, timezone: true },
+    select: { title: true, startsAt: true, timezone: true },
   });
   if (!event) return <OrgNav orgSlug={orgSlug} />;
   const t = await getTranslations("nav");
@@ -65,10 +64,9 @@ export async function EventNav({ orgSlug, eventId }: { orgSlug: string; eventId:
             <NavGlyph name="back" className="size-[0.95rem]" />
             {t("backToEvents")}
           </Link>
-          <div className="mb-1.5 grid gap-1.5 border-b border-[rgba(34,34,34,0.08)] px-2 pt-1 pb-3">
+          <div className="mb-1.5 grid gap-1.5 border-b border-line px-2 pt-1 pb-3">
             <p className="font-label text-[0.875rem] leading-tight font-bold break-words">{event.title}</p>
             <div className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-ink-muted">
-              <EventStatusBadge status={event.status} />
               <span>{formatDateTime(event.startsAt, event.timezone, locale)}</span>
             </div>
           </div>

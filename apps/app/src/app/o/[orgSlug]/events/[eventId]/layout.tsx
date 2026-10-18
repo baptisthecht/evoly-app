@@ -31,7 +31,7 @@ export default async function EventLayout({ children, params }: { children: Reac
         </div>
         <Link
           href={`${base}/preview`}
-          className="inline-flex h-9 items-center rounded-full border border-[rgba(34,34,34,0.14)] bg-blanc px-3.5 text-[0.84rem] font-semibold"
+          className="inline-flex h-9 items-center rounded-full border border-line bg-surface-raised px-3.5 text-[0.84rem] font-semibold"
         >
           {t("viewPage")}
         </Link>

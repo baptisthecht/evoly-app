@@ -103,7 +103,7 @@ const pathOf = (href: string) => href.split("?")[0]!;
 const itemClass = (on: boolean) =>
   cn(
     "flex h-8 items-center gap-2 rounded-lg px-2.5 text-[0.84rem] transition-colors",
-    on ? "bg-lilas font-semibold text-charbon" : "font-medium text-ink-muted hover:bg-[var(--evoly-creme)] hover:text-ink",
+    on ? "bg-lilas font-semibold text-charbon" : "font-medium text-ink-muted hover:bg-surface-sunken hover:text-ink",
   );
 
 /** Barre latérale : une entrée seule en haut, des catégories (icône, puis pages décalées sous un filet), des entrées en bas. */
@@ -139,18 +139,16 @@ export function SideNav({
         const open = s.items.some(active); // la catégorie de la page ouverte est active elle aussi
         return (
           <div key={s.label} className={cn("grid gap-0.5", n > 0 || top ? "mt-2.5" : "")}>
-            <p className={cn("flex h-7 items-center gap-2.5 px-2.5 text-[0.8rem] font-semibold", open ? "text-charbon" : "text-ink-muted")}>
+            <p className={cn("flex h-7 items-center gap-2.5 px-2.5 text-[0.8rem] font-semibold", open ? "text-ink" : "text-ink-muted")}>
               <NavGlyph name={s.icon} />
               {s.label}
             </p>
-            <ul className="ml-[1.1rem] grid gap-0.5 border-l border-[rgba(34,34,34,0.1)] pl-2">
+            <ul className="ml-[1.1rem] grid gap-0.5 border-l border-line pl-2">
               {s.items.map((i) => (
                 <li key={i.href}>
                   <Link href={i.href} aria-current={active(i) ? "page" : undefined} className={cn(itemClass(active(i)), "justify-between")}>
                     <span className="truncate">{i.label}</span>
-                    {i.pro ? (
-                      <span className="rounded-full bg-[var(--evoly-creme)] px-1.5 py-px font-label text-[0.62rem] font-bold text-charbon">{i.pro}</span>
-                    ) : null}
+                    {i.pro ? <span className="rounded-full bg-surface-sunken px-1.5 py-px font-label text-[0.62rem] font-bold text-ink">{i.pro}</span> : null}
                   </Link>
                 </li>
               ))}
@@ -158,7 +156,7 @@ export function SideNav({
           </div>
         );
       })}
-      {bottom.length > 0 ? <div className="mt-3 grid gap-0.5 border-t border-[rgba(34,34,34,0.08)] pt-2">{bottom.map(solo)}</div> : null}
+      {bottom.length > 0 ? <div className="mt-3 grid gap-0.5 border-t border-line pt-2">{bottom.map(solo)}</div> : null}
     </nav>
   );
 }

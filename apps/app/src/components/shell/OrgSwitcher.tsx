@@ -12,8 +12,8 @@ export async function OrgSwitcher({ userId, currentSlug, currentName }: { userId
   });
   const others = memberships.map((m) => m.organization).filter((o) => o.slug !== currentSlug);
   return (
-    <details className="group rounded-lg open:bg-[var(--evoly-creme)]">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg px-2.5 py-2 hover:bg-[var(--evoly-creme)] [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-lg open:bg-surface-sunken">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg px-2.5 py-2 hover:bg-surface-sunken [&::-webkit-details-marker]:hidden">
         <span className="min-w-0">
           <span className="block font-label text-[0.68rem] font-bold text-ink-muted">{t("organization")}</span>
           <span className="block truncate font-semibold">{currentName}</span>
@@ -25,13 +25,13 @@ export async function OrgSwitcher({ userId, currentSlug, currentName }: { userId
       <ul className="grid gap-1 px-2 pb-2">
         {others.map((o) => (
           <li key={o.slug}>
-            <Link href={`/o/${o.slug}`} className="block truncate rounded-xl px-3 py-2 text-sm text-ink hover:bg-blanc">
+            <Link href={`/o/${o.slug}`} className="block truncate rounded-xl px-3 py-2 text-sm text-ink hover:bg-surface-raised">
               {o.name}
             </Link>
           </li>
         ))}
         <li>
-          <Link href="/onboarding" className="block rounded-xl px-3 py-2 text-sm font-semibold text-ink hover:bg-blanc">
+          <Link href="/onboarding" className="block rounded-xl px-3 py-2 text-sm font-semibold text-ink hover:bg-surface-raised">
             + {t("newOrganization")}
           </Link>
         </li>
