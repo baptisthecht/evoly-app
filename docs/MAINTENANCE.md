@@ -63,3 +63,7 @@ sur tous les composants de `src/components`, y compris ceux qui n'ont pas encore
 mais honnête. Même cliquet que pour le serveur : les planchers de `vitest.components.config.ts` sont relevés à chaque
 série de tests ajoutés, jamais abaissés. Un bug corrigé dans un composant reçoit un test qui échoue avec l'ancien code
 (vérifié en remettant l'ancien code le temps d'un essai), comme celui de la caméra du scanner.
+
+Depuis le 18 octobre 2026, la mesure des composants couvre aussi les écrans du tableau de bord (`src/app/**/[A-Z]*.tsx`,
+les fichiers de route en minuscules exclus). Le pourcentage a baissé ce jour-là parce que la mesure est devenue complète,
+pas parce que des tests ont disparu : les planchers ont été fixés sur cette nouvelle mesure, et le cliquet reprend de là.
