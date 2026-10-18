@@ -23,9 +23,9 @@ body {
 
 .page-title {
   font-family: var(--type-display);
-  font-size: var(--text-3xl);
-  line-height: 1;
-  letter-spacing: -0.045em;
+  font-size: 1.375rem; /* 22 px : titres compacts (refonte de la navigation, 18 octobre 2026) */
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .script {

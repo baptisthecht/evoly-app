@@ -1,9 +1,7 @@
-import { can, hasFeature } from "@evoly/core";
 import type { ReactNode } from "react";
 import { AccountMenu } from "@/components/shell/AccountMenu";
-import { NAV } from "@/components/shell/nav";
 import { OrgSwitcher } from "@/components/shell/OrgSwitcher";
-import { Shell, type SidebarLink } from "@/components/shell/Sidebar";
+import { Shell } from "@/components/shell/Sidebar";
 import { getTranslations } from "next-intl/server";
 import { daysBeforeDowngrade } from "@evoly/core";
 import Link from "next/link";
@@ -11,7 +9,7 @@ import { unreadCount } from "@/server/notifications";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
 
-export default async function OrgLayout({ children, params }: { children: ReactNode; params: Promise<{ orgSlug: string }> }) {
+export default async function OrgLayout({ children, sidebar, params }: { children: ReactNode; sidebar: ReactNode; params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params;
   const ctx = await requireOrgContext(orgSlug);
   // RG-AUTH-07 : mémorise la dernière organisation ouverte
@@ -19,13 +17,6 @@ export default async function OrgLayout({ children, params }: { children: ReactN
     where: { userId: ctx.user.id, activeOrganizationId: { not: ctx.organization.id } },
     data: { activeOrganizationId: ctx.organization.id },
   });
-  const base = `/o/${ctx.organization.slug}`;
-  const links: SidebarLink[] = NAV.filter((item) => item.anyOf.length === 0 || item.anyOf.some((p) => can(ctx.membership, p))).map((item) => ({
-    key: item.key,
-    href: `${base}${item.href}`,
-    group: item.group,
-    pro: !!item.feature && !hasFeature(ctx.features, item.feature),
-  }));
   // RG-SUB-06 : bandeau d'impayé dans tout le tableau de bord
   const sub = await db.subscription.findUnique({ where: { organizationId: ctx.organization.id }, select: { status: true, pastDueSince: true } });
   const days = sub ? daysBeforeDowngrade(sub, new Date()) : null;
@@ -37,9 +28,9 @@ export default async function OrgLayout({ children, params }: { children: ReactN
         <Link
           href={`/o/${ctx.organization.slug}/notifications`}
           aria-label={(await getTranslations("notifications"))("bell", { count: unread })}
-          className="relative inline-flex h-11 items-center gap-2 rounded-full bg-blanc/10 px-3 text-sm font-semibold text-creme lg:w-full lg:px-4"
+          className="relative inline-flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[0.84rem] font-medium text-ink-muted hover:bg-[var(--evoly-creme)] hover:text-ink lg:w-full"
         >
-          <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.75">
             <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
             <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
           </svg>
@@ -51,12 +42,12 @@ export default async function OrgLayout({ children, params }: { children: ReactN
           ) : null}
         </Link>
       }
-      links={links}
+      nav={sidebar}
       orgSwitcher={<OrgSwitcher userId={ctx.user.id} currentSlug={ctx.organization.slug} currentName={ctx.organization.name} />}
       account={
         <>
           <AccountMenu name={ctx.user.name} email={ctx.user.email} />
-          <Link href="/compte/securite" className="mt-1 block rounded-full px-3 py-2 text-sm text-creme/80 hover:text-creme">
+          <Link href="/compte/securite" className="block rounded-lg px-2.5 py-1.5 text-[0.8rem] text-ink-muted hover:bg-[var(--evoly-creme)] hover:text-ink">
             {(await getTranslations("twoFactor"))("accountLink")}
           </Link>
         </>
