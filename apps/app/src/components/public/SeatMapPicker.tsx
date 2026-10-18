@@ -85,10 +85,13 @@ export function SeatMapPicker({
   const orphan = mode === "map" && orphanFor(chosen);
 
   // la sélection suit le mode : suggestion en « meilleures places », vierge à l'entrée dans le choix sur le plan
+  // relancé seulement quand le contenu de la suggestion change : un parent qui recrée un plan identique à chaque rendu
+  // ne provoque plus de boucle sans fin (même famille que le choix des billets, 18 octobre 2026)
+  const suggestionKey = suggestion ? suggestion.join() : "aucune";
   useEffect(() => {
     if (mode === "best" && !fixedMode) onChange(suggestion ?? [], !!suggestion);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, suggestion]);
+  }, [mode, suggestionKey]);
 
   const picked = (cat: string) => chosen.filter((id) => byId.get(id)?.categoryId === cat).length;
   // une place libre de ses catégories ; quand le compte est atteint, toucher une autre place remplace la plus ancienne
