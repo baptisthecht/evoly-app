@@ -23,6 +23,7 @@ import type { OrgContext } from "./context";
 import { sendEmail } from "./email/send";
 import { getPlans } from "./plans";
 import { effectivePlan } from "@evoly/core";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 const actorPermissions = (ctx: OrgContext): Permission[] => PERMISSIONS.filter((p) => can(ctx.membership, p));
 const isOwner = (ctx: OrgContext) => canOwnerOnly(ctx.membership, "OWNERSHIP_TRANSFER");
@@ -155,7 +156,7 @@ export async function invitationPreview(token: string, now = new Date()) {
 async function orgAcceptsMembers(organizationId: string) {
   const org = await db.organization.findUniqueOrThrow({
     where: { id: organizationId },
-    select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } },
+    select: { subscription: { select: PLAN_SUBSCRIPTION_SELECT } },
   });
   return hasFeature((await getPlans())[effectivePlan(org.subscription, new Date())].features, "TEAM_MEMBERS");
 }

@@ -36,6 +36,7 @@ import { sanitizeEmailHtml } from "./email/sanitize";
 import { organizationPublicUrl } from "./urls";
 import { publiclyVisible } from "./publication";
 import { safeError } from "@/lib/redact";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 export const REMINDERS: ReminderType[] = ["REMINDER_J7", "REMINDER_J1", "REMINDER_J0"];
 
@@ -86,7 +87,7 @@ export async function runDueReminders(now = new Date()): Promise<number> {
           addressLine1: true,
           postalCode: true,
           city: true,
-          subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } },
+          subscription: { select: PLAN_SUBSCRIPTION_SELECT },
         },
       },
     },
@@ -339,7 +340,7 @@ export async function runDueMarketingAutomations(now = new Date()): Promise<numb
               id: true,
               timezone: true,
               marketingDailyCap: true,
-              subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } },
+              subscription: { select: PLAN_SUBSCRIPTION_SELECT },
             },
           },
         },

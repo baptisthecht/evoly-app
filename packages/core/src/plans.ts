@@ -27,15 +27,16 @@ export type PlanFeature = (typeof PLAN_FEATURES)[number];
 export type PlanId = "free" | "pro" | "partner";
 export type SubscriptionStatus = "NONE" | "TRIALING" | "ACTIVE" | "PAST_DUE" | "UNPAID" | "CANCELED" | "INCOMPLETE";
 
+/** Tous les champs sont obligatoires (null s'il n'y a rien) : un appel qui en oublie un se tromperait d'offre (18 octobre 2026). */
 export interface SubscriptionInput {
   planId: string;
   status: SubscriptionStatus;
-  currentPeriodEnd?: Date | null;
-  pastDueSince?: Date | null;
+  currentPeriodEnd: Date | null;
+  pastDueSince: Date | null;
   /** fin de l'essai : pour une offre attribuée par Evoly (sans abonnement Stripe), elle fait foi */
-  trialEndsAt?: Date | null;
+  trialEndsAt: Date | null;
   /** abonnement Stripe : Stripe met lui-même fin à l'essai ou à la période ; null : offre attribuée par Evoly, dont les dates font foi */
-  stripeSubscriptionId?: string | null;
+  stripeSubscriptionId: string | null;
 }
 
 /** Délai d'impayé avant rétrogradation (RG-SUB-06). */

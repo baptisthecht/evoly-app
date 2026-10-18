@@ -39,6 +39,7 @@ import { formatMoney, toLocale } from "@evoly/i18n";
 import { NO_OPTIONS, priceOptionsInTx, type RequestedOption } from "./options";
 import { blockedForPublic, validOffer } from "./waitlist";
 import { resolveAmbassadorInTx } from "./ambassadors";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 type Tx = Prisma.TransactionClient;
 
@@ -190,7 +191,7 @@ export async function reserveOrder(
       where: { id: input.eventId },
       include: {
         ticketTypes: { include: { priceTiers: true } },
-        organization: { select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } },
+        organization: { select: { subscription: { select: PLAN_SUBSCRIPTION_SELECT } } },
       },
     });
     const types: TicketTypeForSale[] = event.ticketTypes.map((t) => ({ ...t, tiers: t.priceTiers }));

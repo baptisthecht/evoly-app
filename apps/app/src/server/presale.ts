@@ -14,6 +14,7 @@ import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import type { OrgContext } from "./context";
 import { getPlans } from "./plans";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 const cookieName = (eventId: string) => `evoly_presale_${eventId}`;
 const MAX_CODES_PER_EVENT = 20_000;
@@ -56,7 +57,7 @@ export async function unlockPresale(eventId: string, input: string, now = new Da
     select: {
       id: true,
       presaleStartsAt: true,
-      organization: { select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } },
+      organization: { select: { subscription: { select: PLAN_SUBSCRIPTION_SELECT } } },
     },
   });
   if (!event || !(await presaleIncluded(event.organization.subscription, now))) throw new CoreError("PRESALE_INVALID");

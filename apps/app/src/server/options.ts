@@ -6,6 +6,7 @@ import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { exponentFor, findEvent } from "./events";
 import { getPlans } from "./plans";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 /**
  * Options et consommations prépayées (section 9.29, Pro) : jetons boisson, vestiaire, t-shirt…
@@ -104,7 +105,7 @@ export async function publicOptions(eventId: string, features: readonly string[]
 export async function saleOptions(eventId: string, now = new Date()) {
   const ev = await db.event.findUnique({
     where: { id: eventId },
-    select: { organization: { select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } } },
+    select: { organization: { select: { subscription: { select: PLAN_SUBSCRIPTION_SELECT } } } },
   });
   if (!ev) return [];
   const plans = await getPlans();

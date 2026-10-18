@@ -10,6 +10,7 @@ import { isPrepublished, salesOpeningAt } from "@evoly/core";
 import { publiclyVisible } from "./publication";
 import { presaleUsable } from "./presale";
 import { blockedForPublic } from "./waitlist";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 const VISIBLE_STATUSES = ["PUBLISHED", "SALES_PAUSED", "CANCELLED", "ENDED"] as const;
 
@@ -22,7 +23,7 @@ const ORG_SELECT = {
   timezone: true,
   currency: true,
   brand: { select: { displayName: true, logoUrl: true, faviconUrl: true, primaryColor: true, accentColor: true, hideEvolyBranding: true } },
-  subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } },
+  subscription: { select: PLAN_SUBSCRIPTION_SELECT },
 } as const;
 
 async function publicOrg(where: { subdomain: string } | { id: string }) {

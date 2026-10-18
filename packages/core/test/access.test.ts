@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { SubscriptionInput } from "../src/plans";
+const SUB_DEFAULTS = { currentPeriodEnd: null, pastDueSince: null, trialEndsAt: null, stripeSubscriptionId: "sub_stripe" }; // par défaut un abonnement Stripe
 import {
   can,
   canCreateOrganization,
@@ -26,7 +28,7 @@ describe("offre en vigueur (RG-SUB-06, RG-SUB-08)", () => {
     [{ planId: "pro", status: "CANCELED" as const, currentPeriodEnd: new Date("2026-10-31T00:00:00Z") }, "pro"],
     [{ planId: "pro", status: "CANCELED" as const, currentPeriodEnd: days(1) }, "free"],
     [{ planId: "pro", status: "UNPAID" as const }, "free"],
-  ])("%j → %s", (sub, expected) => expect(effectivePlan(sub, now)).toBe(expected));
+  ])("%j → %s", (sub, expected) => expect(effectivePlan({ ...SUB_DEFAULTS, ...sub } as SubscriptionInput, now)).toBe(expected));
 
   it("fonctionnalités", () => {
     expect(hasFeature(["RESALE", "LIVE_STATS"], "RESALE")).toBe(true);

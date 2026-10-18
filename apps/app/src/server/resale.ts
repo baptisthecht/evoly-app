@@ -30,6 +30,7 @@ import { getPlans } from "./plans";
 import { organizationPublicUrl } from "./urls";
 import { isPrepublished } from "@evoly/core";
 import { safeError } from "@/lib/redact";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 const ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const OPEN = ["ACTIVE", "RESERVED"] as const;
@@ -37,7 +38,7 @@ const OPEN = ["ACTIVE", "RESERVED"] as const;
 async function termsFor(organizationId: string, currency: string) {
   const org = await db.organization.findUniqueOrThrow({
     where: { id: organizationId },
-    select: { subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } },
+    select: { subscription: { select: PLAN_SUBSCRIPTION_SELECT } },
   });
   const terms = (await getPlans())[effectivePlan(org.subscription, new Date())].terms[currency];
   if (!terms) throw new CoreError("CURRENCY_NOT_SUPPORTED");

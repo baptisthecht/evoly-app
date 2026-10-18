@@ -4,6 +4,7 @@ import { inkOn } from "@evoly/ui";
 import { db } from "@/lib/db";
 import { getPlans } from "../plans";
 import { publicFileUrl, readLocalFile } from "../storage";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 export interface EmailBrand {
   fromName: string;
@@ -24,7 +25,7 @@ export async function emailBrandFor(organizationId: string): Promise<EmailBrand>
       name: true,
       contactEmail: true,
       brand: true,
-      subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } },
+      subscription: { select: PLAN_SUBSCRIPTION_SELECT },
     },
   });
   const features = (await getPlans())[effectivePlan(org.subscription, new Date())].features;

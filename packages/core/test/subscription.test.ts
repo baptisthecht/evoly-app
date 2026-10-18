@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { daysBeforeDowngrade, effectivePlan, subscriptionStatusFromStripe, trialEligible, yearlySavings } from "../src";
+import type { SubscriptionInput } from "../src/plans";
+const SUB_DEFAULTS = { currentPeriodEnd: null, pastDueSince: null, trialEndsAt: null, stripeSubscriptionId: "sub_stripe" }; // par défaut un abonnement Stripe
 
 describe("abonnement Pro (section 3.5)", () => {
   it("statuts Stripe", () => {
@@ -23,13 +25,29 @@ describe("abonnement Pro (section 3.5)", () => {
     expect(daysBeforeDowngrade({ status: "PAST_DUE", pastDueSince: new Date("2026-09-30T12:00:00Z") }, now)).toBe(0);
     expect(daysBeforeDowngrade({ status: "ACTIVE", pastDueSince: null }, now)).toBeNull();
     const sub = { planId: "pro" as const, status: "PAST_DUE" as const, currentPeriodEnd: null };
-    expect(effectivePlan({ ...sub, pastDueSince: new Date("2026-10-08T12:00:00Z") }, now)).toBe("pro");
-    expect(effectivePlan({ ...sub, pastDueSince: new Date("2026-10-01T12:00:00Z") }, now)).toBe("free");
+    expect(effectivePlan({ ...SUB_DEFAULTS, ...{ ...sub, pastDueSince: new Date("2026-10-08T12:00:00Z") } } as SubscriptionInput, now)).toBe("pro");
+    expect(effectivePlan({ ...SUB_DEFAULTS, ...{ ...sub, pastDueSince: new Date("2026-10-01T12:00:00Z") } } as SubscriptionInput, now)).toBe("free");
   });
   it("résiliation : Pro jusqu'à la fin de la période payée (RG-SUB-04)", () => {
     const now = new Date("2026-10-10T12:00:00Z");
-    expect(effectivePlan({ planId: "pro", status: "CANCELED", currentPeriodEnd: new Date("2026-10-20T00:00:00Z"), pastDueSince: null }, now)).toBe("pro");
-    expect(effectivePlan({ planId: "pro", status: "CANCELED", currentPeriodEnd: new Date("2026-10-01T00:00:00Z"), pastDueSince: null }, now)).toBe("free");
+    expect(
+      effectivePlan(
+        {
+          ...SUB_DEFAULTS,
+          ...{ planId: "pro", status: "CANCELED", currentPeriodEnd: new Date("2026-10-20T00:00:00Z"), pastDueSince: null },
+        } as SubscriptionInput,
+        now,
+      ),
+    ).toBe("pro");
+    expect(
+      effectivePlan(
+        {
+          ...SUB_DEFAULTS,
+          ...{ planId: "pro", status: "CANCELED", currentPeriodEnd: new Date("2026-10-01T00:00:00Z"), pastDueSince: null },
+        } as SubscriptionInput,
+        now,
+      ),
+    ).toBe("free");
   });
   it("offre annuelle : 24,65 € par mois, −15 %", () => {
     expect(yearlySavings(2900, 29580)).toEqual({ perMonthMinor: 2465, savingBps: 1500 });

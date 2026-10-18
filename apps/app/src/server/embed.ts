@@ -3,6 +3,7 @@ import { CoreError, effectivePlan, hasFeature } from "@evoly/core";
 import { db } from "@/lib/db";
 import type { OrgContext } from "./context";
 import { getPlans } from "./plans";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 /** Billetterie intégrable (section 9.26, Pro) : sites autorisés à afficher le module, en HTTPS. */
 export const MAX_EMBED_ORIGINS = 10;
@@ -49,7 +50,7 @@ export async function embedOriginsFor(eventId: string, now = new Date()): Promis
   const e = await db.event.findFirst({
     where: { id: eventId, deletedAt: null, status: "PUBLISHED" },
     select: {
-      organization: { select: { embedOrigins: true, subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } } },
+      organization: { select: { embedOrigins: true, subscription: { select: PLAN_SUBSCRIPTION_SELECT } } },
     },
   });
   if (!e) return [];
@@ -64,7 +65,7 @@ export async function embedEventFor(eventId: string, now = new Date()) {
     select: {
       id: true,
       organization: {
-        select: { slug: true, subdomain: true, subscription: { select: { planId: true, status: true, currentPeriodEnd: true, pastDueSince: true } } },
+        select: { slug: true, subdomain: true, subscription: { select: PLAN_SUBSCRIPTION_SELECT } },
       },
     },
   });

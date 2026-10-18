@@ -60,17 +60,7 @@ export async function findOrgContext(userId: string, orgSlug: string, opts: { su
   };
   const o = member.organization;
   const now = new Date();
-  const plan = effectivePlan(
-    o.subscription
-      ? {
-          planId: o.subscription.planId,
-          status: o.subscription.status,
-          currentPeriodEnd: o.subscription.currentPeriodEnd,
-          pastDueSince: o.subscription.pastDueSince,
-        }
-      : null,
-    now,
-  );
+  const plan = effectivePlan(o.subscription, now); // l'abonnement complet : une offre attribuée par Evoly expire à sa date
   const plans = await getPlans();
   let readOnly = false;
   if (plan === "free") {
