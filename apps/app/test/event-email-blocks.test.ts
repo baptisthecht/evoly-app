@@ -1,56 +1,90 @@
+import { emailDocIsEmpty, type EmailDoc } from "@evoly/core";
 import { describe, expect, it } from "vitest";
-import { renderEventBlock } from "@/server/email/eventBlock";
-import { orderConfirmationEmail, reminderEmail } from "@/server/email/templates";
+import { db } from "@/lib/db";
+import type { OrgContext } from "@/server/context";
+import { eventEmailBlocks, previewEventEmailBlock, saveEventEmailBlock } from "@/server/eventEmailBlocks";
 
-describe("bloc personnalisé des e-mails de billets et de rappel", () => {
-  const content = {
-    type: "doc",
-    content: [
-      { type: "paragraph", content: [{ type: "text", text: "Parking gratuit rue des Lilas" }] },
-      { type: "rawHtml", attrs: { html: "<p>Portes à 19 h</p><script>alert(1)</script>" } },
-    ],
-  };
+const rid = () => Math.random().toString(36).slice(2, 10);
+async function setup(userName = "Camille Dupont") {
+  const id = rid();
+  const org = await db.organization.create({
+    data: { name: "Club des Amis", slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", locale: "fr" },
+  });
+  const event = await db.event.create({
+    data: {
+      organizationId: org.id,
+      slug: `gala-${id}`,
+      publicCode: id.toUpperCase().slice(0, 8),
+      title: "Gala de printemps",
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      startsAt: new Date(Date.now() + 10 * 86_400_000),
+      locationName: "Salle des fêtes",
+      city: "Namur",
+      ticketTypes: { create: { name: "Fosse", priceMinor: 0, currency: "EUR", quantity: 10 } },
+    },
+  });
+  const ctx = { organization: { id: org.id, name: org.name, locale: "fr" }, user: { id: "u1", name: userName } } as unknown as OrgContext;
+  return { org, event, ctx };
+}
+const para = (text: string): EmailDoc => ({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text }] }] });
 
-  it("inséré dans l'e-mail des billets et les rappels, HTML nettoyé, aussi en version texte", () => {
-    const custom = renderEventBlock(content, { firstName: "Léa" });
-    expect(custom).not.toBeNull();
-    const order = orderConfirmationEmail({
-      locale: "fr",
-      organizationName: "Asso",
-      eventTitle: "Gala",
-      when: "samedi",
-      where: "Mouscron",
-      online: null,
-      lines: [{ name: "Fosse", quantity: 1 }],
-      total: null,
-      reference: "EVO-1",
-      url: "https://exemple.be",
-      firstName: "Léa",
-      custom,
-    });
-    expect(order.html).toContain("Parking gratuit rue des Lilas");
-    expect(order.html).toContain("Portes à 19 h");
-    expect(order.html).not.toMatch(/<script/i);
-    expect(order.text).toContain("Parking gratuit rue des Lilas");
-    const reminder = reminderEmail({
-      locale: "es",
-      type: "REMINDER_J1",
-      organizationName: "Asso",
-      organizationAddress: "",
-      firstName: "Ana",
-      eventTitle: "Gala",
-      when: "sábado",
-      where: "Mouscron",
-      tickets: 1,
-      ticketsUrl: "https://exemple.be",
-      unsubscribeEventUrl: "https://exemple.be/u",
-      custom,
-    });
-    expect(reminder.html).toContain("Parking gratuit rue des Lilas");
+describe("blocs des e-mails de billets et de rappel", () => {
+  it("sans bloc : deux blocs vides, prêts pour l'éditeur", async () => {
+    const s = await setup();
+    const blocks = await eventEmailBlocks(s.event.id);
+    expect([emailDocIsEmpty(blocks.ticket), emailDocIsEmpty(blocks.reminder)]).toEqual([true, true]);
   });
 
-  it("vide : rien n'est ajouté", () => {
-    expect(renderEventBlock({ type: "doc", content: [{ type: "paragraph" }] }, {})).toBeNull();
-    expect(renderEventBlock(null, {})).toBeNull();
+  it("bloc enregistré puis relu ; un bloc HTML est nettoyé de tout script avant d'être stocké", async () => {
+    const s = await setup();
+    await saveEventEmailBlock(s.ctx, s.event.id, "ticket", para("Parking gratuit derrière la salle"));
+    await saveEventEmailBlock(s.ctx, s.event.id, "reminder", {
+      type: "doc",
+      content: [{ type: "rawHtml", attrs: { html: "<p>Bloc maison</p><script>alert(1)</script>" } }],
+    });
+    const stored = await db.event.findUniqueOrThrow({ where: { id: s.event.id }, select: { ticketEmailContent: true, reminderEmailContent: true } });
+    expect(JSON.stringify(stored.ticketEmailContent)).toContain("Parking gratuit derrière la salle");
+    expect(JSON.stringify(stored.reminderEmailContent)).toContain("Bloc maison");
+    expect(JSON.stringify(stored.reminderEmailContent)).not.toMatch(/<script/i);
+    expect(JSON.stringify((await eventEmailBlocks(s.event.id)).ticket)).toContain("Parking gratuit derrière la salle");
+  });
+
+  it("bloc vidé : effacé", async () => {
+    const s = await setup();
+    await saveEventEmailBlock(s.ctx, s.event.id, "ticket", para("Texte"));
+    await saveEventEmailBlock(s.ctx, s.event.id, "ticket", { type: "doc", content: [] });
+    expect((await db.event.findUniqueOrThrow({ where: { id: s.event.id }, select: { ticketEmailContent: true } })).ticketEmailContent).toBeNull();
+    expect(emailDocIsEmpty((await eventEmailBlocks(s.event.id)).ticket)).toBe(true);
+  });
+
+  it("événement d'une autre organisation : refusé, à l'enregistrement comme à l'aperçu", async () => {
+    const mine = await setup();
+    const other = await setup();
+    await expect(saveEventEmailBlock(mine.ctx, other.event.id, "ticket", para("x"))).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(previewEventEmailBlock(mine.ctx, other.event.id, "ticket", para("x"))).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("aperçu dans l'e-mail des billets : le bloc, l'événement, une commande d'exemple et le prénom de l'organisateur", async () => {
+    const s = await setup("Camille Dupont");
+    const p = await previewEventEmailBlock(s.ctx, s.event.id, "ticket", para("Parking gratuit derrière la salle"));
+    expect(p.html).toContain("Parking gratuit derrière la salle");
+    expect(p.html).toContain("Gala de printemps");
+    expect(p.html).toContain("EVO-AB12-CD34");
+    expect(p.html).toContain("Camille");
+    expect(p.subject.length).toBeGreaterThan(0);
+    expect(p.warnings).toEqual([]);
+  });
+
+  it("aperçu dans l'e-mail de rappel : prénom par défaut « Léa » si le nom est vide ; les risques d'un bloc HTML sont listés", async () => {
+    const s = await setup("   ");
+    const p = await previewEventEmailBlock(s.ctx, s.event.id, "reminder", para("À demain !"));
+    expect(p.html).toContain("À demain !");
+    expect(p.html).toContain("Léa");
+    const html = await previewEventEmailBlock(s.ctx, s.event.id, "reminder", {
+      type: "doc",
+      content: [{ type: "rawHtml", attrs: { html: '<div style="position:fixed"><form><input></form></div>' } }],
+    });
+    expect(Array.isArray(html.warnings)).toBe(true);
   });
 });
