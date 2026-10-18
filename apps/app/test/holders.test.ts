@@ -58,7 +58,7 @@ describe("e-mail de chaque titulaire (RG-QST-01)", () => {
         ],
       },
     });
-    const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
+    const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
     expect(tickets.map((t) => [t.holderFirstName, t.holderEmail]).sort()).toEqual([
       ["Léa", `lea.${id}@exemple.be`],
       ["Tom", `tom.${id}@exemple.be`],

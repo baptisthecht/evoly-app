@@ -63,7 +63,7 @@ async function purchase() {
   });
   const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 2 }], locale: "fr" });
   await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false });
-  const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
+  const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   return { token: r.token, tickets, event };
 }
 

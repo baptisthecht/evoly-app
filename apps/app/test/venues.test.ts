@@ -257,7 +257,9 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     await acheter(ev, 10);
     await payVenueNow(lieu.ctx, transfer);
     expect(
-      (await db.venuePayout.findMany({ where: { venuePartnerId: v.id, status: "PAID" }, orderBy: { createdAt: "asc" } })).map((p) => p.invoiceNumber),
+      (await db.venuePayout.findMany({ where: { venuePartnerId: v.id, status: "PAID" }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] })).map(
+        (p) => p.invoiceNumber,
+      ),
     ).toEqual([`AF-${v.code}-0001`, `AF-${v.code}-0002`]);
     expect(await db.emailMessage.count({ where: { organizationId: lieu.org.id, template: "venue.payout" } })).toBe(2);
   });

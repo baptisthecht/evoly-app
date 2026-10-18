@@ -237,7 +237,7 @@ describe("billets nominatifs et PDF (RG-QST-01, RG-QST-02, section 9.12)", () =>
         ],
       },
     });
-    const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
+    const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
     expect(tickets.map((t) => `${t.holderFirstName} ${t.holderLastName}`).sort()).toEqual(["Léa Martin", "Tom Dubois"]);
     await updateTicketHolder(r.token, tickets[0]!.id, { firstName: "Zoé", lastName: "Leroy" });
     expect((await db.ticket.findUniqueOrThrow({ where: { id: tickets[0]!.id } })).holderFirstName).toBe("Zoé");

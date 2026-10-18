@@ -39,7 +39,7 @@ const acheter = async (s: Awaited<ReturnType<typeof setup>>) => {
   const r = await reserveOrder({ eventId: s.event.id, lines: [{ ticketTypeId: s.type.id, quantity: 1 }], locale: "fr" });
   await db.order.update({ where: { id: r.orderId }, data: { buyerEmail: `client.${rid()}@exemple.be`, buyerFirstName: "Alex", buyerLastName: "Martin" } });
   expect(await finalizeOrder(r.orderId)).toBe("PAID");
-  return db.order.findUniqueOrThrow({ where: { id: r.orderId }, include: { tickets: { orderBy: { createdAt: "asc" } }, options: true } });
+  return db.order.findUniqueOrThrow({ where: { id: r.orderId }, include: { tickets: { orderBy: [{ createdAt: "asc" }, { id: "asc" }] }, options: true } });
 };
 
 describe("tables et forfaits (section 9.31)", () => {

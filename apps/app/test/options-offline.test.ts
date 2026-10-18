@@ -80,7 +80,7 @@ describe("retrait des options sans réseau (RG-OPT-05)", () => {
       ["b2", 0, 1],
     ]);
     expect(await etat(s.line.id)).toEqual({ redeemed: 3, refunded: 0 }); // jamais plus que vendu
-    const faits = await db.optionRedemption.findMany({ where: { orderOptionId: s.line.id }, orderBy: { createdAt: "asc" } });
+    const faits = await db.optionRedemption.findMany({ where: { orderOptionId: s.line.id }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
     expect(faits.map((f) => [f.deviceId, f.offline, f.createdAt.toISOString()])).toEqual([
       ["tel-A", true, at(10)],
       ["tel-B", true, at(15)],

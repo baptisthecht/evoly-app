@@ -39,7 +39,7 @@ async function setup(opts: { groupSize: number; included: number; tableLabels?: 
   });
   const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: type.id, quantity: 1 }], locale: "fr" });
   expect(await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false })).toEqual({ kind: "PAID" });
-  const seats = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
+  const seats = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   expect(seats).toHaveLength(opts.groupSize);
   return { id, event, option, sellerToken: r.token, sellerOrderId: r.orderId, seats };
 }

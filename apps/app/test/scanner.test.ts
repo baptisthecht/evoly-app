@@ -30,7 +30,7 @@ async function setup(count: number, opts: { allowManualSearch?: boolean } = {}) 
   });
   const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: count }], locale: "fr" });
   await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false });
-  const tickets = await db.ticket.findMany({ where: { eventId: event.id }, orderBy: { createdAt: "asc" } });
+  const tickets = await db.ticket.findMany({ where: { eventId: event.id }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   const ctx = { organization: { id: org.id }, user: { id: user.id } } as unknown as OrgContext;
   const created = await createScannerLink(ctx, event.id, { label: "Entrée principale", duration: "24H", allowManualSearch: opts.allowManualSearch ?? true });
   const resolved = await resolveScannerLink(scannerToken(created.id));

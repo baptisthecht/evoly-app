@@ -31,7 +31,7 @@ async function setup() {
   });
   const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 2 }], locale: "fr" });
   await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false });
-  const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
+  const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   return { id, ctx: { organization: { id: org.id }, user: { id: user.id } } as unknown as OrgContext, orderId: r.orderId, tickets };
 }
 
@@ -58,7 +58,7 @@ describe("entrées et PDF des billets", () => {
       include: {
         organization: { select: { name: true } },
         event: true,
-        tickets: { include: { ticketType: { select: { name: true } } }, orderBy: { createdAt: "asc" } },
+        tickets: { include: { ticketType: { select: { name: true } } }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] },
       },
     });
     const file = `/tmp/billets-${s.id}.pdf`;

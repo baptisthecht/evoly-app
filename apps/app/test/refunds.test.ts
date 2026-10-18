@@ -44,7 +44,7 @@ async function setup(opts: { policy: Policy; priceMinor?: number; quantity?: num
       paymentMethodType: "card",
     });
   }
-  const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
+  const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   const ctx = { organization: { id: org.id }, user: { id: user.id } } as unknown as OrgContext;
   return { id, ctx, org, event, ticketType: event.ticketTypes[0]!, token: r.token, orderId: r.orderId, tickets, email };
 }

@@ -71,7 +71,10 @@ describe("notifications (section 9.20, RG-NTF-01, RG-NTF-02)", () => {
     await db.ticketType.update({ where: { id: e.ticketTypes[0]!.id }, data: { quantitySold: 10 } });
     await notifySalesMilestone(e.id);
     const bodies = (
-      await db.notification.findMany({ where: { organizationId: s.org.id, userId: s.users.OWNER, type: "SALES_MILESTONE" }, orderBy: { createdAt: "asc" } })
+      await db.notification.findMany({
+        where: { organizationId: s.org.id, userId: s.users.OWNER, type: "SALES_MILESTONE" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      })
     ).map((n) => n.body);
     expect(bodies).toEqual(["50 % de la jauge atteints.", "Complet : toutes les places sont vendues."]);
   });

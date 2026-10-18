@@ -30,7 +30,7 @@ describe("vue d'ensemble des reventes de l'organisation (US-RSL-05)", () => {
     // vraie commande, par le parcours d'achat : trois billets
     const r = await reserveOrder({ eventId: gala.id, lines: [{ ticketTypeId: gala.ticketTypes[0]!.id, quantity: 3 }], locale: "fr" });
     await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false });
-    const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: { createdAt: "asc" } });
+    const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
     expect(tickets).toHaveLength(3);
     const statuses = ["ACTIVE", "SOLD", "FAILED"] as const;
     for (const [i, status] of statuses.entries())
