@@ -800,14 +800,14 @@ export async function ticketsCsv(ctx: OrgContext, opts: { period: Period; eventI
       ticketType: { select: { name: true } },
       event: { select: { title: true } },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
   // RG-STAT-04 : export des participants d'un événement, réponses aux questions comprises (une colonne par question)
   const questions =
     opts.withAnswers && opts.eventId
       ? await db.checkoutQuestion.findMany({
           where: { eventId: opts.eventId },
-          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
           select: { id: true, label: true, scope: true },
         })
       : [];

@@ -22,7 +22,7 @@ export async function canonicalEventUrl(
     const domains = await db.customDomain.findMany({
       where: { organizationId: org.id, status: "ACTIVE", OR: [{ scope: "EVENT", eventId: event.id }, { scope: "ORGANIZATION" }] },
       select: { domain: true, scope: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     });
     const own = domains.find((d) => d.scope === "EVENT");
     if (own) return `${protocol()}://${own.domain}${port()}`;
@@ -39,7 +39,7 @@ export async function canonicalOrgUrl(org: { id: string; subdomain: string | nul
     const d = await db.customDomain.findFirst({
       where: { organizationId: org.id, status: "ACTIVE", scope: "ORGANIZATION" },
       select: { domain: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     });
     if (d) return `${protocol()}://${d.domain}${port()}`;
   }

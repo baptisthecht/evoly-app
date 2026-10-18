@@ -208,7 +208,7 @@ export async function dispatchWaitlist(now = new Date()) {
       const locked = await tx.$queryRaw<Array<{ id: string }>>`SELECT id FROM "Event" WHERE id = ${tt.eventId} AND "deletedAt" IS NULL FOR UPDATE`;
       if (locked.length !== 1) return [];
       let free = (await freePlaces(tx, ticketTypeId)) - (await promisedPlaces(tx, ticketTypeId, now));
-      const queue = await tx.waitlistEntry.findMany({ where: { ticketTypeId, status: "WAITING" }, orderBy: { createdAt: "asc" }, take: 20 });
+      const queue = await tx.waitlistEntry.findMany({ where: { ticketTypeId, status: "WAITING" }, orderBy: [{ createdAt: "asc" }, { id: "asc" }], take: 20 });
       const ids: string[] = [];
       for (const e of queue) {
         if (free <= 0) break;
@@ -272,7 +272,7 @@ export async function offerResaleToWaitlist(listingId: string, now = new Date())
   if (!l.event.resaleWaitlistFirst) return 0;
   const waiting = await db.waitlistEntry.findMany({
     where: { ticketTypeId: l.ticket.ticketTypeId, status: "WAITING" },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     take: 500,
   });
   if (waiting.length === 0) return 0;
@@ -323,7 +323,7 @@ export async function waitlistCsv(ctx: OrgContext, eventId: string) {
   const entries = await db.waitlistEntry.findMany({
     where: { eventId, status: { not: "CANCELLED" } },
     include: { ticketType: { select: { name: true } } },
-    orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
+    orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }, { id: "asc" }],
   });
   const rangs = new Map<string, number>();
   const rows: unknown[][] = [

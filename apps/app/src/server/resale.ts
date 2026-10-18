@@ -425,7 +425,7 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
 export async function listingsForOrganizer(eventId: string) {
   return db.resaleListing.findMany({
     where: { eventId },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     include: { ticket: { select: { shortCode: true, ticketType: { select: { name: true } } } } },
   });
 }
@@ -442,7 +442,7 @@ export async function organizationResaleOverview(organizationId: string, now = n
     db.resaleListing.groupBy({ by: ["eventId", "status"], where: { event: { organizationId } }, _count: { _all: true }, _sum: { priceMinor: true } }),
     db.resaleListing.findMany({
       where: { event: { organizationId } },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 20,
       include: {
         event: { select: { id: true, title: true, timezone: true } },

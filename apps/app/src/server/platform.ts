@@ -77,7 +77,7 @@ export async function platformSearch(q: string) {
         currency: true,
         organization: { select: { id: true, name: true } },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 10,
     }),
     db.ticket.findMany({
@@ -126,7 +126,7 @@ export async function organizationSheet(id: string, now = new Date()) {
       where: { event: { organizationId: id }, status: "FAILED" },
       select: { id: true, linkCode: true, failureReason: true, priceMinor: true, event: { select: { title: true } } },
     }),
-    db.auditLog.findMany({ where: { organizationId: id }, orderBy: { createdAt: "desc" }, take: 50 }),
+    db.auditLog.findMany({ where: { organizationId: id }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 50 }),
     db.event.findMany({
       where: { organizationId: id },
       select: { id: true, title: true, startsAt: true, status: true },

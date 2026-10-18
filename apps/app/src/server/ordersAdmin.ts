@@ -46,7 +46,7 @@ export async function searchOrders(ctx: OrgContext, opts: { q?: string; eventId?
   const [rows, total, pendingRequests] = await Promise.all([
     db.order.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 50,
       skip: page * 50,
       include: {
@@ -69,7 +69,7 @@ export async function getOrderDetail(ctx: OrgContext, orderId: string) {
       event: true,
       promoCode: { select: { code: true } },
       items: { include: { ticketType: { select: { name: true } }, priceTier: { select: { name: true } } } },
-      options: { include: { option: { select: { name: true } } }, orderBy: { createdAt: "asc" } }, // RG-OPT-07
+      options: { include: { option: { select: { name: true } } }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] }, // RG-OPT-07
       tickets: {
         include: {
           ticketType: { select: { name: true } },
@@ -77,13 +77,13 @@ export async function getOrderDetail(ctx: OrgContext, orderId: string) {
           checkIns: { where: { result: "VALID" }, orderBy: { scannedAt: "asc" }, take: 1 },
           refundItems: { select: { refund: { select: { status: true } } } },
         },
-        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
+        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }, { id: "asc" }],
       },
       refunds: {
         include: { items: { include: { ticket: { select: { shortCode: true } } } }, handledBy: { select: { name: true } } },
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       },
-      soldListings: { orderBy: { createdAt: "desc" } },
+      soldListings: { orderBy: [{ createdAt: "desc" }, { id: "desc" }] },
       emailMessages: { orderBy: { queuedAt: "desc" }, take: 30 },
       answers: { include: { question: { select: { label: true, sortOrder: true } } }, orderBy: { question: { sortOrder: "asc" } } },
     },

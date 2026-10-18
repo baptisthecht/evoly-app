@@ -119,7 +119,7 @@ export async function resolveAmbassadorInTx(tx: Prisma.TransactionClient, eventI
 
 /** Classement d'un événement : billets valides (ou revendus après la vente) et montant, du premier au dernier (RG-AMB-05). */
 export async function ambassadorRanking(eventId: string) {
-  const ambassadors = await db.ambassador.findMany({ where: { eventId }, orderBy: { createdAt: "asc" } });
+  const ambassadors = await db.ambassador.findMany({ where: { eventId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   const tickets = await db.ticket.findMany({
     where: {
       eventId,
@@ -148,7 +148,7 @@ export async function organizationAmbassadorRanking(ctx: OrgContext) {
   const ambassadors = await db.ambassador.findMany({
     where: { event: { organizationId: ctx.organization.id }, NOT: { statsToken: { startsWith: "anonyme-" } } },
     select: { id: true, name: true, email: true, eventId: true, createdAt: true },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
   const tickets = ambassadors.length
     ? await db.ticket.findMany({

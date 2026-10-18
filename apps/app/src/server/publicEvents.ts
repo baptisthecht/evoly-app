@@ -141,7 +141,7 @@ async function loadPublicEventUncached(
       ticketTypes: {
         where: { status: { in: ["ACTIVE", "SOLD_OUT"] }, visibility: options.codeOnly ? "CODE_ONLY" : "VISIBLE" },
         include: { priceTiers: true },
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
       },
     },
   });

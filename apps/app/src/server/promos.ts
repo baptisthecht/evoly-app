@@ -75,7 +75,7 @@ export async function createPromo(ctx: OrgContext, eventId: string, input: Promo
 
 export async function listPromos(ctx: OrgContext, eventId: string) {
   await findEvent(ctx, eventId);
-  return db.promoCode.findMany({ where: { eventId }, orderBy: { createdAt: "desc" } });
+  return db.promoCode.findMany({ where: { eventId }, orderBy: [{ createdAt: "desc" }, { id: "desc" }] });
 }
 
 async function findPromo(eventId: string, promoId: string) {

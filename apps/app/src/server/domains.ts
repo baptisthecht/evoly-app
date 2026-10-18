@@ -141,7 +141,7 @@ export async function listCustomDomains(ctx: OrgContext) {
   return db.customDomain.findMany({
     where: { organizationId: ctx.organization.id },
     include: { event: { select: { title: true } } },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
 }
 

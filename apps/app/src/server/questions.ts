@@ -11,7 +11,10 @@ import { csvSafe } from "@/lib/csv";
 
 /** Questions publiques d'un événement (actives, dans l'ordre), telles que les voit l'acheteur. */
 export async function publicQuestions(eventId: string): Promise<Array<QuestionDef & { helpText: string | null }>> {
-  const rows = await db.checkoutQuestion.findMany({ where: { eventId, archivedAt: null }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  const rows = await db.checkoutQuestion.findMany({
+    where: { eventId, archivedAt: null },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+  });
   return rows.map((q) => ({
     id: q.id,
     label: q.label,
@@ -29,7 +32,7 @@ export async function listQuestions(ctx: OrgContext, eventId: string) {
   return db.checkoutQuestion.findMany({
     where: { eventId },
     include: { _count: { select: { answers: true } } },
-    orderBy: [{ archivedAt: { sort: "asc", nulls: "first" } }, { sortOrder: "asc" }, { createdAt: "asc" }],
+    orderBy: [{ archivedAt: { sort: "asc", nulls: "first" } }, { sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
   });
 }
 
@@ -63,7 +66,7 @@ export async function moveQuestion(ctx: OrgContext, eventId: string, id: string,
   await findEvent(ctx, eventId);
   const list = await db.checkoutQuestion.findMany({
     where: { eventId, archivedAt: null },
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
     select: { id: true },
   });
   const i = list.findIndex((q) => q.id === id);
@@ -94,7 +97,7 @@ const cell = (v: unknown) => {
 /** Export des réponses : une ligne par commande (questions par commande) ou par billet (questions par billet). */
 export async function answersCsv(ctx: OrgContext, eventId: string): Promise<string> {
   await findEvent(ctx, eventId);
-  const questions = await db.checkoutQuestion.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  const questions = await db.checkoutQuestion.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }] });
   const orders = await db.order.findMany({
     where: { eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
     include: {

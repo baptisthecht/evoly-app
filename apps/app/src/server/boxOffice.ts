@@ -180,7 +180,7 @@ export async function cashReportCsv(ctx: OrgContext, eventId: string) {
       currency: true,
       _count: { select: { tickets: true } },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
   const links = await db.scannerLink.findMany({
     where: { id: { in: orders.map((o) => o.soldByLinkId).filter((x): x is string => !!x) } },

@@ -55,7 +55,7 @@ export async function tableSettings(ctx: OrgContext, eventId: string) {
         includedOptions: { select: { optionId: true, quantity: true } },
       },
     }),
-    db.eventOption.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }], select: { id: true, name: true } }),
+    db.eventOption.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }], select: { id: true, name: true } }),
   ]);
   return { types: types.map((t) => ({ ...t, locked: t.quantitySold + t.quantityHeld > 0 })), options };
 }

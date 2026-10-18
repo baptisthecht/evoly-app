@@ -88,10 +88,14 @@ export async function participantOverview(email: string, now = new Date()) {
     db.resaleListing.findMany({
       where: { sellerEmail: email },
       include: { event: { select: { title: true, startsAt: true, timezone: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 30,
     }),
-    db.contact.findMany({ where: { email }, include: { organization: { select: { id: true, name: true, status: true } } }, orderBy: { createdAt: "asc" } }),
+    db.contact.findMany({
+      where: { email },
+      include: { organization: { select: { id: true, name: true, status: true } } },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    }),
   ]);
   const rows = orders.map((o) => ({
     id: o.id,

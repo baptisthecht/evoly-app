@@ -137,7 +137,7 @@ export async function presaleOverview(eventId: string, limit = 50) {
   const [codes, totals] = await Promise.all([
     db.presaleCode.findMany({
       where: { eventId },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: limit,
       select: { id: true, code: true, label: true, maxUses: true, usedCount: true, disabledAt: true },
     }),
@@ -154,7 +154,7 @@ export async function presaleOverview(eventId: string, limit = 50) {
 /** Export CSV de tous les codes, avec le lien personnel de chacun. */
 export async function presaleCsv(ctx: OrgContext, eventId: string, eventUrl: string) {
   const event = await ownEvent(ctx, eventId);
-  const rows = await db.presaleCode.findMany({ where: { eventId: event.id }, orderBy: { createdAt: "asc" } });
+  const rows = await db.presaleCode.findMany({ where: { eventId: event.id }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   const cell = (v: string | number) => `"${csvSafe(v).replace(/"/g, '""')}"`;
   const lines = [["code", "libellé", "utilisations max", "utilisations", "état", "lien"].map(cell).join(",")];
   for (const r of rows)

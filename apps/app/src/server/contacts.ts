@@ -25,7 +25,12 @@ export async function searchContacts(ctx: OrgContext, opts: { q?: string; filter
   };
   const page = Math.max(0, opts.page ?? 0);
   const [rows, total, stats] = await Promise.all([
-    db.contact.findMany({ where, orderBy: [{ lastOrderAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }], take: 50, skip: page * 50 }),
+    db.contact.findMany({
+      where,
+      orderBy: [{ lastOrderAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }, { id: "desc" }],
+      take: 50,
+      skip: page * 50,
+    }),
     db.contact.count({ where }),
     Promise.all([
       db.contact.count({ where: { organizationId: ctx.organization.id } }),
@@ -43,7 +48,7 @@ const cell = (v: string | number | null | undefined) => {
 
 /** Export des contacts (permission CONTACTS_EXPORT) : consentement, date et source compris (RG-RGPD-01). */
 export async function contactsCsv(ctx: OrgContext): Promise<string> {
-  const rows = await db.contact.findMany({ where: { organizationId: ctx.organization.id }, orderBy: { createdAt: "asc" } });
+  const rows = await db.contact.findMany({ where: { organizationId: ctx.organization.id }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   const head = [
     "E-mail",
     "Prénom",

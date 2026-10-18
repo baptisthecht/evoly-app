@@ -47,12 +47,12 @@ export async function teamOverview(ctx: OrgContext, now = new Date()) {
     db.invitation.findMany({
       where: { organizationId: ctx.organization.id, status: "PENDING", expiresAt: { gt: now } },
       include: { role: { select: { name: true, systemKey: true } }, invitedBy: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     }),
     db.role.findMany({
       where: { OR: [{ organizationId: null, systemKey: { not: null } }, { organizationId: ctx.organization.id }] },
       include: { _count: { select: { members: { where: { organizationId: ctx.organization.id } } } } },
-      orderBy: [{ organizationId: "asc" }, { createdAt: "asc" }],
+      orderBy: [{ organizationId: "asc" }, { createdAt: "asc" }, { id: "asc" }],
     }),
   ]);
   const mine = actorPermissions(ctx);

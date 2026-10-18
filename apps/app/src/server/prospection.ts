@@ -198,12 +198,12 @@ export async function testMailbox(id: string) {
 }
 
 export function listMailboxes() {
-  return db.prospectMailbox.findMany({ orderBy: { createdAt: "asc" } });
+  return db.prospectMailbox.findMany({ orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
 }
 
 /** Capacité du jour de chaque boîte active : montée en charge, moins les e-mails déjà envoyés ou programmés aujourd'hui. */
 export async function availability(now = new Date()) {
-  const boxes = await db.prospectMailbox.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } });
+  const boxes = await db.prospectMailbox.findMany({ where: { active: true }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   const since = dayStart(now);
   const until = new Date(since.getTime() + DAY);
   const used = await db.prospectEmail.groupBy({
@@ -273,7 +273,7 @@ const localDate = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: FUSE
  * chaque boîte envoie à son rythme (2 à 5 minutes entre deux e-mails).
  */
 async function distribute(ids: string[], now: Date, rand: Rand) {
-  const boxes = await db.prospectMailbox.findMany({ where: { active: true }, orderBy: { createdAt: "asc" } });
+  const boxes = await db.prospectMailbox.findMany({ where: { active: true }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
   const [d0, d1] = delay();
   const pending = [...ids];
   const parBoite = new Map<string, number>();
@@ -420,7 +420,7 @@ export async function rebalance(now = new Date(), rand: Rand = defaultRand) {
   const horizon = new Date(now.getTime() + 60_000);
   const toMove = await db.prospectEmail.findMany({
     where: { OR: [{ status: "PROGRAMME", scheduledAt: { gt: horizon } }, { status: "A_ENVOYER" }] },
-    orderBy: [{ scheduledAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
+    orderBy: [{ scheduledAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }, { id: "asc" }],
     select: { id: true },
   });
   if (toMove.length === 0) return { programmes: 0, enAttente: 0, parBoite: [], parJour: [] };
@@ -438,7 +438,7 @@ export async function rebalance(now = new Date(), rand: Rand = defaultRand) {
 /** Programme les e-mails en attente (lots qui dépassaient la capacité d'un jour précédent). */
 /** Programme les e-mails en attente (boîte désactivée, aucune boîte active au moment de l'import), sur les prochains jours. */
 export async function scheduleWaiting(now = new Date(), rand: Rand = defaultRand) {
-  const waiting = await db.prospectEmail.findMany({ where: { status: "A_ENVOYER" }, orderBy: { createdAt: "asc" }, select: { id: true } });
+  const waiting = await db.prospectEmail.findMany({ where: { status: "A_ENVOYER" }, orderBy: [{ createdAt: "asc" }, { id: "asc" }], select: { id: true } });
   const d = await distribute(
     waiting.map((w) => w.id),
     now,
@@ -695,8 +695,8 @@ export function prospectDetail(id: string) {
   return db.prospect.findUnique({
     where: { id },
     include: {
-      emails: { orderBy: { createdAt: "asc" }, include: { box: { select: { address: true } } } },
-      activities: { orderBy: { createdAt: "desc" }, take: 100 },
+      emails: { orderBy: [{ createdAt: "asc" }, { id: "asc" }], include: { box: { select: { address: true } } } },
+      activities: { orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 100 },
     },
   });
 }

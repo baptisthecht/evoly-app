@@ -164,7 +164,7 @@ export async function setTicketTypeStatus(ctx: OrgContext, eventId: string, tick
 /** RG-TKT-04 : ordre d'affichage (monter ou descendre d'un cran). */
 export async function moveTicketType(ctx: OrgContext, eventId: string, ticketTypeId: string, direction: "up" | "down") {
   await editableEvent(ctx, eventId);
-  const list = await db.ticketType.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }], select: { id: true } });
+  const list = await db.ticketType.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }], select: { id: true } });
   const i = list.findIndex((t) => t.id === ticketTypeId);
   const j = direction === "up" ? i - 1 : i + 1;
   if (i < 0 || j < 0 || j >= list.length) return;

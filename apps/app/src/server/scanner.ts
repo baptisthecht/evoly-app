@@ -91,7 +91,10 @@ export async function createScannerLink(
 export async function personalScannerLink(ctx: OrgContext, eventId: string, now = new Date()) {
   const event = await findEvent(ctx, eventId);
   const label = `${PERSONAL}${ctx.user.id}`;
-  const existing = await db.scannerLink.findFirst({ where: { eventId, label, revokedAt: null, expiresAt: { gt: now } }, orderBy: { createdAt: "desc" } });
+  const existing = await db.scannerLink.findFirst({
+    where: { eventId, label, revokedAt: null, expiresAt: { gt: now } },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+  });
   if (existing) return existing;
   const id = `c${humanCode(24, ID_ALPHABET)}`;
   return db.scannerLink.create({
@@ -119,7 +122,7 @@ export async function listScannerLinks(ctx: OrgContext, eventId: string) {
   await findEvent(ctx, eventId);
   const links = await db.scannerLink.findMany({
     where: { eventId },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     include: { _count: { select: { checkIns: true } }, createdBy: { select: { name: true } } },
   });
   return links.map((l) => ({

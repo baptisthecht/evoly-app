@@ -451,7 +451,9 @@ export async function listEvents(organizationId: string) {
 export async function getEventWithTickets(ctx: OrgContext, eventId: string) {
   const event = await db.event.findFirst({
     where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null },
-    include: { ticketTypes: { include: { priceTiers: { orderBy: { sortOrder: "asc" } } }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] } },
+    include: {
+      ticketTypes: { include: { priceTiers: { orderBy: { sortOrder: "asc" } } }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }] },
+    },
   });
   if (!event) throw new CoreError("NOT_FOUND");
   return event;

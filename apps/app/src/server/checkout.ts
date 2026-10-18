@@ -669,7 +669,10 @@ export async function moveIncludedOptions(
   for (const inc of type.includedOptions) {
     const share = Math.floor(inc.quantity / size) + (left === 0 ? inc.quantity % size : 0);
     if (share <= 0) continue;
-    const lines = await tx.orderOption.findMany({ where: { orderId: sold.orderId, optionId: inc.optionId, unitPriceMinor: 0 }, orderBy: { createdAt: "asc" } });
+    const lines = await tx.orderOption.findMany({
+      where: { orderId: sold.orderId, optionId: inc.optionId, unitPriceMinor: 0 },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    });
     let rest = share;
     for (const l of lines) {
       const take = Math.min(l.quantity - l.redeemed - l.refunded, rest);

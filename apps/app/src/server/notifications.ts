@@ -161,7 +161,7 @@ export const unreadCount = (organizationId: string, userId: string) => db.notifi
 export async function listNotifications(organizationId: string, userId: string, page = 0) {
   const where = { organizationId, userId };
   const [rows, total] = await Promise.all([
-    db.notification.findMany({ where, orderBy: { createdAt: "desc" }, take: 30, skip: page * 30 }),
+    db.notification.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 30, skip: page * 30 }),
     db.notification.count({ where }),
   ]);
   return { rows, pages: Math.ceil(total / 30) };

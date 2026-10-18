@@ -67,7 +67,7 @@ export async function sendSalesOpenAlerts(now = new Date(), limit = 200) {
         },
       },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     take: limit,
   });
   let sent = 0;

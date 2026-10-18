@@ -74,7 +74,7 @@ export async function setOptionActive(ctx: OrgContext, eventId: string, optionId
 /** Options de l'événement, avec les quantités vendues et retirées (RG-OPT-08). */
 export async function listOptions(ctx: OrgContext, eventId: string) {
   await findEvent(ctx, eventId);
-  const options = await db.eventOption.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  const options = await db.eventOption.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }] });
   const sums = await db.orderOption.groupBy({
     by: ["optionId"],
     where: { optionId: { in: options.map((o) => o.id) }, order: { status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
@@ -89,7 +89,7 @@ export async function listOptions(ctx: OrgContext, eventId: string) {
 /** Options proposées sur la page de vente : actives, seulement si l'organisation a l'offre Pro. */
 export async function publicOptions(eventId: string, features: readonly string[], now = new Date()) {
   if (!features.includes("PREPAID_OPTIONS")) return [];
-  const options = await db.eventOption.findMany({ where: { eventId, active: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+  const options = await db.eventOption.findMany({ where: { eventId, active: true }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }] });
   const used = await db.orderOption.groupBy({
     by: ["optionId"],
     where: { optionId: { in: options.map((o) => o.id) }, order: counting(now) },
@@ -163,7 +163,7 @@ async function optionsOfOrder(orderId: string) {
   const lines = await db.orderOption.findMany({
     where: { orderId: orderId, order: { status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
     include: { option: { select: { name: true } } },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
   return lines.map((l) => ({
     id: l.id,

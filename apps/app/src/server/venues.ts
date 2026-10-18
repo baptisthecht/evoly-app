@@ -134,7 +134,7 @@ export async function venueSummary(ctx: OrgContext) {
     months: [...months.values()].sort((a, b) => b.month.localeCompare(a.month)),
     payouts: await db.venuePayout.findMany({
       where: { venuePartnerId: venue.id },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 24,
       select: { id: true, amountMinor: true, currency: true, manual: true, status: true, createdAt: true, invoiceNumber: true },
     }),

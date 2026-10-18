@@ -344,7 +344,11 @@ export async function saveTemplate(ctx: OrgContext, input: { name: string; subje
 }
 
 export async function listTemplates(ctx: OrgContext) {
-  return db.emailTemplate.findMany({ where: { organizationId: ctx.organization.id, isArchived: false }, orderBy: { createdAt: "desc" }, take: 30 });
+  return db.emailTemplate.findMany({
+    where: { organizationId: ctx.organization.id, isArchived: false },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: 30,
+  });
 }
 
 export async function archiveTemplate(ctx: OrgContext, id: string) {

@@ -77,7 +77,7 @@ export async function findOrgContext(userId: string, orgSlug: string, opts: { su
             { subscription: { status: { in: ["NONE", "CANCELED", "UNPAID", "INCOMPLETE"] } } },
           ],
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         select: { id: true },
       });
       readOnly = isReadOnlyOrganization({ plan, isOwnersFirstFreeOrganization: !firstFree || firstFree.id === o.id });

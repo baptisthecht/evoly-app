@@ -32,10 +32,10 @@ export async function sendOrderConfirmation(orderId: string, template = "order.c
       event: true,
       organization: { select: { name: true, subdomain: true, slug: true } },
       items: { include: { ticketType: { select: { name: true } } } },
-      options: { include: { option: { select: { name: true } } }, orderBy: { createdAt: "asc" } },
+      options: { include: { option: { select: { name: true } } }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] },
       tickets: {
         include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } },
-        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
+        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }, { id: "asc" }],
       },
     },
   });
@@ -306,7 +306,7 @@ export async function sendTicketsLookup(organizationId: string, email: string, l
       event: { select: { title: true, startsAt: true, endsAt: true, timezone: true } },
       organization: { select: { name: true, subdomain: true, slug: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: 20,
   });
   const upcoming = orders.filter((o) => effectiveEnd(o.event.startsAt, o.event.endsAt) >= now);
@@ -398,10 +398,10 @@ export async function getBuyerOrder(orderId: string) {
       event: true,
       organization: { select: { subdomain: true, slug: true } },
       items: { include: { ticketType: { select: { name: true } }, priceTier: { select: { name: true } } } },
-      options: { include: { option: { select: { name: true } } }, orderBy: { createdAt: "asc" } },
+      options: { include: { option: { select: { name: true } } }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] },
       tickets: {
         include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } },
-        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
+        orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }, { id: "asc" }],
       },
     },
   });
