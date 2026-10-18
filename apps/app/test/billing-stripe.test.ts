@@ -2,15 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // faux client Stripe : chaque appel est enregistré, aucune requête ne part
 const fake = {
-  customers: { create: vi.fn(async () => ({ id: `cus_${Math.random().toString(36).slice(2, 8)}` })) },
-  checkout: { sessions: { create: vi.fn(async () => ({ url: "https://checkout.stripe.com/c/pay/cs_test" })) } },
+  customers: { create: vi.fn(async (_data?: unknown, _opts?: unknown) => ({ id: `cus_${Math.random().toString(36).slice(2, 8)}` })) },
+  checkout: { sessions: { create: vi.fn(async (_data?: unknown, _opts?: unknown) => ({ url: "https://checkout.stripe.com/c/pay/cs_test" })) } },
   billingPortal: { sessions: { create: vi.fn(async () => ({ url: "https://billing.stripe.com/p/session/test" })) } },
   subscriptions: {
     retrieve: vi.fn(async (id: string) => ({
       id,
       items: { data: [{ id: "si_1", price: { id: "price_m", product: "prod_pro", recurring: { interval: "month" } } }] },
     })),
-    update: vi.fn(async () => ({})),
+    update: vi.fn(async (_id?: string, _data?: unknown) => ({})),
   },
   prices: { list: vi.fn(async () => ({ data: [] })), search: vi.fn(async () => ({ data: [] })) },
 };
