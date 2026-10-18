@@ -1837,8 +1837,8 @@
     "stripeNotConfiguredTitle": "A Stripe não está configurada aqui",
     "stripeNotConfiguredBody": "Este ambiente não tem chave Stripe. A ligação de uma conta está desativada.",
     "feesTitle": "Os seus custos",
-    "feesBodyFree": "Comissão: 0,29 € + 2% por bilhete pago, com um máximo de 2,50 € por bilhete, sem contar as taxas de pagamento. Está incluída no preço dos seus bilhetes: os seus participantes pagam o preço apresentado. As taxas de pagamento da Stripe aplicam-se ao preço de custo.",
-    "feesBodyPro": "Comissão: 0,29 € + 2% por bilhete pago, com um máximo de 1 € por bilhete no plano Pro, sem contar as taxas de pagamento. Está incluída no preço dos seus bilhetes: os seus participantes pagam o preço apresentado. As taxas de pagamento da Stripe aplicam-se ao preço de custo.",
+    "feesBodyFree": "Comissão: 0,29 € + 2% por bilhete pago, com um máximo de 2,50 € por bilhete, sem contar as taxas de pagamento. Está incluída no preço dos seus bilhetes: os seus participantes não pagam nenhuma taxa adicional. As taxas de pagamento da Stripe aplicam-se ao preço de custo.",
+    "feesBodyPro": "Comissão: 0,29 € + 2% por bilhete pago, com um máximo de 1 € por bilhete no plano Pro, sem contar as taxas de pagamento. Está incluída no preço dos seus bilhetes: os seus participantes não pagam nenhuma taxa adicional. As taxas de pagamento da Stripe aplicam-se ao preço de custo.",
     "feesBodyPartner": "Com a oferta Partner, a Evoly não cobra qualquer comissão sobre os seus bilhetes. Aplicam-se apenas as taxas de pagamento da Stripe, ao preço de custo."
   },
   "orgSettings": {

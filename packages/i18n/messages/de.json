@@ -1837,8 +1837,8 @@
     "stripeNotConfiguredTitle": "Stripe ist hier nicht eingerichtet",
     "stripeNotConfiguredBody": "Diese Umgebung hat keinen Stripe-Schlüssel. Das Verbinden eines Kontos ist deaktiviert.",
     "feesTitle": "Ihre Gebühren",
-    "feesBodyFree": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, höchstens 2,50 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen den angezeigten Preis. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis.",
-    "feesBodyPro": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, im Pro-Tarif höchstens 1 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen den angezeigten Preis. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis.",
+    "feesBodyFree": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, höchstens 2,50 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen keine zusätzlichen Gebühren. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis.",
+    "feesBodyPro": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, im Pro-Tarif höchstens 1 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen keine zusätzlichen Gebühren. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis.",
     "feesBodyPartner": "Mit dem Partner-Tarif berechnet Evoly keine Gebühr auf Ihre Tickets. Es fallen nur die Zahlungsgebühren von Stripe zum Selbstkostenpreis an."
   },
   "orgSettings": {

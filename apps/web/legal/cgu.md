@@ -15,7 +15,7 @@ Le détail des fonctionnalités de chaque offre figure sur la page Abonnement de
 
 ## 4. Commission Evoly
 
-Pour chaque billet payant vendu, Evoly perçoit une commission de 0,29 € plus 2 % du prix payé, plafonnée à 2,50 € par billet en Free et à 1 € en Pro, hors frais de paiement. Les billets gratuits ne génèrent aucune commission. La commission est prélevée automatiquement sur chaque paiement. Les conditions de l'offre en vigueur au moment de la réservation s'appliquent à la commande.
+Pour chaque billet payant vendu, Evoly perçoit une commission de 0,29 € plus 2 % du prix du billet, plafonnée à 2,50 € par billet en Free et à 1 € en Pro, hors frais de paiement. Les billets gratuits ne génèrent aucune commission. La commission est prélevée automatiquement sur chaque paiement. Les conditions de l'offre en vigueur au moment de la réservation s'appliquent à la commande.
 
 ## 5. Paiements et frais bancaires
 
@@ -34,11 +34,11 @@ Evoly émet chaque mois, par organisation et par devise, un relevé des commissi
 
 ## 8. Remboursements et annulations
 
-L'Organisateur choisit la politique de remboursement de chaque événement et l'affiche aux participants. Lorsqu'un billet est remboursé, le participant récupère le prix payé ; la commission Evoly et les frais bancaires de la vente initiale ne sont pas restitués à l'Organisateur. En cas d'annulation d'un événement, toutes les commandes payées sont remboursées intégralement. En cas de changement de date ou de lieu, les participants peuvent demander un remboursement pendant 14 jours.
+L'Organisateur choisit la politique de remboursement de chaque événement et l'affiche aux participants. Lorsqu'un billet est remboursé, le participant récupère le montant de son achat ; la commission Evoly et les frais bancaires de la vente initiale ne sont pas restitués à l'Organisateur. En cas d'annulation d'un événement, toutes les commandes payées sont remboursées intégralement. En cas de changement de date ou de lieu, les participants peuvent demander un remboursement pendant 14 jours.
 
 ## 9. Revente entre participants
 
-Lorsque l'Organisateur l'active, les participants peuvent revendre leurs billets sur la plateforme, à un prix qui ne peut pas dépasser le prix payé. La commission et les frais bancaires de la revente sont déduits du montant remboursé au vendeur. Le billet revendu est désactivé et un nouveau billet est émis pour l'acheteur.
+Lorsque l'Organisateur l'active, les participants peuvent revendre leurs billets sur la plateforme, à un prix qui ne peut pas dépasser le prix d'achat. La commission et les frais bancaires de la revente sont déduits du montant remboursé au vendeur. Le billet revendu est désactivé et un nouveau billet est émis pour l'acheteur.
 
 ## 10. Obligations de l'Organisateur
 

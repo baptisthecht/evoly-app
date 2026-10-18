@@ -4,7 +4,7 @@ Les billets sont vendus par l'organisateur de l'événement, dont le nom figure 
 
 ## 2. Prix et paiement
 
-Le prix affiché est le prix final, toutes taxes et tous frais compris : vous payez exactement ce qui est annoncé, quel que soit le moyen de paiement. Le paiement est traité par Stripe, prestataire de services de paiement, et encaissé directement par l'organisateur. Vos données bancaires ne sont jamais conservées par Evoly.
+Le prix indiqué est le prix final, toutes taxes et tous frais compris : vous payez exactement ce qui est annoncé, quel que soit le moyen de paiement. Le paiement est traité par Stripe, prestataire de services de paiement, et encaissé directement par l'organisateur. Vos données bancaires ne sont jamais conservées par Evoly.
 
 ## 3. Billets
 
@@ -20,11 +20,11 @@ Conformément à l'article VI.53, 12° du Code de droit économique, les billets
 - **Événement annulé** : vous êtes remboursé intégralement, automatiquement.
 - **Changement de date ou de lieu** : vous pouvez demander un remboursement pendant 14 jours à compter de l'annonce du changement.
 
-Le remboursement porte sur le prix payé et revient sur le moyen de paiement utilisé, dans le délai de traitement de votre banque.
+Le remboursement porte sur le montant de votre achat et revient sur le moyen de paiement utilisé, dans le délai de traitement de votre banque.
 
 ## 6. Revente
 
-Si l'organisateur l'autorise, vous pouvez revendre votre billet sur la plateforme, à un prix qui ne dépasse pas le prix payé. Une fois la place revendue, votre billet est désactivé et vous êtes remboursé du prix de revente, diminué de la commission Evoly et des frais bancaires de la revente. L'acheteur reçoit un nouveau billet.
+Si l'organisateur l'autorise, vous pouvez revendre votre billet sur la plateforme, à un prix qui ne dépasse pas le prix d'achat. Une fois la place revendue, votre billet est désactivé et vous êtes remboursé du prix de revente, diminué de la commission Evoly et des frais bancaires de la revente. L'acheteur reçoit un nouveau billet.
 
 ## 7. Données personnelles
 

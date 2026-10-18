@@ -232,7 +232,7 @@ NO = '<span class="no"><span aria-hidden="true">-</span><span class="vh">Non</sp
 ROWS = [
     ('Commission plafonnée, même sur les billets chers', '2,50 € maximum', '1 € maximum', 'Rare'),
     ('Revente intégrée, sans passer par un site tiers', YES, YES, 'Rare'),
-    ('Prix affiché sans frais ajoutés à l’acheteur', YES, YES, 'Une partie'),
+    ('Aucun frais ajouté à l’acheteur', YES, YES, 'Une partie'),
     ('Billets gratuits sans commission ni limite', YES, YES, 'Fréquent'),
     ('E-mails automatiques et campagnes intégrés', NO, YES, 'Fréquent'),
 ]
@@ -253,7 +253,7 @@ PRO_LIST = plan_items(['Tout le contenu de l’offre Free', 'Commission plafonn�
 
 # ------------------------------------------------------------------ FAQ (brouillon à valider)
 FAQ = [
-    ('Comment fonctionne la commission ?', 'Evoly prélève 0,29 € + 2 % par billet payant, plafonnée à 2,50 € par billet en Free et à 1 € en Pro. Les frais de paiement de Stripe s’ajoutent, au coût réel et sans marge. Tout est déduit automatiquement de vos ventes : vos participants paient le prix affiché, sans frais ajoutés. Les billets gratuits restent à 0 %.'),
+    ('Comment fonctionne la commission ?', 'Evoly prélève 0,29 € + 2 % par billet payant, plafonnée à 2,50 € par billet en Free et à 1 € en Pro. Les frais de paiement de Stripe s’ajoutent, au coût réel et sans marge. Tout est déduit automatiquement de vos ventes : vos participants ne paient aucun frais en plus. Les billets gratuits restent à 0 %.'),
     ('Comment fonctionne la revente de billets ?', 'Un participant qui ne peut plus venir génère un lien de revente et le partage où il le souhaite. Sa place apparaît aussi dans la section « Revente » de votre page de vente. Dès que le premier acheteur a payé, l’ancien billet est désactivé et le nouveau lui est envoyé par e-mail. La revente est incluse dans toutes les offres.'),
     ('Quand est-ce que je reçois mon argent ?', 'Les paiements passent par Stripe. Les recettes de vos ventes sont versées sur votre compte bancaire via votre compte Stripe, selon son calendrier de versement.'),
     ('Comment fonctionne le check-in QR ?', 'Chaque billet porte un QR code. Le jour J, vous scannez les entrées avec le scanner intégré, installable sur mobile, qui vibre à chaque scan. Vos bénévoles reçoivent un lien temporaire et scannent sans créer de compte. La saisie manuelle des codes et les statistiques sont incluses.'),
@@ -263,7 +263,7 @@ FAQ = [
 FAQ_HTML = ''.join(f'<details class="qa"><summary><span>{q}</span><span class="qa__plus" aria-hidden="true">{icon("i-plus", 24, 24)}</span></summary><div class="qa__a"><p>{a}</p></div></details>' for q, a in FAQ)
 
 # ------------------------------------------------------------------ divers
-BAND_ITEMS = ['SANS FRAIS CACHÉS.', 'PRIX AFFICHÉ, PRIX PAYÉ.', 'APPLE PAY ET GOOGLE PAY.', 'REVENTE ENTRE PARTICIPANTS.', 'COMMISSION PLAFONNÉE.', 'STATISTIQUES EN DIRECT.', '0 % SUR LES BILLETS GRATUITS.']
+BAND_ITEMS = ['SANS FRAIS CACHÉS.', 'EN LIGNE EN QUELQUES MINUTES.', 'APPLE PAY ET GOOGLE PAY.', 'REVENTE ENTRE PARTICIPANTS.', 'COMMISSION PLAFONNÉE.', 'STATISTIQUES EN DIRECT.', '0 % SUR LES BILLETS GRATUITS.']
 
 PMS = [('Apple Pay', 'i-phone', '', -3), ('Google Pay', 'i-phone', '', 2), ('Visa', 'i-card', '', -2), ('Mastercard', 'i-card', '', 3),
        ('American Express', 'i-card', '', -1), ('PayPal', 'i-phone', '', 2), ('Klarna', 'i-clock', '', -3), ('Bancontact', 'i-card', '', 1),
@@ -328,11 +328,12 @@ BODY = f'''
     </div>
     <div class="hero__inner">
       <h1 class="display hero__title" id="hero-title">
+        <span class="hero__kicker">Evoly, la billetterie en ligne</span>
         <span class="line"><span>votre prochain</span></span>
         <span class="line line--script"><span>événement<span class="script hl">commence ici<svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 13C52 3 128 4 196 11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></span>.</span></span>
       </h1>
       <div class="hero__copy">
-        <p class="lede hero__lede">Créez votre événement en quelques minutes. Vos participants paient avec Apple Pay, Google Pay ou leur carte bancaire, au prix affiché, sans frais supplémentaires.</p>
+        <p class="lede hero__lede">Créez votre événement en quelques minutes. Vos participants paient avec Apple Pay, Google Pay ou leur carte bancaire, sans frais supplémentaires.</p>
         <div class="hero__ctas"><a class="btn btn--pink" href="{REGISTER}" {EXT}>Créer mon premier événement</a><a class="link" href="#economies">Calculer ce que je perçois</a></div>
         <ul class="trust" aria-label="Garanties">
           <li>{CHECK}Paiement sécurisé par Stripe</li><li>{CHECK}Données hébergées en UE</li><li>{CHECK}Conforme au RGPD</li><li>{CHECK}Gratuit, sans engagement</li>
@@ -387,7 +388,7 @@ BODY = f'''
         <div class="stub stub--pro" data-k="pro"><span class="stub__best">meilleur choix</span><p class="stub__name">Evoly Pro</p><p class="stub__rule">0,29 € + 2 % par billet, 1 € maximum, plus 29 € d’abonnement</p><p class="stub__amt"><b>207 €</b><span>de commission et d’abonnement</span></p><p class="stub__split">dont <b id="calc-comm-pro">178 €</b> de commission et 29 € d’abonnement</p><div class="stub__bar" aria-hidden="true"><i></i></div></div>
       </div>
     </div>
-    <p class="calc__note">Commission Evoly hors frais de paiement : les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Abonnement Pro compté pour un mois. Vos participants paient toujours le prix affiché.</p>
+    <p class="calc__note">Commission Evoly hors frais de paiement : les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Abonnement Pro compté pour un mois. Vos participants ne paient jamais de frais en plus.</p>
     <p class="vh" id="calc-live" aria-live="polite"></p>
   </section>
 
@@ -556,7 +557,7 @@ BODY = f'''
         <a class="btn plan__cta" href="{REGISTER_PRO}" {EXT}>Essayer Pro 14 jours</a>
       </article>
     </div>
-    <p class="pricing__note">Commission hors frais de paiement. Les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Tout est déduit automatiquement de vos ventes : vos participants paient le prix affiché, rien de plus.</p>
+    <p class="pricing__note">Commission hors frais de paiement. Les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Tout est déduit automatiquement de vos ventes : vos participants ne paient rien de plus.</p>
     <div class="waves" aria-hidden="true"></div>
   </section>
 
@@ -675,15 +676,15 @@ else:
 # ------------------------------------------------------------------ référencement (titre, aperçus de liens, données structurées)
 import json as _json, re as _re
 SITE = 'https://evoly.me'
-SEO_TITLE = 'Evoly - Billetterie en ligne : prix affiché, prix payé'
+SEO_TITLE = 'Evoly - La billetterie en ligne sans frais cachés'
 OG_VERSION = '3'  # à incrémenter quand les images d'aperçu changent (caches de Facebook, WhatsApp, LinkedIn)
-SEO_DESC = 'Billetterie en ligne au prix affiché : commission plafonnée, 0 % sur les billets gratuits, revente intégrée et contrôle des entrées par QR code.'
+SEO_DESC = 'Créez votre billetterie en ligne en quelques minutes : commission plafonnée, 0 % sur les billets gratuits, revente intégrée et contrôle des entrées par QR code.'
 _strip = lambda t: _re.sub(r'<[^>]+>', '', t).replace('\u202f', ' ').strip()
 LD = {
   '@context': 'https://schema.org',
   '@graph': [
-    {'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'url': f'{SITE}/', 'logo': f'{SITE}/apple-touch-icon.png', 'description': SEO_DESC, 'legalName': 'Evoly Solutions', 'email': 'hello@evoly.me', 'founder': {'@type': 'Person', 'name': 'Baptist Hecht'}, 'address': {'@type': 'PostalAddress', 'addressLocality': 'Mouscron', 'postalCode': '7700', 'addressCountry': 'BE'}, 'identifier': {'@type': 'PropertyValue', 'propertyID': 'BCE', 'value': '1043.315.766'}, 'sameAs': ['https://www.linkedin.com/company/evoly-tickets/', 'https://www.instagram.com/evoly.me/']},
-    {'@type': 'WebSite', '@id': f'{SITE}/#site', 'name': 'Evoly', 'url': f'{SITE}/', 'inLanguage': 'fr', 'publisher': {'@id': f'{SITE}/#organisation'}},
+    {'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'url': f'{SITE}/', 'logo': f'{SITE}/apple-touch-icon.png', 'description': SEO_DESC, 'legalName': 'Evoly Solutions', 'alternateName': ['Evoly Billetterie', 'Evoly Solutions', 'evoly.me'], 'slogan': 'La billetterie en ligne sans frais cachés', 'knowsAbout': ['billetterie en ligne', 'vente de billets', 'contrôle des entrées', 'revente de billets', 'plan de salle'], 'areaServed': ['BE', 'FR', 'LU', 'CH'], 'contactPoint': {'@type': 'ContactPoint', 'contactType': 'customer support', 'email': 'hello@evoly.me', 'availableLanguage': ['fr', 'en', 'nl', 'de', 'es', 'it', 'pt']}, 'email': 'hello@evoly.me', 'founder': {'@type': 'Person', 'name': 'Baptist Hecht'}, 'address': {'@type': 'PostalAddress', 'addressLocality': 'Mouscron', 'postalCode': '7700', 'addressCountry': 'BE'}, 'identifier': {'@type': 'PropertyValue', 'propertyID': 'BCE', 'value': '1043.315.766'}, 'sameAs': ['https://www.linkedin.com/company/evoly-tickets/', 'https://www.instagram.com/evoly.me/']},
+    {'@type': 'WebSite', '@id': f'{SITE}/#site', 'name': 'Evoly', 'alternateName': 'Evoly Billetterie', 'url': f'{SITE}/', 'inLanguage': 'fr', 'publisher': {'@id': f'{SITE}/#organisation'}},
     {'@type': 'SoftwareApplication', 'name': 'Evoly', 'applicationCategory': 'BusinessApplication', 'operatingSystem': 'Web, iOS, Android', 'url': 'https://app.evoly.me/register', 'description': SEO_DESC, 'publisher': {'@id': f'{SITE}/#organisation'},
      'offers': [
        {'@type': 'Offer', 'name': 'Free', 'price': '0', 'priceCurrency': 'EUR', 'description': 'Billets gratuits sans commission ; billets payants : 0,29 € + 2 %, plafonnée à 2,50 € par billet, hors frais de paiement.'},
@@ -698,8 +699,8 @@ SEO_HEAD = f"""<title>{SEO_TITLE}</title>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Evoly"><meta property="og:locale" content="fr_FR">
 <meta property="og:url" content="{SITE}/"><meta property="og:title" content="{SEO_TITLE}"><meta property="og:description" content="{SEO_DESC}">
-<meta property="og:image" content="{SITE}/og.png?v={OG_VERSION}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Evoly, la billetterie en ligne : prix affiché, prix payé">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png?v={OG_VERSION}"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne : prix affiché, prix payé">
+<meta property="og:image" content="{SITE}/og.png?v={OG_VERSION}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Evoly, la billetterie en ligne sans frais cachés">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png?v={OG_VERSION}"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne sans frais cachés">
 <script type="application/ld+json">{_json.dumps(LD, ensure_ascii=False)}</script>"""
 
 import pages

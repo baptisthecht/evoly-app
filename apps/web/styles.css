@@ -1116,3 +1116,5 @@ main.spaced>section.panel.final{margin-top:var(--gutter);min-height:clamp(480px,
 :root{--z:1}
 @media (min-width:1200px){html{zoom:.8}:root{--z:.8}}
 
+/* titre principal : la marque et le mot-clé, discrets au-dessus de l’accroche */
+.hero__kicker{display:block;font-family:inherit;font-size:clamp(.8rem,1.6vw,.95rem);font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.3;opacity:.8;margin-bottom:.9rem}

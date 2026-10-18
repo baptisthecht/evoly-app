@@ -1837,8 +1837,8 @@
     "stripeNotConfiguredTitle": "Stripe is hier niet ingesteld",
     "stripeNotConfiguredBody": "Deze omgeving heeft geen Stripe-sleutel. Het koppelen van een account is uitgeschakeld.",
     "feesTitle": "Je kosten",
-    "feesBodyFree": "Commissie: € 0,29 + 2% per betaald ticket, met een plafond van € 2,50 per ticket, exclusief betaalkosten. Ze zit in de prijs van je tickets: je bezoekers betalen de getoonde prijs. De betaalkosten van Stripe worden tegen kostprijs aangerekend.",
-    "feesBodyPro": "Commissie: € 0,29 + 2% per betaald ticket, met een plafond van € 1 per ticket met Pro, exclusief betaalkosten. Ze zit in de prijs van je tickets: je bezoekers betalen de getoonde prijs. De betaalkosten van Stripe worden tegen kostprijs aangerekend.",
+    "feesBodyFree": "Commissie: € 0,29 + 2% per betaald ticket, met een plafond van € 2,50 per ticket, exclusief betaalkosten. Ze zit in de prijs van je tickets: je bezoekers betalen geen extra kosten. De betaalkosten van Stripe worden tegen kostprijs aangerekend.",
+    "feesBodyPro": "Commissie: € 0,29 + 2% per betaald ticket, met een plafond van € 1 per ticket met Pro, exclusief betaalkosten. Ze zit in de prijs van je tickets: je bezoekers betalen geen extra kosten. De betaalkosten van Stripe worden tegen kostprijs aangerekend.",
     "feesBodyPartner": "Met Partner rekent Evoly geen commissie op je tickets. Alleen de betaalkosten van Stripe zijn van toepassing, tegen kostprijs."
   },
   "orgSettings": {

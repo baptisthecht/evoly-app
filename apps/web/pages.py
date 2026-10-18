@@ -136,7 +136,7 @@ PAGES = {
             hero('la billetterie des <span class="script">associations</span>.', 'Soirée, gala, tournoi ou spectacle de fin d’année : créez votre billetterie en quelques minutes, sans abonnement et sans carte bancaire.', 'Créer la billetterie de mon association')
             + block('Pensée pour les associations', items([
                 '0 % de commission sur les billets gratuits, toujours, et sans limite.',
-                'Aucun pourboire ni don pré-coché : vos participants paient exactement le prix affiché.',
+                'Aucun pourboire ni don pré-coché : vos participants paient exactement le prix du billet.',
                 'Vous indiquez le montant que vous souhaitez percevoir : le prix de vente est calculé automatiquement.',
                 'Vos bénévoles scannent les entrées depuis leur téléphone, avec un simple lien, sans créer de compte.',
                 'Un participant empêché peut revendre sa place en partageant un lien : vous n’avez plus de remboursements à gérer.',
@@ -151,7 +151,7 @@ PAGES = {
     },
     'eventbrite': {
         'title': 'Evoly ou Eventbrite : comparatif des frais et des fonctions - Evoly',
-        'desc': 'Evoly ou Eventbrite ? Comparez les frais billet par billet : la commission d’Evoly est plafonnée, et vos participants paient le prix affiché.',
+        'desc': 'Evoly ou Eventbrite ? Comparez les frais billet par billet : la commission d’Evoly est plafonnée, et vos participants ne paient aucun frais en plus.',
         'crumb': 'Evoly ou Eventbrite',
         'faq': [],
         'main': lambda p: (
@@ -164,7 +164,7 @@ PAGES = {
                     '<p class="pg__note">Frais de plateforme seuls, par billet. Chez Evoly, les frais de paiement de Stripe s’ajoutent au coût réel ; chez Eventbrite, des frais de traitement des paiements peuvent s’ajouter selon les cas. Grille publique d’Eventbrite pour la France, consultée en octobre 2026, susceptible d’évoluer : <a href="https://www.eventbrite.fr/help/fr/articles/755615/combien-coute-aux-organisateurs-l-utilisation-d-eventbrite/" target="_blank" rel="noopener nofollow">voir la grille d’Eventbrite</a>.</p>')
             + block('Ce qui change avec Evoly', items([
                 'Une commission plafonnée : 2,50 € maximum par billet en Free, 1 € en Pro. Chez Eventbrite, les frais suivent le prix du billet.',
-                'Le prix affiché est le prix payé : vos participants ne découvrent aucun frais au moment de payer.',
+                'Aucune mauvaise surprise : vos participants ne découvrent aucun frais au moment de payer.',
                 'Vous indiquez le montant que vous souhaitez percevoir : le prix de vente est calculé automatiquement.',
                 'La revente entre participants, intégrée à toutes les offres.',
                 'Le plan de salle, avec les meilleures places choisies automatiquement (offre Pro).',
@@ -176,14 +176,14 @@ PAGES = {
     },
     'about': {
         'title': 'Qui sommes-nous - Evoly',
-        'desc': 'Evoly est une billetterie en ligne indépendante, conçue en Belgique par Evoly Solutions : commission plafonnée et prix affiché, sans frais ajoutés.',
+        'desc': 'Evoly est une billetterie en ligne indépendante, conçue en Belgique par Evoly Solutions : commission plafonnée, sans frais ajoutés pour les participants.',
         'crumb': 'Qui sommes-nous',
         'faq': [],
         'main': lambda p: (
             hero('qui <span class="script">sommes-nous ?</span>', 'Evoly est une billetterie en ligne indépendante, conçue en Belgique pour les organisateurs d’événements.', 'Créer mon premier événement')
-            + block('Notre conviction', '<p class="pg__p">Vendre des billets ne devrait réserver aucune mauvaise surprise, ni à l’organisateur ni au public. Evoly applique une commission claire et plafonnée, n’ajoute rien au prix affiché et propose des outils complets, du paiement mobile au plan de salle.</p>')
+            + block('Notre conviction', '<p class="pg__p">Vendre des billets ne devrait réserver aucune mauvaise surprise, ni à l’organisateur ni au public. Evoly applique une commission claire et plafonnée, n’ajoute aucun frais au prix des billets et propose des outils complets, du paiement mobile au plan de salle.</p>')
             + block('Nos principes', items([
-                'Transparence : le prix affiché est le prix payé.',
+                'Transparence : aucun frais caché, ni pour vous ni pour vos participants.',
                 'Simplicité : votre événement en ligne en quelques minutes, sans formation.',
                 'Respect des données : hébergement dans l’Union européenne, conformément au RGPD.',
                 'Disponibilité : pour toute question, écrivez-nous à hello@evoly.me.',

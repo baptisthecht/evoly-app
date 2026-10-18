@@ -1837,8 +1837,8 @@
     "stripeNotConfiguredTitle": "Stripe no está configurado aquí",
     "stripeNotConfiguredBody": "Este entorno no tiene clave de Stripe. La conexión de una cuenta está desactivada.",
     "feesTitle": "Tus gastos",
-    "feesBodyFree": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 2,50 € por entrada, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes pagan el precio mostrado. Los gastos de pago de Stripe se aplican a precio de coste.",
-    "feesBodyPro": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 1 € por entrada con el plan Pro, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes pagan el precio mostrado. Los gastos de pago de Stripe se aplican a precio de coste.",
+    "feesBodyFree": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 2,50 € por entrada, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes no pagan ningún gasto adicional. Los gastos de pago de Stripe se aplican a precio de coste.",
+    "feesBodyPro": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 1 € por entrada con el plan Pro, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes no pagan ningún gasto adicional. Los gastos de pago de Stripe se aplican a precio de coste.",
     "feesBodyPartner": "Con la oferta Partner, Evoly no cobra ninguna comisión por tus entradas. Solo se aplican los gastos de pago de Stripe, a precio de coste."
   },
   "orgSettings": {
