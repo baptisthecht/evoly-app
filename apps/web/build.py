@@ -263,7 +263,7 @@ FAQ = [
 FAQ_HTML = ''.join(f'<details class="qa"><summary><span>{q}</span><span class="qa__plus" aria-hidden="true">{icon("i-plus", 24, 24)}</span></summary><div class="qa__a"><p>{a}</p></div></details>' for q, a in FAQ)
 
 # ------------------------------------------------------------------ divers
-BAND_ITEMS = ['SANS FRAIS CACHÉS.', 'EN LIGNE EN QUELQUES MINUTES.', 'APPLE PAY ET GOOGLE PAY.', 'REVENTE ENTRE PARTICIPANTS.', 'COMMISSION PLAFONNÉE.', 'STATISTIQUES EN DIRECT.', '0 % SUR LES BILLETS GRATUITS.']
+BAND_ITEMS = ['EN 7 LANGUES, PARTOUT EN EUROPE.', 'EN LIGNE EN QUELQUES MINUTES.', 'APPLE PAY ET GOOGLE PAY.', 'REVENTE ENTRE PARTICIPANTS.', 'COMMISSION PLAFONNÉE.', 'STATISTIQUES EN DIRECT.', '0 % SUR LES BILLETS GRATUITS.']
 
 PMS = [('Apple Pay', 'i-phone', '', -3), ('Google Pay', 'i-phone', '', 2), ('Visa', 'i-card', '', -2), ('Mastercard', 'i-card', '', 3),
        ('American Express', 'i-card', '', -1), ('PayPal', 'i-phone', '', 2), ('Klarna', 'i-clock', '', -3), ('Bancontact', 'i-card', '', 1),
@@ -676,14 +676,14 @@ else:
 # ------------------------------------------------------------------ référencement (titre, aperçus de liens, données structurées)
 import json as _json, re as _re
 SITE = 'https://evoly.me'
-SEO_TITLE = 'Evoly - La billetterie en ligne sans frais cachés'
+SEO_TITLE = 'Evoly - Billetterie en ligne pour vos événements'
 OG_VERSION = '3'  # à incrémenter quand les images d'aperçu changent (caches de Facebook, WhatsApp, LinkedIn)
 SEO_DESC = 'Créez votre billetterie en ligne en quelques minutes : commission plafonnée, 0 % sur les billets gratuits, revente intégrée et contrôle des entrées par QR code.'
 _strip = lambda t: _re.sub(r'<[^>]+>', '', t).replace('\u202f', ' ').strip()
 LD = {
   '@context': 'https://schema.org',
   '@graph': [
-    {'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'url': f'{SITE}/', 'logo': f'{SITE}/apple-touch-icon.png', 'description': SEO_DESC, 'legalName': 'Evoly Solutions', 'alternateName': ['Evoly Billetterie', 'Evoly Solutions', 'evoly.me'], 'slogan': 'La billetterie en ligne sans frais cachés', 'knowsAbout': ['billetterie en ligne', 'vente de billets', 'contrôle des entrées', 'revente de billets', 'plan de salle'], 'areaServed': ['BE', 'FR', 'LU', 'CH'], 'contactPoint': {'@type': 'ContactPoint', 'contactType': 'customer support', 'email': 'hello@evoly.me', 'availableLanguage': ['fr', 'en', 'nl', 'de', 'es', 'it', 'pt']}, 'email': 'hello@evoly.me', 'founder': {'@type': 'Person', 'name': 'Baptist Hecht'}, 'address': {'@type': 'PostalAddress', 'addressLocality': 'Mouscron', 'postalCode': '7700', 'addressCountry': 'BE'}, 'identifier': {'@type': 'PropertyValue', 'propertyID': 'BCE', 'value': '1043.315.766'}, 'sameAs': ['https://www.linkedin.com/company/evoly-tickets/', 'https://www.instagram.com/evoly.me/']},
+    {'@type': 'Organization', '@id': f'{SITE}/#organisation', 'name': 'Evoly', 'url': f'{SITE}/', 'logo': f'{SITE}/apple-touch-icon.png', 'description': SEO_DESC, 'legalName': 'Evoly Solutions', 'alternateName': ['Evoly Billetterie', 'Evoly Solutions', 'evoly.me'], 'slogan': 'La billetterie en ligne pour vos événements', 'knowsAbout': ['billetterie en ligne', 'vente de billets', 'contrôle des entrées', 'revente de billets', 'plan de salle'], 'areaServed': {'@type': 'Place', 'name': 'Europe'}, 'contactPoint': {'@type': 'ContactPoint', 'contactType': 'customer support', 'email': 'hello@evoly.me', 'availableLanguage': ['fr', 'en', 'nl', 'de', 'es', 'it', 'pt']}, 'email': 'hello@evoly.me', 'founder': {'@type': 'Person', 'name': 'Baptist Hecht'}, 'address': {'@type': 'PostalAddress', 'addressLocality': 'Mouscron', 'postalCode': '7700', 'addressCountry': 'BE'}, 'identifier': {'@type': 'PropertyValue', 'propertyID': 'BCE', 'value': '1043.315.766'}, 'sameAs': ['https://www.linkedin.com/company/evoly-tickets/', 'https://www.instagram.com/evoly.me/']},
     {'@type': 'WebSite', '@id': f'{SITE}/#site', 'name': 'Evoly', 'alternateName': 'Evoly Billetterie', 'url': f'{SITE}/', 'inLanguage': 'fr', 'publisher': {'@id': f'{SITE}/#organisation'}},
     {'@type': 'SoftwareApplication', 'name': 'Evoly', 'applicationCategory': 'BusinessApplication', 'operatingSystem': 'Web, iOS, Android', 'url': 'https://app.evoly.me/register', 'description': SEO_DESC, 'publisher': {'@id': f'{SITE}/#organisation'},
      'offers': [
@@ -699,8 +699,8 @@ SEO_HEAD = f"""<title>{SEO_TITLE}</title>
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Evoly"><meta property="og:locale" content="fr_FR">
 <meta property="og:url" content="{SITE}/"><meta property="og:title" content="{SEO_TITLE}"><meta property="og:description" content="{SEO_DESC}">
-<meta property="og:image" content="{SITE}/og.png?v={OG_VERSION}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Evoly, la billetterie en ligne sans frais cachés">
-<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png?v={OG_VERSION}"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne sans frais cachés">
+<meta property="og:image" content="{SITE}/og.png?v={OG_VERSION}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Evoly, la billetterie en ligne pour vos événements">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png?v={OG_VERSION}"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne pour vos événements">
 <script type="application/ld+json">{_json.dumps(LD, ensure_ascii=False)}</script>"""
 
 import pages

@@ -176,14 +176,14 @@ PAGES = {
     },
     'about': {
         'title': 'Qui sommes-nous - Evoly',
-        'desc': 'Evoly est une billetterie en ligne indépendante, conçue en Belgique par Evoly Solutions : commission plafonnée, sans frais ajoutés pour les participants.',
+        'desc': 'Evoly est une billetterie en ligne européenne et indépendante, éditée par Evoly Solutions : commission plafonnée, sans frais ajoutés pour les participants.',
         'crumb': 'Qui sommes-nous',
         'faq': [],
         'main': lambda p: (
-            hero('qui <span class="script">sommes-nous ?</span>', 'Evoly est une billetterie en ligne indépendante, conçue en Belgique pour les organisateurs d’événements.', 'Créer mon premier événement')
+            hero('qui <span class="script">sommes-nous ?</span>', 'Evoly est une billetterie en ligne européenne et indépendante, conçue pour les organisateurs d’événements.', 'Créer mon premier événement')
             + block('Notre conviction', '<p class="pg__p">Vendre des billets ne devrait réserver aucune mauvaise surprise, ni à l’organisateur ni au public. Evoly applique une commission claire et plafonnée, n’ajoute aucun frais au prix des billets et propose des outils complets, du paiement mobile au plan de salle.</p>')
             + block('Nos principes', items([
-                'Transparence : aucun frais caché, ni pour vous ni pour vos participants.',
+                'Transparence : une commission claire et plafonnée, connue d’avance.',
                 'Simplicité : votre événement en ligne en quelques minutes, sans formation.',
                 'Respect des données : hébergement dans l’Union européenne, conformément au RGPD.',
                 'Disponibilité : pour toute question, écrivez-nous à hello@evoly.me.',
