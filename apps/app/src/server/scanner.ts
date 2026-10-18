@@ -187,14 +187,14 @@ export async function scannerManifest(link: ResolvedLink) {
       orderId: true,
       order: { select: { buyerFirstName: true, buyerLastName: true, buyerEmail: true } },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }], // ordre stable sur le téléphone, même pour des billets créés ensemble
   });
   const salt = link.id;
   // options de chaque commande, pour retirer au bar sans réseau (RG-OPT-05)
   const optionLines = await db.orderOption.findMany({
     where: { order: { eventId: link.eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
     select: { id: true, orderId: true, quantity: true, redeemed: true, refunded: true, option: { select: { name: true } } },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }], // ordre stable sur le téléphone, même pour des billets créés ensemble
   });
   const options: Record<string, Array<{ id: string; name: string; quantity: number; redeemed: number; left: number }>> = {};
   for (const l of optionLines)

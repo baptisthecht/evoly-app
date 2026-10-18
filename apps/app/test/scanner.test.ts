@@ -88,7 +88,8 @@ describe("scanner (RG-SCN-01 à 09)", () => {
     const { link, tickets } = await setup(2);
     const m = await scannerManifest(link);
     expect(m.tickets).toHaveLength(2);
-    expect(m.tickets[0]!.codeHash).toBe(createHash("sha256").update(`${link.id}:${tickets[0]!.code}`).digest("hex"));
+    // chaque billet retrouvé par son identifiant, jamais par sa position (billets créés dans la même milliseconde)
+    for (const t of tickets) expect(m.tickets.find((x) => x.id === t.id)!.codeHash).toBe(createHash("sha256").update(`${link.id}:${t.code}`).digest("hex"));
     const serialized = JSON.stringify(m);
     for (const forbidden of ["priceMinor", "faceValueMinor", "totalMinor", tickets[0]!.code]) expect(serialized).not.toContain(forbidden);
   });
