@@ -15,7 +15,7 @@ export default defineConfig({
       include: ["src/components/**/*.tsx"],
       reporter: ["text-summary", "json-summary"],
       reportsDirectory: "coverage-components",
-      thresholds: { statements: 18, branches: 14, functions: 12, lines: 19 }, // 18 octobre 2026 : 23 tests (caméra, barre, scanner, panier)
+      thresholds: { statements: 25, branches: 19, functions: 20, lines: 26 }, // 18 octobre 2026 : 36 tests (caméra, barre, scanner, panier, vente sur place, minuteurs, coquille)
     },
   },
 });

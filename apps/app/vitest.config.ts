@@ -18,7 +18,7 @@ export default defineConfig({
       provider: "v8",
       include: ["src/server/**/*.ts", "src/lib/**/*.ts"],
       exclude: ["src/generated/**"],
-      reporter: ["text-summary", "json-summary"],
+      reporter: ["text", "text-summary", "json-summary"], // tableau par fichier dans le journal de la CI : les moins couverts d'abord
       thresholds: { statements: 81, branches: 69, functions: 82, lines: 87 },
     },
     env: {
