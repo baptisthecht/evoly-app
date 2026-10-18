@@ -147,7 +147,12 @@ export function TicketPicker({
       if (c && !c.standing && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n;
     }
   useEffect(() => {
-    if (count === 0) setOptQty((q) => Object.fromEntries(Object.entries(q).filter(([id]) => options.find((o) => o.id === id)?.standalone)));
+    if (count !== 0) return;
+    // rien à retirer : le même objet, donc aucun nouveau rendu (sinon boucle sans fin avec le tableau d'options par défaut)
+    setOptQty((q) => {
+      const kept = Object.fromEntries(Object.entries(q).filter(([id]) => options.find((o) => o.id === id)?.standalone));
+      return Object.keys(kept).length === Object.keys(q).length ? q : kept;
+    });
   }, [count, options]);
   const reserve = async () => {
     if (!checkout || !canBuy) return;
