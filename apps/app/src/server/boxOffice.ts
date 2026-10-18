@@ -7,6 +7,7 @@ import type { OrgContext } from "./context";
 import { findEvent } from "./events";
 import { afterOrderPaid } from "./orders";
 import { organizationPublicUrl } from "./urls";
+import { csvSafe } from "@/lib/csv";
 
 /**
  * Vente sur place (section 9.27) depuis l'application du scanner : même stock que la vente en ligne (RG-POS-01), billets marqués
@@ -153,7 +154,7 @@ export function cashHandOver(rows: CashRow[]) {
 }
 
 /** CSV pour Excel (BOM, point-virgule) : chaque cellule entre guillemets. */
-const csv = (rows: unknown[][]) => "\uFEFF" + rows.map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\r\n") + "\r\n";
+const csv = (rows: unknown[][]) => "\uFEFF" + rows.map((r) => r.map((v) => `"${csvSafe(v).replace(/"/g, '""')}"`).join(";")).join("\r\n") + "\r\n";
 const dateCell = (d: Date | null | undefined, timeZone: string) =>
   d ? new Intl.DateTimeFormat("fr-BE", { timeZone, dateStyle: "short", timeStyle: "short" }).format(d) : "";
 

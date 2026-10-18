@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { safeError } from "@/lib/redact";
 import { checkAddress } from "./emailCheck";
+import { csvSafe } from "@/lib/csv";
 
 /**
  * Prospection d'Evoly (back-office) : boîtes d'envoi configurées dans le back-office (mot de passe chiffré), capacité
@@ -727,7 +728,7 @@ export async function pipelineStats(now = new Date()) {
 /** Export de la liste des prospects (CSV, séparateur point-virgule, lisible par Excel). */
 export async function prospectsCsv() {
   const rows = await db.prospect.findMany({ orderBy: { updatedAt: "desc" }, include: { _count: { select: { emails: true } } } });
-  const cell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const cell = (v: unknown) => `"${csvSafe(v).replace(/"/g, '""')}"`;
   const d = (x: Date | null) => (x ? new Intl.DateTimeFormat("en-CA", { timeZone: FUSEAU }).format(x) : "");
   const lines = [["Organisation", "E-mail", "Statut", "Dernier contact", "Première réponse", "Relance", "E-mails", "Notes", "Source"].map(cell).join(";")];
   for (const p of rows)

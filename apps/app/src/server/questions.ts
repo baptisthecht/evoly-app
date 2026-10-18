@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { findEvent } from "./events";
+import { csvSafe } from "@/lib/csv";
 
 /** Questions publiques d'un événement (actives, dans l'ordre), telles que les voit l'acheteur. */
 export async function publicQuestions(eventId: string): Promise<Array<QuestionDef & { helpText: string | null }>> {
@@ -86,7 +87,7 @@ export async function removeQuestion(ctx: OrgContext, eventId: string, id: strin
 }
 
 const cell = (v: unknown) => {
-  const s = v == null ? "" : Array.isArray(v) ? v.join(", ") : typeof v === "boolean" ? (v ? "oui" : "non") : String(v);
+  const s = csvSafe(v);
   return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 

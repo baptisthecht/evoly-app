@@ -15,6 +15,7 @@ import { db } from "@/lib/db";
 import type { OrgContext } from "./context";
 import { getPlans } from "./plans";
 import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
+import { csvSafe } from "@/lib/csv";
 
 const cookieName = (eventId: string) => `evoly_presale_${eventId}`;
 const MAX_CODES_PER_EVENT = 20_000;
@@ -154,7 +155,7 @@ export async function presaleOverview(eventId: string, limit = 50) {
 export async function presaleCsv(ctx: OrgContext, eventId: string, eventUrl: string) {
   const event = await ownEvent(ctx, eventId);
   const rows = await db.presaleCode.findMany({ where: { eventId: event.id }, orderBy: { createdAt: "asc" } });
-  const cell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
+  const cell = (v: string | number) => `"${csvSafe(v).replace(/"/g, '""')}"`;
   const lines = [["code", "libellé", "utilisations max", "utilisations", "état", "lien"].map(cell).join(",")];
   for (const r of rows)
     lines.push(

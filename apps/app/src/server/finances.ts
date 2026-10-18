@@ -21,6 +21,7 @@ import type { OrgContext } from "./context";
 import { sendEmail } from "./email/send";
 import { notify } from "./notifications";
 import { safeError } from "@/lib/redact";
+import { csvSafe } from "@/lib/csv";
 
 export type Period = "THIS_MONTH" | "LAST_MONTH" | "LAST_30_DAYS" | "THIS_YEAR" | "ALL";
 const COUNTED = ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] as const;
@@ -699,7 +700,7 @@ export async function issuePreviousMonthStatements(now = new Date()) {
 }
 
 const csvCell = (v: string | number | null | undefined) => {
-  const s = v == null ? "" : String(v);
+  const s = csvSafe(v);
   return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 const amount = (minor: number) => (minor / 100).toFixed(2).replace(".", ",");

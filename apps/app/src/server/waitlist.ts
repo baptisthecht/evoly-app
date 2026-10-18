@@ -13,6 +13,7 @@ import { resaleShortUrl } from "./resale";
 import { eventPublicUrl } from "./urls";
 import type { OrgContext } from "./context";
 import { findEvent } from "./events";
+import { csvSafe } from "@/lib/csv";
 
 /**
  * Liste d'attente (section 9.30). Une place libérée revient d'abord aux inscrits, dans l'ordre d'inscription : tant que des
@@ -305,7 +306,7 @@ export async function offerResaleToWaitlist(listingId: string, now = new Date())
 }
 
 /** CSV pour Excel (BOM, point-virgule) : chaque cellule entre guillemets. */
-const csv = (rows: unknown[][]) => "\uFEFF" + rows.map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\r\n") + "\r\n";
+const csv = (rows: unknown[][]) => "\uFEFF" + rows.map((r) => r.map((v) => `"${csvSafe(v).replace(/"/g, '""')}"`).join(";")).join("\r\n") + "\r\n";
 const dateCell = (d: Date | null | undefined, timeZone: string) =>
   d ? new Intl.DateTimeFormat("fr-BE", { timeZone, dateStyle: "short", timeStyle: "short" }).format(d) : "";
 

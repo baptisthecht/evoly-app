@@ -2,6 +2,7 @@ import "server-only";
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import type { OrgContext } from "./context";
+import { csvSafe } from "@/lib/csv";
 
 export type ContactFilter = "ALL" | "CONSENTING" | "UNSUBSCRIBED";
 
@@ -36,7 +37,7 @@ export async function searchContacts(ctx: OrgContext, opts: { q?: string; filter
 }
 
 const cell = (v: string | number | null | undefined) => {
-  const s = v == null ? "" : String(v);
+  const s = csvSafe(v);
   return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 

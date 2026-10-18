@@ -9,6 +9,7 @@ import type { OrgContext } from "./context";
 import { findEvent } from "./events";
 import { eventPublicUrl } from "./urls";
 import { createPromo } from "./promos";
+import { csvSafe } from "@/lib/csv";
 
 /**
  * Ambassadeurs (section 9.28, Pro) : chaque membre de l'équipe ou promoteur a son lien de vente (?a=CODE) ; la commande est attribuée
@@ -225,7 +226,7 @@ export async function ambassadorStats(token: string) {
 /** Export du classement (CSV, séparateur point-virgule, lisible par Excel). */
 export async function ambassadorsCsv(ctx: OrgContext, eventId: string) {
   const rows = await listAmbassadors(ctx, eventId);
-  const cell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const cell = (v: unknown) => `"${csvSafe(v).replace(/"/g, '""')}"`;
   const lines = [["Rang", "Nom", "E-mail", "Code", "Billets", "Montant", "Objectif", "Lien de vente"].map(cell).join(";")];
   rows.forEach((r, i) => lines.push([i + 1, r.name, r.email, r.code, r.tickets, (r.amountMinor / 100).toFixed(2), r.goal, r.saleUrl].map(cell).join(";")));
   return "\uFEFF" + lines.join("\r\n") + "\r\n";
