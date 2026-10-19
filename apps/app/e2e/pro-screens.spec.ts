@@ -4,7 +4,7 @@ import { appUrl, organizer, sql, uid } from "./helpers";
 
 // écrans Pro qu'aucun parcours n'ouvrait encore : prévente, protection anti-robots, ambassadeurs
 const fr = JSON.parse(readFileSync("../../packages/i18n/messages/fr.json", "utf8")) as Record<string, Record<string, string>>;
-const [pre, amb] = [fr.presale!, fr.ambassadors!];
+const [pre, amb, emb] = [fr.presale!, fr.ambassadors!, fr["embed"]!];
 test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== "desktop", "un seul format suffit pour ces écrans"));
 
 /** Organisation Pro (offre active 30 jours) avec un brouillon d'événement ; renvoie l'adresse de l'événement. */
@@ -53,4 +53,14 @@ test("ambassadeurs (Pro) : un ambassadeur est ajouté puis listé", async ({ pag
   await page.getByRole("button", { name: amb.add }).click();
   await expect(page.getByText(amb.saved!)).toBeVisible();
   await expect(page.getByText("Nora Ambassadrice").first()).toBeVisible();
+});
+
+test("intégration sur un site : un site est déclaré, listé, puis retiré", async ({ page }) => {
+  const eventUrl = await proDraft(page);
+  await page.goto(`${eventUrl}/embed`);
+  await page.locator("#embed-origin").fill("monclub.be");
+  await page.getByRole("button", { name: emb.add, exact: true }).click();
+  await expect(page.getByText("monclub.be").first()).toBeVisible();
+  await page.getByRole("button", { name: emb["remove"] }).first().click();
+  await expect(page.getByText("https://monclub.be")).toHaveCount(0);
 });
