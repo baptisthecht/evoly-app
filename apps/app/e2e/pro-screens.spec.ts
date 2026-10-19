@@ -4,7 +4,7 @@ import { appUrl, organizer, sql, uid } from "./helpers";
 
 // écrans Pro qu'aucun parcours n'ouvrait encore : prévente, protection anti-robots, ambassadeurs
 const fr = JSON.parse(readFileSync("../../packages/i18n/messages/fr.json", "utf8")) as Record<string, Record<string, string>>;
-const [pre, amb, emb] = [fr.presale!, fr.ambassadors!, fr["embed"]!];
+const [pre, amb, emb, seat, tab] = [fr.presale!, fr.ambassadors!, fr["embed"]!, fr.seatingEditor!, fr.tables!];
 test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== "desktop", "un seul format suffit pour ces écrans"));
 
 /** Organisation Pro (offre active 30 jours) avec un brouillon d'événement ; renvoie l'adresse de l'événement. */
@@ -63,4 +63,21 @@ test("intégration sur un site : un site est déclaré, listé, puis retiré", a
   await expect(page.getByText("monclub.be").first()).toBeVisible();
   await page.getByRole("button", { name: emb["remove"] }).first().click();
   await expect(page.getByText("https://monclub.be")).toHaveCount(0);
+});
+
+test("plan de salle (Pro) : un modèle est proposé, et « Théâtre » crée des places", async ({ page }) => {
+  const eventUrl = await proDraft(page);
+  await page.goto(`${eventUrl}/seating`);
+  await expect(page.getByText(seat.chooseTemplate!)).toBeVisible();
+  await page.getByRole("radio", { name: new RegExp(seat.tpl_theatre!) }).check();
+  await page.getByRole("button", { name: seat.generate, exact: true }).click();
+  await expect(page.getByText(/\d+ places/).first()).toBeVisible({ timeout: 20_000 });
+});
+
+test("tables (Pro) : un tarif devient une table de 6 personnes, enregistrement confirmé", async ({ page }) => {
+  const eventUrl = await proDraft(page);
+  await page.goto(`${eventUrl}/tables`);
+  await page.locator('input[id^="table-"][id$="-size"]').first().fill("6");
+  await page.getByRole("button", { name: tab.save, exact: true }).first().click();
+  await expect(page.getByText(tab.saved!).first()).toBeVisible();
 });
