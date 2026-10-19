@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { queueTrackedEvent, readAcquisition } from "@/server/trackingServer";
 import { z } from "zod";
 import { LAUNCH_COUNTRIES } from "@/lib/countries";
 import { formToObject, runOrgAction, zodFields, type ActionState } from "@/server/guard";
@@ -34,13 +35,18 @@ export async function createOrganizationAction(_: ActionState, form: FormData): 
   if (!parsed.success) return { ok: false, error: "INVALID_INPUT", fields: zodFields(parsed.error) };
   let slug: string;
   try {
-    const org = await createOrganization(session.user.id, {
-      name: parsed.data.name,
-      subdomain: parsed.data.subdomain,
-      country: parsed.data.country,
-      type: parsed.data.type,
-    });
+    const org = await createOrganization(
+      session.user.id,
+      {
+        name: parsed.data.name,
+        subdomain: parsed.data.subdomain,
+        country: parsed.data.country,
+        type: parsed.data.type,
+      },
+      await readAcquisition(),
+    );
     slug = org.slug;
+    await queueTrackedEvent("organization_created");
   } catch (e) {
     if (e instanceof CoreError) {
       if (e.code.startsWith("SUBDOMAIN_")) return { ok: false, error: "INVALID_INPUT", fields: { subdomain: `validation.${e.code}` } };

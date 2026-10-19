@@ -703,6 +703,12 @@ SEO_HEAD = f"""<title>{SEO_TITLE}</title>
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{SEO_TITLE}"><meta name="twitter:description" content="{SEO_DESC}"><meta name="twitter:image" content="{SITE}/og.png?v={OG_VERSION}"><meta name="twitter:image:alt" content="Evoly, la billetterie en ligne pour vos événements">
 <script type="application/ld+json">{_json.dumps(LD, ensure_ascii=False)}</script>"""
 
+# mesure d'audience et publicité (docs/TRACKING.md) : identifiants lus à la construction, rien sans identifiant ni accord
+TRACKING = (
+    '<script>window.EVOLY_TRACKING=' + _json.dumps({"ga": os.environ.get("EVOLY_GA_ID", ""), "ads": os.environ.get("EVOLY_GOOGLE_ADS_ID", ""), "base": os.environ.get("EVOLY_BASE_DOMAIN", "evoly.me")}) + '</script>\n'
+    + '<script>' + open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tracking.js'), encoding='utf-8').read() + '</script>'
+)
+
 import pages
 page = f'''<!doctype html>
 <html lang="fr" class="no-js">
@@ -722,6 +728,7 @@ page = f'''<!doctype html>
 <script>
 {js}
 </script>
+{TRACKING}
 </body>
 </html>
 '''

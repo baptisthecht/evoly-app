@@ -14,6 +14,7 @@ import { env } from "@/lib/env";
 import { formToObject, zodFields, type ActionState } from "@/server/guard";
 import { hit, isLimited, reset } from "@/server/rateLimit";
 import { clientIp } from "@/server/requestInfo";
+import { queueTrackedEvent } from "@/server/trackingServer";
 
 const email = z
   .string()
@@ -63,6 +64,7 @@ export async function registerAction(_: ActionState, form: FormData): Promise<Ac
       return { ok: false, error: "INVALID_INPUT", fields: { password: "validation.passwordLength" } };
     throw e;
   }
+  await queueTrackedEvent("sign_up"); // compte créé : conversion envoyée par la page suivante, avec consentement
   redirect(`/verify-email?email=${encodeURIComponent(parsed.data.email)}`);
 }
 

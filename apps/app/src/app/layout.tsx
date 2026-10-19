@@ -6,6 +6,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import type { ReactNode } from "react";
 import { PwaRegister } from "@/components/pwa/PwaRegister";
+import { Tracking } from "@/components/tracking/Tracking";
 import { isAppHost } from "@/lib/pwa";
 
 const BASE: Metadata = {
@@ -37,6 +38,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body className="min-h-dvh">
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
+          {/* sur app.evoly.me seulement : jamais sur les billetteries des organisateurs */}
+          {appHost && <Tracking />}
         </NextIntlClientProvider>
         {appHost && <PwaRegister />}
       </body>

@@ -39,6 +39,7 @@ Les e-mails marketing des organisateurs (campagnes, e-mails automatiques) contie
 | Cloudflare                 | Réseau, certificats, stockage des images (R2)                                                                         | Union européenne, États-Unis (clauses contractuelles types) |
 | OVH SAS (OVHcloud), France | Hébergement de l'application et de la base de données                                                                 | Union européenne                                            |
 | Sentry                     | Suivi des erreurs, sans données personnelles                                                                          | Union européenne                                            |
+| Google Ireland             | Mesure d'audience (Google Analytics) et des campagnes (Google Ads), seulement avec votre accord                       | Union européenne, États-Unis (Data Privacy Framework)       |
 
 ## 5. Vos droits
 
@@ -46,4 +47,4 @@ Vous pouvez demander l'accès à vos données, leur rectification, leur effaceme
 
 ## 6. Cookies
 
-Voir la [politique cookies](/cookies/).
+Les cookies de mesure d'audience et de publicité ne sont déposés qu'avec votre accord, jamais sur les billetteries des organisateurs. Voir la [politique cookies](/cookies/).

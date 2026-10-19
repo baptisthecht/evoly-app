@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { findCountry } from "@/lib/countries";
 import { audit } from "./audit";
 import { subdomainAvailability } from "./subdomains";
+import type { Acquisition } from "@evoly/core";
+import type { Prisma } from "@evoly/db";
 
 /** Version des conditions d'utilisation et de l'accord de sous-traitance acceptée à la création (RG-LEG-05). */
 export const TERMS_VERSION = "2026-09";
@@ -16,7 +18,7 @@ export interface CreateOrganizationInput {
 }
 
 /** Création d'une organisation par son futur propriétaire (US-ONB-01, RG-ONB-01, RG-ONB-02, RG-ORG-04). */
-export async function createOrganization(userId: string, input: CreateOrganizationInput) {
+export async function createOrganization(userId: string, input: CreateOrganizationInput, acquisition: Acquisition | null = null) {
   const country = findCountry(input.country);
   if (!country) throw new CoreError("COUNTRY_NOT_AVAILABLE");
   const availability = await subdomainAvailability(input.subdomain);
@@ -37,6 +39,7 @@ export async function createOrganization(userId: string, input: CreateOrganizati
   const org = await db.$transaction(async (tx) => {
     const created = await tx.organization.create({
       data: {
+        ...(acquisition ? { acquisition: acquisition as unknown as Prisma.InputJsonValue } : {}),
         name: input.name.trim(),
         slug: availability.value,
         subdomain: availability.value,

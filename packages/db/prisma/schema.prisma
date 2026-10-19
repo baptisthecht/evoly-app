@@ -247,6 +247,7 @@ enum OrganizationStatus {
 
 model Organization {
   embedOrigins String[] @default([]) // sites autorisés à intégrer la billetterie (section 9.26, Pro)
+  acquisition  Json? // source de la première visite de son créateur : campagne, site d'origine (docs/TRACKING.md)
   id                 String             @id @default(cuid())
   slug               String             @unique // identifiant d'URL interne (dashboard)
   name               String

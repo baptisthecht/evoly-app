@@ -25,6 +25,9 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-baseline gap-4">
             <h1 className="font-display text-3xl tracking-[-0.04em]">Back-office Evoly</h1>
+            <Link href="/admin/acquisition" className="text-sm underline underline-offset-4">
+              Acquisition
+            </Link>
             <Link href="/admin/prospection" className="text-sm underline underline-offset-4">
               Prospection
             </Link>

@@ -2858,5 +2858,21 @@
     "selfBillingAccept": "Ik aanvaard zelffacturatie",
     "selfBillingAccepted": "Zelffacturatie aanvaard op {date}.",
     "invoice": "Factuur"
+  },
+  "consent": {
+    "title": "Uw cookies",
+    "body": "We gebruiken cookies om het bezoek aan de site en de doeltreffendheid van onze advertenties te meten. U kiest: niets wordt opgeslagen zonder uw toestemming.",
+    "accept": "Alles aanvaarden",
+    "refuse": "Alles weigeren",
+    "customize": "Aanpassen",
+    "save": "Mijn keuzes opslaan",
+    "necessary": "Noodzakelijk",
+    "necessaryHint": "Aanmelden en beveiliging: altijd actief.",
+    "analytics": "Bezoekersmeting",
+    "analyticsHint": "Google Analytics: bekeken pagina’s en trajecten, om de site te verbeteren.",
+    "ads": "Advertenties",
+    "adsHint": "Google Ads: inschrijvingen via onze advertenties meten.",
+    "policy": "Cookiebeleid",
+    "manage": "Cookies beheren"
   }
 }

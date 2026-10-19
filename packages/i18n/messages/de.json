@@ -2858,5 +2858,21 @@
     "selfBillingAccept": "Ich stimme dem Gutschriftverfahren zu",
     "selfBillingAccepted": "Gutschriftverfahren angenommen am {date}.",
     "invoice": "Rechnung"
+  },
+  "consent": {
+    "title": "Ihre Cookies",
+    "body": "Wir verwenden Cookies, um die Besucherzahlen der Website und die Wirksamkeit unserer Anzeigen zu messen. Sie entscheiden: Ohne Ihre Zustimmung wird nichts gespeichert.",
+    "accept": "Alle akzeptieren",
+    "refuse": "Alle ablehnen",
+    "customize": "Anpassen",
+    "save": "Auswahl speichern",
+    "necessary": "Notwendig",
+    "necessaryHint": "Anmeldung und Sicherheit: immer aktiv.",
+    "analytics": "Reichweitenmessung",
+    "analyticsHint": "Google Analytics: aufgerufene Seiten und Wege, um die Website zu verbessern.",
+    "ads": "Werbung",
+    "adsHint": "Google Ads: Anmeldungen über unsere Anzeigen messen.",
+    "policy": "Cookie-Richtlinie",
+    "manage": "Cookies verwalten"
   }
 }

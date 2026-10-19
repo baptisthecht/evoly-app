@@ -2858,5 +2858,21 @@
     "selfBillingAccept": "I accept self-billing",
     "selfBillingAccepted": "Self-billing accepted on {date}.",
     "invoice": "Invoice"
+  },
+  "consent": {
+    "title": "Your cookies",
+    "body": "We use cookies to measure site traffic and the effectiveness of our ads. You decide: nothing is stored without your consent.",
+    "accept": "Accept all",
+    "refuse": "Refuse all",
+    "customize": "Customise",
+    "save": "Save my choices",
+    "necessary": "Necessary",
+    "necessaryHint": "Sign-in and security: always on.",
+    "analytics": "Audience measurement",
+    "analyticsHint": "Google Analytics: pages viewed and journeys, to improve the site.",
+    "ads": "Advertising",
+    "adsHint": "Google Ads: measure sign-ups that come from our ads.",
+    "policy": "Cookie policy",
+    "manage": "Manage cookies"
   }
 }

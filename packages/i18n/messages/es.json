@@ -2858,5 +2858,21 @@
     "selfBillingAccept": "Acepto la autofacturación",
     "selfBillingAccepted": "Autofacturación aceptada el {date}.",
     "invoice": "Factura"
+  },
+  "consent": {
+    "title": "Tus cookies",
+    "body": "Usamos cookies para medir la audiencia del sitio y la eficacia de nuestros anuncios. Tú decides: no se guarda nada sin tu consentimiento.",
+    "accept": "Aceptar todo",
+    "refuse": "Rechazar todo",
+    "customize": "Personalizar",
+    "save": "Guardar mis opciones",
+    "necessary": "Necesarias",
+    "necessaryHint": "Inicio de sesión y seguridad: siempre activas.",
+    "analytics": "Medición de audiencia",
+    "analyticsHint": "Google Analytics: páginas vistas y recorridos, para mejorar el sitio.",
+    "ads": "Publicidad",
+    "adsHint": "Google Ads: medir los registros que vienen de nuestros anuncios.",
+    "policy": "Política de cookies",
+    "manage": "Gestionar cookies"
   }
 }
