@@ -36,8 +36,16 @@ export function EventAppearance({
   const { state, pending, formProps } = useActionForm(eventSubdomainAction.bind(null, orgSlug, eventId), null);
   useEffect(() => {
     if (!value || value === subdomain) return setCheck(null);
-    const id = setTimeout(async () => setCheck(await checkSubdomainAction(orgSlug, value, eventId)), 300);
-    return () => clearTimeout(id);
+    // une réponse qui ne correspond plus à la saisie est ignorée : sinon « disponible » pouvait s'afficher pour une autre adresse
+    let current = true;
+    const id = setTimeout(async () => {
+      const r = await checkSubdomainAction(orgSlug, value, eventId);
+      if (current) setCheck(r);
+    }, 300);
+    return () => {
+      current = false;
+      clearTimeout(id);
+    };
   }, [value, subdomain, orgSlug, eventId]);
   useEffect(() => {
     if (state?.ok) router.refresh();
