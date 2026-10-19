@@ -198,7 +198,13 @@ export function SettingsForm({
               </Field>
             </div>
           ) : (
-            <input type="hidden" name="showResaleSection" value={values.showResaleSection ? "on" : ""} />
+            // revente désactivée : ses réglages restent envoyés tels quels. Sans le délai, la validation refusait tout
+            // l'enregistrement (jauge, dates, remboursements compris), et la priorité à la liste d'attente était effacée
+            <>
+              <input type="hidden" name="showResaleSection" value={values.showResaleSection ? "on" : ""} />
+              <input type="hidden" name="resaleWaitlistFirst" value={values.resaleWaitlistFirst ? "on" : ""} />
+              <input type="hidden" name="resaleWaitlistMinutes" value={values.resaleWaitlistMinutes} />
+            </>
           )}
         </fieldset>
       </fieldset>
