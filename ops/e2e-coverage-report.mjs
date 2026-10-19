@@ -15,7 +15,8 @@ const mcr = MCR({
   reports: ["console-summary", "json-summary"],
   cleanCache: true,
   sourcePath: (p) => norm(p),
-  sourceFilter: (p) => norm(p).startsWith("apps/app/src/") && !/\.(test|spec)\./.test(p),
+  // vrais fichiers sources seulement (pas les scripts intégrés aux pages, ni les tests)
+  sourceFilter: (p) => norm(p).startsWith("apps/app/src/") && /\.(tsx?|jsx?|mjs)$/.test(norm(p)) && !/\.(test|spec)\./.test(p),
   entryFilter: (e) => (kind === "client" ? e.url.includes("/_next/static/") : e.url.includes("/.next/server/")),
 });
 if (kind === "client") {
@@ -42,7 +43,7 @@ if (kind === "client") {
 await mcr.generate();
 // totaux limités aux sources de l'application : les fichiers construits sans carte (entrées des pages) sont écartés
 const summary = JSON.parse(readFileSync(`${process.env.OUT_DIR}/${kind}/coverage-summary.json`, "utf8"));
-const own = Object.entries(summary).filter(([k]) => k !== "total" && k.includes("apps/app/src/"));
+const own = Object.entries(summary).filter(([k]) => k !== "total" && k.includes("apps/app/src/") && /\.(tsx?|jsx?|mjs)$/.test(k));
 const totals = Object.fromEntries(
   ["statements", "branches", "functions", "lines"].map((m) => {
     const covered = own.reduce((n, [, v]) => n + (v[m]?.covered ?? 0), 0);
