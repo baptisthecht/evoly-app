@@ -25,7 +25,10 @@ if (kind === "client") {
       // même script quel que soit le sous-domaine de la billetterie : une seule adresse, pour qu'il soit relié à ses sources
       e.url = `http://localhost:3001${new URL(e.url).pathname}`;
       const file = path.join(app, ".next", new URL(e.url).pathname.replace(/^\/_next\//, ""));
-      if (existsSync(`${file}.map`)) e.sourceMap = JSON.parse(readFileSync(`${file}.map`, "utf8"));
+      // Turbopack nomme la carte autrement que le script : son nom est dans la dernière ligne du script
+      const ref = /\/\/# sourceMappingURL=(\S+)\s*$/.exec(e.source ?? "")?.[1];
+      const map = ref ? path.join(path.dirname(file), ref) : `${file}.map`;
+      if (existsSync(map)) e.sourceMap = JSON.parse(readFileSync(map, "utf8"));
       const list = byUrl.get(e.url) ?? [];
       list.push(e);
       byUrl.set(e.url, list);
