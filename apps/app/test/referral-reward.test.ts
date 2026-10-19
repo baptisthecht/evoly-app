@@ -71,11 +71,16 @@ beforeEach(() => {
 describe("récompense du parrainage : un mois de Pro au parrain, une seule fois (RG-PAR-01)", () => {
   it("abonnement Stripe en cours : crédit de 29 € sur la prochaine facture, abonnement inchangé", async () => {
     const s = await setup({
-      sub: { status: "ACTIVE", stripeSubscriptionId: `sub_${rid()}`, stripeCustomerId: "cus_parrain", currentPeriodEnd: new Date(Date.now() + 10 * day) },
+      sub: {
+        status: "ACTIVE",
+        stripeSubscriptionId: `sub_${rid()}`,
+        stripeCustomerId: `cus_parrain_${rid()}`,
+        currentPeriodEnd: new Date(Date.now() + 10 * day),
+      },
     });
     const before = await sub(s.parrain.id);
     expect(await qualifyReferral(s.filleul.id)).toBe(true);
-    expect(fake.credits).toEqual([{ customer: "cus_parrain", amount: -2900, currency: "eur" }]);
+    expect(fake.credits).toEqual([{ customer: expect.stringMatching(/^cus_parrain_/), amount: -2900, currency: "eur" }]);
     expect(await sub(s.parrain.id)).toMatchObject({
       status: before!.status,
       stripeSubscriptionId: before!.stripeSubscriptionId,
@@ -106,7 +111,12 @@ describe("récompense du parrainage : un mois de Pro au parrain, une seule fois 
 
   it("abonnement Stripe terminé : les 30 jours sont bien donnés (avant : annoncés par e-mail, jamais ajoutés)", async () => {
     const s = await setup({
-      sub: { status: "CANCELED", stripeSubscriptionId: `sub_fini_${rid()}`, stripeCustomerId: "cus_ancien", currentPeriodEnd: new Date(Date.now() - day) },
+      sub: {
+        status: "CANCELED",
+        stripeSubscriptionId: `sub_fini_${rid()}`,
+        stripeCustomerId: `cus_ancien_${rid()}`,
+        currentPeriodEnd: new Date(Date.now() - day),
+      },
     });
     const now = new Date();
     expect(await qualifyReferral(s.filleul.id, now)).toBe(true);
@@ -118,7 +128,7 @@ describe("récompense du parrainage : un mois de Pro au parrain, une seule fois 
 
   it("Stripe indisponible pour un abonnement en cours : récompense reportée à la vente suivante, puis donnée une seule fois", async () => {
     fake.available = false;
-    const s = await setup({ sub: { status: "ACTIVE", stripeSubscriptionId: `sub_${rid()}`, stripeCustomerId: "cus_parrain" } });
+    const s = await setup({ sub: { status: "ACTIVE", stripeSubscriptionId: `sub_${rid()}`, stripeCustomerId: `cus_parrain_${rid()}` } });
     expect(await qualifyReferral(s.filleul.id)).toBe(false);
     expect(await status(s.filleul.id)).toBe("SIGNED_UP");
     fake.available = true;
