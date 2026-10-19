@@ -300,7 +300,11 @@ export async function saveCustomRole(ctx: OrgContext, input: { id?: string | nul
     if (input.id) {
       const role = await db.role.findFirst({ where: { id: input.id, organizationId: ctx.organization.id } });
       if (!role) throw new CoreError("NOT_FOUND");
-      return await db.role.update({ where: { id: role.id }, data });
+      // permissions que l'auteur ne peut pas accorder : ni ajoutées ni retirées. Leur case, désactivée, n'est jamais envoyée
+      // par le formulaire : avant, elles étaient retirées du rôle sans que personne ne le veuille (18 octobre 2026)
+      const actor = actorPermissions(ctx);
+      const kept = role.permissions.filter((p) => !actor.includes(p));
+      return await db.role.update({ where: { id: role.id }, data: { ...data, permissions: [...new Set([...kept, ...permissions])] } });
     }
     const role = await db.role.create({ data: { ...data, organizationId: ctx.organization.id } });
     await audit({
