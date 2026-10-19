@@ -35,7 +35,9 @@ export function EventReminders({ orgSlug, eventId, pro, reminders }: { orgSlug: 
                     const enabled = e.target.checked;
                     setState((s) => s.map((x) => (x.type === r.type ? { ...x, enabled } : x)));
                     start(async () => {
-                      await reminderAction(orgSlug, eventId, r.type, enabled);
+                      const res = await reminderAction(orgSlug, eventId, r.type, enabled);
+                      // échec : retour à l'état réel, pour ne jamais afficher un rappel qui ne partira pas (comme la protection anti-robots)
+                      if (!res?.ok) setState((s) => s.map((x) => (x.type === r.type ? { ...x, enabled: !enabled } : x)));
                     });
                   }}
                 />
