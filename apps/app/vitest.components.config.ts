@@ -15,7 +15,7 @@ export default defineConfig({
       include: ["src/components/**/*.tsx", "src/app/**/[A-Z]*.tsx"], // composants du dossier components et écrans du tableau de bord (les fichiers de route, en minuscules, sont exclus)
       reporter: ["text-summary", "json-summary"],
       reportsDirectory: "coverage-components",
-      thresholds: { statements: 42, branches: 41, functions: 36, lines: 44 }, // 18 octobre 2026 : mesure complète, 186 tests
+      thresholds: { statements: 45, branches: 44, functions: 39, lines: 47 }, // 18 octobre 2026 : mesure complète
     },
   },
 });
