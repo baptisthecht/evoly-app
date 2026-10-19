@@ -59,8 +59,16 @@ export function CampaignEditor({
   const [pending, start] = useTransition();
   const set = (patch: Partial<Values>) => setV((x) => ({ ...x, ...patch }));
   useEffect(() => {
-    const h = setTimeout(async () => setCount(await audienceAction(orgSlug, v.segment)), 300);
-    return () => clearTimeout(h);
+    // un nombre de destinataires qui ne correspond plus au public choisi est ignoré
+    let live = true;
+    const h = setTimeout(async () => {
+      const n = await audienceAction(orgSlug, v.segment);
+      if (live) setCount(n);
+    }, 300);
+    return () => {
+      live = false;
+      clearTimeout(h);
+    };
   }, [orgSlug, v.segment]);
   const fail = (err?: string, fields?: Record<string, string>) =>
     setMessage({ ok: false, text: fields && Object.keys(fields).length ? t("fixFields") : err && tf.has(err) ? tf(err) : t("error") });

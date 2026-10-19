@@ -31,16 +31,23 @@ export function SellPanel({
   const [qr, setQr] = useState<{ orderId: string; qrSvg: string; totalMinor: number; status: string; tickets?: number } | null>(null);
   useEffect(() => {
     if (!qr || qr.status !== "PENDING") return;
+    // le statut reçu ne vaut que pour la commande vérifiée : sinon une vérification en retard pouvait afficher « Payé »
+    // pour une nouvelle vente qui ne l'était pas (et le bénévole remettre des billets non payés)
+    const orderId = qr.orderId;
+    let current = true;
     const id = setInterval(async () => {
-      const res = await fetch(`/api/scanner/${token}/sell?order=${qr.orderId}&device=${encodeURIComponent(deviceId)}`, { cache: "no-store" }).catch(() => null);
-      if (!res || !res.ok) return;
+      const res = await fetch(`/api/scanner/${token}/sell?order=${orderId}&device=${encodeURIComponent(deviceId)}`, { cache: "no-store" }).catch(() => null);
+      if (!current || !res || !res.ok) return;
       const data = (await res.json()) as { status: string; tickets?: number };
-      if (data.status !== "PENDING") {
-        setQr((q) => (q ? { ...q, status: data.status, tickets: data.tickets } : q));
+      if (current && data.status !== "PENDING") {
+        setQr((q) => (q && q.orderId === orderId ? { ...q, status: data.status, tickets: data.tickets } : q));
         if (data.status === "PAID") navigator.vibrate?.(120);
       }
     }, 2500);
-    return () => clearInterval(id);
+    return () => {
+      current = false;
+      clearInterval(id);
+    };
   }, [qr, token, deviceId]);
   const total =
     sale.ticketTypes.reduce((n, tt) => n + (qty[tt.id] ?? 0) * tt.priceMinor, 0) +

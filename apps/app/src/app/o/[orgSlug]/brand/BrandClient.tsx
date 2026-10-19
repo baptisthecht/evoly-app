@@ -49,8 +49,16 @@ export function SubdomainForm({ orgSlug, current, baseDomain }: { orgSlug: strin
   const { state, pending, formProps } = useActionForm(changeSubdomainAction.bind(null, orgSlug), null);
   useEffect(() => {
     if (value === current) return setCheck(null);
-    const id = setTimeout(async () => setCheck(await checkSubdomainAction(orgSlug, value)), 300);
-    return () => clearTimeout(id);
+    // une réponse qui ne correspond plus à la saisie est ignorée (comme pour l'adresse d'un événement)
+    let live = true;
+    const id = setTimeout(async () => {
+      const r = await checkSubdomainAction(orgSlug, value);
+      if (live) setCheck(r);
+    }, 300);
+    return () => {
+      live = false;
+      clearTimeout(id);
+    };
   }, [value, current, orgSlug]);
   return (
     <form {...formProps} className="grid gap-3" noValidate>
