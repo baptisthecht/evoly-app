@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
@@ -39,7 +39,12 @@ function QuestionForm({
   const [type, setType] = useState<Question["type"]>(q?.type ?? "TEXT");
   const { state, pending, formProps } = useActionForm(saveQuestionAction.bind(null, orgSlug, eventId, q?.id ?? null), null);
   const error = useFieldError(state);
-  if (state?.ok) queueMicrotask(onDone);
+  // fermeture après l'enregistrement : dans un effet, jamais pendant l'affichage (affiché deux fois en mode strict, elle
+  // serait demandée deux fois)
+  useEffect(() => {
+    if (state?.ok) onDone();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
   return (
     <form {...formProps} className="grid gap-4 rounded-md bg-surface-sunken p-4" noValidate>
       <FormError state={state} />
