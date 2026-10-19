@@ -87,5 +87,6 @@ describe("paramètres de l'organisation : enregistrement et lecture seule", () =
     const v = fr.validation as Record<string, string>;
     expect(await screen.findByText(v.required ?? v.invalid!)).toBeTruthy();
     expect(document.getElementById("org-name-error")!.textContent).toBe(v.required ?? v.invalid); // sous le champ du nom
+    expect(document.getElementById("org-name")!.getAttribute("aria-invalid")).toBe("true"); // désormais marqué par le composant de champ
   });
 });

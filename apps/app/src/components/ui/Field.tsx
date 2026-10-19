@@ -1,4 +1,13 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import {
+  Children,
+  cloneElement,
+  Fragment,
+  isValidElement,
+  type InputHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+  type SelectHTMLAttributes,
+} from "react";
 import { cn } from "./cn";
 
 const control =
@@ -19,12 +28,23 @@ export function Field({
   error?: string | null;
   children: ReactNode;
 }) {
+  // un seul champ : marqué invalide en cas d'erreur et relié à son message d'erreur ou à son aide, pour les lecteurs d'écran
+  // et pour la bordure rouge (sauf si l'écran l'a déjà précisé) ; plusieurs éléments : laissés tels quels
+  const describedBy = error ? `${htmlFor}-error` : hint ? `${htmlFor}-hint` : undefined;
+  const only =
+    Children.count(children) === 1 && isValidElement(children) && children.type !== Fragment ? (children as ReactElement<Record<string, unknown>>) : null;
+  const control = only
+    ? cloneElement(only, {
+        ...(error && only.props["aria-invalid"] === undefined && only.props.invalid === undefined ? { "aria-invalid": true } : {}),
+        ...(describedBy ? { "aria-describedby": [only.props["aria-describedby"], describedBy].filter(Boolean).join(" ") } : {}),
+      })
+    : children;
   return (
     <div className="grid content-start gap-1.5">
       <label htmlFor={htmlFor} className="font-label text-[0.8rem] font-bold text-ink">
         {label}
       </label>
-      {children}
+      {control}
       {error ? (
         <p id={`${htmlFor}-error`} role="alert" className="text-sm text-danger">
           {error}
