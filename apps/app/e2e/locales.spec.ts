@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { organizer, publishedFreeEvent, siteUrl } from "./helpers";
 
 test("acheteur espagnol : page d'événement, commande et confirmation en espagnol, d'après la langue du navigateur", async ({ page, browser }) => {

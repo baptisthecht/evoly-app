@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { appUrl, organizer, publishedFreeEvent } from "./helpers";
 
 /** La couleur rose du thème, telle que le navigateur la calcule. */

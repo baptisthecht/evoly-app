@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import * as OTPAuth from "otpauth";
 import { appUrl, organizer, sql } from "./helpers";
 

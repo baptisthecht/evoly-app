@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { organizer, publishedFreeEvent } from "./helpers";
 
 test("revente : vue d'ensemble de l'organisation, avec lien vers chaque événement (US-RSL-05)", async ({ page }) => {

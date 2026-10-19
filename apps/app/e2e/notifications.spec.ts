@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("notifications : cloche, ouverture de l'élément, annulation d'une entrée (sections 9.20 et 9.17)", async ({ page }) => {

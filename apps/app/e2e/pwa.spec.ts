@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, organizer, siteUrl } from "./helpers";
 
 test("application installable sur app.evoly.me : manifeste, icônes, service worker actif ; rien sur les billetteries", async ({ page, request, browser }) => {

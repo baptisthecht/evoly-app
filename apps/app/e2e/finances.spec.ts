@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({ page }) => {

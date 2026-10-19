@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("connexion avec Google : le bouton mène à l'autorisation Google (US-AUTH-02)", async ({ browser }) => {

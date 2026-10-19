@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { createOrganization, signUpAndVerify, uid } from "./helpers";
 import { firstLink, lastEmail } from "./outbox";
 

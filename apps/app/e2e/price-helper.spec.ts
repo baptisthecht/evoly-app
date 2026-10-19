@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { organizer } from "./helpers";
 
 test("aide au prix : ce que l'organisateur veut percevoir → prix payé par le participant, prix ronds", async ({ page }) => {

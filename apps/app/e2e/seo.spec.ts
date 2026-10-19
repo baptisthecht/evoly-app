@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { organizer, publishedFreeEvent, siteUrl } from "./helpers";
 
 test("référencement des billetteries : aperçus de liens, données structurées, image générée, robots.txt et sitemap", async ({ page, request }) => {

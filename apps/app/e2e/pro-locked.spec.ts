@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { organizer, publishedFreeEvent } from "./helpers";
 
 test("offre gratuite : les fonctions Pro restent visibles, grisées, avec l'accès à l'abonnement", async ({ page }) => {

@@ -20,8 +20,12 @@ const securityHeaders = [
   ...(process.env.NODE_ENV === "production" ? [{ key: "Content-Security-Policy", value: csp }] : []),
 ];
 
+// mesure de la couverture des parcours complets (E2E_COVERAGE=1) : cartes de correspondance vers les sources, jamais en production
+const coverage = process.env.E2E_COVERAGE === "1";
+
 const config: NextConfig = {
   reactStrictMode: true,
+  ...(coverage ? { productionBrowserSourceMaps: true, experimental: { serverSourceMaps: true } } : {}),
   poweredByHeader: false,
   transpilePackages: ["@evoly/core", "@evoly/db", "@evoly/i18n", "@evoly/ui"],
   serverExternalPackages: ["@node-rs/argon2"],

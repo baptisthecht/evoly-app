@@ -1,4 +1,4 @@
-import { chromium, expect, test } from "@playwright/test";
+import { chromium, expect, test } from "./fixtures";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

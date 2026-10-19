@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import sharp from "sharp";
 import { organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 

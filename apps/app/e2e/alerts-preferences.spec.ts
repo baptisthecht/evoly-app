@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("alerte « Prévenez-moi » : inscription avant l'ouverture des ventes, puis suppression sans connexion depuis sa page", async ({ page }) => {

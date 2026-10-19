@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, organizer, publishedFreeEvent, sql } from "./helpers";
 
 test("vente sur place : onglet Vente du scanner en espèces, rapport de caisse, puis paiement par QR code sur le téléphone du client (section 9.27)", async ({

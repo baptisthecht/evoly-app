@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { organizer, publishedFreeEvent } from "./helpers";
 
 test("deux onglets modifient le même événement : la dernière sauvegarde l'emporte et l'autre est averti (RG-EVT-10)", async ({ page, context }) => {

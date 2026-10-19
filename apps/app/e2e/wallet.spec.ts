@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { buyFree, organizer, publishedFreeEvent, siteUrl } from "./helpers";
 
 test("billets dans Apple Wallet et Google Wallet depuis la page des billets (US-POST-03)", async ({ page }) => {

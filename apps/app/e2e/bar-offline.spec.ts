@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("bar sans réseau : options retrouvées dans la liste du téléphone, retrait mis en file d'attente, envoyé à la reconnexion (RG-OPT-05)", async ({

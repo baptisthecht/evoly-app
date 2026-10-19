@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("questions à l'achat : création, réponses exigées, réponses dans la commande (US-QST-01)", async ({ page }) => {

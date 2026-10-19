@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("vestiaire acheté seul : option vendable sans billet, panier sans billet, commande avec ses codes de retrait (RG-OPT-03)", async ({ page, browser }) => {

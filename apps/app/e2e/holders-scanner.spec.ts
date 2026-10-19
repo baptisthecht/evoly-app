@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("e-mail de chaque titulaire, puis accès membre au scanner depuis scanner.evoly.me (RG-QST-01, US-SCN-06)", async ({ page }) => {

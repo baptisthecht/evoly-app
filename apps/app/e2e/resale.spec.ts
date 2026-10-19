@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { firstLink, lastEmail } from "./outbox";
 import { appUrl, buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 

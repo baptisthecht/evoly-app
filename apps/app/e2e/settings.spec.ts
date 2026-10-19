@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, organizer, siteUrl } from "./helpers";
 
 test("paramètres de l'organisation, puis suppression avec double confirmation (section 9.3)", async ({ page }) => {

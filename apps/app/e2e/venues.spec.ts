@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, organizer, sql } from "./helpers";
 
 test("lieu partenaire : le lieu active le programme et renseigne sa salle ; l'organisateur inscrit par son lien y est rattaché, et sa salle lui est proposée d'office (section 9.32)", async ({

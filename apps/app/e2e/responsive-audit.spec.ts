@@ -1,4 +1,4 @@
-import { type Browser, type Page, test } from "@playwright/test";
+import { type Browser, type Page, test } from "./fixtures";
 import { readFileSync, writeFileSync } from "node:fs";
 import { appUrl, buyFree, organizer, publishedFreeEvent, signUpAndVerify, siteUrl, sql, uid } from "./helpers";
 

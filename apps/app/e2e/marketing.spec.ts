@@ -1,5 +1,5 @@
 import { createHmac } from "node:crypto";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { appUrl, buyFree, envValue, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 /** Lien de désinscription signé comme le serveur (même secret que l'app de test). */

@@ -1,4 +1,4 @@
-import { type Page, test } from "@playwright/test";
+import { type Page, test } from "./fixtures";
 import { readdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 

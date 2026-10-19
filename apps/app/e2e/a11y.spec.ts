@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { appUrl, organizer, publishedFreeEvent, siteUrl } from "./helpers";
 
 // Accessibilité (WCAG 2.1 AA) : aucune violation grave ni critique sur les pages clés, sur ordinateur et téléphone
