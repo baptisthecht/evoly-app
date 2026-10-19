@@ -190,7 +190,9 @@
     write("evoly_src", encodeURIComponent(JSON.stringify(a)), 7776000);
   }
   var c0 = consent();
-  if (cfg.ga || cfg.ads) {
+  // seulement sur evoly.me : jamais dans un aperçu local, pour ne pas fausser les statistiques
+  var live = host === base || host.slice(-base.length - 1) === "." + base;
+  if (live && (cfg.ga || cfg.ads)) {
     window.dataLayer = window.dataLayer || [];
     window.gtag =
       window.gtag ||

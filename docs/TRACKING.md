@@ -35,6 +35,11 @@ Le code : `packages/core/src/tracking.ts` (règles), `apps/app/src/components/tr
 
 ## Réglages
 
+Identifiants publics d'Evoly, inscrits dans le code et utilisés **seulement sur evoly.me** (jamais en local ni en CI) :
+Google Analytics `G-CCC58XTQ4D` (`EVOLY_IDS` dans `apps/app/src/components/tracking/Analytics.tsx`, et `build.py` pour
+le site). Google Ads : l'identifiant `AW-…` et les libellés des conversions s'y ajoutent dès qu'ils sont créés. Les
+variables ci-dessous les remplacent partout.
+
 Application (variables d'environnement, voir `.env.example`) :
 
 ```

@@ -23,12 +23,24 @@ declare global {
   }
 }
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "";
-const ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "";
-const LABELS: Record<string, string> = {
-  sign_up: process.env.NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL ?? "",
-  organization_created: process.env.NEXT_PUBLIC_GOOGLE_ADS_ORG_LABEL ?? "",
-};
+/**
+ * Identifiants publics d'Evoly (ils figurent dans chaque page) : utilisés seulement sur evoly.me, jamais en local ni en
+ * CI, pour ne pas fausser les statistiques. Les variables d'environnement les remplacent partout.
+ */
+export const EVOLY_IDS = { ga: "G-CCC58XTQ4D", ads: "", labels: { sign_up: "", organization_created: "" } };
+const onEvoly = () => /(^|\.)evoly\.me$/.test(location.hostname);
+function ids() {
+  const fallback = onEvoly();
+  const labels: Record<string, string> = {
+    sign_up: process.env.NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL || (fallback ? EVOLY_IDS.labels.sign_up : ""),
+    organization_created: process.env.NEXT_PUBLIC_GOOGLE_ADS_ORG_LABEL || (fallback ? EVOLY_IDS.labels.organization_created : ""),
+  };
+  return {
+    ga: process.env.NEXT_PUBLIC_GA_ID || (fallback ? EVOLY_IDS.ga : ""),
+    ads: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || (fallback ? EVOLY_IDS.ads : ""),
+    labels,
+  };
+}
 
 /** Source de la première visite, avec consentement : gardée si absente ; identifiants de clic retirés si la publicité est refusée. */
 function rememberSource(consent: Consent | null) {
@@ -57,9 +69,10 @@ function sendServerEvents() {
   const events = parseEvents(readCookie(EVENT_COOKIE));
   if (!events.length) return;
   writeCookie(EVENT_COOKIE, "", 0);
+  const { ads, labels } = ids();
   for (const e of events) {
     window.gtag?.("event", e);
-    if (ADS_ID && LABELS[e]) window.gtag?.("event", "conversion", { send_to: `${ADS_ID}/${LABELS[e]}` });
+    if (ads && labels[e]) window.gtag?.("event", "conversion", { send_to: `${ads}/${labels[e]}` });
   }
 }
 
@@ -72,6 +85,7 @@ export function Analytics() {
   useEffect(() => {
     const consent = readConsent();
     rememberSource(consent);
+    const { ga: GA_ID, ads: ADS_ID } = ids();
     if (GA_ID || ADS_ID) {
       window.dataLayer = window.dataLayer ?? [];
       // eslint-disable-next-line prefer-rest-params
