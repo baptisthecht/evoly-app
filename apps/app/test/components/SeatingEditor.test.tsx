@@ -28,7 +28,7 @@ const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 const t = (fr as unknown as Record<string, Record<string, string>>).seatingEditor!;
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
-const seat = (n: number, status = "FREE") => ({
+const seat = (n: number, status = "AVAILABLE") => ({
   id: `s${n}`,
   blockId: "b1",
   rowId: "r1",
