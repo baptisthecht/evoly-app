@@ -1,6 +1,6 @@
 "use client";
 
-import { BRAND_FONTS, BRAND_PRESETS, BRAND_RADII, brandCssVars, brandWarnings, type BrandStyle } from "@evoly/ui";
+import { BRAND_FONTS, BRAND_PRESETS, BRAND_RADII, brandCssVars, type BrandStyle, brandWarnings, CHARTE_VARS, palette } from "@evoly/ui";
 import { useTranslations } from "next-intl";
 import type { CSSProperties } from "react";
 import "@evoly/ui/brand-fonts.css";
@@ -56,7 +56,7 @@ export function ThemeFields({ v, set, socials = true }: { v: ThemeValues; set: (
               className="flex min-h-11 items-center gap-2.5 rounded-md bg-surface-raised px-3 py-2 text-left text-[0.8125rem] font-medium ring-1 ring-line hover:ring-ink"
             >
               <span aria-hidden="true" className="flex shrink-0">
-                {[p.backgroundColor ?? "#FFF6F0", p.primaryColor, p.accentColor].map((c, i) => (
+                {[p.backgroundColor ?? palette.creme, p.primaryColor, p.accentColor].map((c, i) => (
                   <span key={i} className="-ml-1 size-4 rounded-full ring-2 ring-surface-raised first:ml-0" style={{ background: c }} />
                 ))}
               </span>
@@ -71,7 +71,7 @@ export function ThemeFields({ v, set, socials = true }: { v: ThemeValues; set: (
           <input
             type="color"
             aria-label={t("backgroundColor")}
-            value={/^#[0-9a-fA-F]{6}$/.test(v.backgroundColor) ? v.backgroundColor : "#FFF6F0"}
+            value={/^#[0-9a-fA-F]{6}$/.test(v.backgroundColor) ? v.backgroundColor : palette.creme}
             onChange={(e) => set({ backgroundColor: e.target.value.toUpperCase() })}
             className="size-11 cursor-pointer rounded-md bg-transparent"
           />
@@ -80,7 +80,7 @@ export function ThemeFields({ v, set, socials = true }: { v: ThemeValues; set: (
             name="backgroundColor"
             value={v.backgroundColor}
             onChange={(e) => set({ backgroundColor: e.target.value })}
-            placeholder="#FFF6F0"
+            placeholder={palette.creme}
             className="font-mono"
             maxLength={9}
           />
@@ -198,22 +198,9 @@ export function ThemePreview({
   labels: { date: string; title: string; ticket: string; button: string };
 }) {
   // l'application a son propre thème : l'aperçu repart de la charte des billetteries, puis applique la marque
-  const charte = {
-    "--type-display": BRAND_FONTS["archivo-black"].family,
-    "--type-body": BRAND_FONTS.poppins.family,
-    "--surface": "#FFF6F0",
-    "--surface-raised": "#FFFFFF",
-    "--ink": "#222222",
-    "--ink-muted": "#5E5752",
-    "--line": "#EADFD6",
-    "--r-sm": "8px",
-    "--r-md": "12px",
-    "--r-lg": "18px",
-    "--control-radius": "999px",
-  };
   const style = {
-    ...charte,
-    ...brandCssVars({ ...styleOf(v), primaryColor: v.primaryColor || "#222222", accentColor: v.accentColor || v.primaryColor || "#FFB8E8" }),
+    ...CHARTE_VARS,
+    ...brandCssVars({ ...styleOf(v), primaryColor: v.primaryColor || palette.charbon, accentColor: v.accentColor || v.primaryColor || palette.rose }),
   } as CSSProperties;
   const socials = SOCIAL_KEYS.filter((k) => v.socials[k]);
   return (

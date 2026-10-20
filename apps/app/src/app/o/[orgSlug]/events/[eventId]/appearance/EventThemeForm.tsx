@@ -1,5 +1,6 @@
 "use client";
 
+import { palette } from "@evoly/ui";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ThemeFields, ThemePreview, type ThemeValues } from "@/app/o/[orgSlug]/brand/BrandTheme";
@@ -54,7 +55,7 @@ export function EventThemeForm({
                       <input
                         type="color"
                         aria-label={t(k)}
-                        value={/^#[0-9a-fA-F]{6}$/.test(v[k]) ? v[k] : "#222222"}
+                        value={/^#[0-9a-fA-F]{6}$/.test(v[k]) ? v[k] : palette.charbon}
                         onChange={(e) => set({ [k]: e.target.value.toUpperCase() })}
                         className="size-11 cursor-pointer rounded-md bg-transparent"
                       />

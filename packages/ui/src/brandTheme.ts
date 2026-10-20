@@ -125,6 +125,21 @@ export function brandCssVars(b: BrandStyle): Record<string, string> {
   return vars;
 }
 
+/** Charte des billetteries (sans réglage) : point de départ des aperçus, l'application ayant son propre thème. */
+export const CHARTE_VARS: Record<string, string> = {
+  "--type-display": BRAND_FONTS["archivo-black"].family,
+  "--type-body": BRAND_FONTS.poppins.family,
+  "--surface": "#FFF6F0",
+  "--surface-raised": "#FFFFFF",
+  "--ink": "#222222",
+  "--ink-muted": "#5E5752",
+  "--line": "#EADFD6",
+  "--r-sm": "8px",
+  "--r-md": "12px",
+  "--r-lg": "18px",
+  "--control-radius": "999px",
+};
+
 /** Styles prêts à l'emploi : un clic, puis tout s'ajuste. */
 export const BRAND_PRESETS = [
   { key: "evoly", primaryColor: "#FFB8E8", accentColor: "#222222", backgroundColor: null, radius: null, headingFont: null, bodyFont: null },
