@@ -39,7 +39,7 @@ export async function OrgSwitcher({
           <span className="sr-only">{t("organization")}</span>
           <span className="truncate text-[0.8125rem] font-medium">{currentName}</span>
           {plan ? (
-            <span className={plan.offered ? "truncate text-[0.6875rem] text-success" : "truncate text-[0.6875rem] text-ink-muted"}>{plan.text}</span>
+            <span className={plan.offered ? "text-[0.6875rem] leading-snug text-success" : "text-[0.6875rem] leading-snug text-ink-muted"}>{plan.text}</span>
           ) : null}
         </span>
         <svg
