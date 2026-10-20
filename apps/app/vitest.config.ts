@@ -23,6 +23,7 @@ export default defineConfig({
     },
     env: {
       DATABASE_URL: process.env.DATABASE_URL ?? "postgresql://evoly:evoly@localhost:5432/evoly",
+      LAUNCH_OFFER_UNTIL: "off", // offre de lancement désactivée : les tests vérifient l'offre Free (test dédié : launch-offer)
       EMAIL_OUTBOX_DIR: process.env.EMAIL_OUTBOX_DIR ?? path.join(os.tmpdir(), "evoly-test-outbox"),
       BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET ?? "secret-de-test-pour-les-liens-magiques-0123456789",
     },

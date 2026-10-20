@@ -50,7 +50,7 @@ def transform_home(home):
     FINAL = fin
     FINAL = re.sub(r'\s*<div class="bigo bigo--c">.*?</div>(?=\s*<div class="bigo bigo--d">)', '', FINAL, count=1, flags=re.S)
     FINAL = re.sub(r'\s*<div class="final__wrap">.*?</div></div>', '', FINAL, count=1, flags=re.S)
-    FINAL = re.sub(r'<div class="final__ctas">.*?</div>', f'<div class="final__ctas v4-final__ctas"><a class="v4-cta" href="{reg}" target="_blank" rel="noopener"><span class="v4-cta__pill">Créer mon premier événement</span><span class="v4-cta__round" aria-hidden="true">{ARROW}</span></a><a class="v4-link" href="{pro}" target="_blank" rel="noopener">Essayer Pro 14 jours</a></div>', FINAL, count=1, flags=re.S)
+    FINAL = re.sub(r'<div class="final__ctas">.*?</div>', f'<div class="final__ctas v4-final__ctas"><a class="v4-cta" href="{reg}" target="_blank" rel="noopener"><span class="v4-cta__pill">Créer mon premier événement</span><span class="v4-cta__round" aria-hidden="true">{ARROW}</span></a><a class="v4-link" href="{pro}" target="_blank" rel="noopener">Profiter de 3 mois de Pro</a></div>', FINAL, count=1, flags=re.S)
     FINAL = FINAL.replace('aria-labelledby="final-title">', 'aria-labelledby="final-title">' + draw("v4-final__line", "0 0 1000 200", "M-10 150 C 120 170, 250 165, 290 110 C 320 65, 250 30, 205 52 C 160 75, 215 122, 330 122 C 560 122, 850 90, 1010 12", 7), 1)
     assert 'v4-cta' in FINAL and 'bigo--d' in FINAL and 'bigo--c' not in FINAL and 'final__logo' not in FINAL
     h = h.replace(fin, FINAL, 1)

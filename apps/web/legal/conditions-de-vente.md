@@ -37,3 +37,7 @@ Pour toute question sur l'événement, contactez d'abord l'organisateur, via l'a
 ## 9. Droit applicable
 
 Les présentes conditions sont soumises au droit belge, sans préjudice des règles impératives du pays de résidence du consommateur.
+
+## Offre de lancement
+
+Toute organisation créée sur Evoly au plus tard le 31 mars 2027 à 23 h 59 (heure de Bruxelles) bénéficie de l'offre Pro pendant 3 mois à compter de sa création, gratuitement, sans carte bancaire et sans engagement. Pendant cette période, la commission de l'offre Pro s'applique (0,29 € + 2 % par billet payant, plafonnée à 1 €). Trois jours avant la fin, le titulaire du compte est prévenu par e-mail ; à l'échéance, l'organisation repasse automatiquement à l'offre Free, sans frais et sans perte de données, sauf si elle souscrit à l'offre Pro. L'offre est limitée à une organisation par organisateur et ne peut être échangée contre une somme d'argent ; Evoly peut la retirer en cas d'usage abusif (multiplication des comptes, par exemple).

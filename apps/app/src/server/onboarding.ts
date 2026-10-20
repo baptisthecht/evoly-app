@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { findCountry } from "@/lib/countries";
 import { audit } from "./audit";
 import { subdomainAvailability } from "./subdomains";
-import type { Acquisition } from "@evoly/core";
+import { launchOfferEnd, type Acquisition } from "@evoly/core";
 import type { Prisma } from "@evoly/db";
 
 /** Version des conditions d'utilisation et de l'accord de sous-traitance acceptée à la création (RG-LEG-05). */
@@ -31,7 +31,9 @@ export async function createOrganization(userId: string, input: CreateOrganizati
       NOT: { subscription: { planId: "pro", status: { in: ["TRIALING", "ACTIVE", "PAST_DUE"] } } },
     },
   });
-  if (!canCreateOrganization({ ownedFreeOrganizations: ownedFree, startsAsPro: false })) throw new CoreError("PRO_REQUIRED_FOR_ANOTHER_ORGANIZATION");
+  // offre de lancement : Pro offert 3 mois, sans carte bancaire, jusqu'à la date limite (LAUNCH_OFFER_UNTIL, « off » en test)
+  const offerEnd = launchOfferEnd(new Date(), process.env.LAUNCH_OFFER_UNTIL);
+  if (!canCreateOrganization({ ownedFreeOrganizations: ownedFree, startsAsPro: !!offerEnd })) throw new CoreError("PRO_REQUIRED_FOR_ANOTHER_ORGANIZATION");
 
   const ownerRole = await db.role.findUnique({ where: { systemKey: "OWNER" }, select: { id: true } });
   if (!ownerRole) throw new Error("Rôles système absents : lancer le seed");
@@ -50,7 +52,11 @@ export async function createOrganization(userId: string, input: CreateOrganizati
         timezone: country.timezone,
         termsVersion: TERMS_VERSION,
         termsAcceptedAt: new Date(),
-        subscription: { create: { planId: "free", status: "NONE", currency: country.currency } },
+        subscription: {
+          create: offerEnd
+            ? { planId: "pro", status: "ACTIVE", currency: country.currency, currentPeriodEnd: offerEnd } // attribué par Evoly : redevient Free seul
+            : { planId: "free", status: "NONE", currency: country.currency },
+        },
         members: { create: { userId, roleId: ownerRole.id } },
       },
     });
@@ -64,7 +70,7 @@ export async function createOrganization(userId: string, input: CreateOrganizati
     actorUserId: userId,
     targetType: "Organization",
     targetId: org.id,
-    metadata: { country: country.code },
+    metadata: { country: country.code, ...(offerEnd ? { launchOfferUntil: offerEnd.toISOString() } : {}) },
   });
   // section 9.22 : organisation parrainée (code mémorisé à l'arrivée sur l'app)
   try {

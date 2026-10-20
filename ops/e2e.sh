@@ -4,6 +4,7 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)/apps/app"
 
+export LAUNCH_OFFER_UNTIL=off # offre de lancement désactivée dans les parcours
 export DATABASE_URL="${DATABASE_URL:-postgresql://evoly:evoly@localhost:5432/evoly}"
 export BETTER_AUTH_SECRET=ci-secret-ci-secret-ci-secret-0123456789
 export BETTER_AUTH_URL=http://localhost:3001 NEXT_PUBLIC_APP_URL=http://localhost:3001

@@ -234,6 +234,33 @@ export async function trialEnding(sub: { id: string }) {
   }
 }
 
+/**
+ * RG-SUB-03 : Pro attribué par Evoly sans Stripe (offre de lancement, parrainage, geste commercial) : le propriétaire
+ * est prévenu 3 jours avant la fin, une seule fois par période, comme pour la fin d'un essai. Tâche lancée chaque heure.
+ */
+export async function notifyGrantedProEnding(now = new Date()) {
+  const soon = await db.subscription.findMany({
+    where: { planId: "pro", status: "ACTIVE", stripeSubscriptionId: null, currentPeriodEnd: { gt: now, lte: new Date(now.getTime() + 3 * 86_400_000) } },
+    select: { id: true, organizationId: true, currentPeriodEnd: true },
+    orderBy: [{ currentPeriodEnd: "asc" }, { id: "asc" }],
+  });
+  let sent = 0;
+  for (const s of soon) {
+    const marker = `${s.id}:${s.currentPeriodEnd!.toISOString()}`;
+    if (await db.auditLog.findFirst({ where: { action: "subscription.granted_ending_notified", targetId: marker }, select: { id: true } })) continue;
+    await notifyOwner(s.organizationId, "TRIAL_ENDING");
+    await notify(
+      s.organizationId,
+      "TRIAL_ENDING",
+      { title: "Fin de votre Pro offert", body: "Votre Pro offert se termine dans 3 jours : vous repasserez en Free, sans rien perdre.", link: "/billing" },
+      { email: false },
+    );
+    await audit({ action: "subscription.granted_ending_notified", organizationId: s.organizationId, targetType: "Subscription", targetId: marker });
+    sent += 1;
+  }
+  return sent;
+}
+
 /** Identifiant d'abonnement d'une facture (emplacement selon la version de l'API Stripe). */
 export function invoiceSubscriptionId(
   inv: { parent?: { subscription_details?: { subscription?: string | { id: string } | null } | null } | null } & Record<string, unknown>,

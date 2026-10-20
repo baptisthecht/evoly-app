@@ -34,6 +34,7 @@ jobs:
           --health-cmd "pg_isready -U evoly" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://evoly:evoly@localhost:5432/evoly
+      LAUNCH_OFFER_UNTIL: "off" # offre de lancement désactivée dans les tests et les parcours
       BETTER_AUTH_SECRET: ci-secret-ci-secret-ci-secret-0123456789
       BETTER_AUTH_URL: http://localhost:3001
       NEXT_PUBLIC_APP_URL: http://localhost:3001

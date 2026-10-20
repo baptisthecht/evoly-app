@@ -4,7 +4,10 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { effectivePlan } from "@evoly/core";
+import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 import { Steps } from "../Steps";
 import { ConnectStripe } from "./ConnectStripe";
 
@@ -19,7 +22,9 @@ export default async function OnboardingPaymentsPage({ searchParams }: { searchP
   const ctx = await requireOrgContext(org);
   const t = await getTranslations("onboarding");
   // RG-AUTH-08 : venu du site par « ?plan=pro » → l'essai Pro est proposé juste après
-  const wantsPro = (await cookies()).get("evoly_plan")?.value === "pro";
+  const sub = await db.subscription.findUnique({ where: { organizationId: ctx.organization.id }, select: PLAN_SUBSCRIPTION_SELECT });
+  // déjà en Pro (offre de lancement) : pas d'essai à proposer
+  const wantsPro = (await cookies()).get("evoly_plan")?.value === "pro" && effectivePlan(sub, new Date()) !== "pro";
   return (
     <>
       <Steps current={2} />
