@@ -6,6 +6,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { Logo } from "../Brand";
 import type { PublicOrganization } from "@/server/publicEvents";
 
+const SOCIAL_NAMES = { instagram: "Instagram", facebook: "Facebook", tiktok: "TikTok", linkedin: "LinkedIn", youtube: "YouTube" } as const;
+
 /** En-tête et pied de page publics. Couleurs de l'organisateur en Pro, avec contraste automatique (RG-UI-01). */
 export async function PublicShell({ org, homeHref, children }: { org: PublicOrganization; homeHref: string; children: ReactNode }) {
   const t = await getTranslations("public");
@@ -15,6 +17,11 @@ export async function PublicShell({ org, homeHref, children }: { org: PublicOrga
   const primary = org.brand?.primaryColor ?? null;
   const accent = org.brand?.accentColor ?? primary;
   const name = org.brand?.displayName ?? org.name;
+  // réseaux sociaux et site web de l'organisateur (Pro), dans l'ordre de la page Marque
+  const links = (org.brand?.socialLinks ?? {}) as Record<string, string>;
+  const socials = (["website", "instagram", "facebook", "tiktok", "linkedin", "youtube"] as const)
+    .filter((k) => typeof links[k] === "string" && links[k].startsWith("https://"))
+    .map((k) => [k, links[k]!] as const);
   return (
     <div className="min-h-dvh bg-surface" style={style} data-brand={primary || accent ? "" : undefined}>
       <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-4 sm:px-8">
@@ -37,6 +44,15 @@ export async function PublicShell({ org, homeHref, children }: { org: PublicOrga
         <p>
           © {new Date().getFullYear()} {name}
         </p>
+        {socials.length ? (
+          <nav aria-label={t("socials")} className="flex flex-wrap gap-x-4 gap-y-2">
+            {socials.map(([k, href]) => (
+              <a key={k} href={href} target="_blank" rel="noopener noreferrer" className="font-medium text-ink underline-offset-4 hover:underline">
+                {k === "website" ? t("website") : SOCIAL_NAMES[k]}
+              </a>
+            ))}
+          </nav>
+        ) : null}
         {org.showPoweredBy ? (
           <a href="https://evoly.me" className="font-semibold text-ink">
             {t("poweredBy")}

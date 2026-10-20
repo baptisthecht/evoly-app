@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { addDomainAction, changeSubdomainAction, checkSubdomainAction, domainCommandAction, saveBrandAction } from "./actions";
+import { ThemeFields, ThemePreview, type SocialKey } from "./BrandTheme";
 
 /** Import d'une image vers la route d'import, renvoie son adresse publique. */
 export async function uploadFile(
@@ -96,6 +97,12 @@ export interface BrandValues {
   emailFromName: string;
   emailReplyTo: string;
   hideEvolyBranding: boolean;
+  backgroundColor: string;
+  radius: string;
+  headingFont: string;
+  bodyFont: string;
+  buttonLabel: string;
+  socials: Record<SocialKey, string>;
 }
 
 /** US-BRD-01, US-BRD-02 : configurateur avec aperçu en direct et contraste contrôlé (RG-BRD-01). */
@@ -111,7 +118,17 @@ export function BrandForm({
   canHide: boolean;
 }) {
   const t = useTranslations("brand");
-  const [v, setV] = useState(values);
+  // valeurs incomplètes (marque enregistrée avant la personnalisation) : champs absents vides
+  const [v, setV] = useState<BrandValues>({
+    ...(values as BrandValues),
+    backgroundColor: "",
+    radius: "",
+    headingFont: "",
+    bodyFont: "",
+    buttonLabel: "",
+    ...(values as Partial<BrandValues>),
+    socials: { website: "", instagram: "", facebook: "", tiktok: "", linkedin: "", youtube: "", ...((values as Partial<BrandValues>).socials ?? {}) },
+  });
   const [suggested, setSuggested] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -235,6 +252,7 @@ export function BrandForm({
             </Field>
           ))}
         </div>
+        <ThemeFields v={v} set={set} />
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label={t("emailFromName")} htmlFor="emailFromName" hint={t("emailFromNameHint")}>
             <Input
@@ -273,24 +291,13 @@ export function BrandForm({
       </form>
       <aside aria-label={t("preview")} className="grid content-start gap-2 lg:sticky lg:top-6">
         <p className="font-label text-[0.8rem] font-bold text-ink-muted">{t("preview")}</p>
-        <div className="overflow-hidden rounded-lg ring-1 ring-line" data-testid="brand-preview">
-          <div className="flex items-center justify-between gap-2 bg-surface px-4 py-3">
-            {v.logoUrl ? <img src={v.logoUrl} alt="" className="h-7 w-auto" /> : <span className="font-display">{v.displayName || organizationName}</span>}
-            {!v.hideEvolyBranding || !canHide ? <span className="text-[0.65rem] text-ink-muted">{t("poweredBy")}</span> : null}
-          </div>
-          <div className="grid gap-2 px-4 py-6" style={{ background: primary, color: inkOn(primary) }}>
-            <span className="w-fit rounded-full px-2 py-0.5 text-[0.65rem] font-bold" style={{ background: accent, color: inkOn(accent) }}>
-              {t("previewDate")}
-            </span>
-            <span className="font-display text-2xl leading-none tracking-[-0.04em]">{t("previewTitle")}</span>
-          </div>
-          <div className="grid gap-2 bg-surface-raised p-4">
-            <span className="text-sm font-semibold">{t("previewTicket")}</span>
-            <span className="rounded-full py-2.5 text-center text-sm font-semibold" style={{ background: accent, color: inkOn(accent) }}>
-              {t("previewButton")}
-            </span>
-          </div>
-        </div>
+        <ThemePreview
+          v={v}
+          name={v.displayName || organizationName}
+          logoUrl={v.logoUrl}
+          poweredBy={!v.hideEvolyBranding || !canHide ? t("poweredBy") : null}
+          labels={{ date: t("previewDate"), title: t("previewTitle"), ticket: t("previewTicket"), button: t("previewButton") }}
+        />
       </aside>
     </div>
   );

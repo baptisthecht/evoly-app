@@ -6,6 +6,8 @@ import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { deletePublicFile, putPublicFile } from "./storage";
 import { ensurePaymentDomains } from "./stripeConnect";
+import { BRAND_FONTS, BRAND_RADII, isBrandFont } from "@evoly/ui";
+import { Prisma } from "@evoly/db";
 
 const MAX_BYTES = { logo: 2_000_000, favicon: 500_000, cover: 5_000_000, campaign: 5_000_000, seatview: 8_000_000 } as const;
 export type UploadKind = keyof typeof MAX_BYTES;
@@ -86,6 +88,57 @@ export interface BrandInput {
   emailFromName?: string | null;
   emailReplyTo?: string | null;
   hideEvolyBranding: boolean;
+  backgroundColor?: string | null;
+  radius?: string | null;
+  headingFont?: string | null;
+  bodyFont?: string | null;
+  buttonLabel?: string | null;
+  socialLinks?: Partial<Record<SocialNetwork, string>> | null;
+}
+
+export const SOCIAL_NETWORKS = ["website", "instagram", "facebook", "tiktok", "linkedin", "youtube"] as const;
+export type SocialNetwork = (typeof SOCIAL_NETWORKS)[number];
+const SOCIAL_HOSTS: Record<Exclude<SocialNetwork, "website">, RegExp> = {
+  instagram: /(^|\.)instagram\.com$/,
+  facebook: /(^|\.)(facebook\.com|fb\.com)$/,
+  tiktok: /(^|\.)tiktok\.com$/,
+  linkedin: /(^|\.)linkedin\.com$/,
+  youtube: /(^|\.)(youtube\.com|youtu\.be)$/,
+};
+
+/** Liens sociaux : adresses https seulement, chacune sur le domaine de son réseau ; invalide : refusé (jamais ignoré en silence). */
+export function normalizeSocialLinks(
+  input: Partial<Record<string, string | null | undefined>> | null | undefined,
+): Partial<Record<SocialNetwork, string>> | null {
+  const out: Partial<Record<SocialNetwork, string>> = {};
+  for (const k of SOCIAL_NETWORKS) {
+    const raw = (input?.[k] ?? "").trim();
+    if (!raw) continue;
+    let url: URL;
+    try {
+      url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    } catch {
+      throw new CoreError("BRAND_SOCIAL_INVALID");
+    }
+    if (url.protocol !== "https:" || (k !== "website" && !SOCIAL_HOSTS[k].test(url.hostname.toLowerCase()))) throw new CoreError("BRAND_SOCIAL_INVALID");
+    out[k] = url.toString().slice(0, 300);
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+/** Fond, arrondi, polices, bouton et réseaux sociaux de la billetterie, contrôlés (BRAND_THEME_INVALID sinon). */
+function theme(input: BrandInput) {
+  const backgroundColor = normalizeHexColor(input.backgroundColor);
+  if (input.backgroundColor && !backgroundColor) throw new CoreError("BRAND_COLOR_INVALID");
+  const radius = input.radius?.trim() || null;
+  if (radius && !(BRAND_RADII as readonly string[]).includes(radius)) throw new CoreError("BRAND_THEME_INVALID");
+  const headingFont = input.headingFont?.trim() || null;
+  const bodyFont = input.bodyFont?.trim() || null;
+  if ((headingFont && !isBrandFont(headingFont)) || (bodyFont && !(isBrandFont(bodyFont) && BRAND_FONTS[bodyFont].body)))
+    throw new CoreError("BRAND_THEME_INVALID");
+  const buttonLabel = input.buttonLabel?.trim().slice(0, 40) || null;
+  const links = normalizeSocialLinks(input.socialLinks);
+  return { backgroundColor, radius, headingFont, bodyFont, buttonLabel, socialLinks: links ?? Prisma.DbNull };
 }
 
 /** US-BRD-01, US-BRD-02 (Pro) : configurateur de marque. Le contraste du texte est choisi automatiquement à l'affichage (RG-BRD-01). */
@@ -104,6 +157,8 @@ export async function saveBrand(ctx: OrgContext, input: BrandInput) {
     emailFromName: input.emailFromName?.trim() || null,
     emailReplyTo: input.emailReplyTo?.trim().toLowerCase() || null,
     hideEvolyBranding: hasFeature(ctx.features, "REMOVE_EVOLY_BRANDING") ? input.hideEvolyBranding : false,
+    // personnalisation de la billetterie : valeurs inconnues refusées
+    ...theme(input),
   };
   const brand = await db.organizationBrand.upsert({
     where: { organizationId: ctx.organization.id },

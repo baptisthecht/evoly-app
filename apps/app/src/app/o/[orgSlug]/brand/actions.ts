@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { changeOrganizationSubdomain, saveBrand, setEventSubdomain, subdomainAvailable } from "@/server/brand";
+import { changeOrganizationSubdomain, saveBrand, SOCIAL_NETWORKS, setEventSubdomain, subdomainAvailable } from "@/server/brand";
 import { addCustomDomain, removeCustomDomain, verifyCustomDomain } from "@/server/domains";
 import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
 
@@ -18,11 +18,23 @@ const brandSchema = z.object({
   emailFromName: optional(80),
   emailReplyTo: z.preprocess((v) => (v === "" || v == null ? null : v), z.email({ message: "validation.email" }).max(200).nullable()),
   hideEvolyBranding: z.preprocess((v) => v === "on" || v === "true" || v === true, z.boolean()),
+  backgroundColor: optional(9),
+  radius: optional(10),
+  headingFont: optional(30),
+  bodyFont: optional(30),
+  buttonLabel: optional(40),
+  social_website: optional(300),
+  social_instagram: optional(300),
+  social_facebook: optional(300),
+  social_tiktok: optional(300),
+  social_linkedin: optional(300),
+  social_youtube: optional(300),
 });
 
 export async function saveBrandAction(orgSlug: string, _: ActionState, form: FormData): Promise<ActionState> {
   const r = await runOrgAction(orgSlug, formToObject(form), { schema: brandSchema, permission: "BRAND_EDIT", feature: "BRANDING" }, async (d, ctx) => {
-    await saveBrand(ctx, d);
+    const socialLinks = Object.fromEntries(SOCIAL_NETWORKS.map((k) => [k, d[`social_${k}`] ?? null]));
+    await saveBrand(ctx, { ...d, socialLinks });
     return null;
   });
   if (r?.ok) revalidatePath(`/o/${orgSlug}/brand`);

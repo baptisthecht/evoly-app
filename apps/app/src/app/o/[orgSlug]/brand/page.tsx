@@ -86,6 +86,17 @@ export default async function BrandPage({ params }: { params: Promise<{ orgSlug:
                 emailFromName: brand?.emailFromName ?? "",
                 emailReplyTo: brand?.emailReplyTo ?? "",
                 hideEvolyBranding: brand?.hideEvolyBranding ?? true,
+                backgroundColor: brand?.backgroundColor ?? "",
+                radius: brand?.radius ?? "",
+                headingFont: brand?.headingFont ?? "",
+                bodyFont: brand?.bodyFont ?? "",
+                buttonLabel: brand?.buttonLabel ?? "",
+                socials: Object.fromEntries(
+                  (["website", "instagram", "facebook", "tiktok", "linkedin", "youtube"] as const).map((k) => [
+                    k,
+                    ((brand?.socialLinks ?? {}) as Record<string, string>)[k] ?? "",
+                  ]),
+                ) as Record<"website" | "instagram" | "facebook" | "tiktok" | "linkedin" | "youtube", string>,
               }}
             />
           ) : (

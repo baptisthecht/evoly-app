@@ -27,6 +27,8 @@ export async function EventPublicView({
   seatMap?: PublicSeatMap | null;
   waitlistToken?: string;
 }) {
+  // texte du bouton d'achat choisi par l'organisateur (page Marque), sinon « Voir les billets »
+  const buyLabel = org.brand?.buttonLabel?.trim() || null;
   const { event, ticketTypes, salesOpen } = data;
   const t = await getTranslations("public");
   const locale = (await getLocale()) as Locale;
@@ -210,7 +212,7 @@ export async function EventPublicView({
         </div>
       </div>
 
-      {tickets.length && state === "OPEN" ? <StickyTicketsButton targetId="billets" label={t("seeTickets")} /> : null}
+      {tickets.length && state === "OPEN" ? <StickyTicketsButton targetId="billets" label={buyLabel || t("seeTickets")} /> : null}
     </article>
   );
 }
