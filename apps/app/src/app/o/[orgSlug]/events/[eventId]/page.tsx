@@ -110,7 +110,7 @@ export default async function EventOverview({
         </Card>
       ) : null}
 
-      <section aria-label={ov("kpis")} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label={ov("kpis")} className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {money ? (
           <Kpi label={ov("netRevenue")} value={formatMoney(o.netMinor, event.currency, locale)}>
             <span className={o.weekNetMinor > 0 ? "text-xs text-success" : "text-xs text-ink-muted"}>

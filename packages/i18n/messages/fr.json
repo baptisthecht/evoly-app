@@ -3024,7 +3024,7 @@
     "manage": "Gérer",
     "soldOut": "Épuisé",
     "soldOf": "{sold} sur {total}",
-    "soldUnlimited": "{sold} vendus",
+    "soldUnlimited": "{sold, plural, one {# vendu} other {# vendus}}",
     "addTier": "Ajouter un tarif",
     "recentOrders": "Dernières commandes",
     "search": "Rechercher une commande",
@@ -3044,7 +3044,7 @@
     "kpis": "Indicateurs",
     "visits": "Visites de la billetterie",
     "conversion": "{pct} % achètent",
-    "ordersCount": "{n} commandes",
+    "ordersCount": "{n, plural, one {# commande} other {# commandes}}",
     "visitsHint": "Comptées sans cookie"
   }
 }

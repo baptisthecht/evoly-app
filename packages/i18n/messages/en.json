@@ -3044,7 +3044,7 @@
     "kpis": "Key figures",
     "visits": "Ticketing page visits",
     "conversion": "{pct}% buy",
-    "ordersCount": "{n} orders",
+    "ordersCount": "{n, plural, one {# order} other {# orders}}",
     "visitsHint": "Counted without cookies"
   }
 }

@@ -12,9 +12,9 @@ type Overview = Awaited<ReturnType<typeof eventOverview>>;
 /** Carte de chiffre de la vue d'ensemble (maquette validée). */
 export function Kpi({ label, value, children }: { label: string; value: ReactNode; children?: ReactNode }) {
   return (
-    <div className="grid content-start gap-1.5 rounded-lg bg-surface-raised px-[1.125rem] py-4 ring-1 ring-line">
+    <div className="grid min-w-0 content-start gap-1.5 rounded-lg bg-surface-raised px-3.5 py-3.5 ring-1 ring-line sm:px-[1.125rem] sm:py-4">
       <span className="text-xs text-ink-muted">{label}</span>
-      <span className="text-2xl font-semibold tracking-[-0.02em] tabular-nums">{value}</span>
+      <span className="text-xl font-semibold tracking-[-0.02em] tabular-nums sm:text-2xl">{value}</span>
       {children}
     </div>
   );
@@ -73,7 +73,7 @@ export function SalesChart({
           ))}
         </nav>
       </div>
-      <svg role="img" aria-label={t("chartLabel", { total })} viewBox={`0 0 ${w} 200`} className="h-48 w-full">
+      <svg role="img" aria-label={t("chartLabel", { total })} viewBox={`0 0 ${w} 184`} className="h-48 w-full">
         <line x1="0" y1="180" x2={w} y2="180" stroke="var(--line)" />
         <line x1="0" y1="120" x2={w} y2="120" stroke="var(--line)" strokeOpacity="0.5" />
         <line x1="0" y1="60" x2={w} y2="60" stroke="var(--line)" strokeOpacity="0.5" />
@@ -91,13 +91,11 @@ export function SalesChart({
             />
           );
         })}
-        <text x="0" y="198" fontSize="11" fill="var(--ink-muted)">
-          {firstLabel}
-        </text>
-        <text x={w} y="198" fontSize="11" fill="var(--ink-muted)" textAnchor="end">
-          {t("today")}
-        </text>
       </svg>
+      <div aria-hidden="true" className="-mt-2 flex justify-between text-xs text-ink-muted">
+        <span>{firstLabel}</span>
+        <span>{t("today")}</span>
+      </div>
     </Card>
   );
 }

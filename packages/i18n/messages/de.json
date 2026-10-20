@@ -3044,7 +3044,7 @@
     "kpis": "Kennzahlen",
     "visits": "Besuche des Ticketings",
     "conversion": "{pct} % kaufen",
-    "ordersCount": "{n} Bestellungen",
+    "ordersCount": "{n, plural, one {# Bestellung} other {# Bestellungen}}",
     "visitsHint": "Ohne Cookies gezählt"
   }
 }

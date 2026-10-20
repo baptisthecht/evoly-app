@@ -3044,7 +3044,7 @@
     "kpis": "Kerncijfers",
     "visits": "Bezoeken aan de ticketing",
     "conversion": "{pct} % koopt",
-    "ordersCount": "{n} bestellingen",
+    "ordersCount": "{n, plural, one {# bestelling} other {# bestellingen}}",
     "visitsHint": "Geteld zonder cookies"
   }
 }
