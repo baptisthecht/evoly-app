@@ -1,4 +1,5 @@
-import { inkOn } from "@evoly/ui";
+import { brandCssVars } from "@evoly/ui";
+import "@evoly/ui/brand-fonts.css";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import type { CSSProperties, ReactNode } from "react";
@@ -8,16 +9,11 @@ import type { PublicOrganization } from "@/server/publicEvents";
 /** En-tête et pied de page publics. Couleurs de l'organisateur en Pro, avec contraste automatique (RG-UI-01). */
 export async function PublicShell({ org, homeHref, children }: { org: PublicOrganization; homeHref: string; children: ReactNode }) {
   const t = await getTranslations("public");
+  // RG-BRD-01 : couleurs, arrondi, polices et fond de l'organisateur (Pro), texte toujours lisible (RG-UI-01)
+  const vars = brandCssVars(org.brand ?? {});
+  const style = Object.keys(vars).length ? (vars as CSSProperties) : undefined;
   const primary = org.brand?.primaryColor ?? null;
-  // RG-BRD-01 : bandeau en couleur principale, pastilles et boutons en couleur d'accent, texte choisi pour rester lisible
   const accent = org.brand?.accentColor ?? primary;
-  const style =
-    primary || accent
-      ? ({
-          ...(accent ? { "--accent": accent, "--accent-ink": inkOn(accent) } : {}),
-          ...(primary ? { "--accent-panel": primary, "--accent-panel-ink": inkOn(primary) } : {}),
-        } as CSSProperties)
-      : undefined;
   const name = org.brand?.displayName ?? org.name;
   return (
     <div className="min-h-dvh bg-surface" style={style} data-brand={primary || accent ? "" : undefined}>

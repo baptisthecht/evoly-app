@@ -22,7 +22,22 @@ const ORG_SELECT = {
   locale: true,
   timezone: true,
   currency: true,
-  brand: { select: { displayName: true, logoUrl: true, faviconUrl: true, primaryColor: true, accentColor: true, hideEvolyBranding: true } },
+  brand: {
+    select: {
+      displayName: true,
+      logoUrl: true,
+      faviconUrl: true,
+      primaryColor: true,
+      accentColor: true,
+      hideEvolyBranding: true,
+      backgroundColor: true,
+      radius: true,
+      headingFont: true,
+      bodyFont: true,
+      buttonLabel: true,
+      socialLinks: true,
+    },
+  },
   subscription: { select: PLAN_SUBSCRIPTION_SELECT },
 } as const;
 

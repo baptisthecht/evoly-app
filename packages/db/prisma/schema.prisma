@@ -350,6 +350,13 @@ model OrganizationBrand {
   emailFromName     String? // nom d'expéditeur des e-mails
   emailReplyTo      String?
   hideEvolyBranding Boolean  @default(true)
+  // personnalisation de la billetterie (offre Pro, packages/ui/src/brandTheme.ts)
+  backgroundColor   String? // #RRGGBB : surfaces et textes en sont déduits, toujours lisibles
+  radius            String? // square, soft, medium, round, extra ; vide : la charte
+  headingFont       String? // clé de BRAND_FONTS
+  bodyFont          String?
+  buttonLabel       String? // texte du bouton d'achat (« Réserver », « Je participe »…)
+  socialLinks       Json? // { website, instagram, facebook, tiktok, linkedin, youtube }
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
