@@ -50,21 +50,21 @@ enum PlatformRole {
 // Modèles attendus par Better Auth (user, session, account, verification, rateLimit).
 // Les mots de passe sont dans Account.password (fournisseur « credential »), hachés en Argon2id.
 model User {
-  id            String       @id @default(cuid())
-  name          String
-  email         String       @unique // stocké en minuscules
-  emailVerified Boolean      @default(false)
-  image         String? // avatar
-  locale        String       @default("fr")
-  timezone      String?
-  platformRole  PlatformRole @default(NONE)
-  twoFactorSecret  String? // secret TOTP chiffré (AES-256-GCM), obligatoire pour le back-office
-  twoFactorEnabled Boolean @default(false)
-  twoFactorBackupCodes String[] @default([]) // codes de secours hachés, à usage unique
-  lastLoginAt   DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  deletedAt     DateTime?
+  id                   String       @id @default(cuid())
+  name                 String
+  email                String       @unique // stocké en minuscules
+  emailVerified        Boolean      @default(false)
+  image                String? // avatar
+  locale               String       @default("fr")
+  timezone             String?
+  platformRole         PlatformRole @default(NONE)
+  twoFactorSecret      String? // secret TOTP chiffré (AES-256-GCM), obligatoire pour le back-office
+  twoFactorEnabled     Boolean      @default(false)
+  twoFactorBackupCodes String[]     @default([]) // codes de secours hachés, à usage unique
+  lastLoginAt          DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  deletedAt            DateTime?
 
   accounts            Account[]
   sessions            Session[]
@@ -246,8 +246,8 @@ enum OrganizationStatus {
 }
 
 model Organization {
-  embedOrigins String[] @default([]) // sites autorisés à intégrer la billetterie (section 9.26, Pro)
-  acquisition  Json? // source de la première visite de son créateur : campagne, site d'origine (docs/TRACKING.md)
+  embedOrigins       String[]           @default([]) // sites autorisés à intégrer la billetterie (section 9.26, Pro)
+  acquisition        Json? // source de la première visite de son créateur : campagne, site d'origine (docs/TRACKING.md)
   id                 String             @id @default(cuid())
   slug               String             @unique // identifiant d'URL interne (dashboard)
   name               String
@@ -278,33 +278,34 @@ model Organization {
   updatedAt          DateTime           @updatedAt
   deletedAt          DateTime?
 
-  subscription     Subscription?
-  stripeAccount    StripeAccount?
-  venuePartner VenuePartner? @relation("VenueOwner") // programme « Lieu partenaire » (section 9.32)
-  referredByVenueId String? // organisateur inscrit par le lien d'un lieu partenaire (RG-LIEU-02)
-  referredByVenue VenuePartner? @relation("VenueReferrals", fields: [referredByVenueId], references: [id], onDelete: SetNull)
-  referredByVenueAt DateTime?
-  brand            OrganizationBrand?
-  members          OrganizationMember[]
-  roles            Role[]
-  invitations      Invitation[]
-  venues           Venue[]
-  events           Event[]
-  orders           Order[]
-  customDomains    CustomDomain[]
-  hostRedirects    HostRedirect[]
-  contacts         Contact[]
-  emailTemplates   EmailTemplate[]
-  campaigns        EmailCampaign[]
-  emailMessages    EmailMessage[]
-  suppressions     EmailSuppression[]
-  notifications    Notification[]
-  statements       CommissionStatement[]
-  auditLogs        AuditLog[]
-  featureFlags     FeatureFlag[]
-  referralsSent    Referral[]            @relation("ReferralsSent")
-  referralReceived Referral?             @relation("ReferralReceived")
-  seatingLayouts       SeatingLayout[]
+  subscription        Subscription?
+  stripeAccount       StripeAccount?
+  venuePartner        VenuePartner?         @relation("VenueOwner") // programme « Lieu partenaire » (section 9.32)
+  referredByVenueId   String? // organisateur inscrit par le lien d'un lieu partenaire (RG-LIEU-02)
+  referredByVenue     VenuePartner?         @relation("VenueReferrals", fields: [referredByVenueId], references: [id], onDelete: SetNull)
+  referredByVenueAt   DateTime?
+  brand               OrganizationBrand?
+  members             OrganizationMember[]
+  roles               Role[]
+  invitations         Invitation[]
+  venues              Venue[]
+  events              Event[]
+  orders              Order[]
+  customDomains       CustomDomain[]
+  hostRedirects       HostRedirect[]
+  contacts            Contact[]
+  emailTemplates      EmailTemplate[]
+  campaigns           EmailCampaign[]
+  emailMessages       EmailMessage[]
+  suppressions        EmailSuppression[]
+  notifications       Notification[]
+  statements          CommissionStatement[]
+  auditLogs           AuditLog[]
+  featureFlags        FeatureFlag[]
+  referralsSent       Referral[]            @relation("ReferralsSent")
+  referralReceived    Referral?             @relation("ReferralReceived")
+  seatingLayouts      SeatingLayout[]
+  promotionRedemption PromotionRedemption? // offre commerciale dont elle a profité à sa création
 }
 
 enum StripeAccountStatus {
@@ -423,14 +424,14 @@ model OrganizationMember {
   joinedAt       DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role         Role         @relation(fields: [roleId], references: [id])
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role               Role               @relation(fields: [roleId], references: [id])
+  mutedNotifications NotificationType[] @default([]) // préférences (P1) : types coupés dans l'app
+  mutedEmails        NotificationType[] @default([]) // préférences (P1) : e-mails coupés (types importants)
 
   @@unique([organizationId, userId])
   @@index([userId])
-  mutedNotifications NotificationType[] @default([]) // préférences (P1) : types coupés dans l'app
-  mutedEmails        NotificationType[] @default([]) // préférences (P1) : e-mails coupés (types importants)
 }
 
 enum InvitationStatus {
@@ -527,106 +528,106 @@ enum RefundPolicy {
 }
 
 model Event {
-  ambassadors  Ambassador[]
-  resaleWaitlistFirst   Boolean @default(false) // section 9.30 : places en revente d'abord proposées aux inscrits de la liste d'attente
-  resaleWaitlistMinutes Int     @default(60) // délai réservé aux inscrits, avant la section Revente publique
-  waitlist     WaitlistEntry[]
-  options      EventOption[]
-  id                  String          @id @default(cuid())
-  organizationId      String
-  venuePartnerId String? // lieu partenaire où a lieu l'événement (RG-LIEU-02)
-  venuePartner VenuePartner? @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
-  slug                String // unique par organisation
-  publicCode          String          @unique // court et global : evoly.me/e/7KQ2XM
-  title               String
-  summary             String?
-  description         Json? // contenu riche (blocs)
-  coverImageUrl       String?
-  status              EventStatus     @default(DRAFT)
-  optionsRefundAfterStart Boolean @default(false) // options remboursables après le début (RG-OPT-07)
-  visibility          EventVisibility @default(PUBLIC)
-  accessCodeHash      String? // événements PRIVATE
-  locale              String          @default("fr")
-  currency            String          @db.Char(3)
-  timezone            String
-  startsAt            DateTime
-  endsAt              DateTime?
-  doorsOpenAt         DateTime?
-  locationType        LocationType    @default(PHYSICAL)
-  venueId             String?
-  locationName        String?
-  addressLine1        String?
-  addressLine2        String?
-  postalCode          String?
-  city                String?
-  region              String?
-  country             String?         @db.Char(2)
-  latitude            Float?
-  longitude           Float?
-  onlineUrl           String? // révélé seulement après achat
-  capacity            Int? // jauge globale, tous tarifs confondus
-  seatingMode         SeatingMode     @default(GENERAL_ADMISSION)
-  allowSeatChoice     Boolean         @default(true)
-  maxTicketsPerOrder  Int             @default(10)
-  maxTicketsPerBuyer  Int? // limite par adresse e-mail (P1)
-  checkoutHoldMinutes Int             @default(10)
-  requireBuyerPhone   Boolean         @default(false)
-  allowHolderChange   Boolean         @default(true) // modification des titulaires par l'acheteur
-  botProtection       Boolean         @default(false) // protection anti-robots (P1)
-  showNextPriceTier   Boolean         @default(true) // annonce du prochain palier (P1)
-  salesStartAt        DateTime?
-  salesEndAt          DateTime?
-  resaleEnabled       Boolean         @default(true)
-  resaleCutoffMinutes Int             @default(120) // fin de la revente avant le début
-  showResaleSection   Boolean         @default(true)
-  refundPolicy        RefundPolicy    @default(ON_REQUEST)
-  refundDeadlineAt    DateTime?
-  confirmationMessage String?
-  faq                 Json? // [{ question, answer }], 10 au maximum
-  primaryColor        String? // Pro : surcharge des couleurs de la marque
-  accentColor         String?
-  subdomain           String?         @unique // Pro : nuit-electrique.evoly.me
-  publishedAt         DateTime?
-  publishAt         DateTime? // publication programmée : avant cette date, invisible ou annonce, et aucun achat
-  prePublishMode    PrePublishMode @default(HIDDEN)
-  teaserText        String? // texte de l'annonce (« Événement à venir » par défaut)
-  previewToken      String? @unique // lien d'aperçu secret, avant la publication
-  publishNotifiedAt DateTime? // e-mail « événement publié » envoyé à l'organisation
-  alerts            EventAlert[]
-  presaleStartsAt   DateTime? // prévente privée : début facultatif ; elle s'arrête à l'ouverture publique des ventes
-  presaleCodes      PresaleCode[]
-  lastMajorChangeAt   DateTime? // date, heure ou lieu modifiés après publication (RG-EVT-05)
-  cancelledAt         DateTime?
-  cancellationReason  String?
-  createdById         String?
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  deletedAt           DateTime?
+  ambassadors             Ambassador[]
+  resaleWaitlistFirst     Boolean         @default(false) // section 9.30 : places en revente d'abord proposées aux inscrits de la liste d'attente
+  resaleWaitlistMinutes   Int             @default(60) // délai réservé aux inscrits, avant la section Revente publique
+  waitlist                WaitlistEntry[]
+  options                 EventOption[]
+  id                      String          @id @default(cuid())
+  organizationId          String
+  venuePartnerId          String? // lieu partenaire où a lieu l'événement (RG-LIEU-02)
+  venuePartner            VenuePartner?   @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
+  slug                    String // unique par organisation
+  publicCode              String          @unique // court et global : evoly.me/e/7KQ2XM
+  title                   String
+  summary                 String?
+  description             Json? // contenu riche (blocs)
+  coverImageUrl           String?
+  status                  EventStatus     @default(DRAFT)
+  optionsRefundAfterStart Boolean         @default(false) // options remboursables après le début (RG-OPT-07)
+  visibility              EventVisibility @default(PUBLIC)
+  accessCodeHash          String? // événements PRIVATE
+  locale                  String          @default("fr")
+  currency                String          @db.Char(3)
+  timezone                String
+  startsAt                DateTime
+  endsAt                  DateTime?
+  doorsOpenAt             DateTime?
+  locationType            LocationType    @default(PHYSICAL)
+  venueId                 String?
+  locationName            String?
+  addressLine1            String?
+  addressLine2            String?
+  postalCode              String?
+  city                    String?
+  region                  String?
+  country                 String?         @db.Char(2)
+  latitude                Float?
+  longitude               Float?
+  onlineUrl               String? // révélé seulement après achat
+  capacity                Int? // jauge globale, tous tarifs confondus
+  seatingMode             SeatingMode     @default(GENERAL_ADMISSION)
+  allowSeatChoice         Boolean         @default(true)
+  maxTicketsPerOrder      Int             @default(10)
+  maxTicketsPerBuyer      Int? // limite par adresse e-mail (P1)
+  checkoutHoldMinutes     Int             @default(10)
+  requireBuyerPhone       Boolean         @default(false)
+  allowHolderChange       Boolean         @default(true) // modification des titulaires par l'acheteur
+  botProtection           Boolean         @default(false) // protection anti-robots (P1)
+  showNextPriceTier       Boolean         @default(true) // annonce du prochain palier (P1)
+  salesStartAt            DateTime?
+  salesEndAt              DateTime?
+  resaleEnabled           Boolean         @default(true)
+  resaleCutoffMinutes     Int             @default(120) // fin de la revente avant le début
+  showResaleSection       Boolean         @default(true)
+  refundPolicy            RefundPolicy    @default(ON_REQUEST)
+  refundDeadlineAt        DateTime?
+  confirmationMessage     String?
+  faq                     Json? // [{ question, answer }], 10 au maximum
+  primaryColor            String? // Pro : surcharge des couleurs de la marque
+  accentColor             String?
+  subdomain               String?         @unique // Pro : nuit-electrique.evoly.me
+  publishedAt             DateTime?
+  publishAt               DateTime? // publication programmée : avant cette date, invisible ou annonce, et aucun achat
+  prePublishMode          PrePublishMode  @default(HIDDEN)
+  teaserText              String? // texte de l'annonce (« Événement à venir » par défaut)
+  previewToken            String?         @unique // lien d'aperçu secret, avant la publication
+  publishNotifiedAt       DateTime? // e-mail « événement publié » envoyé à l'organisation
+  alerts                  EventAlert[]
+  presaleStartsAt         DateTime? // prévente privée : début facultatif ; elle s'arrête à l'ouverture publique des ventes
+  presaleCodes            PresaleCode[]
+  lastMajorChangeAt       DateTime? // date, heure ou lieu modifiés après publication (RG-EVT-05)
+  cancelledAt             DateTime?
+  cancellationReason      String?
+  createdById             String?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  deletedAt               DateTime?
 
-  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  venue          Venue?             @relation(fields: [venueId], references: [id], onDelete: SetNull)
-  createdBy      User?              @relation("EventCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  translations   EventTranslation[]
-  ticketTypes    TicketType[]
-  questions      CheckoutQuestion[]
-  promoCodes     PromoCode[]
-  seatingMap     SeatingMap?
-  orders         Order[]
-  tickets        Ticket[]
-  resaleListings ResaleListing[]
-  scannerLinks   ScannerLink[]
-  checkIns       CheckIn[]
-  customDomains  CustomDomain[]
-  hostRedirects  HostRedirect[]
-  automations    EmailAutomation[]
-  campaigns      EmailCampaign[]
-  dailyStats     EventDailyStat[]
+  organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  venue                Venue?             @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  createdBy            User?              @relation("EventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  translations         EventTranslation[]
+  ticketTypes          TicketType[]
+  questions            CheckoutQuestion[]
+  promoCodes           PromoCode[]
+  seatingMap           SeatingMap?
+  orders               Order[]
+  tickets              Ticket[]
+  resaleListings       ResaleListing[]
+  scannerLinks         ScannerLink[]
+  checkIns             CheckIn[]
+  customDomains        CustomDomain[]
+  hostRedirects        HostRedirect[]
+  automations          EmailAutomation[]
+  campaigns            EmailCampaign[]
+  dailyStats           EventDailyStat[]
+  ticketEmailContent   Json? // bloc personnalisé des e-mails de billets (document riche de l'éditeur)
+  reminderEmailContent Json? // bloc personnalisé des e-mails de rappel (document riche de l'éditeur)
 
   @@unique([organizationId, slug])
   @@index([organizationId, status, startsAt])
   @@index([status, startsAt])
-  ticketEmailContent   Json? // bloc personnalisé des e-mails de billets (document riche de l'éditeur)
-  reminderEmailContent Json? // bloc personnalisé des e-mails de rappel (document riche de l'éditeur)
 }
 
 // Version traduite des textes d'un événement (P2)
@@ -663,34 +664,34 @@ enum TicketVisibility {
 }
 
 model TicketType {
-  groupSize    Int      @default(1) // tables et forfaits (section 9.31) : billets donnés par achat ; 1 pour un billet simple
-  tableLabels  String[] @default([]) // noms des tables, dans l'ordre de vente ; « Table 1 », « Table 2 »… à défaut
-  includedOptions IncludedOption[]
-  waitlist     WaitlistEntry[]
-  id                String           @id @default(cuid())
-  eventId           String
-  name              String
-  description       String?
-  priceMinor        Int // prix de base payé par l'acheteur, tous frais inclus ; 0 = gratuit
-  currency          String           @db.Char(3)
-  vatRateBps        Int? // TVA de l'organisateur, pour les reçus (600 = 6 %)
-  quantity          Int? // null = illimité (dans la limite de la jauge)
-  quantitySold      Int              @default(0)
-  quantityHeld      Int              @default(0) // paniers en cours de paiement
-  minPerOrder       Int              @default(1)
-  maxPerOrder       Int              @default(10)
-  salesStartAt      DateTime?
-  salesEndAt        DateTime?
-  status            TicketTypeStatus @default(ACTIVE)
-  visibility        TicketVisibility @default(VISIBLE)
-  sortOrder         Int              @default(0)
-  isNominative      Boolean          @default(false)
-  requireHolderEmail Boolean         @default(false) // RG-QST-01 : e-mail de chaque titulaire demandé (tarifs nominatifs)
-  resaleAllowed     Boolean          @default(true)
-  seatingCategoryId String?
-  priceLockedAt     DateTime? // première vente : prix de base figé
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  groupSize          Int              @default(1) // tables et forfaits (section 9.31) : billets donnés par achat ; 1 pour un billet simple
+  tableLabels        String[]         @default([]) // noms des tables, dans l'ordre de vente ; « Table 1 », « Table 2 »… à défaut
+  includedOptions    IncludedOption[]
+  waitlist           WaitlistEntry[]
+  id                 String           @id @default(cuid())
+  eventId            String
+  name               String
+  description        String?
+  priceMinor         Int // prix de base payé par l'acheteur, tous frais inclus ; 0 = gratuit
+  currency           String           @db.Char(3)
+  vatRateBps         Int? // TVA de l'organisateur, pour les reçus (600 = 6 %)
+  quantity           Int? // null = illimité (dans la limite de la jauge)
+  quantitySold       Int              @default(0)
+  quantityHeld       Int              @default(0) // paniers en cours de paiement
+  minPerOrder        Int              @default(1)
+  maxPerOrder        Int              @default(10)
+  salesStartAt       DateTime?
+  salesEndAt         DateTime?
+  status             TicketTypeStatus @default(ACTIVE)
+  visibility         TicketVisibility @default(VISIBLE)
+  sortOrder          Int              @default(0)
+  isNominative       Boolean          @default(false)
+  requireHolderEmail Boolean          @default(false) // RG-QST-01 : e-mail de chaque titulaire demandé (tarifs nominatifs)
+  resaleAllowed      Boolean          @default(true)
+  seatingCategoryId  String?
+  priceLockedAt      DateTime? // première vente : prix de base figé
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   event           Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   seatingCategory SeatingCategory?        @relation(fields: [seatingCategoryId], references: [id], onDelete: SetNull)
@@ -814,8 +815,8 @@ model PromoCode {
   expiresAt       DateTime?
   unlocksHidden   Boolean      @default(false) // débloque les tarifs CODE_ONLY
   isActive        Boolean      @default(true)
-  ambassadorId String? @unique // code d'un ambassadeur, avec sa réduction (RG-AMB-01)
-  ambassador Ambassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
+  ambassadorId    String?      @unique // code d'un ambassadeur, avec sa réduction (RG-AMB-01)
+  ambassador      Ambassador?  @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -954,58 +955,58 @@ enum OrderSource {
 }
 
 model Order {
-  boxOfficeMode BoxOfficeMode? // vente sur place : espèces ou QR code (section 9.27)
-  soldByLinkId  String? // lien de scanner qui a vendu, pour le rapport de caisse
-  soldByDeviceId String? // appareil de la vente sur place (RG-POS-07)
-  soldBy        ScannerLink? @relation("BoxOfficeSales", fields: [soldByLinkId], references: [id], onDelete: SetNull)
-  ambassadorId String? // ambassadeur dont le lien a amené la commande (section 9.28)
-  venuePartnerId String? // part du lieu partenaire, figée au paiement (RG-LIEU-03)
-  venueShareMinor Int @default(0)
-  venuePartner VenuePartner? @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
-  optionsCode String? @unique // QR code de retrait d'options achetées sans billet (RG-OPT-03)
-  optionsShortCode String? @unique // son code court
-  ambassador   Ambassador? @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
-  options      OrderOption[]
-  friendCode          String?            @unique // « Réserver à côté de mes amis » : lien partagé par l'acheteur
-  id                    String      @id @default(cuid())
-  reference             String      @unique // lisible : EVO-7KQ2-4821
+  boxOfficeMode         BoxOfficeMode? // vente sur place : espèces ou QR code (section 9.27)
+  soldByLinkId          String? // lien de scanner qui a vendu, pour le rapport de caisse
+  soldByDeviceId        String? // appareil de la vente sur place (RG-POS-07)
+  soldBy                ScannerLink?   @relation("BoxOfficeSales", fields: [soldByLinkId], references: [id], onDelete: SetNull)
+  ambassadorId          String? // ambassadeur dont le lien a amené la commande (section 9.28)
+  venuePartnerId        String? // part du lieu partenaire, figée au paiement (RG-LIEU-03)
+  venueShareMinor       Int            @default(0)
+  venuePartner          VenuePartner?  @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
+  optionsCode           String?        @unique // QR code de retrait d'options achetées sans billet (RG-OPT-03)
+  optionsShortCode      String?        @unique // son code court
+  ambassador            Ambassador?    @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
+  options               OrderOption[]
+  friendCode            String?        @unique // « Réserver à côté de mes amis » : lien partagé par l'acheteur
+  id                    String         @id @default(cuid())
+  reference             String         @unique // lisible : EVO-7KQ2-4821
   organizationId        String
   eventId               String
-  source                OrderSource @default(ONLINE)
-  status                OrderStatus @default(PENDING)
+  source                OrderSource    @default(ONLINE)
+  status                OrderStatus    @default(PENDING)
   buyerEmail            String
   buyerFirstName        String
   buyerLastName         String
   buyerPhone            String?
-  buyerLocale           String      @default("fr")
-  buyerCountry          String?     @db.Char(2)
+  buyerLocale           String         @default("fr")
+  buyerCountry          String?        @db.Char(2)
   buyerUserId           String?
   contactId             String?
-  marketingOptIn        Boolean     @default(false) // case non cochée par défaut
-  currency              String      @db.Char(3)
+  marketingOptIn        Boolean        @default(false) // case non cochée par défaut
+  currency              String         @db.Char(3)
   subtotalMinor         Int // somme des prix unitaires avant réduction
-  discountMinor         Int         @default(0)
+  discountMinor         Int            @default(0)
   totalMinor            Int // payé par l'acheteur, frais inclus
-  applicationFeeMinor   Int         @default(0) // commission Evoly
+  applicationFeeMinor   Int            @default(0) // commission Evoly
   paymentFeeMinor       Int? // frais Stripe réels, connus après paiement
   netMinor              Int? // totalMinor − commission − frais Stripe
-  refundedMinor         Int         @default(0)
+  refundedMinor         Int            @default(0)
   feeSnapshot           Json // offre, taux, fixe, plafond appliqués
   promoCodeId           String?
-  presaleCodeId   String? // prévente privée (RG-PRV-02)
-  presaleCode     PresaleCode? @relation(fields: [presaleCodeId], references: [id], onDelete: SetNull)
-  resaleListingId       String?     @unique // commande issue d'une revente
-  stripePaymentIntentId String?     @unique
-  stripeChargeId        String?     @unique
+  presaleCodeId         String? // prévente privée (RG-PRV-02)
+  presaleCode           PresaleCode?   @relation(fields: [presaleCodeId], references: [id], onDelete: SetNull)
+  resaleListingId       String?        @unique // commande issue d'une revente
+  stripePaymentIntentId String?        @unique
+  stripeChargeId        String?        @unique
   paymentMethodType     String? // card, bancontact, ideal…
   holdExpiresAt         DateTime?
   paidAt                DateTime?
   cancelledAt           DateTime?
-  accessTokenHash       String      @unique // lien magique « mes billets »
-  accessTokenVersion    Int         @default(1) // jeton dérivé (HMAC) : changer la version invalide l’ancien lien (RG-ORD-02)
+  accessTokenHash       String         @unique // lien magique « mes billets »
+  accessTokenVersion    Int            @default(1) // jeton dérivé (HMAC) : changer la version invalide l’ancien lien (RG-ORD-02)
   termsVersion          String? // conditions acceptées au paiement
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 
   organization  Organization     @relation(fields: [organizationId], references: [id])
   event         Event            @relation(fields: [eventId], references: [id])
@@ -1069,30 +1070,30 @@ enum VoidReason {
 }
 
 model Ticket {
-  tableLabel   String? // table du forfait (section 9.31), affichée sur le billet et au scan
-  id               String       @id @default(cuid())
-  eventId          String
-  orderId          String
-  orderItemId      String
-  ticketTypeId     String
-  code             String       @unique // contenu du QR code, aléatoire (au moins 128 bits)
-  shortCode        String // 8 caractères pour la saisie manuelle
-  holderFirstName  String?
-  holderLastName   String?
-  holderEmail      String?
-  faceValueMinor   Int // prix réellement payé pour ce billet (plafond de revente)
-  status           TicketStatus @default(VALID)
-  walletGoogle Boolean @default(false) // ajouté à Google Wallet (RG-POST-04)
-  walletHash String? // empreinte de ce qu'affiche son pass, au dernier envoi
-  walletUpdatedAt DateTime? // dernière modification de son pass
+  tableLabel          String? // table du forfait (section 9.31), affichée sur le billet et au scan
+  id                  String               @id @default(cuid())
+  eventId             String
+  orderId             String
+  orderItemId         String
+  ticketTypeId        String
+  code                String               @unique // contenu du QR code, aléatoire (au moins 128 bits)
+  shortCode           String // 8 caractères pour la saisie manuelle
+  holderFirstName     String?
+  holderLastName      String?
+  holderEmail         String?
+  faceValueMinor      Int // prix réellement payé pour ce billet (plafond de revente)
+  status              TicketStatus         @default(VALID)
+  walletGoogle        Boolean              @default(false) // ajouté à Google Wallet (RG-POST-04)
+  walletHash          String? // empreinte de ce qu'affiche son pass, au dernier envoi
+  walletUpdatedAt     DateTime? // dernière modification de son pass
   walletRegistrations WalletRegistration[]
-  seatId           String?      @unique
-  checkedInAt      DateTime?
-  voidedAt         DateTime?
-  voidReason       VoidReason?
-  replacesTicketId String?      @unique // billet d'origine, en cas de revente
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  seatId              String?              @unique
+  checkedInAt         DateTime?
+  voidedAt            DateTime?
+  voidReason          VoidReason?
+  replacesTicketId    String?              @unique // billet d'origine, en cas de revente
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
   event          Event            @relation(fields: [eventId], references: [id])
   order          Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -1149,26 +1150,26 @@ enum ResaleStatus {
 
 model ResaleListing {
   publicFrom           DateTime? // visible dans la section Revente publique à partir de cette date (délai réservé à la liste d'attente)
-  id                   String         @id @default(cuid())
+  id                   String       @id @default(cuid())
   eventId              String
   ticketId             String
   sellerOrderId        String
   sellerEmail          String
-  linkCode             String         @unique // lien public : evoly.me/r/nuit-7KQ2
+  linkCode             String       @unique // lien public : evoly.me/r/nuit-7KQ2
   priceMinor           Int // prix demandé, inférieur ou égal à la valeur faciale
   faceValueMinor       Int
-  currency             String         @db.Char(3)
-  status               ResaleStatus   @default(ACTIVE)
-  showOnEventPage      Boolean        @default(true)
+  currency             String       @db.Char(3)
+  status               ResaleStatus @default(ACTIVE)
+  showOnEventPage      Boolean      @default(true)
   reservedUntil        DateTime?
   expiresAt            DateTime
   soldAt               DateTime?
   cancelledAt          DateTime?
   sellerRefundMinor    Int? // montant rendu au vendeur
-  sellerStripeRefundId String?        @unique
+  sellerStripeRefundId String?      @unique
   failureReason        String?
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
   event       Event  @relation(fields: [eventId], references: [id])
   ticket      Ticket @relation(fields: [ticketId], references: [id])
@@ -1227,9 +1228,9 @@ model Refund {
   createdAt                   DateTime        @default(now())
   updatedAt                   DateTime        @updatedAt
 
-  order     Order        @relation(fields: [orderId], references: [id])
-  handledBy User?        @relation("RefundHandler", fields: [handledById], references: [id], onDelete: SetNull)
-  items     RefundItem[]
+  order       Order              @relation(fields: [orderId], references: [id])
+  handledBy   User?              @relation("RefundHandler", fields: [handledById], references: [id], onDelete: SetNull)
+  items       RefundItem[]
   optionItems RefundOptionItem[] // options remboursées (RG-OPT-07)
 
   @@index([orderId])
@@ -1887,18 +1888,18 @@ enum ProspectEmailStatus {
 }
 
 model Prospect {
-  id            String          @id @default(cuid())
-  email         String          @unique
+  id            String             @id @default(cuid())
+  email         String             @unique
   organisation  String
-  status        ProspectStatus  @default(NOUVEAU)
+  status        ProspectStatus     @default(NOUVEAU)
   notes         String?
   source        String?
   lastContactAt DateTime?
   nextActionAt  DateTime? // date de relance ou de prochaine action
   respondedAt   DateTime? // première réponse
   activities    ProspectActivity[]
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
   emails        ProspectEmail[]
 
   @@index([status])
@@ -1934,7 +1935,7 @@ model ProspectEmail {
   mailbox     String? // adresse de la boîte d'envoi utilisée (gardée même si la boîte est supprimée)
   mailboxId   String?
   copiedAt    DateTime? // copie rangée dans le dossier « Envoyés » de la boîte
-  box         ProspectMailbox? @relation(fields: [mailboxId], references: [id], onDelete: SetNull)
+  box         ProspectMailbox?    @relation(fields: [mailboxId], references: [id], onDelete: SetNull)
   error       String?
   createdAt   DateTime            @default(now())
 
@@ -1966,19 +1967,19 @@ model ProspectMailbox {
 /// Options et consommations prépayées (section 9.29, Pro) : des articles vendus avec le billet, jamais un solde d'argent (RG-OPT-02)
 model EventOption {
   includedIn  IncludedOption[]
-  id          String        @id @default(cuid())
+  id          String           @id @default(cuid())
   eventId     String
   name        String
   description String?
   priceMinor  Int
   stock       Int? // sans limite si vide
-  maxPerOrder Int           @default(10)
-  standalone Boolean @default(false) // vendable sans billet : vestiaire seul… (RG-OPT-03)
-  active      Boolean       @default(true)
-  sortOrder   Int           @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  maxPerOrder Int              @default(10)
+  standalone  Boolean          @default(false) // vendable sans billet : vestiaire seul… (RG-OPT-03)
+  active      Boolean          @default(true)
+  sortOrder   Int              @default(0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   lines       OrderOption[]
 
   @@index([eventId])
@@ -1986,20 +1987,20 @@ model EventOption {
 
 /// Option achetée dans une commande : prix et commission figés à l'achat, quantité déjà retirée au bar
 model OrderOption {
-  id             String             @id @default(cuid())
+  id             String                     @id @default(cuid())
   orderId        String
   optionId       String
   quantity       Int
   unitPriceMinor Int
-  unitFeeMinor   Int                @default(0)
-  redeemed       Int                @default(0)
-  refunded Int @default(0) // quantité remboursée (RG-OPT-07)
-  createdAt      DateTime           @default(now())
-  order          Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  option         EventOption        @relation(fields: [optionId], references: [id])
+  unitFeeMinor   Int                        @default(0)
+  redeemed       Int                        @default(0)
+  refunded       Int                        @default(0) // quantité remboursée (RG-OPT-07)
+  createdAt      DateTime                   @default(now())
+  order          Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  option         EventOption                @relation(fields: [optionId], references: [id])
   redemptions    OptionRedemption[]
-  refundItems RefundOptionItem[]
-  conflicts OptionRedemptionConflict[]
+  refundItems    RefundOptionItem[]
+  conflicts      OptionRedemptionConflict[]
 
   @@index([orderId])
   @@index([optionId])
@@ -2012,7 +2013,7 @@ model OptionRedemption {
   quantity      Int
   deviceId      String?
   staffName     String?
-  offline Boolean @default(false) // fait sans réseau, synchronisé ensuite (RG-OPT-05)
+  offline       Boolean     @default(false) // fait sans réseau, synchronisé ensuite (RG-OPT-05)
   createdAt     DateTime    @default(now())
   line          OrderOption @relation(fields: [orderOptionId], references: [id], onDelete: Cascade)
 
@@ -2068,19 +2069,19 @@ model WaitlistEntry {
 
 /// Ambassadeurs (section 9.28, Pro) : un lien de vente par membre de l'équipe ou promoteur, et un classement
 model Ambassador {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   eventId    String
   name       String
   email      String?
   code       String // lien de vente : ?a=CODE, unique dans l'événement
-  statsToken String   @unique // lien privé de suivi, sans compte (RG-AMB-04)
+  statsToken String     @unique // lien privé de suivi, sans compte (RG-AMB-04)
   goal       Int? // objectif de billets, facultatif
   reward     String? // récompense annoncée, remise par l'organisateur
-  active     Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  event      Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
   orders     Order[]
-  promoCode PromoCode?
+  promoCode  PromoCode?
 
   @@unique([eventId, code])
 }
@@ -2118,27 +2119,27 @@ model WalletRegistration {
 
 /// Lieu partenaire (section 9.32) : organisation qui recommande Evoly aux organisateurs qui louent sa salle.
 model VenuePartner {
-  id               String        @id @default(cuid())
-  organizationId   String        @unique
-  code             String        @unique
-  shareBps         Int           @default(2000) // 20 % de la commission d'Evoly (décision n° 21)
-  thresholdEnabled Boolean       @default(true) // seuil de versement réglé par le lieu (RG-LIEU-06)
-  thresholdMinor   Int           @default(2000)
-  hallName         String? // la salle où ont lieu les événements comptés (section 9.32)
-  addressLine1     String?
-  postalCode       String?
-  city             String?
-  country          String?
-  active           Boolean       @default(true)
+  id                    String         @id @default(cuid())
+  organizationId        String         @unique
+  code                  String         @unique
+  shareBps              Int            @default(2000) // 20 % de la commission d'Evoly (décision n° 21)
+  thresholdEnabled      Boolean        @default(true) // seuil de versement réglé par le lieu (RG-LIEU-06)
+  thresholdMinor        Int            @default(2000)
+  hallName              String? // la salle où ont lieu les événements comptés (section 9.32)
+  addressLine1          String?
+  postalCode            String?
+  city                  String?
+  country               String?
+  active                Boolean        @default(true)
   selfBillingAcceptedAt DateTime? // accord préalable à l'autofacturation (RG-LIEU-07)
-  invoiceSeq Int @default(0) // numérotation propre au lieu
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  organization     Organization  @relation("VenueOwner", fields: [organizationId], references: [id], onDelete: Cascade)
+  invoiceSeq            Int            @default(0) // numérotation propre au lieu
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  organization          Organization   @relation("VenueOwner", fields: [organizationId], references: [id], onDelete: Cascade)
   referredOrganizations Organization[] @relation("VenueReferrals")
-  events           Event[]
-  orders           Order[]
-  payouts          VenuePayout[]
+  events                Event[]
+  orders                Order[]
+  payouts               VenuePayout[]
 }
 
 /// Versement de sa part à un lieu partenaire (RG-LIEU-06).
@@ -2151,13 +2152,66 @@ model VenuePayout {
   status           String // PAID ou FAILED
   stripeTransferId String?
   error            String?
-  invoiceNumber String? @unique // facture d'autofacturation (RG-LIEU-07)
-  netMinor Int?
-  vatMinor Int?
-  vatRateBps Int?
-  vatMention String? // BE_VAT, FRANCHISE ou NOT_REGISTERED
+  invoiceNumber    String?      @unique // facture d'autofacturation (RG-LIEU-07)
+  netMinor         Int?
+  vatMinor         Int?
+  vatRateBps       Int?
+  vatMention       String? // BE_VAT, FRANCHISE ou NOT_REGISTERED
   createdAt        DateTime     @default(now())
   venuePartner     VenuePartner @relation(fields: [venuePartnerId], references: [id], onDelete: Cascade)
 
   @@index([venuePartnerId, createdAt])
+}
+
+enum PromotionAudience {
+  ALL_NEW // toute nouvelle organisation qui remplit les conditions
+  LINK // seulement par le lien de la campagne (?offre=CODE)
+}
+
+enum PromotionDurationUnit {
+  DAY
+  MONTH
+}
+
+/// Offre commerciale (campagne) gérée depuis l'administration : un plan offert à la création d'une organisation,
+/// attribué une seule fois par organisation (docs/OFFRES.md).
+model Promotion {
+  id                String                @id @default(cuid())
+  code              String                @unique // identifiant de campagne : lien ?offre=CODE, statistiques
+  name              String // nom interne
+  note              String? // note interne
+  active            Boolean               @default(true)
+  planId            String                @default("pro") // plan offert
+  durationValue     Int                   @default(3)
+  durationUnit      PromotionDurationUnit @default(MONTH)
+  startsAt          DateTime? // vide : dès maintenant
+  endsAt            DateTime? // vide : sans fin
+  audience          PromotionAudience     @default(ALL_NEW)
+  countries         String[]              @default([]) // pays de l'organisation (vide : tous)
+  organizationTypes OrganizationType[]    @default([]) // types d'organisation (vide : tous)
+  sources           String[]              @default([]) // source de la première visite, utm_source (vide : toutes)
+  maxRedemptions    Int? // nombre maximal d'organisations (vide : illimité)
+  redeemedCount     Int                   @default(0)
+  perOwnerLimit     Int                   @default(1) // organisations par organisateur
+  priority          Int                   @default(0) // la plus haute l'emporte si plusieurs offres s'appliquent
+  showOnSite        Boolean               @default(true) // annoncée sur le site vitrine et l'inscription
+  messages          Json                  @default("{}") // par langue : { "fr": { "banner", "short", "cta" } }
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  redemptions       PromotionRedemption[]
+}
+
+/// Organisation qui a profité d'une offre, et jusqu'à quand.
+model PromotionRedemption {
+  id             String       @id @default(cuid())
+  promotionId    String
+  promotion      Promotion    @relation(fields: [promotionId], references: [id], onDelete: Restrict)
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String // organisateur qui l'a créée
+  grantedUntil   DateTime
+  createdAt      DateTime     @default(now())
+
+  @@index([promotionId, createdAt])
+  @@index([userId])
 }

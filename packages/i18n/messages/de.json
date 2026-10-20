@@ -2906,7 +2906,6 @@
     "submit": "Mein Ticketing erstellen",
     "back": "Veranstaltung ändern",
     "emailTaken": "Für diese Adresse gibt es bereits ein Konto: Melden Sie sich an.",
-    "login": "Anmelden",
-    "offer": "Startangebot: 3 Monate Pro geschenkt, ohne Kreditkarte."
+    "login": "Anmelden"
   }
 }

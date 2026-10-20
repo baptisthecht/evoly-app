@@ -539,7 +539,7 @@ BODY = f'''
       <h2 class="h2" id="pr-title">une tarification<span class="script">transparente</span>.</h2>
       <div class="pricing__side">
         <p class="lede">Une commission simple : 0,29 € + 2 % par billet payant, plafonnée à 2,50 € en Free et à 1 € en Pro.</p>
-      <p class="launch-offer" style="margin:12px auto 0;max-width:640px;padding:12px 16px;border-radius:14px;background:#FFE3F4;color:#222;font-weight:600;text-align:center">Offre de lancement : 3 mois de Pro offerts, sans carte bancaire, pour toute organisation créée au plus tard le 31 mars 2027.</p>
+      <p class="launch-offer" data-evoly-offer hidden style="margin:12px auto 0;max-width:640px;padding:12px 16px;border-radius:14px;background:#FFE3F4;color:#222;font-weight:600;text-align:center"></p>
         <div class="bill" role="group" aria-label="Facturation"><button type="button" data-bill="month" aria-pressed="true">Mensuel</button><button type="button" data-bill="year" aria-pressed="false">Annuel<span class="off">−15 %</span></button></div>
       </div>
     </div>
@@ -552,10 +552,10 @@ BODY = f'''
       </article>
       <article class="plan plan--pro" aria-labelledby="plan-pro">
         <span class="plan__badge">Le plus complet</span>
-        <div class="plan__main"><h3 class="plan__name" id="plan-pro">Pro</h3><p class="plan__price"><b class="pro-price">29 €</b><span>par mois</span></p><p class="plan__billed pro-billed">Facturé chaque mois</p><p class="plan__sub">3 mois offerts sans carte bancaire (offre de lancement)</p></div>
+        <div class="plan__main"><h3 class="plan__name" id="plan-pro">Pro</h3><p class="plan__price"><b class="pro-price">29 €</b><span>par mois</span></p><p class="plan__billed pro-billed">Facturé chaque mois</p><p class="plan__sub">Essai gratuit de 14 jours, carte bancaire requise</p></div>
         <div class="tcard__perf" aria-hidden="true"><i></i></div>
         <ul class="plan__list">{PRO_LIST}</ul>
-        <a class="btn plan__cta" href="{REGISTER_PRO}" {EXT}>Profiter de 3 mois de Pro</a>
+        <a class="btn plan__cta" href="{REGISTER_PRO}" {EXT}>Essayer Pro 14 jours</a>
       </article>
     </div>
     <p class="pricing__note">Commission hors frais de paiement. Les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Tout est déduit automatiquement de vos ventes : vos participants ne paient rien de plus.</p>
@@ -582,7 +582,7 @@ BODY = f'''
       <p class="lede">Créez votre compte gratuitement, sans carte bancaire. Votre premier événement peut être en ligne en quelques minutes.</p>
       <div class="final__ctas">
         <a class="btn btn--pink" href="{REGISTER}" {EXT}>Créer mon premier événement</a>
-        <a class="btn btn--line" href="{REGISTER_PRO}" {EXT}>Profiter de 3 mois de Pro</a>
+        <a class="btn btn--line" href="{REGISTER_PRO}" {EXT}>Essayer Pro 14 jours</a>
       </div>
     </div>
     <div class="final__wrap"><div class="final__logo">{FINAL_LOGO}</div></div>
@@ -706,8 +706,9 @@ SEO_HEAD = f"""<title>{SEO_TITLE}</title>
 
 # mesure d'audience et publicité (docs/TRACKING.md) : identifiants lus à la construction, rien sans identifiant ni accord
 TRACKING = (
-    '<script>window.EVOLY_TRACKING=' + _json.dumps({"ga": os.environ.get("EVOLY_GA_ID", "G-CCC58XTQ4D"), "ads": os.environ.get("EVOLY_GOOGLE_ADS_ID", ""), "base": os.environ.get("EVOLY_BASE_DOMAIN", "evoly.me")}) + '</script>\n'
+    '<script>window.EVOLY_TRACKING=' + _json.dumps({"ga": os.environ.get("EVOLY_GA_ID", "G-CCC58XTQ4D"), "ads": os.environ.get("EVOLY_GOOGLE_ADS_ID", ""), "base": os.environ.get("EVOLY_BASE_DOMAIN", "evoly.me"), "app": os.environ.get("EVOLY_APP_URL", "https://app.evoly.me")}) + '</script>\n'
     + '<script>' + open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tracking.js'), encoding='utf-8').read() + '</script>'
+    + '<script>' + open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'offer.js'), encoding='utf-8').read() + '</script>'
 )
 
 import pages

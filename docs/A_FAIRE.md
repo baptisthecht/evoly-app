@@ -11,24 +11,10 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 - **Google Ads** : inscrire l'identifiant `AW-…` et les libellés des conversions « Inscription » et « Organisation
   créée » (`EVOLY_IDS` dans `apps/app/src/components/tracking/Analytics.tsx`), voir `docs/TRACKING.md`.
 
-## Offres commerciales gérées en base et dans l'administration
+## Offres commerciales
 
-Aujourd'hui, l'offre de lancement (3 mois de Pro offerts jusqu'au 31 mars 2027) est écrite dans le code
-(`packages/core/src/launchOffer.ts`) et dans les textes du site (`apps/web/build.py`, `refonte.py`, `i18n/`). La
-modifier ou l'arrêter demande un déploiement. À remplacer par :
-
-- une table `Promotion` : nom, offre attribuée (Pro), durée (en jours ou en mois), période de validité (début, fin),
-  public visé (toutes les nouvelles organisations, un lien ou un code précis), limite par organisateur, active ou non ;
-- une page de l'administration pour créer, modifier, suspendre une offre, et voir les organisations qui en ont profité ;
-- l'attribution à la création d'une organisation : la première offre active qui s'applique, tracée dans le journal ;
-- un texte d'offre lu par le site vitrine depuis l'application (point d'accès public en lecture), dans les 7 langues,
-  pour que le bandeau et l'encadré Pro suivent l'offre sans reconstruire le site ;
-- la reprise de l'offre actuelle dans cette table, puis la suppression de `launchOffer.ts` et de `LAUNCH_OFFER_UNTIL`.
-
-## Après le 31 mars 2027 (si l'offre est encore dans le code)
-
-- Retirer du site le bandeau de l'offre, remettre « Essai gratuit de 14 jours » dans l'encadré Pro et « Essayer Pro
-  14 jours » sur les boutons (les traductions existent encore dans `apps/web/i18n/`).
+Fait : gérées en base et dans l'administration (`docs/OFFRES.md`). Reste à faire : un parcours complet de
+l'administration des offres, de la création d'une offre à son attribution.
 
 ## Décisions prises
 

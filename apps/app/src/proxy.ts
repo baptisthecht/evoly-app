@@ -138,8 +138,12 @@ export async function proxy(request: NextRequest) {
   const wantsPro = request.nextUrl.searchParams.get("plan") === "pro";
   const lieu = request.nextUrl.searchParams.get("lieu"); // section 9.32 : lien d'un lieu partenaire
   const lieuOk = !!lieu && /^[a-z0-9]{4,20}$/i.test(lieu);
-  if ((ref && /^[a-z0-9]{4,20}$/i.test(ref)) || wantsPro || lieuOk) {
+  // offres commerciales (docs/OFFRES.md) : code de la campagne suivie, mémorisé 60 jours pour accorder l'offre demandée
+  const offre = (request.nextUrl.searchParams.get("offre") ?? "").trim().toLowerCase();
+  const offreOk = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(offre) && offre.length >= 2;
+  if ((ref && /^[a-z0-9]{4,20}$/i.test(ref)) || wantsPro || lieuOk || offreOk) {
     const res = NextResponse.next();
+    if (offreOk) res.cookies.set("evoly_offer", offre, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 86_400 });
     if (lieuOk) res.cookies.set("evoly_lieu", lieu!.toUpperCase(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
     if (ref && /^[a-z0-9]{4,20}$/i.test(ref))
       res.cookies.set("evoly_ref", ref.toLowerCase(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });

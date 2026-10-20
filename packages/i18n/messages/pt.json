@@ -2906,7 +2906,6 @@
     "submit": "Criar a minha bilheteira",
     "back": "Alterar o evento",
     "emailTaken": "Este endereço já tem uma conta: inicie sessão.",
-    "login": "Iniciar sessão",
-    "offer": "Oferta de lançamento: 3 meses de Pro grátis, sem cartão."
+    "login": "Iniciar sessão"
   }
 }

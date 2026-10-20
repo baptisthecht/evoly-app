@@ -11,6 +11,7 @@ Aucun cookie de mesure ou de publicité n'est déposé sur les billetteries des 
 | evoly_access_…                      | Mémoriser le code d'accès d'un événement privé sur ce navigateur   | 30 jours         |
 | Stripe (__stripe_mid, __stripe_sid) | Sécuriser le paiement et prévenir la fraude, à l'étape de paiement | 1 an, 30 minutes |
 | evoly_consent                       | Mémoriser vos choix sur les cookies (et la date de ce choix)       | 1 an             |
+| evoly_offer                         | Mémoriser l'offre de la campagne suivie, pour vous l'accorder      | 60 jours         |
 
 ## Mesure d'audience (avec votre accord)
 

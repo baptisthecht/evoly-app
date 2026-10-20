@@ -2906,7 +2906,6 @@
     "submit": "Créer ma billetterie",
     "back": "Modifier l’événement",
     "emailTaken": "Cette adresse a déjà un compte : connectez-vous.",
-    "login": "Se connecter",
-    "offer": "Offre de lancement : 3 mois de Pro offerts, sans carte bancaire."
+    "login": "Se connecter"
   }
 }

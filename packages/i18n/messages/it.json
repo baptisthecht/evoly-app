@@ -2906,7 +2906,6 @@
     "submit": "Crea la mia biglietteria",
     "back": "Modifica l’evento",
     "emailTaken": "Questo indirizzo ha già un account: accedi.",
-    "login": "Accedi",
-    "offer": "Offerta di lancio: 3 mesi di Pro in regalo, senza carta di credito."
+    "login": "Accedi"
   }
 }

@@ -2906,7 +2906,6 @@
     "submit": "Create my ticketing",
     "back": "Edit the event",
     "emailTaken": "This address already has an account: sign in.",
-    "login": "Sign in",
-    "offer": "Launch offer: 3 months of Pro free, no credit card."
+    "login": "Sign in"
   }
 }

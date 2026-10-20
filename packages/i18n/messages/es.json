@@ -2906,7 +2906,6 @@
     "submit": "Crear mi ticketing",
     "back": "Modificar el evento",
     "emailTaken": "Esta dirección ya tiene una cuenta: inicia sesión.",
-    "login": "Iniciar sesión",
-    "offer": "Oferta de lanzamiento: 3 meses de Pro gratis, sin tarjeta."
+    "login": "Iniciar sesión"
   }
 }
