@@ -14,7 +14,16 @@ export function Badge({ tone = "neutral", children }: { tone?: "neutral" | "acce
     danger: "bg-danger-soft text-danger",
     dark: "bg-surface-inverse text-ink-inverse",
   } as const;
-  return <span className={cn("inline-flex h-6 items-center rounded-full px-2.5 font-label text-[0.72rem] font-bold", tones[tone])}>{children}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex h-6 items-center rounded-full px-2.5 font-[family-name:var(--label-family)] text-[0.72rem] [font-weight:var(--label-weight)]",
+        tones[tone],
+      )}
+    >
+      {children}
+    </span>
+  );
 }
 
 export function Banner({

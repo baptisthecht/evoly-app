@@ -157,11 +157,17 @@ const quickStartSchema = z.object({
   startsAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, { message: "validation.required" }),
   locationName: z.string().trim().min(1, { message: "validation.required" }).max(120),
   city: z.string().trim().min(1, { message: "validation.required" }).max(80),
+  // facultatifs : sans prix, billets gratuits ; sans nombre, places illimitées
   price: z
-    .string()
-    .trim()
-    .regex(/^\d{1,6}([.,]\d{1,2})?$/, { message: "validation.number" }),
-  quantity: z.coerce.number({ message: "validation.number" }).int().min(1).max(100_000),
+    .union([
+      z.literal(""),
+      z
+        .string()
+        .trim()
+        .regex(/^\d{1,6}([.,]\d{1,2})?$/, { message: "validation.number" }),
+    ])
+    .optional(),
+  quantity: z.union([z.literal(""), z.coerce.number({ message: "validation.number" }).int().min(1).max(100_000)]).optional(),
   orgName: z.string().trim().min(2, { message: "validation.required" }).max(80),
   type: z.enum(["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"]),
   email: registerSchema.shape.email,
@@ -200,7 +206,14 @@ export async function quickStartAction(_: ActionState, form: FormData): Promise<
     await createStarterOrganizationAndEvent(
       { id: userId, name: d.orgName, email: d.email },
       { name: d.orgName, type: d.type },
-      { title: d.title, startsAtLocal: d.startsAtLocal, locationName: d.locationName, city: d.city, price: d.price, quantity: d.quantity },
+      {
+        title: d.title,
+        startsAtLocal: d.startsAtLocal,
+        locationName: d.locationName,
+        city: d.city,
+        price: d.price || "0",
+        quantity: typeof d.quantity === "number" ? d.quantity : null,
+      },
       await readAcquisition(),
     );
     await queueTrackedEvent("organization_created");

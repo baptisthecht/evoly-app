@@ -9,8 +9,10 @@ export interface StarterEvent {
   startsAtLocal: string;
   locationName: string;
   city: string;
+  /** « 0 » : billets gratuits. */
   price: string;
-  quantity: number;
+  /** Aucune : places illimitées. */
+  quantity: number | null;
 }
 
 /**

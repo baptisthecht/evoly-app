@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Logo } from "@/components/Brand";
 import { LocaleSwitch } from "@/components/LocaleSwitch";
 import { requireUser } from "@/server/session";
+import { ThemePro } from "@/components/theme/ThemePro";
 
 export default async function OnboardingLayout({ children }: { children: ReactNode }) {
   await requireUser();
@@ -11,7 +12,10 @@ export default async function OnboardingLayout({ children }: { children: ReactNo
         <Logo className="h-9 w-auto text-ink" />
         <LocaleSwitch />
       </header>
-      <main className="mx-auto max-w-3xl px-5 pt-6 pb-16 sm:px-8">{children}</main>
+      <main className="mx-auto max-w-3xl px-5 pt-6 pb-16 sm:px-8">
+        <ThemePro />
+        {children}
+      </main>
     </div>
   );
 }

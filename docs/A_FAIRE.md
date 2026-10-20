@@ -16,6 +16,16 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 Fait : gérées en base et dans l'administration (`docs/OFFRES.md`). Reste à faire : un parcours complet de
 l'administration des offres, de la création d'une offre à son attribution.
 
+## Thème pro de l'application (maquette validée le 21 octobre 2026)
+
+Fait : jetons et composants (boutons, champs, libellés, pastilles, cartes) du thème pro, actif sur les pages de
+l'application des organisateurs (repère `.theme-pro`) ; la billetterie publique, l'espace des acheteurs et le scanner
+gardent la charte. Création rapide (`/start`) refaite selon la maquette. Reste à faire :
+
+- Recherche d'adresse (Photon, via le serveur) pour le lieu, ici et dans l'application.
+- Onglets horizontaux en haut de chaque événement (vue d'ensemble, tarifs, commandes…), comme la maquette.
+- Revue visuelle de chaque écran de l'application dans le nouveau thème (titres, espacements, tableaux).
+
 ## Décisions prises
 
 - Avertissement de fin d'un Pro offert : 3 jours avant (comme les essais Stripe).

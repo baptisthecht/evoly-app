@@ -28,6 +28,12 @@ body {
   letter-spacing: -0.02em;
 }
 
+/* thème pro : titres en Poppins demi-gras (le logo est un dessin, il ne change pas) */
+:root:has(.theme-pro) .page-title,
+:root:has(.theme-pro) .font-display {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
 .script {
   font-family: var(--type-script);
   font-weight: 400;

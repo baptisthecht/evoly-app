@@ -8,6 +8,7 @@ import Link from "next/link";
 import { unreadCount } from "@/server/notifications";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
+import { ThemePro } from "@/components/theme/ThemePro";
 
 export default async function OrgLayout({ children, sidebar, params }: { children: ReactNode; sidebar: ReactNode; params: Promise<{ orgSlug: string }> }) {
   const { orgSlug } = await params;
@@ -79,6 +80,7 @@ export default async function OrgLayout({ children, sidebar, params }: { childre
           {(await getTranslations("platform"))("suspendedBanner")}
         </p>
       ) : null}
+      <ThemePro />
       {children}
     </Shell>
   );

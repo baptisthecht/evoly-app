@@ -9,18 +9,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-/** Visiteurs des annonces : l'événement d'abord, le compte à la fin ; l'offre de leur campagne, s'il y en a une. */
+/** Visiteurs des annonces : l'événement d'abord, avec l'aperçu de leur billetterie ; le compte à la fin. */
 export default async function StartPage() {
-  const t = await getTranslations("quickstart");
   const offer = await offerForVisitor((await cookies()).get(OFFER_COOKIE)?.value, await getLocale());
-  return (
-    <div className="grid gap-6">
-      <header className="grid gap-2">
-        <h1 className="page-title">{t("title")}</h1>
-        <p className="text-ink-muted">{t("lead")}</p>
-        {offer ? <p className="text-sm font-semibold">{offer.banner}</p> : null}
-      </header>
-      <QuickStartForm />
-    </div>
-  );
+  return <QuickStartForm offer={offer?.banner ?? null} />;
 }

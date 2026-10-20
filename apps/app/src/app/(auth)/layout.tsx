@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Logo, OMark } from "@/components/Brand";
 import { LocaleSwitch } from "@/components/LocaleSwitch";
+import { ThemePro } from "@/components/theme/ThemePro";
 
 export default async function AuthLayout({ children }: { children: ReactNode }) {
   const t = await getTranslations("brand");
@@ -21,7 +22,10 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
           <Logo className="h-9 w-auto text-ink lg:invisible" />
           <LocaleSwitch />
         </div>
-        <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center py-8">{children}</div>
+        <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center py-8">
+          <ThemePro />
+          {children}
+        </div>
       </main>
     </div>
   );

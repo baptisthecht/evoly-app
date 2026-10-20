@@ -29,4 +29,15 @@ describe("création rapide : organisation et premier événement d'un coup", () 
     expect((ob!.subdomain ?? "").startsWith((oa!.subdomain ?? "").slice(0, 10))).toBe(true);
     expect(ob!.type).toBe("COMPANY");
   });
+
+  it("sans prix ni nombre de places : billets gratuits, places illimitées", async () => {
+    const { event } = await createStarterOrganizationAndEvent(
+      await user(),
+      { name: `Gratuit ${rid()}`, type: "ASSOCIATION" },
+      { ...ev, price: "0", quantity: null },
+      null,
+    );
+    const row = await db.event.findUniqueOrThrow({ where: { id: event.id }, include: { ticketTypes: true } });
+    expect(row.ticketTypes.map((t) => [t.priceMinor, t.quantity])).toEqual([[0, null]]);
+  });
 });

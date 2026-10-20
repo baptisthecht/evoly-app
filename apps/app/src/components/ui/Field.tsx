@@ -11,8 +11,8 @@ import {
 import { cn } from "./cn";
 
 const control =
-  "block w-full h-12 rounded-md bg-surface-raised px-4 text-base text-ink placeholder:text-ink-subtle " +
-  "shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none transition-shadow focus:shadow-[inset_0_0_0_2px_var(--ink),0_0_0_4px_color-mix(in_srgb,var(--focus-halo)_70%,transparent)] " +
+  "block w-full h-[var(--field-h)] rounded-md bg-surface-raised px-4 text-[length:var(--field-text)] text-ink placeholder:text-ink-subtle " +
+  "shadow-[inset_0_0_0_var(--control-border)_var(--line-strong)] outline-none transition-shadow focus:shadow-[var(--field-focus)] " +
   "aria-[invalid=true]:shadow-[inset_0_0_0_2px_var(--color-danger)]";
 
 export function Field({
@@ -20,12 +20,21 @@ export function Field({
   htmlFor,
   hint,
   error,
+  required,
+  done,
+  optional,
   children,
 }: {
   label: string;
   htmlFor: string;
   hint?: ReactNode;
   error?: string | null;
+  /** Champ obligatoire : astérisque rose (le champ porte aussi l'attribut required, lu par les lecteurs d'écran). */
+  required?: boolean;
+  /** Champ obligatoire rempli : coche verte. */
+  done?: boolean;
+  /** Mention à droite du libellé d'un champ facultatif (« facultatif »). */
+  optional?: string;
   children: ReactNode;
 }) {
   // un seul champ : marqué invalide en cas d'erreur et relié à son message d'erreur ou à son aide, pour les lecteurs d'écran
@@ -41,9 +50,34 @@ export function Field({
     : children;
   return (
     <div className="grid content-start gap-1.5">
-      <label htmlFor={htmlFor} className="font-label text-[0.8rem] font-bold text-ink">
-        {label}
-      </label>
+      <div className="flex items-center justify-between gap-2">
+        <label htmlFor={htmlFor} className="font-[family-name:var(--label-family)] text-[length:var(--label-size)] [font-weight:var(--label-weight)] text-ink">
+          {label}
+          {required ? (
+            <span aria-hidden="true" className="ml-1 text-[var(--required)]">
+              *
+            </span>
+          ) : null}
+        </label>
+        {optional ? <span className="text-xs text-ink-muted">{optional}</span> : null}
+        {done ? (
+          <svg
+            role="img"
+            aria-label="✓"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="shrink-0 text-success"
+          >
+            <path d="M5 12l5 5 9-10" />
+          </svg>
+        ) : null}
+      </div>
       {control}
       {error ? (
         <p id={`${htmlFor}-error`} role="alert" className="text-sm text-danger">

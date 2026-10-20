@@ -6,21 +6,22 @@ type Variant = "primary" | "dark" | "secondary" | "ghost" | "danger";
 type Size = "md" | "lg" | "sm";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-[background-color,box-shadow,transform] duration-150 " +
+  "inline-flex items-center justify-center gap-2 rounded-[var(--control-radius)] [font-weight:var(--control-weight)] transition-[background-color,box-shadow,transform] duration-150 " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] select-none";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-accent text-accent-ink hover:brightness-95",
+  primary: "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-ink)] hover:brightness-95", // rose sur les billetteries, charbon dans l'application
   dark: "bg-surface-inverse text-ink-inverse hover:opacity-90",
-  secondary: "bg-surface-raised text-ink shadow-[inset_0_0_0_1.5px_var(--line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--ink)]",
+  secondary:
+    "bg-surface-raised text-ink shadow-[inset_0_0_0_var(--control-border)_var(--line-strong)] hover:shadow-[inset_0_0_0_var(--control-border)_var(--ink)]",
   ghost: "text-ink hover:bg-surface-sunken",
   danger: "bg-danger text-blanc hover:brightness-95",
 };
 
 const sizes: Record<Size, string> = {
   sm: "h-9 px-4 text-sm",
-  md: "h-11 px-5 text-[0.95rem]",
-  lg: "h-13 px-7 text-base",
+  md: "h-11 px-5 text-[length:var(--control-text-md)]",
+  lg: "h-[var(--control-h-lg)] px-7 text-[length:var(--control-text-lg)]",
 };
 
 export function buttonClass(variant: Variant = "primary", size: Size = "md", extra?: string) {

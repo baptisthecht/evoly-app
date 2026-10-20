@@ -125,72 +125,103 @@
   --topbar-height: 64px;
   --tap-target: 44px;
 
+  /* Composants (boutons, champs, libellés) : valeurs de la charte, remplacées par le thème pro de l'application */
+  --control-radius: var(--r-pill);
+  --control-weight: 600;
+  --control-border: 1.5px;
+  --control-text-md: 0.95rem;
+  --control-h-lg: 3.25rem;
+  --control-text-lg: 1rem;
+  --btn-primary-bg: var(--accent);
+  --btn-primary-ink: var(--accent-ink);
+  --field-h: 3rem;
+  --field-text: 1rem;
+  --field-focus: inset 0 0 0 2px var(--ink), 0 0 0 4px color-mix(in srgb, var(--focus-halo) 70%, transparent);
+  --label-family: var(--type-label);
+  --label-weight: 700;
+  --label-size: 0.8rem;
+  --required: #c2185b; /* astérisque des champs obligatoires */
   color-scheme: light;
 }
-
-/* Mode sombre : suit le système, sauf choix explicite (data-theme) */
+/* =============================================================================
+   Thème pro de l'application des organisateurs (maquette validée le 21 octobre 2026) : plus sobre et plus dense.
+   Actif dès qu'une page contient le repère .theme-pro (mises en page de l'application) ; la billetterie publique,
+   l'espace des acheteurs et le scanner gardent la charte. Le vert dit ce qui est prêt.
+   ============================================================================= */
+:root:has(.theme-pro) {
+  --surface: #f7f6f4;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f7f6f4;
+  --surface-accent: #ffe3f4;
+  --surface-accent-2: #fbe3f5;
+  --ink-muted: #6b6460;
+  --ink-subtle: #8f8782;
+  --line: #e6e2de;
+  --line-strong: #dad4cf;
+  --focus-halo: #ffe3f4;
+  --evoly-success: #1f7a4d;
+  --evoly-success-soft: #eaf6ef;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 16px;
+  --r-panel: 16px;
+  --elev-sm: 0 1px 2px rgba(34, 34, 34, 0.04);
+  --elev-md: 0 1px 2px rgba(34, 34, 34, 0.04), 0 8px 24px rgba(34, 34, 34, 0.05);
+  --elev-lg: 0 1px 2px rgba(34, 34, 34, 0.04), 0 16px 40px rgba(34, 34, 34, 0.07);
+  --type-display: var(--type-body);
+  --tracking-display: -0.02em;
+  --tracking-title: -0.01em;
+  --text-3xl: clamp(1.5rem, 3vw, 1.875rem);
+  --text-display: clamp(1.75rem, 4vw, 2.5rem);
+  --control-radius: 10px;
+  --control-weight: 500;
+  --control-border: 1px;
+  --control-text-md: 0.875rem;
+  --control-h-lg: 3rem;
+  --control-text-lg: 0.9375rem;
+  --btn-primary-bg: var(--surface-inverse);
+  --btn-primary-ink: var(--ink-inverse);
+  --field-h: 2.75rem;
+  --field-focus: inset 0 0 0 1px var(--ink), 0 0 0 3px var(--focus-halo);
+  --label-family: var(--type-body);
+  --label-weight: 500;
+  --label-size: 0.8125rem;
+}
+/* champs à 14 px sur ordinateur ; 16 px sur téléphone, sinon Safari zoome au toucher */
+@media (min-width: 1024px) {
+  :root:has(.theme-pro) {
+    --field-text: 0.875rem;
+  }
+}
+/* thème pro en mode sombre : couleurs du mode sombre, formes du thème pro */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme="light"]):has(.theme-pro) {
     --surface: #1c1c1c;
     --surface-raised: #262626;
     --surface-sunken: #2d2d2d;
-    --surface-inverse: var(--evoly-creme);
     --surface-accent: var(--evoly-graphite);
     --surface-accent-2: #303030;
-    --ink: var(--evoly-creme);
     --ink-muted: rgba(255, 246, 240, 0.74);
     --ink-subtle: rgba(255, 246, 240, 0.56);
-    --ink-inverse: var(--evoly-charbon);
     --line: rgba(255, 246, 240, 0.14);
     --line-strong: rgba(255, 246, 240, 0.28);
-    --focus-ring: var(--evoly-creme);
+    --focus-halo: rgba(255, 184, 232, 0.35);
     --evoly-success: #5fdda6;
     --evoly-success-soft: #173a2a;
-    --evoly-warning: #ffa53d;
-    --evoly-warning-soft: #3d2a10;
-    --evoly-danger: #d97272;
-    --evoly-danger-soft: #3f1d1d;
-    --evoly-info: #758ce6;
-    --evoly-info-soft: #1f2748;
-    color-scheme: dark;
   }
 }
-
-:root[data-theme="dark"] {
+:root[data-theme="dark"]:has(.theme-pro) {
   --surface: #1c1c1c;
   --surface-raised: #262626;
   --surface-sunken: #2d2d2d;
-  --surface-inverse: var(--evoly-creme);
   --surface-accent: var(--evoly-graphite);
   --surface-accent-2: #303030;
-  --ink: var(--evoly-creme);
   --ink-muted: rgba(255, 246, 240, 0.74);
   --ink-subtle: rgba(255, 246, 240, 0.56);
-  --ink-inverse: var(--evoly-charbon);
   --line: rgba(255, 246, 240, 0.14);
   --line-strong: rgba(255, 246, 240, 0.28);
-  --focus-ring: var(--evoly-creme);
+  --focus-halo: rgba(255, 184, 232, 0.35);
   --evoly-success: #5fdda6;
   --evoly-success-soft: #173a2a;
-  --evoly-warning: #ffa53d;
-  --evoly-warning-soft: #3d2a10;
-  --evoly-danger: #d97272;
-  --evoly-danger-soft: #3f1d1d;
-  --evoly-info: #758ce6;
-  --evoly-info-soft: #1f2748;
-  color-scheme: dark;
-}
-
-/* Marque d'un organisateur Pro (RG-UI-01), injectée sur les pages publiques */
-[data-brand] {
-  --accent: var(--brand-primary, var(--evoly-rose));
-  --accent-ink: var(--brand-primary-ink, var(--evoly-charbon));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --motion-fast: 0ms;
-    --motion-base: 0ms;
-    --motion-slow: 0ms;
-  }
 }
