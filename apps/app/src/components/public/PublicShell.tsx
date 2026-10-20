@@ -23,7 +23,7 @@ export async function PublicShell({ org, homeHref, children }: { org: PublicOrga
     .filter((k) => typeof links[k] === "string" && links[k].startsWith("https://"))
     .map((k) => [k, links[k]!] as const);
   return (
-    <div className="min-h-dvh bg-surface" style={style} data-brand={primary || accent ? "" : undefined}>
+    <div className="min-h-dvh bg-surface text-ink" style={style} data-brand={primary || accent ? "" : undefined}>
       <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-4 sm:px-8">
         <Link href={homeHref} className="flex min-w-0 items-center gap-3">
           {org.brand?.logoUrl ? (
