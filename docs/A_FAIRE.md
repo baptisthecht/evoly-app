@@ -2,6 +2,19 @@
 
 Points en attente, par ordre d'urgence. Les tests restants à écrire sont listés à part dans `test.md`.
 
+## Prochain déploiement (état au 20 octobre 2026, soir)
+
+- CI officielle au vert depuis `fc52049` (tests unitaires, planchers de couverture et parcours complets).
+- Migrations de cette période, appliquées par `prisma migrate deploy` : `20261020120000_acquisition`,
+  `20261021090000_promotions` (offre de lancement incluse), `20261022090000_page_views` (visites des billetteries),
+  `20261022100000_brand_theme` (personnalisation de la marque), `20261022110000_event_theme` (style d'un événement).
+- À renseigner en production : `GEOAPIFY_API_KEY` (recherche de lieux rapide ; sans elle, Photon répond en 5 à 7 s),
+  identifiant Google Ads `AW-…` et libellés des conversions (`EVOLY_IDS` dans `Analytics.tsx`).
+- Construire et publier le site vitrine (`apps/web/build.py`) avec l'application.
+- Restent à faire : polices de la marque sur les billets PDF (couleurs et logo déjà présents), revue sur téléphone
+  des nouveaux écrans (barre latérale, en-tête de l'événement, vue d'ensemble, Marque, Apparence), faire pointer les
+  boutons du site et les annonces vers `/start`.
+
 ## Avant le prochain déploiement
 
 - **Relancer les parcours complets** (`ops/e2e.sh` ou la CI) : ils n'ont pas tourné depuis l'ajout du bandeau des cookies
