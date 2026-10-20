@@ -2992,6 +2992,10 @@
     "date": "Datum",
     "allOrders": "Alle Bestellungen",
     "noOrders": "Noch keine Bestellungen.",
-    "kpis": "Kennzahlen"
+    "kpis": "Kennzahlen",
+    "visits": "Besuche des Ticketings",
+    "conversion": "{pct} % kaufen",
+    "ordersCount": "{n} Bestellungen",
+    "visitsHint": "Ohne Cookies gezählt"
   }
 }

@@ -1428,6 +1428,7 @@ model EventDailyStat {
   refundsMinor Int      @default(0)
   resalesCount Int      @default(0)
   checkIns     Int      @default(0)
+  pageViews    Int      @default(0) // visites de la billetterie : comptage anonyme, sans cookie (api/v)
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 

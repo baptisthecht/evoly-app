@@ -2992,6 +2992,10 @@
     "date": "Fecha",
     "allOrders": "Todos los pedidos",
     "noOrders": "Aún no hay pedidos.",
-    "kpis": "Indicadores"
+    "kpis": "Indicadores",
+    "visits": "Visitas al ticketing",
+    "conversion": "{pct} % compran",
+    "ordersCount": "{n} pedidos",
+    "visitsHint": "Contadas sin cookies"
   }
 }

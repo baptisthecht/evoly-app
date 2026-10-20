@@ -2992,6 +2992,10 @@
     "date": "Data",
     "allOrders": "Tutti gli ordini",
     "noOrders": "Ancora nessun ordine.",
-    "kpis": "Indicatori"
+    "kpis": "Indicatori",
+    "visits": "Visite alla biglietteria",
+    "conversion": "{pct} % acquista",
+    "ordersCount": "{n} ordini",
+    "visitsHint": "Contate senza cookie"
   }
 }

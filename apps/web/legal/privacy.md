@@ -48,4 +48,6 @@ Vous pouvez demander l'accès à vos données, leur rectification, leur effaceme
 
 ## 6. Cookies
 
+Les visites des billetteries sont comptées sans cookie ni donnée personnelle : un simple compteur par événement et par jour, sans adresse IP ni identifiant conservés.
+
 Les cookies de mesure d'audience et de publicité ne sont déposés qu'avec votre accord, jamais sur les billetteries des organisateurs. Voir la [politique cookies](/cookies/).

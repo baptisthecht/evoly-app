@@ -4,6 +4,7 @@ import { DisabledSite } from "@/components/public/DisabledSite";
 import { EventRouteView, eventRouteMetadata, loadEventForVisitor } from "@/components/public/Prepublished";
 import { resolveSite } from "@/server/publicEvents";
 import { siteGate } from "@/server/siteGuard";
+import { ViewBeacon } from "@/components/public/ViewBeacon";
 
 export const dynamic = "force-dynamic";
 
@@ -23,5 +24,11 @@ export default async function PublicEventRoute({ params, searchParams }: Props) 
   if (site.kind === "DISABLED") return <DisabledSite fallback={site.fallback} />;
   const data = await loadEventForVisitor(site.org, { organizationId: site.org.id, slug: eventSlug });
   if (!data) notFound();
-  return <EventRouteView org={site.org} data={data} homeHref="/" query={await searchParams} />;
+  const eventId = "event" in data && data.event ? (data.event as { id: string }).id : null;
+  return (
+    <>
+      {eventId ? <ViewBeacon eventId={eventId} /> : null}
+      <EventRouteView org={site.org} data={data} homeHref="/" query={await searchParams} />
+    </>
+  );
 }

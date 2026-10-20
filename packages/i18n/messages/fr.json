@@ -2992,6 +2992,10 @@
     "date": "Date",
     "allOrders": "Toutes les commandes",
     "noOrders": "Aucune commande pour l’instant.",
-    "kpis": "Indicateurs"
+    "kpis": "Indicateurs",
+    "visits": "Visites de la billetterie",
+    "conversion": "{pct} % achètent",
+    "ordersCount": "{n} commandes",
+    "visitsHint": "Comptées sans cookie"
   }
 }

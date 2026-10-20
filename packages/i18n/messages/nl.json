@@ -2992,6 +2992,10 @@
     "date": "Datum",
     "allOrders": "Alle bestellingen",
     "noOrders": "Nog geen bestellingen.",
-    "kpis": "Kerncijfers"
+    "kpis": "Kerncijfers",
+    "visits": "Bezoeken aan de ticketing",
+    "conversion": "{pct} % koopt",
+    "ordersCount": "{n} bestellingen",
+    "visitsHint": "Geteld zonder cookies"
   }
 }

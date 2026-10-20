@@ -14,7 +14,7 @@ const localDay = (d: Date, timeZone: string) => new Intl.DateTimeFormat("en-CA",
 export async function eventOverview(eventId: string, timeZone: string, period: SalesPeriod, now = new Date()) {
   const paid = { eventId, status: { in: [...PAID] } };
   const week = new Date(now.getTime() - 7 * 86_400_000);
-  const [withNet, withoutNet, weekWithNet, weekWithoutNet, tickets, resaleActive, recent, first] = await Promise.all([
+  const [withNet, withoutNet, weekWithNet, weekWithoutNet, tickets, resaleActive, recent, first, views] = await Promise.all([
     db.order.aggregate({ where: { ...paid, netMinor: { not: null } }, _sum: { netMinor: true, totalMinor: true }, _count: true }),
     db.order.aggregate({ where: { ...paid, netMinor: null }, _sum: { totalMinor: true }, _count: true }),
     db.order.aggregate({ where: { ...paid, netMinor: { not: null }, paidAt: { gte: week } }, _sum: { netMinor: true } }),
@@ -40,6 +40,7 @@ export async function eventOverview(eventId: string, timeZone: string, period: S
       },
     }),
     db.order.findFirst({ where: { ...paid, paidAt: { not: null } }, orderBy: { paidAt: "asc" }, select: { paidAt: true } }),
+    db.eventDailyStat.aggregate({ where: { eventId }, _sum: { pageViews: true } }),
   ]);
   const ordersCount = withNet._count + withoutNet._count;
   const totalPaid = (withNet._sum.totalMinor ?? 0) + (withoutNet._sum.totalMinor ?? 0);
@@ -68,6 +69,9 @@ export async function eventOverview(eventId: string, timeZone: string, period: S
     ordersCount,
     averageBasketMinor: ordersCount ? Math.round(totalPaid / ordersCount) : 0,
     resaleActive,
+    /** Visites de la billetterie (comptage anonyme) et part qui achète (commandes ÷ visites, 100 % au plus). */
+    views: views._sum.pageViews ?? 0,
+    conversionPct: (views._sum.pageViews ?? 0) > 0 ? Math.min(100, Math.round((100 * ordersCount) / (views._sum.pageViews ?? 1))) : null,
     days,
     today,
     recent: recent.map((o) => ({

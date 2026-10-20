@@ -132,7 +132,10 @@ export default async function EventOverview({
         >
           {o.capacity !== null ? <Gauge ratio={sold / Math.max(1, o.capacity)} /> : null}
         </Kpi>
-        <Kpi label={ov("orders")} value={o.ordersCount}>
+        <Kpi label={ov("visits")} value={o.views}>
+          <span className="text-xs text-ink-muted">
+            {o.conversionPct !== null ? ov("conversion", { pct: o.conversionPct }) : ov("visitsHint")} · {ov("ordersCount", { n: o.ordersCount })}
+          </span>
           {money && o.ordersCount ? (
             <span className="text-xs text-ink-muted">{ov("averageBasket", { amount: formatMoney(o.averageBasketMinor, event.currency, locale) })}</span>
           ) : null}

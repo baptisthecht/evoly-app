@@ -2992,6 +2992,10 @@
     "date": "Data",
     "allOrders": "Todas as encomendas",
     "noOrders": "Ainda não há encomendas.",
-    "kpis": "Indicadores"
+    "kpis": "Indicadores",
+    "visits": "Visitas à bilheteira",
+    "conversion": "{pct} % compram",
+    "ordersCount": "{n} encomendas",
+    "visitsHint": "Contadas sem cookies"
   }
 }

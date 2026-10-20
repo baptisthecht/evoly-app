@@ -2992,6 +2992,10 @@
     "date": "Date",
     "allOrders": "All orders",
     "noOrders": "No orders yet.",
-    "kpis": "Key figures"
+    "kpis": "Key figures",
+    "visits": "Ticketing page visits",
+    "conversion": "{pct}% buy",
+    "ordersCount": "{n} orders",
+    "visitsHint": "Counted without cookies"
   }
 }
