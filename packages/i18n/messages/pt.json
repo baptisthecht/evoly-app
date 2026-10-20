@@ -1814,7 +1814,14 @@
     "social_facebook": "Facebook",
     "social_tiktok": "TikTok",
     "social_linkedin": "LinkedIn",
-    "social_youtube": "YouTube"
+    "social_youtube": "YouTube",
+    "eventStyleTitle": "Estilo da bilheteira deste evento",
+    "eventStyleOrg": "Estilo da organização",
+    "eventStyleOrgHint": "Aplicam-se as definições da página Marca.",
+    "eventStyleCustom": "Personalizar este evento",
+    "eventStyleCustomHint": "Cores, fundo, cantos, tipos de letra e botão só para este evento.",
+    "eventStyleSave": "Guardar o estilo",
+    "eventStyleSaved": "Estilo guardado."
   },
   "finances": {
     "title": "Finanças",

@@ -899,7 +899,14 @@
     "social_facebook": "Facebook",
     "social_tiktok": "TikTok",
     "social_linkedin": "LinkedIn",
-    "social_youtube": "YouTube"
+    "social_youtube": "YouTube",
+    "eventStyleTitle": "Style de la billetterie de cet événement",
+    "eventStyleOrg": "Style de l’organisation",
+    "eventStyleOrgHint": "Les réglages de la page Marque s’appliquent.",
+    "eventStyleCustom": "Personnaliser cet événement",
+    "eventStyleCustomHint": "Couleurs, fond, arrondi, polices et bouton propres à cet événement.",
+    "eventStyleSave": "Enregistrer le style",
+    "eventStyleSaved": "Style enregistré."
   },
   "formErrors": {
     "generic": "Une erreur est survenue. Réessayez dans un instant.",

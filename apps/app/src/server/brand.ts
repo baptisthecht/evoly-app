@@ -128,6 +128,11 @@ export function normalizeSocialLinks(
 
 /** Fond, arrondi, polices, bouton et réseaux sociaux de la billetterie, contrôlés (BRAND_THEME_INVALID sinon). */
 function theme(input: BrandInput) {
+  return { ...themeFields(input), socialLinks: normalizeSocialLinks(input.socialLinks) ?? Prisma.DbNull };
+}
+
+/** Fond, arrondi, polices et bouton : mêmes contrôles pour la marque et pour un événement. */
+export function themeFields(input: Pick<BrandInput, "backgroundColor" | "radius" | "headingFont" | "bodyFont" | "buttonLabel">) {
   const backgroundColor = normalizeHexColor(input.backgroundColor);
   if (input.backgroundColor && !backgroundColor) throw new CoreError("BRAND_COLOR_INVALID");
   const radius = input.radius?.trim() || null;
@@ -137,8 +142,59 @@ function theme(input: BrandInput) {
   if ((headingFont && !isBrandFont(headingFont)) || (bodyFont && !(isBrandFont(bodyFont) && BRAND_FONTS[bodyFont].body)))
     throw new CoreError("BRAND_THEME_INVALID");
   const buttonLabel = input.buttonLabel?.trim().slice(0, 40) || null;
-  const links = normalizeSocialLinks(input.socialLinks);
-  return { backgroundColor, radius, headingFont, bodyFont, buttonLabel, socialLinks: links ?? Prisma.DbNull };
+  return { backgroundColor, radius, headingFont, bodyFont, buttonLabel };
+}
+
+export interface EventThemeInput {
+  /** Vrai : le style de l'organisation (tous les réglages de l'événement effacés). */
+  useOrganization: boolean;
+  primaryColor?: string | null;
+  accentColor?: string | null;
+  backgroundColor?: string | null;
+  radius?: string | null;
+  headingFont?: string | null;
+  bodyFont?: string | null;
+  buttonLabel?: string | null;
+}
+
+/** Style propre à un événement (Pro) : mêmes contrôles que la marque ; « style de l'organisation » efface tout. */
+export async function saveEventTheme(ctx: OrgContext, eventId: string, input: EventThemeInput) {
+  if (!hasFeature(ctx.features, "BRANDING")) throw new CoreError("PRO_REQUIRED");
+  const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null }, select: { id: true } });
+  if (!event) throw new CoreError("EVENT_NOT_FOUND");
+  const empty = { primaryColor: null, accentColor: null, backgroundColor: null, radius: null, headingFont: null, bodyFont: null, buttonLabel: null };
+  let data: typeof empty | (ReturnType<typeof themeFields> & { primaryColor: string | null; accentColor: string | null }) = empty;
+  if (!input.useOrganization) {
+    const colors = { primaryColor: normalizeHexColor(input.primaryColor), accentColor: normalizeHexColor(input.accentColor) };
+    if ((input.primaryColor && !colors.primaryColor) || (input.accentColor && !colors.accentColor)) throw new CoreError("BRAND_COLOR_INVALID");
+    data = { ...colors, ...themeFields(input) };
+  }
+  const saved = await db.event.update({
+    where: { id: eventId },
+    data,
+    select: { id: true, ...Object.fromEntries(Object.keys(empty).map((k) => [k, true])) } as never,
+  });
+  await audit({
+    action: "event.theme_updated",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Event",
+    targetId: eventId,
+    metadata: { useOrganization: input.useOrganization },
+  });
+  return saved as unknown as typeof empty;
+}
+
+type ThemeSource = Partial<Record<"primaryColor" | "accentColor" | "backgroundColor" | "radius" | "headingFont" | "bodyFont" | "buttonLabel", string | null>>;
+/** Style appliqué à la billetterie d'un événement : chaque réglage de l'événement remplace celui de la marque. */
+export function themeForEvent<B extends ThemeSource>(brand: B | null | undefined, event: ThemeSource | null | undefined): B | null {
+  const overrides = Object.fromEntries(
+    Object.entries(event ?? {}).filter(
+      ([k, v]) => v && ["primaryColor", "accentColor", "backgroundColor", "radius", "headingFont", "bodyFont", "buttonLabel"].includes(k),
+    ),
+  );
+  if (!brand && !Object.keys(overrides).length) return null;
+  return { ...(brand ?? ({} as B)), ...overrides } as B;
 }
 
 /** US-BRD-01, US-BRD-02 (Pro) : configurateur de marque. Le contraste du texte est choisi automatiquement à l'affichage (RG-BRD-01). */

@@ -899,7 +899,14 @@
     "social_facebook": "Facebook",
     "social_tiktok": "TikTok",
     "social_linkedin": "LinkedIn",
-    "social_youtube": "YouTube"
+    "social_youtube": "YouTube",
+    "eventStyleTitle": "Ticketing style for this event",
+    "eventStyleOrg": "Organisation style",
+    "eventStyleOrgHint": "The Brand page settings apply.",
+    "eventStyleCustom": "Customise this event",
+    "eventStyleCustomHint": "Colours, background, corners, fonts and button for this event only.",
+    "eventStyleSave": "Save the style",
+    "eventStyleSaved": "Style saved."
   },
   "formErrors": {
     "generic": "Something went wrong. Please try again in a moment.",

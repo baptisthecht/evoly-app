@@ -29,7 +29,7 @@ export const styleOf = (v: ThemeValues): BrandStyle => ({
 });
 
 /** Styles prêts à l'emploi, fond, arrondi, polices, lisibilité, bouton d'achat, réseaux sociaux (offre Pro). */
-export function ThemeFields({ v, set }: { v: ThemeValues; set: (patch: Partial<ThemeValues>) => void }) {
+export function ThemeFields({ v, set, socials = true }: { v: ThemeValues; set: (patch: Partial<ThemeValues>) => void; socials?: boolean }) {
   const t = useTranslations("brand");
   const warnings = brandWarnings(styleOf(v));
   const fonts = Object.entries(BRAND_FONTS) as Array<[keyof typeof BRAND_FONTS, (typeof BRAND_FONTS)[keyof typeof BRAND_FONTS]]>;
@@ -157,26 +157,28 @@ export function ThemeFields({ v, set }: { v: ThemeValues; set: (patch: Partial<T
         <Input id="buttonLabel" name="buttonLabel" value={v.buttonLabel} onChange={(e) => set({ buttonLabel: e.target.value })} maxLength={40} />
       </Field>
 
-      <fieldset className="grid gap-3">
-        <legend className="mb-1 text-[0.8125rem] font-medium">{t("socials")}</legend>
-        <p className="text-xs text-ink-muted">{t("socialsHint")}</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {SOCIAL_KEYS.map((k) => (
-            <Field key={k} label={t(`social_${k}`)} htmlFor={`social_${k}`}>
-              <Input
-                id={`social_${k}`}
-                name={`social_${k}`}
-                type="url"
-                inputMode="url"
-                value={v.socials[k]}
-                onChange={(e) => set({ socials: { ...v.socials, [k]: e.target.value } })}
-                placeholder={k === "website" ? "https://" : `https://${k === "youtube" ? "youtube.com" : `${k}.com`}/`}
-                maxLength={300}
-              />
-            </Field>
-          ))}
-        </div>
-      </fieldset>
+      {socials ? (
+        <fieldset className="grid gap-3">
+          <legend className="mb-1 text-[0.8125rem] font-medium">{t("socials")}</legend>
+          <p className="text-xs text-ink-muted">{t("socialsHint")}</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {SOCIAL_KEYS.map((k) => (
+              <Field key={k} label={t(`social_${k}`)} htmlFor={`social_${k}`}>
+                <Input
+                  id={`social_${k}`}
+                  name={`social_${k}`}
+                  type="url"
+                  inputMode="url"
+                  value={v.socials[k]}
+                  onChange={(e) => set({ socials: { ...v.socials, [k]: e.target.value } })}
+                  placeholder={k === "website" ? "https://" : `https://${k === "youtube" ? "youtube.com" : `${k}.com`}/`}
+                  maxLength={300}
+                />
+              </Field>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
     </div>
   );
 }

@@ -104,6 +104,11 @@ export function brandWarnings(b: BrandStyle): BrandWarning[] {
   return out;
 }
 
+/** Arrondi des boutons d'un réglage (e-mails, aperçus) ; aucun réglage : la pilule de la charte. */
+export function controlRadiusFor(radius: string | null | undefined): string {
+  return radius && (BRAND_RADII as readonly string[]).includes(radius) ? RADIUS[radius as BrandRadius].control : "999px";
+}
+
 /** Variables CSS de la billetterie : couleurs (texte posé dessus choisi pour rester lisible), arrondi, polices, fond. */
 export function brandCssVars(b: BrandStyle): Record<string, string> {
   const vars: Record<string, string> = {};

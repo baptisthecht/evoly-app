@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { EventAppearance } from "../settings/EventAppearance";
+import { EventThemeForm } from "./EventThemeForm";
+import { db } from "@/lib/db";
 import { hasFeature } from "@evoly/core";
 import { env } from "@/lib/env";
 
@@ -32,6 +34,43 @@ export default async function EventAppearancePage({ params }: { params: Promise<
           protocol={new URL(env().NEXT_PUBLIC_APP_URL).protocol}
         />
       ) : null}
+      {!readOnly && hasFeature(ctx.features, "BRANDING") ? (
+        <EventTheme orgSlug={orgSlug} eventId={eventId} organizationId={ctx.organization.id} name={ctx.organization.name} />
+      ) : null}
+    </div>
+  );
+}
+
+/** Style de cet événement : ses réglages, sinon ceux de la marque comme point de départ (Pro). */
+async function EventTheme({ orgSlug, eventId, organizationId, name }: { orgSlug: string; eventId: string; organizationId: string; name: string }) {
+  const [e, brand] = await Promise.all([
+    db.event.findUniqueOrThrow({
+      where: { id: eventId },
+      select: { primaryColor: true, accentColor: true, backgroundColor: true, radius: true, headingFont: true, bodyFont: true, buttonLabel: true },
+    }),
+    db.organizationBrand.findUnique({ where: { organizationId } }),
+  ]);
+  const custom = Object.values(e).some(Boolean);
+  const pick = (k: keyof typeof e) => (custom ? e[k] : brand?.[k]) ?? "";
+  return (
+    <div className="mt-6">
+      <EventThemeForm
+        orgSlug={orgSlug}
+        eventId={eventId}
+        custom={custom}
+        name={brand?.displayName ?? name}
+        logoUrl={brand?.logoUrl ?? ""}
+        values={{
+          primaryColor: pick("primaryColor"),
+          accentColor: pick("accentColor"),
+          backgroundColor: pick("backgroundColor"),
+          radius: pick("radius"),
+          headingFont: pick("headingFont"),
+          bodyFont: pick("bodyFont"),
+          buttonLabel: pick("buttonLabel"),
+          socials: { website: "", instagram: "", facebook: "", tiktok: "", linkedin: "", youtube: "" },
+        }}
+      />
     </div>
   );
 }

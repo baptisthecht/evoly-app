@@ -1814,7 +1814,14 @@
     "social_facebook": "Facebook",
     "social_tiktok": "TikTok",
     "social_linkedin": "LinkedIn",
-    "social_youtube": "YouTube"
+    "social_youtube": "YouTube",
+    "eventStyleTitle": "Stijl van de ticketing van dit evenement",
+    "eventStyleOrg": "Stijl van de organisatie",
+    "eventStyleOrgHint": "De instellingen van de pagina Merk gelden.",
+    "eventStyleCustom": "Dit evenement aanpassen",
+    "eventStyleCustomHint": "Kleuren, achtergrond, hoeken, lettertypes en knop alleen voor dit evenement.",
+    "eventStyleSave": "Stijl opslaan",
+    "eventStyleSaved": "Stijl opgeslagen."
   },
   "finances": {
     "title": "Financiën",

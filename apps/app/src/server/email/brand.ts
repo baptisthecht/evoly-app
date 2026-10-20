@@ -1,6 +1,6 @@
 import "server-only";
 import { effectivePlan, hasFeature, sniffImage } from "@evoly/core";
-import { inkOn } from "@evoly/ui";
+import { BRAND_FONTS, controlRadiusFor, inkOn, isBrandFont } from "@evoly/ui";
 import { db } from "@/lib/db";
 import { getPlans } from "../plans";
 import { publicFileUrl, readLocalFile } from "../storage";
@@ -15,6 +15,10 @@ export interface EmailBrand {
   primary: string | null;
   primaryInk: string | null;
   showPoweredBy: boolean;
+  /** Arrondi des boutons (réglage de la marque, sinon la pilule). */
+  buttonRadius: string;
+  /** Police des titres de la marque, avec des polices de repli (les messageries chargent rarement les polices web). */
+  headingFont: string | null;
 }
 
 /** RG-BRD-02 : marque de l'organisation dans les e-mails aux acheteurs et les PDF (Pro), sinon thème Evoly (RG-BRD-03). */
@@ -39,6 +43,8 @@ export async function emailBrandFor(organizationId: string): Promise<EmailBrand>
     accentInk: accent ? inkOn(accent) : null,
     primary: b?.primaryColor ?? null,
     primaryInk: b?.primaryColor ? inkOn(b.primaryColor) : null,
+    buttonRadius: controlRadiusFor(b?.radius),
+    headingFont: b?.headingFont && isBrandFont(b.headingFont) ? BRAND_FONTS[b.headingFont].family : null,
     showPoweredBy: !(hasFeature(features, "REMOVE_EVOLY_BRANDING") && (org.brand?.hideEvolyBranding ?? true)),
   };
 }

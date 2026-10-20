@@ -1,10 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { GET } from "@/app/api/public/offer/route";
 import { createOrganization } from "@/server/onboarding";
 import { parsePromotionForm } from "@/server/promotionForm";
 import { promotionStats, publicOffer } from "@/server/promotions";
 
+// offres suspendues à la fin : sinon les organisations créées par les autres tests naîtraient en Pro
+afterAll(async () => {
+  await db.promotion.updateMany({ data: { active: false } });
+});
 const rid = () => Math.random().toString(36).slice(2, 8);
 const day = 86_400_000;
 /** Chaque test a ses propres offres (code unique) ; celles des autres tests sont suspendues pour ne pas interférer. */

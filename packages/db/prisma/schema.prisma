@@ -593,6 +593,12 @@ model Event {
   faq                     Json? // [{ question, answer }], 10 au maximum
   primaryColor            String? // Pro : surcharge des couleurs de la marque
   accentColor             String?
+  // style propre à l'événement (Pro) : chaque réglage remplace celui de la marque, vide = celui de la marque
+  backgroundColor         String?
+  radius                  String?
+  headingFont             String?
+  bodyFont                String?
+  buttonLabel             String?
   subdomain               String?         @unique // Pro : nuit-electrique.evoly.me
   publishedAt             DateTime?
   publishAt               DateTime? // publication programmée : avant cette date, invisible ou annonce, et aucun achat

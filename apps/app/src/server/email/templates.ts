@@ -264,9 +264,9 @@ export function orderConfirmationEmail(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:26px;line-height:1.1;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(o.eventTitle)}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:26px;line-height:1.1;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(o.eventTitle)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:16px">${escapeHtml(c.hello(o.firstName))}<br>${escapeHtml(c.intro(o.organizationName))}</td></tr>
-<tr><td style="padding-bottom:20px"><a href="${u}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:14px 22px;border-radius:999px">${escapeHtml(c.cta)}</a></td></tr>
+<tr><td style="padding-bottom:20px"><a href="${u}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:14px 22px">${escapeHtml(c.cta)}</a></td></tr>
 <tr><td style="border-top:1px solid #eee;padding-top:12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${details}</table></td></tr>
 ${eventBlockRows(o.custom)}
 <tr><td style="font-size:13px;line-height:1.6;color:#555;padding-top:16px">${escapeHtml(c.outro)}<br><a href="${u}" style="color:${palette.charbon};word-break:break-all">${u}</a></td></tr>
@@ -357,14 +357,14 @@ export function ticketsLookupEmail(o: {
   const items = o.orders
     .map(
       (x) =>
-        `<tr><td style="padding:12px 0;border-top:1px solid #eee"><div style="font-weight:600;font-size:15px">${escapeHtml(x.eventTitle)}</div><div style="font-size:13px;color:#555;padding-bottom:8px">${escapeHtml(x.when)}</div><a href="${escapeHtml(x.url)}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:10px 18px;border-radius:999px;font-size:14px">${escapeHtml(c.cta)}</a></td></tr>`,
+        `<tr><td style="padding:12px 0;border-top:1px solid #eee"><div style="font-weight:600;font-size:15px">${escapeHtml(x.eventTitle)}</div><div style="font-size:13px;color:#555;padding-bottom:8px">${escapeHtml(x.when)}</div><a href="${escapeHtml(x.url)}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:10px 18px;font-size:14px">${escapeHtml(c.cta)}</a></td></tr>`,
     )
     .join("");
   const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(c.title)}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(c.title)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:12px">${escapeHtml(c.intro)}</td></tr>
 <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${items}</table></td></tr>
 <tr><td style="font-size:13px;line-height:1.6;color:#555;padding-top:16px">${escapeHtml(c.outro)}</td></tr>
@@ -519,7 +519,7 @@ export function resaleSellerEmail(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(k.subject(o.eventTitle))}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(k.subject(o.eventTitle))}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6">${escapeHtml(c.hello(o.firstName))}<br>${escapeHtml(body)}</td></tr>
 </table></td></tr></table></body></html>`;
   return { subject: k.subject(o.eventTitle), html, text: [o.organizationName, "", c.hello(o.firstName), body].join("\n") };
@@ -714,7 +714,7 @@ export function refundEmail(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(subject)}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(subject)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6">${escapeHtml(c.hello(o.firstName))}<br>${escapeHtml(body)}</td></tr>${note}
 </table></td></tr></table></body></html>`;
   return {
@@ -899,7 +899,13 @@ function brandHeader(name: string, brand?: EmailBrand | null): string {
 
 /** Boutons des e-mails aux acheteurs : couleur d'accent de l'organisation (Pro), texte lisible (RG-BRD-01). */
 function brandButton(brand?: EmailBrand | null): string {
-  return brand?.accent ? `background:${brand.accent};color:${brand.accentInk}` : `background:${palette.rose};color:${palette.charbon}`;
+  const colors = brand?.accent ? `background:${brand.accent};color:${brand.accentInk}` : `background:${palette.rose};color:${palette.charbon}`;
+  return `${colors};border-radius:${brand?.buttonRadius ?? "999px"}`;
+}
+
+/** Police des titres des e-mails aux acheteurs : celle de la marque, sinon Archivo Black (charte). */
+function brandHeading(brand?: EmailBrand | null): string {
+  return (brand?.headingFont ?? "'Archivo Black',Arial Black,Arial,sans-serif").replace(/"/g, "'");
 }
 
 const REMINDER_COPY = {
@@ -1030,10 +1036,10 @@ export function reminderEmail(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(subject)}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(subject)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:20px">${escapeHtml(c.hello(o.firstName))}<br>${escapeHtml(c.body(o.tickets))}</td></tr>
 <tr><td style="padding-bottom:20px"><table role="presentation" cellpadding="0" cellspacing="0">${row(c.when, o.when)}${row(c.where, o.where)}</table></td></tr>
-<tr><td style="padding-bottom:24px"><a href="${escapeHtml(o.ticketsUrl)}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:14px 22px;border-radius:999px">${escapeHtml(c.cta)}</a></td></tr>
+<tr><td style="padding-bottom:24px"><a href="${escapeHtml(o.ticketsUrl)}" style="display:inline-block;${brandButton(o.brand)};text-decoration:none;font-weight:600;padding:14px 22px">${escapeHtml(c.cta)}</a></td></tr>
 ${eventBlockRows(o.custom)}
 <tr><td style="border-top:1px solid #eee;padding-top:16px;font-size:12px;line-height:1.6;color:#555">${footer}</td></tr>
 </table></td></tr></table></body></html>`;
@@ -1124,7 +1130,7 @@ export function seatChangedEmail(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(c.subject(o.eventTitle))}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:24px;line-height:1.15;letter-spacing:-0.6px;padding-bottom:12px">${escapeHtml(c.subject(o.eventTitle))}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:20px">${escapeHtml(c.hello(o.firstName))}<br>${escapeHtml(c.body(o.from, o.to))}</td></tr>
 <tr><td><a href="${escapeHtml(o.url)}" style="display:inline-block;background:${palette.charbon};color:${palette.creme};text-decoration:none;font-weight:700;border-radius:999px;padding:14px 24px">${escapeHtml(c.cta)}</a></td></tr>
 </table></td></tr></table></body></html>`;
@@ -1212,7 +1218,7 @@ export function salesOpenEmail(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(c.title)}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(c.title)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:6px">${escapeHtml(c.intro(o.eventTitle))}</td></tr>
 <tr><td style="font-size:14px;color:#555;padding-bottom:20px">${escapeHtml(o.when)}</td></tr>
 <tr><td><a href="${escapeHtml(o.url)}" style="display:inline-block;background:${palette.charbon};color:${palette.blanc};text-decoration:none;font-weight:600;border-radius:999px;padding:14px 26px">${escapeHtml(c.cta)}</a></td></tr>
@@ -1298,7 +1304,7 @@ export function latePaymentRefundEmail(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(c.title)}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(c.title)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:12px">${escapeHtml(c.body(o.eventTitle, o.amount))}</td></tr>
 <tr><td style="font-size:13px;color:#777">${escapeHtml(c.outro)}</td></tr>
 </table></td></tr></table></body></html>`;
@@ -1416,7 +1422,7 @@ function waitlistHtml(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${palette.blanc};border-radius:20px;padding:32px">
 <tr><td style="font-size:14px;padding-bottom:8px">${brandHeader(o.organizationName, o.brand)}</td></tr>
-<tr><td style="font-family:'Archivo Black',Arial Black,Arial,sans-serif;font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(o.title)}</td></tr>
+<tr><td style="font-family:${brandHeading(o.brand)};font-size:26px;letter-spacing:-0.8px;padding-bottom:12px">${escapeHtml(o.title)}</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;padding-bottom:${o.note ? 6 : 20}px">${escapeHtml(o.body)}</td></tr>
 ${o.note ? `<tr><td style="font-size:14px;color:#555;padding-bottom:20px">${escapeHtml(o.note)}</td></tr>` : ""}
 ${o.cta ? `<tr><td><a href="${escapeHtml(o.cta.url)}" style="display:inline-block;background:${palette.charbon};color:${palette.blanc};text-decoration:none;font-weight:600;border-radius:999px;padding:14px 26px">${escapeHtml(o.cta.label)}</a></td></tr>` : ""}
