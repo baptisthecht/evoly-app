@@ -69,6 +69,9 @@ export function surfacesFor(background: string) {
     "--ink-subtle": readableAgainst(mix(ink, background, 0.45), background, 3),
     "--line": mix(background, ink, 0.12),
     "--line-strong": mix(background, ink, 0.25),
+    // boutons pleins et éléments inversés (bouton « + », onglet actif) : la couleur du texte sur le fond
+    "--surface-inverse": ink,
+    "--ink-inverse": background.toUpperCase(),
     "color-scheme": dark ? "dark" : "light",
   };
 }

@@ -27,6 +27,7 @@ describe("thème de la billetterie", () => {
       const s = surfacesFor(bg);
       expect(contrastRatio(s["--ink"], bg)).toBeGreaterThanOrEqual(4.5);
       expect(contrastRatio(s["--ink-muted"], bg)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(s["--surface-inverse"], s["--ink-inverse"])).toBeGreaterThanOrEqual(4.5);
     }
     expect(surfacesFor("#1A1033")["color-scheme"]).toBe("dark");
     expect(surfacesFor("#FAF7F2")["color-scheme"]).toBe("light");

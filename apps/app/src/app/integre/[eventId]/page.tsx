@@ -54,7 +54,10 @@ export default async function EmbedModule({ params }: { params: Promise<{ eventI
           ))}
         </ul>
       ) : null}
-      <EmbedBook url={eventPublicUrl(allowed.organization, e)} label={t("embedBook")} />
+      <EmbedBook
+        url={eventPublicUrl(allowed.organization, e)}
+        label={e.buttonLabel?.trim() || allowed.organization.brand?.buttonLabel?.trim() || t("embedBook")}
+      />
     </main>
   );
 }

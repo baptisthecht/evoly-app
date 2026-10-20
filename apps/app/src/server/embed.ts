@@ -65,7 +65,7 @@ export async function embedEventFor(eventId: string, now = new Date()) {
     select: {
       id: true,
       organization: {
-        select: { slug: true, subdomain: true, subscription: { select: PLAN_SUBSCRIPTION_SELECT } },
+        select: { slug: true, subdomain: true, subscription: { select: PLAN_SUBSCRIPTION_SELECT }, brand: { select: { buttonLabel: true } } },
       },
     },
   });
