@@ -36,20 +36,18 @@ beforeEach(() => {
 });
 
 describe("barre latérale (indications du 18 octobre 2026)", () => {
-  it("page active : texte en gras, segment du trait en rose ; ni fond, ni arrondi", () => {
+  it("page active (maquette validée) : fond gris, texte foncé ; plus de filet ni de trait rose", () => {
     draw();
     expect(link("Finances").getAttribute("aria-current")).toBe("page");
-    expect(cls("Finances")).toEqual(expect.arrayContaining(["font-semibold", "border-rose", "border-l-2"]));
-    for (const name of ["Finances", "Accueil", "Commandes", "Vue d’ensemble", "Réglages"]) {
-      expect(cls(name).some((c) => /^(hover:)?bg-|^(hover:)?rounded/.test(c))).toBe(false); // jamais de fond ni d'arrondi
-    }
+    expect(cls("Finances")).toEqual(expect.arrayContaining(["bg-surface", "font-medium", "text-ink", "rounded-sm"]));
+    for (const name of ["Accueil", "Finances"]) expect(cls(name).some((c) => /^border-(l|rose|line)/.test(c))).toBe(false);
   });
 
-  it("survol : texte en gras seulement ; les autres pages gardent le trait gris", () => {
+  it("autres pages : texte discret, fond gris au survol", () => {
     draw();
     expect(link("Accueil").getAttribute("aria-current")).toBeNull();
-    expect(cls("Accueil")).toEqual(expect.arrayContaining(["hover:font-semibold", "font-medium", "border-line"]));
-    expect(cls("Accueil")).not.toContain("border-rose");
+    expect(cls("Accueil")).toEqual(expect.arrayContaining(["text-ink-muted", "hover:bg-surface", "hover:text-ink"]));
+    expect(cls("Accueil")).not.toContain("bg-surface");
   });
 
   it("la catégorie de la page ouverte est active elle aussi ; les autres restent discrètes", () => {
@@ -69,12 +67,12 @@ describe("barre latérale (indications du 18 octobre 2026)", () => {
     expect(screen.getAllByRole("link", { name: "Réglages" }).at(-1)!.getAttribute("aria-current")).toBe("page");
   });
 
-  it("entrées seules (vue d'ensemble, réglages) : même règle, repère rose à gauche quand elles sont ouvertes", () => {
+  it("entrées seules (vue d'ensemble, réglages) : même règle que les pages", () => {
     nav.path = "/o/club/events/e1";
     draw();
     expect(link("Vue d’ensemble").getAttribute("aria-current")).toBe("page");
-    expect(cls("Vue d’ensemble")).toEqual(expect.arrayContaining(["font-semibold", "border-rose"]));
-    expect(cls("Réglages")).toEqual(expect.arrayContaining(["border-transparent", "hover:font-semibold"]));
+    expect(cls("Vue d’ensemble")).toEqual(expect.arrayContaining(["bg-surface", "font-medium"]));
+    expect(cls("Réglages")).toEqual(expect.arrayContaining(["text-ink-muted", "hover:bg-surface"]));
   });
 
   it("blocs avant et après, badge Pro, séparateur des entrées du bas", () => {

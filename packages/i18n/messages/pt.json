@@ -793,7 +793,10 @@
     "shareLink": "Partilhar o link",
     "linkCopied": "Link copiado",
     "eventSections": "Secções do evento",
-    "sectionPages": "Páginas da secção"
+    "sectionPages": "Páginas da secção",
+    "planFree": "Plano Free",
+    "planPro": "Plano Pro",
+    "planProUntil": "Pro grátis até {date}"
   },
   "dashboard": {
     "greeting": "olá {name},",

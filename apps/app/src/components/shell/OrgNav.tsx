@@ -25,6 +25,7 @@ export async function OrgNav({ orgSlug }: { orgSlug: string }) {
         label: t(i.key),
         href: `${base}${i.href}`,
         exact: i.href === "",
+        icon: i.icon,
         pro: i.feature && !hasFeature(ctx.features, i.feature) ? tp("pro") : undefined,
       })),
   })).filter((s) => s.items.length > 0);

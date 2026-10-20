@@ -2,15 +2,27 @@ import type { ReactNode } from "react";
 import { AccountMenu } from "@/components/shell/AccountMenu";
 import { OrgSwitcher } from "@/components/shell/OrgSwitcher";
 import { Shell } from "@/components/shell/Sidebar";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { daysBeforeDowngrade } from "@evoly/core";
 import Link from "next/link";
 import { unreadCount } from "@/server/notifications";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
 import { ThemePro } from "@/components/theme/ThemePro";
+import { effectivePlan } from "@evoly/core";
+import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
-export default async function OrgLayout({ children, sidebar, params }: { children: ReactNode; sidebar: ReactNode; params: Promise<{ orgSlug: string }> }) {
+export default async function OrgLayout({
+  children,
+  sidebar,
+  header,
+  params,
+}: {
+  children: ReactNode;
+  sidebar: ReactNode;
+  header: ReactNode;
+  params: Promise<{ orgSlug: string }>;
+}) {
   const { orgSlug } = await params;
   const ctx = await requireOrgContext(orgSlug);
   // RG-AUTH-07 : mémorise la dernière organisation ouverte
@@ -19,7 +31,15 @@ export default async function OrgLayout({ children, sidebar, params }: { childre
     data: { activeOrganizationId: ctx.organization.id },
   });
   // RG-SUB-06 : bandeau d'impayé dans tout le tableau de bord
-  const sub = await db.subscription.findUnique({ where: { organizationId: ctx.organization.id }, select: { status: true, pastDueSince: true } });
+  const sub = await db.subscription.findUnique({ where: { organizationId: ctx.organization.id }, select: { ...PLAN_SUBSCRIPTION_SELECT, pastDueSince: true } });
+  // carte de l'organisation : son offre ; Pro attribué par Evoly (offre, parrainage) : jusqu'à quand, en vert
+  const nav = await getTranslations("nav");
+  const locale = await getLocale();
+  const isPro = sub ? effectivePlan(sub, new Date()) === "pro" : false;
+  const offeredUntil = isPro && sub && !sub.stripeSubscriptionId ? sub.currentPeriodEnd : null;
+  const plan = offeredUntil
+    ? { text: nav("planProUntil", { date: new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(offeredUntil) }), offered: true }
+    : { text: nav(isPro ? "planPro" : "planFree"), offered: false };
   const days = sub ? daysBeforeDowngrade(sub, new Date()) : null;
   const pastDue = days != null ? (await getTranslations("billing"))("pastDueBanner", { count: days }) : null;
   const unread = await unreadCount(ctx.organization.id, ctx.user.id); // section 9.20
@@ -44,7 +64,8 @@ export default async function OrgLayout({ children, sidebar, params }: { childre
         </Link>
       }
       nav={sidebar}
-      orgSwitcher={<OrgSwitcher userId={ctx.user.id} currentSlug={ctx.organization.slug} currentName={ctx.organization.name} />}
+      orgSwitcher={<OrgSwitcher userId={ctx.user.id} currentSlug={ctx.organization.slug} currentName={ctx.organization.name} plan={plan} />}
+      header={header}
       account={
         <>
           <AccountMenu name={ctx.user.name} email={ctx.user.email} />

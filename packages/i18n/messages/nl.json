@@ -793,7 +793,10 @@
     "shareLink": "Link delen",
     "linkCopied": "Link gekopieerd",
     "eventSections": "Onderdelen van het evenement",
-    "sectionPages": "Pagina’s van het onderdeel"
+    "sectionPages": "Pagina’s van het onderdeel",
+    "planFree": "Free-abonnement",
+    "planPro": "Pro-abonnement",
+    "planProUntil": "Gratis Pro tot {date}"
   },
   "dashboard": {
     "greeting": "hallo {name},",

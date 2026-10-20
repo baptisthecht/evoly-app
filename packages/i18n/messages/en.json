@@ -79,7 +79,10 @@
     "shareLink": "Share the link",
     "linkCopied": "Link copied",
     "eventSections": "Event sections",
-    "sectionPages": "Section pages"
+    "sectionPages": "Section pages",
+    "planFree": "Free plan",
+    "planPro": "Pro plan",
+    "planProUntil": "Free Pro until {date}"
   },
   "auth": {
     "loginTitle": "Log in",

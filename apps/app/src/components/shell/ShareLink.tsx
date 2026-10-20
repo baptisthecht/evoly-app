@@ -24,6 +24,21 @@ export function ShareLink({ url, title }: { url: string; title: string }) {
   };
   return (
     <Button type="button" onClick={share} aria-live="polite">
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="size-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+      </svg>
       {copied ? t("linkCopied") : t("shareLink")}
     </Button>
   );
