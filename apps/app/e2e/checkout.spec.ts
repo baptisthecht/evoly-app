@@ -49,8 +49,10 @@ test("achat gratuit : réservation, coordonnées, billets avec QR codes, e-mail,
   // les 2 places sont vendues : la page affiche « Complet »
   await page.goto(siteUrl(slug, `/apero-${id}`));
   await expect(page.locator("#billets").getByText("Complet")).toBeVisible();
+  // vue d'ensemble (maquette validée) : le tarif est épuisé, 2 billets vendus sur 2
   await page.goto(eventUrl);
-  await expect(page.getByText("2 / 2")).toBeVisible();
+  await expect(page.getByText("Épuisé")).toBeVisible();
+  await expect(page.getByText("sur 2", { exact: true })).toBeVisible();
 });
 
 test("lien magique invalide : page introuvable", async ({ page }) => {

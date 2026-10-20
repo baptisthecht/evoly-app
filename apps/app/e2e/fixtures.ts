@@ -26,11 +26,20 @@ const CONSENT = [
 const withConsent = base.extend<{ consent: void }>({
   consent: [
     async ({ browser, context }, use) => {
-      await context.addCookies(CONSENT);
+      // un parcours qui efface les cookies (déconnexion) garde le choix des cookies : sinon le bandeau revient
+      const keep = async (c: typeof context) => {
+        await c.addCookies(CONSENT);
+        const clear = c.clearCookies.bind(c);
+        c.clearCookies = async (options) => {
+          await clear(options);
+          await c.addCookies(CONSENT);
+        };
+      };
+      await keep(context);
       const newContext = browser.newContext.bind(browser);
       browser.newContext = async (options) => {
         const c = await newContext(options);
-        await c.addCookies(CONSENT);
+        await keep(c);
         return c;
       };
       await use();
