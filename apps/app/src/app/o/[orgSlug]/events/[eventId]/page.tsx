@@ -15,6 +15,7 @@ import { EventCommand } from "./EventCommands";
 import { CancelEvent } from "./CancelEvent";
 import { AutoRefresh } from "@/components/public/AutoRefresh";
 import { db } from "@/lib/db";
+import { CheckIcon } from "@/components/ui/icons";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -71,7 +72,7 @@ export default async function EventOverview({ params }: { params: Promise<{ orgS
                       c.done ? "bg-success text-blanc" : "bg-surface-sunken text-ink-muted ring-1 ring-line-strong",
                     )}
                   >
-                    {c.done ? "✓" : ""}
+                    {c.done ? <CheckIcon strokeWidth={3} /> : null}
                   </span>
                   <div className="grid gap-0.5">
                     <p className={cn("font-medium", c.done && "text-ink-muted")}>{t(`check_${c.key}`)}</p>

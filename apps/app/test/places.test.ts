@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import sample from "./fixtures-photon.json";
-import { clearPlacesCache, placesFromPhoton, searchPlaces } from "@/server/places";
+import { clearPlacesCache, placesFromGeoapify, placesFromPhoton, searchPlaces } from "@/server/places";
 
-beforeEach(() => clearPlacesCache());
+beforeEach(() => {
+  clearPlacesCache();
+  delete process.env.GEOAPIFY_API_KEY;
+});
 const ok = (body: unknown) => vi.fn(async () => new Response(JSON.stringify(body), { status: 200 }));
 const feature = (p: Record<string, unknown>, coords = [4.35, 50.85]) => ({ properties: p, geometry: { coordinates: coords } });
 
@@ -83,5 +86,57 @@ describe("recherche d'adresses (Photon, via notre serveur)", () => {
     expect(await searchPlaces("Namur", "fr", err as unknown as typeof fetch)).toEqual([]);
     const f = ok({ features: [feature({ type: "city", name: "Namur", countrycode: "BE" })] });
     expect((await searchPlaces("Namur", "fr", f as unknown as typeof fetch)).map((p) => p.name)).toEqual(["Namur"]);
+  });
+
+  it("Geoapify, si une clé est configurée : utilisé à la place de Photon ; réponse lue de la même façon", async () => {
+    process.env.GEOAPIFY_API_KEY = "cle-test";
+    const body = {
+      features: [
+        {
+          properties: {
+            result_type: "amenity",
+            name: "La Madeleine",
+            street: "Rue Duquesnoy",
+            housenumber: "14",
+            postcode: "1000",
+            city: "Bruxelles",
+            country: "Belgique",
+            country_code: "be",
+            lat: 50.846,
+            lon: 4.355,
+          },
+        },
+        {
+          properties: {
+            result_type: "street",
+            name: "Rue Royale",
+            street: "Rue Royale",
+            postcode: "1000",
+            city: "Bruxelles",
+            country_code: "be",
+            lat: 50.85,
+            lon: 4.36,
+          },
+        },
+        { properties: { result_type: "city", name: "Namur", city: "Namur", country_code: "be", lat: 50.46, lon: 4.87 } },
+        { properties: { result_type: "amenity", name: "Sans coordonnées", country_code: "be" } },
+      ],
+    };
+    expect(placesFromGeoapify(body).map((p) => [p.kind, p.name, p.addressLine1, p.city, p.country])).toEqual([
+      ["venue", "La Madeleine", "Rue Duquesnoy 14", "Bruxelles", "BE"],
+      ["street", "Rue Royale", "Rue Royale", "Bruxelles", "BE"],
+      ["city", "Namur", "", "Namur", "BE"],
+    ]);
+    const f = ok(body);
+    const places = await searchPlaces("La Madeleine", "nl", f as unknown as typeof fetch);
+    const url = new URL(String((f.mock.calls[0] as unknown as [string])[0]));
+    expect([url.host, url.searchParams.get("text"), url.searchParams.get("lang"), url.searchParams.get("apiKey"), url.searchParams.get("bias")]).toEqual([
+      "api.geoapify.com",
+      "La Madeleine",
+      "nl",
+      "cle-test",
+      "countrycode:be",
+    ]);
+    expect(places[0]!.name).toBe("La Madeleine");
   });
 });

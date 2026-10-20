@@ -1692,30 +1692,30 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 
 | Permission          | Propriétaire | Administrateur | Gestion des événements | Billetterie | Contrôle des entrées | Lecture seule |
 | ------------------- | ------------ | -------------- | ---------------------- | ----------- | -------------------- | ------------- |
-| `ORG_SETTINGS_EDIT` | ✓            | ✓              |                        |             |                      |               |
-| `BRAND_EDIT`        | ✓            | ✓              |                        |             |                      |               |
-| `DOMAINS_MANAGE`    | ✓            | ✓              |                        |             |                      |               |
-| `BILLING_MANAGE`    | ✓            | ✓              |                        |             |                      |               |
-| `PAYMENTS_MANAGE`   | ✓            | ✓              |                        |             |                      |               |
-| `FINANCE_VIEW`      | ✓            | ✓              |                        |             |                      |               |
-| `MEMBERS_MANAGE`    | ✓            | ✓              |                        |             |                      |               |
-| `ROLES_MANAGE`      | ✓            | ✓              |                        |             |                      |               |
-| `EVENTS_CREATE`     | ✓            | ✓              | ✓                      |             |                      |               |
-| `EVENTS_EDIT`       | ✓            | ✓              | ✓                      |             |                      |               |
-| `EVENTS_PUBLISH`    | ✓            | ✓              | ✓                      |             |                      |               |
-| `EVENTS_CANCEL`     | ✓            | ✓              | ✓                      |             |                      |               |
-| `EVENTS_DELETE`     | ✓            | ✓              |                        |             |                      |               |
-| `TICKETS_MANAGE`    | ✓            | ✓              | ✓                      |             |                      |               |
-| `PROMO_MANAGE`      | ✓            | ✓              | ✓                      |             |                      |               |
-| `ORDERS_VIEW`       | ✓            | ✓              | ✓                      | ✓           |                      | ✓             |
-| `ORDERS_MANAGE`     | ✓            | ✓              | ✓                      | ✓           |                      |               |
-| `REFUNDS_MANAGE`    | ✓            | ✓              | ✓                      | ✓           |                      |               |
-| `RESALE_MANAGE`     | ✓            | ✓              | ✓                      | ✓           |                      |               |
-| `CHECKIN_SCAN`      | ✓            | ✓              | ✓                      | ✓           | ✓                    |               |
-| `CHECKIN_MANAGE`    | ✓            | ✓              | ✓                      |             |                      |               |
-| `STATS_VIEW`        | ✓            | ✓              | ✓                      | ✓           |                      | ✓             |
-| `MARKETING_MANAGE`  | ✓            | ✓              | ✓                      |             |                      |               |
-| `CONTACTS_EXPORT`   | ✓            | ✓              |                        |             |                      |               |
+| `ORG_SETTINGS_EDIT` | oui          | oui            |                        |             |                      |               |
+| `BRAND_EDIT`        | oui          | oui            |                        |             |                      |               |
+| `DOMAINS_MANAGE`    | oui          | oui            |                        |             |                      |               |
+| `BILLING_MANAGE`    | oui          | oui            |                        |             |                      |               |
+| `PAYMENTS_MANAGE`   | oui          | oui            |                        |             |                      |               |
+| `FINANCE_VIEW`      | oui          | oui            |                        |             |                      |               |
+| `MEMBERS_MANAGE`    | oui          | oui            |                        |             |                      |               |
+| `ROLES_MANAGE`      | oui          | oui            |                        |             |                      |               |
+| `EVENTS_CREATE`     | oui          | oui            | oui                    |             |                      |               |
+| `EVENTS_EDIT`       | oui          | oui            | oui                    |             |                      |               |
+| `EVENTS_PUBLISH`    | oui          | oui            | oui                    |             |                      |               |
+| `EVENTS_CANCEL`     | oui          | oui            | oui                    |             |                      |               |
+| `EVENTS_DELETE`     | oui          | oui            |                        |             |                      |               |
+| `TICKETS_MANAGE`    | oui          | oui            | oui                    |             |                      |               |
+| `PROMO_MANAGE`      | oui          | oui            | oui                    |             |                      |               |
+| `ORDERS_VIEW`       | oui          | oui            | oui                    | oui         |                      | oui           |
+| `ORDERS_MANAGE`     | oui          | oui            | oui                    | oui         |                      |               |
+| `REFUNDS_MANAGE`    | oui          | oui            | oui                    | oui         |                      |               |
+| `RESALE_MANAGE`     | oui          | oui            | oui                    | oui         |                      |               |
+| `CHECKIN_SCAN`      | oui          | oui            | oui                    | oui         | oui                  |               |
+| `CHECKIN_MANAGE`    | oui          | oui            | oui                    |             |                      |               |
+| `STATS_VIEW`        | oui          | oui            | oui                    | oui         |                      | oui           |
+| `MARKETING_MANAGE`  | oui          | oui            | oui                    |             |                      |               |
+| `CONTACTS_EXPORT`   | oui          | oui            |                        |             |                      |               |
 
 Actions réservées au propriétaire, en plus de ses permissions : transférer la propriété, supprimer l'organisation.
 

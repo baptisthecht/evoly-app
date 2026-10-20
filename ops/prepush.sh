@@ -84,7 +84,7 @@ fi
 
 echo "5/5 Construction et parcours complets (Playwright)"
 if ! bash ops/e2e.sh > "$log" 2>&1; then
-  grep -E "✘|failed|Error|ÉCHEC" "$log" | head -20 || tail -20 "$log"
+  grep -E "échec|failed|Error|ÉCHEC" "$log" | head -20 || tail -20 "$log"
   echo "ENVOI BLOQUÉ : parcours complets en échec."
   exit 1
 fi

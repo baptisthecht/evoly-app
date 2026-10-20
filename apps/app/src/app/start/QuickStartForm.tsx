@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { AddressSearch } from "@/components/places/AddressSearch";
 import { Field, Input } from "@/components/ui/Field";
+import { CheckIcon } from "@/components/ui/icons";
 
 const EVENT_FIELDS = ["title", "startsAtLocal", "locationName", "addressLine1", "postalCode", "city", "country", "price", "quantity"] as const;
 const TYPES = ["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"] as const;
@@ -44,7 +45,9 @@ function Steps({ step, t }: { step: 1 | 2; t: T }) {
         className={step === 1 ? "inline-flex items-center gap-2 font-semibold" : "inline-flex items-center gap-2 font-medium text-success"}
         aria-current={step === 1 ? "step" : undefined}
       >
-        <span className={step === 1 ? `${dot} bg-surface-inverse text-ink-inverse` : `${dot} bg-success text-blanc`}>{step === 1 ? "1" : "✓"}</span>
+        <span className={step === 1 ? `${dot} bg-surface-inverse text-ink-inverse` : `${dot} bg-success text-blanc`}>
+          {step === 1 ? "1" : <CheckIcon strokeWidth={3.4} />}
+        </span>
         {t("stepEvent")}
       </li>
       <li aria-hidden="true" className={step === 1 ? "h-px w-8 bg-line-strong" : "h-px w-8 bg-success"} />
@@ -250,13 +253,7 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
             </p>
           </section>
           <aside className="hidden gap-3 lg:sticky lg:top-6 lg:grid">
-            <p className="flex items-center justify-between text-[0.8125rem] font-medium">
-              {t("preview")}
-              <span className="inline-flex items-center gap-1.5 text-xs font-normal text-success">
-                <span aria-hidden="true" className="size-1.5 rounded-full bg-success" />
-                {t("live")}
-              </span>
-            </p>
+            <p className="flex items-center justify-between text-[0.8125rem] font-medium">{t("preview")}</p>
             <Preview ev={ev} t={t} locale={locale} org={null} />
           </aside>
         </div>
@@ -369,14 +366,15 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                 <SubmitButton pending={pending}>{t("submit")}</SubmitButton>
               </div>
             </Card>
-            <p className="text-xs text-ink-muted">{t("reassure")}</p>
           </section>
           <aside className="grid gap-4 lg:sticky lg:top-6">
             <Preview ev={ev} t={t} locale={locale} org={org.trim() || "votre organisation"} />
             <div className="grid gap-3 rounded-lg bg-surface-raised p-5 ring-1 ring-line">
               <span className="text-[0.8125rem] font-semibold">{t("nextTitle")}</span>
               <span className="flex items-center gap-2.5 text-[0.8125rem] font-medium text-success">
-                <span className="inline-flex size-5 items-center justify-center rounded-full bg-success text-[0.6875rem] text-blanc">✓</span>
+                <span className="inline-flex size-5 items-center justify-center rounded-full bg-success text-[0.6875rem] text-blanc">
+                  <CheckIcon strokeWidth={3.4} />
+                </span>
                 {t("next1")}
               </span>
               <span className="flex items-center gap-2.5 text-[0.8125rem]">

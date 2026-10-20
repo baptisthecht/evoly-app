@@ -10,6 +10,7 @@ import {
   type SelectHTMLAttributes,
 } from "react";
 import { cn } from "./cn";
+import { CheckIcon } from "./icons";
 
 const control =
   "block w-full h-[var(--field-h)] rounded-md bg-surface-raised px-4 text-[length:var(--field-text)] text-ink placeholder:text-ink-subtle " +
@@ -61,23 +62,7 @@ export function Field({
           ) : null}
         </label>
         {optional ? <span className="text-xs text-ink-muted">{optional}</span> : null}
-        {done ? (
-          <svg
-            role="img"
-            aria-label="✓"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="shrink-0 text-success"
-          >
-            <path d="M5 12l5 5 9-10" />
-          </svg>
-        ) : null}
+        {done ? <CheckIcon className="size-4 shrink-0 text-success" strokeWidth={2.6} /> : null}
       </div>
       {control}
       {error ? (

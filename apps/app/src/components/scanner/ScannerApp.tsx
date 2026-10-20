@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CameraScanner } from "./CameraScanner";
 import { SellPanel } from "./SellPanel";
+import { AlertIcon, CheckIcon, CrossIcon } from "@/components/ui/icons";
 
 type TicketStatus = "VALID" | "CHECKED_IN" | "VOID" | "REFUNDED";
 interface LocalTicket {
@@ -711,7 +712,13 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
         >
           <span className="grid gap-3">
             <span aria-hidden="true" className="font-display text-7xl">
-              {feedback.kind === "VALID" ? "✓" : feedback.kind === "ALREADY_USED" ? "!" : "✕"}
+              {feedback.kind === "VALID" ? (
+                <CheckIcon className="mx-auto" strokeWidth={3} />
+              ) : feedback.kind === "ALREADY_USED" ? (
+                <AlertIcon className="mx-auto" strokeWidth={3} />
+              ) : (
+                <CrossIcon className="mx-auto" strokeWidth={3} />
+              )}
             </span>
             <span className="font-display text-3xl tracking-[-0.04em]">{feedback.title}</span>
             {feedback.detail ? <span className="text-lg">{feedback.detail}</span> : null}

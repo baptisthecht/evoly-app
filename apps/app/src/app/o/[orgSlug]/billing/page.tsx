@@ -12,6 +12,7 @@ import { referringVenueName, venueSummary } from "@/server/venues";
 import { getPlans } from "@/server/plans";
 import { ManageSubscription, PlanPicker } from "./PlanPicker";
 import { SwitchInterval } from "./SwitchInterval";
+import { CheckIcon } from "@/components/ui/icons";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -167,7 +168,7 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
                   </th>
                   {(["free", "pro"] as const).map((p) => (
                     <td key={p} className="py-2 text-center" aria-label={plans[p].features.includes(f) ? t("included") : t("notIncluded")}>
-                      {plans[p].features.includes(f) ? "✓" : "-"}
+                      {plans[p].features.includes(f) ? <CheckIcon className="mx-auto text-success" /> : <span aria-hidden="true">-</span>}
                     </td>
                   ))}
                 </tr>
