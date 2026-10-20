@@ -75,7 +75,11 @@
     "addFeature": "Add a feature",
     "hint_seating": "Numbered seats and a sales map",
     "hint_options": "Cloakroom, drink tokens and other add-ons",
-    "hint_ambassadors": "Links and codes for your ambassadors"
+    "hint_ambassadors": "Links and codes for your ambassadors",
+    "shareLink": "Share the link",
+    "linkCopied": "Link copied",
+    "eventSections": "Event sections",
+    "sectionPages": "Section pages"
   },
   "auth": {
     "loginTitle": "Log in",

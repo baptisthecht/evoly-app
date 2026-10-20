@@ -75,7 +75,11 @@
     "addFeature": "Ajouter une fonctionnalité",
     "hint_seating": "Places numérotées et carte des ventes",
     "hint_options": "Vestiaire, jetons boissons et autres options",
-    "hint_ambassadors": "Liens et codes de vos ambassadeurs"
+    "hint_ambassadors": "Liens et codes de vos ambassadeurs",
+    "shareLink": "Partager le lien",
+    "linkCopied": "Lien copié",
+    "eventSections": "Sections de l’événement",
+    "sectionPages": "Pages de la section"
   },
   "auth": {
     "loginTitle": "Connexion",

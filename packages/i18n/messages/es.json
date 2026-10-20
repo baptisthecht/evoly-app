@@ -789,7 +789,11 @@
     "addFeature": "Añadir una función",
     "hint_seating": "Asientos numerados y mapa de ventas",
     "hint_options": "Guardarropa, fichas de bebida y otras opciones",
-    "hint_ambassadors": "Enlaces y códigos de tus embajadores"
+    "hint_ambassadors": "Enlaces y códigos de tus embajadores",
+    "shareLink": "Compartir el enlace",
+    "linkCopied": "Enlace copiado",
+    "eventSections": "Secciones del evento",
+    "sectionPages": "Páginas de la sección"
   },
   "dashboard": {
     "greeting": "hola, {name},",

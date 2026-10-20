@@ -789,7 +789,11 @@
     "addFeature": "Functie toevoegen",
     "hint_seating": "Genummerde plaatsen en verkoopkaart",
     "hint_options": "Vestiaire, drankjetons en andere opties",
-    "hint_ambassadors": "Links en codes van je ambassadeurs"
+    "hint_ambassadors": "Links en codes van je ambassadeurs",
+    "shareLink": "Link delen",
+    "linkCopied": "Link gekopieerd",
+    "eventSections": "Onderdelen van het evenement",
+    "sectionPages": "Pagina’s van het onderdeel"
   },
   "dashboard": {
     "greeting": "hallo {name},",

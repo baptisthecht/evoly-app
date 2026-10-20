@@ -789,7 +789,11 @@
     "addFeature": "Aggiungi una funzione",
     "hint_seating": "Posti numerati e mappa delle vendite",
     "hint_options": "Guardaroba, gettoni per le bevande e altre opzioni",
-    "hint_ambassadors": "Link e codici dei tuoi ambasciatori"
+    "hint_ambassadors": "Link e codici dei tuoi ambasciatori",
+    "shareLink": "Condividi il link",
+    "linkCopied": "Link copiato",
+    "eventSections": "Sezioni dell’evento",
+    "sectionPages": "Pagine della sezione"
   },
   "dashboard": {
     "greeting": "ciao {name},",

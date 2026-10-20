@@ -789,7 +789,11 @@
     "addFeature": "Adicionar uma função",
     "hint_seating": "Lugares numerados e mapa de vendas",
     "hint_options": "Bengaleiro, fichas de bebidas e outras opções",
-    "hint_ambassadors": "Ligações e códigos dos seus embaixadores"
+    "hint_ambassadors": "Ligações e códigos dos seus embaixadores",
+    "shareLink": "Partilhar o link",
+    "linkCopied": "Link copiado",
+    "eventSections": "Secções do evento",
+    "sectionPages": "Páginas da secção"
   },
   "dashboard": {
     "greeting": "olá {name},",

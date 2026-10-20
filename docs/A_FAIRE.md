@@ -25,7 +25,10 @@ gardent la charte. Création rapide (`/start`) refaite selon la maquette. Reste 
 - Fait : recherche d'adresse (Photon, via `/api/places`, cache d'un jour, 60 recherches par minute et par IP) sur
   `/start` et dans le formulaire d'événement. À surveiller : l'instance publique de Photon est à usage raisonnable ; au-delà,
   héberger notre propre Photon ou passer à un service payant (`apps/app/src/server/places.ts`).
-- Onglets horizontaux en haut de chaque événement (vue d'ensemble, tarifs, commandes…), comme la maquette.
+- Fait : onglets horizontaux en haut de chaque événement (six parties, pages de la partie active en seconde rangée,
+  « Partager le lien ») ; la barre latérale de l'organisation reste affichée. Les parcours complets qui passaient par
+  l'ancienne barre de l'événement sont à vérifier (les liens portent les mêmes noms, mais les pages d'une partie ne
+  s'affichent que lorsqu'elle est ouverte).
 - Revue visuelle de chaque écran de l'application dans le nouveau thème (titres, espacements, tableaux).
 
 ## Décisions prises

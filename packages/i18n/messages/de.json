@@ -789,7 +789,11 @@
     "addFeature": "Funktion hinzufügen",
     "hint_seating": "Nummerierte Plätze und Verkaufsplan",
     "hint_options": "Garderobe, Getränkemarken und weitere Optionen",
-    "hint_ambassadors": "Links und Codes Ihrer Botschafter"
+    "hint_ambassadors": "Links und Codes Ihrer Botschafter",
+    "shareLink": "Link teilen",
+    "linkCopied": "Link kopiert",
+    "eventSections": "Bereiche der Veranstaltung",
+    "sectionPages": "Seiten des Bereichs"
   },
   "dashboard": {
     "greeting": "hallo {name},",
