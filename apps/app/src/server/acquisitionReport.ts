@@ -36,8 +36,8 @@ export async function acquisitionFunnel(since: Date) {
   const detail = orgs.map((o) => {
     const a = parseAcquisition(o.acquisition ? encodeURIComponent(JSON.stringify(o.acquisition)) : null);
     const source = a?.source ?? "inconnue",
-      medium = a?.medium ?? "—",
-      campaign = a?.campaign ?? "—";
+      medium = a?.medium ?? "-",
+      campaign = a?.campaign ?? "-";
     const key = `${source}|${medium}|${campaign}`;
     const r = rows.get(key) ?? { source, medium, campaign, organizations: 0, published: 0, firstSale: 0, pro: 0 };
     const pro = o.subscription?.planId === "pro" && ["TRIALING", "ACTIVE", "PAST_DUE"].includes(o.subscription.status);

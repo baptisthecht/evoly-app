@@ -5,7 +5,7 @@ import { requireStaff } from "@/server/platform";
 
 export const metadata: Metadata = { title: "Acquisition" };
 
-const pct = (n: number, d: number) => (d ? `${Math.round((100 * n) / d)} %` : "—");
+const pct = (n: number, d: number) => (d ? `${Math.round((100 * n) / d)} %` : "-");
 
 /** D'où viennent les organisations, et lesquelles deviennent de vrais clients (docs/TRACKING.md). */
 export default async function AcquisitionPage({ searchParams }: { searchParams: Promise<{ jours?: string }> }) {
@@ -101,7 +101,7 @@ export default async function AcquisitionPage({ searchParams }: { searchParams: 
                 </td>
                 <td>{d.campaign}</td>
                 <td>{d.published ? "oui" : "non"}</td>
-                <td>{d.firstSaleAt ? d.firstSaleAt.toLocaleDateString("fr-BE") : "—"}</td>
+                <td>{d.firstSaleAt ? d.firstSaleAt.toLocaleDateString("fr-BE") : "-"}</td>
               </tr>
             ))}
           </tbody>

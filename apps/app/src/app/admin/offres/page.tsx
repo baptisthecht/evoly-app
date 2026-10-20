@@ -7,8 +7,8 @@ import { togglePromotionAction } from "./actions";
 export const metadata: Metadata = { title: "Offres" };
 
 const STATUS = { RUNNING: "En cours", SCHEDULED: "Programmée", ENDED: "Terminée", EXHAUSTED: "Épuisée", DISABLED: "Suspendue" } as const;
-const pct = (n: number, d: number) => (d ? `${Math.round((100 * n) / d)} %` : "—");
-const day = (d: Date | null) => (d ? d.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" }) : "—");
+const pct = (n: number, d: number) => (d ? `${Math.round((100 * n) / d)} %` : "-");
+const day = (d: Date | null) => (d ? d.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" }) : "-");
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.evoly.me";
 
 /** Offres commerciales : état, conditions et résultats de chaque campagne (docs/OFFRES.md). */
