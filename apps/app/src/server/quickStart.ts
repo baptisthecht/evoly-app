@@ -8,7 +8,11 @@ export interface StarterEvent {
   title: string;
   startsAtLocal: string;
   locationName: string;
+  addressLine1?: string;
+  postalCode?: string;
   city: string;
+  /** Pays du lieu (ISO), sinon la Belgique. */
+  country?: string;
   /** « 0 » : billets gratuits. */
   price: string;
   /** Aucune : places illimitées. */
@@ -47,10 +51,10 @@ export async function createStarterOrganizationAndEvent(
       timezone: "Europe/Brussels",
       locationType: "PHYSICAL",
       locationName: ev.locationName,
-      addressLine1: "",
-      postalCode: "",
+      addressLine1: ev.addressLine1 ?? "",
+      postalCode: ev.postalCode ?? "",
       city: ev.city,
-      country: "BE",
+      country: ev.country || "BE",
       onlineUrl: "",
     } as never,
     { name: "Entrée", price: ev.price, quantity: ev.quantity },

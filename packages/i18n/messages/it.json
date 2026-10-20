@@ -2940,5 +2940,11 @@
     "emailTaken": "Questo indirizzo ha già un account: accedi.",
     "login": "Accedi",
     "haveAccount": "Hai già un account?"
+  },
+  "addressSearch": {
+    "searching": "Ricerca…",
+    "noResults": "Nessun indirizzo trovato: inserisci il luogo a mano.",
+    "attribution": "Indirizzi: © OpenStreetMap",
+    "suggestions": "Indirizzi suggeriti"
   }
 }

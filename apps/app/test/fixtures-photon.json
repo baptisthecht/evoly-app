@@ -1,0 +1,69 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "osm_type": "N",
+        "osm_id": 13094240808,
+        "osm_key": "amenity",
+        "osm_value": "theatre",
+        "type": "house",
+        "name": "La Madeleine",
+        "street": "Rue Duquesnoy",
+        "locality": "Quartier du Centre",
+        "district": "Pentagone",
+        "city": "Bruxelles",
+        "county": "Bruxelles-Capitale",
+        "state": "Bruxelles-Capitale",
+        "country": "Belgique",
+        "postcode": "1000",
+        "countrycode": "BE"
+      },
+      "geometry": { "type": "Point", "coordinates": [4.3545717, 50.8448184] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "osm_type": "W",
+        "osm_id": 27807695,
+        "osm_key": "amenity",
+        "osm_value": "place_of_worship",
+        "type": "house",
+        "name": "Chapelle de la Madeleine",
+        "street": "Putterie",
+        "locality": "Quartier du Centre",
+        "district": "Pentagone",
+        "city": "Bruxelles",
+        "county": "Bruxelles-Capitale",
+        "state": "Bruxelles-Capitale",
+        "country": "Belgique",
+        "postcode": "1000",
+        "countrycode": "BE",
+        "extent": [4.3549802, 50.8456935, 4.3553926, 50.8453565]
+      },
+      "geometry": { "type": "Point", "coordinates": [4.3552375, 50.8455295] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "osm_type": "W",
+        "osm_id": 157271631,
+        "osm_key": "highway",
+        "osm_value": "living_street",
+        "type": "street",
+        "name": "Rue de la Madeleine",
+        "locality": "Quartier du Centre",
+        "district": "Pentagone",
+        "city": "Bruxelles",
+        "county": "Bruxelles-Capitale",
+        "state": "Bruxelles-Capitale",
+        "country": "Belgique",
+        "postcode": "1000",
+        "countrycode": "BE",
+        "extent": [4.3547233, 50.8462825, 4.3547903, 50.846126]
+      },
+      "geometry": { "type": "Point", "coordinates": [4.3547789, 50.8462142] }
+    }
+  ]
+}

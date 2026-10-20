@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import { describe, expect, it } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import { EventFields, type EventFieldValues, type PartnerVenueOption } from "@/components/events/EventFields";
@@ -74,5 +75,33 @@ describe("informations d'un événement : champs du lieu (section 9.6)", () => {
     draw(values(), { error: (n) => (n === "title" ? "Obligatoire." : null) });
     expect(screen.getByText("Obligatoire.")).toBeTruthy();
     expect(screen.getByLabelText(new RegExp(ev.title!)).getAttribute("aria-invalid")).toBe("true");
+  });
+});
+
+describe("lieu de l'événement : recherche d'adresse", () => {
+  it("lieu choisi : adresse, code postal et ville remplis, pays du lieu enregistré (ici la France)", async () => {
+    const zenith = {
+      id: "2",
+      kind: "venue",
+      name: "Le Zénith",
+      addressLine1: "Avenue Jean Jaurès 211",
+      postalCode: "75019",
+      city: "Paris",
+      country: "FR",
+      detail: "Avenue Jean Jaurès 211, 75019 Paris, France",
+      lat: 48.89,
+      lon: 2.39,
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ places: [zenith] }))),
+    );
+    const { container } = draw();
+    fireEvent.change(document.getElementById("locationName")!, { target: { value: "Zénith Paris" } });
+    fireEvent.mouseDown(await screen.findByRole("option", { name: /Le Zénith/ }));
+    const val = (id: string) => (document.getElementById(id) as HTMLInputElement).value;
+    expect([val("locationName"), val("addressLine1"), val("postalCode"), val("city")]).toEqual(["Le Zénith", "Avenue Jean Jaurès 211", "75019", "Paris"]);
+    expect((container.querySelector('input[name="country"]') as HTMLInputElement).value).toBe("FR");
+    vi.unstubAllGlobals();
   });
 });

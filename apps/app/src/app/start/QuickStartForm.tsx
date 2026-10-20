@@ -8,20 +8,24 @@ import { quickStartAction } from "@/app/(auth)/actions";
 import { FormError, SubmitButton, useFieldError } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { AddressSearch } from "@/components/places/AddressSearch";
 import { Field, Input } from "@/components/ui/Field";
 
-const EVENT_FIELDS = ["title", "startsAtLocal", "locationName", "city", "price", "quantity"] as const;
+const EVENT_FIELDS = ["title", "startsAtLocal", "locationName", "addressLine1", "postalCode", "city", "country", "price", "quantity"] as const;
 const TYPES = ["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"] as const;
 interface Ev {
   title: string;
   date: string;
   time: string;
   locationName: string;
+  addressLine1: string;
+  postalCode: string;
   city: string;
+  country: string;
   price: string;
   quantity: string;
 }
-const empty: Ev = { title: "", date: "", time: "", locationName: "", city: "", price: "", quantity: "" };
+const empty: Ev = { title: "", date: "", time: "", locationName: "", addressLine1: "", postalCode: "", city: "", country: "", price: "", quantity: "" };
 const slug = (s: string, fallback: string) =>
   s
     .normalize("NFD")
@@ -60,7 +64,7 @@ function Preview({ ev, t, locale, org, compact = false }: { ev: Ev; t: T; locale
   const d = ev.date ? new Date(`${ev.date}T${ev.time || "00:00"}`) : null;
   const ok = !!d && !Number.isNaN(d.getTime());
   const when = ok ? new Intl.DateTimeFormat(locale, { dateStyle: "full", ...(ev.time ? { timeStyle: "short" } : {}) }).format(d!) : t("previewDate");
-  const where = ev.locationName ? [ev.locationName, ev.city].filter(Boolean).join(", ") : t("previewPlace");
+  const where = ev.locationName ? [ev.locationName, ev.addressLine1, ev.city].filter(Boolean).join(", ") : t("previewPlace");
   const n = parseInt(ev.quantity, 10);
   const p = Number(ev.price.replace(",", ".")) || 0;
   const price = p > 0 ? formatMoney(Math.round(p * 100), "EUR", locale as Parameters<typeof formatMoney>[2]) : t("free");
@@ -184,7 +188,24 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                 </div>
                 <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3">
                   <Field label={t("place")} htmlFor="qs-place" required done={done.place} error={error("locationName")}>
-                    <Input id="qs-place" required maxLength={120} placeholder={t("placePh")} value={ev.locationName} onChange={set("locationName")} />
+                    <AddressSearch
+                      id="qs-place"
+                      required
+                      maxLength={120}
+                      placeholder={t("placePh")}
+                      value={ev.locationName}
+                      onChange={(e) => setEv((v) => ({ ...v, locationName: e.target.value, addressLine1: "", postalCode: "", country: "" }))}
+                      onSelect={(p) =>
+                        setEv((v) => ({
+                          ...v,
+                          locationName: p.name,
+                          addressLine1: p.addressLine1,
+                          postalCode: p.postalCode,
+                          city: p.city || v.city,
+                          country: p.country,
+                        }))
+                      }
+                    />
                   </Field>
                   <Field label={t("city")} htmlFor="qs-city" required error={error("city")}>
                     <Input id="qs-city" required maxLength={80} value={ev.city} onChange={set("city")} />

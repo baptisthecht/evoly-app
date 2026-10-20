@@ -6,6 +6,7 @@ import {
   type InputHTMLAttributes,
   type ReactElement,
   type ReactNode,
+  type Ref,
   type SelectHTMLAttributes,
 } from "react";
 import { cn } from "./cn";
@@ -92,7 +93,7 @@ export function Field({
   );
 }
 
-export function Input({ className, invalid, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean }) {
+export function Input({ className, invalid, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; ref?: Ref<HTMLInputElement> }) {
   return <input className={cn(control, className)} aria-invalid={invalid || undefined} {...rest} />;
 }
 

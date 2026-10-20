@@ -157,6 +157,9 @@ const quickStartSchema = z.object({
   startsAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, { message: "validation.required" }),
   locationName: z.string().trim().min(1, { message: "validation.required" }).max(120),
   city: z.string().trim().min(1, { message: "validation.required" }).max(80),
+  addressLine1: z.string().trim().max(160).optional(),
+  postalCode: z.string().trim().max(16).optional(),
+  country: z.union([z.literal(""), z.string().regex(/^[A-Z]{2}$/)]).optional(),
   // facultatifs : sans prix, billets gratuits ; sans nombre, places illimitées
   price: z
     .union([
@@ -210,7 +213,10 @@ export async function quickStartAction(_: ActionState, form: FormData): Promise<
         title: d.title,
         startsAtLocal: d.startsAtLocal,
         locationName: d.locationName,
+        addressLine1: d.addressLine1 ?? "",
+        postalCode: d.postalCode ?? "",
         city: d.city,
+        country: d.country || "BE",
         price: d.price || "0",
         quantity: typeof d.quantity === "number" ? d.quantity : null,
       },

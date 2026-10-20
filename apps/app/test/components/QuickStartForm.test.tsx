@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import { QuickStartForm } from "@/app/start/QuickStartForm";
 import { Fr } from "./intl";
@@ -9,10 +9,27 @@ vi.mock("@/app/(auth)/actions", () => actions);
 const t = (fr as unknown as Record<string, Record<string, string>>).quickstart!;
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
 const change = (id: string, value: string) => fireEvent.change(document.getElementById(id)!, { target: { value } });
+const madeleine = {
+  id: "1",
+  kind: "venue",
+  name: "La Madeleine",
+  addressLine1: "Rue Duquesnoy 14",
+  postalCode: "1000",
+  city: "Bruxelles",
+  country: "BE",
+  detail: "Rue Duquesnoy 14, 1000 Bruxelles",
+  lat: 50.84,
+  lon: 4.35,
+};
 beforeEach(() => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => new Response(JSON.stringify({ places: [madeleine] }))),
+  );
   actions.quickStartAction.mockReset();
   actions.quickStartAction.mockResolvedValue({ ok: false, error: "EMAIL_TAKEN" });
 });
+afterEach(() => vi.unstubAllGlobals());
 const fillRequired = () => {
   change("qs-title", "Soirée de rentrée");
   change("qs-date", "2027-02-20");
@@ -87,5 +104,34 @@ describe("création rapide (visiteurs des annonces)", () => {
     const preview = norm(screen.getByRole("region", { name: t.preview }).textContent!);
     expect(preview).toContain("club-jeunesse.evoly.me/soiree-de-rentree");
     expect(preview).toContain(t.draft!);
+  });
+
+  it("lieu choisi dans les suggestions : ville remplie, adresse, code postal et pays envoyés avec le compte", async () => {
+    render(
+      <Fr>
+        <QuickStartForm offer={null} />
+      </Fr>,
+    );
+    change("qs-title", "Gala");
+    change("qs-date", "2027-02-20");
+    change("qs-time", "20:00");
+    change("qs-place", "La Mad");
+    fireEvent.mouseDown(await screen.findByRole("option", { name: /La Madeleine/ }));
+    expect((document.getElementById("qs-city") as HTMLInputElement).value).toBe("Bruxelles");
+    fireEvent.click(screen.getByRole("button", { name: t.next }));
+    change("qs-org", "Club");
+    change("qs-email", "nora@exemple.be");
+    change("qs-password", "Motdepasse-2026!");
+    fireEvent.click(screen.getByRole("checkbox"));
+    await act(async () => void fireEvent.submit(document.getElementById("qs-email")!.closest("form")!));
+    await waitFor(() => expect(actions.quickStartAction).toHaveBeenCalled());
+    const data = actions.quickStartAction.mock.calls[0]!.at(-1) as FormData;
+    expect([data.get("locationName"), data.get("addressLine1"), data.get("postalCode"), data.get("city"), data.get("country")]).toEqual([
+      "La Madeleine",
+      "Rue Duquesnoy 14",
+      "1000",
+      "Bruxelles",
+      "BE",
+    ]);
   });
 });

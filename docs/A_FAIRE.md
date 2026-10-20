@@ -22,7 +22,9 @@ Fait : jetons et composants (boutons, champs, libellés, pastilles, cartes) du t
 l'application des organisateurs (repère `.theme-pro`) ; la billetterie publique, l'espace des acheteurs et le scanner
 gardent la charte. Création rapide (`/start`) refaite selon la maquette. Reste à faire :
 
-- Recherche d'adresse (Photon, via le serveur) pour le lieu, ici et dans l'application.
+- Fait : recherche d'adresse (Photon, via `/api/places`, cache d'un jour, 60 recherches par minute et par IP) sur
+  `/start` et dans le formulaire d'événement. À surveiller : l'instance publique de Photon est à usage raisonnable ; au-delà,
+  héberger notre propre Photon ou passer à un service payant (`apps/app/src/server/places.ts`).
 - Onglets horizontaux en haut de chaque événement (vue d'ensemble, tarifs, commandes…), comme la maquette.
 - Revue visuelle de chaque écran de l'application dans le nouveau thème (titres, espacements, tableaux).
 

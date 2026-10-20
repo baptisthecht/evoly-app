@@ -2940,5 +2940,11 @@
     "emailTaken": "This address already has an account: sign in.",
     "login": "Sign in",
     "haveAccount": "Already have an account?"
+  },
+  "addressSearch": {
+    "searching": "Searching…",
+    "noResults": "No address found: enter the venue by hand.",
+    "attribution": "Addresses: © OpenStreetMap",
+    "suggestions": "Suggested addresses"
   }
 }

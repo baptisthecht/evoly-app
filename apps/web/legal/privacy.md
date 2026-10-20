@@ -40,6 +40,7 @@ Les e-mails marketing des organisateurs (campagnes, e-mails automatiques) contie
 | OVH SAS (OVHcloud), France | Hébergement de l'application et de la base de données                                                                 | Union européenne                                            |
 | Sentry                     | Suivi des erreurs, sans données personnelles                                                                          | Union européenne                                            |
 | Google Ireland             | Mesure d'audience (Google Analytics) et des campagnes (Google Ads), seulement avec votre accord                       | Union européenne, États-Unis (Data Privacy Framework)       |
+| Komoot (Photon)            | Recherche d'adresses pendant la saisie d'un lieu : seul le texte tapé est transmis, par nos serveurs                  | Union européenne (Allemagne)                                |
 
 ## 5. Vos droits
 

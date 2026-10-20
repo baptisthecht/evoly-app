@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Field, Input, Select } from "../ui/Field";
 import { cn } from "../ui/cn";
+import { AddressSearch, fillInput } from "@/components/places/AddressSearch";
 
 export const TIMEZONES = [
   "Europe/Brussels",
@@ -45,6 +46,7 @@ export type PartnerVenueOption = { name: string; addressLine1: string; postalCod
 export function EventFields({ values, error, venue }: { values: EventFieldValues; error: (name: string) => string | null; venue?: PartnerVenueOption | null }) {
   const t = useTranslations("events");
   const [locationType, setLocationType] = useState(values.locationType);
+  const [country, setCountry] = useState(values.country);
   const [atVenue, setAtVenue] = useState(!!venue && values.atVenue !== false);
   const zones = TIMEZONES.includes(values.timezone) ? TIMEZONES : [values.timezone, ...TIMEZONES];
   return (
@@ -127,7 +129,20 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
         {locationType !== "ONLINE" && !(venue && atVenue) ? (
           <div className="grid gap-5">
             <Field label={t("locationName")} htmlFor="locationName" error={error("locationName")}>
-              <Input id="locationName" name="locationName" defaultValue={values.locationName} maxLength={120} placeholder={t("locationNamePlaceholder")} />
+              <AddressSearch
+                id="locationName"
+                name="locationName"
+                defaultValue={values.locationName}
+                maxLength={120}
+                placeholder={t("locationNamePlaceholder")}
+                onSelect={(p) => {
+                  // lieu choisi : adresse complète remplie (et enregistrée automatiquement dans les réglages)
+                  fillInput(document.getElementById("addressLine1") as HTMLInputElement | null, p.addressLine1);
+                  fillInput(document.getElementById("postalCode") as HTMLInputElement | null, p.postalCode);
+                  fillInput(document.getElementById("city") as HTMLInputElement | null, p.city);
+                  setCountry(p.country);
+                }}
+              />
             </Field>
             <Field label={t("address")} htmlFor="addressLine1" error={error("addressLine1")}>
               <Input id="addressLine1" name="addressLine1" defaultValue={values.addressLine1} maxLength={160} autoComplete="street-address" />
@@ -140,7 +155,7 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
                 <Input id="city" name="city" defaultValue={values.city} maxLength={80} autoComplete="address-level2" />
               </Field>
             </div>
-            <input type="hidden" name="country" value={values.country} />
+            <input type="hidden" name="country" value={country} />
           </div>
         ) : null}
         {locationType !== "PHYSICAL" ? (

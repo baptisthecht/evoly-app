@@ -2940,5 +2940,11 @@
     "emailTaken": "Dit adres heeft al een account: meld u aan.",
     "login": "Aanmelden",
     "haveAccount": "Al een account?"
+  },
+  "addressSearch": {
+    "searching": "Zoeken…",
+    "noResults": "Geen adres gevonden: vul de locatie zelf in.",
+    "attribution": "Adressen: © OpenStreetMap",
+    "suggestions": "Voorgestelde adressen"
   }
 }
