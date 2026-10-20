@@ -18,7 +18,10 @@ export function EventTabs({ tabs, hidden }: { tabs: EventTab[]; hidden: HiddenFe
   const toAdd = hidden.filter((h) => h.tab === active && h !== here);
   return (
     <div className="grid gap-3">
-      <nav aria-label={t("eventSections")} className="-mb-px flex gap-1 overflow-x-auto border-b border-line">
+      <nav
+        aria-label={t("eventSections")}
+        className="-mb-px flex gap-1 overflow-x-auto border-b border-line [mask-image:linear-gradient(to_right,#000_82%,transparent)] sm:[mask-image:none]"
+      >
         {tabs.map((x) => (
           <Link
             key={x.key}

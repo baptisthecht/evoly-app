@@ -13,7 +13,7 @@ export default async function StartLayout({ children }: { children: ReactNode })
       <header className="border-b border-line bg-surface-raised">
         <div className="mx-auto flex max-w-[70rem] items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
           <Link href="/" aria-label="Evoly">
-            <Logo className="h-5 w-auto" />
+            <Logo className="h-8 w-auto" />
           </Link>
           <p className="text-[0.8125rem] text-ink-muted">
             {t("haveAccount")}{" "}

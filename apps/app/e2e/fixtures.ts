@@ -11,8 +11,37 @@ export * from "@playwright/test";
 const dir = process.env.E2E_COVERAGE_DIR;
 type Entry = Awaited<ReturnType<Page["coverage"]["stopJSCoverage"]>>[number];
 
+/**
+ * Choix des cookies déjà fait (tout refusé) dans chaque navigateur des parcours, y compris ceux qu'ils ouvrent eux-mêmes :
+ * sinon le bandeau, fixé en bas de l'écran, recouvre des boutons (« Créer mon organisation »…).
+ */
+const CONSENT = [
+  {
+    name: "evoly_consent",
+    value: encodeURIComponent(JSON.stringify({ v: 1, analytics: false, ads: false, at: "2026-10-21T00:00:00.000Z" })),
+    domain: "localhost",
+    path: "/",
+  },
+];
+const withConsent = base.extend<{ consent: void }>({
+  consent: [
+    async ({ browser, context }, use) => {
+      await context.addCookies(CONSENT);
+      const newContext = browser.newContext.bind(browser);
+      browser.newContext = async (options) => {
+        const c = await newContext(options);
+        await c.addCookies(CONSENT);
+        return c;
+      };
+      await use();
+      browser.newContext = newContext;
+    },
+    { auto: true },
+  ],
+});
+
 export const test = dir
-  ? base.extend<{ coverage: void }>({
+  ? withConsent.extend<{ coverage: void }>({
       coverage: [
         async ({ browser, context, page }, use, testInfo) => {
           const entries: Entry[] = [];
@@ -64,4 +93,4 @@ export const test = dir
         { auto: true },
       ],
     })
-  : base;
+  : withConsent;

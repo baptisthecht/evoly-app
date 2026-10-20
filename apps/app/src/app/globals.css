@@ -34,15 +34,47 @@ body {
   font-weight: 600;
   letter-spacing: -0.01em;
 }
+/* thème pro : titres et chiffres plafonnés (maquette : 17 à 20 px pour les titres, 24 à 28 px pour les chiffres) */
+:root:has(.theme-pro) .font-display[class*="text-lg"] {
+  font-size: 1rem;
+}
+:root:has(.theme-pro) .font-display[class*="text-xl"] {
+  font-size: 1.0625rem;
+}
+:root:has(.theme-pro) .font-display[class*="text-2xl"] {
+  font-size: 1.25rem;
+}
+:root:has(.theme-pro) .font-display[class*="text-3xl"] {
+  font-size: 1.5rem;
+}
+:root:has(.theme-pro) .font-display[class*="text-4xl"],
+:root:has(.theme-pro) .font-display[class*="text-5xl"],
+:root:has(.theme-pro) .font-display[class*="text-display"] {
+  font-size: 1.75rem;
+}
+/* thème pro : boutons et liens en pilule dessinés à la main, alignés sur les boutons du thème (interrupteurs exclus) */
+:root:has(.theme-pro) :is(a, button).rounded-full[class*="px-"]:not([role="switch"]) {
+  border-radius: var(--control-radius);
+  font-weight: var(--control-weight);
+  font-size: var(--control-text-md);
+}
+/* thème pro : l'écriture manuscrite devient une mention sobre */
+:root:has(.theme-pro) .script {
+  font-family: var(--type-body);
+  color: var(--ink-muted);
+}
 .script {
   font-family: var(--type-script);
   font-weight: 400;
   letter-spacing: 0;
 }
 
-:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
+/* couche de base : un composant qui dessine son propre focus (champs : contour et halo) le remplace sans le doubler */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
