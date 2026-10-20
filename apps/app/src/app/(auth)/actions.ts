@@ -14,7 +14,8 @@ import { env } from "@/lib/env";
 import { formToObject, zodFields, type ActionState } from "@/server/guard";
 import { hit, isLimited, reset } from "@/server/rateLimit";
 import { clientIp } from "@/server/requestInfo";
-import { queueTrackedEvent } from "@/server/trackingServer";
+import { createStarterOrganizationAndEvent } from "@/server/quickStart";
+import { queueTrackedEvent, readAcquisition } from "@/server/trackingServer";
 
 const email = z
   .string()
@@ -149,4 +150,63 @@ export async function socialSignInAction(provider: "google" | "apple", next: str
   const res = await auth.api.signInSocial({ body: { provider, callbackURL: safeNext(next) ?? "/" }, headers: await headers() });
   if (res?.url) redirect(res.url);
   redirect("/login");
+}
+
+const quickStartSchema = z.object({
+  title: z.string().trim().min(2, { message: "validation.required" }).max(120),
+  startsAtLocal: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, { message: "validation.required" }),
+  locationName: z.string().trim().min(1, { message: "validation.required" }).max(120),
+  city: z.string().trim().min(1, { message: "validation.required" }).max(80),
+  price: z
+    .string()
+    .trim()
+    .regex(/^\d{1,6}([.,]\d{1,2})?$/, { message: "validation.number" }),
+  quantity: z.coerce.number({ message: "validation.number" }).int().min(1).max(100_000),
+  orgName: z.string().trim().min(2, { message: "validation.required" }).max(80),
+  type: z.enum(["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"]),
+  email: registerSchema.shape.email,
+  password: registerSchema.shape.password,
+  terms: z.literal("on", { message: "validation.required" }),
+});
+
+/**
+ * Création rapide pour les visiteurs des annonces (/start) : l'événement d'abord, le compte à la fin. Compte,
+ * organisation (offre de lancement comprise) et événement en brouillon sont créés d'un coup ; le lien de vérification
+ * mène ensuite au tableau de bord, où l'événement attend d'être publié.
+ */
+export async function quickStartAction(_: ActionState, form: FormData): Promise<ActionState> {
+  const parsed = quickStartSchema.safeParse(formToObject(form));
+  if (!parsed.success) return { ok: false, error: "INVALID_INPUT", fields: zodFields(parsed.error) };
+  const ip = await clientIp();
+  if ((await hit(`register:ip:${ip}`, 60 * 60)) > 10) return { ok: false, error: "TOO_MANY_ATTEMPTS" };
+  const d = parsed.data;
+  const locale = (await cookies()).get(LOCALE_COOKIE)?.value;
+  let userId: string;
+  try {
+    const res = await auth.api.signUpEmail({
+      body: { name: d.orgName, email: d.email, password: d.password, locale: isLocale(locale) ? locale : "fr", callbackURL: "/" },
+      headers: await headers(),
+    });
+    userId = res.user.id;
+  } catch (e) {
+    const c = apiCode(e);
+    if (c?.code === "USER_ALREADY_EXISTS" || c?.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL") return { ok: false, error: "EMAIL_TAKEN" };
+    if (c?.code === "PASSWORD_TOO_SHORT" || c?.code === "PASSWORD_TOO_LONG")
+      return { ok: false, error: "INVALID_INPUT", fields: { password: "validation.passwordLength" } };
+    throw e;
+  }
+  await queueTrackedEvent("sign_up");
+  try {
+    await createStarterOrganizationAndEvent(
+      { id: userId, name: d.orgName, email: d.email },
+      { name: d.orgName, type: d.type },
+      { title: d.title, startsAtLocal: d.startsAtLocal, locationName: d.locationName, city: d.city, price: d.price, quantity: d.quantity },
+      await readAcquisition(),
+    );
+    await queueTrackedEvent("organization_created");
+  } catch (e) {
+    // compte créé mais organisation ou événement refusés (date passée, par exemple) : l'accueil reprendra la création
+    console.error("création rapide : organisation ou événement non créés", e);
+  }
+  redirect(`/verify-email?email=${encodeURIComponent(d.email)}`);
 }

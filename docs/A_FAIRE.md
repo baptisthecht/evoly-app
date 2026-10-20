@@ -30,10 +30,21 @@ modifier ou l'arrêter demande un déploiement. À remplacer par :
 - Retirer du site le bandeau de l'offre, remettre « Essai gratuit de 14 jours » dans l'encadré Pro et « Essayer Pro
   14 jours » sur les boutons (les traductions existent encore dans `apps/web/i18n/`).
 
-## À décider
+## Décisions prises
 
-- Avertissement de fin d'un Pro offert : 3 jours avant (comme les essais Stripe, choix actuel) ou 14 jours avant.
-- Offrir aussi les 3 mois aux organisations créées avant la mise en ligne de l'offre.
+- Avertissement de fin d'un Pro offert : 3 jours avant (comme les essais Stripe).
+- Pas d'offre pour les organisations créées avant sa mise en ligne (il n'y en a pas).
+
+## Création rapide pour les visiteurs des annonces (`/start`)
+
+En place : l'événement d'abord (nom, date, lieu, ville, prix, places), puis le compte (organisation, e-mail, mot de
+passe) avec l'aperçu de l'événement ; compte, organisation et événement en brouillon créés d'un coup, le lien de
+vérification mène au tableau de bord. À faire :
+
+- Faire pointer les boutons du site vitrine (« Créer mon premier événement ») et l'URL finale des annonces vers
+  `https://app.evoly.me/start`, après déploiement et essai.
+- Un parcours complet (Playwright) de `/start` jusqu'au tableau de bord après vérification de l'adresse.
+- Afficher sur la page de vérification de l'adresse que l'événement est enregistré et attend d'être publié.
 
 ## Mesure
 

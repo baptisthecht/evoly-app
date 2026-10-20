@@ -22,6 +22,7 @@ const RESERVED = new Set([
   "auth",
   "login",
   "register",
+  "start", // création rapide d'un événement, puis du compte (visiteurs des annonces)
   "static",
   "cdn",
   "r",
