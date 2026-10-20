@@ -27,6 +27,12 @@ const values = (over: Partial<BrandValues> = {}): BrandValues => ({
   emailFromName: "Club",
   emailReplyTo: "",
   hideEvolyBranding: false,
+  backgroundColor: "",
+  radius: "",
+  headingFont: "",
+  bodyFont: "",
+  buttonLabel: "",
+  socials: { website: "", instagram: "", facebook: "", tiktok: "", linkedin: "", youtube: "" },
   ...over,
 });
 beforeEach(() => {
