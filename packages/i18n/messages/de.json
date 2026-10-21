@@ -702,7 +702,9 @@
     "newPassword": "Neues Passwort",
     "saveNewPassword": "Passwort speichern",
     "resetLinkInvalid": "Dieser Link ist nicht mehr gültig. Er kann nur einmal und eine Stunde lang genutzt werden.",
-    "or": "oder mit Ihrer E-Mail-Adresse"
+    "or": "oder mit Ihrer E-Mail-Adresse",
+    "startSavedTitle": "Ihre Veranstaltung ist gespeichert",
+    "startSavedNext": "Sie wartet auf die Veröffentlichung: Bestätigen Sie Ihre Adresse, prüfen Sie sie dann und stellen Sie sie in Ihrem Dashboard online."
   },
   "onboarding": {
     "organizationTitle": "Ihre Organisation",

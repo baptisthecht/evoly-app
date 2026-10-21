@@ -702,7 +702,9 @@
     "newPassword": "Nueva contraseña",
     "saveNewPassword": "Guardar la contraseña",
     "resetLinkInvalid": "Este enlace ya no es válido. Solo se puede usar una vez, durante una hora.",
-    "or": "o con tu dirección de e-mail"
+    "or": "o con tu dirección de e-mail",
+    "startSavedTitle": "Tu evento está guardado",
+    "startSavedNext": "Está pendiente de publicación: verifica tu dirección y después revísalo y publícalo desde tu panel."
   },
   "onboarding": {
     "organizationTitle": "Tu organización",

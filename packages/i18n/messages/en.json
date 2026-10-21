@@ -120,7 +120,9 @@
     "newPassword": "New password",
     "saveNewPassword": "Save password",
     "resetLinkInvalid": "This link is no longer valid. It works only once, for one hour.",
-    "or": "or with your email address"
+    "or": "or with your email address",
+    "startSavedTitle": "Your event is saved",
+    "startSavedNext": "It is waiting to be published: verify your address, then review it and put it online from your dashboard."
   },
   "onboarding": {
     "organizationTitle": "Your organisation",

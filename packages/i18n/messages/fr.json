@@ -120,7 +120,9 @@
     "newPassword": "Nouveau mot de passe",
     "saveNewPassword": "Enregistrer le mot de passe",
     "resetLinkInvalid": "Ce lien n’est plus valable. Il n’est utilisable qu’une fois, pendant une heure.",
-    "or": "ou avec votre adresse e-mail"
+    "or": "ou avec votre adresse e-mail",
+    "startSavedTitle": "Votre événement est enregistré",
+    "startSavedNext": "Il attend d’être publié : vérifiez votre adresse, puis relisez-le et mettez-le en ligne depuis votre tableau de bord."
   },
   "onboarding": {
     "organizationTitle": "Votre organisation",

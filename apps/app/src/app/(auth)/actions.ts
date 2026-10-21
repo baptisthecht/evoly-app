@@ -16,6 +16,7 @@ import { hit, isLimited, reset } from "@/server/rateLimit";
 import { clientIp } from "@/server/requestInfo";
 import { createStarterOrganizationAndEvent } from "@/server/quickStart";
 import { queueTrackedEvent, readAcquisition } from "@/server/trackingServer";
+import { writeStartNotice } from "@/server/startNotice";
 
 const email = z
   .string()
@@ -223,6 +224,8 @@ export async function quickStartAction(_: ActionState, form: FormData): Promise<
       await readAcquisition(),
     );
     await queueTrackedEvent("organization_created");
+    // page de vérification de l'adresse : l'événement est enregistré et attend d'être publié
+    await writeStartNotice({ email: d.email, title: d.title, startsAtLocal: d.startsAtLocal, place: [d.locationName, d.city].filter(Boolean).join(", ") });
   } catch (e) {
     // compte créé mais organisation ou événement refusés (date passée, par exemple) : l'accueil reprendra la création
     console.error("création rapide : organisation ou événement non créés", e);
