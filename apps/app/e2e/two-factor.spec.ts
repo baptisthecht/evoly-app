@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { appUrl, organizer } from "./helpers";
 
@@ -23,12 +24,22 @@ function totp(secret: string, at = Date.now()) {
   return String(n % 1_000_000).padStart(6, "0");
 }
 
+/** Code calculé au début d'une période : jamais à quelques secondes de son expiration (évite un code périmé). */
+async function freshTotp(page: Page, secret: string) {
+  const left = 30_000 - (Date.now() % 30_000);
+  if (left < 6_000) await page.waitForTimeout(left + 200);
+  return totp(secret);
+}
+
 test("double authentification : activée avec un code calculé, puis exigée à la connexion ; code faux refusé", async ({ page }) => {
   const { id } = await organizer(page);
   const email = `orga${id}@exemple.be`;
   await page.goto(appUrl("/compte/securite"));
   const secret = (await page.getByTestId("totp-secret").textContent())!.trim();
-  await page.locator('input[name="code"]').first().fill(totp(secret));
+  await page
+    .locator('input[name="code"]')
+    .first()
+    .fill(await freshTotp(page, secret));
   await page.getByRole("button", { name: "Activer la double authentification" }).click();
   await expect(page.getByText("Vos codes de secours")).toBeVisible();
 
@@ -41,8 +52,10 @@ test("double authentification : activée avec un code calculé, puis exigée à 
   const code = page.locator('input[name="code"]');
   await code.fill("000000");
   await page.getByRole("button", { name: "Valider" }).click();
-  await expect(page).toHaveURL(/\/2fa/); // code faux : toujours sur la vérification
-  await code.fill(totp(secret));
+  // code faux : le refus affiché (attendre la réponse avant de saisir le bon code), toujours sur la vérification
+  await expect(page.locator('form [role="alert"]')).toBeVisible(); // l'alerte du formulaire (Next.js a aussi son annonceur)
+  await expect(page).toHaveURL(/\/2fa/);
+  await code.fill(await freshTotp(page, secret));
   await page.getByRole("button", { name: "Valider" }).click();
   await page.waitForURL((url) => !url.pathname.startsWith("/2fa"));
   expect(new URL(page.url()).pathname).not.toMatch(/\/(login|2fa)/);
