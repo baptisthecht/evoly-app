@@ -289,7 +289,7 @@ export function BrandForm({
           {t("save")}
         </SubmitButton>
       </form>
-      <aside aria-label={t("preview")} className="grid content-start gap-2 lg:sticky lg:top-6">
+      <aside aria-label={t("preview")} className="order-first grid content-start gap-2 lg:order-none lg:sticky lg:top-6">
         <p className="font-label text-[0.8rem] font-bold text-ink-muted">{t("preview")}</p>
         <ThemePreview
           v={v}
