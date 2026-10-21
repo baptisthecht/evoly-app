@@ -18,7 +18,7 @@ export default async function EventSettingsPage({ params }: { params: Promise<{ 
   const local = (d: Date | null) => (d ? utcToZonedLocal(d, e.timezone) : "");
   const readOnly = !can(ctx.membership, "EVENTS_EDIT") || ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
   return (
-    <div className="max-w-3xl">
+    <div>
       <SettingsForm
         orgSlug={orgSlug}
         venue={await partnerVenueFor(ctx.organization.id)}

@@ -23,7 +23,7 @@ export default async function OptionsPage({ params }: { params: Promise<{ orgSlu
   const t = await getTranslations("options");
   if (!hasFeature(ctx.features, "PREPAID_OPTIONS")) {
     return (
-      <div className="grid max-w-4xl gap-4">
+      <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
         <ProLocked orgSlug={orgSlug} feature="PREPAID_OPTIONS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
       </div>
@@ -36,7 +36,7 @@ export default async function OptionsPage({ params }: { params: Promise<{ orgSlu
     new Intl.NumberFormat("fr-BE", { style: "currency", currency: event.currency }).formatToParts(0).find((p) => p.type === "currency")?.value ??
     event.currency;
   return (
-    <div className="grid max-w-4xl gap-4">
+    <div className="grid gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
       {options.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
       <ul className="grid gap-3">

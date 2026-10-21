@@ -24,7 +24,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ orgSlug:
   const t = await getTranslations("embed");
   if (!hasFeature(ctx.features, "EMBED_WIDGET")) {
     return (
-      <div className="grid max-w-4xl gap-4">
+      <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
         <ProLocked orgSlug={orgSlug} feature="EMBED_WIDGET" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
       </div>
@@ -38,7 +38,7 @@ export default async function EmbedPage({ params }: { params: Promise<{ orgSlug:
   const button = `${script}\n<a href="${saleUrl}" data-evoly-button>${t("bookLabel")}</a>`;
   const module = `${script}\n<div data-evoly-module="${event.id}"></div>`;
   return (
-    <div className="grid max-w-4xl gap-4">
+    <div className="grid gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
       <Card className="grid gap-3">
         <h2 className="font-display text-xl">{t("sitesTitle")}</h2>

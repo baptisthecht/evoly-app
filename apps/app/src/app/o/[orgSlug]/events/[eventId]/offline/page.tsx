@@ -25,7 +25,7 @@ export default async function EventOfflinePage({ params }: { params: Promise<{ o
   const conflicts = await optionConflicts(cashCtx, (await params).eventId); // RG-OPT-05
   const cashLocale = (await getLocale()) as Locale;
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid gap-6">
       {conflicts.length > 0 ? (
         <section className="grid gap-2 rounded-2xl bg-surface-raised p-4 ring-1 ring-danger" aria-label={t("conflictsTitle")}>
           <h2 className="font-semibold">{t("conflictsTitle")}</h2>

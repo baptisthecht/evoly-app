@@ -29,7 +29,7 @@ export default async function AmbassadorsPage({
   const t = await getTranslations("ambassadors");
   if (!hasFeature(ctx.features, "AMBASSADORS")) {
     return (
-      <div className="grid max-w-4xl gap-4">
+      <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
         <ProLocked orgSlug={orgSlug} feature="AMBASSADORS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
       </div>
@@ -55,7 +55,7 @@ export default async function AmbassadorsPage({
   if (scope === "org") {
     const people = await organizationAmbassadorRanking(ctx);
     return (
-      <div className="grid max-w-4xl gap-4">
+      <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
         {nav}
         <p className="text-sm text-ink-muted">{t("orgHint")}</p>
@@ -81,7 +81,7 @@ export default async function AmbassadorsPage({
     );
   }
   return (
-    <div className="grid max-w-4xl gap-4">
+    <div className="grid gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
       {nav}
       {rows.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}

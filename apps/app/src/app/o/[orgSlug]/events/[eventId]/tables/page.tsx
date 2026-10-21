@@ -22,7 +22,7 @@ export default async function TablesPage({ params }: { params: Promise<{ orgSlug
   const t = await getTranslations("tables");
   if (!hasFeature(ctx.features, "SEATING_MAPS")) {
     return (
-      <div className="grid max-w-4xl gap-4">
+      <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
         <ProLocked orgSlug={orgSlug} feature="SEATING_MAPS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
       </div>
@@ -32,7 +32,7 @@ export default async function TablesPage({ params }: { params: Promise<{ orgSlug
   const locale = (await getLocale()) as Locale;
   const manage = can(ctx.membership, "TICKETS_MANAGE") && !ctx.readOnly;
   return (
-    <div className="grid max-w-4xl gap-4">
+    <div className="grid gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
       {types.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
       {types.map((tt) => (

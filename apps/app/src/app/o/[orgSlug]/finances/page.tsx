@@ -90,7 +90,7 @@ export default async function FinancesPage({
         </p>
       )}
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5" aria-label={t("totals")}>
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label={t("totals")}>
         {[
           { key: "gross", value: tot.grossMinor, strong: false },
           { key: "refunded", value: -tot.refundedMinor, strong: false },

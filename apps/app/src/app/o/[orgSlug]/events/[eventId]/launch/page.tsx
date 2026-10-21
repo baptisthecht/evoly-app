@@ -34,7 +34,7 @@ export default async function EventLaunchPage({ params }: { params: Promise<{ or
   const when = e.publishAt ? formatDateTime(e.publishAt, e.timezone, toLocale(await getLocale())) : null;
   const publicationStatus = e.publishAt && when ? tp(e.publishAt > new Date() ? "statusScheduled" : "statusLive", { date: when }) : null;
   return (
-    <div className="max-w-3xl">
+    <div>
       {canPublish ? (
         <EventPublication
           orgSlug={orgSlug}

@@ -20,7 +20,7 @@ export default async function SeatingPage({ params }: { params: Promise<{ orgSlu
   const t = await getTranslations("seatingEditor");
   if (!hasFeature(ctx.features, "SEATING_MAPS"))
     return (
-      <div className="grid max-w-4xl gap-4">
+      <div className="grid gap-4">
         <ProLocked orgSlug={orgSlug} feature="SEATING_MAPS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} preview={<SeatingPreview />} />
       </div>
     );

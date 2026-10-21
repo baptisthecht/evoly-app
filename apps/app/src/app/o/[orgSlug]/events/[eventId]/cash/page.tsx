@@ -27,7 +27,7 @@ export default async function EventCashPage({ params }: { params: Promise<{ orgS
   const cashCurrency = (await db.event.findUniqueOrThrow({ where: { id: (await params).eventId }, select: { currency: true } })).currency;
   const cashLocale = (await getLocale()) as Locale;
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid gap-6">
       {cash.length ? (
         <section className="grid gap-2 rounded-lg bg-surface-sunken p-4 text-sm" aria-label={t("cashTitle")}>
           <h2 className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">

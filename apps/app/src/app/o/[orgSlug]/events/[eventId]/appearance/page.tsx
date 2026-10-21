@@ -21,7 +21,7 @@ export default async function EventAppearancePage({ params }: { params: Promise<
   const readOnly = !can(ctx.membership, "EVENTS_EDIT") || ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
   const tn = await getTranslations("nav");
   return (
-    <div className="max-w-3xl">
+    <div>
       {readOnly ? <p className="text-sm text-ink-muted">{tn("readOnlyPage")}</p> : null}
       {!readOnly ? (
         <EventAppearance

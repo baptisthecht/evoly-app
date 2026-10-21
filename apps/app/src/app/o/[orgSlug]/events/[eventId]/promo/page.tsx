@@ -32,7 +32,7 @@ export default async function PromoPage({ params }: { params: Promise<{ orgSlug:
         ? `−${(p.percentOffBps ?? 0) / 100} %`
         : `−${formatMoney(p.amountOffMinor ?? 0, event.currency, locale, { trimZeroCents: true })} ${t("perTicket")}`;
   return (
-    <div className="grid max-w-4xl gap-4">
+    <div className="grid gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
       {promos.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
       <ul className="grid gap-3">

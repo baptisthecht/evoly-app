@@ -36,7 +36,7 @@ export default async function EntriesPage({ params }: { params: Promise<{ orgSlu
   const qrs = await Promise.all(links.map((l) => QRCode.toString(l.url, { type: "svg", margin: 1, errorCorrectionLevel: "M" })));
   const pct = (n: number, total: number) => (total ? Math.round((n * 100) / total) : 0);
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid gap-6">
       {occupancy ? <OccupancyPlan data={occupancy} /> : null}
       <AutoRefresh everyMs={10_000} maxTimes={2_000} />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">

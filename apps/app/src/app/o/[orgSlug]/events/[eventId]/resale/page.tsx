@@ -31,7 +31,7 @@ export default async function ResaleAdminPage({ params }: { params: Promise<{ or
   const soldAmount = listings.filter((l) => l.status === "SOLD").reduce((n, l) => n + l.priceMinor, 0);
   const manage = can(ctx.membership, "RESALE_MANAGE") && !ctx.readOnly;
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid gap-6">
       <Card className="grid gap-3 sm:grid-cols-4">
         {[
           { label: t("statActive"), value: String(count("ACTIVE") + count("RESERVED")) },

@@ -59,7 +59,7 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
   const manage = can(ctx.membership, "TICKETS_MANAGE") && !ctx.readOnly && !["CANCELLED", "ENDED", "ARCHIVED"].includes(event.status);
   const tiersEnabled = hasFeature(ctx.features, "DYNAMIC_PRICING");
   return (
-    <div className="grid max-w-4xl gap-4">
+    <div className="grid gap-4">
       <p className="text-ink-muted">{t("pageIntro")}</p>
       {rows.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
       {rows.map((row, i) => (
@@ -99,12 +99,6 @@ export default async function TicketsPage({ params }: { params: Promise<{ orgSlu
       {can(ctx.membership, "ORDERS_MANAGE") && !ctx.readOnly && event.ticketTypes.length > 0 ? (
         <ComplimentaryForm orgSlug={orgSlug} eventId={eventId} ticketTypes={event.ticketTypes.map((tt) => ({ id: tt.id, name: tt.name }))} />
       ) : null}
-      <p className="text-sm text-ink-muted">
-        {t("seatingMoved")}{" "}
-        <Link href={`/o/${orgSlug}/events/${eventId}/seating`} className="font-semibold underline">
-          {t("seatingLink")}
-        </Link>
-      </p>
       <QuestionsManager
         orgSlug={orgSlug}
         eventId={eventId}
