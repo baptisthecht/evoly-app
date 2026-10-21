@@ -12,8 +12,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("registerTitle") };
 }
 
-export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ plan?: string; email?: string; next?: string }> }) {
-  const offer = await offerForVisitor((await cookies()).get(OFFER_COOKIE)?.value, await getLocale());
+export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ plan?: string; email?: string; next?: string; offre?: string }> }) {
+  // offre de la campagne : dans l'adresse dès l'arrivée (le cookie du proxy n'existe qu'à partir de la page suivante)
+  const offer = await offerForVisitor((await searchParams).offre ?? (await cookies()).get(OFFER_COOKIE)?.value, await getLocale());
   const next = typeof (await searchParams).next === "string" ? ((await searchParams).next as string) : null;
   await redirectIfSignedIn();
   const t = await getTranslations("auth");

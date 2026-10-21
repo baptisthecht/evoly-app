@@ -57,8 +57,8 @@ vérification mène au tableau de bord. À faire :
 
 - Fait : les boutons d'inscription du site vitrine mènent à `/start` (le bouton du Pro garde l'inscription classique,
   qui propose le passage au Pro). Reste : l'URL finale des annonces Google Ads vers `/start` (dans Google Ads).
-- Un parcours complet (Playwright) de `/start` jusqu'au tableau de bord après vérification de l'adresse.
-- Afficher sur la page de vérification de l'adresse que l'événement est enregistré et attend d'être publié.
+- Fait : parcours complet de `/start` (`e2e/quick-start.spec.ts`), jusqu'à l'événement en brouillon.
+- Fait : la page de vérification de l'adresse rappelle l'événement enregistré, en attente de publication.
 
 ## Mesure
 

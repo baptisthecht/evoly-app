@@ -10,7 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Visiteurs des annonces : l'événement d'abord, avec l'aperçu de leur billetterie ; le compte à la fin. */
-export default async function StartPage() {
-  const offer = await offerForVisitor((await cookies()).get(OFFER_COOKIE)?.value, await getLocale());
+export default async function StartPage({ searchParams }: { searchParams: Promise<{ offre?: string }> }) {
+  // offre de la campagne : dans l'adresse dès l'arrivée (le cookie du proxy n'existe qu'à partir de la page suivante)
+  const offer = await offerForVisitor((await searchParams).offre ?? (await cookies()).get(OFFER_COOKIE)?.value, await getLocale());
   return <QuickStartForm offer={offer?.banner ?? null} />;
 }
