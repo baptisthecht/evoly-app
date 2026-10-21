@@ -20,11 +20,11 @@ export default defineConfig({
       exclude: ["src/generated/**"],
       reporter: ["text", "text-summary", "json-summary"], // tableau par fichier dans le journal de la CI : les moins couverts d'abord
       thresholds: {
-        statements: 89,
-        branches: 79,
+        statements: 91,
+        branches: 81,
         functions: 89,
         lines: 94,
-      } /* 21 octobre 2026 : 570 tests (panier : limite par acheteur, paliers, paiement Stripe et confirmation), mesurés contre PostgreSQL 16 ; jamais à la baisse */,
+      } /* 21 octobre 2026 : 667 tests, mesurés contre PostgreSQL 16 (92,1 / 82,0 / 89,8 / 95,1) ; marge pour la CI, jamais à la baisse */,
     },
     env: {
       DATABASE_URL: process.env.DATABASE_URL ?? "postgresql://evoly:evoly@localhost:5432/evoly",

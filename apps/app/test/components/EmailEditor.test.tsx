@@ -78,3 +78,15 @@ describe("éditeur riche des e-mails", () => {
     expect(types(last())).not.toContain("spacer");
   });
 });
+
+describe("éditeur riche des e-mails : historique", () => {
+  it("annuler retire la dernière insertion du document transmis ; rétablir la remet", async () => {
+    const { tools, last } = await draw();
+    await act(async () => void fireEvent.click(tools.getByRole("button", { name: e.divider })));
+    expect(types(last())).toContain("horizontalRule");
+    await act(async () => void fireEvent.click(screen.getByRole("button", { name: e.undo })));
+    expect(types(last())).not.toContain("horizontalRule");
+    await act(async () => void fireEvent.click(screen.getByRole("button", { name: e.redo })));
+    expect(types(last())).toContain("horizontalRule");
+  });
+});
