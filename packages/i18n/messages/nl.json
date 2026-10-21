@@ -3046,5 +3046,18 @@
     "conversion": "{pct} % koopt",
     "ordersCount": "{n, plural, one {# bestelling} other {# bestellingen}}",
     "visitsHint": "Geteld zonder cookies"
+  },
+  "sections": {
+    "tab_brand": "Uw merk",
+    "tab_domains": "Domeinen",
+    "tab_members": "Leden",
+    "tab_roles": "Rollen",
+    "tab_contacts": "Contacten",
+    "tab_campaigns": "Campagnes",
+    "tab_general": "Algemeen",
+    "tab_payments": "Betalingen",
+    "tab_notifications": "Meldingen",
+    "tab_preferences": "Voorkeuren",
+    "tabs": "Onderdelen van de pagina"
   }
 }

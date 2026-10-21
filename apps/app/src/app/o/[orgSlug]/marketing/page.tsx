@@ -47,32 +47,9 @@ export default async function MarketingPage({
   const tc = await getTranslations("campaigns");
   const campaigns =
     tab === "campaigns" ? await db.emailCampaign.findMany({ where: { organizationId: ctx.organization.id }, orderBy: { createdAt: "desc" }, take: 50 }) : [];
-  const tabs = (
-    <nav className="flex w-fit gap-1 rounded-full bg-surface-sunken p-1" aria-label={t("tabs")}>
-      {(["contacts", "campaigns"] as const).map((k) => (
-        <Link
-          key={k}
-          href={`/o/${orgSlug}/marketing${k === "campaigns" ? "?tab=campaigns" : ""}`}
-          aria-current={tab === k ? "page" : undefined}
-          className={`flex h-10 items-center rounded-full px-4 text-sm font-semibold ${tab === k ? "bg-surface-inverse text-ink-inverse" : "text-ink-muted"}`}
-        >
-          {t(`tab_${k}`)}
-        </Link>
-      ))}
-    </nav>
-  );
   if (tab === "campaigns")
     return (
       <div className="grid gap-6">
-        <header className="flex flex-wrap items-end justify-between gap-3">
-          <h1 className="page-title">{t("title")}</h1>
-          {pro && can(ctx.membership, "MARKETING_MANAGE") ? (
-            <Link href={`/o/${orgSlug}/marketing/campaigns/new`} className={buttonClass("primary", "md")}>
-              {tc("new")}
-            </Link>
-          ) : null}
-        </header>
-        {tabs}
         {banner}
         {!pro ? (
           <Card className="grid gap-2 bg-surface-accent">
@@ -119,15 +96,6 @@ export default async function MarketingPage({
     );
   return (
     <div className="grid gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="page-title">{t("title")}</h1>
-        {can(ctx.membership, "CONTACTS_EXPORT") ? (
-          <a href={`/o/${orgSlug}/marketing/export`} className={buttonClass("secondary", "md")}>
-            {t("export")}
-          </a>
-        ) : null}
-      </header>
-      {tabs}
       {banner}
       <section className="grid gap-3 sm:grid-cols-3" aria-label={t("stats")}>
         {(["all", "consenting", "unsubscribed"] as const).map((k) => (

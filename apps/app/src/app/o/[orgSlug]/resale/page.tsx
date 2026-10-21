@@ -27,7 +27,6 @@ export default async function OrganizationResalePage({ params }: { params: Promi
   const money = (v: number) => formatMoney(v, ctx.organization.currency, locale, { trimZeroCents: true });
   return (
     <div className="grid max-w-5xl gap-6">
-      <h1 className="page-title">{tn("resale")}</h1>
       <Card className="grid gap-3 sm:grid-cols-4">
         {[
           { label: t("statActive"), value: String(totals.open) },

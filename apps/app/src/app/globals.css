@@ -112,6 +112,16 @@ body {
   textarea {
     font-size: 1rem;
   }
+  /* toutes les listes de choix : le même chevron (variable du thème), jamais la flèche native du navigateur */
+  select:not([multiple]):not([size]) {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: var(--select-chevron);
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px;
+    padding-right: 2.5rem;
+  }
   input[type="date"],
   input[type="time"],
   input[type="datetime-local"] {

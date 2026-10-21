@@ -30,19 +30,14 @@ export function buildEventTabs(input: {
   used: { seating: boolean; options: boolean; ambassadors: boolean };
   canPublish: boolean;
 }) {
-  const { t, base, used } = input;
+  const { t, base } = input;
   const item = (key: string, path: string): EventTabItem => ({ label: t(key), href: `${base}/${path}` });
-  const ticketing = [
-    item("tickets", "tickets"),
-    ...(used.seating ? [item("seating", "seating")] : []),
-    item("tables", "tables"),
-    ...(used.options ? [item("options", "options")] : []),
-  ];
+  const ticketing = [item("tickets", "tickets"), item("seating", "seating"), item("tables", "tables"), item("options", "options")];
   const sales = [
     item("eventPage", "appearance"),
     ...(input.canPublish ? [item("launch", "launch")] : []),
     item("promo", "promo"),
-    ...(used.ambassadors ? [item("ambassadors", "ambassadors")] : []),
+    item("ambassadors", "ambassadors"),
     item("embed", "embed"),
   ];
   const tabs: EventTab[] = [
@@ -63,15 +58,8 @@ export function buildEventTabs(input: {
     },
     { key: "settings", label: t("eventSettings"), href: `${base}/settings`, items: [] },
   ];
-  const hidden: HiddenFeature[] = (
-    [
-      ["seating", "ticketing"],
-      ["options", "ticketing"],
-      ["ambassadors", "sales"],
-    ] as const
-  )
-    .filter(([k]) => !used[k])
-    .map(([k, tab]) => ({ key: k, label: t(k), hint: t(`hint_${k}`), href: `${base}/${k}`, tab }));
+  // toutes les fonctionnalités affichées directement (plus de menu « Ajouter une fonctionnalité »)
+  const hidden: HiddenFeature[] = [];
   return { tabs, hidden };
 }
 

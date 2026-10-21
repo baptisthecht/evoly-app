@@ -8,11 +8,14 @@ export async function OrgSwitcher({
   currentSlug,
   currentName,
   plan,
+  logoUrl,
 }: {
   userId: string;
   currentSlug: string;
   currentName: string;
   plan?: { text: string; offered: boolean };
+  /** Logo de la marque : à la place des initiales. */
+  logoUrl?: string | null;
 }) {
   const t = await getTranslations("nav");
   const memberships = await db.organizationMember.findMany({
@@ -24,17 +27,21 @@ export async function OrgSwitcher({
   return (
     <details className="group rounded-md">
       <summary className="flex min-h-[3.25rem] cursor-pointer list-none items-center gap-2.5 rounded-md px-2.5 py-2 ring-1 ring-line hover:bg-surface group-open:bg-surface [&::-webkit-details-marker]:hidden">
-        <span
-          aria-hidden="true"
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-sm bg-surface-accent text-[0.8125rem] font-semibold text-[var(--required)]"
-        >
-          {currentName
-            .split(/\s+/)
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((w) => w[0]!.toUpperCase())
-            .join("")}
-        </span>
+        {logoUrl ? (
+          <img src={logoUrl} alt="" className="size-8 shrink-0 rounded-sm bg-surface-raised object-contain ring-1 ring-line" />
+        ) : (
+          <span
+            aria-hidden="true"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-sm bg-surface-accent text-[0.8125rem] font-semibold text-[var(--required)]"
+          >
+            {currentName
+              .split(/\s+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((w) => w[0]!.toUpperCase())
+              .join("")}
+          </span>
+        )}
         <span className="grid min-w-0 flex-1">
           <span className="sr-only">{t("organization")}</span>
           <span className="truncate text-[0.8125rem] font-medium">{currentName}</span>

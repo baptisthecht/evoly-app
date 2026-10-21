@@ -29,7 +29,6 @@ export default async function PaymentsPage({ params, searchParams }: { params: P
   return (
     <div className="grid gap-8">
       <header className="grid gap-2">
-        <h1 className="page-title">{t("payments")}</h1>
         <p className="max-w-prose text-ink-muted">{t("paymentsIntro")}</p>
       </header>
       {!configured ? (

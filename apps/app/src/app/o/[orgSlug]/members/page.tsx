@@ -38,23 +38,6 @@ export default async function MembersPage({ params, searchParams }: { params: Pr
   const active = tab === "roles" ? "roles" : "members";
   return (
     <div className="grid max-w-5xl gap-6">
-      <h1 className="page-title">{t("title")}</h1>
-      <nav className="flex w-fit gap-1 rounded-full bg-surface-sunken p-1" aria-label={t("tabs")}>
-        {(["members", "roles"] as const).map((k) => (
-          <Link
-            key={k}
-            href={`/o/${orgSlug}/members${k === "roles" ? "?tab=roles" : ""}`}
-            aria-current={active === k ? "page" : undefined}
-            className={cn(
-              "flex h-10 items-center rounded-full px-4 text-sm font-semibold",
-              active === k ? "bg-surface-inverse text-ink-inverse" : "text-ink-muted",
-            )}
-          >
-            {t(`tab_${k}`)}
-          </Link>
-        ))}
-      </nav>
-
       {!team ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-accent px-4 py-3">
           <p className="text-sm">{t("upsell")}</p>

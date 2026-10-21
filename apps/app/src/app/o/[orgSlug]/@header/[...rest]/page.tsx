@@ -1,4 +1,7 @@
-/** Pas de bande d'en-tête hors des événements (une page par niveau : sinon la navigation garderait la précédente). */
-export default function NoHeader() {
-  return null;
+import { SectionHeader } from "@/components/shell/SectionHeader";
+
+/** Chaque section de l'organisation : sa bande d'en-tête (titre, onglets, boutons). */
+export default async function Header({ params }: { params: Promise<{ orgSlug: string; rest: string[] }> }) {
+  const { orgSlug, rest } = await params;
+  return <SectionHeader orgSlug={orgSlug} section={rest[0] ?? ""} />;
 }

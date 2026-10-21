@@ -18,8 +18,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Section 9.19 : adresse de la billetterie (toutes offres), marque et domaines personnalisés (Pro). */
-export default async function BrandPage({ params }: { params: Promise<{ orgSlug: string }> }) {
+export default async function BrandPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ tab?: string }> }) {
   const { orgSlug } = await params;
+  const tab = (await searchParams).tab === "domains" ? "domains" : "brand";
   const ctx = await requireOrgContext(orgSlug);
   const canBrand = can(ctx.membership, "BRAND_EDIT");
   const canDomains = can(ctx.membership, "DOMAINS_MANAGE");
@@ -51,9 +52,8 @@ export default async function BrandPage({ params }: { params: Promise<{ orgSlug:
   );
   return (
     <div className="grid max-w-5xl gap-6">
-      <h1 className="page-title">{t("title")}</h1>
-
-      {canAddress ? (
+      {/* onglet « Domaines » : adresse de la billetterie et domaines personnalisés (seul onglet sans la marque) */}
+      {canAddress && (tab === "domains" || !canBrand) ? (
         <Card className="grid gap-3">
           <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("addressTitle")}</h2>
           <p className="text-sm text-ink-muted">
@@ -66,7 +66,7 @@ export default async function BrandPage({ params }: { params: Promise<{ orgSlug:
         </Card>
       ) : null}
 
-      {canBrand ? (
+      {canBrand && tab === "brand" ? (
         <Card className="grid gap-4">
           <div className="grid gap-1">
             <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("brandTitle")}</h2>
@@ -105,7 +105,7 @@ export default async function BrandPage({ params }: { params: Promise<{ orgSlug:
         </Card>
       ) : null}
 
-      {canDomains ? (
+      {canDomains && (tab === "domains" || !canBrand) ? (
         <section className="grid gap-3" aria-labelledby="domains-title">
           <h2 id="domains-title" className="font-display text-xl tracking-[var(--tracking-title)]">
             {t("domainsTitle")}

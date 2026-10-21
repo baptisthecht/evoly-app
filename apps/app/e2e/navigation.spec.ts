@@ -29,9 +29,7 @@ test("barre latérale (maquette validée) : page active sur fond gris, autres pa
   await expect(finances).toHaveCSS("background-color", grey);
 });
 
-test("événement : la barre de l'organisation reste, six parties en onglets, pages de la partie ouverte, fonctionnalité ajoutée, retour", async ({
-  page,
-}, testInfo) => {
+test("événement : la barre de l'organisation reste, six parties en onglets, toutes les pages de la partie ouverte, retour", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "la barre latérale est visible sur ordinateur");
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Soirée ${id}`, 10);
@@ -46,12 +44,11 @@ test("événement : la barre de l'organisation reste, six parties en onglets, pa
   const pages = page.getByRole("navigation", { name: "Pages de la section" });
   await expect(pages.getByRole("link", { name: "Tarifs" })).toHaveAttribute("aria-current", "page");
   await expect(tabs.getByRole("link", { name: "Billetterie" })).toHaveAttribute("aria-current", "page");
-  // fonctionnalité inutilisée : absente des pages, proposée par « Ajouter une fonctionnalité »
-  await expect(pages.getByRole("link", { name: "Options", exact: true })).toHaveCount(0);
-  await page.getByText("Ajouter une fonctionnalité").click();
-  await page.getByRole("link", { name: /^Options/ }).click();
+  // toutes les fonctionnalités affichées directement, sans menu à déplier
+  await expect(pages.getByRole("link")).toHaveText(["Tarifs", "Plan de salle", "Tables", "Options"]);
+  await pages.getByRole("link", { name: "Options", exact: true }).click();
   await expect(page).toHaveURL(/\/options$/);
-  await expect(pages.getByRole("link", { name: "Options", exact: true })).toHaveAttribute("aria-current", "page"); // visible tant qu'on est sur sa page
+  await expect(pages.getByRole("link", { name: "Options", exact: true })).toHaveAttribute("aria-current", "page");
   await main.getByRole("link", { name: "Événements" }).click();
   await expect(page).toHaveURL(new RegExp(`/o/${slug}/events$`));
   await expect(page.getByRole("navigation", { name: "Sections de l’événement" })).toHaveCount(0);

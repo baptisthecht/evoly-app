@@ -68,7 +68,6 @@ export default async function BillingPage({ params, searchParams }: { params: Pr
             : t("statusFree", { cap: money(state.caps.free) });
   return (
     <div className="grid max-w-4xl gap-6">
-      <h1 className="page-title">{t("title")}</h1>
       {checkout === "success" ? (
         <p className="rounded-lg bg-success-soft px-5 py-4 text-success" role="status">
           {t("checkoutSuccess")}

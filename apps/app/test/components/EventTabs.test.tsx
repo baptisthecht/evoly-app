@@ -15,23 +15,22 @@ const build = (used = { seating: false, options: false, ambassadors: false }, ca
 afterEach(() => vi.unstubAllGlobals());
 
 describe("onglets d'un événement : construction", () => {
-  it("six parties ; « Mise en ligne » seulement avec le droit de publier ; fonctionnalités à ajouter tant qu'elles ne sont pas utilisées", () => {
+  it("six parties ; toutes les fonctionnalités affichées directement ; « Mise en ligne » seulement avec le droit de publier", () => {
     const { tabs, hidden } = build({ seating: false, options: false, ambassadors: false }, false);
     expect(tabs.map((t) => t.label)).toEqual([n.eventOverview, n.groupTicketing, n.groupAttendees, n.groupSales, n.groupDayOf, n.eventSettings]);
-    expect(tabs[1]!.items.map((i) => i.label)).toEqual([n.tickets, n.tables]);
-    expect(tabs[3]!.items.map((i) => i.label)).not.toContain(n.launch);
-    expect(hidden.map((h) => [h.key, h.tab])).toEqual([
-      ["seating", "ticketing"],
-      ["options", "ticketing"],
-      ["ambassadors", "sales"],
+    expect(tabs[1]!.items.map((i) => i.label)).toEqual([n.tickets, n.seating, n.tables, n.options]);
+    expect(tabs[3]!.items.map((i) => i.label)).toEqual([n.eventPage, n.promo, n.ambassadors, n.embed]);
+    expect(hidden).toEqual([]);
+    expect(build({ seating: true, options: true, ambassadors: true }, true).tabs[3]!.items.map((i) => i.label)).toEqual([
+      n.eventPage,
+      n.launch,
+      n.promo,
+      n.ambassadors,
+      n.embed,
     ]);
-    const used = build({ seating: true, options: false, ambassadors: true });
-    expect(used.tabs[1]!.items.map((i) => i.label)).toEqual([n.tickets, n.seating, n.tables]);
-    expect(used.tabs[3]!.items.map((i) => i.label)).toEqual([n.eventPage, n.launch, n.promo, n.ambassadors, n.embed]);
-    expect(used.hidden.map((h) => h.key)).toEqual(["options"]);
   });
 
-  it("partie active selon la page, sous-pages comprises ; fonctionnalité pas encore ajoutée : dans sa partie", () => {
+  it("partie active selon la page, sous-pages comprises", () => {
     const { tabs, hidden } = build();
     expect(activeEventTab(tabs, hidden, base)).toBe("overview");
     expect(activeEventTab(tabs, hidden, `${base}/tickets`)).toBe("ticketing");
@@ -54,7 +53,7 @@ describe("onglets d'un événement : affichage", () => {
     );
   };
 
-  it("onglet actif marqué ; seconde rangée avec les pages de la partie ; menu des fonctionnalités de cette partie seulement", () => {
+  it("onglet actif marqué ; seconde rangée avec toutes les pages de la partie, sans menu à déplier", () => {
     draw(`${base}/tables`);
     const sections = screen.getByRole("navigation", { name: n.eventSections });
     expect(within(sections).getByRole("link", { name: n.groupTicketing }).getAttribute("aria-current")).toBe("page");
@@ -65,20 +64,14 @@ describe("onglets d'un événement : affichage", () => {
         .map((l) => [l.textContent, l.getAttribute("aria-current")]),
     ).toEqual([
       [n.tickets, null],
+      [n.seating, null],
       [n.tables, "page"],
+      [n.options, null],
     ]);
-    fireEvent.click(screen.getByText(new RegExp(n.addFeature!)));
-    expect(screen.getAllByRole("link", { name: new RegExp(`${n.seating}|${n.options}|${n.ambassadors}`) }).map((l) => l.getAttribute("href"))).toEqual([
-      `${base}/seating`,
-      `${base}/options`,
-    ]);
+    expect(screen.queryByText(new RegExp(n.addFeature!))).toBeNull();
   });
 
-  it("sur une fonctionnalité pas encore ajoutée : elle apparaît dans la seconde rangée, marquée ; vue d'ensemble : pas de seconde rangée", () => {
-    const a = draw(`${base}/seating`);
-    const pages = screen.getByRole("navigation", { name: n.sectionPages });
-    expect(within(pages).getByRole("link", { name: n.seating }).getAttribute("aria-current")).toBe("page");
-    a.unmount();
+  it("vue d'ensemble : pas de seconde rangée", () => {
     draw(base);
     expect(screen.queryByRole("navigation", { name: n.sectionPages })).toBeNull();
     expect(

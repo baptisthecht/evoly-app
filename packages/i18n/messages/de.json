@@ -3046,5 +3046,18 @@
     "conversion": "{pct} % kaufen",
     "ordersCount": "{n, plural, one {# Bestellung} other {# Bestellungen}}",
     "visitsHint": "Ohne Cookies gezählt"
+  },
+  "sections": {
+    "tab_brand": "Ihre Marke",
+    "tab_domains": "Domains",
+    "tab_members": "Mitglieder",
+    "tab_roles": "Rollen",
+    "tab_contacts": "Kontakte",
+    "tab_campaigns": "Kampagnen",
+    "tab_general": "Allgemein",
+    "tab_payments": "Zahlungen",
+    "tab_notifications": "Benachrichtigungen",
+    "tab_preferences": "Einstellungen",
+    "tabs": "Bereiche der Seite"
   }
 }

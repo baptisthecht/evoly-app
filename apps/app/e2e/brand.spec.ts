@@ -33,7 +33,7 @@ test("marque, sous-domaine d'événement, changement d'adresse et domaine person
   await expect(page.getByRole("heading", { name: `Soirée ${id}` })).toBeVisible();
 
   // RG-SDM-03 : l'ancienne adresse de l'organisation redirige vers la nouvelle
-  await page.goto(appUrl(`/o/${slug}/brand`));
+  await page.goto(appUrl(`/o/${slug}/brand?tab=domains`)); // adresse et domaines : onglet « Domaines »
   await page.getByLabel("Sous-domaine", { exact: true }).fill(`neuf-${id}`);
   await expect(page.getByText(`L’ancienne adresse orga-${id}.localhost:3001 redirigera`, { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Changer d’adresse" }).click();
@@ -42,7 +42,7 @@ test("marque, sous-domaine d'événement, changement d'adresse et domaine person
   await expect(page).toHaveURL(siteUrl(`neuf-${id}`, `/soiree-${id}`));
 
   // US-BRD-04 : domaine personnalisé (DNS vérifié ici directement en base)
-  await page.goto(appUrl(`/o/${slug}/brand`));
+  await page.goto(appUrl(`/o/${slug}/brand?tab=domains`)); // adresse et domaines : onglet « Domaines »
   await page.getByLabel("Domaine", { exact: true }).fill(`billetterie-${id}.test`);
   await page.getByRole("button", { name: "Ajouter le domaine" }).click();
   await expect(page.getByText("En attente du DNS")).toBeVisible();

@@ -35,7 +35,6 @@ export default async function SettingsPage({ params }: { params: Promise<{ orgSl
   const stripeTone = ctx.stripe?.status === "ACTIVE" ? "success" : ctx.stripe ? "warning" : "neutral";
   return (
     <div className="grid max-w-4xl gap-6">
-      <h1 className="page-title">{t("title")}</h1>
       <Card className="grid gap-4">
         <OrganizationSettingsForm
           orgSlug={orgSlug}

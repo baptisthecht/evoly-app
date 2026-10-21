@@ -141,6 +141,8 @@
   --label-weight: 700;
   --label-size: 0.8rem;
   --required: #c2185b; /* astérisque des champs obligatoires */
+  /* chevron des listes de choix (toutes, RG-UI) */
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b6460' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -169,6 +171,7 @@
     --evoly-info: #758ce6;
     --evoly-info-soft: #1f2748;
     --required: #ff8fc8;
+    --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8cfc7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     color-scheme: dark;
   }
 }
@@ -196,6 +199,7 @@
   --evoly-info: #758ce6;
   --evoly-info-soft: #1f2748;
   --required: #ff8fc8;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8cfc7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   color-scheme: dark;
 }
 

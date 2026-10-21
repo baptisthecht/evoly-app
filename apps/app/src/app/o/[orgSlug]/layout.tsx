@@ -36,10 +36,9 @@ export default async function OrgLayout({
   const nav = await getTranslations("nav");
   const locale = await getLocale();
   const isPro = sub ? effectivePlan(sub, new Date()) === "pro" : false;
-  const offeredUntil = isPro && sub && !sub.stripeSubscriptionId ? sub.currentPeriodEnd : null;
-  const plan = offeredUntil
-    ? { text: nav("planProUntil", { date: new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(offeredUntil) }), offered: true }
-    : { text: nav(isPro ? "planPro" : "planFree"), offered: false };
+  // carte de l'organisation : « Pro » ou « Free », avec le logo de la marque s'il existe
+  const plan = { text: isPro ? "Pro" : "Free", offered: false };
+  const logo = (await db.organizationBrand.findUnique({ where: { organizationId: ctx.organization.id }, select: { logoUrl: true } }))?.logoUrl ?? null;
   const days = sub ? daysBeforeDowngrade(sub, new Date()) : null;
   const pastDue = days != null ? (await getTranslations("billing"))("pastDueBanner", { count: days }) : null;
   const unread = await unreadCount(ctx.organization.id, ctx.user.id); // section 9.20
@@ -64,7 +63,7 @@ export default async function OrgLayout({
         </Link>
       }
       nav={sidebar}
-      orgSwitcher={<OrgSwitcher userId={ctx.user.id} currentSlug={ctx.organization.slug} currentName={ctx.organization.name} plan={plan} />}
+      orgSwitcher={<OrgSwitcher userId={ctx.user.id} currentSlug={ctx.organization.slug} currentName={ctx.organization.name} plan={plan} logoUrl={logo} />}
       header={header}
       account={
         <>

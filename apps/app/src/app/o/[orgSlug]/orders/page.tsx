@@ -60,7 +60,6 @@ export default async function OrdersPage({
     }).toString();
   return (
     <div className="grid gap-6">
-      <h1 className="page-title">{t("title")}</h1>
       {result.pendingRequests > 0 && filter !== "REFUND_REQUESTED" ? (
         <Link
           href={`/o/${orgSlug}/orders?filter=REFUND_REQUESTED`}

@@ -35,10 +35,6 @@ export default async function EventsPage({ params }: { params: Promise<{ orgSlug
   const canCreate = can(ctx.membership, "EVENTS_CREATE") && !ctx.readOnly;
   return (
     <div className="grid gap-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="page-title">{t("listTitle")}</h1>
-        {canCreate ? <ButtonLink href={`/o/${orgSlug}/events/new`}>{t("newEvent")}</ButtonLink> : null}
-      </header>
       {events.length === 0 ? (
         <EmptyState
           title={t("emptyTitle")}

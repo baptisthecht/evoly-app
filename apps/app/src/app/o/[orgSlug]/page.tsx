@@ -44,9 +44,9 @@ export default async function OrgHome({ params }: { params: Promise<{ orgSlug: s
   return (
     <div className="grid gap-8">
       <header className="grid gap-2">
-        <h1 className="page-title">
+        <p className="text-lg font-medium">
           {t("greeting", { name: firstName.toLowerCase() })} <span className="script text-[1.1em]">{t("greetingScript")}</span>
-        </h1>
+        </p>
         <p className="text-ink-muted">{t("period")}</p>
       </header>
 

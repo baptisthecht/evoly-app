@@ -51,7 +51,6 @@ export default async function FinancesPage({
   return (
     <div className="grid gap-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="page-title">{t("title")}</h1>
         <form className="grid w-full gap-2 sm:w-auto sm:grid-cols-[12rem_14rem_auto]">
           <Select name="period" defaultValue={period} aria-label={t("period")}>
             {PERIODS.map((p) => (
