@@ -112,3 +112,24 @@ describe("choix des places sur le plan (section 9.9)", () => {
     expect(log).not.toHaveBeenCalled();
   });
 });
+
+describe("choix des places : zoom du plan", () => {
+  it("« + » resserre le cadrage, « − » au minimum ne va pas au-delà du plan entier, « Tout voir » revient au départ", () => {
+    const { container } = render(
+      <Fr>
+        <Harness log={() => {}} />
+      </Fr>,
+    );
+    const frame = () => container.querySelector("svg")!.getAttribute("viewBox")!.split(/\s+/).map(Number);
+    const start = frame();
+    const width = (f: number[]) => f[2]!;
+    fireEvent.click(screen.getByRole("button", { name: sp.zoomIn! }));
+    expect(width(frame())).toBeLessThan(width(start)); // plus près
+    fireEvent.click(screen.getByRole("button", { name: sp.zoomOut! }));
+    fireEvent.click(screen.getByRole("button", { name: sp.zoomOut! }));
+    expect(width(frame())).toBeCloseTo(width(start), 5); // jamais plus loin que le plan entier
+    fireEvent.click(screen.getByRole("button", { name: sp.zoomIn! }));
+    fireEvent.click(screen.getByRole("button", { name: sp.fit! }));
+    expect(frame()).toEqual(start);
+  });
+});
