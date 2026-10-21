@@ -36,7 +36,7 @@ test("questions à l'achat : création, réponses exigées, réponses dans la co
   await page.waitForURL(/\/billets\//);
 
   const orderId = sql(`select id from "Order" where "buyerEmail" = 'lea.${id}@exemple.be'`);
-  await page.goto(appUrl(`/o/${slug}/orders/${orderId}`));
+  await page.goto(appUrl(`/o/${slug}/orders/${orderId}?tab=buyer`)); // réponses : onglet « Acheteur »
   const answers = page.getByRole("heading", { name: "Réponses aux questions" }).locator("xpath=..");
   await expect(answers).toContainText("Un ami");
   await expect(answers).toContainText("Végétarien");

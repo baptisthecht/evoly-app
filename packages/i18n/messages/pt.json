@@ -1364,7 +1364,13 @@
     "optionsLeft": "{left} não levantada(s)",
     "optionsRefundSubmit": "Reembolsar {amount}",
     "optionsRefundDone": "Opções reembolsadas.",
-    "optionsRefundClosed": "O evento começou: as opções já não são reembolsáveis, exceto se o autorizar no separador Opções do evento."
+    "optionsRefundClosed": "O evento começou: as opções já não são reembolsáveis, exceto se o autorizar no separador Opções do evento.",
+    "tab_tickets": "Bilhetes",
+    "tab_buyer": "Comprador",
+    "tab_payment": "Pagamento",
+    "tab_options": "Opções",
+    "tab_emails": "E-mails",
+    "tabsLabel": "Secções da encomenda"
   },
   "seatingEditor": {
     "title": "Planta da sala",

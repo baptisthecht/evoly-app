@@ -1583,7 +1583,13 @@
     "optionsLeft": "{left} non retirée(s)",
     "optionsRefundSubmit": "Rembourser {amount}",
     "optionsRefundDone": "Remboursement des options effectué.",
-    "optionsRefundClosed": "L'événement a commencé : les options ne sont plus remboursables, sauf si vous l'autorisez dans l'onglet Options de l'événement."
+    "optionsRefundClosed": "L'événement a commencé : les options ne sont plus remboursables, sauf si vous l'autorisez dans l'onglet Options de l'événement.",
+    "tab_tickets": "Billets",
+    "tab_buyer": "Acheteur",
+    "tab_payment": "Paiement",
+    "tab_options": "Options",
+    "tab_emails": "E-mails",
+    "tabsLabel": "Sections de la commande"
   },
   "finances": {
     "title": "Finances",

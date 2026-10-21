@@ -63,7 +63,7 @@ test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({ page }
   await expect(page.getByRole("link", { name: /Télécharger le n° EVO-\d{4}-\d{6}/ })).toBeVisible();
 
   // remboursement d'une option non retirée depuis la fiche de la commande (RG-OPT-07) : 2 jetons, dont 1 servi au bar
-  await page.goto(appUrl(`/o/${slug}/orders/${orderId}`));
+  await page.goto(appUrl(`/o/${slug}/orders/${orderId}?tab=options`)); // options : onglet « Options »
   await expect(page.getByRole("heading", { name: "Options", exact: true })).toBeVisible();
   await expect(page.getByText("1 retirée(s) · 0 remboursée(s) · 1 restante(s)")).toBeVisible();
   page.once("dialog", (d) => d.accept()); // confirmation du montant

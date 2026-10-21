@@ -1583,7 +1583,13 @@
     "optionsLeft": "{left} not redeemed",
     "optionsRefundSubmit": "Refund {amount}",
     "optionsRefundDone": "Add-ons refunded.",
-    "optionsRefundClosed": "The event has started: add-ons can no longer be refunded, unless you allow it in the event's Add-ons tab."
+    "optionsRefundClosed": "The event has started: add-ons can no longer be refunded, unless you allow it in the event's Add-ons tab.",
+    "tab_tickets": "Tickets",
+    "tab_buyer": "Buyer",
+    "tab_payment": "Payment",
+    "tab_options": "Options",
+    "tab_emails": "Emails",
+    "tabsLabel": "Order sections"
   },
   "finances": {
     "title": "Finances",

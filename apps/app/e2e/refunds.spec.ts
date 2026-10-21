@@ -15,6 +15,10 @@ test("commandes : recherche, détail, renvoi des billets, correction de l'e-mail
   await page.getByText(`lea.${id}@exemple.be`).click();
   await expect(page.getByRole("heading", { name: "Léa Martin" })).toBeVisible();
   await expect(page.getByText("2 billets", { exact: true })).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Sections de la commande" })
+    .getByRole("link", { name: /^E-mails/ })
+    .click(); // e-mails envoyés : onglet « E-mails »
   await expect(page.getByText(`Vos billets pour Concert ${id}`)).toHaveCount(1);
 
   await page.getByRole("button", { name: "Renvoyer les billets" }).click();
@@ -23,6 +27,7 @@ test("commandes : recherche, détail, renvoi des billets, correction de l'e-mail
   await expect(page.getByText(`Vos billets pour Concert ${id}`)).toHaveCount(2);
 
   const newEmail = `lea.martin.${id}@exemple.be`;
+  await page.getByRole("navigation", { name: "Sections de la commande" }).getByRole("link", { name: "Acheteur" }).click(); // coordonnées : onglet « Acheteur »
   await page.getByRole("button", { name: "Corriger l’e-mail" }).click();
   await page.getByLabel("Nouvelle adresse e-mail").fill(newEmail);
   await page.getByRole("button", { name: "Enregistrer et envoyer" }).click();
@@ -51,6 +56,10 @@ test("remboursement sur demande : l'acheteur demande, l'organisateur accepte (US
   await page.getByRole("link", { name: /1 demande de remboursement en attente/ }).click();
   await expect(page.getByText("1 commande")).toBeVisible();
   await page.getByText(`lea.${id}@exemple.be`).click();
+  await page
+    .getByRole("navigation", { name: "Sections de la commande" })
+    .getByRole("link", { name: /^Paiement/ })
+    .click(); // remboursements : onglet « Paiement »
   await expect(page.getByText("« Je ne pourrai pas venir. »")).toBeVisible();
   await page.getByLabel("Réponse à l’acheteur").fill("Bien reçu, à une prochaine fois.");
   await page.getByRole("button", { name: "Accepter et rembourser" }).click();

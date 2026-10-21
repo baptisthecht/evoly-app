@@ -1364,7 +1364,13 @@
     "optionsLeft": "{left} non ritirate",
     "optionsRefundSubmit": "Rimborsa {amount}",
     "optionsRefundDone": "Opzioni rimborsate.",
-    "optionsRefundClosed": "L'evento è iniziato: le opzioni non sono più rimborsabili, salvo autorizzazione nella scheda Opzioni dell'evento."
+    "optionsRefundClosed": "L'evento è iniziato: le opzioni non sono più rimborsabili, salvo autorizzazione nella scheda Opzioni dell'evento.",
+    "tab_tickets": "Biglietti",
+    "tab_buyer": "Acquirente",
+    "tab_payment": "Pagamento",
+    "tab_options": "Opzioni",
+    "tab_emails": "E-mail",
+    "tabsLabel": "Sezioni dell’ordine"
   },
   "seatingEditor": {
     "title": "Mappa dei posti",

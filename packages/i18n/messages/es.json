@@ -1364,7 +1364,13 @@
     "optionsLeft": "{left} sin canjear",
     "optionsRefundSubmit": "Reembolsar {amount}",
     "optionsRefundDone": "Opciones reembolsadas.",
-    "optionsRefundClosed": "El evento ha comenzado: las opciones ya no son reembolsables, salvo que lo autorices en la pestaña Opciones del evento."
+    "optionsRefundClosed": "El evento ha comenzado: las opciones ya no son reembolsables, salvo que lo autorices en la pestaña Opciones del evento.",
+    "tab_tickets": "Entradas",
+    "tab_buyer": "Comprador",
+    "tab_payment": "Pago",
+    "tab_options": "Opciones",
+    "tab_emails": "Correos",
+    "tabsLabel": "Secciones del pedido"
   },
   "seatingEditor": {
     "title": "Plano de sala",

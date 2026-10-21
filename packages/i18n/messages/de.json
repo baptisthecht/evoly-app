@@ -1364,7 +1364,13 @@
     "optionsLeft": "{left} nicht eingelöst",
     "optionsRefundSubmit": "{amount} erstatten",
     "optionsRefundDone": "Optionen erstattet.",
-    "optionsRefundClosed": "Die Veranstaltung hat begonnen: Optionen sind nicht mehr erstattbar, außer Sie erlauben es im Tab Optionen der Veranstaltung."
+    "optionsRefundClosed": "Die Veranstaltung hat begonnen: Optionen sind nicht mehr erstattbar, außer Sie erlauben es im Tab Optionen der Veranstaltung.",
+    "tab_tickets": "Tickets",
+    "tab_buyer": "Käufer",
+    "tab_payment": "Zahlung",
+    "tab_options": "Optionen",
+    "tab_emails": "E-Mails",
+    "tabsLabel": "Bereiche der Bestellung"
   },
   "seatingEditor": {
     "title": "Saalplan",
