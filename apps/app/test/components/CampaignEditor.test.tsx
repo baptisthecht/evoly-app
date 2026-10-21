@@ -150,11 +150,10 @@ describe("campagnes d'e-mails : envoi (US-MKT-03)", () => {
 describe("éditeur de campagnes : ciblage par événement, modèle, déprogrammation", () => {
   it("ciblage par événement : événement, tarif, présence et langue transmis au calcul de l'audience", async () => {
     const user = userEvent.setup();
-    // ciblage par événement déjà choisi (la bascule depuis « tous les contacts » est à examiner à part)
-    draw({
-      initial: { ...initial, segment: { kind: "EVENTS", eventIds: ["e1"], locale: null } as never },
-      ticketTypes: [{ id: "t1", name: "Fosse", eventId: "e1" }],
-    });
+    draw({ ticketTypes: [{ id: "t1", name: "Fosse", eventId: "e1" }] });
+    await user.selectOptions(screen.getByLabelText(t.audience!), "EVENTS");
+    // la bascule coche d'office le premier événement, dont les tarifs s'affichent
+    expect(((await screen.findByRole("checkbox", { name: "Gala" })) as HTMLInputElement).checked).toBe(true);
     await user.click(await screen.findByRole("checkbox", { name: "Fosse" }));
     await user.selectOptions(screen.getByLabelText(t.attendance!), "PRESENT");
     await user.selectOptions(screen.getByLabelText(t.language!), "fr");

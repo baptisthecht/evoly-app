@@ -15,7 +15,7 @@ export default defineConfig({
       include: ["src/components/**/*.tsx", "src/app/**/[A-Z]*.tsx"], // composants du dossier components et écrans du tableau de bord (les fichiers de route, en minuscules, sont exclus)
       reporter: ["text-summary", "json-summary"],
       reportsDirectory: "coverage-components",
-      thresholds: { statements: 74, branches: 68, functions: 68, lines: 76 }, // 21 octobre 2026 : panier (questions, titulaires, adresse, options) ; jamais à la baisse
+      thresholds: { statements: 74, branches: 69, functions: 69, lines: 76 }, // 21 octobre 2026 : panier, scanner, éditeur de campagnes ; jamais à la baisse
     },
   },
 });
