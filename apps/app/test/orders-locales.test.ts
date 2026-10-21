@@ -41,10 +41,11 @@ describe("confirmation de commande", () => {
       const order = await db.order.findFirstOrThrow({ where: { eventId: e.id, buyerEmail: `lea.${locale}.${id}@exemple.be` } });
       const mail = await db.emailMessage.findFirst({ where: { orderId: order.id, template: "order.confirmation" } });
       expect(mail, `confirmation en ${locale}`).not.toBeNull();
+      expect(mail!.locale).toBe(locale); // langue enregistrée avec l'e-mail
       expect(mail!.subject).toContain(e.title);
       subjects.push(mail!.subject);
     }
-    // traduite : un sujet différent dans chaque langue (la langue n'est pas notée sur l'e-mail enregistré)
+    // traduite : un sujet différent dans chaque langue
     expect(new Set(subjects).size).toBe(6);
   });
 });

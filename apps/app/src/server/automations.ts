@@ -118,7 +118,7 @@ export async function runDueReminders(now = new Date()): Promise<number> {
       for (const o of orders) {
         if (await db.emailMessage.findFirst({ where: { automationId: automation.id, orderId: o.id }, select: { id: true } })) continue;
         if (!(await mayReceive(o.buyerEmail, "SERVICE", event.organizationId, event.id))) continue;
-        const locale = (o.buyerLocale === "en" ? "en" : "fr") as Locale;
+        const locale = toLocale(o.buyerLocale); // langue de l'acheteur : les rappels existent dans les 7 langues
         const mail = reminderEmail({
           brand,
           custom: renderEventBlock(event.reminderEmailContent, { firstName: o.buyerFirstName, brand }),
@@ -138,6 +138,7 @@ export async function runDueReminders(now = new Date()): Promise<number> {
         });
         await sendEmail({
           ...mail,
+          locale,
           to: o.buyerEmail,
           template: `automation.${automation.type.toLowerCase()}`,
           category: "SERVICE",

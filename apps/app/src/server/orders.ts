@@ -75,6 +75,7 @@ export async function sendOrderConfirmation(orderId: string, template = "order.c
     category: "TRANSACTIONAL",
     organizationId: order.organizationId,
     orderId: order.id,
+    locale, // langue de l'acheteur, enregistrée avec l'e-mail
     fromName: brand.fromName,
     replyTo: brand.replyTo,
     attachments: [
@@ -328,6 +329,7 @@ export async function sendTicketsLookup(organizationId: string, email: string, l
     })),
   });
   await sendEmail({
+    locale,
     ...mail,
     to: first.buyerEmail,
     template: "order.lookup",

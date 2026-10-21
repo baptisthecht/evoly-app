@@ -19,6 +19,8 @@ interface SendInput extends RenderedEmail {
   attachments?: Array<{ filename: string; content: Buffer; contentType: string }>;
   /** Commande concernée : l'e-mail apparaît dans l'historique de la commande (RG-ORD-01). */
   orderId?: string;
+  /** Langue de l'e-mail (destinataire), enregistrée avec l'e-mail envoyé. */
+  locale?: string | null;
   automationId?: string;
   campaignId?: string;
   contactId?: string;
@@ -120,6 +122,7 @@ export async function sendEmail(input: SendInput): Promise<void> {
     data: {
       organizationId: input.organizationId ?? null,
       orderId: input.orderId ?? null,
+      locale: input.locale ?? null,
       automationId: input.automationId ?? null,
       campaignId: input.campaignId ?? null,
       contactId: input.contactId ?? null,
