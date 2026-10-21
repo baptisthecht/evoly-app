@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import { CampaignEditor } from "@/app/o/[orgSlug]/marketing/campaigns/CampaignEditor";
@@ -143,5 +144,43 @@ describe("campagnes d'e-mails : envoi (US-MKT-03)", () => {
     confirm.mockReturnValue(true);
     await act(async () => void fireEvent.click(screen.getByRole("button", { name: t.delete })));
     await waitFor(() => expect(router.push).toHaveBeenCalledWith("/o/club/marketing?tab=campaigns"));
+  });
+});
+
+describe("éditeur de campagnes : ciblage par événement, modèle, déprogrammation", () => {
+  it("ciblage par événement : événement, tarif, présence et langue transmis au calcul de l'audience", async () => {
+    const user = userEvent.setup();
+    // ciblage par événement déjà choisi (la bascule depuis « tous les contacts » est à examiner à part)
+    draw({
+      initial: { ...initial, segment: { kind: "EVENTS", eventIds: ["e1"], locale: null } as never },
+      ticketTypes: [{ id: "t1", name: "Fosse", eventId: "e1" }],
+    });
+    await user.click(await screen.findByRole("checkbox", { name: "Fosse" }));
+    await user.selectOptions(screen.getByLabelText(t.attendance!), "PRESENT");
+    await user.selectOptions(screen.getByLabelText(t.language!), "fr");
+    await waitFor(
+      () => {
+        const last = JSON.stringify(actions.audienceAction.mock.calls.at(-1));
+        for (const part of ['"kind":"EVENTS"', '"eventIds":["e1"]', '"ticketTypeIds":["t1"]', '"attendance":"PRESENT"', '"locale":"fr"'])
+          expect(last).toContain(part);
+      },
+      { timeout: 3000 },
+    );
+  });
+
+  it("enregistrer comme modèle : action appelée, confirmation affichée", async () => {
+    actions.saveTemplateAction.mockResolvedValue({ ok: true, data: null });
+    draw();
+    fireEvent.click(screen.getByRole("button", { name: t.saveAsTemplate! }));
+    // le texte cherché est normalisé comme celui de la page (espaces insécables du français)
+    expect(await screen.findByText(t.templateSaved!.replace(/\s+/g, " "))).toBeTruthy();
+    expect(actions.saveTemplateAction).toHaveBeenCalledWith("club", expect.objectContaining({ name: "Gala", subject: "Le gala approche" }));
+  });
+
+  it("campagne programmée : la déprogrammer appelle l'action", async () => {
+    actions.unscheduleAction.mockResolvedValue({ ok: true, data: null });
+    draw({ status: "SCHEDULED", scheduledAt: new Date(Date.now() + 86_400_000).toISOString() });
+    fireEvent.click(screen.getByRole("button", { name: t.unschedule! }));
+    await waitFor(() => expect(actions.unscheduleAction).toHaveBeenCalled());
   });
 });
