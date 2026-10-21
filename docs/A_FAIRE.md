@@ -11,8 +11,8 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 - À surveiller : sous 48 heures, les deux conversions doivent passer de « Inactive » à l'enregistrement ; dans deux
   ou trois semaines, rapport « Performances des éléments » de l'annonce (remplacer les titres classés « Faible »).
 - Le 31 mars 2027 : fin de l'offre de lancement, retirer le titre « 3 mois de Pro offerts » des annonces.
-- Restent à faire : polices de la marque sur les billets PDF faites ; champs des réglages d'un événement sur deux
-  colonnes si l'affichage pleine largeur paraît trop étiré.
+- Reste à faire, si besoin : répartir sur deux colonnes les champs des réglages d'un événement, si l'affichage pleine
+  largeur paraît trop étiré.
 
 ## Avant le prochain déploiement
 
