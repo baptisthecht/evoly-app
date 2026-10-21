@@ -95,28 +95,42 @@ export function SettingsForm({
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionSales")}</legend>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label={t("capacity")} htmlFor="capacity" hint={t("capacityHint")} error={error("capacity")}>
-              <Input id="capacity" name="capacity" type="number" min={1} inputMode="numeric" defaultValue={values.capacity} />
+              <Input icon="users" id="capacity" name="capacity" type="number" min={1} inputMode="numeric" defaultValue={values.capacity} />
+            </Field>
+            <Field label={t("visibility")} htmlFor="visibility">
+              <Select
+                icon="eye"
+                id="visibility"
+                name="visibility"
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as SettingsValues["visibility"])}
+              >
+                <option value="PUBLIC">{t("visibility_PUBLIC")}</option>
+                <option value="UNLISTED">{t("visibility_UNLISTED")}</option>
+                <option value="PRIVATE">{t("visibility_PRIVATE")}</option>
+              </Select>
             </Field>
             <Field label={t("maxTicketsPerOrder")} htmlFor="maxTicketsPerOrder" error={error("maxTicketsPerOrder")}>
-              <Input id="maxTicketsPerOrder" name="maxTicketsPerOrder" type="number" min={1} max={50} defaultValue={values.maxTicketsPerOrder} />
+              <Input icon="ticket" id="maxTicketsPerOrder" name="maxTicketsPerOrder" type="number" min={1} max={50} defaultValue={values.maxTicketsPerOrder} />
             </Field>
             <Field label={t("maxTicketsPerBuyer")} htmlFor="maxTicketsPerBuyer" hint={t("maxTicketsPerBuyerHint")} error={error("maxTicketsPerBuyer")}>
-              <Input id="maxTicketsPerBuyer" name="maxTicketsPerBuyer" type="number" min={1} max={200} defaultValue={values.maxTicketsPerBuyer ?? ""} />
+              <Input
+                icon="user"
+                id="maxTicketsPerBuyer"
+                name="maxTicketsPerBuyer"
+                type="number"
+                min={1}
+                max={200}
+                defaultValue={values.maxTicketsPerBuyer ?? ""}
+              />
             </Field>
             <Field label={t("salesStart")} htmlFor="salesStartLocal" hint={t("salesStartHint")} error={error("salesStartLocal")}>
-              <Input id="salesStartLocal" name="salesStartLocal" type="datetime-local" defaultValue={values.salesStartLocal} />
+              <Input icon="calendar" id="salesStartLocal" name="salesStartLocal" type="datetime-local" defaultValue={values.salesStartLocal} />
             </Field>
             <Field label={t("salesEnd")} htmlFor="salesEndLocal" hint={t("salesEndHint")} error={error("salesEndLocal")}>
-              <Input id="salesEndLocal" name="salesEndLocal" type="datetime-local" defaultValue={values.salesEndLocal} />
+              <Input icon="calendar" id="salesEndLocal" name="salesEndLocal" type="datetime-local" defaultValue={values.salesEndLocal} />
             </Field>
           </div>
-          <Field label={t("visibility")} htmlFor="visibility">
-            <Select id="visibility" name="visibility" value={visibility} onChange={(e) => setVisibility(e.target.value as SettingsValues["visibility"])}>
-              <option value="PUBLIC">{t("visibility_PUBLIC")}</option>
-              <option value="UNLISTED">{t("visibility_UNLISTED")}</option>
-              <option value="PRIVATE">{t("visibility_PRIVATE")}</option>
-            </Select>
-          </Field>
           {visibility === "PRIVATE" ? (
             <Field
               label={t("accessCode")}
@@ -125,6 +139,7 @@ export function SettingsForm({
               error={error("accessCode")}
             >
               <Input
+                icon="key"
                 id="accessCode"
                 name="accessCode"
                 autoComplete="off"
@@ -138,25 +153,28 @@ export function SettingsForm({
 
         <fieldset className="grid gap-5">
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionRefunds")}</legend>
-          <Field label={t("refundPolicy")} htmlFor="refundPolicy">
-            <Select
-              id="refundPolicy"
-              name="refundPolicy"
-              value={refundPolicy}
-              onChange={(e) => setRefundPolicy(e.target.value as SettingsValues["refundPolicy"])}
-            >
-              {(["ON_REQUEST", "UNTIL_DEADLINE", "ALWAYS", "NON_REFUNDABLE"] as const).map((p) => (
-                <option key={p} value={p}>
-                  {t(`refund_${p}`)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          {refundPolicy === "UNTIL_DEADLINE" ? (
-            <Field label={t("refundDeadline")} htmlFor="refundDeadlineLocal" error={error("refundDeadlineLocal")}>
-              <Input id="refundDeadlineLocal" name="refundDeadlineLocal" type="datetime-local" defaultValue={values.refundDeadlineLocal} />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label={t("refundPolicy")} htmlFor="refundPolicy">
+              <Select
+                icon="refund"
+                id="refundPolicy"
+                name="refundPolicy"
+                value={refundPolicy}
+                onChange={(e) => setRefundPolicy(e.target.value as SettingsValues["refundPolicy"])}
+              >
+                {(["ON_REQUEST", "UNTIL_DEADLINE", "ALWAYS", "NON_REFUNDABLE"] as const).map((p) => (
+                  <option key={p} value={p}>
+                    {t(`refund_${p}`)}
+                  </option>
+                ))}
+              </Select>
             </Field>
-          ) : null}
+            {refundPolicy === "UNTIL_DEADLINE" ? (
+              <Field label={t("refundDeadline")} htmlFor="refundDeadlineLocal" error={error("refundDeadlineLocal")}>
+                <Input icon="calendar" id="refundDeadlineLocal" name="refundDeadlineLocal" type="datetime-local" defaultValue={values.refundDeadlineLocal} />
+              </Field>
+            ) : null}
+          </div>
         </fieldset>
 
         <fieldset className="grid gap-5">
@@ -175,7 +193,16 @@ export function SettingsForm({
           {resaleEnabled ? (
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label={t("resaleCutoff")} htmlFor="resaleCutoffHours" hint={t("resaleCutoffHint")}>
-                <Input id="resaleCutoffHours" name="resaleCutoffHours" type="number" min={0} max={168} step={0.5} defaultValue={values.resaleCutoffHours} />
+                <Input
+                  icon="clock"
+                  id="resaleCutoffHours"
+                  name="resaleCutoffHours"
+                  type="number"
+                  min={0}
+                  max={168}
+                  step={0.5}
+                  defaultValue={values.resaleCutoffHours}
+                />
               </Field>
               <label className="flex items-center gap-3 self-center">
                 <input type="checkbox" name="showResaleSection" defaultChecked={values.showResaleSection} className="size-5 accent-[var(--ink)]" />

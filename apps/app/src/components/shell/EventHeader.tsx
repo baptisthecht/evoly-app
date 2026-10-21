@@ -17,8 +17,8 @@ export async function EventHeader({ orgSlug, eventId }: { orgSlug: string; event
   const locale = (await getLocale()) as Locale;
   const where = [event.locationName, event.city].filter(Boolean).join(", ");
   return (
-    <div className="border-b border-line bg-surface-raised">
-      <div className="mx-auto grid max-w-[var(--content-max)] gap-3.5 px-4 pt-[1.125rem] sm:px-8 lg:px-10">
+    <div className="border-b border-line bg-surface-raised px-4 sm:px-8 lg:px-10">
+      <div className="mx-auto grid max-w-[var(--content-max)] gap-3.5 pt-[1.125rem]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="grid min-w-0 gap-1">
             <p className="text-xs text-ink-muted">

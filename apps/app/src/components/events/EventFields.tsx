@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Field, Input, Select } from "../ui/Field";
 import { cn } from "../ui/cn";
 import { AddressSearch, fillInput } from "@/components/places/AddressSearch";
+import { FIELD_ICON_CLASS, FieldIcon } from "@/components/ui/fieldIcons";
 
 export const TIMEZONES = [
   "Europe/Brussels",
@@ -53,12 +54,24 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
     <>
       <fieldset className="grid gap-5">
         <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionEssentials")}</legend>
-        <Field label={t("title")} htmlFor="title" error={error("title")}>
-          <Input id="title" name="title" defaultValue={values.title} maxLength={120} required invalid={!!error("title")} />
-        </Field>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field label={t("title")} htmlFor="title" error={error("title")}>
+            <Input icon="type" id="title" name="title" defaultValue={values.title} maxLength={120} required invalid={!!error("title")} />
+          </Field>
+          <Field label={t("timezone")} htmlFor="timezone" error={error("timezone")}>
+            <Select icon="globe" id="timezone" name="timezone" defaultValue={values.timezone}>
+              {zones.map((z) => (
+                <option key={z} value={z}>
+                  {z.replace("_", " ")}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label={t("startsAt")} htmlFor="startsAtLocal" error={error("startsAtLocal")}>
             <Input
+              icon="calendar"
               id="startsAtLocal"
               name="startsAtLocal"
               type="datetime-local"
@@ -68,27 +81,28 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
             />
           </Field>
           <Field label={t("endsAt")} htmlFor="endsAtLocal" hint={t("optional")} error={error("endsAtLocal")}>
-            <Input id="endsAtLocal" name="endsAtLocal" type="datetime-local" defaultValue={values.endsAtLocal} invalid={!!error("endsAtLocal")} />
+            <Input
+              icon="calendar"
+              id="endsAtLocal"
+              name="endsAtLocal"
+              type="datetime-local"
+              defaultValue={values.endsAtLocal}
+              invalid={!!error("endsAtLocal")}
+            />
           </Field>
         </div>
-        <Field label={t("timezone")} htmlFor="timezone" error={error("timezone")}>
-          <Select id="timezone" name="timezone" defaultValue={values.timezone}>
-            {zones.map((z) => (
-              <option key={z} value={z}>
-                {z.replace("_", " ")}
-              </option>
-            ))}
-          </Select>
-        </Field>
         <Field label={t("summary")} htmlFor="summary" hint={t("summaryHint")} error={error("summary")}>
-          <textarea
-            id="summary"
-            name="summary"
-            defaultValue={values.summary}
-            maxLength={280}
-            rows={3}
-            className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
-          />
+          <div className="relative">
+            <FieldIcon name="text" className={cn(FIELD_ICON_CLASS, "top-3.5")} />
+            <textarea
+              id="summary"
+              name="summary"
+              defaultValue={values.summary}
+              maxLength={280}
+              rows={3}
+              className="block w-full rounded-md bg-surface-raised py-3 pr-4 pl-10 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+            />
+          </div>
         </Field>
       </fieldset>
 
@@ -127,7 +141,7 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
           </label>
         ) : null}
         {locationType !== "ONLINE" && !(venue && atVenue) ? (
-          <div className="grid gap-5">
+          <div className="grid gap-5 sm:grid-cols-2">
             <Field label={t("locationName")} htmlFor="locationName" error={error("locationName")}>
               <AddressSearch
                 id="locationName"
@@ -145,14 +159,14 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
               />
             </Field>
             <Field label={t("address")} htmlFor="addressLine1" error={error("addressLine1")}>
-              <Input id="addressLine1" name="addressLine1" defaultValue={values.addressLine1} maxLength={160} autoComplete="street-address" />
+              <Input icon="pin" id="addressLine1" name="addressLine1" defaultValue={values.addressLine1} maxLength={160} autoComplete="street-address" />
             </Field>
-            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-5">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-5 sm:col-span-2 sm:grid-cols-2">
               <Field label={t("postalCode")} htmlFor="postalCode">
-                <Input id="postalCode" name="postalCode" defaultValue={values.postalCode} maxLength={16} autoComplete="postal-code" />
+                <Input icon="hash" id="postalCode" name="postalCode" defaultValue={values.postalCode} maxLength={16} autoComplete="postal-code" />
               </Field>
               <Field label={t("city")} htmlFor="city">
-                <Input id="city" name="city" defaultValue={values.city} maxLength={80} autoComplete="address-level2" />
+                <Input icon="building" id="city" name="city" defaultValue={values.city} maxLength={80} autoComplete="address-level2" />
               </Field>
             </div>
             <input type="hidden" name="country" value={country} />
@@ -160,7 +174,7 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
         ) : null}
         {locationType !== "PHYSICAL" ? (
           <Field label={t("onlineUrl")} htmlFor="onlineUrl" hint={t("onlineUrlHint")} error={error("onlineUrl")}>
-            <Input id="onlineUrl" name="onlineUrl" type="url" inputMode="url" defaultValue={values.onlineUrl} placeholder="https://" />
+            <Input icon="link" id="onlineUrl" name="onlineUrl" type="url" inputMode="url" defaultValue={values.onlineUrl} placeholder="https://" />
           </Field>
         ) : null}
       </fieldset>

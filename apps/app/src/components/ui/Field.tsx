@@ -11,6 +11,7 @@ import {
 } from "react";
 import { cn } from "./cn";
 import { CheckIcon } from "./icons";
+import { FIELD_ICON_CLASS, FieldIcon, type FieldIconName } from "./fieldIcons";
 
 const control =
   "block w-full h-[var(--field-h)] rounded-md bg-surface-raised px-4 text-[length:var(--field-text)] text-ink placeholder:text-ink-subtle " +
@@ -78,14 +79,33 @@ export function Field({
   );
 }
 
-export function Input({ className, invalid, ...rest }: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; ref?: Ref<HTMLInputElement> }) {
-  return <input className={cn(control, className)} aria-invalid={invalid || undefined} {...rest} />;
+export function Input({
+  className,
+  invalid,
+  icon,
+  ...rest
+}: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; ref?: Ref<HTMLInputElement>; icon?: FieldIconName }) {
+  if (!icon) return <input className={cn(control, className)} aria-invalid={invalid || undefined} {...rest} />;
+  // icône à gauche ; dates : le calendrier du navigateur couvre tout le champ (globals.css, .has-icon)
+  return (
+    <div className="relative">
+      <FieldIcon name={icon} className={cn(FIELD_ICON_CLASS, "top-1/2 -translate-y-1/2")} />
+      <input className={cn(control, "has-icon relative pl-10", className)} aria-invalid={invalid || undefined} {...rest} />
+    </div>
+  );
 }
 
-export function Select({ className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select className={cn(control, "appearance-none bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10", className)} {...rest}>
+export function Select({ className, children, icon, ...rest }: SelectHTMLAttributes<HTMLSelectElement> & { icon?: FieldIconName }) {
+  const select = (
+    <select className={cn(control, "appearance-none bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10", icon && "pl-10", className)} {...rest}>
       {children}
     </select>
+  );
+  if (!icon) return select;
+  return (
+    <div className="relative">
+      <FieldIcon name={icon} className={cn(FIELD_ICON_CLASS, "top-1/2 -translate-y-1/2")} />
+      {select}
+    </div>
   );
 }

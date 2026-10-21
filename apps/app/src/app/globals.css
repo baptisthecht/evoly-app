@@ -122,6 +122,15 @@ body {
     background-size: 12px;
     padding-right: 2.5rem;
   }
+  /* champs avec icône (dates) : le calendrier du navigateur, invisible, couvre tout le champ ; un clic l'ouvre */
+  input.has-icon::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    cursor: pointer;
+  }
   input[type="date"],
   input[type="time"],
   input[type="datetime-local"] {
