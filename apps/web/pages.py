@@ -5,7 +5,8 @@ import refonte
 import json, re
 
 SITE = 'https://evoly.me'
-REGISTER = 'https://app.evoly.me/register'
+# boutons d'inscription des pages secondaires : la création rapide, comme les pages principales (build.py)
+REGISTER = 'https://app.evoly.me/start'
 
 # adresse de chaque page dans chaque langue
 SLUGS = {

@@ -10,7 +10,9 @@ YEAR = __import__('datetime').date.today().year  # année du pied de page, mise 
 exec(open(os.path.join(HERE, 'paths.py'), encoding='utf-8').read())  # E, V, L, Y, OLOGO, LIVE, O
 TEST = '--test' in sys.argv
 
-REGISTER = 'https://app.evoly.me/register'
+# boutons d'inscription : la création rapide (compte, organisation et premier événement d'un coup) ; le Pro garde
+# l'inscription classique, qui propose le passage au Pro (cookie evoly_plan)
+REGISTER = 'https://app.evoly.me/start'
 REGISTER_PRO = 'https://app.evoly.me/register?plan=pro'
 LOGIN = 'https://app.evoly.me/login'
 EXT = 'target="_blank" rel="noopener"'

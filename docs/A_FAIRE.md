@@ -55,8 +55,8 @@ En place : l'événement d'abord (nom, date, lieu, ville, prix, places), puis le
 passe) avec l'aperçu de l'événement ; compte, organisation et événement en brouillon créés d'un coup, le lien de
 vérification mène au tableau de bord. À faire :
 
-- Faire pointer les boutons du site vitrine (« Créer mon premier événement ») et l'URL finale des annonces vers
-  `https://app.evoly.me/start`, après déploiement et essai.
+- Fait : les boutons d'inscription du site vitrine mènent à `/start` (le bouton du Pro garde l'inscription classique,
+  qui propose le passage au Pro). Reste : l'URL finale des annonces Google Ads vers `/start` (dans Google Ads).
 - Un parcours complet (Playwright) de `/start` jusqu'au tableau de bord après vérification de l'adresse.
 - Afficher sur la page de vérification de l'adresse que l'événement est enregistré et attend d'être publié.
 

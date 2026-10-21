@@ -290,7 +290,8 @@
   }
   document.addEventListener("click", function (e) {
     var el = e.target && e.target.closest && e.target.closest("a[href]");
-    if (el && /\/register|\/inscription/.test(el.getAttribute("href") || "") && window.gtag) gtag("event", "sign_up_start", { link_url: el.href });
+    if (el && /\/(register|inscription|start)(?:[?#/]|$)/.test(el.getAttribute("href") || "") && window.gtag)
+      gtag("event", "sign_up_start", { link_url: el.href });
     if (e.target && e.target.closest && e.target.closest("[data-evoly-cookies]")) {
       e.preventDefault();
       open(true);
