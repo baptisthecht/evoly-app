@@ -36,7 +36,8 @@ export async function OrderHeader({ orgSlug, orderId }: { orgSlug: string; order
       }
       meta={
         <p className="text-[0.8125rem] text-ink-muted">
-          {order.event.title} · {formatDateTime(order.createdAt, order.event.timezone, locale, "short")} · {formatMoney(order.totalMinor, order.currency, locale)}
+          {order.event.title} · {formatDateTime(order.createdAt, order.event.timezone, locale, "short")} ·{" "}
+          {formatMoney(order.totalMinor, order.currency, locale)}
           {order.source === "RESALE" ? ` · ${t("fromResale")}` : order.source === "COMPLIMENTARY" ? ` · ${t("fromComplimentary")}` : ""}
         </p>
       }
