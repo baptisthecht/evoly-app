@@ -708,7 +708,7 @@ SEO_HEAD = f"""<title>{SEO_TITLE}</title>
 
 # mesure d'audience et publicité (docs/TRACKING.md) : identifiants lus à la construction, rien sans identifiant ni accord
 TRACKING = (
-    '<script>window.EVOLY_TRACKING=' + _json.dumps({"ga": os.environ.get("EVOLY_GA_ID", "G-CCC58XTQ4D"), "ads": os.environ.get("EVOLY_GOOGLE_ADS_ID", ""), "base": os.environ.get("EVOLY_BASE_DOMAIN", "evoly.me"), "app": os.environ.get("EVOLY_APP_URL", "https://app.evoly.me")}) + '</script>\n'
+    '<script>window.EVOLY_TRACKING=' + _json.dumps({"ga": os.environ.get("EVOLY_GA_ID", "G-CCC58XTQ4D"), "ads": os.environ.get("EVOLY_GOOGLE_ADS_ID", "AW-18525196474"), "base": os.environ.get("EVOLY_BASE_DOMAIN", "evoly.me"), "app": os.environ.get("EVOLY_APP_URL", "https://app.evoly.me")}) + '</script>\n'
     + '<script>' + open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tracking.js'), encoding='utf-8').read() + '</script>'
     + '<script>' + open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'offer.js'), encoding='utf-8').read() + '</script>'
 )

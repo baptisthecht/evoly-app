@@ -27,7 +27,12 @@ declare global {
  * Identifiants publics d'Evoly (ils figurent dans chaque page) : utilisés seulement sur evoly.me, jamais en local ni en
  * CI, pour ne pas fausser les statistiques. Les variables d'environnement les remplacent partout.
  */
-export const EVOLY_IDS = { ga: "G-CCC58XTQ4D", ads: "", labels: { sign_up: "", organization_created: "" } };
+// identifiants publics d'Evoly (visibles dans le code des pages) : Analytics, Google Ads et ses deux conversions
+export const EVOLY_IDS = {
+  ga: "G-CCC58XTQ4D",
+  ads: "AW-18525196474",
+  labels: { sign_up: "G9UICOXg0KQdELqhwIFF", organization_created: "xRrGCOLg0KQdELqhwIFF" },
+};
 const onEvoly = () => /(^|\.)evoly\.me$/.test(location.hostname);
 function ids() {
   const fallback = onEvoly();

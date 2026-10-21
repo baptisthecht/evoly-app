@@ -8,8 +8,9 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 - Migrations de cette période, appliquées par `prisma migrate deploy` : `20261020120000_acquisition`,
   `20261021090000_promotions` (offre de lancement incluse), `20261022090000_page_views` (visites des billetteries),
   `20261022100000_brand_theme` (personnalisation de la marque), `20261022110000_event_theme` (style d'un événement).
-- À renseigner en production : `GEOAPIFY_API_KEY` (recherche de lieux rapide ; sans elle, Photon répond en 5 à 7 s),
-  identifiant Google Ads `AW-…` et libellés des conversions (`EVOLY_IDS` dans `Analytics.tsx`).
+- À renseigner en production : `GEOAPIFY_API_KEY` (recherche de lieux rapide ; sans elle, Photon répond en 5 à 7 s).
+  Fait : identifiant Google Ads `AW-18525196474` et libellés des conversions « Organisation créée » (principale) et
+  « Inscription » (secondaire) inscrits dans `Analytics.tsx` et `apps/web/build.py`.
 - Construire et publier le site vitrine (`apps/web/build.py`) avec l'application.
 - Restent à faire : polices de la marque sur les billets PDF (couleurs et logo déjà présents), revue sur téléphone
   des nouveaux écrans (barre latérale, en-tête de l'événement, vue d'ensemble, Marque, Apparence), faire pointer les
@@ -21,8 +22,6 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
   (`apps/app/src/components/tracking`) et de l'offre de lancement. Le bandeau, fixé en bas de l'écran, peut masquer des
   boutons : poser le choix des cookies dans la fonction commune des parcours (`apps/app/e2e/fixtures.ts`) si besoin.
 - **Déployer** : application (avec la migration `20261020120000_acquisition`) et site vitrine reconstruit.
-- **Google Ads** : inscrire l'identifiant `AW-…` et les libellés des conversions « Inscription » et « Organisation
-  créée » (`EVOLY_IDS` dans `apps/app/src/components/tracking/Analytics.tsx`), voir `docs/TRACKING.md`.
 
 ## Offres commerciales
 
