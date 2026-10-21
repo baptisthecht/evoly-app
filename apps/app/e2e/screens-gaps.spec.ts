@@ -68,10 +68,12 @@ test("mise en ligne d'un brouillon : publication après le début refusée, puis
   const save = page.getByRole("button", { name: pub.save, exact: true }).first();
   await date.fill("2030-01-15T10:00"); // après le début de l'événement : refusé (RG-PRG-01)
   await save.click();
-  await expect(page.getByRole("status").first()).toContainText("avant le début de l’événement");
+  // chaque message visé par son texte : l'encadré « Programmé » est aussi un statut, affiché selon le rafraîchissement
+  await expect(page.getByRole("status").filter({ hasText: "avant le début de l’événement" })).toBeVisible();
   await date.fill(new Date(Date.now() + 3 * 3_600_000).toISOString().slice(0, 16)); // dans trois heures : accepté
   await save.click();
-  await expect(page.getByRole("status").first()).toHaveText(pub.saved!);
+  await expect(page.getByRole("status").filter({ hasText: pub.saved! })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: /^Programmé/ })).toBeVisible();
 });
 
 test("apparence, tables et plan de salle s'ouvrent sans erreur", async ({ page }) => {
