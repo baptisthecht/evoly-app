@@ -114,3 +114,62 @@ describe("application du scanner : chaque mode appelle le bon service", () => {
     expect(called("/scan")).toEqual([]);
   });
 });
+
+describe("application du scanner : lien expiré ou révoqué, réseau coupé", () => {
+  // serveur simulé dont certaines réponses sont remplacées ; « coupure » : le réseau ne répond plus
+  const serveWith = (over: (path: string) => Response | "coupure" | undefined, m = manifest(false)) => {
+    calls = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = String(url).replace(/^.*\/api\/scanner\/[^/]+/, "");
+        calls.push({ path, body: init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : null });
+        const r = over(path);
+        if (r === "coupure") throw new TypeError("Failed to fetch");
+        if (r) return r;
+        const json = (data: unknown) => new Response(JSON.stringify(data), { status: 200, headers: { "content-type": "application/json" } });
+        if (path === "/manifest") return json(m);
+        if (path === "/scan") return json({ result: "VALID", ticket: { holder: "Léa Martin", typeName: "Fosse" } });
+        return json({ results: [] });
+      }),
+    );
+  };
+  const gone = (error: string) => new Response(JSON.stringify({ error }), { status: 410, headers: { "content-type": "application/json" } });
+  const draw = () =>
+    render(
+      <Fr>
+        <ScannerApp token="jeton" />
+      </Fr>,
+    );
+
+  it("lien révoqué dès l'ouverture : le scanner s'arrête et dit que ses données sont effacées", async () => {
+    serveWith((p) => (p === "/manifest" ? gone("REVOKED") : undefined));
+    draw();
+    expect(await screen.findByText(fr.scanner.dead_REVOKED!)).toBeTruthy();
+    expect(screen.getByText(fr.scanner.deadBody!)).toBeTruthy();
+  });
+
+  it("lien expiré pendant le service : le scan reçoit « expiré », le scanner s'arrête", async () => {
+    serveWith((p) => (p === "/scan" ? gone("EXPIRED") : undefined));
+    draw();
+    await screen.findByText("Gala de test");
+    await typeShortCode("ABC123");
+    expect(await screen.findByText(fr.scanner.dead_EXPIRED!)).toBeTruthy();
+  });
+
+  it("liste dont le lien a déjà expiré : arrêt dès le démarrage", async () => {
+    const m = manifest(false);
+    serveWith(() => undefined, { ...m, link: { ...m.link, expiresAt: new Date(Date.now() - 60_000).toISOString() } });
+    draw();
+    expect(await screen.findByText(fr.scanner.dead_EXPIRED!)).toBeTruthy();
+  });
+
+  it("réseau coupé au moment d'un scan : le scanner passe hors ligne, sans planter", async () => {
+    serveWith((p) => (p === "/scan" ? "coupure" : undefined));
+    draw();
+    await screen.findByText("Gala de test");
+    await typeShortCode("ABC123");
+    await waitFor(() => expect(screen.getAllByText(new RegExp(fr.scanner.offline!)).length).toBeGreaterThan(0));
+    expect(screen.queryByText(fr.scanner.dead_EXPIRED!)).toBeNull();
+  });
+});
