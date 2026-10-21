@@ -20,6 +20,8 @@ import { organizationPublicUrl } from "./urls";
 import { safeError } from "@/lib/redact";
 import { markWaitlistPurchased } from "./waitlist";
 import { createBytesCache } from "@/lib/bytesCache";
+import { themeForEvent } from "./brand";
+import { inkOn } from "@evoly/ui";
 
 export function ticketsUrl(org: { subdomain: string | null; slug: string }, orderId: string, version: number): string {
   return `${organizationPublicUrl(org.subdomain ?? org.slug)}/billets/${orderAccessToken(orderId, version)}`;
@@ -149,6 +151,8 @@ const PDF_LABELS = {
 export async function ticketsPdfFor(
   order: {
     reference: string;
+    /** Style propre à l'événement (Pro) appliqué aux billets. */
+    eventId?: string;
     organizationId?: string;
     organization: { name: string };
     event: {
@@ -182,10 +186,23 @@ export async function ticketsPdfFor(
 ): Promise<Uint8Array> {
   const e = order.event;
   const brand = order.organizationId ? await emailBrandFor(order.organizationId) : null;
+  // style des billets (Pro) : celui de l'événement, réglage par réglage, sinon celui de la marque
+  const theme =
+    brand && order.organizationId
+      ? themeForEvent(
+          await db.organizationBrand.findUnique({
+            where: { organizationId: order.organizationId },
+            select: { primaryColor: true, headingFont: true, bodyFont: true },
+          }),
+          order.eventId ? await db.event.findUnique({ where: { id: order.eventId }, select: { primaryColor: true, headingFont: true, bodyFont: true } }) : null,
+        )
+      : null;
+  const primary = theme?.primaryColor ?? brand?.primary ?? null;
   const input: Parameters<typeof buildTicketsPdf>[0] = {
     brand: brand
-      ? { primary: brand.primary, primaryInk: brand.primaryInk, logo: await logoBytes(brand.logoUrl), showPoweredBy: brand.showPoweredBy }
+      ? { primary, primaryInk: primary ? inkOn(primary) : brand.primaryInk, logo: await logoBytes(brand.logoUrl), showPoweredBy: brand.showPoweredBy }
       : undefined,
+    fonts: theme ? { heading: theme.headingFont, body: theme.bodyFont } : undefined,
     organizationName: order.organization.name,
     eventTitle: e.title,
     when: formatDateTime(e.startsAt, e.timezone, locale),

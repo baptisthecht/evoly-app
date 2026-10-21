@@ -1,5 +1,6 @@
 import "server-only";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { embedTicketFonts } from "./pdfFonts";
 import QRCode from "qrcode";
 
 const CHARBON = rgb(0x22 / 255, 0x22 / 255, 0x22 / 255);
@@ -8,13 +9,16 @@ const ROSE = rgb(1, 0xb8 / 255, 0xe8 / 255);
 const GRIS = rgb(0.4, 0.4, 0.4);
 
 /** Les polices standard du PDF (WinAnsi) ne couvrent pas tous les caractères : espaces fines et symboles rares sont remplacés. */
-const clean = (s: string) =>
+/** Helvetica (WinAnsi) : caractères hors de l'alphabet de base retirés. */
+const winAnsi = (s: string) =>
   s
     .replace(/[\u202f\u00a0\u2009]/g, " ")
     .replace(/→/g, "-")
     .replace(/[^\x20-\x7e\u00a0-\u00ff\u2018\u2019\u201c\u201d\u2013\u2014\u2026\u20ac\u0152\u0153]/g, "");
+/** Vraie police : espaces fines et flèche seulement, tous les autres caractères gardés. */
+const spaces = (s: string) => s.replace(/[\u202f\u00a0\u2009]/g, " ").replace(/→/g, "-");
 
-function wrap(text: string, font: PDFFont, size: number, width: number): string[] {
+function wrap(text: string, font: PDFFont, size: number, width: number, clean: (s: string) => string = winAnsi): string[] {
   const lines: string[] = [];
   let line = "";
   for (const word of clean(text).split(/\s+/)) {
@@ -61,13 +65,29 @@ export async function buildTicketsPdf(o: {
   reference: string;
   tickets: PdfTicket[];
   labels: { ticket: (i: number, n: number) => string; holder: string; reference: string; entrance: string; poweredBy: string };
+  /** Polices de la marque ou de l'événement (Pro) ; sans : la charte. */
+  fonts?: { heading?: string | null; body?: string | null };
 }): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  pdf.setTitle(clean(`${o.eventTitle} - ${o.reference}`));
+  // tous les textes du billet : les polices retenues doivent les afficher entièrement
+  const texts = [
+    o.organizationName,
+    o.eventTitle,
+    o.when,
+    o.where ?? "",
+    o.reference,
+    o.labels.holder,
+    o.labels.reference,
+    o.labels.entrance,
+    o.labels.poweredBy,
+    ...o.tickets.flatMap((t, i) => [o.labels.ticket(i + 1, o.tickets.length), ...Object.values(t).filter((v): v is string => typeof v === "string")]),
+  ];
+  const fonts = await embedTicketFonts(pdf, o.fonts ?? {}, texts.map(spaces));
+  const clean = fonts.custom ? spaces : winAnsi;
+  pdf.setTitle(winAnsi(`${o.eventTitle} - ${o.reference}`));
   pdf.setCreator("Evoly");
   pdf.setProducer("Evoly");
-  const regular = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const { title, regular, bold } = fonts;
   const mono = await pdf.embedFont(StandardFonts.CourierBold);
   const [W, H] = [595.28, 841.89]; // A4
   const toRgb = (hex: string) => rgb(parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255);
@@ -88,14 +108,14 @@ export async function buildTicketsPdf(o: {
     const label = clean(o.labels.ticket(i + 1, o.tickets.length));
     page.drawText(label, { x: W - 48 - regular.widthOfTextAtSize(label, 11), y: H - 53, size: 11, font: regular, color: bandInk });
     let y = H - 150;
-    for (const line of wrap(o.eventTitle, bold, 30, W - 96)) {
-      page.drawText(line, { x: 48, y, size: 30, font: bold, color: CHARBON });
+    for (const line of wrap(o.eventTitle, title, 30, W - 96, clean)) {
+      page.drawText(line, { x: 48, y, size: 30, font: title, color: CHARBON });
       y -= 36;
     }
     page.drawText(clean(o.when), { x: 48, y: y - 4, size: 13, font: regular, color: CHARBON });
     y -= 24;
     if (o.where) {
-      for (const line of wrap(o.where, regular, 13, W - 96)) {
+      for (const line of wrap(o.where, regular, 13, W - 96, clean)) {
         page.drawText(line, { x: 48, y: y - 4, size: 13, font: regular, color: GRIS });
         y -= 18;
       }
@@ -129,7 +149,7 @@ export async function buildTicketsPdf(o: {
       infoY -= 18;
     }
     page.drawText(clean(`${o.labels.reference} : ${o.reference}`), { x: 48, y: infoY, size: 12, font: regular, color: GRIS });
-    for (const [k, line] of wrap(o.labels.entrance, regular, 10, W - 96).entries())
+    for (const [k, line] of wrap(o.labels.entrance, regular, 10, W - 96, clean).entries())
       page.drawText(line, { x: 48, y: 70 - k * 14, size: 10, font: regular, color: GRIS });
     if (o.brand?.showPoweredBy !== false) page.drawText(clean(o.labels.poweredBy), { x: 48, y: 30, size: 9, font: bold, color: CHARBON });
   });
