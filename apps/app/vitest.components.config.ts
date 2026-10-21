@@ -13,9 +13,29 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/components/**/*.tsx", "src/app/**/[A-Z]*.tsx"], // composants du dossier components et écrans du tableau de bord (les fichiers de route, en minuscules, sont exclus)
+      // composants serveur asynchrones (données lues côté serveur) : cette suite ne peut pas les rendre ; les parcours complets
+      // (Playwright) les exercent. Liste explicite, décidée le 21 octobre 2026 : un nouveau fichier n'en sort pas sans décision.
+      exclude: [
+        "src/components/public/Prepublished.tsx",
+        "src/components/public/EventPage.tsx",
+        "src/components/shell/SectionHeader.tsx",
+        "src/components/public/EventPublicView.tsx",
+        "src/components/ProLocked.tsx",
+        "src/components/public/PublicShell.tsx",
+        "src/components/orders/OrderHeader.tsx",
+        "src/components/shell/OrgNav.tsx",
+        "src/components/shell/OrgSwitcher.tsx",
+        "src/components/shell/EventHeader.tsx",
+        "src/app/(auth)/SocialButtons.tsx",
+        "src/app/o/[orgSlug]/StripeBanner.tsx",
+        "src/app/onboarding/Steps.tsx",
+        "src/components/LocaleSwitch.tsx",
+        "src/components/public/DisabledSite.tsx",
+        "src/components/shell/AccountMenu.tsx",
+      ],
       reporter: ["text-summary", "json-summary"],
       reportsDirectory: "coverage-components",
-      thresholds: { statements: 75, branches: 69, functions: 70, lines: 76 }, // 21 octobre 2026 : 374 tests (75,5 / 69,1 / 71,2 / 77,3) ; marge pour la CI, jamais à la baisse
+      thresholds: { statements: 81, branches: 76, functions: 76, lines: 83 }, // 21 octobre 2026 : 384 tests, composants serveur asynchrones hors mesure (82,0 / 76,7 / 77,3 / 84,1) ; marge pour la CI, jamais à la baisse
     },
   },
 });
