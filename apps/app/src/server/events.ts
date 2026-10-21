@@ -86,8 +86,10 @@ function resolveLocation(e: EventEssentials, defaultCountry: string) {
   const online = e.locationType !== "PHYSICAL";
   if (physical && !e.locationName?.trim() && !e.addressLine1?.trim()) throw new CoreError("LOCATION_REQUIRED");
   if (online) {
-    if (!e.onlineUrl) throw new CoreError("ONLINE_URL_REQUIRED");
-    if (!/^https:\/\//i.test(e.onlineUrl)) throw new CoreError("ONLINE_URL_INVALID");
+    // lien nettoyé avant le contrôle : un lien collé avec des espaces autour reste valable
+    const url = e.onlineUrl?.trim();
+    if (!url) throw new CoreError("ONLINE_URL_REQUIRED");
+    if (!/^https:\/\//i.test(url)) throw new CoreError("ONLINE_URL_INVALID");
   }
   return {
     locationType: e.locationType,
@@ -96,7 +98,7 @@ function resolveLocation(e: EventEssentials, defaultCountry: string) {
     postalCode: physical ? e.postalCode?.trim() || null : null,
     city: physical ? e.city?.trim() || null : null,
     country: physical ? (e.country || defaultCountry).toUpperCase() : null,
-    onlineUrl: online ? e.onlineUrl!.trim() : null,
+    onlineUrl: online ? e.onlineUrl!.trim() : null, // contrôlé nettoyé plus haut
   };
 }
 
