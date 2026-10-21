@@ -36,7 +36,7 @@ export default async function NotificationsPage({ params, searchParams }: { para
     revalidatePath(`/o/${orgSlug}`, "layout");
   }
   return (
-    <div className="grid max-w-3xl gap-6">
+    <div className="grid gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3"></div>
         {rows.some((n) => !n.readAt) ? (

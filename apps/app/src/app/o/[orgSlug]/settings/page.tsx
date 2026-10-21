@@ -34,7 +34,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ orgSl
   const blockers = owner ? await deletionBlockers(org.id) : [];
   const stripeTone = ctx.stripe?.status === "ACTIVE" ? "success" : ctx.stripe ? "warning" : "neutral";
   return (
-    <div className="grid max-w-4xl gap-6">
+    <div className="grid gap-6">
       <Card className="grid gap-4">
         <OrganizationSettingsForm
           orgSlug={orgSlug}

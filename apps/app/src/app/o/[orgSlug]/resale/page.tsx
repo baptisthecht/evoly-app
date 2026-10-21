@@ -26,7 +26,7 @@ export default async function OrganizationResalePage({ params }: { params: Promi
   const locale = (await getLocale()) as Locale;
   const money = (v: number) => formatMoney(v, ctx.organization.currency, locale, { trimZeroCents: true });
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid gap-6">
       <Card className="grid gap-3 sm:grid-cols-4">
         {[
           { label: t("statActive"), value: String(totals.open) },

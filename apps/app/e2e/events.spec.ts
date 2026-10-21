@@ -31,7 +31,7 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
   // publication : le billet gratuit ne demande pas Stripe
   await page.goto(eventPath);
   await page.getByRole("button", { name: "Publier" }).click();
-  await expect(page.getByText("En vente").first()).toBeVisible();
+  await expect(page.getByText("En vente", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Liens à partager")).toBeVisible();
 
   const res = await page.goto(siteUrl(slug, `/${eventSlug}`));
@@ -137,7 +137,7 @@ test("prix dynamiques : réservés au Pro, puis prix de prévente sur la page pu
 
   await page.goto(eventPath);
   await page.getByRole("button", { name: "Publier" }).click();
-  await expect(page.getByText("En vente").first()).toBeVisible();
+  await expect(page.getByText("En vente", { exact: true }).first()).toBeVisible();
   await page.goto(siteUrl(slug, `/festival-${id}`));
   await expect(page.getByText("Prévente")).toBeVisible();
   await expect(page.getByText(/^18\s€$/)).toBeVisible();

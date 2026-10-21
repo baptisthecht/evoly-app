@@ -37,7 +37,7 @@ export default async function MembersPage({ params, searchParams }: { params: Pr
   const allowed = PERMISSIONS.filter((p) => can(ctx.membership, p));
   const active = tab === "roles" ? "roles" : "members";
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid gap-6">
       {!team ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-accent px-4 py-3">
           <p className="text-sm">{t("upsell")}</p>

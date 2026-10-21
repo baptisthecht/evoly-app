@@ -51,7 +51,7 @@ export default async function BrandPage({ params, searchParams }: { params: Prom
     </div>
   );
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid gap-6">
       {/* onglet « Domaines » : adresse de la billetterie et domaines personnalisés (seul onglet sans la marque) */}
       {canAddress && (tab === "domains" || !canBrand) ? (
         <Card className="grid gap-3">

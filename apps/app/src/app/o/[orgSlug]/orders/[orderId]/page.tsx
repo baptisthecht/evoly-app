@@ -35,7 +35,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
   );
   const refundable = order.tickets.filter((tk) => (tk.status === "VALID" || tk.status === "CHECKED_IN") && !pendingRefundTicketIds.has(tk.id));
   return (
-    <div className="grid max-w-5xl gap-6">
+    <div className="grid gap-6">
       <header className="grid gap-2">
         <Link href={`/o/${orgSlug}/orders`} className="text-sm font-semibold text-ink-muted hover:text-ink">
           ← {t("backToOrders")}
