@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { formatMoney } from "@evoly/i18n";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import type { ReservationView } from "@/app/site/[sub]/[eventSlug]/actions";
@@ -140,5 +141,83 @@ describe("panier (paiement et commande gratuite)", () => {
     await user.click(screen.getByRole("button", { name: fr.checkout.confirmFree }));
     expect(actions.submitBuyerAction).not.toHaveBeenCalled();
     expect(screen.getAllByText(fr.checkout.required).length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe("panier : questions, titulaires, adresse, options", () => {
+  const order = {
+    id: "q1",
+    label: "Comment nous avez-vous connus ?",
+    helpText: null,
+    type: "SELECT",
+    required: true,
+    options: ["Un ami", "Instagram"],
+    scope: "ORDER",
+  };
+  const ticket = { id: "q2", label: "Régime alimentaire", helpText: null, type: "TEXT", required: true, options: null, scope: "TICKET" };
+  const confirm = () => screen.getByRole("button", { name: fr.checkout.confirmFree });
+  const sent = () =>
+    (actions.submitBuyerAction.mock.calls[0] as unknown[]).find((x) => x && typeof x === "object" && "firstName" in (x as object)) as Record<string, unknown>;
+
+  it("questions obligatoires : refusées tant qu'elles sont vides, puis envoyées pour la commande et pour chaque billet", async () => {
+    actions.submitBuyerAction.mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+    draw(reservation({ questions: { order: [order], perLine: { i1: [ticket] } } as never }));
+    await fill(user);
+    await user.click(confirm());
+    expect(actions.submitBuyerAction).not.toHaveBeenCalled();
+    await user.selectOptions(screen.getByLabelText(new RegExp(order.label.replace("?", "\\?"))), "Un ami");
+    await user.type(document.getElementById("q-i1-0-q2")!, "Végétarien");
+    await user.type(document.getElementById("q-i1-1-q2")!, "Sans gluten");
+    await user.click(confirm());
+    await waitFor(() => expect(actions.submitBuyerAction).toHaveBeenCalled());
+    expect(sent().answers).toEqual({ order: { q1: "Un ami" }, tickets: { i1: [{ q2: "Végétarien" }, { q2: "Sans gluten" }] } });
+  });
+
+  it("billets nominatifs : titulaires exigés ; « C'est moi » recopie l'acheteur", async () => {
+    actions.submitBuyerAction.mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+    draw(reservation({ lines: [{ orderItemId: "i1", ticketTypeId: "t1", name: "Fosse", tierName: null, quantity: 2, unitPriceMinor: 0, nominative: true }] }));
+    await fill(user);
+    await user.click(confirm());
+    expect(actions.submitBuyerAction).not.toHaveBeenCalled();
+    expect(screen.getAllByText(fr.checkout.holdersRequired).length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("button", { name: fr.checkout.holderIsMe }));
+    const holder = (key: "holderFirstName" | "holderLastName", index: number) =>
+      screen.getByLabelText(fr.checkout[key]!.replace("{index}", String(index)).replace("{name}", "Fosse"));
+    expect((holder("holderFirstName", 1) as HTMLInputElement).value).toBe("Léa");
+    await user.type(holder("holderFirstName", 2), "Tom");
+    await user.type(holder("holderLastName", 2), "Dubois");
+    await user.click(confirm());
+    await waitFor(() => expect(actions.submitBuyerAction).toHaveBeenCalled());
+    expect(sent().holders).toEqual({
+      i1: [
+        { firstName: "Léa", lastName: "Martin" },
+        { firstName: "Tom", lastName: "Dubois" },
+      ],
+    });
+  });
+
+  it("faute de frappe dans l'adresse : suggestion proposée, appliquée d'un clic", async () => {
+    const user = userEvent.setup();
+    draw(reservation());
+    await fill(user, { first: "Léa", last: "Martin", email: "lea@gmial.com" });
+    await user.tab();
+    await user.click(await screen.findByRole("button", { name: /lea@gmail\.com/ }));
+    expect((document.getElementById("buyer-email") as HTMLInputElement).value).toBe("lea@gmail.com");
+  });
+
+  it("options dans le récapitulatif ; revenir au choix des billets annule la réservation", async () => {
+    actions.cancelReservationAction.mockResolvedValue({ ok: true });
+    const onCancel = vi.fn();
+    const user = userEvent.setup();
+    draw(reservation({ options: [{ optionId: "o1", name: "Boisson", quantity: 2, unitPriceMinor: 300 }] }), { onCancel });
+    // récapitulatif : la ligne de l'option et son montant, au même formatage que le panier (6 €)
+    const summary = document.body.textContent!.replace(/\s+/g, " ");
+    expect(summary).toContain("2 × Boisson");
+    expect(summary).toContain(formatMoney(600, "EUR", "fr", { trimZeroCents: true }).replace(/\s+/g, " "));
+    await user.click(screen.getByRole("button", { name: fr.checkout.changeSelection }));
+    await waitFor(() => expect(onCancel).toHaveBeenCalled());
+    expect(actions.cancelReservationAction).toHaveBeenCalledWith("jeton-123");
   });
 });
