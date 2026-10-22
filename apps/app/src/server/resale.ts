@@ -16,7 +16,7 @@ import {
   resaleLinkCode,
   sha256Hex,
 } from "@evoly/core";
-import { formatMoney, type Locale } from "@evoly/i18n";
+import { formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -161,7 +161,7 @@ async function closeListings(where: Prisma.ResaleListingWhereInput, status: "CAN
       data: { status, cancelledAt: status === "CANCELLED" ? new Date() : null },
     });
     if (done.count === 0 || reason === "TICKET_USED") continue;
-    const locale = (l.sellerOrder.buyerLocale === "en" ? "en" : "fr") as Locale;
+    const locale = toLocale(l.sellerOrder.buyerLocale); // e-mails de revente dans les 7 langues
     const brand = await emailBrandFor(l.event.organizationId);
     const mail = resaleSellerEmail({
       brand,
@@ -173,6 +173,7 @@ async function closeListings(where: Prisma.ResaleListingWhereInput, status: "CAN
       amount: null,
     });
     await sendEmail({
+      locale,
       ...mail,
       to: l.sellerEmail,
       template: `resale.${status.toLowerCase()}`,
@@ -349,7 +350,7 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
   const terms = (order.feeSnapshot as { terms?: Parameters<typeof resaleAmounts>[1] } | null)?.terms ?? (await termsFor(order.organizationId, order.currency));
   const amounts = resaleAmounts(listing.priceMinor, terms, order.paymentFeeMinor ?? estimateBankFee(listing.priceMinor));
   const seller = listing.sellerOrder;
-  const locale = (seller.buyerLocale === "en" ? "en" : "fr") as Locale;
+  const locale = toLocale(seller.buyerLocale); // e-mails de revente dans les 7 langues
   if (amounts.sellerRefundMinor > 0) {
     const s = stripe();
     const account = await db.stripeAccount.findUnique({ where: { organizationId: order.organizationId }, select: { stripeAccountId: true } });

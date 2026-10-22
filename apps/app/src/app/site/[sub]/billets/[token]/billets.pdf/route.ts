@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { findOrderIdByToken } from "@/server/checkout";
 import { ticketsPdfFor } from "@/server/orders";
 import { assertSiteRequest } from "@/server/siteGuard";
+import { toLocale } from "@evoly/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ sub: st
     : null;
   // une commande en partie remboursée (place revendue, par exemple) garde ses autres billets
   if (!order || (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")) return new Response("Introuvable", { status: 404 });
-  const bytes = await ticketsPdfFor(order, order.buyerLocale === "en" ? "en" : "fr");
+  const bytes = await ticketsPdfFor(order, toLocale(order.buyerLocale)); // billets PDF dans les 7 langues;
   return new Response(Buffer.from(bytes), {
     headers: {
       "content-type": "application/pdf",

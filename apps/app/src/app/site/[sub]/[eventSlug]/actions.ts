@@ -29,6 +29,7 @@ import { botProtected, createChallenge, verifyProof, type BotChallenge } from "@
 import { clientIp } from "@/server/requestInfo";
 import { safeError } from "@/lib/redact";
 import { joinWaitlist } from "@/server/waitlist";
+import { toLocale } from "@evoly/i18n";
 
 /** Options et consommations demandées avec les billets (section 9.29). */
 const optionsSchema = z.array(z.object({ optionId: z.string().max(40), quantity: z.number().int().min(0).max(100) })).max(20);
@@ -232,7 +233,7 @@ export async function lookupTicketsAction(sub: string, email: unknown): Promise<
   const emailCount = await hit(`tickets:lookup:email:${parsed.data}`, 3600);
   const org = await getPublicOrganization(sub);
   if (org && ipCount <= 20 && emailCount <= 3)
-    await sendTicketsLookup(org.id, parsed.data, (await getLocale()) === "en" ? "en" : "fr").catch((err) => console.error("lookup", safeError(err)));
+    await sendTicketsLookup(org.id, parsed.data, toLocale(await getLocale())).catch((err) => console.error("lookup", safeError(err)));
   return { ok: true, data: null };
 }
 

@@ -127,7 +127,7 @@ export async function openPortal(ctx: OrgContext): Promise<string> {
   const portal = await s.billingPortal.sessions.create({
     customer: sub.stripeCustomerId,
     return_url: billingUrl(ctx.organization.slug),
-    locale: ctx.organization.locale === "en" ? "en" : "fr",
+    locale: toLocale(ctx.organization.locale), // page de paiement Stripe dans la langue de l'organisation
   });
   return portal.url;
 }

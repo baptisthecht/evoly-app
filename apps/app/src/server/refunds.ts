@@ -1,7 +1,7 @@
 import "server-only";
 import { notify } from "./notifications";
 import { assertTransition, checkRefundRequest, CoreError, EVENT_TRANSITIONS, REFUND_APPLICATION_FEE, refundAmount } from "@evoly/core";
-import { formatMoney, type Locale } from "@evoly/i18n";
+import { formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
@@ -36,7 +36,7 @@ async function mailBuyer(orderId: string, kind: "PROCESSED" | "REJECTED" | "CANC
     where: { id: orderId },
     include: { event: { select: { title: true } }, organization: { select: { name: true } } },
   });
-  const locale = (o.buyerLocale === "en" ? "en" : "fr") as Locale;
+  const locale = toLocale(o.buyerLocale); // e-mails de remboursement dans les 7 langues
   const brand = await emailBrandFor(o.organizationId);
   const mail = refundEmail({
     brand,
@@ -50,6 +50,7 @@ async function mailBuyer(orderId: string, kind: "PROCESSED" | "REJECTED" | "CANC
     message,
   });
   await sendEmail({
+    locale,
     ...mail,
     to: o.buyerEmail,
     template: `refund.${kind.toLowerCase()}`,
