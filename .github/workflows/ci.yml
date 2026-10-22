@@ -96,8 +96,7 @@ jobs:
           npx playwright test
       - name: Paiements réels par l'API de Stripe (mode test)
         if: env.E2E_STRIPE_ACCOUNT != ''
-        # non bloquant le temps de la mise au point ; puis bloquant (chemin de l'argent face au vrai Stripe de test)
-        continue-on-error: true
+        # bloquant : chemin de l'argent face au vrai Stripe de test (validé le 22 octobre 2026)
         working-directory: apps/app
         env:
           STRIPE_SECRET_KEY: ${{ secrets.E2E_STRIPE_SECRET_KEY }}
