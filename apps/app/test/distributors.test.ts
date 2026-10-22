@@ -57,10 +57,10 @@ describe("réseaux de l'organisation", () => {
     const free = await org({ pro: false });
     await expect(createDistributor(free.ctx, { kind: "TICKETMASTER" })).rejects.toEqual(refused("PRO_REQUIRED"));
     const { ctx } = await org();
-    expect((await createDistributor(ctx, { kind: "FRANCE_BILLET" })).name).toBe("Fnac – France Billet");
+    expect((await createDistributor(ctx, { kind: "FRANCE_BILLET" })).name).toBe("Fnac (France Billet)");
     await expect(createDistributor(ctx, { kind: "OTHER" })).rejects.toEqual(refused("DISTRIBUTOR_NAME_INVALID"));
     expect((await createDistributor(ctx, { kind: "OTHER", name: "  Comité   Airbus " })).name).toBe("Comité Airbus");
-    await expect(createDistributor(ctx, { kind: "OTHER", name: "Fnac – France Billet" })).rejects.toEqual(refused("DISTRIBUTOR_NAME_TAKEN"));
+    await expect(createDistributor(ctx, { kind: "OTHER", name: "Fnac (France Billet)" })).rejects.toEqual(refused("DISTRIBUTOR_NAME_TAKEN"));
     await expect(createDistributor(ctx, { kind: "INCONNU" })).rejects.toEqual(refused("DISTRIBUTOR_KIND_INVALID"));
   });
 

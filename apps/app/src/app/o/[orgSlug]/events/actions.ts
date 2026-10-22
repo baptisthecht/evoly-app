@@ -9,6 +9,7 @@ import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, upd
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
 import { createOption, setOptionsRefundAfterStart, setOptionActive, updateOption } from "@/server/options";
 import { createAmbassador, removeAmbassadorPromo, setAmbassadorActive, setAmbassadorPromo } from "@/server/ambassadors";
+import { createDistributor, releaseUnsold, setAllocation } from "@/server/distributors";
 import { addEmbedOrigin, removeEmbedOrigin } from "@/server/embed";
 import { saveTableSettings } from "@/server/tables";
 import { cancelListingByOrganizer } from "@/server/resale";
@@ -903,5 +904,56 @@ export async function optionsRefundPolicyAction(orgSlug: string, eventId: string
     },
   );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/options`);
+  return result;
+}
+
+// Réseaux de billetterie et contingents (docs/COMPATIBILITE_RESEAUX.md, Pro)
+const distributorSchema = z.object({ kind: z.string().trim().min(1).max(30), name: optionalText(60) });
+
+export async function createDistributorAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: distributorSchema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" },
+    async (d, ctx) => {
+      await createDistributor(ctx, { kind: d.kind, name: d.name });
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
+  return result;
+}
+
+const allocationSchema = z.object({
+  distributorId: z.string().trim().min(1).max(40),
+  ticketTypeId: z.string().trim().min(1).max(40),
+  quantity: z
+    .string()
+    .trim()
+    .regex(/^\d{1,6}$/, { message: "validation.number" }),
+});
+
+export async function setAllocationAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: allocationSchema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" },
+    async (d, ctx) => {
+      await setAllocation(ctx, eventId, { distributorId: d.distributorId, ticketTypeId: d.ticketTypeId, quantity: Number(d.quantity) });
+      return null;
+    },
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
+  return result;
+}
+
+export async function releaseUnsoldAction(orgSlug: string, eventId: string, distributorId: string, _: ActionState): Promise<ActionState<{ released: number }>> {
+  const result = await runOrgAction(
+    orgSlug,
+    { distributorId },
+    { schema: z.object({ distributorId: z.string().min(1).max(40) }), permission: "EVENTS_EDIT", feature: "DISTRIBUTION" },
+    (d, ctx) => releaseUnsold(ctx, eventId, d.distributorId),
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
   return result;
 }

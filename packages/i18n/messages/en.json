@@ -82,7 +82,8 @@
     "sectionPages": "Section pages",
     "planFree": "Free plan",
     "planPro": "Pro plan",
-    "planProUntil": "Free Pro until {date}"
+    "planProUntil": "Free Pro until {date}",
+    "distribution": "Ticket networks"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -1038,7 +1039,15 @@
     "NOT_ENOUGH_SEATS": "Not enough seats left in this category.",
     "UPLOAD_SVG_UNSAFE": "This SVG contains blocked elements (script, external link…): export it as PNG, or use a plain SVG.",
     "BRAND_SOCIAL_INVALID": "Invalid link: use the https address of your page on this network.",
-    "BRAND_THEME_INVALID": "Unknown setting: choose a value from the list."
+    "BRAND_THEME_INVALID": "Unknown setting: choose a value from the list.",
+    "DISTRIBUTOR_NAME_TAKEN": "A network already has this name.",
+    "DISTRIBUTOR_NAME_INVALID": "Give the network a name of 2 to 60 characters.",
+    "DISTRIBUTOR_KIND_INVALID": "Choose a network from the list.",
+    "ALLOCATION_EXCEEDS_STOCK": "Not enough seats left on sale online for this allocation.",
+    "ALLOCATION_BELOW_IMPORTED": "You cannot go below the tickets already imported for this network.",
+    "ALLOCATION_QUANTITY_INVALID": "Enter a whole number of seats.",
+    "ALLOCATION_USE_SEATS": "With a seating map, choose the network’s seats on the map.",
+    "ALLOCATION_USE_QUANTITY": "This event has no numbered seats: enter a number of seats."
   },
   "validation": {
     "required": "This field is required.",
@@ -2324,6 +2333,10 @@
     "AMBASSADORS": {
       "title": "Ambassadors",
       "body": "Give each member of your team their own sales link, and follow the sales leaderboard."
+    },
+    "DISTRIBUTION": {
+      "title": "Ticket networks",
+      "body": "Manage your Ticketmaster, Fnac, BilletReduc or tourist office sales with Evoly: seats allocated to each network, their tickets imported in 1 click, and every entry checked with a single app."
     }
   },
   "seatingEditor": {
@@ -3067,5 +3080,38 @@
     "tab_notifications": "Notifications",
     "tab_preferences": "Preferences",
     "tabs": "Page sections"
+  },
+  "distribution": {
+    "intro": "Do you also sell through Ticketmaster, Fnac, BilletReduc or a tourist office? Allocate seats to them: they are removed from sale on Evoly, so the same seat is never sold twice.",
+    "networksTitle": "Ticket networks",
+    "empty": "No network yet. Add the one that also sells your tickets.",
+    "kind_TICKETMASTER": "Ticketmaster (Ticketnet, Leclerc, Auchan, Cultura)",
+    "kind_FRANCE_BILLET": "France Billet (Fnac, Carrefour, Géant, Magasins U, Intermarché)",
+    "kind_BILLETREDUC": "BilletReduc",
+    "kind_PASS_CULTURE": "Pass Culture",
+    "kind_TOURIST_OFFICE": "Tourist office",
+    "kind_WORKS_COUNCIL": "Works council",
+    "kind_OTHER": "Other network",
+    "kind": "Network",
+    "name": "Display name",
+    "nameHint": "Optional: the network’s usual name is suggested.",
+    "add": "Add network",
+    "added": "Network added.",
+    "allocated": "Allocated seats",
+    "imported": "Imported tickets",
+    "entered": "Entries",
+    "release": "Release unsold ({count})",
+    "releaseConfirm": "Release {count, plural, one {# unsold seat} other {# unsold seats}} back to online sale?",
+    "released": "{count, plural, =0 {No seats to release.} one {# seat released back to online sale.} other {# seats released back to online sale.}}",
+    "allocationsTitle": "Allocated seats per ticket type",
+    "allocationsHint": "Seats allocated to a network are removed from sale on Evoly. Never fewer than the tickets already imported for that network.",
+    "onlineLeft": "{count, plural, =0 {No seats left on sale online} one {# seat still on sale online} other {# seats still on sale online}}",
+    "onlineUnlimited": "Online seats: up to the event capacity",
+    "importedHint": "{count, plural, one {# ticket imported} other {# tickets imported}}",
+    "save": "Save",
+    "saved": "Saved.",
+    "seatsTitle": "Numbered seats",
+    "seatsBody": "With a seating map, choose each network’s seats on the map: they are removed from online sale.",
+    "seatsLink": "Open the seating map"
   }
 }

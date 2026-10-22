@@ -82,7 +82,8 @@
     "sectionPages": "Pages de la section",
     "planFree": "Offre Free",
     "planPro": "Offre Pro",
-    "planProUntil": "Pro offert jusqu’au {date}"
+    "planProUntil": "Pro offert jusqu’au {date}",
+    "distribution": "Réseaux de vente"
   },
   "auth": {
     "loginTitle": "Connexion",
@@ -1038,7 +1039,15 @@
     "NOT_ENOUGH_SEATS": "Plus assez de places disponibles dans cette catégorie.",
     "UPLOAD_SVG_UNSAFE": "Ce SVG contient des éléments refusés (script, lien externe…) : exportez-le en PNG, ou utilisez un SVG simple.",
     "BRAND_SOCIAL_INVALID": "Lien invalide : utilisez l’adresse https de votre page sur ce réseau.",
-    "BRAND_THEME_INVALID": "Réglage inconnu : choisissez une valeur de la liste."
+    "BRAND_THEME_INVALID": "Réglage inconnu : choisissez une valeur de la liste.",
+    "DISTRIBUTOR_NAME_TAKEN": "Un réseau porte déjà ce nom.",
+    "DISTRIBUTOR_NAME_INVALID": "Donnez au réseau un nom de 2 à 60 caractères.",
+    "DISTRIBUTOR_KIND_INVALID": "Choisissez un réseau dans la liste.",
+    "ALLOCATION_EXCEEDS_STOCK": "Il ne reste pas assez de places en vente en ligne pour ce contingent.",
+    "ALLOCATION_BELOW_IMPORTED": "Impossible de descendre sous les billets déjà importés pour ce réseau.",
+    "ALLOCATION_QUANTITY_INVALID": "Indiquez un nombre entier de places.",
+    "ALLOCATION_USE_SEATS": "Avec un plan de salle, choisissez les places du réseau sur le plan.",
+    "ALLOCATION_USE_QUANTITY": "Cet événement n’a pas de places numérotées : indiquez un nombre de places."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",
@@ -2324,6 +2333,10 @@
     "AMBASSADORS": {
       "title": "Ambassadeurs",
       "body": "Donnez à chaque membre de votre équipe son propre lien de vente, et suivez le classement des ventes."
+    },
+    "DISTRIBUTION": {
+      "title": "Réseaux de vente",
+      "body": "Gérez avec Evoly vos ventes par Ticketmaster, la Fnac, BilletReduc ou un office de tourisme : places confiées à chaque réseau, import de leurs billets en 1 clic, et contrôle de toutes les entrées avec une seule application."
     }
   },
   "seatingEditor": {
@@ -3067,5 +3080,38 @@
     "tab_notifications": "Notifications",
     "tab_preferences": "Préférences",
     "tabs": "Sections de la page"
+  },
+  "distribution": {
+    "intro": "Vous vendez aussi par Ticketmaster, la Fnac, BilletReduc ou un office de tourisme ? Confiez-leur des places : elles sont retirées de la vente sur Evoly, pour ne jamais vendre deux fois la même place.",
+    "networksTitle": "Réseaux de vente",
+    "empty": "Aucun réseau pour l’instant. Ajoutez celui qui vend aussi vos places.",
+    "kind_TICKETMASTER": "Ticketmaster (Ticketnet, Leclerc, Auchan, Cultura)",
+    "kind_FRANCE_BILLET": "France Billet (Fnac, Carrefour, Géant, Magasins U, Intermarché)",
+    "kind_BILLETREDUC": "BilletReduc",
+    "kind_PASS_CULTURE": "Pass Culture",
+    "kind_TOURIST_OFFICE": "Office de tourisme",
+    "kind_WORKS_COUNCIL": "Comité d’entreprise",
+    "kind_OTHER": "Autre réseau",
+    "kind": "Réseau",
+    "name": "Nom affiché",
+    "nameHint": "Facultatif : le nom habituel du réseau est proposé.",
+    "add": "Ajouter le réseau",
+    "added": "Réseau ajouté.",
+    "allocated": "Places confiées",
+    "imported": "Billets importés",
+    "entered": "Entrées",
+    "release": "Rendre les invendus ({count})",
+    "releaseConfirm": "Rendre {count, plural, one {# place invendue} other {# places invendues}} à la vente en ligne ?",
+    "released": "{count, plural, =0 {Aucune place à rendre.} one {# place rendue à la vente en ligne.} other {# places rendues à la vente en ligne.}}",
+    "allocationsTitle": "Places confiées par tarif",
+    "allocationsHint": "Les places confiées à un réseau sont retirées de la vente sur Evoly. Jamais moins que les billets déjà importés pour ce réseau.",
+    "onlineLeft": "{count, plural, =0 {Plus aucune place en vente en ligne} one {# place encore en vente en ligne} other {# places encore en vente en ligne}}",
+    "onlineUnlimited": "Places en ligne : selon la jauge de l’événement",
+    "importedHint": "{count, plural, one {# billet importé} other {# billets importés}}",
+    "save": "Enregistrer",
+    "saved": "Enregistré.",
+    "seatsTitle": "Places numérotées",
+    "seatsBody": "Avec un plan de salle, choisissez sur le plan les places de chaque réseau : elles sont retirées de la vente en ligne.",
+    "seatsLink": "Ouvrir le plan de salle"
   }
 }

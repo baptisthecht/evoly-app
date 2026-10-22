@@ -800,7 +800,8 @@
     "sectionPages": "Seiten des Bereichs",
     "planFree": "Free-Tarif",
     "planPro": "Pro-Tarif",
-    "planProUntil": "Pro geschenkt bis {date}"
+    "planProUntil": "Pro geschenkt bis {date}",
+    "distribution": "Vertriebsnetze"
   },
   "dashboard": {
     "greeting": "hallo {name},",
@@ -1031,6 +1032,10 @@
     "AMBASSADORS": {
       "title": "Botschafter",
       "body": "Geben Sie jedem Teammitglied einen eigenen Verkaufslink und verfolgen Sie die Verkaufsrangliste."
+    },
+    "DISTRIBUTION": {
+      "title": "Vertriebsnetze",
+      "body": "Verwalten Sie mit Evoly Ihre Verkäufe über Ticketmaster, Fnac, BilletReduc oder ein Tourismusbüro: Kontingente je Netz, Import der Tickets mit 1 Klick und Einlasskontrolle aller Tickets mit einer einzigen App."
     }
   },
   "upsell": {
@@ -1166,7 +1171,15 @@
     "NOT_ENOUGH_SEATS": "In dieser Kategorie sind nicht mehr genug Plätze verfügbar.",
     "UPLOAD_SVG_UNSAFE": "Dieses SVG enthält nicht erlaubte Elemente (Skript, externer Link…): Exportieren Sie es als PNG oder verwenden Sie ein einfaches SVG.",
     "BRAND_SOCIAL_INVALID": "Ungültiger Link: Verwenden Sie die https-Adresse Ihrer Seite in diesem Netzwerk.",
-    "BRAND_THEME_INVALID": "Unbekannte Einstellung: Wählen Sie einen Wert aus der Liste."
+    "BRAND_THEME_INVALID": "Unbekannte Einstellung: Wählen Sie einen Wert aus der Liste.",
+    "DISTRIBUTOR_NAME_TAKEN": "Ein Netz trägt bereits diesen Namen.",
+    "DISTRIBUTOR_NAME_INVALID": "Geben Sie dem Netz einen Namen mit 2 bis 60 Zeichen.",
+    "DISTRIBUTOR_KIND_INVALID": "Wählen Sie ein Netz aus der Liste.",
+    "ALLOCATION_EXCEEDS_STOCK": "Für dieses Kontingent sind online nicht mehr genug Plätze verfügbar.",
+    "ALLOCATION_BELOW_IMPORTED": "Das Kontingent darf nicht unter die bereits für dieses Netz importierten Tickets sinken.",
+    "ALLOCATION_QUANTITY_INVALID": "Geben Sie eine ganze Zahl von Plätzen ein.",
+    "ALLOCATION_USE_SEATS": "Wählen Sie bei einem Saalplan die Plätze des Netzes auf dem Plan.",
+    "ALLOCATION_USE_QUANTITY": "Diese Veranstaltung hat keine nummerierten Plätze: Geben Sie eine Anzahl Plätze ein."
   },
   "eventSettings": {
     "unsaved": "Änderungen laufen…",
@@ -3067,5 +3080,38 @@
     "tab_notifications": "Benachrichtigungen",
     "tab_preferences": "Einstellungen",
     "tabs": "Bereiche der Seite"
+  },
+  "distribution": {
+    "intro": "Verkaufen Sie auch über Ticketmaster, Fnac, BilletReduc oder ein Tourismusbüro? Geben Sie ihnen Kontingente: Diese Plätze werden aus dem Verkauf auf Evoly genommen, damit kein Platz doppelt verkauft wird.",
+    "networksTitle": "Vertriebsnetze",
+    "empty": "Noch kein Netz. Fügen Sie das Netz hinzu, das Ihre Tickets ebenfalls verkauft.",
+    "kind_TICKETMASTER": "Ticketmaster (Ticketnet, Leclerc, Auchan, Cultura)",
+    "kind_FRANCE_BILLET": "France Billet (Fnac, Carrefour, Géant, Magasins U, Intermarché)",
+    "kind_BILLETREDUC": "BilletReduc",
+    "kind_PASS_CULTURE": "Pass Culture",
+    "kind_TOURIST_OFFICE": "Tourismusbüro",
+    "kind_WORKS_COUNCIL": "Betriebsrat",
+    "kind_OTHER": "Anderes Netz",
+    "kind": "Netz",
+    "name": "Angezeigter Name",
+    "nameHint": "Optional: Der übliche Name des Netzes wird vorgeschlagen.",
+    "add": "Netz hinzufügen",
+    "added": "Netz hinzugefügt.",
+    "allocated": "Kontingent",
+    "imported": "Importierte Tickets",
+    "entered": "Einlässe",
+    "release": "Unverkaufte freigeben ({count})",
+    "releaseConfirm": "{count, plural, one {# unverkauften Platz} other {# unverkaufte Plätze}} wieder online verkaufen?",
+    "released": "{count, plural, =0 {Keine Plätze freizugeben.} one {# Platz wieder im Online-Verkauf.} other {# Plätze wieder im Online-Verkauf.}}",
+    "allocationsTitle": "Kontingente je Ticketart",
+    "allocationsHint": "Plätze im Kontingent eines Netzes werden aus dem Verkauf auf Evoly genommen. Nie weniger als die bereits für dieses Netz importierten Tickets.",
+    "onlineLeft": "{count, plural, =0 {Keine Plätze mehr online verfügbar} one {Noch # Platz online verfügbar} other {Noch # Plätze online verfügbar}}",
+    "onlineUnlimited": "Online-Plätze: bis zur Kapazität der Veranstaltung",
+    "importedHint": "{count, plural, one {# Ticket importiert} other {# Tickets importiert}}",
+    "save": "Speichern",
+    "saved": "Gespeichert.",
+    "seatsTitle": "Nummerierte Plätze",
+    "seatsBody": "Wählen Sie bei einem Saalplan die Plätze jedes Netzes auf dem Plan: Sie werden aus dem Online-Verkauf genommen.",
+    "seatsLink": "Saalplan öffnen"
   }
 }

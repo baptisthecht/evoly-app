@@ -38,6 +38,7 @@ export function buildEventTabs(input: {
     ...(input.canPublish ? [item("launch", "launch")] : []),
     item("promo", "promo"),
     item("ambassadors", "ambassadors"),
+    item("distribution", "distribution"), // réseaux de billetterie et contingents
     item("embed", "embed"),
   ];
   const tabs: EventTab[] = [

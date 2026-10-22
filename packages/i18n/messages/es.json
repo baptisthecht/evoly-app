@@ -800,7 +800,8 @@
     "sectionPages": "Páginas de la sección",
     "planFree": "Plan Free",
     "planPro": "Plan Pro",
-    "planProUntil": "Pro gratis hasta el {date}"
+    "planProUntil": "Pro gratis hasta el {date}",
+    "distribution": "Redes de venta"
   },
   "dashboard": {
     "greeting": "hola, {name},",
@@ -1031,6 +1032,10 @@
     "AMBASSADORS": {
       "title": "Embajadores",
       "body": "Da a cada miembro de tu equipo su propio enlace de venta y sigue la clasificación de ventas."
+    },
+    "DISTRIBUTION": {
+      "title": "Redes de venta",
+      "body": "Gestiona con Evoly tus ventas por Ticketmaster, Fnac, BilletReduc o una oficina de turismo: plazas asignadas a cada red, importación de sus entradas en 1 clic y control de todos los accesos con una sola aplicación."
     }
   },
   "upsell": {
@@ -1166,7 +1171,15 @@
     "NOT_ENOUGH_SEATS": "No quedan suficientes plazas disponibles en esta categoría.",
     "UPLOAD_SVG_UNSAFE": "Este SVG contiene elementos no permitidos (script, enlace externo…): expórtalo en PNG o usa un SVG sencillo.",
     "BRAND_SOCIAL_INVALID": "Enlace no válido: usa la dirección https de tu página en esta red.",
-    "BRAND_THEME_INVALID": "Ajuste desconocido: elige un valor de la lista."
+    "BRAND_THEME_INVALID": "Ajuste desconocido: elige un valor de la lista.",
+    "DISTRIBUTOR_NAME_TAKEN": "Ya existe una red con este nombre.",
+    "DISTRIBUTOR_NAME_INVALID": "Da a la red un nombre de 2 a 60 caracteres.",
+    "DISTRIBUTOR_KIND_INVALID": "Elige una red de la lista.",
+    "ALLOCATION_EXCEEDS_STOCK": "No quedan suficientes plazas a la venta en línea para esta asignación.",
+    "ALLOCATION_BELOW_IMPORTED": "No se puede bajar por debajo de las entradas ya importadas para esta red.",
+    "ALLOCATION_QUANTITY_INVALID": "Indica un número entero de plazas.",
+    "ALLOCATION_USE_SEATS": "Con un plano de sala, elige las plazas de la red en el plano.",
+    "ALLOCATION_USE_QUANTITY": "Este evento no tiene plazas numeradas: indica un número de plazas."
   },
   "eventSettings": {
     "unsaved": "Cambios en curso…",
@@ -3067,5 +3080,38 @@
     "tab_notifications": "Notificaciones",
     "tab_preferences": "Preferencias",
     "tabs": "Secciones de la página"
+  },
+  "distribution": {
+    "intro": "¿También vendes por Ticketmaster, Fnac, BilletReduc o una oficina de turismo? Asígnales plazas: se retiran de la venta en Evoly para no vender nunca dos veces la misma plaza.",
+    "networksTitle": "Redes de venta",
+    "empty": "Todavía no hay ninguna red. Añade la que también vende tus entradas.",
+    "kind_TICKETMASTER": "Ticketmaster (Ticketnet, Leclerc, Auchan, Cultura)",
+    "kind_FRANCE_BILLET": "France Billet (Fnac, Carrefour, Géant, Magasins U, Intermarché)",
+    "kind_BILLETREDUC": "BilletReduc",
+    "kind_PASS_CULTURE": "Pass Culture",
+    "kind_TOURIST_OFFICE": "Oficina de turismo",
+    "kind_WORKS_COUNCIL": "Comité de empresa",
+    "kind_OTHER": "Otra red",
+    "kind": "Red",
+    "name": "Nombre mostrado",
+    "nameHint": "Opcional: se propone el nombre habitual de la red.",
+    "add": "Añadir la red",
+    "added": "Red añadida.",
+    "allocated": "Plazas asignadas",
+    "imported": "Entradas importadas",
+    "entered": "Accesos",
+    "release": "Devolver las no vendidas ({count})",
+    "releaseConfirm": "¿Devolver {count, plural, one {# plaza no vendida} other {# plazas no vendidas}} a la venta en línea?",
+    "released": "{count, plural, =0 {No hay plazas que devolver.} one {# plaza devuelta a la venta en línea.} other {# plazas devueltas a la venta en línea.}}",
+    "allocationsTitle": "Plazas asignadas por tarifa",
+    "allocationsHint": "Las plazas asignadas a una red se retiran de la venta en Evoly. Nunca menos que las entradas ya importadas para esa red.",
+    "onlineLeft": "{count, plural, =0 {Ya no quedan plazas a la venta en línea} one {Queda # plaza a la venta en línea} other {Quedan # plazas a la venta en línea}}",
+    "onlineUnlimited": "Plazas en línea: según el aforo del evento",
+    "importedHint": "{count, plural, one {# entrada importada} other {# entradas importadas}}",
+    "save": "Guardar",
+    "saved": "Guardado.",
+    "seatsTitle": "Plazas numeradas",
+    "seatsBody": "Con un plano de sala, elige en el plano las plazas de cada red: se retiran de la venta en línea.",
+    "seatsLink": "Abrir el plano de sala"
   }
 }

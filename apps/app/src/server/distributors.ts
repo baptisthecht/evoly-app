@@ -18,7 +18,7 @@ export type DistributorKind = (typeof DISTRIBUTOR_KINDS)[number];
 /** Nom proposé à la création (modifiable) : celui sous lequel l'organisateur connaît le réseau. */
 export const DEFAULT_DISTRIBUTOR_NAMES: Record<DistributorKind, string> = {
   TICKETMASTER: "Ticketmaster",
-  FRANCE_BILLET: "Fnac – France Billet",
+  FRANCE_BILLET: "Fnac (France Billet)",
   BILLETREDUC: "BilletReduc",
   PASS_CULTURE: "Pass Culture",
   TOURIST_OFFICE: "Office de tourisme",

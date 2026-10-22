@@ -800,7 +800,8 @@
     "sectionPages": "Pagina’s van het onderdeel",
     "planFree": "Free-abonnement",
     "planPro": "Pro-abonnement",
-    "planProUntil": "Gratis Pro tot {date}"
+    "planProUntil": "Gratis Pro tot {date}",
+    "distribution": "Verkoopnetwerken"
   },
   "dashboard": {
     "greeting": "hallo {name},",
@@ -1031,6 +1032,10 @@
     "AMBASSADORS": {
       "title": "Ambassadeurs",
       "body": "Geef elk teamlid een eigen verkooplink en volg het verkoopklassement."
+    },
+    "DISTRIBUTION": {
+      "title": "Verkoopnetwerken",
+      "body": "Beheer met Evoly je verkoop via Ticketmaster, Fnac, BilletReduc of een toeristische dienst: plaatsen per netwerk, hun tickets in 1 klik geïmporteerd en alle toegang gecontroleerd met één app."
     }
   },
   "upsell": {
@@ -1166,7 +1171,15 @@
     "NOT_ENOUGH_SEATS": "Niet genoeg plaatsen meer beschikbaar in deze categorie.",
     "UPLOAD_SVG_UNSAFE": "Deze SVG bevat geweigerde elementen (script, externe link…): exporteer hem als PNG of gebruik een eenvoudige SVG.",
     "BRAND_SOCIAL_INVALID": "Ongeldige link: gebruik het https-adres van uw pagina op dit netwerk.",
-    "BRAND_THEME_INVALID": "Onbekende instelling: kies een waarde uit de lijst."
+    "BRAND_THEME_INVALID": "Onbekende instelling: kies een waarde uit de lijst.",
+    "DISTRIBUTOR_NAME_TAKEN": "Er bestaat al een netwerk met deze naam.",
+    "DISTRIBUTOR_NAME_INVALID": "Geef het netwerk een naam van 2 tot 60 tekens.",
+    "DISTRIBUTOR_KIND_INVALID": "Kies een netwerk uit de lijst.",
+    "ALLOCATION_EXCEEDS_STOCK": "Er zijn niet genoeg plaatsen meer online te koop voor deze toewijzing.",
+    "ALLOCATION_BELOW_IMPORTED": "Je kunt niet onder het aantal tickets gaan dat al voor dit netwerk is geïmporteerd.",
+    "ALLOCATION_QUANTITY_INVALID": "Geef een geheel aantal plaatsen op.",
+    "ALLOCATION_USE_SEATS": "Kies met een zaalplan de plaatsen van het netwerk op het plan.",
+    "ALLOCATION_USE_QUANTITY": "Dit evenement heeft geen genummerde plaatsen: geef een aantal plaatsen op."
   },
   "eventSettings": {
     "unsaved": "Wijzigingen bezig…",
@@ -3067,5 +3080,38 @@
     "tab_notifications": "Meldingen",
     "tab_preferences": "Voorkeuren",
     "tabs": "Onderdelen van de pagina"
+  },
+  "distribution": {
+    "intro": "Verkoop je ook via Ticketmaster, Fnac, BilletReduc of een toeristische dienst? Vertrouw hen plaatsen toe: die worden uit de verkoop op Evoly gehaald, zodat dezelfde plaats nooit twee keer wordt verkocht.",
+    "networksTitle": "Verkoopnetwerken",
+    "empty": "Nog geen netwerk. Voeg het netwerk toe dat ook je tickets verkoopt.",
+    "kind_TICKETMASTER": "Ticketmaster (Ticketnet, Leclerc, Auchan, Cultura)",
+    "kind_FRANCE_BILLET": "France Billet (Fnac, Carrefour, Géant, Magasins U, Intermarché)",
+    "kind_BILLETREDUC": "BilletReduc",
+    "kind_PASS_CULTURE": "Pass Culture",
+    "kind_TOURIST_OFFICE": "Toeristische dienst",
+    "kind_WORKS_COUNCIL": "Ondernemingsraad",
+    "kind_OTHER": "Ander netwerk",
+    "kind": "Netwerk",
+    "name": "Getoonde naam",
+    "nameHint": "Optioneel: de gebruikelijke naam van het netwerk wordt voorgesteld.",
+    "add": "Netwerk toevoegen",
+    "added": "Netwerk toegevoegd.",
+    "allocated": "Toegewezen plaatsen",
+    "imported": "Geïmporteerde tickets",
+    "entered": "Binnengekomen",
+    "release": "Onverkochte plaatsen vrijgeven ({count})",
+    "releaseConfirm": "{count, plural, one {# onverkochte plaats} other {# onverkochte plaatsen}} terug in de onlineverkoop zetten?",
+    "released": "{count, plural, =0 {Geen plaatsen vrij te geven.} one {# plaats terug in de onlineverkoop.} other {# plaatsen terug in de onlineverkoop.}}",
+    "allocationsTitle": "Toegewezen plaatsen per tarief",
+    "allocationsHint": "Plaatsen die aan een netwerk zijn toegewezen, worden uit de verkoop op Evoly gehaald. Nooit minder dan de tickets die al voor dat netwerk zijn geïmporteerd.",
+    "onlineLeft": "{count, plural, =0 {Geen plaatsen meer online te koop} one {Nog # plaats online te koop} other {Nog # plaatsen online te koop}}",
+    "onlineUnlimited": "Online plaatsen: tot de capaciteit van het evenement",
+    "importedHint": "{count, plural, one {# ticket geïmporteerd} other {# tickets geïmporteerd}}",
+    "save": "Opslaan",
+    "saved": "Opgeslagen.",
+    "seatsTitle": "Genummerde plaatsen",
+    "seatsBody": "Kies met een zaalplan op het plan de plaatsen van elk netwerk: die worden uit de onlineverkoop gehaald.",
+    "seatsLink": "Zaalplan openen"
   }
 }

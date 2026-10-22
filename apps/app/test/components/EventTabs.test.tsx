@@ -19,13 +19,14 @@ describe("onglets d'un événement : construction", () => {
     const { tabs, hidden } = build({ seating: false, options: false, ambassadors: false }, false);
     expect(tabs.map((t) => t.label)).toEqual([n.eventOverview, n.groupTicketing, n.groupAttendees, n.groupSales, n.groupDayOf, n.eventSettings]);
     expect(tabs[1]!.items.map((i) => i.label)).toEqual([n.tickets, n.seating, n.tables, n.options]);
-    expect(tabs[3]!.items.map((i) => i.label)).toEqual([n.eventPage, n.promo, n.ambassadors, n.embed]);
+    expect(tabs[3]!.items.map((i) => i.label)).toEqual([n.eventPage, n.promo, n.ambassadors, n.distribution, n.embed]);
     expect(hidden).toEqual([]);
     expect(build({ seating: true, options: true, ambassadors: true }, true).tabs[3]!.items.map((i) => i.label)).toEqual([
       n.eventPage,
       n.launch,
       n.promo,
       n.ambassadors,
+      n.distribution, // réseaux de vente (Ticketmaster, Fnac, BilletReduc…)
       n.embed,
     ]);
   });
