@@ -62,9 +62,24 @@ async function payWith(page: Page, publicUrl: string, email: string, card: strin
   if ((await zip.count()) && (await zip.isVisible())) await zip.fill("1000");
   await box.getByRole("button", { name: /^Payer/ }).click();
 }
-/** Acheteur dans son propre navigateur : sans l'en-tête d'adresse IP simulée de l'organisateur, que les services de
- * Stripe (vérification anti-robots déclenchée sur une carte refusée, 3-D Secure) refusent. */
-const buyerPage = async (browser: Browser) => (await browser.newContext({ locale: "fr-BE" })).newPage();
+/** Acheteur dans son propre navigateur. L'adresse IP simulée (limite de requêtes de l'application) n'est ajoutée qu'aux
+ * requêtes vers l'application : les services de Stripe (anti-robots, 3-D Secure) refusent cet en-tête. */
+let buyerShown: Page | null = null;
+async function buyerPage(browser: Browser) {
+  const context = await browser.newContext({ locale: "fr-BE" });
+  const ip = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250) + 1}`;
+  await context.route(/^https?:\/\/([a-z0-9-]+\.)?localhost:3001\//, (route) =>
+    route.continue({ headers: { ...route.request().headers(), "x-forwarded-for": ip } }),
+  );
+  buyerShown = await context.newPage();
+  return buyerShown;
+}
+// en cas d'échec : capture de la page de l'acheteur dans les traces (Playwright ne photographie que la page principale)
+test.afterEach(async ({}, testInfo) => {
+  if (buyerShown && testInfo.status !== testInfo.expectedStatus)
+    await buyerShown.screenshot({ path: testInfo.outputPath("acheteur.png"), fullPage: true }).catch(() => undefined);
+  buyerShown = null;
+});
 const orderOf = (email: string) => sql(`select status from "Order" where "buyerEmail" = '${email}' order by "createdAt" desc limit 1`);
 
 test("carte acceptée : paiement confirmé au retour, commande payée, billets émis", async ({ page, browser }) => {
