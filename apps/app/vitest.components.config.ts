@@ -35,7 +35,7 @@ export default defineConfig({
       ],
       reporter: ["text-summary", "json-summary"],
       reportsDirectory: "coverage-components",
-      thresholds: { statements: 84, branches: 78, functions: 78, lines: 86 }, // 21 octobre 2026 : 405 tests (84.7 / 79.2 / 79.4 / 86.8) ; marge pour la CI, jamais à la baisse
+      thresholds: { statements: 84, branches: 79, functions: 79, lines: 86 }, // 21 octobre 2026 : 410 tests, objectif atteint (85,0 / 80,0 / 79,9 / 87,2) ; marge pour la CI, jamais à la baisse
     },
   },
 });

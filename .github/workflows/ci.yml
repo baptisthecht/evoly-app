@@ -37,6 +37,10 @@ jobs:
       BETTER_AUTH_SECRET: ci-secret-ci-secret-ci-secret-0123456789
       BETTER_AUTH_URL: http://localhost:3001
       NEXT_PUBLIC_APP_URL: http://localhost:3001
+      # paiements Stripe de bout en bout (mode test) : actifs seulement si les secrets existent ; sinon vides, parcours ignorés.
+      # La clé publique est lue à la construction ; la clé secrète n'est donnée qu'à l'étape des paiements.
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.E2E_STRIPE_PUBLISHABLE_KEY }}
+      E2E_STRIPE_ACCOUNT: ${{ secrets.E2E_STRIPE_ACCOUNT }}
       # billetteries en sous-domaines de localhost (org.localhost:3001), comme en développement
       NEXT_PUBLIC_BASE_DOMAIN: localhost:3001
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
@@ -90,6 +94,15 @@ jobs:
           npx playwright install --with-deps chromium
           (npx next start -p 3001 &) && npx wait-on -t 60000 http://localhost:3001/api/health
           npx playwright test
+      - name: Paiements Stripe de bout en bout (mode test)
+        if: env.E2E_STRIPE_ACCOUNT != ''
+        working-directory: apps/app
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.E2E_STRIPE_SECRET_KEY }}
+        run: |
+          (pkill -f "next start" || true) && sleep 3
+          (npx next start -p 3001 &) && npx wait-on -t 60000 http://localhost:3001/api/health
+          npx playwright test e2e/stripe-payments.spec.ts --project=desktop
       - uses: actions/upload-artifact@v7.0.1
         if: failure()
         with:
