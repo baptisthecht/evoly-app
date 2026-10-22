@@ -1,3 +1,4 @@
+import { writeFileSync } from "node:fs";
 import type { Browser, Frame, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { envValue, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
@@ -60,7 +61,10 @@ async function payWith(page: Page, publicUrl: string, email: string, card: strin
   if (await country.count()) await country.selectOption("BE");
   const zip = f.locator('input[name="postalCode"]');
   if ((await zip.count()) && (await zip.isVisible())) await zip.fill("1000");
+  await page.waitForTimeout(1500); // le temps que Stripe valide les champs, comme un acheteur
   await box.getByRole("button", { name: /^Payer/ }).click();
+  await page.waitForTimeout(5000);
+  await page.screenshot({ path: test.info().outputPath("apres-paiement.png"), fullPage: true }).catch(() => undefined);
 }
 /** Acheteur dans son propre navigateur. L'adresse IP simulée (limite de requêtes de l'application) n'est ajoutée qu'aux
  * requêtes vers l'application : les services de Stripe (anti-robots, 3-D Secure) refusent cet en-tête. */
@@ -72,12 +76,24 @@ async function buyerPage(browser: Browser) {
     route.continue({ headers: { ...route.request().headers(), "x-forwarded-for": ip } }),
   );
   buyerShown = await context.newPage();
+  // relevé côté acheteur, joint aux traces en cas d'échec : console, erreurs de la page, requêtes échouées
+  buyerLog = [];
+  buyerShown.on("console", (m) => buyerLog.push(`console ${m.type()} : ${m.text().slice(0, 300)}`));
+  buyerShown.on("pageerror", (e) => buyerLog.push(`erreur de la page : ${e.message.slice(0, 300)}`));
+  buyerShown.on("requestfailed", (r) => buyerLog.push(`requête échouée : ${r.method()} ${r.url().slice(0, 160)} ${r.failure()?.errorText ?? ""}`));
+  buyerShown.on("response", (r) => {
+    if (r.status() >= 400) buyerLog.push(`réponse ${r.status()} : ${r.request().method()} ${r.url().slice(0, 160)}`);
+  });
   return buyerShown;
 }
+let buyerLog: string[] = [];
 // en cas d'échec : capture de la page de l'acheteur dans les traces (Playwright ne photographie que la page principale)
 test.afterEach(async ({}, testInfo) => {
-  if (buyerShown && testInfo.status !== testInfo.expectedStatus)
+  if (buyerShown && testInfo.status !== testInfo.expectedStatus) {
     await buyerShown.screenshot({ path: testInfo.outputPath("acheteur.png"), fullPage: true }).catch(() => undefined);
+    writeFileSync(testInfo.outputPath("acheteur.txt"), buyerLog.join("\n"));
+    console.log(`relevé de l'acheteur (${testInfo.title}) :\n${buyerLog.slice(-40).join("\n")}`);
+  }
   buyerShown = null;
 });
 const orderOf = (email: string) => sql(`select status from "Order" where "buyerEmail" = '${email}' order by "createdAt" desc limit 1`);
