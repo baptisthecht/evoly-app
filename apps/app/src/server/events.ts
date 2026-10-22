@@ -209,8 +209,9 @@ export async function updateEventSettings(ctx: OrgContext, eventId: string, inpu
   const refundDeadlineAt = input.refundPolicy === "UNTIL_DEADLINE" ? toUtc(input.refundDeadlineLocal) : null;
   if (input.refundPolicy === "UNTIL_DEADLINE" && !refundDeadlineAt) throw new CoreError("REFUND_DEADLINE_REQUIRED");
   if (input.capacity != null) {
-    const totals = await db.ticketType.aggregate({ where: { eventId }, _sum: { quantitySold: true, quantityHeld: true } });
-    if (input.capacity < (totals._sum.quantitySold ?? 0) + (totals._sum.quantityHeld ?? 0)) throw new CoreError("CAPACITY_BELOW_SOLD");
+    const totals = await db.ticketType.aggregate({ where: { eventId }, _sum: { quantitySold: true, quantityHeld: true, quantityAllocated: true } });
+    if (input.capacity < (totals._sum.quantitySold ?? 0) + (totals._sum.quantityHeld ?? 0) + (totals._sum.quantityAllocated ?? 0))
+      throw new CoreError("CAPACITY_BELOW_SOLD");
   }
   const published = event.status === "PUBLISHED" || event.status === "SALES_PAUSED";
   const majorChange =

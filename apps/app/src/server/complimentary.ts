@@ -38,7 +38,7 @@ export async function sendComplimentaryTickets(
       await db.$transaction(async (tx) => {
         if (!(await lockEvent(tx, event.id))) throw new CoreError("NOT_FOUND");
         const held =
-          await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${type.id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${n})`;
+          await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${type.id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" - "quantityAllocated" >= ${n})`;
         if (held !== 1) throw new CoreError("COMPLIMENTARY_NO_STOCK");
         const included = await tx.includedOption.findMany({ where: { ticketTypeId: type.id } }); // section 9.31 : options comprises dans la table
         await tx.order.create({

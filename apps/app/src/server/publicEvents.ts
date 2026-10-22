@@ -162,8 +162,13 @@ async function loadPublicEventUncached(
   });
   if (!event) return null;
   const now = new Date();
-  const totals = await db.ticketType.aggregate({ where: { eventId: event.id }, _sum: { quantitySold: true, quantityHeld: true } });
-  const eventStock = { capacity: event.capacity, soldTotal: totals._sum.quantitySold ?? 0, heldTotal: totals._sum.quantityHeld ?? 0 };
+  const totals = await db.ticketType.aggregate({ where: { eventId: event.id }, _sum: { quantitySold: true, quantityHeld: true, quantityAllocated: true } });
+  const eventStock = {
+    capacity: event.capacity,
+    soldTotal: totals._sum.quantitySold ?? 0,
+    heldTotal: totals._sum.quantityHeld ?? 0,
+    allocatedTotal: totals._sum.quantityAllocated ?? 0,
+  };
   const opensAt = salesOpeningAt(event); // RG-PRG-02 : jamais avant la publication programmée
   // RG-PRV-02 : un code de prévente valable ouvre la vente avant l\'ouverture publique, pour ce visiteur
   const presale = !!options.presaleCode && !!opensAt && opensAt > now && event.status === "PUBLISHED" && (await presaleUsable(event, options.presaleCode, now));

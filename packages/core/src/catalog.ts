@@ -18,14 +18,15 @@ export function canEditBasePrice(ticketType: { priceLockedAt?: Date | null; quan
 }
 
 /** RG-TKT-05 : la quantité ne peut pas descendre sous le nombre déjà vendu ou réservé. */
-export function canSetQuantity(newQuantity: number | null, ticketType: { quantitySold: number; quantityHeld: number }): boolean {
+export function canSetQuantity(newQuantity: number | null, ticketType: { quantitySold: number; quantityHeld: number; quantityAllocated?: number }): boolean {
   if (newQuantity == null) return true;
-  return Number.isInteger(newQuantity) && newQuantity >= ticketType.quantitySold + ticketType.quantityHeld;
+  // jamais sous les places vendues, en cours de paiement ou confiées aux réseaux
+  return Number.isInteger(newQuantity) && newQuantity >= ticketType.quantitySold + ticketType.quantityHeld + (ticketType.quantityAllocated ?? 0);
 }
 
 /** RG-TKT-06 : suppression uniquement sans vente ; sinon masquer ou archiver. */
-export function canDeleteTicketType(ticketType: { quantitySold: number; quantityHeld: number }): boolean {
-  return ticketType.quantitySold === 0 && ticketType.quantityHeld === 0;
+export function canDeleteTicketType(ticketType: { quantitySold: number; quantityHeld: number; quantityAllocated?: number }): boolean {
+  return ticketType.quantitySold === 0 && ticketType.quantityHeld === 0 && (ticketType.quantityAllocated ?? 0) === 0;
 }
 
 /** RG-TKT-09 : prix d'un palier figé dès sa première vente ; dates et quota restent modifiables. */

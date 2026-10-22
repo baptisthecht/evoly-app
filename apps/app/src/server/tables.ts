@@ -15,13 +15,13 @@ export async function saveTableSettings(ctx: OrgContext, eventId: string, ticket
   await findEvent(ctx, eventId);
   const tt = await db.ticketType.findFirst({
     where: { id: ticketTypeId, eventId },
-    select: { id: true, groupSize: true, quantitySold: true, quantityHeld: true },
+    select: { id: true, groupSize: true, quantitySold: true, quantityHeld: true, quantityAllocated: true },
   });
   if (!tt) throw new CoreError("NOT_FOUND");
   const groupSize = Math.trunc(input.groupSize);
   if (!Number.isFinite(groupSize) || groupSize < 1 || groupSize > 30) throw new CoreError("TABLE_SIZE_INVALID");
   // des billets déjà émis ne changent jamais de nombre : le nombre de personnes est verrouillé dès la première vente
-  if (groupSize !== tt.groupSize && tt.quantitySold + tt.quantityHeld > 0) throw new CoreError("TABLE_LOCKED");
+  if (groupSize !== tt.groupSize && tt.quantitySold + tt.quantityHeld + tt.quantityAllocated > 0) throw new CoreError("TABLE_LOCKED");
   const tableLabels = input.tableLabels
     .map((l) => l.trim().slice(0, 60))
     .filter(Boolean)
@@ -52,10 +52,11 @@ export async function tableSettings(ctx: OrgContext, eventId: string) {
         tableLabels: true,
         quantitySold: true,
         quantityHeld: true,
+        quantityAllocated: true,
         includedOptions: { select: { optionId: true, quantity: true } },
       },
     }),
     db.eventOption.findMany({ where: { eventId }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }], select: { id: true, name: true } }),
   ]);
-  return { types: types.map((t) => ({ ...t, locked: t.quantitySold + t.quantityHeld > 0 })), options };
+  return { types: types.map((t) => ({ ...t, locked: t.quantitySold + t.quantityHeld + t.quantityAllocated > 0 })), options };
 }

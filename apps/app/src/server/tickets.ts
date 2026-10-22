@@ -121,7 +121,9 @@ export async function updateTicketType(ctx: OrgContext, eventId: string, ticketT
       isNominative: input.isNominative,
       requireHolderEmail: input.isNominative && !!input.requireHolderEmail, // RG-QST-01
       resaleAllowed: input.resaleAllowed,
-      ...(tt.status === "SOLD_OUT" && (input.quantity == null || input.quantity > tt.quantitySold + tt.quantityHeld) ? { status: "ACTIVE" as const } : {}),
+      ...(tt.status === "SOLD_OUT" && (input.quantity == null || input.quantity > tt.quantitySold + tt.quantityHeld + tt.quantityAllocated)
+        ? { status: "ACTIVE" as const }
+        : {}),
     },
   });
   if (tt.resaleAllowed && !input.resaleAllowed) {

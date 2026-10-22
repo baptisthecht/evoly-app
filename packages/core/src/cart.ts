@@ -12,6 +12,8 @@ export interface StockInput {
   quantity: number | null;
   quantitySold: number;
   quantityHeld: number;
+  /** Places confiées aux réseaux de billetterie (contingents) : retirées de la vente en ligne. */
+  quantityAllocated?: number;
 }
 
 export interface TicketTypeForSale extends StockInput {
@@ -34,6 +36,8 @@ export interface EventForSale {
   /** Vendus et réservés sur tous les tarifs. */
   soldTotal: number;
   heldTotal: number;
+  /** Places confiées aux réseaux sur tous les tarifs. */
+  allocatedTotal?: number;
   salesStartAt?: Date | null;
   salesEndAt?: Date | null;
   maxTicketsPerOrder: number;
@@ -64,12 +68,14 @@ export type CartError =
 /** Places restantes (Infinity si illimité). */
 export function remaining(stock: StockInput): number {
   if (stock.quantity == null) return Number.POSITIVE_INFINITY;
-  return Math.max(0, stock.quantity - stock.quantitySold - stock.quantityHeld);
+  // règle unique des places en vente (docs/COMPATIBILITE_RESEAUX.md) : quantité − vendues − en cours de paiement − confiées aux réseaux
+  return Math.max(0, stock.quantity - stock.quantitySold - stock.quantityHeld - (stock.quantityAllocated ?? 0));
 }
 
 /** RG-TKT-03 : disponibilité d'un tarif, dans la limite de la jauge de l'événement. */
-export function availableFor(tt: StockInput, event: Pick<EventForSale, "capacity" | "soldTotal" | "heldTotal">): number {
-  const eventLeft = event.capacity == null ? Number.POSITIVE_INFINITY : Math.max(0, event.capacity - event.soldTotal - event.heldTotal);
+export function availableFor(tt: StockInput, event: Pick<EventForSale, "capacity" | "soldTotal" | "heldTotal" | "allocatedTotal">): number {
+  const eventLeft =
+    event.capacity == null ? Number.POSITIVE_INFINITY : Math.max(0, event.capacity - event.soldTotal - event.heldTotal - (event.allocatedTotal ?? 0));
   return Math.min(remaining(tt), eventLeft);
 }
 
@@ -129,7 +135,7 @@ export function checkCart(
   }
   if (total > event.maxTicketsPerOrder) errors.push({ code: "ORDER_LIMIT", max: event.maxTicketsPerOrder });
   if (event.capacity != null) {
-    const eventLeft = Math.max(0, event.capacity - event.soldTotal - event.heldTotal);
+    const eventLeft = Math.max(0, event.capacity - event.soldTotal - event.heldTotal - (event.allocatedTotal ?? 0));
     if (total > eventLeft) errors.push({ code: "EVENT_FULL", available: eventLeft });
   }
   return errors;

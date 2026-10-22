@@ -245,6 +245,7 @@ export async function reserveOrder(
         capacity: event.capacity,
         soldTotal: types.reduce((n, t) => n + t.quantitySold, 0),
         heldTotal: types.reduce((n, t) => n + t.quantityHeld, 0),
+        allocatedTotal: types.reduce((n, t) => n + (t.quantityAllocated ?? 0), 0),
         salesStartAt: presale ? null : salesOpeningAt(event), // RG-PRG-02 : pas d'achat avant la publication programmée
         salesEndAt: event.salesEndAt,
         maxTicketsPerOrder: event.maxTicketsPerOrder,
@@ -295,7 +296,7 @@ export async function reserveOrder(
     for (const l of priced.lines) perType.set(l.ticketTypeId, (perType.get(l.ticketTypeId) ?? 0) + l.quantity);
     for (const [id, n] of perType) {
       const ok =
-        await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${n})`;
+        await tx.$executeRaw`UPDATE "TicketType" SET "quantityHeld" = "quantityHeld" + ${n} WHERE id = ${id} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" - "quantityAllocated" >= ${n})`;
       if (ok !== 1) throw new CartRejected([{ code: "NOT_ENOUGH_STOCK", ticketTypeId: id, available: 0 }]);
     }
     for (const l of priced.lines) {
@@ -718,12 +719,16 @@ export async function finalizeOrder(
           // la réservation a été libérée : on reprend des places seulement si elles sont encore disponibles
           const count = order.items.reduce((n, it) => n + it.quantity, 0);
           if (order.event.capacity != null) {
-            const totals = await tx.ticketType.aggregate({ where: { eventId: order.eventId }, _sum: { quantitySold: true, quantityHeld: true } });
-            if ((totals._sum.quantitySold ?? 0) + (totals._sum.quantityHeld ?? 0) + count > order.event.capacity) throw new NoStockLeft();
+            const totals = await tx.ticketType.aggregate({
+              where: { eventId: order.eventId },
+              _sum: { quantitySold: true, quantityHeld: true, quantityAllocated: true },
+            });
+            if ((totals._sum.quantitySold ?? 0) + (totals._sum.quantityHeld ?? 0) + (totals._sum.quantityAllocated ?? 0) + count > order.event.capacity)
+              throw new NoStockLeft();
           }
           for (const it of order.items) {
             const ok =
-              await tx.$executeRaw`UPDATE "TicketType" SET "quantitySold" = "quantitySold" + ${it.quantity}, "priceLockedAt" = COALESCE("priceLockedAt", ${now}) WHERE id = ${it.ticketTypeId} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" >= ${it.quantity})`;
+              await tx.$executeRaw`UPDATE "TicketType" SET "quantitySold" = "quantitySold" + ${it.quantity}, "priceLockedAt" = COALESCE("priceLockedAt", ${now}) WHERE id = ${it.ticketTypeId} AND ("quantity" IS NULL OR "quantity" - "quantitySold" - "quantityHeld" - "quantityAllocated" >= ${it.quantity})`;
             if (ok !== 1) throw new NoStockLeft();
             if (it.priceTierId) {
               const okTier =

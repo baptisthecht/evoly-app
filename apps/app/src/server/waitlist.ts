@@ -32,11 +32,13 @@ async function freePlaces(tx: Tx | typeof db, ticketTypeId: string) {
       quantity: true,
       quantitySold: true,
       quantityHeld: true,
-      event: { select: { capacity: true, ticketTypes: { select: { quantitySold: true, quantityHeld: true } } } },
+      quantityAllocated: true,
+      event: { select: { capacity: true, ticketTypes: { select: { quantitySold: true, quantityHeld: true, quantityAllocated: true } } } },
     },
   });
-  const typeFree = tt.quantity == null ? Infinity : tt.quantity - tt.quantitySold - tt.quantityHeld;
-  const used = tt.event.ticketTypes.reduce((n, t) => n + t.quantitySold + t.quantityHeld, 0);
+  // places confiées aux réseaux : jamais proposées à la liste d'attente tant qu'elles ne sont pas rendues
+  const typeFree = tt.quantity == null ? Infinity : tt.quantity - tt.quantitySold - tt.quantityHeld - tt.quantityAllocated;
+  const used = tt.event.ticketTypes.reduce((n, t) => n + t.quantitySold + t.quantityHeld + t.quantityAllocated, 0);
   const eventFree = tt.event.capacity == null ? Infinity : tt.event.capacity - used;
   return Math.max(0, Math.min(typeFree, eventFree));
 }
