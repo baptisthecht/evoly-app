@@ -304,7 +304,8 @@ export async function statementMonths(ctx: OrgContext, now = new Date()) {
     }));
 }
 
-const MENTIONS: Record<Locale, Record<VatMention, (rate: string) => string>> = {
+/** Mentions de TVA des relevés, par langue (exportées pour vérifier le texte imprimé dans les PDF). */
+export const MENTIONS: Record<Locale, Record<VatMention, (rate: string) => string>> = {
   fr: {
     BE_VAT: (r) => `TVA belge ${r} comprise`,
     REVERSE_CHARGE: () => "Autoliquidation : TVA due par le preneur (article 196 de la directive 2006/112/CE)",
