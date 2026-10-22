@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import type { CSSProperties } from "react";
 import "@evoly/ui/brand-fonts.css";
 import { Field, Input, Select } from "@/components/ui/Field";
+import { FontSelect } from "@/components/ui/FontSelect";
 
 export type SocialKey = "website" | "instagram" | "facebook" | "tiktok" | "linkedin" | "youtube";
 export const SOCIAL_KEYS: SocialKey[] = ["website", "instagram", "facebook", "tiktok", "linkedin", "youtube"];
@@ -115,16 +116,17 @@ export function ThemeFields({ v, set, socials = true }: { v: ThemeValues; set: (
       <div className="grid gap-4 sm:grid-cols-2">
         {(["headingFont", "bodyFont"] as const).map((k) => (
           <Field key={k} label={t(k)} htmlFor={k}>
-            <Select id={k} name={k} value={v[k]} onChange={(e) => set({ [k]: e.target.value })}>
-              <option value="">{t("fontDefault")}</option>
-              {fonts
-                .filter(([, f]) => k === "headingFont" || f.body)
-                .map(([key, f]) => (
-                  <option key={key} value={key}>
-                    {f.label}
-                  </option>
-                ))}
-            </Select>
+            <FontSelect
+              id={k}
+              name={k}
+              value={v[k]}
+              onChange={(value) => set({ [k]: value })}
+              options={[
+                // « par défaut » : la police de la charte Evoly pour ce rôle, affichée elle aussi dans sa typographie
+                { value: "", label: t("fontDefault"), family: k === "headingFont" ? BRAND_FONTS["archivo-black"].family : BRAND_FONTS.poppins.family },
+                ...fonts.filter(([, f]) => k === "headingFont" || f.body).map(([key, f]) => ({ value: key, label: f.label, family: f.family })),
+              ]}
+            />
             <span className="text-lg" style={{ fontFamily: v[k] && v[k] in BRAND_FONTS ? BRAND_FONTS[v[k] as keyof typeof BRAND_FONTS].family : undefined }}>
               {t("fontSample")}
             </span>

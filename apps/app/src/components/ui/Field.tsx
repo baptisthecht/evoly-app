@@ -17,6 +17,8 @@ const control =
   "block w-full h-[var(--field-h)] rounded-md bg-surface-raised px-4 text-[length:var(--field-text)] text-ink placeholder:text-ink-subtle " +
   "shadow-[inset_0_0_0_var(--control-border)_var(--line-strong)] outline-none transition-shadow focus:shadow-[var(--field-focus)] " +
   "aria-[invalid=true]:shadow-[inset_0_0_0_2px_var(--color-danger)]";
+/** Style commun des champs, repris par les listes sur mesure (choix des polices). */
+export const FIELD_CONTROL_CLASS = control;
 
 export function Field({
   label,

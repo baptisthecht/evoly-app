@@ -36,7 +36,9 @@ describe("écran de réglage du thème de la billetterie", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: new RegExp(t.preset_gala!) }));
     expect((document.getElementById("backgroundColor") as HTMLInputElement).value).toBe("#FAF7F2");
-    expect((document.getElementById("headingFont") as HTMLSelectElement).value).toBe("playfair-display");
+    // police choisie : envoyée par le champ caché, affichée dans sa propre typographie par la liste des polices
+    expect(document.querySelector<HTMLInputElement>('input[type="hidden"][name="headingFont"]')!.value).toBe("playfair-display");
+    expect((document.getElementById("headingFont") as HTMLElement).style.fontFamily).toContain("Playfair Display");
     expect((screen.getByRole("radio", { name: t.radius_soft }) as HTMLInputElement).checked).toBe(true);
     expect(preview().style.getPropertyValue("--surface")).toBe("#FAF7F2");
     expect(preview().style.getPropertyValue("--control-radius")).toBe("6px");

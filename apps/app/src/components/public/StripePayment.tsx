@@ -10,6 +10,9 @@ import { loadStripe, type Stripe, type StripeElements } from "@stripe/stripe-js"
 import type { ReactNode } from "react";
 import { Button } from "../ui/Button";
 
+/** Police réelle de la page (celle de l'organisateur en Pro), transmise aux champs de carte de Stripe. */
+const pageFont = () => (typeof document === "undefined" ? "system-ui, sans-serif" : getComputedStyle(document.body).fontFamily || "system-ui, sans-serif");
+
 const instances = new Map<string, Promise<Stripe | null>>();
 
 /** Stripe.js chargé pour le compte de l'organisateur : charges directes (RG-PAY-02). */
@@ -50,7 +53,7 @@ export function StripePayment({
             colorText: palette.charbon,
             colorDanger: palette.danger,
             borderRadius: "12px",
-            fontFamily: "Poppins, system-ui, sans-serif",
+            fontFamily: pageFont(),
             spacingUnit: "4px",
           },
         },

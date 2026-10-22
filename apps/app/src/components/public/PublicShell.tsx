@@ -14,6 +14,13 @@ export async function PublicShell({ org, homeHref, children }: { org: PublicOrga
   // RG-BRD-01 : couleurs, arrondi, polices et fond de l'organisateur (Pro), texte toujours lisible (RG-UI-01)
   const vars = brandCssVars(org.brand ?? {});
   const style = Object.keys(vars).length ? (vars as CSSProperties) : undefined;
+  // posé à la racine : les variables qui en dérivent (police du corps, libellés, champs) sont recalculées partout, y compris
+  // hors de ce cadre (bandeau des cookies, fenêtres) ; valeurs sûres : couleurs vérifiées et polices de la liste fermée
+  const rootCss = style
+    ? `:root{${Object.entries(vars)
+        .map(([k, v]) => `${k}:${v}`)
+        .join(";")}}`
+    : null;
   const primary = org.brand?.primaryColor ?? null;
   const accent = org.brand?.accentColor ?? primary;
   const name = org.brand?.displayName ?? org.name;
@@ -23,7 +30,8 @@ export async function PublicShell({ org, homeHref, children }: { org: PublicOrga
     .filter((k) => typeof links[k] === "string" && links[k].startsWith("https://"))
     .map((k) => [k, links[k]!] as const);
   return (
-    <div className="min-h-dvh bg-surface text-ink" style={style} data-brand={primary || accent ? "" : undefined}>
+    <div className="min-h-dvh bg-surface text-ink [font-family:var(--type-body)]" style={style} data-brand={primary || accent ? "" : undefined}>
+      {rootCss ? <style>{rootCss}</style> : null}
       <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-4 sm:px-8">
         <Link href={homeHref} className="flex min-w-0 items-center gap-3">
           {org.brand?.logoUrl ? (

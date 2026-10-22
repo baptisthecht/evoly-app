@@ -123,7 +123,11 @@ export function brandCssVars(b: BrandStyle): Record<string, string> {
     Object.assign(vars, { "--r-sm": r.sm, "--r-md": r.md, "--r-lg": r.lg, "--r-xl": r.xl, "--r-panel": r.xl, "--control-radius": r.control });
   }
   if (isBrandFont(b.headingFont)) vars["--type-display"] = BRAND_FONTS[b.headingFont].family;
-  if (isBrandFont(b.bodyFont) && BRAND_FONTS[b.bodyFont].body) vars["--type-body"] = BRAND_FONTS[b.bodyFont].family;
+  if (isBrandFont(b.bodyFont) && BRAND_FONTS[b.bodyFont].body) {
+    // texte courant et libellés (étiquettes, champs, badges) : la même police, sinon les libellés gardent celle d'Evoly
+    vars["--type-body"] = BRAND_FONTS[b.bodyFont].family;
+    vars["--type-label"] = BRAND_FONTS[b.bodyFont].family;
+  }
   if (isHex(b.backgroundColor)) Object.assign(vars, surfacesFor(b.backgroundColor));
   return vars;
 }
