@@ -53,9 +53,13 @@ async function payWith(page: Page, publicUrl: string, email: string, card: strin
   await box.getByLabel("Adresse e-mail").fill(email);
   const f = await frameWith(page, 'input[name="number"]');
   await f.locator('input[name="number"]').fill(card);
-  await f.locator('input[name="expiry"]').fill("12 / 34");
-  await f.locator('input[name="cvc"]').fill("123");
-  if (await f.locator('input[name="postalCode"]').count()) await f.locator('input[name="postalCode"]').fill("1000");
+  await f.locator('input[name="expiry"]').pressSequentially("1234");
+  await f.locator('input[name="cvc"]').pressSequentially("123");
+  // pays proposé d'après l'adresse IP (la CI est aux États-Unis) : la Belgique, comme un acheteur belge
+  const country = f.locator('select[name="country"]');
+  if (await country.count()) await country.selectOption("BE");
+  const zip = f.locator('input[name="postalCode"]');
+  if ((await zip.count()) && (await zip.isVisible())) await zip.fill("1000");
   await box.getByRole("button", { name: /^Payer/ }).click();
 }
 const orderOf = (email: string) => sql(`select status from "Order" where "buyerEmail" = '${email}' order by "createdAt" desc limit 1`);
