@@ -1,4 +1,4 @@
-import type { Frame, Page } from "@playwright/test";
+import type { Browser, Frame, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { envValue, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
@@ -62,36 +62,42 @@ async function payWith(page: Page, publicUrl: string, email: string, card: strin
   if ((await zip.count()) && (await zip.isVisible())) await zip.fill("1000");
   await box.getByRole("button", { name: /^Payer/ }).click();
 }
+/** Acheteur dans son propre navigateur : sans l'en-tête d'adresse IP simulée de l'organisateur, que les services de
+ * Stripe (vérification anti-robots déclenchée sur une carte refusée, 3-D Secure) refusent. */
+const buyerPage = async (browser: Browser) => (await browser.newContext({ locale: "fr-BE" })).newPage();
 const orderOf = (email: string) => sql(`select status from "Order" where "buyerEmail" = '${email}' order by "createdAt" desc limit 1`);
 
-test("carte acceptée : paiement confirmé au retour, commande payée, billets émis", async ({ page }) => {
+test("carte acceptée : paiement confirmé au retour, commande payée, billets émis", async ({ page, browser }) => {
   const { publicUrl, email } = await paidEvent(page);
-  await payWith(page, publicUrl, email, "4242 4242 4242 4242");
-  await page.waitForURL(/\/billets\/[A-Za-z0-9_-]{43}$/, { timeout: 60_000 });
+  const buyer = await buyerPage(browser);
+  await payWith(buyer, publicUrl, email, "4242 4242 4242 4242");
+  await buyer.waitForURL(/\/billets\/[A-Za-z0-9_-]{43}$/, { timeout: 60_000 });
   await expect.poll(() => orderOf(email), { timeout: 30_000 }).toBe("PAID");
   expect(Number(sql(`select count(*) from "Ticket" t join "Order" o on o.id = t."orderId" where o."buyerEmail" = '${email}'`))).toBe(1);
 });
 
-test("carte refusée : message clair, réservation et formulaire conservés", async ({ page }) => {
+test("carte refusée : message clair, réservation et formulaire conservés", async ({ page, browser }) => {
   const { publicUrl, email } = await paidEvent(page);
-  await payWith(page, publicUrl, email, "4000 0000 0000 0002");
+  const buyer = await buyerPage(browser);
+  await payWith(buyer, publicUrl, email, "4000 0000 0000 0002");
   await expect(
     page
       .locator("#billets")
       .getByRole("alert")
-      .or(page.locator("#billets").getByText(/refusée|declined/i))
+      .or(buyer.locator("#billets").getByText(/refusée|declined/i))
       .first(),
   ).toBeVisible({ timeout: 30_000 });
-  expect(page.url()).not.toMatch(/\/billets\//);
+  expect(buyer.url()).not.toMatch(/\/billets\//);
   expect(orderOf(email)).toBe("PENDING");
-  await expect(page.locator("#billets").getByLabel("Adresse e-mail")).toHaveValue(email);
+  await expect(buyer.locator("#billets").getByLabel("Adresse e-mail")).toHaveValue(email);
 });
 
-test("3-D Secure : validation demandée puis acceptée, billets émis", async ({ page }) => {
+test("3-D Secure : validation demandée puis acceptée, billets émis", async ({ page, browser }) => {
   const { publicUrl, email } = await paidEvent(page);
-  await payWith(page, publicUrl, email, "4000 0027 6000 3184");
-  const challenge = await frameWith(page, "#test-source-authorize-3ds", 45_000);
+  const buyer = await buyerPage(browser);
+  await payWith(buyer, publicUrl, email, "4000 0027 6000 3184");
+  const challenge = await frameWith(buyer, "#test-source-authorize-3ds", 45_000);
   await challenge.locator("#test-source-authorize-3ds").click();
-  await page.waitForURL(/\/billets\/[A-Za-z0-9_-]{43}$/, { timeout: 60_000 });
+  await buyer.waitForURL(/\/billets\/[A-Za-z0-9_-]{43}$/, { timeout: 60_000 });
   await expect.poll(() => orderOf(email), { timeout: 30_000 }).toBe("PAID");
 });
