@@ -23,6 +23,7 @@ const PRO_FEATURES: PlanFeature[] = [
   "PREPAID_OPTIONS",
   "EMBED_WIDGET",
   "AMBASSADORS",
+  "DISTRIBUTION",
 ];
 
 const ALL: Permission[] = [

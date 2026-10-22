@@ -20,6 +20,7 @@ export const PLAN_FEATURES = [
   "PREPAID_OPTIONS",
   "EMBED_WIDGET",
   "AMBASSADORS",
+  "DISTRIBUTION", // compatibilité avec les réseaux de billetterie (Ticketmaster, Fnac, BilletReduc…)
 ] as const;
 
 export type PlanFeature = (typeof PLAN_FEATURES)[number];

@@ -155,6 +155,7 @@ enum PlanFeature {
   PREPAID_OPTIONS
   EMBED_WIDGET
   AMBASSADORS // prévente privée par codes (Pro)
+  DISTRIBUTION // compatibilité avec les réseaux de billetterie (Ticketmaster, Fnac, BilletReduc…)
 }
 
 model Plan {
@@ -306,6 +307,7 @@ model Organization {
   referralReceived    Referral?             @relation("ReferralReceived")
   seatingLayouts      SeatingLayout[]
   promotionRedemption PromotionRedemption? // offre commerciale dont elle a profité à sa création
+  distributors        Distributor[]
 }
 
 enum StripeAccountStatus {
@@ -638,6 +640,9 @@ model Event {
   ticketEmailContent   Json? // bloc personnalisé des e-mails de billets (document riche de l'éditeur)
   reminderEmailContent Json? // bloc personnalisé des e-mails de rappel (document riche de l'éditeur)
 
+  distributorAllocations DistributorAllocation[]
+  externalTickets        ExternalTicket[]
+
   @@unique([organizationId, slug])
   @@index([organizationId, status, startsAt])
   @@index([status, startsAt])
@@ -712,6 +717,10 @@ model TicketType {
   translations    TicketTypeTranslation[]
   orderItems      OrderItem[]
   tickets         Ticket[]
+
+  quantityAllocated      Int                     @default(0) // places confiées aux réseaux (somme des contingents)
+  distributorAllocations DistributorAllocation[]
+  externalTickets        ExternalTicket[]
 
   @@index([eventId, sortOrder])
 }
@@ -941,6 +950,10 @@ model Seat {
   row      SeatingRow      @relation(fields: [rowId], references: [id], onDelete: Cascade)
   category SeatingCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   ticket   Ticket?
+
+  distributorId  String? // place confiée à un réseau (bloquée pour la vente en ligne)
+  distributor    Distributor?    @relation(fields: [distributorId], references: [id], onDelete: SetNull)
+  externalTicket ExternalTicket?
 
   @@unique([rowId, label])
 }
@@ -1340,6 +1353,10 @@ model CheckIn {
   scannerLink ScannerLink? @relation(fields: [scannerLinkId], references: [id], onDelete: SetNull)
   user        User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  externalTicketId String? // billet vendu par un réseau
+  externalTicket   ExternalTicket? @relation(fields: [externalTicketId], references: [id], onDelete: SetNull)
+
+  @@index([externalTicketId])
   @@index([eventId, scannedAt])
   @@index([ticketId])
 }
@@ -2228,4 +2245,89 @@ model PromotionRedemption {
 
   @@index([promotionId, createdAt])
   @@index([userId])
+}
+
+// ─── Compatibilité avec les réseaux de billetterie (docs/COMPATIBILITE_RESEAUX.md) ─────────────────────────────────
+
+enum DistributorKind {
+  TICKETMASTER // Ticketnet, Leclerc, Auchan, Cultura
+  FRANCE_BILLET // Fnac, Carrefour, Géant, Magasins U, Intermarché
+  BILLETREDUC
+  PASS_CULTURE
+  TOURIST_OFFICE
+  WORKS_COUNCIL // comités d'entreprise
+  OTHER
+}
+
+enum ExternalTicketStatus {
+  VALID
+  CANCELLED
+}
+
+/// Réseau de billetterie de l'organisateur, réutilisé pour tous ses événements
+model Distributor {
+  id             String          @id @default(cuid())
+  organizationId String
+  kind           DistributorKind
+  name           String
+  importMapping  Json? // colonnes choisies au premier import d'un fichier, réutilisées ensuite
+  archivedAt     DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  allocations  DistributorAllocation[]
+  tickets      ExternalTicket[]
+  seats        Seat[]
+
+  @@unique([organizationId, name])
+}
+
+/// Contingent : places d'un tarif confiées à un réseau pour un événement, retirées de la vente en ligne
+model DistributorAllocation {
+  id            String   @id @default(cuid())
+  eventId       String
+  distributorId String
+  ticketTypeId  String
+  quantity      Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  distributor Distributor @relation(fields: [distributorId], references: [id], onDelete: Cascade)
+  ticketType  TicketType  @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketTypeId, distributorId])
+  @@index([eventId])
+}
+
+/// Billet vendu par un réseau : importé pour le contrôle à l'entrée et le bilan, jamais payé par Evoly
+model ExternalTicket {
+  id            String               @id @default(cuid())
+  eventId       String
+  distributorId String
+  ticketTypeId  String?
+  code          String? // code-barres du réseau, ou créé à l'avance par Evoly pour le réseau
+  reservation   String? // numéro de réservation (contremarques sans code-barres)
+  rank          Int                  @default(1) // rang de la place dans la réservation
+  holderName    String? // anonymisé 30 jours après l'événement
+  seatLabel     String? // place indiquée par le fichier du réseau
+  seatId        String?              @unique // place du plan de salle, quand elle est retrouvée
+  priceMinor    Int? // prix déclaré par le réseau, s'il figure dans le fichier
+  status        ExternalTicketStatus @default(VALID)
+  precreated    Boolean              @default(false) // code créé par Evoly et transmis au réseau
+  checkedInAt   DateTime?
+  anonymizedAt  DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  distributor Distributor @relation(fields: [distributorId], references: [id], onDelete: Cascade)
+  ticketType  TicketType? @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  seat        Seat?       @relation(fields: [seatId], references: [id], onDelete: SetNull)
+  checkIns    CheckIn[]
+
+  @@unique([eventId, code])
+  @@unique([eventId, distributorId, reservation, rank])
+  @@index([eventId, distributorId])
 }
