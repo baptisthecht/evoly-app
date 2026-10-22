@@ -56,6 +56,11 @@ Aucun certificat wildcard n'est nécessaire : Caddy obtient chaque certificat à
 **Webhook de la plateforme** → `https://app.evoly.me/api/webhooks/stripe/platform` (`STRIPE_WEBHOOK_SECRET_PLATFORM`), événements :
 `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.trial_will_end`, `invoice.paid`, `invoice.payment_failed`.
 
+**Passage du mode test au mode réel.** Remplacer les quatre valeurs Stripe du `.env` (clés `pk_live_` et `sk_live_`,
+secrets des deux destinations réelles), recréer en mode réel le produit « Evoly Pro » et ses deux prix, redéployer, puis
+lancer une fois `ops/stripe-live-reset.sql` : les comptes connectés, clients et abonnements créés en mode test n'existent
+pas en mode réel ; leurs liens sont retirés et les organisateurs reconnectent leur compte Stripe.
+
 **Abonnement Pro**
 
 - Créer le produit « Evoly Pro » avec deux prix TTC (29 € par mois, 295,80 € par an), et renseigner `STRIPE_PRICE_PRO_MONTH` et `STRIPE_PRICE_PRO_YEAR`.
