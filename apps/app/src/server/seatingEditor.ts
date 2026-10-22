@@ -1,4 +1,4 @@
-import { pick } from "@evoly/i18n";
+import { pick, toLocale } from "@evoly/i18n";
 import "server-only";
 import { CoreError, generateBlock, type BlockSpec, PALETTE } from "@evoly/core";
 import { db } from "@/lib/db";
@@ -343,7 +343,7 @@ export async function moveTicketSeat(ctx: OrgContext, eventId: string, fromSeatI
     await tx.seat.update({ where: { id: from.id }, data: { status: "AVAILABLE", holdOrderId: null, holdExpiresAt: null } });
   });
   const order = ticket.order;
-  const locale = (order.buyerLocale === "en" ? "en" : "fr") as "fr" | "en";
+  const locale = toLocale(order.buyerLocale); // langue de l'acheteur : e-mail et noms de places dans les 7 langues
   const brand = await emailBrandFor(order.organizationId);
   const mail = seatChangedEmail({
     brand,
@@ -361,6 +361,8 @@ export async function moveTicketSeat(ctx: OrgContext, eventId: string, fromSeatI
     template: "seating.seat_changed",
     category: "TRANSACTIONAL",
     organizationId: order.organizationId,
+    orderId: order.id,
+    locale,
     fromName: brand.fromName,
     replyTo: brand.replyTo,
   }).catch((err) => console.error("e-mail changement de place", err instanceof Error ? err.message : err));

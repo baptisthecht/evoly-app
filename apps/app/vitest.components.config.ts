@@ -35,7 +35,7 @@ export default defineConfig({
       ],
       reporter: ["text-summary", "json-summary"],
       reportsDirectory: "coverage-components",
-      thresholds: { statements: 81, branches: 76, functions: 76, lines: 83 }, // 21 octobre 2026 : 384 tests, composants serveur asynchrones hors mesure (82,0 / 76,7 / 77,3 / 84,1) ; marge pour la CI, jamais à la baisse
+      thresholds: { statements: 84, branches: 78, functions: 78, lines: 86 }, // 21 octobre 2026 : 405 tests (84.7 / 79.2 / 79.4 / 86.8) ; marge pour la CI, jamais à la baisse
     },
   },
 });

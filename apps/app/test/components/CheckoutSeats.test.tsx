@@ -98,7 +98,7 @@ const drawSeats = (allowChoice: boolean) =>
         requirePhone={false}
         publishableKey={null}
         onCancel={vi.fn()}
-        {...({ seatMap: seatMap(allowChoice), friendName: null } as never)}
+        {...({ seatMap: seatMap(allowChoice), friendName: null } as unknown as Record<string, never>)}
       />
     </Fr>,
   );
