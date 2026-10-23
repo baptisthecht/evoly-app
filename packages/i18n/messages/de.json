@@ -704,7 +704,9 @@
     "resetLinkInvalid": "Dieser Link ist nicht mehr gültig. Er kann nur einmal und eine Stunde lang genutzt werden.",
     "or": "oder mit Ihrer E-Mail-Adresse",
     "startSavedTitle": "Ihre Veranstaltung ist gespeichert",
-    "startSavedNext": "Sie wartet auf die Veröffentlichung: Bestätigen Sie Ihre Adresse, prüfen Sie sie dann und stellen Sie sie in Ihrem Dashboard online."
+    "startSavedNext": "Sie wartet auf die Veröffentlichung: Bestätigen Sie Ihre Adresse, prüfen Sie sie dann und stellen Sie sie in Ihrem Dashboard online.",
+    "socialCancelled": "Anmeldung abgebrochen. Sie können es erneut versuchen oder Ihre E-Mail-Adresse verwenden.",
+    "socialError": "Die Anmeldung ist fehlgeschlagen. Versuchen Sie es erneut oder verwenden Sie Ihre E-Mail-Adresse."
   },
   "onboarding": {
     "organizationTitle": "Ihre Organisation",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { SocialButtons } from "../SocialButtons";
+import { SocialError } from "../SocialError";
 import { redirectIfSignedIn } from "../redirectIfSignedIn";
 import { LoginForm } from "./LoginForm";
 
@@ -12,7 +13,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string; verified?: string; next?: string }>;
+  searchParams: Promise<{
+    reset?: string;
+    verified?: string;
+    next?: string;
+    error?: string;
+  }>;
 }) {
   const next =
     typeof (await searchParams).next === "string"
@@ -35,6 +41,7 @@ export default async function LoginPage({
           {t("resetDone")}
         </p>
       ) : null}
+      <SocialError error={(await searchParams).error} />
       <SocialButtons next={next} />
       <LoginForm />
     </div>

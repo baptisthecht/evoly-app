@@ -123,7 +123,9 @@
     "resetLinkInvalid": "This link is no longer valid. It works only once, for one hour.",
     "or": "or with your email address",
     "startSavedTitle": "Your event is saved",
-    "startSavedNext": "It is waiting to be published: verify your address, then review it and put it online from your dashboard."
+    "startSavedNext": "It is waiting to be published: verify your address, then review it and put it online from your dashboard.",
+    "socialCancelled": "Sign-in cancelled. You can try again, or use your email address.",
+    "socialError": "Sign-in did not go through. Try again, or use your email address."
   },
   "onboarding": {
     "organizationTitle": "Your organisation",

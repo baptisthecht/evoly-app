@@ -704,7 +704,9 @@
     "resetLinkInvalid": "Este enlace ya no es válido. Solo se puede usar una vez, durante una hora.",
     "or": "o con tu dirección de e-mail",
     "startSavedTitle": "Tu evento está guardado",
-    "startSavedNext": "Está pendiente de publicación: verifica tu dirección y después revísalo y publícalo desde tu panel."
+    "startSavedNext": "Está pendiente de publicación: verifica tu dirección y después revísalo y publícalo desde tu panel.",
+    "socialCancelled": "Inicio de sesión cancelado. Puedes volver a intentarlo o usar tu dirección de correo.",
+    "socialError": "No se pudo iniciar sesión. Inténtalo de nuevo o usa tu dirección de correo."
   },
   "onboarding": {
     "organizationTitle": "Tu organización",

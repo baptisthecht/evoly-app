@@ -704,7 +704,9 @@
     "resetLinkInvalid": "Deze link is niet meer geldig. Hij kan maar één keer gebruikt worden, binnen een uur.",
     "or": "of met je e-mailadres",
     "startSavedTitle": "Uw evenement is opgeslagen",
-    "startSavedNext": "Het wacht op publicatie: bevestig uw adres, controleer het daarna en zet het online vanuit uw dashboard."
+    "startSavedNext": "Het wacht op publicatie: bevestig uw adres, controleer het daarna en zet het online vanuit uw dashboard.",
+    "socialCancelled": "Aanmelden geannuleerd. Je kunt het opnieuw proberen of je e-mailadres gebruiken.",
+    "socialError": "Aanmelden is niet gelukt. Probeer opnieuw of gebruik je e-mailadres."
   },
   "onboarding": {
     "organizationTitle": "Je organisatie",

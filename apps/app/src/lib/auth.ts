@@ -6,6 +6,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "./db";
 import { env } from "./env";
+import { withSocialLocale } from "./socialLocale";
 import { hashPassword, verifyPassword } from "./password";
 import { sendEmail } from "@/server/email/send";
 import { resetPasswordEmail, verifyEmailEmail } from "@/server/email/templates";
@@ -87,6 +88,15 @@ export const auth = betterAuth({
     },
   },
   socialProviders,
+  databaseHooks: {
+    user: {
+      create: {
+        // inscription par Google ou Apple : la langue de l'interface, pas le
+        // français par défaut (e-mails dans la langue de l'organisateur)
+        before: async (user, ctx) => ({ data: withSocialLocale(user, ctx) }),
+      },
+    },
+  },
   account: {
     accountLinking: { enabled: true, trustedProviders: ["google", "apple"] },
   },

@@ -249,7 +249,13 @@ export async function socialSignInAction(
   next: string | null,
 ) {
   const res = await auth.api.signInSocial({
-    body: { provider, callbackURL: safeNext(next) ?? "/" },
+    body: {
+      provider,
+      callbackURL: safeNext(next) ?? "/",
+      // annulation ou erreur chez Google ou Apple : retour sur la connexion,
+      // avec un message dans la langue de l'organisateur
+      errorCallbackURL: "/login", // la bibliothèque y ajoute « ?error=… »
+    },
     headers: await headers(),
   });
   if (res?.url) redirect(res.url);

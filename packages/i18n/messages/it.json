@@ -704,7 +704,9 @@
     "resetLinkInvalid": "Questo link non è più valido. Si può usare una sola volta, entro un’ora.",
     "or": "oppure con il tuo indirizzo e-mail",
     "startSavedTitle": "Il tuo evento è salvato",
-    "startSavedNext": "È in attesa di pubblicazione: verifica il tuo indirizzo, poi rileggilo e mettilo online dalla tua bacheca."
+    "startSavedNext": "È in attesa di pubblicazione: verifica il tuo indirizzo, poi rileggilo e mettilo online dalla tua bacheca.",
+    "socialCancelled": "Accesso annullato. Puoi riprovare oppure usare il tuo indirizzo e-mail.",
+    "socialError": "L’accesso non è riuscito. Riprova oppure usa il tuo indirizzo e-mail."
   },
   "onboarding": {
     "organizationTitle": "La tua organizzazione",
