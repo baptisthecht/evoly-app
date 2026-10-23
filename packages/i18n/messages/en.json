@@ -3186,5 +3186,10 @@
     "colRevenue": "Declared revenue",
     "total": "Total",
     "exportCsv": "Export the report (CSV)"
+  },
+  "legalLinks": {
+    "label": "Legal information",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use"
   }
 }

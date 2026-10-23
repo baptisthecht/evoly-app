@@ -99,6 +99,9 @@ export const auth = betterAuth({
   },
   account: {
     accountLinking: { enabled: true, trustedProviders: ["google", "apple"] },
+    // jetons fournis par Google ou Apple chiffrés avant enregistrement
+    // (politique de confidentialité, section 3)
+    encryptOAuthTokens: true,
   },
   // RG-AUTH-05 : limitation des tentatives, stockée en base (plusieurs instances)
   rateLimit: {

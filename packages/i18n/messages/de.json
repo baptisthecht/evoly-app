@@ -3186,5 +3186,10 @@
     "colRevenue": "Gemeldeter Umsatz",
     "total": "Gesamt",
     "exportCsv": "Bilanz exportieren (CSV)"
+  },
+  "legalLinks": {
+    "label": "Rechtliche Hinweise",
+    "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen"
   }
 }

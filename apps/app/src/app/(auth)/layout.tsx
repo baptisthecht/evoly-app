@@ -10,6 +10,8 @@ export default async function AuthLayout({
   children: ReactNode;
 }) {
   const t = await getTranslations("brand");
+  const l = await getTranslations("legalLinks");
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://evoly.me";
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
       <aside className="relative hidden overflow-hidden bg-charbon p-12 text-creme lg:flex lg:flex-col lg:justify-between">
@@ -31,6 +33,18 @@ export default async function AuthLayout({
           <ThemePro />
           {children}
         </div>
+        {/* liens légaux visibles là où l'on se connecte, y compris avec Google */}
+        <nav
+          aria-label={l("label")}
+          className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-sm text-ink-muted"
+        >
+          <a href={`${site}/privacy/`} className="underline underline-offset-4">
+            {l("privacy")}
+          </a>
+          <a href={`${site}/cgu/`} className="underline underline-offset-4">
+            {l("terms")}
+          </a>
+        </nav>
       </main>
     </div>
   );

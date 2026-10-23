@@ -93,12 +93,20 @@ footer{{border-top:1px solid #e8dcd5;margin-top:48px;padding-top:18px;font-size:
 </style></head>
 <body><header><a href="/">evoly</a></header>
 <main><h1>{title}</h1><p class="version">Version {version}</p>
-<p class="draft"><strong>Projet de document.</strong> À faire valider par un avocat avant publication. Les éléments entre crochets sont à compléter.</p>
-{body}
+{draft}{body}
 <footer>{links}</footer></main></body></html>
 """
 
 VERSION = "2026-09"
+# version propre à une page, quand elle change seule
+VERSIONS = {"privacy": "2026-10"}
+# pages encore à valider par un avocat : bandeau « Projet de document ». La politique de confidentialité est publiée
+# (vérification de la marque par Google, octobre 2026 : un brouillon n'est pas accepté).
+DRAFT = {"cgu", "conditions-de-vente", "sous-traitance", "cookies", "legal"}
+DRAFT_NOTICE = (
+    '<p class="draft"><strong>Projet de document.</strong> À faire valider par un avocat avant publication. '
+    "Les éléments entre crochets sont à compléter.</p>\n"
+)
 
 
 def build(out_dir: pathlib.Path | None = None) -> list[pathlib.Path]:
@@ -111,7 +119,7 @@ def build(out_dir: pathlib.Path | None = None) -> list[pathlib.Path]:
         target.parent.mkdir(parents=True, exist_ok=True)
         # typographie française : espace insécable avant ; : ! ? (hors adresses web)
         body = re.sub(r" ([;:!?])(?!//)", "\u00a0\\1", render(src))
-        target.write_text(PAGE.format(title=html.escape(typo(title)), desc=html.escape(LEGAL_DESC[slug]), canonical=f"https://evoly.me/{slug}/", version=VERSION, body=body, links=links.replace("'", "\u2019")), encoding="utf-8")
+        target.write_text(PAGE.format(title=html.escape(typo(title)), desc=html.escape(LEGAL_DESC[slug]), canonical=f"https://evoly.me/{slug}/", version=VERSIONS.get(slug, VERSION), draft=DRAFT_NOTICE if slug in DRAFT else "", body=body, links=links.replace("'", "\u2019")), encoding="utf-8")
         written.append(target)
     return written
 

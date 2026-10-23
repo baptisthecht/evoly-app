@@ -3186,5 +3186,10 @@
     "colRevenue": "Incasso dichiarato",
     "total": "Totale",
     "exportCsv": "Esporta il resoconto (CSV)"
+  },
+  "legalLinks": {
+    "label": "Informazioni legali",
+    "privacy": "Informativa sulla privacy",
+    "terms": "Condizioni d’uso"
   }
 }

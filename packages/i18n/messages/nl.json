@@ -3186,5 +3186,10 @@
     "colRevenue": "Opgegeven omzet",
     "total": "Totaal",
     "exportCsv": "Overzicht exporteren (CSV)"
+  },
+  "legalLinks": {
+    "label": "Juridische informatie",
+    "privacy": "Privacybeleid",
+    "terms": "Gebruiksvoorwaarden"
   }
 }

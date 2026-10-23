@@ -3186,5 +3186,10 @@
     "colRevenue": "Receita declarada",
     "total": "Total",
     "exportCsv": "Exportar o balanço (CSV)"
+  },
+  "legalLinks": {
+    "label": "Informações legais",
+    "privacy": "Política de privacidade",
+    "terms": "Condições de utilização"
   }
 }

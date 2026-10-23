@@ -3186,5 +3186,10 @@
     "colRevenue": "Ingresos declarados",
     "total": "Total",
     "exportCsv": "Exportar el balance (CSV)"
+  },
+  "legalLinks": {
+    "label": "Información legal",
+    "privacy": "Política de privacidad",
+    "terms": "Condiciones de uso"
   }
 }
