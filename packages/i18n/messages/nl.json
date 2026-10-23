@@ -3173,6 +3173,16 @@
     "codesCount": "Aantal codes",
     "codesCreate": "Codes aanmaken",
     "codesCreated": "{count, plural, one {# code aangemaakt.} other {# codes aangemaakt.}}",
-    "codesDownload": "Codes downloaden ({count}, CSV)"
+    "codesDownload": "Codes downloaden ({count}, CSV)",
+    "reportTitle": "Overzicht per kanaal",
+    "channel_ONLINE": "Evoly online",
+    "channel_BOX_OFFICE": "Verkoop ter plaatse",
+    "channel_COMPLIMENTARY": "Gratis tickets",
+    "colChannel": "Kanaal",
+    "colTickets": "Tickets",
+    "colEntered": "Binnengekomen",
+    "colRevenue": "Opgegeven omzet",
+    "total": "Totaal",
+    "exportCsv": "Overzicht exporteren (CSV)"
   }
 }

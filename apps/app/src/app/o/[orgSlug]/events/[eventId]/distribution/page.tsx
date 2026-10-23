@@ -1,11 +1,12 @@
 import { can, hasFeature } from "@evoly/core";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { formatMoney, type Locale } from "@evoly/i18n";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ProLocked } from "@/components/ProLocked";
 import { Card } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
-import { DISTRIBUTOR_KINDS, eventDistribution } from "@/server/distributors";
+import { DISTRIBUTOR_KINDS, eventChannelReport, eventDistribution } from "@/server/distributors";
 import { getEventWithTickets } from "@/server/events";
 import { AddDistributorForm, AllocationForm, PrecreatedCodesForm, ReleaseUnsoldButton } from "./DistributionForms";
 import { ImportPanel } from "./ImportPanel";
@@ -19,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function DistributionPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
-  await getEventWithTickets(ctx, eventId);
+  const event = await getEventWithTickets(ctx, eventId);
   const t = await getTranslations("distribution");
   if (!hasFeature(ctx.features, "DISTRIBUTION")) {
     return (
@@ -29,11 +30,62 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
       </div>
     );
   }
-  const data = await eventDistribution(ctx, eventId);
+  const [data, report] = await Promise.all([eventDistribution(ctx, eventId), eventChannelReport(ctx, eventId)]);
+  const locale = (await getLocale()) as Locale;
   const canEdit = can(ctx.membership, "EVENTS_EDIT");
   return (
     <div className="grid gap-6">
       <p className="max-w-prose text-ink-muted">{t("intro")}</p>
+      <Card className="grid gap-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 className="font-display text-xl">{t("reportTitle")}</h2>
+          {canEdit ? (
+            <a href={`/o/${orgSlug}/events/${eventId}/distribution/bilan`} className="text-sm font-semibold underline underline-offset-4">
+              {t("exportCsv")}
+            </a>
+          ) : null}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="text-ink-muted">
+                <th scope="col" className="py-2 pr-4 font-normal">
+                  {t("colChannel")}
+                </th>
+                <th scope="col" className="py-2 pr-4 text-right font-normal">
+                  {t("colTickets")}
+                </th>
+                <th scope="col" className="py-2 pr-4 text-right font-normal">
+                  {t("colEntered")}
+                </th>
+                <th scope="col" className="py-2 text-right font-normal">
+                  {t("colRevenue")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.rows.map((r) => (
+                <tr key={`${r.channel}-${r.name ?? ""}`} className="border-t border-line">
+                  <th scope="row" className="py-2 pr-4 font-semibold">
+                    {r.channel === "NETWORK" ? r.name : t(`channel_${r.channel}`)}
+                  </th>
+                  <td className="py-2 pr-4 text-right">{r.tickets}</td>
+                  <td className="py-2 pr-4 text-right">{r.entered}</td>
+                  <td className="py-2 text-right">{r.declaredRevenueMinor == null ? "" : formatMoney(r.declaredRevenueMinor, event.currency, locale)}</td>
+                </tr>
+              ))}
+              <tr className="border-t-2 border-line font-semibold">
+                <th scope="row" className="py-2 pr-4">
+                  {t("total")}
+                </th>
+                <td className="py-2 pr-4 text-right">{report.total.tickets}</td>
+                <td className="py-2 pr-4 text-right">{report.total.entered}</td>
+                <td className="py-2" />
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
       <Card className="grid gap-4">
         <h2 className="font-display text-xl">{t("networksTitle")}</h2>
         {data.distributors.length === 0 ? (

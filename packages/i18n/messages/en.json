@@ -3173,6 +3173,16 @@
     "codesCount": "Number of codes",
     "codesCreate": "Create the codes",
     "codesCreated": "{count, plural, one {# code created.} other {# codes created.}}",
-    "codesDownload": "Download the codes ({count}, CSV)"
+    "codesDownload": "Download the codes ({count}, CSV)",
+    "reportTitle": "Report by channel",
+    "channel_ONLINE": "Evoly online",
+    "channel_BOX_OFFICE": "Box office",
+    "channel_COMPLIMENTARY": "Complimentary tickets",
+    "colChannel": "Channel",
+    "colTickets": "Tickets",
+    "colEntered": "Entries",
+    "colRevenue": "Declared revenue",
+    "total": "Total",
+    "exportCsv": "Export the report (CSV)"
   }
 }

@@ -50,5 +50,19 @@ export async function applyRetention(now = new Date()) {
       db.ambassador.updateMany({ where: { id: { in: ambIds } }, data: { name: "Ambassadeur", email: null, active: false } }),
       db.$executeRaw`UPDATE "Ambassador" SET "statsToken" = 'anonyme-' || id WHERE id = ANY(${ambIds})`,
     ]);
-  return { orders: ids.length, emails: emails.count, audit: audit.count, waitlist: waitlist.count, ambassadors: ambIds.length };
+  // billets vendus par les réseaux : nom de l'acheteur anonymisé 30 jours après l'événement (docs/COMPATIBILITE_RESEAUX.md,
+  // décision du 22 octobre 2026) ; le billet reste, pour le bilan par canal et les entrées
+  const thirtyDays = new Date(now.getTime() - 30 * DAY);
+  const external = await db.externalTicket.updateMany({
+    where: { anonymizedAt: null, event: { OR: [{ endsAt: { lt: thirtyDays } }, { endsAt: null, startsAt: { lt: thirtyDays } }] } },
+    data: { holderName: null, anonymizedAt: now },
+  });
+  return {
+    orders: ids.length,
+    emails: emails.count,
+    audit: audit.count,
+    waitlist: waitlist.count,
+    ambassadors: ambIds.length,
+    externalTickets: external.count,
+  };
 }

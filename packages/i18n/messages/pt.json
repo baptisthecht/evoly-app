@@ -3173,6 +3173,16 @@
     "codesCount": "Número de códigos",
     "codesCreate": "Criar os códigos",
     "codesCreated": "{count, plural, one {# código criado.} other {# códigos criados.}}",
-    "codesDownload": "Descarregar os códigos ({count}, CSV)"
+    "codesDownload": "Descarregar os códigos ({count}, CSV)",
+    "reportTitle": "Balanço por canal",
+    "channel_ONLINE": "Evoly online",
+    "channel_BOX_OFFICE": "Venda no local",
+    "channel_COMPLIMENTARY": "Bilhetes oferecidos",
+    "colChannel": "Canal",
+    "colTickets": "Bilhetes",
+    "colEntered": "Entradas",
+    "colRevenue": "Receita declarada",
+    "total": "Total",
+    "exportCsv": "Exportar o balanço (CSV)"
   }
 }

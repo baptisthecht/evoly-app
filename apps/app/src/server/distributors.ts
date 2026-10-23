@@ -308,3 +308,66 @@ export async function precreatedCodesCsv(ctx: OrgContext, eventId: string, distr
   const safe = (v: string) => csvSafe(v).replace(/[;\r\n]/g, " "); // règle commune des CSV d'Evoly
   return { name: distributor.name, csv: ["Code;Tarif", ...codes.map((c) => `${safe(c.code!)};${safe(c.ticketType?.name ?? "")}`)].join("\r\n") + "\r\n" };
 }
+
+// ─── Bilan par canal ────────────────────────────────────────────────────────────────────────────────────────────────
+
+export type EvolyChannel = "ONLINE" | "BOX_OFFICE" | "COMPLIMENTARY";
+export interface ChannelRow {
+  channel: EvolyChannel | "NETWORK";
+  /** Nom du réseau, pour les billets vendus par un réseau. */
+  name: string | null;
+  tickets: number;
+  entered: number;
+  /** Recette déclarée par le réseau dans ses fichiers (centimes), quand elle y figure. */
+  declaredRevenueMinor: number | null;
+}
+
+/** Billets valables et entrées par canal : Evoly (en ligne, revente comprise ; sur place ; offerts) et chaque réseau. */
+export async function eventChannelReport(ctx: OrgContext, eventId: string) {
+  await findEvent(ctx, eventId);
+  const [tickets, external, distributors] = await Promise.all([
+    db.ticket.findMany({ where: { eventId, status: { in: ["VALID", "CHECKED_IN"] } }, select: { status: true, order: { select: { source: true } } } }),
+    db.externalTicket.findMany({ where: { eventId, status: "VALID" }, select: { distributorId: true, checkedInAt: true, priceMinor: true } }),
+    db.distributor.findMany({
+      where: { organizationId: ctx.organization.id },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      select: { id: true, name: true },
+    }),
+  ]);
+  const channelOf = (source: string): EvolyChannel => (source === "BOX_OFFICE" ? "BOX_OFFICE" : source === "COMPLIMENTARY" ? "COMPLIMENTARY" : "ONLINE");
+  const rows: ChannelRow[] = (["ONLINE", "BOX_OFFICE", "COMPLIMENTARY"] as const).map((channel) => {
+    const own = tickets.filter((t) => channelOf(t.order.source) === channel);
+    return { channel, name: null, tickets: own.length, entered: own.filter((t) => t.status === "CHECKED_IN").length, declaredRevenueMinor: null };
+  });
+  for (const d of distributors) {
+    const own = external.filter((x) => x.distributorId === d.id);
+    if (!own.length) continue;
+    const priced = own.filter((x) => x.priceMinor != null);
+    rows.push({
+      channel: "NETWORK",
+      name: d.name,
+      tickets: own.length,
+      entered: own.filter((x) => x.checkedInAt).length,
+      declaredRevenueMinor: priced.length ? priced.reduce((n, x) => n + x.priceMinor!, 0) : null,
+    });
+  }
+  const total = { tickets: rows.reduce((n, r) => n + r.tickets, 0), entered: rows.reduce((n, r) => n + r.entered, 0) };
+  return { rows, total };
+}
+
+/** Bilan par canal en CSV (règle commune des CSV d'Evoly) ; libellés des canaux fournis dans la langue de l'organisateur. */
+export function channelReportCsv(
+  report: Awaited<ReturnType<typeof eventChannelReport>>,
+  labels: Record<EvolyChannel, string> & { header: [string, string, string, string]; total: string },
+) {
+  const safe = (v: string | number) =>
+    csvSafe(v)
+      .toString()
+      .replace(/[;\r\n]/g, " ");
+  const money = (minor: number | null) => (minor == null ? "" : (minor / 100).toFixed(2).replace(".", ","));
+  const lines = [labels.header.join(";")];
+  for (const r of report.rows)
+    lines.push([safe(r.channel === "NETWORK" ? r.name! : labels[r.channel]), r.tickets, r.entered, money(r.declaredRevenueMinor)].join(";"));
+  lines.push([safe(labels.total), report.total.tickets, report.total.entered, ""].join(";"));
+  return lines.join("\r\n") + "\r\n";
+}

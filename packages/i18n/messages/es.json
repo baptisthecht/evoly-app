@@ -3173,6 +3173,16 @@
     "codesCount": "Número de códigos",
     "codesCreate": "Crear los códigos",
     "codesCreated": "{count, plural, one {# código creado.} other {# códigos creados.}}",
-    "codesDownload": "Descargar los códigos ({count}, CSV)"
+    "codesDownload": "Descargar los códigos ({count}, CSV)",
+    "reportTitle": "Balance por canal",
+    "channel_ONLINE": "Evoly en línea",
+    "channel_BOX_OFFICE": "Venta en taquilla",
+    "channel_COMPLIMENTARY": "Entradas de cortesía",
+    "colChannel": "Canal",
+    "colTickets": "Entradas",
+    "colEntered": "Accesos",
+    "colRevenue": "Ingresos declarados",
+    "total": "Total",
+    "exportCsv": "Exportar el balance (CSV)"
   }
 }
