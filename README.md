@@ -154,7 +154,7 @@ cd apps/app && npx playwright install chromium && npx playwright test
 
 - Sources Markdown dans `apps/web/legal/` : conditions d'utilisation des organisateurs (`cgu`), conditions de vente des participants (`conditions-de-vente`), accord de sous-traitance (`sous-traitance`), politique de confidentialité et sous-traitants (`privacy`), politique cookies (`cookies`), mentions légales (`legal`).
 - `python3 apps/web/legal.py` (lancé par `pnpm --filter @evoly/web build`) produit `dist/<adresse>/index.html`, aux adresses déjà utilisées par le site et l'app (`evoly.me/cgu`, `/privacy`, `/cookies`, `/legal`…). Aucune dépendance : convertisseur Markdown minimal intégré.
-- ⚠ Projets à faire valider par un avocat ; les éléments entre crochets (société, BCE, TVA, hébergeur, contacts) sont à compléter. Version `2026-09`, alignée sur `TERMS_VERSION` et `BUYER_TERMS_VERSION`.
+- Documents publiés : version `2026-09`, alignée sur `TERMS_VERSION` et `BUYER_TERMS_VERSION` ; politique de confidentialité en version `2026-10` (partie dédiée à la connexion avec Google).
 - Liens : inscription (conditions d'utilisation et accord de sous-traitance), formulaire d'achat (conditions de vente et politique de confidentialité).
 
 ## Titulaires et accès membre au scanner

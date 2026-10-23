@@ -87,26 +87,19 @@ PAGE = """<!doctype html>
 header{{background:var(--charbon);color:var(--creme);padding:18px 24px}}header a{{color:var(--creme);font:26px/1 "Archivo Black",Arial Black,sans-serif;text-decoration:none;letter-spacing:-.04em}}
 main{{max-width:760px;margin:0 auto;padding:40px 24px 80px}}h1,h2,h3,h4{{font-family:"Archivo Black",Arial Black,sans-serif;letter-spacing:-.03em;line-height:1.15}}
 h1{{font-size:38px;margin:0 0 8px}}h2{{font-size:24px;margin:40px 0 12px}}h3{{font-size:19px;margin:28px 0 8px}}a{{color:inherit}}
-.draft{{background:var(--lilas);border-radius:14px;padding:14px 18px;margin:18px 0 28px;font-size:14px}}.version{{color:#555;font-size:14px}}
+.version{{color:#555;font-size:14px}}
 .table{{overflow-x:auto}}table{{border-collapse:collapse;width:100%;font-size:14px}}th,td{{text-align:left;padding:8px 10px;border-bottom:1px solid #e8dcd5;vertical-align:top}}
 footer{{border-top:1px solid #e8dcd5;margin-top:48px;padding-top:18px;font-size:14px;display:flex;flex-wrap:wrap;gap:8px 18px}}
 </style></head>
 <body><header><a href="/">evoly</a></header>
 <main><h1>{title}</h1><p class="version">Version {version}</p>
-{draft}{body}
+{body}
 <footer>{links}</footer></main></body></html>
 """
 
 VERSION = "2026-09"
 # version propre à une page, quand elle change seule
 VERSIONS = {"privacy": "2026-10"}
-# pages encore à valider par un avocat : bandeau « Projet de document ». La politique de confidentialité est publiée
-# (vérification de la marque par Google, octobre 2026 : un brouillon n'est pas accepté).
-DRAFT = {"cgu", "conditions-de-vente", "sous-traitance", "cookies", "legal"}
-DRAFT_NOTICE = (
-    '<p class="draft"><strong>Projet de document.</strong> À faire valider par un avocat avant publication. '
-    "Les éléments entre crochets sont à compléter.</p>\n"
-)
 
 
 def build(out_dir: pathlib.Path | None = None) -> list[pathlib.Path]:
@@ -119,7 +112,7 @@ def build(out_dir: pathlib.Path | None = None) -> list[pathlib.Path]:
         target.parent.mkdir(parents=True, exist_ok=True)
         # typographie française : espace insécable avant ; : ! ? (hors adresses web)
         body = re.sub(r" ([;:!?])(?!//)", "\u00a0\\1", render(src))
-        target.write_text(PAGE.format(title=html.escape(typo(title)), desc=html.escape(LEGAL_DESC[slug]), canonical=f"https://evoly.me/{slug}/", version=VERSIONS.get(slug, VERSION), draft=DRAFT_NOTICE if slug in DRAFT else "", body=body, links=links.replace("'", "\u2019")), encoding="utf-8")
+        target.write_text(PAGE.format(title=html.escape(typo(title)), desc=html.escape(LEGAL_DESC[slug]), canonical=f"https://evoly.me/{slug}/", version=VERSIONS.get(slug, VERSION), body=body, links=links.replace("'", "\u2019")), encoding="utf-8")
         written.append(target)
     return written
 
