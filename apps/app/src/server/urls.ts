@@ -14,8 +14,12 @@ export function organizationPublicUrl(subdomain: string): string {
  * URL canonique d'un événement (RG-DOM-06) : sous-domaine d'événement (Pro), sinon page de l'organisation.
  * Les domaines personnalisés s'ajouteront en tête de cette règle.
  */
-export function eventPublicUrl(org: { subdomain: string | null; slug: string }, event: { slug: string; subdomain?: string | null }): string {
-  if (event.subdomain) return `${protocol()}://${event.subdomain}.${env().NEXT_PUBLIC_BASE_DOMAIN}`;
+export function eventPublicUrl(
+  org: { subdomain: string | null; slug: string },
+  event: { slug: string; subdomain?: string | null },
+): string {
+  if (event.subdomain)
+    return `${protocol()}://${event.subdomain}.${env().NEXT_PUBLIC_BASE_DOMAIN}`;
   return `${organizationPublicUrl(org.subdomain ?? org.slug)}/${event.slug}`;
 }
 

@@ -1,5 +1,11 @@
 import "server-only";
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFFont,
+  type PDFPage,
+} from "pdf-lib";
 import { embedTicketFonts } from "./pdfFonts";
 import QRCode from "qrcode";
 
@@ -14,11 +20,21 @@ const winAnsi = (s: string) =>
   s
     .replace(/[\u202f\u00a0\u2009]/g, " ")
     .replace(/→/g, "-")
-    .replace(/[^\x20-\x7e\u00a0-\u00ff\u2018\u2019\u201c\u201d\u2013\u2014\u2026\u20ac\u0152\u0153]/g, "");
+    .replace(
+      /[^\x20-\x7e\u00a0-\u00ff\u2018\u2019\u201c\u201d\u2013\u2014\u2026\u20ac\u0152\u0153]/g,
+      "",
+    );
 /** Vraie police : espaces fines et flèche seulement, tous les autres caractères gardés. */
-const spaces = (s: string) => s.replace(/[\u202f\u00a0\u2009]/g, " ").replace(/→/g, "-");
+const spaces = (s: string) =>
+  s.replace(/[\u202f\u00a0\u2009]/g, " ").replace(/→/g, "-");
 
-function wrap(text: string, font: PDFFont, size: number, width: number, clean: (s: string) => string = winAnsi): string[] {
+function wrap(
+  text: string,
+  font: PDFFont,
+  size: number,
+  width: number,
+  clean: (s: string) => string = winAnsi,
+): string[] {
   const lines: string[] = [];
   let line = "";
   for (const word of clean(text).split(/\s+/)) {
@@ -32,7 +48,13 @@ function wrap(text: string, font: PDFFont, size: number, width: number, clean: (
   return lines;
 }
 
-function drawQr(page: PDFPage, text: string, x: number, y: number, size: number) {
+function drawQr(
+  page: PDFPage,
+  text: string,
+  x: number,
+  y: number,
+  size: number,
+) {
   const qr = QRCode.create(text, { errorCorrectionLevel: "M" });
   const n = qr.modules.size;
   const quiet = 2;
@@ -41,7 +63,13 @@ function drawQr(page: PDFPage, text: string, x: number, y: number, size: number)
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       if (qr.modules.get(r, c))
-        page.drawRectangle({ x: x + (c + quiet) * cell, y: y + size - (r + quiet + 1) * cell, width: cell + 0.2, height: cell + 0.2, color: CHARBON });
+        page.drawRectangle({
+          x: x + (c + quiet) * cell,
+          y: y + size - (r + quiet + 1) * cell,
+          width: cell + 0.2,
+          height: cell + 0.2,
+          color: CHARBON,
+        });
     }
   }
 }
@@ -57,14 +85,25 @@ export interface PdfTicket {
 
 /** PDF d'une commande : une page par billet, QR code grand format (section 9.12). */
 export async function buildTicketsPdf(o: {
-  brand?: { primary: string | null; primaryInk: string | null; logo: { bytes: Uint8Array; type: "image/png" | "image/jpeg" } | null; showPoweredBy: boolean };
+  brand?: {
+    primary: string | null;
+    primaryInk: string | null;
+    logo: { bytes: Uint8Array; type: "image/png" | "image/jpeg" } | null;
+    showPoweredBy: boolean;
+  };
   organizationName: string;
   eventTitle: string;
   when: string;
   where: string | null;
   reference: string;
   tickets: PdfTicket[];
-  labels: { ticket: (i: number, n: number) => string; holder: string; reference: string; entrance: string; poweredBy: string };
+  labels: {
+    ticket: (i: number, n: number) => string;
+    holder: string;
+    reference: string;
+    entrance: string;
+    poweredBy: string;
+  };
   /** Polices de la marque ou de l'événement (Pro) ; sans : la charte. */
   fonts?: { heading?: string | null; body?: string | null };
 }): Promise<Uint8Array> {
@@ -80,7 +119,10 @@ export async function buildTicketsPdf(o: {
     o.labels.reference,
     o.labels.entrance,
     o.labels.poweredBy,
-    ...o.tickets.flatMap((t, i) => [o.labels.ticket(i + 1, o.tickets.length), ...Object.values(t).filter((v): v is string => typeof v === "string")]),
+    ...o.tickets.flatMap((t, i) => [
+      o.labels.ticket(i + 1, o.tickets.length),
+      ...Object.values(t).filter((v): v is string => typeof v === "string"),
+    ]),
   ];
   const fonts = await embedTicketFonts(pdf, o.fonts ?? {}, texts.map(spaces));
   const clean = fonts.custom ? spaces : winAnsi;
@@ -90,11 +132,20 @@ export async function buildTicketsPdf(o: {
   const { title, regular, bold } = fonts;
   const mono = await pdf.embedFont(StandardFonts.CourierBold);
   const [W, H] = [595.28, 841.89]; // A4
-  const toRgb = (hex: string) => rgb(parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255);
+  const toRgb = (hex: string) =>
+    rgb(
+      parseInt(hex.slice(1, 3), 16) / 255,
+      parseInt(hex.slice(3, 5), 16) / 255,
+      parseInt(hex.slice(5, 7), 16) / 255,
+    );
   const band = o.brand?.primary ? toRgb(o.brand.primary) : CHARBON;
   const bandInk = o.brand?.primaryInk ? toRgb(o.brand.primaryInk) : CREME;
   const logo = o.brand?.logo
-    ? await (o.brand.logo.type === "image/png" ? pdf.embedPng(o.brand.logo.bytes) : pdf.embedJpg(o.brand.logo.bytes)).catch(() => null)
+    ? await (
+        o.brand.logo.type === "image/png"
+          ? pdf.embedPng(o.brand.logo.bytes)
+          : pdf.embedJpg(o.brand.logo.bytes)
+      ).catch(() => null)
     : null;
   o.tickets.forEach((t, i) => {
     const page = pdf.addPage([W, H]);
@@ -103,20 +154,50 @@ export async function buildTicketsPdf(o: {
     if (logo) {
       const h = 44;
       const w = Math.min(220, (logo.width / logo.height) * h);
-      page.drawImage(logo, { x: 48, y: H - 67, width: w, height: (w / ((logo.width / logo.height) * h)) * h });
-    } else page.drawText(clean(o.organizationName), { x: 48, y: H - 55, size: 16, font: bold, color: bandInk });
+      page.drawImage(logo, {
+        x: 48,
+        y: H - 67,
+        width: w,
+        height: (w / ((logo.width / logo.height) * h)) * h,
+      });
+    } else
+      page.drawText(clean(o.organizationName), {
+        x: 48,
+        y: H - 55,
+        size: 16,
+        font: bold,
+        color: bandInk,
+      });
     const label = clean(o.labels.ticket(i + 1, o.tickets.length));
-    page.drawText(label, { x: W - 48 - regular.widthOfTextAtSize(label, 11), y: H - 53, size: 11, font: regular, color: bandInk });
+    page.drawText(label, {
+      x: W - 48 - regular.widthOfTextAtSize(label, 11),
+      y: H - 53,
+      size: 11,
+      font: regular,
+      color: bandInk,
+    });
     let y = H - 150;
     for (const line of wrap(o.eventTitle, title, 30, W - 96, clean)) {
       page.drawText(line, { x: 48, y, size: 30, font: title, color: CHARBON });
       y -= 36;
     }
-    page.drawText(clean(o.when), { x: 48, y: y - 4, size: 13, font: regular, color: CHARBON });
+    page.drawText(clean(o.when), {
+      x: 48,
+      y: y - 4,
+      size: 13,
+      font: regular,
+      color: CHARBON,
+    });
     y -= 24;
     if (o.where) {
       for (const line of wrap(o.where, regular, 13, W - 96, clean)) {
-        page.drawText(line, { x: 48, y: y - 4, size: 13, font: regular, color: GRIS });
+        page.drawText(line, {
+          x: 48,
+          y: y - 4,
+          size: 13,
+          font: regular,
+          color: GRIS,
+        });
         y -= 18;
       }
     }
@@ -133,25 +214,90 @@ export async function buildTicketsPdf(o: {
     });
     if (t.invalidLabel) {
       // aucun QR code : le billet ne doit plus pouvoir être présenté à l'entrée
-      page.drawLine({ start: { x: (W - qrSize) / 2, y: qrY }, end: { x: (W + qrSize) / 2, y: qrY + qrSize }, thickness: 6, color: rgb(0.8, 0.13, 0.2) });
-      page.drawLine({ start: { x: (W - qrSize) / 2, y: qrY + qrSize }, end: { x: (W + qrSize) / 2, y: qrY }, thickness: 6, color: rgb(0.8, 0.13, 0.2) });
+      page.drawLine({
+        start: { x: (W - qrSize) / 2, y: qrY },
+        end: { x: (W + qrSize) / 2, y: qrY + qrSize },
+        thickness: 6,
+        color: rgb(0.8, 0.13, 0.2),
+      });
+      page.drawLine({
+        start: { x: (W - qrSize) / 2, y: qrY + qrSize },
+        end: { x: (W + qrSize) / 2, y: qrY },
+        thickness: 6,
+        color: rgb(0.8, 0.13, 0.2),
+      });
       const label = clean(t.invalidLabel);
-      page.drawRectangle({ x: 48, y: qrY + qrSize / 2 - 26, width: W - 96, height: 52, color: rgb(0.8, 0.13, 0.2) });
-      page.drawText(label, { x: (W - bold.widthOfTextAtSize(label, 20)) / 2, y: qrY + qrSize / 2 - 7, size: 20, font: bold, color: rgb(1, 1, 1) });
+      page.drawRectangle({
+        x: 48,
+        y: qrY + qrSize / 2 - 26,
+        width: W - 96,
+        height: 52,
+        color: rgb(0.8, 0.13, 0.2),
+      });
+      page.drawText(label, {
+        x: (W - bold.widthOfTextAtSize(label, 20)) / 2,
+        y: qrY + qrSize / 2 - 7,
+        size: 20,
+        font: bold,
+        color: rgb(1, 1, 1),
+      });
     } else drawQr(page, t.code, (W - qrSize) / 2, qrY, qrSize);
     const spaced = t.shortCode.split("").join(" ");
-    page.drawText(spaced, { x: (W - mono.widthOfTextAtSize(spaced, 22)) / 2, y: qrY - 42, size: 22, font: mono, color: CHARBON });
+    page.drawText(spaced, {
+      x: (W - mono.widthOfTextAtSize(spaced, 22)) / 2,
+      y: qrY - 42,
+      size: 22,
+      font: mono,
+      color: CHARBON,
+    });
     let infoY = qrY - 110;
-    page.drawText(clean(t.typeName), { x: 48, y: infoY, size: 18, font: bold, color: CHARBON });
+    page.drawText(clean(t.typeName), {
+      x: 48,
+      y: infoY,
+      size: 18,
+      font: bold,
+      color: CHARBON,
+    });
     infoY -= 24;
     if (t.holder) {
-      page.drawText(clean(`${o.labels.holder} : ${t.holder}`), { x: 48, y: infoY, size: 12, font: regular, color: CHARBON });
+      page.drawText(clean(`${o.labels.holder} : ${t.holder}`), {
+        x: 48,
+        y: infoY,
+        size: 12,
+        font: regular,
+        color: CHARBON,
+      });
       infoY -= 18;
     }
-    page.drawText(clean(`${o.labels.reference} : ${o.reference}`), { x: 48, y: infoY, size: 12, font: regular, color: GRIS });
-    for (const [k, line] of wrap(o.labels.entrance, regular, 10, W - 96, clean).entries())
-      page.drawText(line, { x: 48, y: 70 - k * 14, size: 10, font: regular, color: GRIS });
-    if (o.brand?.showPoweredBy !== false) page.drawText(clean(o.labels.poweredBy), { x: 48, y: 30, size: 9, font: bold, color: CHARBON });
+    page.drawText(clean(`${o.labels.reference} : ${o.reference}`), {
+      x: 48,
+      y: infoY,
+      size: 12,
+      font: regular,
+      color: GRIS,
+    });
+    for (const [k, line] of wrap(
+      o.labels.entrance,
+      regular,
+      10,
+      W - 96,
+      clean,
+    ).entries())
+      page.drawText(line, {
+        x: 48,
+        y: 70 - k * 14,
+        size: 10,
+        font: regular,
+        color: GRIS,
+      });
+    if (o.brand?.showPoweredBy !== false)
+      page.drawText(clean(o.labels.poweredBy), {
+        x: 48,
+        y: 30,
+        size: 9,
+        font: bold,
+        color: CHARBON,
+      });
   });
   return pdf.save();
 }

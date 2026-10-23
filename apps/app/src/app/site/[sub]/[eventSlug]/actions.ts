@@ -21,21 +21,42 @@ import { sendTicketsLookup } from "@/server/orders";
 import { createListing, reserveResale, withdrawListing } from "@/server/resale";
 import { requestRefund } from "@/server/refunds";
 import { hasEventAccess, unlockEvent } from "@/server/questions";
-import { getPublicOrganization, loadPublicEvent, type PublicTicketType } from "@/server/publicEvents";
+import {
+  getPublicOrganization,
+  loadPublicEvent,
+  type PublicTicketType,
+} from "@/server/publicEvents";
 import { hit } from "@/server/rateLimit";
 import { subscribeAlert } from "@/server/alerts";
 import { presaleCookie, unlockPresale } from "@/server/presale";
-import { botProtected, createChallenge, verifyProof, type BotChallenge } from "@/server/botProtection";
+import {
+  botProtected,
+  createChallenge,
+  verifyProof,
+  type BotChallenge,
+} from "@/server/botProtection";
 import { clientIp } from "@/server/requestInfo";
 import { safeError } from "@/lib/redact";
 import { joinWaitlist } from "@/server/waitlist";
 import { toLocale } from "@evoly/i18n";
 
 /** Options et consommations demandées avec les billets (section 9.29). */
-const optionsSchema = z.array(z.object({ optionId: z.string().max(40), quantity: z.number().int().min(0).max(100) })).max(20);
+const optionsSchema = z
+  .array(
+    z.object({
+      optionId: z.string().max(40),
+      quantity: z.number().int().min(0).max(100),
+    }),
+  )
+  .max(20);
 
 export interface ReservationView {
-  options: Array<{ optionId: string; name: string; quantity: number; unitPriceMinor: number }>;
+  options: Array<{
+    optionId: string;
+    name: string;
+    quantity: number;
+    unitPriceMinor: number;
+  }>;
   token: string;
   reference: string;
   expiresAt: string;
@@ -56,18 +77,34 @@ export interface ReservationView {
   }>;
   stripeAccountId: string | null;
   /** US-QST-01 : questions de la commande et de chaque ligne. */
-  questions: { order: Array<PublicQuestion>; perLine: Record<string, Array<PublicQuestion>> };
+  questions: {
+    order: Array<PublicQuestion>;
+    perLine: Record<string, Array<PublicQuestion>>;
+  };
   seats?: Array<{ id: string; row: string; label: string }>;
 }
 
-type Result<T> = { ok: true; data: T } | { ok: false; error: string; ticketTypeId?: string };
+type Result<T> =
+  { ok: true; data: T } | { ok: false; error: string; ticketTypeId?: string };
 
 const linesSchema = z
-  .array(z.object({ ticketTypeId: z.string().min(1).max(40), quantity: z.number().int().min(1).max(50) }))
+  .array(
+    z.object({
+      ticketTypeId: z.string().min(1).max(40),
+      quantity: z.number().int().min(1).max(50),
+    }),
+  )
   .min(1)
   .max(20);
 // réservation : un panier sans billet est admis s'il contient des options, contrôlées au paiement (vendables sans billet, RG-OPT-03)
-const reserveLinesSchema = z.array(z.object({ ticketTypeId: z.string().min(1).max(40), quantity: z.number().int().min(1).max(50) })).max(20);
+const reserveLinesSchema = z
+  .array(
+    z.object({
+      ticketTypeId: z.string().min(1).max(40),
+      quantity: z.number().int().min(1).max(50),
+    }),
+  )
+  .max(20);
 const buyerSchema = z.object({
   firstName: z.string().trim().min(1).max(60),
   lastName: z.string().trim().min(1).max(60),
@@ -78,24 +115,41 @@ const buyerSchema = z.object({
     .record(
       z.string(),
       z
-        .array(z.object({ firstName: z.string().trim().max(60), lastName: z.string().trim().max(60), email: z.string().trim().max(200).nullable().optional() }))
+        .array(
+          z.object({
+            firstName: z.string().trim().max(60),
+            lastName: z.string().trim().max(60),
+            email: z.string().trim().max(200).nullable().optional(),
+          }),
+        )
         .max(50),
     )
     .optional(),
   answers: z
     .object({
       order: z.record(z.string(), z.unknown()).optional(),
-      tickets: z.record(z.string(), z.array(z.record(z.string(), z.unknown())).max(50)).optional(),
+      tickets: z
+        .record(z.string(), z.array(z.record(z.string(), z.unknown())).max(50))
+        .optional(),
     })
     .optional(),
 });
 
-function failure(err: unknown): { ok: false; error: string; ticketTypeId?: string } {
+function failure(err: unknown): {
+  ok: false;
+  error: string;
+  ticketTypeId?: string;
+} {
   if (err instanceof CartRejected) {
     const first = err.errors[0]!;
-    return { ok: false, error: `CART_${first.code}`, ticketTypeId: "ticketTypeId" in first ? first.ticketTypeId : undefined };
+    return {
+      ok: false,
+      error: `CART_${first.code}`,
+      ticketTypeId: "ticketTypeId" in first ? first.ticketTypeId : undefined,
+    };
   }
-  if (err instanceof PromoRejected) return { ok: false, error: `PROMO_${err.reason}` };
+  if (err instanceof PromoRejected)
+    return { ok: false, error: `PROMO_${err.reason}` };
   if (err instanceof CoreError) return { ok: false, error: err.code };
   console.error("erreur", safeError(err));
   return { ok: false, error: "UNKNOWN" };
@@ -114,17 +168,35 @@ export async function reserveAction(
   ambassadorCode?: unknown,
 ): Promise<Result<ReservationView>> {
   // RG-BUY-10 : preuve anti-robots exigée sur les événements où l'organisateur l'a activée
-  if ((await botProtected(eventId.slice(0, 40))) && !(await verifyProof(eventId.slice(0, 40), botProof))) return { ok: false, error: "BOT_CHECK_FAILED" };
+  if (
+    (await botProtected(eventId.slice(0, 40))) &&
+    !(await verifyProof(eventId.slice(0, 40), botProof))
+  )
+    return { ok: false, error: "BOT_CHECK_FAILED" };
   const parsed = reserveLinesSchema.safeParse(lines);
-  const wantsOptions = Array.isArray(options) && options.some((o) => Number((o as { quantity?: unknown } | null)?.quantity) > 0);
-  if (!parsed.success || (parsed.data.length === 0 && !wantsOptions)) return { ok: false, error: "CART_EMPTY_CART" };
-  if ((await hit(`checkout:reserve:${await clientIp()}`, 600)) > 30) return { ok: false, error: "RATE_LIMITED" };
+  const wantsOptions =
+    Array.isArray(options) &&
+    options.some(
+      (o) => Number((o as { quantity?: unknown } | null)?.quantity) > 0,
+    );
+  if (!parsed.success || (parsed.data.length === 0 && !wantsOptions))
+    return { ok: false, error: "CART_EMPTY_CART" };
+  if ((await hit(`checkout:reserve:${await clientIp()}`, 600)) > 30)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
     // RG-PUB-06 : sans le code d'accès, pas de réservation pour un événement privé
-    const target = await db.event.findUnique({ where: { id: eventId }, select: { id: true, visibility: true, accessCodeHash: true } });
-    if (!target || !(await hasEventAccess(target))) return { ok: false, error: "ACCESS_REQUIRED" };
+    const target = await db.event.findUnique({
+      where: { id: eventId },
+      select: { id: true, visibility: true, accessCodeHash: true },
+    });
+    if (!target || !(await hasEventAccess(target)))
+      return { ok: false, error: "ACCESS_REQUIRED" };
     const seats =
-      Array.isArray(seatIds) && seatIds.length <= 50 && seatIds.every((x) => typeof x === "string" && x.length <= 40) ? (seatIds as string[]) : null;
+      Array.isArray(seatIds) &&
+      seatIds.length <= 50 &&
+      seatIds.every((x) => typeof x === "string" && x.length <= 40)
+        ? (seatIds as string[])
+        : null;
     const r = await reserveOrder({
       eventId,
       lines: parsed.data,
@@ -134,8 +206,10 @@ export async function reserveAction(
       seatIds: seats,
       nearCode: typeof nearCode === "string" ? nearCode.slice(0, 16) : null,
       options: optionsSchema.safeParse(options ?? []).data ?? [],
-      waitlistToken: typeof waitlistToken === "string" ? waitlistToken.slice(0, 60) : null,
-      ambassadorCode: typeof ambassadorCode === "string" ? ambassadorCode.slice(0, 40) : null,
+      waitlistToken:
+        typeof waitlistToken === "string" ? waitlistToken.slice(0, 60) : null,
+      ambassadorCode:
+        typeof ambassadorCode === "string" ? ambassadorCode.slice(0, 40) : null,
     });
     const held = await reservationSeats(r.orderId);
     return {
@@ -161,10 +235,14 @@ export async function reserveAction(
   }
 }
 
-export async function submitBuyerAction(token: string, buyer: unknown): Promise<Result<SubmitResult>> {
+export async function submitBuyerAction(
+  token: string,
+  buyer: unknown,
+): Promise<Result<SubmitResult>> {
   const parsed = buyerSchema.safeParse(buyer);
   if (!parsed.success) return { ok: false, error: "INVALID_BUYER" };
-  if ((await hit(`checkout:submit:${token.slice(0, 16)}`, 600)) > 15) return { ok: false, error: "RATE_LIMITED" };
+  if ((await hit(`checkout:submit:${token.slice(0, 16)}`, 600)) > 15)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
     return { ok: true, data: await submitBuyer(token, parsed.data) };
   } catch (err) {
@@ -182,19 +260,47 @@ export interface PromoPreview {
   percentOffBps: number | null;
   amountOffMinor: number | null;
   ticketTypeIds: string[];
-  unlocked: Array<Omit<PublicTicketType, "next"> & { next: { priceMinor: number; startsAt: string } | null }>;
+  unlocked: Array<
+    Omit<PublicTicketType, "next"> & {
+      next: { priceMinor: number; startsAt: string } | null;
+    }
+  >;
 }
 
 /** Aperçu d'un code avant la réservation (la validation qui compte reste celle de la réservation, RG-PRM-01). */
-export async function previewPromoAction(eventId: string, code: string): Promise<Result<PromoPreview>> {
-  if ((await hit(`checkout:promo:${await clientIp()}`, 600)) > 40) return { ok: false, error: "RATE_LIMITED" };
+export async function previewPromoAction(
+  eventId: string,
+  code: string,
+): Promise<Result<PromoPreview>> {
+  if ((await hit(`checkout:promo:${await clientIp()}`, 600)) > 40)
+    return { ok: false, error: "RATE_LIMITED" };
   const normalized = normalizePromoCode(code).slice(0, 40);
-  const row = normalized ? await db.promoCode.findUnique({ where: { eventId_code: { eventId, code: normalized } } }) : null;
-  const all = await db.ticketType.findMany({ where: { eventId }, select: { id: true } });
-  const check = validatePromo(row, { eventId, now: new Date(), usesByEmail: 0, cartTicketTypeIds: all.map((t) => t.id) });
-  if (!check.ok || !row) return { ok: false, error: `PROMO_${check.ok ? "NOT_FOUND" : check.error}` };
-  const hidden = row.unlocksHidden ? await loadPublicEvent({ id: eventId }, { codeOnly: true }) : null;
-  const unlocked = (hidden?.ticketTypes ?? []).filter((t) => row.ticketTypeIds.length === 0 || row.ticketTypeIds.includes(t.id));
+  const row = normalized
+    ? await db.promoCode.findUnique({
+        where: { eventId_code: { eventId, code: normalized } },
+      })
+    : null;
+  const all = await db.ticketType.findMany({
+    where: { eventId },
+    select: { id: true },
+  });
+  const check = validatePromo(row, {
+    eventId,
+    now: new Date(),
+    usesByEmail: 0,
+    cartTicketTypeIds: all.map((t) => t.id),
+  });
+  if (!check.ok || !row)
+    return {
+      ok: false,
+      error: `PROMO_${check.ok ? "NOT_FOUND" : check.error}`,
+    };
+  const hidden = row.unlocksHidden
+    ? await loadPublicEvent({ id: eventId }, { codeOnly: true })
+    : null;
+  const unlocked = (hidden?.ticketTypes ?? []).filter(
+    (t) => row.ticketTypeIds.length === 0 || row.ticketTypeIds.includes(t.id),
+  );
   return {
     ok: true,
     data: {
@@ -203,17 +309,33 @@ export async function previewPromoAction(eventId: string, code: string): Promise
       percentOffBps: row.percentOffBps,
       amountOffMinor: row.amountOffMinor,
       ticketTypeIds: row.ticketTypeIds,
-      unlocked: unlocked.map((t) => ({ ...t, next: t.next ? { priceMinor: t.next.priceMinor, startsAt: t.next.startsAt.toISOString() } : null })),
+      unlocked: unlocked.map((t) => ({
+        ...t,
+        next: t.next
+          ? {
+              priceMinor: t.next.priceMinor,
+              startsAt: t.next.startsAt.toISOString(),
+            }
+          : null,
+      })),
     },
   };
 }
 
-const holderSchema = z.object({ firstName: z.string().trim().min(1).max(60), lastName: z.string().trim().min(1).max(60) });
+const holderSchema = z.object({
+  firstName: z.string().trim().min(1).max(60),
+  lastName: z.string().trim().min(1).max(60),
+});
 
-export async function updateHolderAction(token: string, ticketId: string, holder: unknown): Promise<Result<null>> {
+export async function updateHolderAction(
+  token: string,
+  ticketId: string,
+  holder: unknown,
+): Promise<Result<null>> {
   const parsed = holderSchema.safeParse(holder);
   if (!parsed.success) return { ok: false, error: "INVALID_BUYER" };
-  if ((await hit(`tickets:holder:${token.slice(0, 16)}`, 3600)) > 30) return { ok: false, error: "RATE_LIMITED" };
+  if ((await hit(`tickets:holder:${token.slice(0, 16)}`, 3600)) > 30)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
     await updateTicketHolder(token, ticketId, parsed.data);
     return { ok: true, data: null };
@@ -223,7 +345,10 @@ export async function updateHolderAction(token: string, ticketId: string, holder
 }
 
 /** RG-POST-02 : même réponse que l'adresse existe ou non, 3 demandes par heure et par adresse. */
-export async function lookupTicketsAction(sub: string, email: unknown): Promise<Result<null>> {
+export async function lookupTicketsAction(
+  sub: string,
+  email: unknown,
+): Promise<Result<null>> {
   const parsed = z
     .email()
     .max(200)
@@ -233,13 +358,20 @@ export async function lookupTicketsAction(sub: string, email: unknown): Promise<
   const emailCount = await hit(`tickets:lookup:email:${parsed.data}`, 3600);
   const org = await getPublicOrganization(sub);
   if (org && ipCount <= 20 && emailCount <= 3)
-    await sendTicketsLookup(org.id, parsed.data, toLocale(await getLocale())).catch((err) => console.error("lookup", safeError(err)));
+    await sendTicketsLookup(
+      org.id,
+      parsed.data,
+      toLocale(await getLocale()),
+    ).catch((err) => console.error("lookup", safeError(err)));
   return { ok: true, data: null };
 }
 
 /** Revente : réservation d'une annonce pendant la durée de réservation de l'événement (section 9.13). */
-export async function reserveResaleAction(linkCode: string): Promise<Result<ReservationView>> {
-  if ((await hit(`resale:reserve:${await clientIp()}`, 600)) > 20) return { ok: false, error: "RATE_LIMITED" };
+export async function reserveResaleAction(
+  linkCode: string,
+): Promise<Result<ReservationView>> {
+  if ((await hit(`resale:reserve:${await clientIp()}`, 600)) > 20)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
     const r = await reserveResale(linkCode.slice(0, 40), await getLocale());
     return {
@@ -264,8 +396,13 @@ export async function reserveResaleAction(linkCode: string): Promise<Result<Rese
   }
 }
 
-export async function createListingAction(token: string, ticketId: string, price: string): Promise<Result<null>> {
-  if ((await hit(`resale:list:${token.slice(0, 16)}`, 3600)) > 20) return { ok: false, error: "RATE_LIMITED" };
+export async function createListingAction(
+  token: string,
+  ticketId: string,
+  price: string,
+): Promise<Result<null>> {
+  if ((await hit(`resale:list:${token.slice(0, 16)}`, 3600)) > 20)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
     await createListing(token, ticketId, String(price).slice(0, 12));
     return { ok: true, data: null };
@@ -274,7 +411,10 @@ export async function createListingAction(token: string, ticketId: string, price
   }
 }
 
-export async function withdrawListingAction(token: string, listingId: string): Promise<Result<null>> {
+export async function withdrawListingAction(
+  token: string,
+  listingId: string,
+): Promise<Result<null>> {
   try {
     await withdrawListing(token, listingId);
     return { ok: true, data: null };
@@ -284,12 +424,21 @@ export async function withdrawListingAction(token: string, listingId: string): P
 }
 
 /** US-REF-01 : demande de remboursement depuis la page des billets. */
-export async function requestRefundAction(token: string, ticketIds: unknown, message: unknown): Promise<Result<{ automatic: boolean }>> {
+export async function requestRefundAction(
+  token: string,
+  ticketIds: unknown,
+  message: unknown,
+): Promise<Result<{ automatic: boolean }>> {
   const ids = z.array(z.string().max(40)).min(1).max(50).safeParse(ticketIds);
   if (!ids.success) return { ok: false, error: "REFUND_NO_TICKET" };
-  if ((await hit(`refund:request:${token.slice(0, 16)}`, 3600)) > 10) return { ok: false, error: "RATE_LIMITED" };
+  if ((await hit(`refund:request:${token.slice(0, 16)}`, 3600)) > 10)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
-    const r = await requestRefund(token, ids.data, typeof message === "string" ? message : null);
+    const r = await requestRefund(
+      token,
+      ids.data,
+      typeof message === "string" ? message : null,
+    );
     return { ok: true, data: { automatic: r.automatic } };
   } catch (err) {
     return failure(err);
@@ -297,42 +446,74 @@ export async function requestRefundAction(token: string, ticketIds: unknown, mes
 }
 
 /** RG-PUB-06 : saisie du code d'accès d'un événement privé, tentatives limitées. */
-export async function unlockEventAction(eventId: string, code: unknown): Promise<Result<null>> {
-  if (typeof code !== "string" || code.length > 60) return { ok: false, error: "ACCESS_CODE_WRONG" };
-  if ((await hit(`access:${eventId.slice(0, 30)}`, 900)) > 30) return { ok: false, error: "RATE_LIMITED" };
-  return (await unlockEvent(eventId, code)) ? { ok: true, data: null } : { ok: false, error: "ACCESS_CODE_WRONG" };
+export async function unlockEventAction(
+  eventId: string,
+  code: unknown,
+): Promise<Result<null>> {
+  if (typeof code !== "string" || code.length > 60)
+    return { ok: false, error: "ACCESS_CODE_WRONG" };
+  if ((await hit(`access:${eventId.slice(0, 30)}`, 900)) > 30)
+    return { ok: false, error: "RATE_LIMITED" };
+  return (await unlockEvent(eventId, code))
+    ? { ok: true, data: null }
+    : { ok: false, error: "ACCESS_CODE_WRONG" };
 }
 
 /** Section 9.9 : places de l'ami qui a partagé son lien (prénom seulement), pour proposer les places les plus proches. */
 export async function friendSeatsAction(
   eventId: string,
   code: string,
-): Promise<{ firstName: string; seatIds: string[]; center: { x: number; y: number } } | null> {
-  if (typeof eventId !== "string" || typeof code !== "string" || code.length > 16) return null;
+): Promise<{
+  firstName: string;
+  seatIds: string[];
+  center: { x: number; y: number };
+} | null> {
+  if (
+    typeof eventId !== "string" ||
+    typeof code !== "string" ||
+    code.length > 16
+  )
+    return null;
   if ((await hit(`friends:${await clientIp()}`, 600)) > 60) return null;
   return friendSeats(eventId, code);
 }
 
 /** Section 9.9 : changer ses places pendant la réservation (même commande, même temps restant). */
-export async function changeSeatsAction(token: string, seatIds: unknown): Promise<Result<Array<{ id: string; row: string; label: string }>>> {
-  if (typeof token !== "string" || !Array.isArray(seatIds) || seatIds.length > 50 || !seatIds.every((x) => typeof x === "string" && x.length <= 40))
+export async function changeSeatsAction(
+  token: string,
+  seatIds: unknown,
+): Promise<Result<Array<{ id: string; row: string; label: string }>>> {
+  if (
+    typeof token !== "string" ||
+    !Array.isArray(seatIds) ||
+    seatIds.length > 50 ||
+    !seatIds.every((x) => typeof x === "string" && x.length <= 40)
+  )
     return { ok: false, error: "SEATS_MISMATCH" };
-  if ((await hit(`checkout:seats:${await clientIp()}`, 600)) > 60) return { ok: false, error: "RATE_LIMITED" };
+  if ((await hit(`checkout:seats:${await clientIp()}`, 600)) > 60)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
-    return { ok: true, data: await changeReservationSeats(token, seatIds as string[]) };
+    return {
+      ok: true,
+      data: await changeReservationSeats(token, seatIds as string[]),
+    };
   } catch (err) {
     return failure(err);
   }
 }
 
 /** « Prévenez-moi » (RG-PRG-04) : inscription à l'e-mail d'ouverture des ventes, limitée contre les abus. */
-export async function subscribeAlertAction(eventId: string, email: unknown): Promise<Result<null>> {
+export async function subscribeAlertAction(
+  eventId: string,
+  email: unknown,
+): Promise<Result<null>> {
   const parsed = z
     .email()
     .max(200)
     .safeParse(typeof email === "string" ? email.trim().toLowerCase() : email);
   if (!parsed.success) return { ok: false, error: "INVALID_EMAIL" };
-  if ((await hit(`alert:ip:${await clientIp()}`, 3600)) > 30) return { ok: false, error: "RATE_LIMITED" };
+  if ((await hit(`alert:ip:${await clientIp()}`, 3600)) > 30)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
     await subscribeAlert(eventId.slice(0, 40), parsed.data, await getLocale());
     return { ok: true, data: null };
@@ -342,25 +523,41 @@ export async function subscribeAlertAction(eventId: string, email: unknown): Pro
 }
 
 /** Prévente privée (RG-PRV-02) : code saisi ou reçu par lien, mémorisé pour ce visiteur s'il est valable ; limité contre les essais en série. */
-export async function unlockPresaleAction(eventId: string, code: unknown): Promise<Result<null>> {
-  if (typeof code !== "string" || !code.trim() || code.length > 60) return { ok: false, error: "PRESALE_INVALID" };
-  if ((await hit(`presale:ip:${await clientIp()}`, 3600)) > 40) return { ok: false, error: "RATE_LIMITED" };
+export async function unlockPresaleAction(
+  eventId: string,
+  code: unknown,
+): Promise<Result<null>> {
+  if (typeof code !== "string" || !code.trim() || code.length > 60)
+    return { ok: false, error: "PRESALE_INVALID" };
+  if ((await hit(`presale:ip:${await clientIp()}`, 3600)) > 40)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
     await unlockPresale(eventId.slice(0, 40), code);
     return { ok: true, data: null };
   } catch (err) {
-    return { ok: false, error: err instanceof CoreError ? err.code : "PRESALE_INVALID" };
+    return {
+      ok: false,
+      error: err instanceof CoreError ? err.code : "PRESALE_INVALID",
+    };
   }
 }
 
 /** RG-BUY-10 : défi anti-robots à résoudre avant de réserver, seulement si l'organisateur a activé la protection. */
-export async function botChallengeAction(eventId: string): Promise<BotChallenge | null> {
+export async function botChallengeAction(
+  eventId: string,
+): Promise<BotChallenge | null> {
   const id = eventId.slice(0, 40);
   return (await botProtected(id)) ? createChallenge(id) : null;
 }
 
 /** Liste d'attente (section 9.30) : inscription sur un tarif complet, avec le consentement, limitée par adresse IP. */
-export async function joinWaitlistAction(eventId: string, ticketTypeId: string, email: unknown, quantity: unknown, consent: unknown): Promise<Result<null>> {
+export async function joinWaitlistAction(
+  eventId: string,
+  ticketTypeId: string,
+  email: unknown,
+  quantity: unknown,
+  consent: unknown,
+): Promise<Result<null>> {
   const parsed = z
     .email()
     .max(200)
@@ -368,9 +565,16 @@ export async function joinWaitlistAction(eventId: string, ticketTypeId: string, 
   if (!parsed.success) return { ok: false, error: "INVALID_EMAIL" };
   if (consent !== true) return { ok: false, error: "CONSENT_REQUIRED" };
   const q = typeof quantity === "number" ? quantity : Number(quantity);
-  if ((await hit(`waitlist:ip:${await clientIp()}`, 3600)) > 30) return { ok: false, error: "RATE_LIMITED" };
+  if ((await hit(`waitlist:ip:${await clientIp()}`, 3600)) > 30)
+    return { ok: false, error: "RATE_LIMITED" };
   try {
-    await joinWaitlist(eventId.slice(0, 40), ticketTypeId.slice(0, 40), parsed.data, q, await getLocale());
+    await joinWaitlist(
+      eventId.slice(0, 40),
+      ticketTypeId.slice(0, 40),
+      parsed.data,
+      q,
+      await getLocale(),
+    );
     return { ok: true, data: null };
   } catch (err) {
     return { ok: false, error: err instanceof CoreError ? err.code : "ERROR" };

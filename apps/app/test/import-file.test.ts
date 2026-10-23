@@ -9,16 +9,29 @@ const utf8 = (s: string) => new TextEncoder().encode(s);
 function xlsx(sheetRows: string, shared: string[]) {
   return zipSync({
     "[Content_Types].xml": strToU8('<?xml version="1.0"?><Types/>'),
-    "xl/workbook.xml": strToU8('<workbook xmlns:r="r"><sheets><sheet name="Billets" sheetId="1" r:id="rId1"/></sheets></workbook>'),
-    "xl/_rels/workbook.xml.rels": strToU8('<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>'),
-    "xl/sharedStrings.xml": strToU8(`<sst>${shared.map((s) => `<si><t>${s}</t></si>`).join("")}</sst>`),
-    "xl/worksheets/sheet1.xml": strToU8(`<worksheet><sheetData>${sheetRows}</sheetData></worksheet>`),
+    "xl/workbook.xml": strToU8(
+      '<workbook xmlns:r="r"><sheets><sheet name="Billets" sheetId="1" r:id="rId1"/></sheets></workbook>',
+    ),
+    "xl/_rels/workbook.xml.rels": strToU8(
+      '<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>',
+    ),
+    "xl/sharedStrings.xml": strToU8(
+      `<sst>${shared.map((s) => `<si><t>${s}</t></si>`).join("")}</sst>`,
+    ),
+    "xl/worksheets/sheet1.xml": strToU8(
+      `<worksheet><sheetData>${sheetRows}</sheetData></worksheet>`,
+    ),
   });
 }
 
 describe("fichiers CSV", () => {
   it("point-virgule et marque d'ordre ; lignes vides retirées ; espaces insécables nettoyés", () => {
-    expect(readTable(utf8("\ufeffCode-barres;Nom\n\n4006381333931;Léa\u00a0Martin\n"), "billets.csv")).toEqual([
+    expect(
+      readTable(
+        utf8("\ufeffCode-barres;Nom\n\n4006381333931;Léa\u00a0Martin\n"),
+        "billets.csv",
+      ),
+    ).toEqual([
       ["Code-barres", "Nom"],
       ["4006381333931", "Léa Martin"],
     ]);
@@ -36,7 +49,15 @@ describe("fichiers CSV", () => {
   });
 
   it("codage Windows d'un CSV enregistré par Excel en français : accents retrouvés", () => {
-    const bytes = new Uint8Array([...utf8("Nom;Pr"), 0xe9, ...utf8("nom\nDurand;H"), 0xe9, ...utf8("l"), 0xe8, ...utf8("ne\n")]);
+    const bytes = new Uint8Array([
+      ...utf8("Nom;Pr"),
+      0xe9,
+      ...utf8("nom\nDurand;H"),
+      0xe9,
+      ...utf8("l"),
+      0xe8,
+      ...utf8("ne\n"),
+    ]);
     expect(readTable(bytes, "liste.csv")).toEqual([
       ["Nom", "Prénom"],
       ["Durand", "Hélène"],
@@ -50,7 +71,12 @@ describe("fichiers Excel", () => {
       '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c></row>' +
       '<row r="2"><c r="A2"><v>4.006381333931E+12</v></c><c r="B2" t="inlineStr"><is><t>Léa &amp; Tom</t></is></c></row>' +
       '<row r="3"><c r="B3" t="s"><v>2</v></c></row>';
-    expect(readTable(xlsx(rows, ["Code-barres", "Nom", "Inès"]), "ticketmaster.xlsx")).toEqual([
+    expect(
+      readTable(
+        xlsx(rows, ["Code-barres", "Nom", "Inès"]),
+        "ticketmaster.xlsx",
+      ),
+    ).toEqual([
       ["Code-barres", "Nom"],
       ["4006381333931", "Léa & Tom"],
       ["", "Inès"],
@@ -58,22 +84,59 @@ describe("fichiers Excel", () => {
   });
 
   it("archive piégée, ancien fichier .xls, fichier vide ou trop gros : refusés avec une raison", () => {
-    const bomb = zipSync({ "xl/worksheets/sheet1.xml": new Uint8Array(61 * 1024 * 1024) }, { level: 9 });
-    expect(() => readTable(bomb, "piege.xlsx")).toThrow(refused("IMPORT_FILE_TOO_LARGE"));
-    expect(() => readTable(new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]), "ancien.xls")).toThrow(refused("IMPORT_FILE_OLD_EXCEL"));
-    expect(() => readTable(new Uint8Array(), "vide.csv")).toThrow(refused("IMPORT_FILE_EMPTY"));
-    expect(() => readTable(new Uint8Array(5 * 1024 * 1024 + 1), "gros.csv")).toThrow(refused("IMPORT_FILE_TOO_LARGE"));
-    expect(() => readTable(zipSync({ "autre.txt": strToU8("x") }), "faux.xlsx")).toThrow(refused("IMPORT_FILE_UNREADABLE"));
+    const bomb = zipSync(
+      { "xl/worksheets/sheet1.xml": new Uint8Array(61 * 1024 * 1024) },
+      { level: 9 },
+    );
+    expect(() => readTable(bomb, "piege.xlsx")).toThrow(
+      refused("IMPORT_FILE_TOO_LARGE"),
+    );
+    expect(() =>
+      readTable(
+        new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]),
+        "ancien.xls",
+      ),
+    ).toThrow(refused("IMPORT_FILE_OLD_EXCEL"));
+    expect(() => readTable(new Uint8Array(), "vide.csv")).toThrow(
+      refused("IMPORT_FILE_EMPTY"),
+    );
+    expect(() =>
+      readTable(new Uint8Array(5 * 1024 * 1024 + 1), "gros.csv"),
+    ).toThrow(refused("IMPORT_FILE_TOO_LARGE"));
+    expect(() =>
+      readTable(zipSync({ "autre.txt": strToU8("x") }), "faux.xlsx"),
+    ).toThrow(refused("IMPORT_FILE_UNREADABLE"));
   });
 });
 
 describe("reconnaissance des colonnes", () => {
   it("en-têtes français, avec accents et ponctuation : toutes les colonnes retrouvées", () => {
-    const head = ["N° de billet", "Prénom", "Nom", "Tarif", "Prix TTC", "Rang", "Place"];
-    expect(detectColumns([head, ["4006381333931", "Léa", "Martin", "Plein", "25,00", "C", "12"]])).toEqual({
+    const head = [
+      "N° de billet",
+      "Prénom",
+      "Nom",
+      "Tarif",
+      "Prix TTC",
+      "Rang",
+      "Place",
+    ];
+    expect(
+      detectColumns([
+        head,
+        ["4006381333931", "Léa", "Martin", "Plein", "25,00", "C", "12"],
+      ]),
+    ).toEqual({
       header: true,
       sure: true,
-      map: { code: 0, firstName: 1, lastName: 2, tarif: 3, price: 4, row: 5, seat: 6 },
+      map: {
+        code: 0,
+        firstName: 1,
+        lastName: 2,
+        tarif: 3,
+        price: 4,
+        row: 5,
+        seat: 6,
+      },
     });
   });
 
@@ -89,7 +152,11 @@ describe("reconnaissance des colonnes", () => {
         ["N° réservation", "Nom", "Nb places"],
         ["BR-77812", "Durand", "2"],
       ]),
-    ).toEqual({ header: true, sure: true, map: { reservation: 0, lastName: 1, quantity: 2 } });
+    ).toEqual({
+      header: true,
+      sure: true,
+      map: { reservation: 0, lastName: 1, quantity: 2 },
+    });
   });
 
   it("sans en-tête : la colonne qui ressemble à des codes-barres ; fichier ambigu : à confirmer", () => {

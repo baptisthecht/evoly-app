@@ -5,10 +5,20 @@ import { alertByToken } from "@/server/alerts";
 import { unsubscribeAlertAction } from "./actions";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Alerte", robots: { index: false, follow: false }, referrer: "no-referrer" };
+export const metadata: Metadata = {
+  title: "Alerte",
+  robots: { index: false, follow: false },
+  referrer: "no-referrer",
+};
 
 /** Suppression d'une alerte « Prévenez-moi » : un bouton à confirmer, pour que les antivirus qui ouvrent les liens ne désinscrivent personne. */
-export default async function AlertPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ done?: string }> }) {
+export default async function AlertPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ done?: string }>;
+}) {
   const { token } = await params;
   const { done } = await searchParams;
   const t = await getTranslations("public");
@@ -22,8 +32,12 @@ export default async function AlertPage({ params, searchParams }: { params: Prom
           </p>
         ) : alert ? (
           <>
-            <h1 className="font-display text-3xl tracking-[-0.03em]">{t("alertUnsubTitle")}</h1>
-            <p className="text-ink-muted">{t("alertUnsubText", { event: alert.event.title })}</p>
+            <h1 className="font-display text-3xl tracking-[-0.03em]">
+              {t("alertUnsubTitle")}
+            </h1>
+            <p className="text-ink-muted">
+              {t("alertUnsubText", { event: alert.event.title })}
+            </p>
             <form action={unsubscribeAlertAction.bind(null, token)}>
               <button type="submit" className={buttonClass("primary")}>
                 {t("alertUnsubButton")}

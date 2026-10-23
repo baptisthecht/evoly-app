@@ -12,16 +12,30 @@ vi.mock("next/headers", () => ({
 
 const { db } = await import("@/lib/db");
 const { reserveOrder, submitBuyer } = await import("@/server/checkout");
-const { openParticipantSession, participantEmail, participantOverview, requestParticipantLink, setMarketingPreference } = await import("@/server/participant");
+const {
+  openParticipantSession,
+  participantEmail,
+  participantOverview,
+  requestParticipantLink,
+  setMarketingPreference,
+} = await import("@/server/participant");
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 // e-mail retrouvé par le journal des envois, puis son fichier ouvert directement (pas de lecture de tout le dossier)
 const outbox = async (to: string, template: string) => {
-  const msg = await db.emailMessage.findFirst({ where: { toEmail: to, template }, orderBy: { queuedAt: "desc" }, select: { id: true } });
+  const msg = await db.emailMessage.findFirst({
+    where: { toEmail: to, template },
+    orderBy: { queuedAt: "desc" },
+    select: { id: true },
+  });
   if (!msg) return null;
   const dir = process.env.EMAIL_OUTBOX_DIR!;
-  const file = (await readdir(dir)).find((f) => f.includes(msg.id) && f.endsWith(".json"));
-  return file ? (JSON.parse(await readFile(`${dir}/${file}`, "utf8")) as { text: string }) : null;
+  const file = (await readdir(dir)).find(
+    (f) => f.includes(msg.id) && f.endsWith(".json"),
+  );
+  return file
+    ? (JSON.parse(await readFile(`${dir}/${file}`, "utf8")) as { text: string })
+    : null;
 };
 
 describe("espace participant (section 9.23)", () => {
@@ -32,7 +46,15 @@ describe("espace participant (section 9.23)", () => {
     const id = rid();
     const email = `lea.${id}@exemple.be`;
     const org = await db.organization.create({
-      data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+      data: {
+        name: `Club ${id}`,
+        slug: `club-${id}`,
+        subdomain: `club-${id}`,
+        country: "BE",
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        locale: "fr",
+      },
     });
     const mk = (slug: string, days: number) =>
       db.event.create({
@@ -45,18 +67,39 @@ describe("espace participant (section 9.23)", () => {
           timezone: "Europe/Brussels",
           startsAt: new Date(Date.now() + days * 86_400_000),
           status: "PUBLISHED",
-          ticketTypes: { create: { name: "Entrée", priceMinor: 0, currency: "EUR", quantity: 20 } },
+          ticketTypes: {
+            create: {
+              name: "Entrée",
+              priceMinor: 0,
+              currency: "EUR",
+              quantity: 20,
+            },
+          },
         },
         include: { ticketTypes: true },
       });
     for (const e of [await mk("gala", 10), await mk("bal", 12)]) {
-      const r = await reserveOrder({ eventId: e.id, lines: [{ ticketTypeId: e.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" });
-      await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email, marketingOptIn: e.slug.startsWith("gala") });
+      const r = await reserveOrder({
+        eventId: e.id,
+        lines: [{ ticketTypeId: e.ticketTypes[0]!.id, quantity: 1 }],
+        locale: "fr",
+      });
+      await submitBuyer(r.token, {
+        firstName: "Léa",
+        lastName: "Martin",
+        email,
+        marketingOptIn: e.slug.startsWith("gala"),
+      });
     }
-    await db.event.updateMany({ where: { slug: `bal-${id}` }, data: { startsAt: new Date(Date.now() - 5 * 86_400_000) } });
+    await db.event.updateMany({
+      where: { slug: `bal-${id}` },
+      data: { startsAt: new Date(Date.now() - 5 * 86_400_000) },
+    });
 
     await requestParticipantLink(`nobody.${id}@exemple.be`, ip, "fr");
-    expect(await outbox(`nobody.${id}@exemple.be`, "participant.magic_link")).toBeNull(); // aucune fuite : rien n'est envoyé
+    expect(
+      await outbox(`nobody.${id}@exemple.be`, "participant.magic_link"),
+    ).toBeNull(); // aucune fuite : rien n'est envoyé
     await requestParticipantLink(email.toUpperCase(), ip, "fr");
     const mail = (await outbox(email, "participant.magic_link"))!;
     const token = /\/mon-espace\/connexion\/(\S+)/.exec(mail.text)![1]!;
@@ -68,15 +111,33 @@ describe("espace participant (section 9.23)", () => {
     expect(data.upcoming.map((o) => o.title)).toEqual([`gala ${id}`]);
     expect(data.past.map((o) => o.title)).toEqual([`bal ${id}`]);
     expect(data.upcoming[0]!.url).toContain("/billets/");
-    expect(data.preferences).toEqual([{ organizationId: org.id, organization: `Club ${id}`, marketing: true }]);
+    expect(data.preferences).toEqual([
+      { organizationId: org.id, organization: `Club ${id}`, marketing: true },
+    ]);
 
     await setMarketingPreference(email, org.id, false);
-    expect((await participantOverview(email)).preferences[0]!.marketing).toBe(false);
+    expect((await participantOverview(email)).preferences[0]!.marketing).toBe(
+      false,
+    );
     await db.emailSuppression
-      .create({ data: { email, scope: "ORGANIZATION", organizationId: org.id, eventId: null, reason: "HARD_BOUNCE" } })
+      .create({
+        data: {
+          email,
+          scope: "ORGANIZATION",
+          organizationId: org.id,
+          eventId: null,
+          reason: "HARD_BOUNCE",
+        },
+      })
       .catch(() => undefined);
     await setMarketingPreference(email, org.id, true);
-    expect((await participantOverview(email)).preferences[0]!.marketing).toBe(true);
-    expect(await db.emailSuppression.count({ where: { email, organizationId: org.id, reason: "UNSUBSCRIBED" } })).toBe(0);
+    expect((await participantOverview(email)).preferences[0]!.marketing).toBe(
+      true,
+    );
+    expect(
+      await db.emailSuppression.count({
+        where: { email, organizationId: org.id, reason: "UNSUBSCRIBED" },
+      }),
+    ).toBe(0);
   });
 });

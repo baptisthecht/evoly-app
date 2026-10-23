@@ -35,7 +35,13 @@ export function eventIcs(
   const location =
     e.locationType === "ONLINE"
       ? (e.onlineUrl ?? "")
-      : [e.locationName, e.addressLine1, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+      : [
+          e.locationName,
+          e.addressLine1,
+          [e.postalCode, e.city].filter(Boolean).join(" "),
+        ]
+          .filter(Boolean)
+          .join(", ");
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -79,8 +85,15 @@ const SOON: Record<Locale, string> = {
 };
 
 /** Titre de l'agenda : jamais le vrai titre d'un événement encore présenté par une annonce. */
-export function calendarTitle(o: { locale: Locale; prepublished: boolean; teaserText: string | null; eventTitle: string; organizationName: string }) {
-  if (o.prepublished) return `${o.teaserText ?? SOON[o.locale]} · ${o.organizationName}`;
+export function calendarTitle(o: {
+  locale: Locale;
+  prepublished: boolean;
+  teaserText: string | null;
+  eventTitle: string;
+  organizationName: string;
+}) {
+  if (o.prepublished)
+    return `${o.teaserText ?? SOON[o.locale]} · ${o.organizationName}`;
   return `${OPEN[o.locale]}${o.locale === "fr" ? " : " : ": "}${o.eventTitle}`;
 }
 
@@ -89,7 +102,12 @@ const utcStamp = (d: Date) =>
     .toISOString()
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}/, "");
-const escText = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+const escText = (s: string) =>
+  s
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r?\n/g, "\\n");
 
 /** Pliage des lignes à 75 octets (RFC 5545, 3.1), sans couper un caractère UTF-8. */
 function foldLine(line: string) {
@@ -106,7 +124,13 @@ function foldLine(line: string) {
   return out.join("\r\n ");
 }
 
-export function openingIcs(o: { uid: string; title: string; start: Date; url: string; now?: Date }) {
+export function openingIcs(o: {
+  uid: string;
+  title: string;
+  start: Date;
+  url: string;
+  now?: Date;
+}) {
   const end = new Date(o.start.getTime() + 30 * 60_000);
   return (
     [
@@ -136,17 +160,37 @@ export function openingIcs(o: { uid: string; title: string; start: Date; url: st
   );
 }
 
-export function googleCalendarUrl(o: { title: string; start: Date; url: string }) {
+export function googleCalendarUrl(o: {
+  title: string;
+  start: Date;
+  url: string;
+}) {
   const end = new Date(o.start.getTime() + 30 * 60_000);
-  const q = new URLSearchParams({ action: "TEMPLATE", text: o.title, dates: `${utcStamp(o.start)}/${utcStamp(end)}`, details: o.url });
+  const q = new URLSearchParams({
+    action: "TEMPLATE",
+    text: o.title,
+    dates: `${utcStamp(o.start)}/${utcStamp(end)}`,
+    details: o.url,
+  });
   return `https://calendar.google.com/calendar/render?${q.toString()}`;
 }
 
 /** Données d'agenda d'un événement : rien pour un événement privé, invisible avant publication ou déjà en vente. */
-export async function openingCalendar(eventId: string, lang: string, now = new Date()) {
+export async function openingCalendar(
+  eventId: string,
+  lang: string,
+  now = new Date(),
+) {
   const e = await db.event.findFirst({
-    where: { id: eventId, deletedAt: null, status: "PUBLISHED", visibility: { not: "PRIVATE" } },
-    include: { organization: { select: { name: true, slug: true, subdomain: true } } },
+    where: {
+      id: eventId,
+      deletedAt: null,
+      status: "PUBLISHED",
+      visibility: { not: "PRIVATE" },
+    },
+    include: {
+      organization: { select: { name: true, slug: true, subdomain: true } },
+    },
   });
   if (!e) return null;
   const prepublished = isPrepublished(e, now);
@@ -156,7 +200,13 @@ export async function openingCalendar(eventId: string, lang: string, now = new D
   const locale = toLocale(lang);
   return {
     uid: `ouverture-${e.id}`,
-    title: calendarTitle({ locale, prepublished, teaserText: e.teaserText, eventTitle: e.title, organizationName: e.organization.name }),
+    title: calendarTitle({
+      locale,
+      prepublished,
+      teaserText: e.teaserText,
+      eventTitle: e.title,
+      organizationName: e.organization.name,
+    }),
     start,
     url: eventPublicUrl(e.organization, e),
   };

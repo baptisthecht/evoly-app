@@ -10,11 +10,21 @@ type T = (key: string, values?: Record<string, string | number>) => string;
 type Overview = Awaited<ReturnType<typeof eventOverview>>;
 
 /** Carte de chiffre de la vue d'ensemble (maquette validée). */
-export function Kpi({ label, value, children }: { label: string; value: ReactNode; children?: ReactNode }) {
+export function Kpi({
+  label,
+  value,
+  children,
+}: {
+  label: string;
+  value: ReactNode;
+  children?: ReactNode;
+}) {
   return (
     <div className="grid min-w-0 content-start gap-1.5 rounded-lg bg-surface-raised px-3.5 py-3.5 ring-1 ring-line sm:px-[1.125rem] sm:py-4">
       <span className="text-xs text-ink-muted">{label}</span>
-      <span className="text-xl font-semibold tracking-[-0.02em] tabular-nums sm:text-2xl">{value}</span>
+      <span className="text-xl font-semibold tracking-[-0.02em] tabular-nums sm:text-2xl">
+        {value}
+      </span>
       {children}
     </div>
   );
@@ -22,8 +32,16 @@ export function Kpi({ label, value, children }: { label: string; value: ReactNod
 
 export function Gauge({ ratio }: { ratio: number }) {
   return (
-    <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-line">
-      <div className="h-full rounded-full bg-success" style={{ width: `${Math.round(Math.min(1, Math.max(0, ratio)) * 100)}%` }} />
+    <div
+      aria-hidden="true"
+      className="h-1 overflow-hidden rounded-full bg-line"
+    >
+      <div
+        className="h-full rounded-full bg-success"
+        style={{
+          width: `${Math.round(Math.min(1, Math.max(0, ratio)) * 100)}%`,
+        }}
+      />
     </div>
   );
 }
@@ -50,12 +68,27 @@ export function SalesChart({
   const gap = o.days.length > 30 ? 2 : 6;
   const bw = (w - gap * (o.days.length - 1)) / o.days.length;
   const first = o.days[0]!.day;
-  const firstLabel = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${first}T12:00:00Z`));
+  const firstLabel = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(`${first}T12:00:00Z`));
   return (
     <Card className={cn("grid min-w-0 gap-3.5", className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[0.9375rem] font-semibold">{t(period === "7" ? "salesTitle7" : period === "14" ? "salesTitle14" : "salesTitleAll")}</h2>
-        <nav aria-label={t("period")} className="inline-flex overflow-hidden rounded-md ring-1 ring-line-strong">
+        <h2 className="text-[0.9375rem] font-semibold">
+          {t(
+            period === "7"
+              ? "salesTitle7"
+              : period === "14"
+                ? "salesTitle14"
+                : "salesTitleAll",
+          )}
+        </h2>
+        <nav
+          aria-label={t("period")}
+          className="inline-flex overflow-hidden rounded-md ring-1 ring-line-strong"
+        >
           {(["7", "14", "all"] as const).map((p) => (
             <Link
               key={p}
@@ -73,10 +106,29 @@ export function SalesChart({
           ))}
         </nav>
       </div>
-      <svg role="img" aria-label={t("chartLabel", { total })} viewBox={`0 0 ${w} 184`} className="h-48 w-full">
+      <svg
+        role="img"
+        aria-label={t("chartLabel", { total })}
+        viewBox={`0 0 ${w} 184`}
+        className="h-48 w-full"
+      >
         <line x1="0" y1="180" x2={w} y2="180" stroke="var(--line)" />
-        <line x1="0" y1="120" x2={w} y2="120" stroke="var(--line)" strokeOpacity="0.5" />
-        <line x1="0" y1="60" x2={w} y2="60" stroke="var(--line)" strokeOpacity="0.5" />
+        <line
+          x1="0"
+          y1="120"
+          x2={w}
+          y2="120"
+          stroke="var(--line)"
+          strokeOpacity="0.5"
+        />
+        <line
+          x1="0"
+          y1="60"
+          x2={w}
+          y2="60"
+          stroke="var(--line)"
+          strokeOpacity="0.5"
+        />
         {o.days.map((d, i) => {
           const h = d.tickets ? Math.max(4, (d.tickets / max) * 160) : 2;
           return (
@@ -92,7 +144,10 @@ export function SalesChart({
           );
         })}
       </svg>
-      <div aria-hidden="true" className="-mt-2 flex justify-between text-xs text-ink-muted">
+      <div
+        aria-hidden="true"
+        className="-mt-2 flex justify-between text-xs text-ink-muted"
+      >
         <span>{firstLabel}</span>
         <span>{t("today")}</span>
       </div>
@@ -112,7 +167,13 @@ export function TiersCard({
   t: T;
   locale: Locale;
   currency: string;
-  types: Array<{ id: string; name: string; priceMinor: number; quantity: number | null; quantitySold: number }>;
+  types: Array<{
+    id: string;
+    name: string;
+    priceMinor: number;
+    quantity: number | null;
+    quantitySold: number;
+  }>;
   tiersSold: Map<string, Array<{ name: string; sold: number }>>;
   ticketsHref: string | null;
 }) {
@@ -121,7 +182,10 @@ export function TiersCard({
       <div className="flex items-center justify-between">
         <h2 className="text-[0.9375rem] font-semibold">{t("tiersTitle")}</h2>
         {ticketsHref ? (
-          <Link href={ticketsHref} className="text-[0.8125rem] text-ink-muted hover:text-ink">
+          <Link
+            href={ticketsHref}
+            className="text-[0.8125rem] text-ink-muted hover:text-ink"
+          >
             {t("manage")}
           </Link>
         ) : null}
@@ -135,7 +199,13 @@ export function TiersCard({
               <span className="truncate font-medium">
                 {tt.name} · {formatMoney(tt.priceMinor, currency, locale)}
               </span>
-              <span className={soldOut ? "shrink-0 font-medium text-success" : "shrink-0 text-ink-muted tabular-nums"}>
+              <span
+                className={
+                  soldOut
+                    ? "shrink-0 font-medium text-success"
+                    : "shrink-0 text-ink-muted tabular-nums"
+                }
+              >
                 {soldOut
                   ? t("soldOut")
                   : tt.quantity !== null
@@ -143,7 +213,9 @@ export function TiersCard({
                     : t("soldUnlimited", { sold: tt.quantitySold })}
               </span>
             </div>
-            {tt.quantity !== null ? <Gauge ratio={tt.quantitySold / Math.max(1, tt.quantity)} /> : null}
+            {tt.quantity !== null ? (
+              <Gauge ratio={tt.quantitySold / Math.max(1, tt.quantity)} />
+            ) : null}
             {tiers.length > 1 ? (
               <span className="text-xs text-ink-muted" data-testid="tier-sales">
                 {tiers.map((x) => `${x.name} : ${x.sold}`).join(" · ")}
@@ -191,14 +263,26 @@ export function RecentOrders({
       if (Math.abs(s) >= n) return rtf.format(Math.round(s / n), unit);
     return rtf.format(0, "minute");
   };
-  const tone = { PAID: "bg-success-soft text-success", PARTIALLY_REFUNDED: "bg-warning-soft text-ink", REFUNDED: "bg-surface text-ink-muted" } as const;
+  const tone = {
+    PAID: "bg-success-soft text-success",
+    PARTIALLY_REFUNDED: "bg-warning-soft text-ink",
+    REFUNDED: "bg-surface text-ink-muted",
+  } as const;
   return (
-    <section aria-labelledby="recent-orders" className="overflow-hidden rounded-lg bg-surface-raised ring-1 ring-line">
+    <section
+      aria-labelledby="recent-orders"
+      className="overflow-hidden rounded-lg bg-surface-raised ring-1 ring-line"
+    >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
         <h2 id="recent-orders" className="text-[0.9375rem] font-semibold">
           {t("recentOrders")}
         </h2>
-        <form action={ordersHref} className="flex flex-wrap gap-2" role="search" aria-label={t("search")}>
+        <form
+          action={ordersHref}
+          className="flex flex-wrap gap-2"
+          role="search"
+          aria-label={t("search")}
+        >
           <div className="relative w-full sm:w-auto">
             <svg
               aria-hidden="true"
@@ -248,37 +332,62 @@ export function RecentOrders({
               <tr className="text-left text-xs text-ink-muted">
                 <th className="px-5 py-2.5 font-medium">{t("buyer")}</th>
                 <th className="px-3 py-2.5 font-medium">{t("tickets")}</th>
-                {showAmounts ? <th className="px-3 py-2.5 font-medium">{t("amount")}</th> : null}
+                {showAmounts ? (
+                  <th className="px-3 py-2.5 font-medium">{t("amount")}</th>
+                ) : null}
                 <th className="px-3 py-2.5 font-medium">{t("status")}</th>
-                <th className="px-5 py-2.5 text-right font-medium">{t("date")}</th>
+                <th className="px-5 py-2.5 text-right font-medium">
+                  {t("date")}
+                </th>
               </tr>
             </thead>
             <tbody>
               {o.recent.map((r) => (
                 <tr key={r.id} className="border-t border-line">
                   <td className="px-5 py-3">
-                    <Link href={`${ordersHref}/${r.id}`} className="font-medium hover:underline">
+                    <Link
+                      href={`${ordersHref}/${r.id}`}
+                      className="font-medium hover:underline"
+                    >
                       {r.buyer}
                     </Link>
                     <br />
                     <span className="text-xs text-ink-muted">{r.email}</span>
                   </td>
                   <td className="px-3 py-3">{r.lines}</td>
-                  {showAmounts ? <td className="px-3 py-3 tabular-nums">{formatMoney(r.totalMinor, r.currency, locale)}</td> : null}
+                  {showAmounts ? (
+                    <td className="px-3 py-3 tabular-nums">
+                      {formatMoney(r.totalMinor, r.currency, locale)}
+                    </td>
+                  ) : null}
                   <td className="px-3 py-3">
-                    <span className={cn("inline-flex h-[1.375rem] items-center rounded-sm px-2 text-xs font-medium", tone[r.status])}>{t(r.status)}</span>
+                    <span
+                      className={cn(
+                        "inline-flex h-[1.375rem] items-center rounded-sm px-2 text-xs font-medium",
+                        tone[r.status],
+                      )}
+                    >
+                      {t(r.status)}
+                    </span>
                   </td>
-                  <td className="px-5 py-3 text-right whitespace-nowrap text-ink-muted">{ago(r.at)}</td>
+                  <td className="px-5 py-3 text-right whitespace-nowrap text-ink-muted">
+                    {ago(r.at)}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       ) : (
-        <p className="px-5 py-6 text-[0.8125rem] text-ink-muted">{t("noOrders")}</p>
+        <p className="px-5 py-6 text-[0.8125rem] text-ink-muted">
+          {t("noOrders")}
+        </p>
       )}
       <div className="flex justify-end border-t border-line px-5 py-3">
-        <Link href={ordersHref} className="text-[0.8125rem] text-ink-muted hover:text-ink">
+        <Link
+          href={ordersHref}
+          className="text-[0.8125rem] text-ink-muted hover:text-ink"
+        >
           {t("allOrders")}
         </Link>
       </div>

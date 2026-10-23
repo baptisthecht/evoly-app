@@ -3,7 +3,14 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-export type LockedFeature = "SEATING_MAPS" | "EMAIL_MARKETING" | "PRESALE_CODES" | "PREPAID_OPTIONS" | "EMBED_WIDGET" | "AMBASSADORS" | "DISTRIBUTION";
+export type LockedFeature =
+  | "SEATING_MAPS"
+  | "EMAIL_MARKETING"
+  | "PRESALE_CODES"
+  | "PREPAID_OPTIONS"
+  | "EMBED_WIDGET"
+  | "AMBASSADORS"
+  | "DISTRIBUTION";
 
 /**
  * Fonction Pro montrée en offre gratuite : nom, bénéfice, aperçu grisé et non interactif, et accès à l'abonnement
@@ -23,7 +30,10 @@ export async function ProLocked({
   const t = await getTranslations("proLocked");
   const id = `pro-${feature.toLowerCase()}`;
   return (
-    <section aria-labelledby={id} className="grid gap-4 rounded-[var(--r-card)] border border-dashed border-line-strong bg-surface-raised p-5">
+    <section
+      aria-labelledby={id}
+      className="grid gap-4 rounded-[var(--r-card)] border border-dashed border-line-strong bg-surface-raised p-5"
+    >
       <div className="flex flex-wrap items-center gap-2">
         <svg
           width="18"
@@ -39,14 +49,23 @@ export async function ProLocked({
           <rect x="5" y="11" width="14" height="10" rx="2" />
           <path d="M8 11V8a4 4 0 0 1 8 0v3" />
         </svg>
-        <h2 id={id} className="font-display text-xl tracking-[var(--tracking-title)]">
+        <h2
+          id={id}
+          className="font-display text-xl tracking-[var(--tracking-title)]"
+        >
           {t(`${feature}.title`)}
         </h2>
-        <span className="rounded-full bg-lilas px-2 py-0.5 font-label text-xs font-bold text-charbon">{t("badge")}</span>
+        <span className="rounded-full bg-lilas px-2 py-0.5 font-label text-xs font-bold text-charbon">
+          {t("badge")}
+        </span>
       </div>
       <p className="-mt-2 text-ink-muted">{t(`${feature}.body`)}</p>
       {preview ? (
-        <div inert className="pointer-events-none select-none opacity-50 grayscale" aria-hidden="true">
+        <div
+          inert
+          className="pointer-events-none select-none opacity-50 grayscale"
+          aria-hidden="true"
+        >
           {preview}
         </div>
       ) : null}
@@ -76,12 +95,27 @@ export function SeatingPreview() {
     for (let k = -n; k <= n; k++) {
       if (k === 0) continue;
       const a = k * (12 / r);
-      seats.push({ x: 240 + r * Math.sin(a), y: -70 + r * Math.cos(a), fill: i < 2 ? PALETTE.rose : i < 4 ? PALETTE.catLilas : PALETTE.catBleu });
+      seats.push({
+        x: 240 + r * Math.sin(a),
+        y: -70 + r * Math.cos(a),
+        fill: i < 2 ? PALETTE.rose : i < 4 ? PALETTE.catLilas : PALETTE.catBleu,
+      });
     }
   });
   return (
-    <svg viewBox="0 0 480 170" className="h-auto w-full max-w-xl" aria-hidden="true">
-      <rect x="170" y="6" width="140" height="22" rx="7" fill={PALETTE.charbon} />
+    <svg
+      viewBox="0 0 480 170"
+      className="h-auto w-full max-w-xl"
+      aria-hidden="true"
+    >
+      <rect
+        x="170"
+        y="6"
+        width="140"
+        height="22"
+        rx="7"
+        fill={PALETTE.charbon}
+      />
       {seats.map((s, i) => (
         <circle key={i} cx={s.x} cy={s.y} r="5" fill={s.fill} />
       ))}

@@ -21,7 +21,9 @@ export function PageHeader({
 }) {
   return (
     <div className="border-b border-line bg-surface-raised px-4 sm:px-8 lg:px-10">
-      <div className={`mx-auto grid max-w-[var(--content-max)] gap-3.5 pt-[1.125rem] ${tabs?.length ? "" : "pb-[1.125rem]"}`}>
+      <div
+        className={`mx-auto grid max-w-[var(--content-max)] gap-3.5 pt-[1.125rem] ${tabs?.length ? "" : "pb-[1.125rem]"}`}
+      >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="grid min-w-0 gap-1">
             {eyebrow}
@@ -31,7 +33,9 @@ export function PageHeader({
             </div>
             {meta}
           </div>
-          {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+          {actions ? (
+            <div className="flex flex-wrap gap-2">{actions}</div>
+          ) : null}
         </div>
         {tabs?.length ? <SectionTabs tabs={tabs} label={tabsLabel} /> : null}
       </div>

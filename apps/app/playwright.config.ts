@@ -16,12 +16,21 @@ export default defineConfig({
     trace: "retain-on-failure",
     // les domaines en .test (domaines personnalisés des tests) pointent vers le serveur local
     launchOptions: {
-      ...(process.env.E2E_CHROMIUM_PATH ? { executablePath: process.env.E2E_CHROMIUM_PATH } : {}),
+      ...(process.env.E2E_CHROMIUM_PATH
+        ? { executablePath: process.env.E2E_CHROMIUM_PATH }
+        : {}),
       args: ["--host-resolver-rules=MAP *.test 127.0.0.1"],
     },
   },
   projects: [
     { name: "desktop", use: { viewport: { width: 1440, height: 900 } } },
-    { name: "mobile", use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
+    {
+      name: "mobile",
+      use: {
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
   ],
 });

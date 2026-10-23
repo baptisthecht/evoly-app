@@ -9,9 +9,23 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 
 async function setup(quantity: number) {
   const id = rid();
-  const user = await db.user.create({ data: { name: "Camille", email: `own.${id}@exemple.be`, emailVerified: true } });
+  const user = await db.user.create({
+    data: {
+      name: "Camille",
+      email: `own.${id}@exemple.be`,
+      emailVerified: true,
+    },
+  });
   const org = await db.organization.create({
-    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    data: {
+      name: `Club ${id}`,
+      slug: `club-${id}`,
+      subdomain: `club-${id}`,
+      country: "BE",
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      locale: "fr",
+    },
   });
   const event = await db.event.create({
     data: {
@@ -25,15 +39,37 @@ async function setup(quantity: number) {
       status: "PUBLISHED",
       ticketTypes: {
         create: [
-          { name: "Invité", priceMinor: 3500, currency: "EUR", quantity, sortOrder: 0 },
-          { name: "Presse", priceMinor: 0, currency: "EUR", quantity: 20, sortOrder: 1 },
+          {
+            name: "Invité",
+            priceMinor: 3500,
+            currency: "EUR",
+            quantity,
+            sortOrder: 0,
+          },
+          {
+            name: "Presse",
+            priceMinor: 0,
+            currency: "EUR",
+            quantity: 20,
+            sortOrder: 1,
+          },
         ],
       },
     },
     include: { ticketTypes: { orderBy: { sortOrder: "asc" } } },
   });
-  const ctx = { organization: { id: org.id, locale: "fr" }, user: { id: user.id } } as unknown as OrgContext;
-  return { id, org, event, ctx, invite: event.ticketTypes[0]!, press: event.ticketTypes[1]! };
+  const ctx = {
+    organization: { id: org.id, locale: "fr" },
+    user: { id: user.id },
+  } as unknown as OrgContext;
+  return {
+    id,
+    org,
+    event,
+    ctx,
+    invite: event.ticketTypes[0]!,
+    press: event.ticketTypes[1]!,
+  };
 }
 
 describe("billets offerts (US-ORD-03)", () => {
@@ -43,22 +79,64 @@ describe("billets offerts (US-ORD-03)", () => {
       ticketTypeId: s.invite.id,
       quantityEach: 1,
       recipients: [
-        { email: `lea.${s.id}@exemple.be`, firstName: "Léa", lastName: "Martin" },
+        {
+          email: `lea.${s.id}@exemple.be`,
+          firstName: "Léa",
+          lastName: "Martin",
+        },
         { email: `tom.${s.id}@exemple.be`, firstName: null, lastName: null },
       ],
     });
     expect(r.every((x) => x.ok)).toBe(true);
-    const orders = await db.order.findMany({ where: { eventId: s.event.id }, include: { tickets: true } });
-    expect(orders.map((o) => [o.source, o.status, o.totalMinor, o.applicationFeeMinor, o.tickets.length])).toEqual([
+    const orders = await db.order.findMany({
+      where: { eventId: s.event.id },
+      include: { tickets: true },
+    });
+    expect(
+      orders.map((o) => [
+        o.source,
+        o.status,
+        o.totalMinor,
+        o.applicationFeeMinor,
+        o.tickets.length,
+      ]),
+    ).toEqual([
       ["COMPLIMENTARY", "PAID", 0, 0, 1],
       ["COMPLIMENTARY", "PAID", 0, 0, 1],
     ]);
-    expect(orders.find((o) => o.buyerEmail.startsWith("tom."))?.buyerFirstName).toBe("Tom");
-    expect((await db.ticketType.findUniqueOrThrow({ where: { id: s.invite.id } })).quantitySold).toBe(2);
-    expect(await db.emailMessage.count({ where: { organizationId: s.org.id, template: "order.confirmation" } })).toBe(2);
-    expect(await db.contact.count({ where: { organizationId: s.org.id, marketingConsent: true } })).toBe(0);
-    expect((await searchOrders(s.ctx, { eventId: s.event.id, ticketTypeId: s.invite.id })).total).toBe(2);
-    expect((await searchOrders(s.ctx, { eventId: s.event.id, ticketTypeId: s.press.id })).total).toBe(0);
+    expect(
+      orders.find((o) => o.buyerEmail.startsWith("tom."))?.buyerFirstName,
+    ).toBe("Tom");
+    expect(
+      (await db.ticketType.findUniqueOrThrow({ where: { id: s.invite.id } }))
+        .quantitySold,
+    ).toBe(2);
+    expect(
+      await db.emailMessage.count({
+        where: { organizationId: s.org.id, template: "order.confirmation" },
+      }),
+    ).toBe(2);
+    expect(
+      await db.contact.count({
+        where: { organizationId: s.org.id, marketingConsent: true },
+      }),
+    ).toBe(0);
+    expect(
+      (
+        await searchOrders(s.ctx, {
+          eventId: s.event.id,
+          ticketTypeId: s.invite.id,
+        })
+      ).total,
+    ).toBe(2);
+    expect(
+      (
+        await searchOrders(s.ctx, {
+          eventId: s.event.id,
+          ticketTypeId: s.press.id,
+        })
+      ).total,
+    ).toBe(0);
   });
 
   it("jauge atteinte en cours d'envoi : envoi partiel rapporté ; événement annulé refusé", async () => {
@@ -71,21 +149,34 @@ describe("billets offerts (US-ORD-03)", () => {
         { email: `b.${s.id}@exemple.be`, firstName: "B", lastName: null },
       ],
     });
-    expect(r.map((x) => (x.ok ? "ok" : x.error))).toEqual(["ok", "COMPLIMENTARY_NO_STOCK"]);
-    expect((await db.ticketType.findUniqueOrThrow({ where: { id: s.invite.id } })).quantityHeld).toBe(0);
-    await db.event.update({ where: { id: s.event.id }, data: { status: "CANCELLED" } });
+    expect(r.map((x) => (x.ok ? "ok" : x.error))).toEqual([
+      "ok",
+      "COMPLIMENTARY_NO_STOCK",
+    ]);
+    expect(
+      (await db.ticketType.findUniqueOrThrow({ where: { id: s.invite.id } }))
+        .quantityHeld,
+    ).toBe(0);
+    await db.event.update({
+      where: { id: s.event.id },
+      data: { status: "CANCELLED" },
+    });
     await expect(
       sendComplimentaryTickets(s.ctx, s.event.id, {
         ticketTypeId: s.press.id,
         quantityEach: 1,
-        recipients: [{ email: `c.${s.id}@exemple.be`, firstName: null, lastName: null }],
+        recipients: [
+          { email: `c.${s.id}@exemple.be`, firstName: null, lastName: null },
+        ],
       }),
     ).rejects.toThrow("COMPLIMENTARY_EVENT_CLOSED");
   });
 
   it("une table VIP offerte reçoit ses options incluses, retrouvées au bar en scannant un de ses billets (section 9.31)", async () => {
     const s = await setup(3);
-    const option = await db.eventOption.create({ data: { eventId: s.event.id, name: "Bouteille VIP", priceMinor: 0 } });
+    const option = await db.eventOption.create({
+      data: { eventId: s.event.id, name: "Bouteille VIP", priceMinor: 0 },
+    });
     const table = await db.ticketType.create({
       data: {
         eventId: s.event.id,
@@ -101,15 +192,27 @@ describe("billets offerts (US-ORD-03)", () => {
     const r = await sendComplimentaryTickets(s.ctx, s.event.id, {
       ticketTypeId: table.id,
       quantityEach: 1,
-      recipients: [{ email: `vip.${s.id}@exemple.be`, firstName: "Vic", lastName: "Martin" }],
+      recipients: [
+        {
+          email: `vip.${s.id}@exemple.be`,
+          firstName: "Vic",
+          lastName: "Martin",
+        },
+      ],
     });
     expect(r.every((x) => x.ok)).toBe(true);
     const order = await db.order.findFirstOrThrow({
       where: { eventId: s.event.id, buyerEmail: `vip.${s.id}@exemple.be` },
       include: { tickets: true, options: true },
     });
-    expect(order.options.map((o) => [o.optionId, o.quantity, o.unitPriceMinor])).toEqual([[option.id, 2, 0]]);
-    const bar = await optionsForScan(s.event.id, { code: order.tickets[0]!.code });
-    expect(bar.options.map((o) => [o.name, o.left])).toEqual([["Bouteille VIP", 2]]);
+    expect(
+      order.options.map((o) => [o.optionId, o.quantity, o.unitPriceMinor]),
+    ).toEqual([[option.id, 2, 0]]);
+    const bar = await optionsForScan(s.event.id, {
+      code: order.tickets[0]!.code,
+    });
+    expect(bar.options.map((o) => [o.name, o.left])).toEqual([
+      ["Bouteille VIP", 2],
+    ]);
   });
 });

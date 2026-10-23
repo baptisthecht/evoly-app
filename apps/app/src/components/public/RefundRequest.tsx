@@ -23,7 +23,9 @@ export function RefundRequest({
   const t = useTranslations("orders");
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<string[]>(tickets.length === 1 ? [tickets[0]!.id] : []);
+  const [selected, setSelected] = useState<string[]>(
+    tickets.length === 1 ? [tickets[0]!.id] : [],
+  );
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -31,25 +33,46 @@ export function RefundRequest({
     return (
       <div className="grid justify-items-center gap-1 text-center">
         <p className="text-sm text-ink-muted">{policyText}</p>
-        <button type="button" className="text-sm font-semibold underline underline-offset-4" onClick={() => setOpen(true)}>
+        <button
+          type="button"
+          className="text-sm font-semibold underline underline-offset-4"
+          onClick={() => setOpen(true)}
+        >
           {t("refundRequest")}
         </button>
       </div>
     );
   return (
-    <section className="grid gap-4 rounded-[var(--r-panel)] bg-surface-raised p-5 ring-1 ring-line" aria-labelledby="refund-title">
+    <section
+      className="grid gap-4 rounded-[var(--r-panel)] bg-surface-raised p-5 ring-1 ring-line"
+      aria-labelledby="refund-title"
+    >
       <h2 id="refund-title" className="font-display text-xl tracking-[-0.03em]">
         {t("refundRequest")}
       </h2>
-      <p className="text-sm">{automatic ? t("refundAutomatic") : outOfDeadline ? t("refundOutOfDeadline") : t("refundReviewed")}</p>
+      <p className="text-sm">
+        {automatic
+          ? t("refundAutomatic")
+          : outOfDeadline
+            ? t("refundOutOfDeadline")
+            : t("refundReviewed")}
+      </p>
       <fieldset className="grid gap-2">
-        <legend className="mb-1 text-sm font-semibold">{t("refundWhich")}</legend>
+        <legend className="mb-1 text-sm font-semibold">
+          {t("refundWhich")}
+        </legend>
         {tickets.map((tk) => (
           <label key={tk.id} className="flex items-center gap-3 text-sm">
             <input
               type="checkbox"
               checked={selected.includes(tk.id)}
-              onChange={(e) => setSelected((s) => (e.target.checked ? [...s, tk.id] : s.filter((x) => x !== tk.id)))}
+              onChange={(e) =>
+                setSelected((s) =>
+                  e.target.checked
+                    ? [...s, tk.id]
+                    : s.filter((x) => x !== tk.id),
+                )
+              }
               className="size-5 accent-[var(--ink)]"
             />
             {tk.label}
@@ -67,7 +90,10 @@ export function RefundRequest({
         />
       </label>
       {error ? (
-        <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+        <p
+          role="alert"
+          className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger"
+        >
           {error}
         </p>
       ) : null}
@@ -81,7 +107,12 @@ export function RefundRequest({
             setError(null);
             const res = await requestRefundAction(token, selected, message);
             setBusy(false);
-            if (!res.ok) return setError(t.has(`error_${res.error}`) ? t(`error_${res.error}`) : t("error_UNKNOWN"));
+            if (!res.ok)
+              return setError(
+                t.has(`error_${res.error}`)
+                  ? t(`error_${res.error}`)
+                  : t("error_UNKNOWN"),
+              );
             router.refresh();
           }}
         >

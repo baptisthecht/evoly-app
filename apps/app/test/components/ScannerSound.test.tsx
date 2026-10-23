@@ -17,8 +17,19 @@ vi.mock("@/components/scanner/CameraScanner", () => ({
 const manifest = (hasOptions: boolean) => ({
   serverTime: new Date().toISOString(),
   salt: "sel",
-  event: { title: "Gala de test", startsAt: new Date(Date.now() + 3_600_000).toISOString(), timezone: "Europe/Brussels", place: null },
-  link: { label: "Porte A", allowManualSearch: true, checkOnly: false, canSell: false, expiresAt: new Date(Date.now() + 86_400_000).toISOString() },
+  event: {
+    title: "Gala de test",
+    startsAt: new Date(Date.now() + 3_600_000).toISOString(),
+    timezone: "Europe/Brussels",
+    place: null,
+  },
+  link: {
+    label: "Porte A",
+    allowManualSearch: true,
+    checkOnly: false,
+    canSell: false,
+    expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+  },
   sale: null,
   tickets: [],
   options: {},
@@ -34,13 +45,35 @@ const serve = (hasOptions = true) => {
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       const path = String(url).replace(/^.*\/api\/scanner\/[^/]+/, "");
-      const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : null;
+      const body = init?.body
+        ? (JSON.parse(String(init.body)) as Record<string, unknown>)
+        : null;
       calls.push({ path, body });
-      const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
+      const json = (data: unknown, status = 200) =>
+        new Response(JSON.stringify(data), {
+          status,
+          headers: { "content-type": "application/json" },
+        });
       if (path === "/manifest") return json(manifest(hasOptions));
-      if (path === "/scan") return json({ result: "VALID", ticket: { holder: "Léa Martin", typeName: "Table VIP" } });
+      if (path === "/scan")
+        return json({
+          result: "VALID",
+          ticket: { holder: "Léa Martin", typeName: "Table VIP" },
+        });
       if (path === "/options")
-        return json({ holder: "Léa Martin", options: [{ id: "l1", name: "Bouteille VIP", quantity: 2, redeemed: 0, refunded: 0, left: 2 }] });
+        return json({
+          holder: "Léa Martin",
+          options: [
+            {
+              id: "l1",
+              name: "Bouteille VIP",
+              quantity: 2,
+              redeemed: 0,
+              refunded: 0,
+              left: 2,
+            },
+          ],
+        });
       return json({ results: [] });
     }),
   );
@@ -55,7 +88,10 @@ const open = async () => {
 };
 const typeShortCode = async (code: string) => {
   const user = userEvent.setup();
-  await user.type(screen.getByPlaceholderText(fr.scanner.shortCode), `${code}{Enter}`); // envoyé comme au clavier
+  await user.type(
+    screen.getByPlaceholderText(fr.scanner.shortCode),
+    `${code}{Enter}`,
+  ); // envoyé comme au clavier
 };
 const called = (path: string) => calls.filter((c) => c.path === path);
 
@@ -71,7 +107,12 @@ describe("scanner : son et vibration selon le résultat", () => {
     currentTime = 0;
     destination = {};
     createOscillator() {
-      const osc = { frequency: { value: 0 }, connect: (g: unknown) => g, start: () => tones.push(osc.frequency.value), stop: () => undefined };
+      const osc = {
+        frequency: { value: 0 },
+        connect: (g: unknown) => g,
+        start: () => tones.push(osc.frequency.value),
+        stop: () => undefined,
+      };
       return osc;
     }
     createGain() {
@@ -86,9 +127,17 @@ describe("scanner : son et vibration selon le résultat", () => {
       "fetch",
       vi.fn(async (url: string) => {
         const path = String(url).replace(/^.*\/api\/scanner\/[^/]+/, "");
-        const json = (data: unknown) => new Response(JSON.stringify(data), { status: 200, headers: { "content-type": "application/json" } });
+        const json = (data: unknown) =>
+          new Response(JSON.stringify(data), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
         if (path === "/manifest") return json(manifest(false));
-        if (path === "/scan") return json({ result, ticket: { holder: "Léa Martin", typeName: "Fosse" } });
+        if (path === "/scan")
+          return json({
+            result,
+            ticket: { holder: "Léa Martin", typeName: "Fosse" },
+          });
         return json({ results: [] });
       }),
     );
@@ -102,7 +151,10 @@ describe("scanner : son et vibration selon le résultat", () => {
     tones.length = 0;
     vibrations.length = 0;
     vi.stubGlobal("AudioContext", FakeAudio);
-    Object.defineProperty(window.navigator, "vibrate", { configurable: true, value: (ms: number) => (vibrations.push(ms), true) });
+    Object.defineProperty(window.navigator, "vibrate", {
+      configurable: true,
+      value: (ms: number) => (vibrations.push(ms), true),
+    });
   });
 
   it("billet valable : un bip aigu court et une vibration courte (section 9.17)", async () => {

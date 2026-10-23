@@ -8,7 +8,15 @@ describe("e-mail de chaque titulaire (RG-QST-01)", () => {
   it("exigé quand le tarif le demande, enregistré sur chaque billet", async () => {
     const id = rid();
     const org = await db.organization.create({
-      data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+      data: {
+        name: `Club ${id}`,
+        slug: `club-${id}`,
+        subdomain: `club-${id}`,
+        country: "BE",
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        locale: "fr",
+      },
     });
     const event = await db.event.create({
       data: {
@@ -20,13 +28,33 @@ describe("e-mail de chaque titulaire (RG-QST-01)", () => {
         timezone: "Europe/Brussels",
         startsAt: new Date(Date.now() + 6 * 86_400_000),
         status: "PUBLISHED",
-        ticketTypes: { create: { name: "Place", priceMinor: 0, currency: "EUR", quantity: 20, isNominative: true, requireHolderEmail: true } },
+        ticketTypes: {
+          create: {
+            name: "Place",
+            priceMinor: 0,
+            currency: "EUR",
+            quantity: 20,
+            isNominative: true,
+            requireHolderEmail: true,
+          },
+        },
       },
       include: { ticketTypes: true },
     });
-    const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 2 }], locale: "fr" });
-    const item = (await db.orderItem.findFirstOrThrow({ where: { orderId: r.orderId } })).id;
-    const buyer = { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false };
+    const r = await reserveOrder({
+      eventId: event.id,
+      lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 2 }],
+      locale: "fr",
+    });
+    const item = (
+      await db.orderItem.findFirstOrThrow({ where: { orderId: r.orderId } })
+    ).id;
+    const buyer = {
+      firstName: "Léa",
+      lastName: "Martin",
+      email: `lea.${id}@exemple.be`,
+      marketingOptIn: false,
+    };
     await expect(
       submitBuyer(r.token, {
         ...buyer,
@@ -43,7 +71,11 @@ describe("e-mail de chaque titulaire (RG-QST-01)", () => {
         ...buyer,
         holders: {
           [item]: [
-            { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be` },
+            {
+              firstName: "Léa",
+              lastName: "Martin",
+              email: `lea.${id}@exemple.be`,
+            },
             { firstName: "Tom", lastName: "Dubois", email: "pas-une-adresse" },
           ],
         },
@@ -53,13 +85,26 @@ describe("e-mail de chaque titulaire (RG-QST-01)", () => {
       ...buyer,
       holders: {
         [item]: [
-          { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be` },
-          { firstName: "Tom", lastName: "Dubois", email: ` Tom.${id}@Exemple.BE ` },
+          {
+            firstName: "Léa",
+            lastName: "Martin",
+            email: `lea.${id}@exemple.be`,
+          },
+          {
+            firstName: "Tom",
+            lastName: "Dubois",
+            email: ` Tom.${id}@Exemple.BE `,
+          },
         ],
       },
     });
-    const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
-    expect(tickets.map((t) => [t.holderFirstName, t.holderEmail]).sort()).toEqual([
+    const tickets = await db.ticket.findMany({
+      where: { orderId: r.orderId },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    });
+    expect(
+      tickets.map((t) => [t.holderFirstName, t.holderEmail]).sort(),
+    ).toEqual([
       ["Léa", `lea.${id}@exemple.be`],
       ["Tom", `tom.${id}@exemple.be`],
     ]);

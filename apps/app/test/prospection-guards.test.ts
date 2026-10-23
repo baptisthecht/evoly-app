@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
-import { importLot, saveMailbox, sendTest, setMailboxLimit } from "@/server/prospection";
+import {
+  importLot,
+  saveMailbox,
+  sendTest,
+  setMailboxLimit,
+} from "@/server/prospection";
 
 // prospection (administration) : garde-fous de l'import, des boîtes d'envoi et de l'e-mail de test, sans toucher à la file d'envoi
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -24,8 +29,16 @@ const inactiveBox = () =>
 describe("prospection : import d'un lot", () => {
   it("format invalide refusé ; plus de 500 adresses refusé", async () => {
     for (const bad of [null, {}, { emails: "lea@exemple.be" }])
-      await expect(importLot(bad)).rejects.toEqual(expect.objectContaining({ code: "PROSPECTION_LOT_INVALID" }));
-    await expect(importLot({ emails: Array.from({ length: 501 }, (_, i) => ({ email: `p${i}@exemple.be` })) })).rejects.toEqual(
+      await expect(importLot(bad)).rejects.toEqual(
+        expect.objectContaining({ code: "PROSPECTION_LOT_INVALID" }),
+      );
+    await expect(
+      importLot({
+        emails: Array.from({ length: 501 }, (_, i) => ({
+          email: `p${i}@exemple.be`,
+        })),
+      }),
+    ).rejects.toEqual(
       expect.objectContaining({ code: "PROSPECTION_LOT_TOO_LARGE" }),
     );
   });
@@ -34,8 +47,16 @@ describe("prospection : import d'un lot", () => {
 describe("prospection : boîtes d'envoi", () => {
   it("limite par jour hors de 1 à 500 refusée ; nouvelle boîte sans mot de passe refusée", async () => {
     for (const max of [0, 501, Number.NaN])
-      await expect(setMailboxLimit("boite", max, true)).rejects.toEqual(expect.objectContaining({ code: "PROSPECTION_LIMIT_INVALID" }));
-    await expect(saveMailbox({ fromName: "Baptiste", address: `p.${rid()}@exemple.be`, smtpHost: "smtp.exemple.be" })).rejects.toEqual(
+      await expect(setMailboxLimit("boite", max, true)).rejects.toEqual(
+        expect.objectContaining({ code: "PROSPECTION_LIMIT_INVALID" }),
+      );
+    await expect(
+      saveMailbox({
+        fromName: "Baptiste",
+        address: `p.${rid()}@exemple.be`,
+        smtpHost: "smtp.exemple.be",
+      }),
+    ).rejects.toEqual(
       expect.objectContaining({ code: "PROSPECTION_PASSWORD_REQUIRED" }),
     );
   });
@@ -46,10 +67,22 @@ describe("prospection : e-mail de test", () => {
     const box = await inactiveBox();
     const send = vi.fn(async () => undefined);
     const copy = vi.fn(async () => undefined);
-    expect(await sendTest(box.id, "pas-une-adresse", send, copy)).toEqual({ ok: false, error: "adresse de test invalide" });
+    expect(await sendTest(box.id, "pas-une-adresse", send, copy)).toEqual({
+      ok: false,
+      error: "adresse de test invalide",
+    });
     expect(send).not.toHaveBeenCalled();
-    expect(await sendTest(box.id, undefined, send, copy)).toEqual({ ok: true, copied: true });
-    expect(send).toHaveBeenCalledWith(expect.objectContaining({ to: box.address, subject: "Test d'envoi de la prospection Evoly" }), expect.anything());
+    expect(await sendTest(box.id, undefined, send, copy)).toEqual({
+      ok: true,
+      copied: true,
+    });
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: box.address,
+        subject: "Test d'envoi de la prospection Evoly",
+      }),
+      expect.anything(),
+    );
     expect(copy).toHaveBeenCalledTimes(1);
   });
 
@@ -65,7 +98,10 @@ describe("prospection : e-mail de test", () => {
       vi.fn(async () => undefined),
     );
     expect(sent.ok).toBe(false);
-    expect(failing).toHaveBeenCalledWith(expect.objectContaining({ to: "test@mail-tester.com" }), expect.anything());
+    expect(failing).toHaveBeenCalledWith(
+      expect.objectContaining({ to: "test@mail-tester.com" }),
+      expect.anything(),
+    );
     const copied = await sendTest(
       box.id,
       undefined,

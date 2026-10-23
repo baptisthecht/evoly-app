@@ -44,19 +44,40 @@ export function Field({
 }) {
   // un seul champ : marqué invalide en cas d'erreur et relié à son message d'erreur ou à son aide, pour les lecteurs d'écran
   // et pour la bordure rouge (sauf si l'écran l'a déjà précisé) ; plusieurs éléments : laissés tels quels
-  const describedBy = error ? `${htmlFor}-error` : hint ? `${htmlFor}-hint` : undefined;
+  const describedBy = error
+    ? `${htmlFor}-error`
+    : hint
+      ? `${htmlFor}-hint`
+      : undefined;
   const only =
-    Children.count(children) === 1 && isValidElement(children) && children.type !== Fragment ? (children as ReactElement<Record<string, unknown>>) : null;
+    Children.count(children) === 1 &&
+    isValidElement(children) &&
+    children.type !== Fragment
+      ? (children as ReactElement<Record<string, unknown>>)
+      : null;
   const control = only
     ? cloneElement(only, {
-        ...(error && only.props["aria-invalid"] === undefined && only.props.invalid === undefined ? { "aria-invalid": true } : {}),
-        ...(describedBy ? { "aria-describedby": [only.props["aria-describedby"], describedBy].filter(Boolean).join(" ") } : {}),
+        ...(error &&
+        only.props["aria-invalid"] === undefined &&
+        only.props.invalid === undefined
+          ? { "aria-invalid": true }
+          : {}),
+        ...(describedBy
+          ? {
+              "aria-describedby": [only.props["aria-describedby"], describedBy]
+                .filter(Boolean)
+                .join(" "),
+            }
+          : {}),
       })
     : children;
   return (
     <div className="grid content-start gap-1.5">
       <div className="flex items-center justify-between gap-2">
-        <label htmlFor={htmlFor} className="font-[family-name:var(--label-family)] text-[length:var(--label-size)] [font-weight:var(--label-weight)] text-ink">
+        <label
+          htmlFor={htmlFor}
+          className="font-[family-name:var(--label-family)] text-[length:var(--label-size)] [font-weight:var(--label-weight)] text-ink"
+        >
           {label}
           {required ? (
             <span aria-hidden="true" className="ml-1 text-[var(--required)]">
@@ -64,8 +85,15 @@ export function Field({
             </span>
           ) : null}
         </label>
-        {optional ? <span className="text-xs text-ink-muted">{optional}</span> : null}
-        {done ? <CheckIcon className="size-4 shrink-0 text-success" strokeWidth={2.6} /> : null}
+        {optional ? (
+          <span className="text-xs text-ink-muted">{optional}</span>
+        ) : null}
+        {done ? (
+          <CheckIcon
+            className="size-4 shrink-0 text-success"
+            strokeWidth={2.6}
+          />
+        ) : null}
       </div>
       {control}
       {error ? (
@@ -86,27 +114,61 @@ export function Input({
   invalid,
   icon,
   ...rest
-}: InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean; ref?: Ref<HTMLInputElement>; icon?: FieldIconName }) {
-  if (!icon) return <input className={cn(control, className)} aria-invalid={invalid || undefined} {...rest} />;
+}: InputHTMLAttributes<HTMLInputElement> & {
+  invalid?: boolean;
+  ref?: Ref<HTMLInputElement>;
+  icon?: FieldIconName;
+}) {
+  if (!icon)
+    return (
+      <input
+        className={cn(control, className)}
+        aria-invalid={invalid || undefined}
+        {...rest}
+      />
+    );
   // icône à gauche ; dates : le calendrier du navigateur couvre tout le champ (globals.css, .has-icon)
   return (
     <div className="relative">
-      <FieldIcon name={icon} className={cn(FIELD_ICON_CLASS, "top-1/2 -translate-y-1/2")} />
-      <input className={cn(control, "has-icon relative pl-10", className)} aria-invalid={invalid || undefined} {...rest} />
+      <FieldIcon
+        name={icon}
+        className={cn(FIELD_ICON_CLASS, "top-1/2 -translate-y-1/2")}
+      />
+      <input
+        className={cn(control, "has-icon relative pl-10", className)}
+        aria-invalid={invalid || undefined}
+        {...rest}
+      />
     </div>
   );
 }
 
-export function Select({ className, children, icon, ...rest }: SelectHTMLAttributes<HTMLSelectElement> & { icon?: FieldIconName }) {
+export function Select({
+  className,
+  children,
+  icon,
+  ...rest
+}: SelectHTMLAttributes<HTMLSelectElement> & { icon?: FieldIconName }) {
   const select = (
-    <select className={cn(control, "appearance-none bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10", icon && "pl-10", className)} {...rest}>
+    <select
+      className={cn(
+        control,
+        "appearance-none bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10",
+        icon && "pl-10",
+        className,
+      )}
+      {...rest}
+    >
       {children}
     </select>
   );
   if (!icon) return select;
   return (
     <div className="relative">
-      <FieldIcon name={icon} className={cn(FIELD_ICON_CLASS, "top-1/2 -translate-y-1/2")} />
+      <FieldIcon
+        name={icon}
+        className={cn(FIELD_ICON_CLASS, "top-1/2 -translate-y-1/2")}
+      />
       {select}
     </div>
   );

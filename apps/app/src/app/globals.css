@@ -53,7 +53,8 @@ body {
   font-size: 1.75rem;
 }
 /* thème pro : boutons et liens en pilule dessinés à la main, alignés sur les boutons du thème (interrupteurs exclus) */
-:root:has(.theme-pro) :is(a, button).rounded-full[class*="px-"]:not([role="switch"]) {
+:root:has(.theme-pro)
+  :is(a, button).rounded-full[class*="px-"]:not([role="switch"]) {
   border-radius: var(--control-radius);
   font-weight: var(--control-weight);
   font-size: var(--control-text-md);
@@ -107,7 +108,13 @@ body {
     overflow-wrap: anywhere; /* un titre peut rétrécir sous la largeur de son plus long mot (dans une rangée flexible) */
     hyphens: auto;
   }
-  input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]),
+  input:not(
+    [type="checkbox"],
+    [type="radio"],
+    [type="range"],
+    [type="color"],
+    [type="file"]
+  ),
   select,
   textarea {
     font-size: 1rem;
@@ -261,7 +268,11 @@ body {
   }
   .email-atom--spacer {
     padding: 0;
-    background: repeating-linear-gradient(45deg, rgba(34, 34, 34, 0.06) 0 6px, transparent 6px 12px);
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(34, 34, 34, 0.06) 0 6px,
+      transparent 6px 12px
+    );
   }
   .email-atom--html {
     font-family: ui-monospace, monospace;

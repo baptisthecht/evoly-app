@@ -30,10 +30,13 @@ describe("commission (RG-FEE-01 à 03, annexe C)", () => {
     [5700, 143, 100],
     [10000, 229, 100],
     [12000, 250, 100],
-  ])("billet à %i centimes : Free %i, Pro %i", (price, expectedFree, expectedPro) => {
-    expect(ticketCommission(price, free)).toBe(expectedFree);
-    expect(ticketCommission(price, pro)).toBe(expectedPro);
-  });
+  ])(
+    "billet à %i centimes : Free %i, Pro %i",
+    (price, expectedFree, expectedPro) => {
+      expect(ticketCommission(price, free)).toBe(expectedFree);
+      expect(ticketCommission(price, pro)).toBe(expectedPro);
+    },
+  );
 
   it("billet gratuit : aucune commission", () => {
     expect(ticketCommission(0, free)).toBe(0);
@@ -65,7 +68,13 @@ describe("commission (RG-FEE-01 à 03, annexe C)", () => {
   });
 
   it("instantané des conditions (RG-FEE-04)", () => {
-    expect(feeSnapshot(pro)).toEqual({ planId: "pro", currency: "EUR", fixedMinor: 29, rateBps: 200, capMinor: 100 });
+    expect(feeSnapshot(pro)).toEqual({
+      planId: "pro",
+      currency: "EUR",
+      fixedMinor: 29,
+      rateBps: 200,
+      capMinor: 100,
+    });
   });
 });
 
@@ -97,7 +106,8 @@ describe("saisie des prix", () => {
   });
   it("saisies refusées", async () => {
     const { parseMajorToMinor } = await import("../src");
-    for (const bad of ["", "-5", "24,555", "abc", "24,", "1e3", "12.345.678"]) expect(parseMajorToMinor(bad)).toBeNull();
+    for (const bad of ["", "-5", "24,555", "abc", "24,", "1e3", "12.345.678"])
+      expect(parseMajorToMinor(bad)).toBeNull();
   });
 });
 

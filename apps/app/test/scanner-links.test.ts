@@ -1,19 +1,46 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { findOrgContext } from "@/server/context";
-import { listScannerLinks, personalScannerLink, scannerUrl } from "@/server/scanner";
+import {
+  listScannerLinks,
+  personalScannerLink,
+  scannerUrl,
+} from "@/server/scanner";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 
 describe("liens de scanner (US-SCN-06)", () => {
   it("adresse du scanner ; lien personnel d'un membre, réutilisé tant qu'il est valide ; liste des liens", async () => {
     const id = rid();
-    const owner = await db.user.create({ data: { name: "Camille Dupont", email: `own.${id}@exemple.be`, emailVerified: true } });
-    const org = await db.organization.create({
-      data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    const owner = await db.user.create({
+      data: {
+        name: "Camille Dupont",
+        email: `own.${id}@exemple.be`,
+        emailVerified: true,
+      },
     });
-    const ownerRole = await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } });
-    await db.organizationMember.create({ data: { organizationId: org.id, userId: owner.id, roleId: ownerRole.id, status: "ACTIVE" } });
+    const org = await db.organization.create({
+      data: {
+        name: `Club ${id}`,
+        slug: `club-${id}`,
+        subdomain: `club-${id}`,
+        country: "BE",
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        locale: "fr",
+      },
+    });
+    const ownerRole = await db.role.findFirstOrThrow({
+      where: { systemKey: "OWNER" },
+    });
+    await db.organizationMember.create({
+      data: {
+        organizationId: org.id,
+        userId: owner.id,
+        roleId: ownerRole.id,
+        status: "ACTIVE",
+      },
+    });
     const event = await db.event.create({
       data: {
         organizationId: org.id,
@@ -26,7 +53,10 @@ describe("liens de scanner (US-SCN-06)", () => {
         status: "PUBLISHED",
       },
     });
-    const ctx = { ...(await findOrgContext(owner.id, org.slug))!, user: { id: owner.id, name: owner.name ?? "", email: owner.email } };
+    const ctx = {
+      ...(await findOrgContext(owner.id, org.slug))!,
+      user: { id: owner.id, name: owner.name ?? "", email: owner.email },
+    };
     const url = scannerUrl("lien-test");
     expect(url).toMatch(/^https?:\/\/scanner\..+\/s\/.+/);
     const a = await personalScannerLink(ctx, event.id);

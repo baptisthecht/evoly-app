@@ -1,7 +1,8 @@
 import { HUMAN_ALPHABET } from "./codes";
 
 /** Résultat d'un scan (section 9.17). */
-export type ScanOutcome = "VALID" | "ALREADY_USED" | "VOID" | "WRONG_EVENT" | "INVALID";
+export type ScanOutcome =
+  "VALID" | "ALREADY_USED" | "VOID" | "WRONG_EVENT" | "INVALID";
 
 export interface ScannableTicket {
   eventId: string;
@@ -9,7 +10,10 @@ export interface ScannableTicket {
 }
 
 /** Décision pour un billet trouvé (ou non) lors d'un scan. */
-export function decideCheckIn(ticket: ScannableTicket | null | undefined, eventId: string): ScanOutcome {
+export function decideCheckIn(
+  ticket: ScannableTicket | null | undefined,
+  eventId: string,
+): ScanOutcome {
   if (!ticket) return "INVALID";
   if (ticket.eventId !== eventId) return "WRONG_EVENT";
   switch (ticket.status) {
@@ -37,10 +41,19 @@ export function isShortCode(input: string): boolean {
  * Horodatage d'un scan hors ligne (RG-SCN-03) : l'heure de l'appareil, bornée pour qu'une horloge
  * fausse ne puisse pas antidater ou postdater un passage au-delà du raisonnable.
  */
-export function trustedScanTime(deviceTime: Date | null | undefined, receivedAt: Date, maxAgeMs = 24 * 3_600_000, maxAheadMs = 5 * 60_000): Date {
+export function trustedScanTime(
+  deviceTime: Date | null | undefined,
+  receivedAt: Date,
+  maxAgeMs = 24 * 3_600_000,
+  maxAheadMs = 5 * 60_000,
+): Date {
   if (!deviceTime || Number.isNaN(deviceTime.getTime())) return receivedAt;
   const t = deviceTime.getTime();
-  if (t > receivedAt.getTime() + maxAheadMs || t < receivedAt.getTime() - maxAgeMs) return receivedAt;
+  if (
+    t > receivedAt.getTime() + maxAheadMs ||
+    t < receivedAt.getTime() - maxAgeMs
+  )
+    return receivedAt;
   return deviceTime;
 }
 
@@ -48,8 +61,13 @@ export function trustedScanTime(deviceTime: Date | null | undefined, receivedAt:
  * Conflit hors ligne (RG-SCN-03) : le premier scan horodaté l'emporte.
  * Un billet déjà validé plus tard que ce scan prend l'heure du scan le plus ancien.
  */
-export function earliestWins(checkedInAt: Date | null, scannedAt: Date): { winner: boolean } {
-  return { winner: checkedInAt == null || scannedAt.getTime() < checkedInAt.getTime() };
+export function earliestWins(
+  checkedInAt: Date | null,
+  scannedAt: Date,
+): { winner: boolean } {
+  return {
+    winner: checkedInAt == null || scannedAt.getTime() < checkedInAt.getTime(),
+  };
 }
 
 export interface AttendanceTicket {
@@ -59,7 +77,9 @@ export interface AttendanceTicket {
 
 /** RG-SCN-09 : présents sur total, taux et répartition par tarif (billets désactivés exclus). */
 export function attendance(tickets: readonly AttendanceTicket[]) {
-  const live = tickets.filter((t) => t.status === "VALID" || t.status === "CHECKED_IN");
+  const live = tickets.filter(
+    (t) => t.status === "VALID" || t.status === "CHECKED_IN",
+  );
   const byType = new Map<string, { present: number; total: number }>();
   for (const t of live) {
     const row = byType.get(t.ticketTypeName) ?? { present: 0, total: 0 };

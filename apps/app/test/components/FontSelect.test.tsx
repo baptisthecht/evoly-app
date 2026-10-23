@@ -6,19 +6,32 @@ import { FontSelect } from "@/components/ui/FontSelect";
 // choix d'une police : chaque police s'affiche dans sa propre typographie ; clic, clavier, valeur envoyée avec le formulaire
 const options = [
   { value: "", label: "Par défaut", family: "Poppins, system-ui, sans-serif" },
-  { value: "space-grotesk", label: "Space Grotesk", family: '"Space Grotesk", system-ui, sans-serif' },
+  {
+    value: "space-grotesk",
+    label: "Space Grotesk",
+    family: '"Space Grotesk", system-ui, sans-serif',
+  },
   { value: "lora", label: "Lora", family: "Lora, Georgia, serif" },
 ];
 function Harness() {
   const [value, setValue] = useState("");
   return (
     <form data-testid="form">
-      <FontSelect id="bodyFont" name="bodyFont" value={value} options={options} onChange={setValue} />
+      <FontSelect
+        id="bodyFont"
+        name="bodyFont"
+        value={value}
+        options={options}
+        onChange={setValue}
+      />
     </form>
   );
 }
 // valeur envoyée avec le formulaire : le champ caché nommé (le bouton porte le même identifiant, pour son libellé)
-const hidden = () => screen.getByTestId("form").querySelector<HTMLInputElement>('input[type="hidden"][name="bodyFont"]')!;
+const hidden = () =>
+  screen
+    .getByTestId("form")
+    .querySelector<HTMLInputElement>('input[type="hidden"][name="bodyFont"]')!;
 
 describe("choix d'une police", () => {
   it("chaque option est affichée dans sa police ; le bouton aussi", () => {
@@ -26,7 +39,9 @@ describe("choix d'une police", () => {
     const combo = screen.getByRole("combobox");
     expect(combo.style.fontFamily).toContain("Poppins");
     fireEvent.click(combo);
-    const shown = screen.getAllByRole("option").map((o) => [o.textContent, o.style.fontFamily]);
+    const shown = screen
+      .getAllByRole("option")
+      .map((o) => [o.textContent, o.style.fontFamily]);
     expect(shown).toEqual(options.map((o) => [o.label, o.family]));
   });
 

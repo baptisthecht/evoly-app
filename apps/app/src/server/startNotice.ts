@@ -12,14 +12,32 @@ export interface StartNotice {
   place: string;
 }
 
-export function parseStartNotice(raw: string | undefined, email: string): StartNotice | null {
+export function parseStartNotice(
+  raw: string | undefined,
+  email: string,
+): StartNotice | null {
   if (!raw || !email) return null;
   try {
     const v = JSON.parse(decodeURIComponent(raw)) as Partial<StartNotice>;
-    const str = (x: unknown, max: number) => (typeof x === "string" && x.length <= max ? x : null);
-    const n = { email: str(v.email, 254), title: str(v.title, 200), startsAtLocal: str(v.startsAtLocal, 16) ?? "", place: str(v.place, 200) ?? "" };
-    if (!n.email || !n.title || n.email.toLowerCase() !== email.trim().toLowerCase()) return null;
-    if (n.startsAtLocal && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(n.startsAtLocal)) n.startsAtLocal = "";
+    const str = (x: unknown, max: number) =>
+      typeof x === "string" && x.length <= max ? x : null;
+    const n = {
+      email: str(v.email, 254),
+      title: str(v.title, 200),
+      startsAtLocal: str(v.startsAtLocal, 16) ?? "",
+      place: str(v.place, 200) ?? "",
+    };
+    if (
+      !n.email ||
+      !n.title ||
+      n.email.toLowerCase() !== email.trim().toLowerCase()
+    )
+      return null;
+    if (
+      n.startsAtLocal &&
+      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(n.startsAtLocal)
+    )
+      n.startsAtLocal = "";
     return n as StartNotice;
   } catch {
     return null;
@@ -41,15 +59,30 @@ export function formatStartWhen(startsAtLocal: string, locale: string): string {
 }
 
 export async function writeStartNotice(n: StartNotice) {
-  (await cookies()).set(START_NOTICE_COOKIE, encodeURIComponent(JSON.stringify({ ...n, title: n.title.slice(0, 200), place: n.place.slice(0, 200) })), {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 7 * 86_400,
-    secure: process.env.NODE_ENV === "production",
-  });
+  (await cookies()).set(
+    START_NOTICE_COOKIE,
+    encodeURIComponent(
+      JSON.stringify({
+        ...n,
+        title: n.title.slice(0, 200),
+        place: n.place.slice(0, 200),
+      }),
+    ),
+    {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 86_400,
+      secure: process.env.NODE_ENV === "production",
+    },
+  );
 }
 
-export async function readStartNotice(email: string): Promise<StartNotice | null> {
-  return parseStartNotice((await cookies()).get(START_NOTICE_COOKIE)?.value, email);
+export async function readStartNotice(
+  email: string,
+): Promise<StartNotice | null> {
+  return parseStartNotice(
+    (await cookies()).get(START_NOTICE_COOKIE)?.value,
+    email,
+  );
 }

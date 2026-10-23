@@ -6,7 +6,17 @@ import { joinWaitlistAction } from "@/app/site/[sub]/[eventSlug]/actions";
 import { Button } from "@/components/ui/Button";
 
 /** Inscription à la liste d'attente d'un tarif complet (section 9.30). */
-export function WaitlistJoin({ eventId, ticketTypeId, name, max }: { eventId: string; ticketTypeId: string; name: string; max: number }) {
+export function WaitlistJoin({
+  eventId,
+  ticketTypeId,
+  name,
+  max,
+}: {
+  eventId: string;
+  ticketTypeId: string;
+  name: string;
+  max: number;
+}) {
   const t = useTranslations("public");
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -23,7 +33,11 @@ export function WaitlistJoin({ eventId, ticketTypeId, name, max }: { eventId: st
   }
   if (!open) {
     return (
-      <button type="button" className="font-semibold underline underline-offset-4" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="font-semibold underline underline-offset-4"
+        onClick={() => setOpen(true)}
+      >
         {t("waitlistJoin")}
       </button>
     );
@@ -36,7 +50,13 @@ export function WaitlistJoin({ eventId, ticketTypeId, name, max }: { eventId: st
       onSubmit={async (e) => {
         e.preventDefault();
         setPending(true);
-        const r = await joinWaitlistAction(eventId, ticketTypeId, email, quantity, consent);
+        const r = await joinWaitlistAction(
+          eventId,
+          ticketTypeId,
+          email,
+          quantity,
+          consent,
+        );
         setPending(false);
         setResult(r.ok ? "ok" : r.error);
       }}
@@ -71,12 +91,20 @@ export function WaitlistJoin({ eventId, ticketTypeId, name, max }: { eventId: st
         </label>
       ) : null}
       <label className="flex items-start gap-2">
-        <input type="checkbox" required checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1" />
+        <input
+          type="checkbox"
+          required
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+          className="mt-1"
+        />
         <span>{t("waitlistConsent")}</span>
       </label>
       {result ? (
         <p role="alert" className="text-danger">
-          {result === "WAITLIST_NOT_SOLD_OUT" ? t("waitlistErrorNotSoldOut") : t("waitlistError")}
+          {result === "WAITLIST_NOT_SOLD_OUT"
+            ? t("waitlistErrorNotSoldOut")
+            : t("waitlistError")}
         </p>
       ) : null}
       <div>

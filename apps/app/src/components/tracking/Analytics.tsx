@@ -31,18 +31,26 @@ declare global {
 export const EVOLY_IDS = {
   ga: "G-CCC58XTQ4D",
   ads: "AW-18525196474",
-  labels: { sign_up: "G9UICOXg0KQdELqhwIFF", organization_created: "xRrGCOLg0KQdELqhwIFF" },
+  labels: {
+    sign_up: "G9UICOXg0KQdELqhwIFF",
+    organization_created: "xRrGCOLg0KQdELqhwIFF",
+  },
 };
 const onEvoly = () => /(^|\.)evoly\.me$/.test(location.hostname);
 function ids() {
   const fallback = onEvoly();
   const labels: Record<string, string> = {
-    sign_up: process.env.NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL || (fallback ? EVOLY_IDS.labels.sign_up : ""),
-    organization_created: process.env.NEXT_PUBLIC_GOOGLE_ADS_ORG_LABEL || (fallback ? EVOLY_IDS.labels.organization_created : ""),
+    sign_up:
+      process.env.NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL ||
+      (fallback ? EVOLY_IDS.labels.sign_up : ""),
+    organization_created:
+      process.env.NEXT_PUBLIC_GOOGLE_ADS_ORG_LABEL ||
+      (fallback ? EVOLY_IDS.labels.organization_created : ""),
   };
   return {
     ga: process.env.NEXT_PUBLIC_GA_ID || (fallback ? EVOLY_IDS.ga : ""),
-    ads: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || (fallback ? EVOLY_IDS.ads : ""),
+    ads:
+      process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || (fallback ? EVOLY_IDS.ads : ""),
     labels,
   };
 }
@@ -57,13 +65,19 @@ function rememberSource(consent: Consent | null) {
   const current = parseAcquisition(readCookie(SOURCE_COOKIE));
   if (current) {
     if (!consent?.ads && (current.gclid || current.gbraid || current.wbraid))
-      writeCookie(SOURCE_COOKIE, serializeAcquisition(withoutClickIds(current)), SOURCE_MAX_AGE);
+      writeCookie(
+        SOURCE_COOKIE,
+        serializeAcquisition(withoutClickIds(current)),
+        SOURCE_MAX_AGE,
+      );
     return;
   }
   const a = acquisitionFromVisit({
     url: location.href,
     referrer: document.referrer,
-    baseDomain: (process.env.NEXT_PUBLIC_BASE_DOMAIN ?? location.hostname).split(":")[0]!,
+    baseDomain: (
+      process.env.NEXT_PUBLIC_BASE_DOMAIN ?? location.hostname
+    ).split(":")[0]!,
     adsAllowed: !!consent?.ads,
   });
   writeCookie(SOURCE_COOKIE, serializeAcquisition(a), SOURCE_MAX_AGE);
@@ -77,7 +91,8 @@ function sendServerEvents() {
   const { ads, labels } = ids();
   for (const e of events) {
     window.gtag?.("event", e);
-    if (ads && labels[e]) window.gtag?.("event", "conversion", { send_to: `${ads}/${labels[e]}` });
+    if (ads && labels[e])
+      window.gtag?.("event", "conversion", { send_to: `${ads}/${labels[e]}` });
   }
 }
 
@@ -99,7 +114,10 @@ export function Analytics() {
         function gtag() {
           window.dataLayer!.push(arguments);
         };
-      window.gtag("consent", "default", { ...googleConsent(consent), wait_for_update: 500 });
+      window.gtag("consent", "default", {
+        ...googleConsent(consent),
+        wait_for_update: 500,
+      });
       window.gtag("set", "ads_data_redaction", true);
       window.gtag("set", "url_passthrough", true);
       window.gtag("js", new Date());

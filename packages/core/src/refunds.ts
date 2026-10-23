@@ -1,6 +1,7 @@
 import { sum, type Minor } from "./money";
 
-export type RefundPolicy = "NON_REFUNDABLE" | "UNTIL_DEADLINE" | "ON_REQUEST" | "ALWAYS";
+export type RefundPolicy =
+  "NON_REFUNDABLE" | "UNTIL_DEADLINE" | "ON_REQUEST" | "ALWAYS";
 
 export interface RefundRequestInput {
   policy: RefundPolicy;
@@ -25,16 +26,32 @@ export interface RefundRequestCheck {
 /** RG-REF-01 et RG-EVT-05 : un acheteur peut-il demander un remboursement ? */
 export function checkRefundRequest(i: RefundRequestInput): RefundRequestCheck {
   const days = i.changeWindowDays ?? 14;
-  const changed = i.lastMajorChangeAt != null && i.now.getTime() < i.lastMajorChangeAt.getTime() + days * 86_400_000;
-  if (changed && i.eventStatus !== "CANCELLED") return { canRequest: true, outOfDeadline: false, reason: "EVENT_CHANGED" };
-  if (i.eventStatus === "CANCELLED") return { canRequest: false, outOfDeadline: false, reason: "BUYER_REQUEST" }; // remboursé automatiquement
+  const changed =
+    i.lastMajorChangeAt != null &&
+    i.now.getTime() < i.lastMajorChangeAt.getTime() + days * 86_400_000;
+  if (changed && i.eventStatus !== "CANCELLED")
+    return { canRequest: true, outOfDeadline: false, reason: "EVENT_CHANGED" };
+  if (i.eventStatus === "CANCELLED")
+    return { canRequest: false, outOfDeadline: false, reason: "BUYER_REQUEST" }; // remboursé automatiquement
   switch (i.policy) {
     case "NON_REFUNDABLE":
-      return { canRequest: false, outOfDeadline: true, reason: "BUYER_REQUEST" };
+      return {
+        canRequest: false,
+        outOfDeadline: true,
+        reason: "BUYER_REQUEST",
+      };
     case "ALWAYS":
-      return { canRequest: i.now.getTime() < i.eventStartsAt.getTime(), outOfDeadline: i.now.getTime() >= i.eventStartsAt.getTime(), reason: "BUYER_REQUEST" };
+      return {
+        canRequest: i.now.getTime() < i.eventStartsAt.getTime(),
+        outOfDeadline: i.now.getTime() >= i.eventStartsAt.getTime(),
+        reason: "BUYER_REQUEST",
+      };
     case "ON_REQUEST":
-      return { canRequest: true, outOfDeadline: i.now.getTime() >= i.eventStartsAt.getTime(), reason: "BUYER_REQUEST" };
+      return {
+        canRequest: true,
+        outOfDeadline: i.now.getTime() >= i.eventStartsAt.getTime(),
+        reason: "BUYER_REQUEST",
+      };
     case "UNTIL_DEADLINE": {
       const deadline = i.deadlineAt ?? i.eventStartsAt;
       const late = i.now.getTime() >= deadline.getTime();
@@ -44,8 +61,14 @@ export function checkRefundRequest(i: RefundRequestInput): RefundRequestCheck {
 }
 
 /** RG-REF-02 : un remboursement porte sur des billets précis, au prix payé. */
-export function refundAmount(tickets: ReadonlyArray<{ faceValueMinor: Minor; status: string }>): Minor {
-  return sum(tickets.filter((t) => t.status === "VALID" || t.status === "CHECKED_IN").map((t) => t.faceValueMinor));
+export function refundAmount(
+  tickets: ReadonlyArray<{ faceValueMinor: Minor; status: string }>,
+): Minor {
+  return sum(
+    tickets
+      .filter((t) => t.status === "VALID" || t.status === "CHECKED_IN")
+      .map((t) => t.faceValueMinor),
+  );
 }
 
 /**

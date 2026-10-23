@@ -5,19 +5,36 @@ import { firstLink, lastEmail } from "./outbox";
 
 // offres commerciales (docs/OFFRES.md) de bout en bout : créées dans l'administration, accordées par le lien de la campagne
 const totp = (secret: string, label: string) =>
-  new OTPAuth.TOTP({ issuer: "Evoly", label, algorithm: "SHA1", digits: 6, period: 30, secret: OTPAuth.Secret.fromBase32(secret) }).generate();
-const ip = () => `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250) + 1}`;
-test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== "desktop", "un seul format suffit"));
+  new OTPAuth.TOTP({
+    issuer: "Evoly",
+    label,
+    algorithm: "SHA1",
+    digits: 6,
+    period: 30,
+    secret: OTPAuth.Secret.fromBase32(secret),
+  }).generate();
+const ip = () =>
+  `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250) + 1}`;
+test.beforeEach(({}, testInfo) =>
+  test.skip(testInfo.project.name !== "desktop", "un seul format suffit"),
+);
 
-test("offre commerciale : créée dans l'administration, puis accordée à l'organisation venue par le lien de la campagne", async ({ page, browser }) => {
+test("offre commerciale : créée dans l'administration, puis accordée à l'organisation venue par le lien de la campagne", async ({
+  page,
+  browser,
+}) => {
   // administrateur d'Evoly : double authentification exigée
   const { id } = await organizer(page);
-  sql(`update "User" set "platformRole" = 'ADMIN' where email = 'orga${id}@exemple.be'`);
+  sql(
+    `update "User" set "platformRole" = 'ADMIN' where email = 'orga${id}@exemple.be'`,
+  );
   await page.goto(appUrl("/admin/offres"));
   await page.waitForURL(/\/compte\/securite$/);
   const secret = (await page.getByTestId("totp-secret").textContent())!.trim();
   await page.getByLabel("Code").fill(totp(secret, `orga${id}@exemple.be`));
-  await page.getByRole("button", { name: "Activer la double authentification" }).click();
+  await page
+    .getByRole("button", { name: "Activer la double authentification" })
+    .click();
   await expect(page.getByTestId("recovery-codes").locator("li")).toHaveCount(8);
 
   // création : 2 mois de Pro, seulement par le lien de la campagne, prioritaire sur l'offre de lancement
@@ -38,13 +55,17 @@ test("offre commerciale : créée dans l'administration, puis accordée à l'org
   await expect(page.getByRole("row", { name: new RegExp(code) })).toBeVisible();
 
   // un visiteur arrive par le lien de la campagne et crée sa billetterie
-  const visitor = await (await browser.newContext({ locale: "fr-BE" })).newPage(); // comme les autres navigateurs des parcours
+  const visitor = await (
+    await browser.newContext({ locale: "fr-BE" })
+  ).newPage(); // comme les autres navigateurs des parcours
   await visitor.setExtraHTTPHeaders({ "x-forwarded-for": ip() });
   await visitor.goto(appUrl(`/start?offre=${code}`));
   const n = uid();
   const email = `offre${n}@exemple.be`;
   await visitor.locator("#qs-title").fill(`Gala ${n}`);
-  await visitor.locator("#qs-date").fill(new Date(Date.now() + 60 * 86_400_000).toISOString().slice(0, 10));
+  await visitor
+    .locator("#qs-date")
+    .fill(new Date(Date.now() + 60 * 86_400_000).toISOString().slice(0, 10));
   await visitor.locator("#qs-time").fill("20:00");
   await visitor.locator("#qs-place").fill("Salle des fêtes");
   await visitor.keyboard.press("Escape");
@@ -57,15 +78,27 @@ test("offre commerciale : créée dans l'administration, puis accordée à l'org
   await visitor.locator('input[name="terms"]').check();
   await visitor.getByRole("button", { name: "Créer ma billetterie" }).click();
   await visitor.waitForURL(/\/verify-email/);
-  await visitor.goto(firstLink((await lastEmail(email, "account.verify_email")).text));
-  await visitor.waitForURL((u) => !/^\/(verify-email|login|register)/.test(u.pathname));
+  await visitor.goto(
+    firstLink((await lastEmail(email, "account.verify_email")).text),
+  );
+  await visitor.waitForURL(
+    (u) => !/^\/(verify-email|login|register)/.test(u.pathname),
+  );
 
   // l'organisation a reçu l'offre de la campagne : Pro, et l'attribution comptée dans l'administration
   const orgId = sql(
     `select o.id from "Organization" o join "OrganizationMember" m on m."organizationId" = o.id join "User" u on u.id = m."userId" where u.email = '${email}'`,
   );
-  expect(sql(`select "planId" from "Subscription" where "organizationId" = '${orgId}'`)).toBe("pro");
-  expect(sql(`select p.code from "PromotionRedemption" r join "Promotion" p on p.id = r."promotionId" where r."organizationId" = '${orgId}'`)).toBe(code);
+  expect(
+    sql(
+      `select "planId" from "Subscription" where "organizationId" = '${orgId}'`,
+    ),
+  ).toBe("pro");
+  expect(
+    sql(
+      `select p.code from "PromotionRedemption" r join "Promotion" p on p.id = r."promotionId" where r."organizationId" = '${orgId}'`,
+    ),
+  ).toBe(code);
   await page.goto(appUrl("/admin/offres"));
   await expect(
     page

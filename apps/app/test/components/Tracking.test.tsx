@@ -1,4 +1,10 @@
-import { CONSENT_COOKIE, EVENT_COOKIE, parseAcquisition, parseConsent, SOURCE_COOKIE } from "@evoly/core";
+import {
+  CONSENT_COOKIE,
+  EVENT_COOKIE,
+  parseAcquisition,
+  parseConsent,
+  SOURCE_COOKIE,
+} from "@evoly/core";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
@@ -8,8 +14,15 @@ import { Fr } from "./intl";
 const nav = vi.hoisted(() => ({ path: "/register" }));
 vi.mock("next/navigation", () => ({ usePathname: () => nav.path }));
 const t = (fr as unknown as Record<string, Record<string, string>>).consent!;
-const cookie = (name: string) => document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))?.[1] ?? null;
-const clearCookies = () => document.cookie.split(";").forEach((c) => (document.cookie = `${c.split("=")[0]!.trim()}=; Max-Age=0; Path=/`));
+const cookie = (name: string) =>
+  document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))?.[1] ?? null;
+const clearCookies = () =>
+  document.cookie
+    .split(";")
+    .forEach(
+      (c) =>
+        (document.cookie = `${c.split("=")[0]!.trim()}=; Max-Age=0; Path=/`),
+    );
 beforeEach(() => {
   clearCookies();
   nav.path = "/register";
@@ -28,7 +41,8 @@ async function load(env: Record<string, string> = {}) {
   vi.resetModules();
   return (await import("@/components/tracking/Tracking")).Tracking;
 }
-const calls = () => (window.dataLayer ?? []).map((a) => Array.from(a as IArguments));
+const calls = () =>
+  (window.dataLayer ?? []).map((a) => Array.from(a as IArguments));
 
 describe("bandeau de consentement (RGPD, ePrivacy)", () => {
   it("tout refuser : refus enregistré, le bandeau se ferme", async () => {
@@ -39,7 +53,10 @@ describe("bandeau de consentement (RGPD, ePrivacy)", () => {
       </Fr>,
     );
     fireEvent.click(screen.getByRole("button", { name: t.refuse }));
-    expect(parseConsent(cookie(CONSENT_COOKIE))).toMatchObject({ analytics: false, ads: false });
+    expect(parseConsent(cookie(CONSENT_COOKIE))).toMatchObject({
+      analytics: false,
+      ads: false,
+    });
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
@@ -55,9 +72,16 @@ describe("bandeau de consentement (RGPD, ePrivacy)", () => {
     expect(boxes.map((b) => b.checked)).toEqual([true, false, false]); // nécessaires seulement
     fireEvent.click(boxes[1]!);
     fireEvent.click(screen.getByRole("button", { name: t.save }));
-    expect(parseConsent(cookie(CONSENT_COOKIE))).toMatchObject({ analytics: true, ads: false });
+    expect(parseConsent(cookie(CONSENT_COOKIE))).toMatchObject({
+      analytics: true,
+      ads: false,
+    });
     act(() => openConsent());
-    expect((screen.getAllByRole("checkbox") as HTMLInputElement[]).map((b) => b.checked)).toEqual([true, true, false]);
+    expect(
+      (screen.getAllByRole("checkbox") as HTMLInputElement[]).map(
+        (b) => b.checked,
+      ),
+    ).toEqual([true, true, false]);
   });
 
   it("choix déjà fait : pas de bandeau ; billetterie intégrée et scanner : rien du tout", async () => {
@@ -108,19 +132,36 @@ describe("Google en mode Consentement v2, source des visites, événements confi
     expect(calls()[0]).toEqual([
       "consent",
       "default",
-      { analytics_storage: "denied", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied", wait_for_update: 500 },
+      {
+        analytics_storage: "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        wait_for_update: 500,
+      },
     ]);
-    expect(document.getElementById("evoly-gtag")!.getAttribute("src")).toContain("id=G-TEST123");
+    expect(
+      document.getElementById("evoly-gtag")!.getAttribute("src"),
+    ).toContain("id=G-TEST123");
     fireEvent.click(screen.getByRole("button", { name: t.accept }));
     expect(calls().at(-1)).toEqual([
       "consent",
       "update",
-      { analytics_storage: "granted", ad_storage: "granted", ad_user_data: "granted", ad_personalization: "granted" },
+      {
+        analytics_storage: "granted",
+        ad_storage: "granted",
+        ad_user_data: "granted",
+        ad_personalization: "granted",
+      },
     ]);
   });
 
   it("source de la première visite : seulement avec consentement ; identifiant de clic seulement avec la publicité", async () => {
-    window.history.pushState({}, "", "/register?utm_source=google&utm_medium=cpc&gclid=Cj0abc");
+    window.history.pushState(
+      {},
+      "",
+      "/register?utm_source=google&utm_medium=cpc&gclid=Cj0abc",
+    );
     const Tracking = await load();
     const consent = (analytics: boolean, ads: boolean) =>
       (document.cookie = `${CONSENT_COOKIE}=${encodeURIComponent(JSON.stringify({ v: 1, analytics, ads, at: "x" }))}; Path=/`);
@@ -137,7 +178,10 @@ describe("Google en mode Consentement v2, source des visites, événements confi
         <Tracking />
       </Fr>,
     );
-    expect(parseAcquisition(cookie(SOURCE_COOKIE))).toMatchObject({ source: "google", medium: "cpc" });
+    expect(parseAcquisition(cookie(SOURCE_COOKIE))).toMatchObject({
+      source: "google",
+      medium: "cpc",
+    });
     expect(parseAcquisition(cookie(SOURCE_COOKIE))!.gclid).toBeUndefined();
     b.unmount();
     document.cookie = `${SOURCE_COOKIE}=; Max-Age=0; Path=/`;
@@ -168,7 +212,10 @@ describe("Google en mode Consentement v2, source des visites, événements confi
 
   it("événements confirmés par le serveur : envoyés une fois avec leur conversion Google Ads, puis effacés", async () => {
     document.cookie = `${EVENT_COOKIE}=sign_up; Path=/`;
-    const Tracking = await load({ NEXT_PUBLIC_GOOGLE_ADS_ID: "AW-123", NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL: "abcLabel" });
+    const Tracking = await load({
+      NEXT_PUBLIC_GOOGLE_ADS_ID: "AW-123",
+      NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL: "abcLabel",
+    });
     render(
       <Fr>
         <Tracking />

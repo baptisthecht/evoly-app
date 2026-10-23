@@ -10,18 +10,46 @@ const nav = vi.hoisted(() => ({ path: "/o/club/events/e1" }));
 vi.mock("next/navigation", () => ({ usePathname: () => nav.path }));
 const n = (fr as unknown as Record<string, Record<string, string>>).nav!;
 const base = "/o/club/events/e1";
-const build = (used = { seating: false, options: false, ambassadors: false }, canPublish = true) =>
-  buildEventTabs({ t: (k) => n[k] ?? k, base, used, canPublish });
+const build = (
+  used = { seating: false, options: false, ambassadors: false },
+  canPublish = true,
+) => buildEventTabs({ t: (k) => n[k] ?? k, base, used, canPublish });
 afterEach(() => vi.unstubAllGlobals());
 
 describe("onglets d'un événement : construction", () => {
   it("six parties ; toutes les fonctionnalités affichées directement ; « Mise en ligne » seulement avec le droit de publier", () => {
-    const { tabs, hidden } = build({ seating: false, options: false, ambassadors: false }, false);
-    expect(tabs.map((t) => t.label)).toEqual([n.eventOverview, n.groupTicketing, n.groupAttendees, n.groupSales, n.groupDayOf, n.eventSettings]);
-    expect(tabs[1]!.items.map((i) => i.label)).toEqual([n.tickets, n.seating, n.tables, n.options]);
-    expect(tabs[3]!.items.map((i) => i.label)).toEqual([n.eventPage, n.promo, n.ambassadors, n.distribution, n.embed]);
+    const { tabs, hidden } = build(
+      { seating: false, options: false, ambassadors: false },
+      false,
+    );
+    expect(tabs.map((t) => t.label)).toEqual([
+      n.eventOverview,
+      n.groupTicketing,
+      n.groupAttendees,
+      n.groupSales,
+      n.groupDayOf,
+      n.eventSettings,
+    ]);
+    expect(tabs[1]!.items.map((i) => i.label)).toEqual([
+      n.tickets,
+      n.seating,
+      n.tables,
+      n.options,
+    ]);
+    expect(tabs[3]!.items.map((i) => i.label)).toEqual([
+      n.eventPage,
+      n.promo,
+      n.ambassadors,
+      n.distribution,
+      n.embed,
+    ]);
     expect(hidden).toEqual([]);
-    expect(build({ seating: true, options: true, ambassadors: true }, true).tabs[3]!.items.map((i) => i.label)).toEqual([
+    expect(
+      build(
+        { seating: true, options: true, ambassadors: true },
+        true,
+      ).tabs[3]!.items.map((i) => i.label),
+    ).toEqual([
       n.eventPage,
       n.launch,
       n.promo,
@@ -35,7 +63,9 @@ describe("onglets d'un événement : construction", () => {
     const { tabs, hidden } = build();
     expect(activeEventTab(tabs, hidden, base)).toBe("overview");
     expect(activeEventTab(tabs, hidden, `${base}/tickets`)).toBe("ticketing");
-    expect(activeEventTab(tabs, hidden, `${base}/orders/abc123`)).toBe("attendees");
+    expect(activeEventTab(tabs, hidden, `${base}/orders/abc123`)).toBe(
+      "attendees",
+    );
     expect(activeEventTab(tabs, hidden, `${base}/settings/`)).toBe("settings");
     expect(activeEventTab(tabs, hidden, `${base}/seating`)).toBe("ticketing");
     expect(activeEventTab(tabs, hidden, `${base}/ambassadors`)).toBe("sales");
@@ -57,7 +87,11 @@ describe("onglets d'un événement : affichage", () => {
   it("onglet actif marqué ; seconde rangée avec toutes les pages de la partie, sans menu à déplier", () => {
     draw(`${base}/tables`);
     const sections = screen.getByRole("navigation", { name: n.eventSections });
-    expect(within(sections).getByRole("link", { name: n.groupTicketing }).getAttribute("aria-current")).toBe("page");
+    expect(
+      within(sections)
+        .getByRole("link", { name: n.groupTicketing })
+        .getAttribute("aria-current"),
+    ).toBe("page");
     const pages = screen.getByRole("navigation", { name: n.sectionPages });
     expect(
       within(pages)
@@ -74,7 +108,9 @@ describe("onglets d'un événement : affichage", () => {
 
   it("vue d'ensemble : pas de seconde rangée", () => {
     draw(base);
-    expect(screen.queryByRole("navigation", { name: n.sectionPages })).toBeNull();
+    expect(
+      screen.queryByRole("navigation", { name: n.sectionPages }),
+    ).toBeNull();
     expect(
       within(screen.getByRole("navigation", { name: n.eventSections }))
         .getByRole("link", { name: n.eventOverview })
@@ -86,27 +122,49 @@ describe("onglets d'un événement : affichage", () => {
 describe("partager le lien d'un événement", () => {
   it("sur ordinateur : lien copié, puis confirmation", async () => {
     const writeText = vi.fn(async () => {});
-    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText }, share: undefined });
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText },
+      share: undefined,
+    });
     render(
       <Fr>
         <ShareLink url="https://club.evoly.me/gala" title="Gala" />
       </Fr>,
     );
-    await act(async () => void fireEvent.click(screen.getByRole("button", { name: n.shareLink })));
+    await act(
+      async () =>
+        void fireEvent.click(screen.getByRole("button", { name: n.shareLink })),
+    );
     expect(writeText).toHaveBeenCalledWith("https://club.evoly.me/gala");
     expect(screen.getByRole("button", { name: n.linkCopied })).toBeTruthy();
   });
 
   it("sur téléphone : le partage du téléphone", async () => {
     const share = vi.fn(async () => {});
-    vi.stubGlobal("navigator", { ...navigator, share, clipboard: { writeText: vi.fn() } });
-    vi.stubGlobal("matchMedia", (q: string) => ({ matches: q.includes("coarse"), media: q, addEventListener() {}, removeEventListener() {} }));
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      share,
+      clipboard: { writeText: vi.fn() },
+    });
+    vi.stubGlobal("matchMedia", (q: string) => ({
+      matches: q.includes("coarse"),
+      media: q,
+      addEventListener() {},
+      removeEventListener() {},
+    }));
     render(
       <Fr>
         <ShareLink url="https://club.evoly.me/gala" title="Gala" />
       </Fr>,
     );
-    await act(async () => void fireEvent.click(screen.getByRole("button", { name: n.shareLink })));
-    expect(share).toHaveBeenCalledWith({ url: "https://club.evoly.me/gala", title: "Gala" });
+    await act(
+      async () =>
+        void fireEvent.click(screen.getByRole("button", { name: n.shareLink })),
+    );
+    expect(share).toHaveBeenCalledWith({
+      url: "https://club.evoly.me/gala",
+      title: "Gala",
+    });
   });
 });

@@ -1,11 +1,22 @@
 import "server-only";
 import { notify } from "./notifications";
-import { assertTransition, checkRefundRequest, CoreError, EVENT_TRANSITIONS, REFUND_APPLICATION_FEE, refundAmount } from "@evoly/core";
+import {
+  assertTransition,
+  checkRefundRequest,
+  CoreError,
+  EVENT_TRANSITIONS,
+  REFUND_APPLICATION_FEE,
+  refundAmount,
+} from "@evoly/core";
 import { formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
-import { cancelReservation, findOrderIdByToken, orderAccessToken } from "./checkout";
+import {
+  cancelReservation,
+  findOrderIdByToken,
+  orderAccessToken,
+} from "./checkout";
 import type { OrgContext } from "./context";
 import { sendEmail } from "./email/send";
 import { refundEmail } from "./email/templates";
@@ -15,26 +26,55 @@ import { cancelListingsForEvent, cancelListingsForTicket } from "./resale";
 import { cancelCampaignsForEvent } from "./campaigns";
 import { safeError } from "@/lib/redact";
 
-type Reason = "BUYER_REQUEST" | "EVENT_CANCELLED" | "EVENT_CHANGED" | "DUPLICATE" | "FRAUD" | "OTHER";
+type Reason =
+  | "BUYER_REQUEST"
+  | "EVENT_CANCELLED"
+  | "EVENT_CHANGED"
+  | "DUPLICATE"
+  | "FRAUD"
+  | "OTHER";
 
-async function refundableTickets(orderId: string, ticketIds: string[], allowCheckedIn: boolean) {
+async function refundableTickets(
+  orderId: string,
+  ticketIds: string[],
+  allowCheckedIn: boolean,
+) {
   const tickets = await db.ticket.findMany({
     where: { orderId, id: { in: ticketIds } },
-    include: { refundItems: { include: { refund: { select: { status: true } } } } },
+    include: {
+      refundItems: { include: { refund: { select: { status: true } } } },
+    },
   });
-  if (tickets.length !== ticketIds.length || tickets.length === 0) throw new CoreError("NOT_FOUND");
+  if (tickets.length !== ticketIds.length || tickets.length === 0)
+    throw new CoreError("NOT_FOUND");
   for (const t of tickets) {
-    if (t.status === "CHECKED_IN" && !allowCheckedIn) throw new CoreError("REFUND_TICKET_SCANNED"); // RG-REF-04
-    if (t.status !== "VALID" && t.status !== "CHECKED_IN") throw new CoreError("REFUND_TICKET_NOT_REFUNDABLE");
-    if (t.refundItems.some((i) => ["REQUESTED", "APPROVED", "PROCESSING"].includes(i.refund.status))) throw new CoreError("REFUND_ALREADY_PENDING");
+    if (t.status === "CHECKED_IN" && !allowCheckedIn)
+      throw new CoreError("REFUND_TICKET_SCANNED"); // RG-REF-04
+    if (t.status !== "VALID" && t.status !== "CHECKED_IN")
+      throw new CoreError("REFUND_TICKET_NOT_REFUNDABLE");
+    if (
+      t.refundItems.some((i) =>
+        ["REQUESTED", "APPROVED", "PROCESSING"].includes(i.refund.status),
+      )
+    )
+      throw new CoreError("REFUND_ALREADY_PENDING");
   }
   return tickets;
 }
 
-async function mailBuyer(orderId: string, kind: "PROCESSED" | "REJECTED" | "CANCELLED", amountMinor: number, count: number, message?: string | null) {
+async function mailBuyer(
+  orderId: string,
+  kind: "PROCESSED" | "REJECTED" | "CANCELLED",
+  amountMinor: number,
+  count: number,
+  message?: string | null,
+) {
   const o = await db.order.findUniqueOrThrow({
     where: { id: orderId },
-    include: { event: { select: { title: true } }, organization: { select: { name: true } } },
+    include: {
+      event: { select: { title: true } },
+      organization: { select: { name: true } },
+    },
   });
   const locale = toLocale(o.buyerLocale); // e-mails de remboursement dans les 7 langues
   const brand = await emailBrandFor(o.organizationId);
@@ -45,7 +85,8 @@ async function mailBuyer(orderId: string, kind: "PROCESSED" | "REJECTED" | "CANC
     organizationName: o.organization.name,
     eventTitle: o.event.title,
     firstName: o.buyerFirstName,
-    amount: amountMinor > 0 ? formatMoney(amountMinor, o.currency, locale) : null,
+    amount:
+      amountMinor > 0 ? formatMoney(amountMinor, o.currency, locale) : null,
     count,
     message,
   });
@@ -59,19 +100,40 @@ async function mailBuyer(orderId: string, kind: "PROCESSED" | "REJECTED" | "CANC
     fromName: brand.fromName,
     replyTo: brand.replyTo,
     orderId: o.id,
-  }).catch((err) => console.error("e-mail de remboursement", orderId, safeError(err)));
+  }).catch((err) =>
+    console.error("e-mail de remboursement", orderId, safeError(err)),
+  );
 }
 
 /**
  * Envoi d'un remboursement accepté (RG-REF-02, RG-REF-03) : billets désactivés dès l'envoi, place remise en vente
  * (sauf annulation), remboursement Stripe sans restitution de la commission (RG-FEE-40). Échec : statut FAILED, relançable.
  */
-export async function processRefund(refundId: string, options: { notify?: boolean } = {}): Promise<"SUCCEEDED" | "PROCESSING" | "FAILED"> {
+export async function processRefund(
+  refundId: string,
+  options: { notify?: boolean } = {},
+): Promise<"SUCCEEDED" | "PROCESSING" | "FAILED"> {
   const refund = await db.refund.findUniqueOrThrow({
     where: { id: refundId },
-    include: { items: { include: { ticket: { select: { id: true, status: true, ticketTypeId: true, seatId: true } } } }, optionItems: true, order: true },
+    include: {
+      items: {
+        include: {
+          ticket: {
+            select: {
+              id: true,
+              status: true,
+              ticketTypeId: true,
+              seatId: true,
+            },
+          },
+        },
+      },
+      optionItems: true,
+      order: true,
+    },
   });
-  if (!["APPROVED", "FAILED"].includes(refund.status)) throw new CoreError("REFUND_NOT_APPROVED");
+  if (!["APPROVED", "FAILED"].includes(refund.status))
+    throw new CoreError("REFUND_NOT_APPROVED");
   let extra = 0; // options non retirées ajoutées quand plus aucun billet n'est valide (RG-OPT-07)
   if (refund.status === "APPROVED") {
     await db.$transaction(async (tx) => {
@@ -79,12 +141,26 @@ export async function processRefund(refundId: string, options: { notify?: boolea
         const done =
           await tx.$executeRaw`UPDATE "Ticket" SET status = 'REFUNDED', "voidedAt" = now(), "updatedAt" = now() WHERE id = ${item.ticketId} AND status IN ('VALID', 'CHECKED_IN')`;
         // place remise en vente après un remboursement individuel (sans objet pour une annulation)
-        if (done === 1 && refund.reason !== "EVENT_CANCELLED" && item.ticket.status === "VALID")
+        if (
+          done === 1 &&
+          refund.reason !== "EVENT_CANCELLED" &&
+          item.ticket.status === "VALID"
+        )
           await tx.$executeRaw`UPDATE "TicketType" SET "quantitySold" = "quantitySold" - 1 WHERE id = ${item.ticket.ticketTypeId} AND "quantitySold" > 0`;
         // plan de salle : le siège d'un billet remboursé est remis en vente
-        if (done === 1 && refund.reason !== "EVENT_CANCELLED" && item.ticket.seatId) {
-          await tx.ticket.update({ where: { id: item.ticket.id }, data: { seatId: null } });
-          await tx.seat.update({ where: { id: item.ticket.seatId }, data: { status: "AVAILABLE", holdOrderId: null } });
+        if (
+          done === 1 &&
+          refund.reason !== "EVENT_CANCELLED" &&
+          item.ticket.seatId
+        ) {
+          await tx.ticket.update({
+            where: { id: item.ticket.id },
+            data: { seatId: null },
+          });
+          await tx.seat.update({
+            where: { id: item.ticket.seatId },
+            data: { status: "AVAILABLE", holdOrderId: null },
+          });
         }
       }
       // options remboursées explicitement (RG-OPT-07) : jamais au-delà de ce qui n'a été ni retiré ni remboursé
@@ -93,13 +169,26 @@ export async function processRefund(refundId: string, options: { notify?: boolea
           await tx.$executeRaw`UPDATE "OrderOption" SET "refunded" = "refunded" + ${it.quantity} WHERE id = ${it.orderOptionId} AND "redeemed" + "refunded" + ${it.quantity} <= "quantity"`;
         if (ok !== 1) throw new CoreError("OPTION_NOT_REFUNDABLE");
       }
-      const live = await tx.ticket.count({ where: { orderId: refund.orderId, status: { in: ["VALID", "CHECKED_IN"] } } });
-      const everTickets = await tx.ticket.count({ where: { orderId: refund.orderId } }); // 0 : options achetées seules (RG-OPT-03)
+      const live = await tx.ticket.count({
+        where: {
+          orderId: refund.orderId,
+          status: { in: ["VALID", "CHECKED_IN"] },
+        },
+      });
+      const everTickets = await tx.ticket.count({
+        where: { orderId: refund.orderId },
+      }); // 0 : options achetées seules (RG-OPT-03)
       // plus aucun billet valide (tous remboursés, événement annulé) : les options non retirées sont remboursées avec eux (RG-OPT-07)
       if (live === 0 && everTickets > 0) {
         const lines = await tx.orderOption.findMany({
           where: { orderId: refund.orderId },
-          select: { id: true, quantity: true, redeemed: true, refunded: true, unitPriceMinor: true },
+          select: {
+            id: true,
+            quantity: true,
+            redeemed: true,
+            refunded: true,
+            unitPriceMinor: true,
+          },
         });
         for (const l of lines) {
           const left = l.quantity - l.redeemed - l.refunded;
@@ -107,10 +196,21 @@ export async function processRefund(refundId: string, options: { notify?: boolea
           const ok =
             await tx.$executeRaw`UPDATE "OrderOption" SET "refunded" = "refunded" + ${left} WHERE id = ${l.id} AND "redeemed" + "refunded" + ${left} <= "quantity"`;
           if (ok !== 1) continue;
-          await tx.refundOptionItem.create({ data: { refundId: refund.id, orderOptionId: l.id, quantity: left, amountMinor: left * l.unitPriceMinor } });
+          await tx.refundOptionItem.create({
+            data: {
+              refundId: refund.id,
+              orderOptionId: l.id,
+              quantity: left,
+              amountMinor: left * l.unitPriceMinor,
+            },
+          });
           extra += left * l.unitPriceMinor;
         }
-        if (extra) await tx.refund.update({ where: { id: refund.id }, data: { amountMinor: { increment: extra } } });
+        if (extra)
+          await tx.refund.update({
+            where: { id: refund.id },
+            data: { amountMinor: { increment: extra } },
+          });
       }
       await tx.order.update({
         where: { id: refund.orderId },
@@ -120,47 +220,81 @@ export async function processRefund(refundId: string, options: { notify?: boolea
           status: (
             everTickets > 0
               ? live === 0
-              : (await tx.orderOption.findMany({ where: { orderId: refund.orderId }, select: { quantity: true, refunded: true } })).every(
-                  (l) => l.refunded >= l.quantity,
-                )
+              : (
+                  await tx.orderOption.findMany({
+                    where: { orderId: refund.orderId },
+                    select: { quantity: true, refunded: true },
+                  })
+                ).every((l) => l.refunded >= l.quantity)
           )
             ? "REFUNDED"
             : "PARTIALLY_REFUNDED",
         },
       });
-      await tx.refund.update({ where: { id: refund.id }, data: { status: "PROCESSING", processedAt: new Date() } });
+      await tx.refund.update({
+        where: { id: refund.id },
+        data: { status: "PROCESSING", processedAt: new Date() },
+      });
     });
-    for (const item of refund.items) await cancelListingsForTicket(item.ticketId);
+    for (const item of refund.items)
+      await cancelListingsForTicket(item.ticketId);
   }
   const amount = refund.amountMinor + extra;
   let outcome: "SUCCEEDED" | "PROCESSING" | "FAILED" = "SUCCEEDED";
   // RG-POS-08 : une vente sur place en espèces se rembourse en espèces, hors d'Evoly ; aucun appel à Stripe
   if (amount > 0 && refund.order.boxOfficeMode !== "CASH") {
     const s = stripe();
-    const account = await db.stripeAccount.findUnique({ where: { organizationId: refund.order.organizationId }, select: { stripeAccountId: true } });
+    const account = await db.stripeAccount.findUnique({
+      where: { organizationId: refund.order.organizationId },
+      select: { stripeAccountId: true },
+    });
     try {
-      if (!s || !account || !refund.order.stripePaymentIntentId) throw new Error("paiement introuvable ou Stripe indisponible");
+      if (!s || !account || !refund.order.stripePaymentIntentId)
+        throw new Error("paiement introuvable ou Stripe indisponible");
       const r = await s.refunds.create(
         {
           payment_intent: refund.order.stripePaymentIntentId,
           amount,
           refund_application_fee: REFUND_APPLICATION_FEE, // la commission d'Evoly n'est pas rendue (options comprises)
           reason: "requested_by_customer",
-          metadata: { refundId: refund.id, orderId: refund.orderId, reason: refund.reason },
+          metadata: {
+            refundId: refund.id,
+            orderId: refund.orderId,
+            reason: refund.reason,
+          },
         },
-        { stripeAccount: account.stripeAccountId, idempotencyKey: `refund:${refund.id}` },
+        {
+          stripeAccount: account.stripeAccountId,
+          idempotencyKey: `refund:${refund.id}`,
+        },
       );
-      outcome = r.status === "succeeded" ? "SUCCEEDED" : r.status === "failed" || r.status === "canceled" ? "FAILED" : "PROCESSING";
+      outcome =
+        r.status === "succeeded"
+          ? "SUCCEEDED"
+          : r.status === "failed" || r.status === "canceled"
+            ? "FAILED"
+            : "PROCESSING";
       await db.refund.update({
         where: { id: refund.id },
-        data: { stripeRefundId: r.id, status: outcome, failureReason: outcome === "FAILED" ? (r.failure_reason ?? "échec Stripe") : null },
+        data: {
+          stripeRefundId: r.id,
+          status: outcome,
+          failureReason:
+            outcome === "FAILED" ? (r.failure_reason ?? "échec Stripe") : null,
+        },
       });
     } catch (err) {
       outcome = "FAILED";
       // RG-REF-03 et RG-REF-06 : l'organisateur est alerté (onglet Commandes) et peut relancer
       await db.refund.update({
         where: { id: refund.id },
-        data: { status: "FAILED", failureReason: String(err instanceof Error ? err.message : err).slice(0, 300) },
+        data: {
+          status: "FAILED",
+          failureReason: String(err instanceof Error ? err.message : err).slice(
+            0,
+            300,
+          ),
+        },
       });
       await audit({
         action: "refund.failed",
@@ -171,18 +305,35 @@ export async function processRefund(refundId: string, options: { notify?: boolea
         metadata: { error: String(err).slice(0, 300) },
       });
     }
-  } else await db.refund.update({ where: { id: refund.id }, data: { status: "SUCCEEDED" } });
-  if (options.notify !== false && outcome !== "FAILED" && refund.status === "APPROVED")
+  } else
+    await db.refund.update({
+      where: { id: refund.id },
+      data: { status: "SUCCEEDED" },
+    });
+  if (
+    options.notify !== false &&
+    outcome !== "FAILED" &&
+    refund.status === "APPROVED"
+  )
     await mailBuyer(refund.orderId, "PROCESSED", amount, refund.items.length);
   return outcome;
 }
 
 /** US-REF-01 : demande de l'acheteur depuis la page de ses billets. Acceptée d'office si la politique le prévoit. */
-export async function requestRefund(token: string, ticketIds: string[], message: string | null, now = new Date()) {
+export async function requestRefund(
+  token: string,
+  ticketIds: string[],
+  message: string | null,
+  now = new Date(),
+) {
   const orderId = await findOrderIdByToken(token);
   if (!orderId) throw new CoreError("ORDER_NOT_FOUND");
-  const order = await db.order.findUniqueOrThrow({ where: { id: orderId }, include: { event: true } });
-  if (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED") throw new CoreError("REFUND_NOT_ALLOWED");
+  const order = await db.order.findUniqueOrThrow({
+    where: { id: orderId },
+    include: { event: true },
+  });
+  if (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")
+    throw new CoreError("REFUND_NOT_ALLOWED");
   const check = checkRefundRequest({
     policy: order.event.refundPolicy,
     deadlineAt: order.event.refundDeadlineAt,
@@ -195,7 +346,10 @@ export async function requestRefund(token: string, ticketIds: string[], message:
   const tickets = await refundableTickets(orderId, ticketIds, false);
   // acceptation d'office : politique « toujours » ou « jusqu'à une date limite » dans les délais, changement majeur (RG-EVT-05)
   const automatic =
-    !check.outOfDeadline && (check.reason === "EVENT_CHANGED" || order.event.refundPolicy === "ALWAYS" || order.event.refundPolicy === "UNTIL_DEADLINE");
+    !check.outOfDeadline &&
+    (check.reason === "EVENT_CHANGED" ||
+      order.event.refundPolicy === "ALWAYS" ||
+      order.event.refundPolicy === "UNTIL_DEADLINE");
   const refund = await db.refund.create({
     data: {
       orderId,
@@ -206,7 +360,12 @@ export async function requestRefund(token: string, ticketIds: string[], message:
       amountMinor: refundAmount(tickets),
       isOutOfDeadline: check.outOfDeadline,
       handledAt: automatic ? now : null,
-      items: { create: tickets.map((t) => ({ ticketId: t.id, amountMinor: t.faceValueMinor })) },
+      items: {
+        create: tickets.map((t) => ({
+          ticketId: t.id,
+          amountMinor: t.faceValueMinor,
+        })),
+      },
     },
   });
   await audit({
@@ -228,17 +387,28 @@ export async function requestRefund(token: string, ticketIds: string[], message:
 }
 
 async function ownRefund(ctx: OrgContext, refundId: string) {
-  const refund = await db.refund.findFirst({ where: { id: refundId, order: { organizationId: ctx.organization.id } } });
+  const refund = await db.refund.findFirst({
+    where: { id: refundId, order: { organizationId: ctx.organization.id } },
+  });
   if (!refund) throw new CoreError("NOT_FOUND");
   return refund;
 }
 
 /** US-REF-02 : l'organisateur accepte une demande, avec un message facultatif. */
-export async function approveRefund(ctx: OrgContext, refundId: string, responseMessage: string | null) {
+export async function approveRefund(
+  ctx: OrgContext,
+  refundId: string,
+  responseMessage: string | null,
+) {
   const refund = await ownRefund(ctx, refundId);
   const done = await db.refund.updateMany({
     where: { id: refund.id, status: "REQUESTED" },
-    data: { status: "APPROVED", handledById: ctx.user.id, handledAt: new Date(), responseMessage: responseMessage?.trim() || null },
+    data: {
+      status: "APPROVED",
+      handledById: ctx.user.id,
+      handledAt: new Date(),
+      responseMessage: responseMessage?.trim() || null,
+    },
   });
   if (done.count === 0) throw new CoreError("REFUND_NOT_PENDING");
   await audit({
@@ -252,14 +422,29 @@ export async function approveRefund(ctx: OrgContext, refundId: string, responseM
   return processRefund(refund.id);
 }
 
-export async function rejectRefund(ctx: OrgContext, refundId: string, responseMessage: string | null) {
+export async function rejectRefund(
+  ctx: OrgContext,
+  refundId: string,
+  responseMessage: string | null,
+) {
   const refund = await ownRefund(ctx, refundId);
   const done = await db.refund.updateMany({
     where: { id: refund.id, status: "REQUESTED" },
-    data: { status: "REJECTED", handledById: ctx.user.id, handledAt: new Date(), responseMessage: responseMessage?.trim() || null },
+    data: {
+      status: "REJECTED",
+      handledById: ctx.user.id,
+      handledAt: new Date(),
+      responseMessage: responseMessage?.trim() || null,
+    },
   });
   if (done.count === 0) throw new CoreError("REFUND_NOT_PENDING");
-  await audit({ action: "refund.rejected", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Refund", targetId: refund.id });
+  await audit({
+    action: "refund.rejected",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Refund",
+    targetId: refund.id,
+  });
   await mailBuyer(refund.orderId, "REJECTED", 0, 0, responseMessage);
 }
 
@@ -267,14 +452,32 @@ export async function rejectRefund(ctx: OrgContext, refundId: string, responseMe
 export async function retryRefund(ctx: OrgContext, refundId: string) {
   const refund = await ownRefund(ctx, refundId);
   if (refund.status !== "FAILED") throw new CoreError("REFUND_NOT_FAILED");
-  await audit({ action: "refund.retried", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Refund", targetId: refund.id });
+  await audit({
+    action: "refund.retried",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Refund",
+    targetId: refund.id,
+  });
   return processRefund(refund.id);
 }
 
 /** US-REF-03 : l'organisateur rembourse une commande ou certains billets à tout moment, billets scannés compris (RG-REF-04). */
-export async function refundTickets(ctx: OrgContext, orderId: string, ticketIds: string[], reason: Reason, message: string | null) {
-  const order = await db.order.findFirst({ where: { id: orderId, organizationId: ctx.organization.id } });
-  if (!order || (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")) throw new CoreError("REFUND_NOT_ALLOWED");
+export async function refundTickets(
+  ctx: OrgContext,
+  orderId: string,
+  ticketIds: string[],
+  reason: Reason,
+  message: string | null,
+) {
+  const order = await db.order.findFirst({
+    where: { id: orderId, organizationId: ctx.organization.id },
+  });
+  if (
+    !order ||
+    (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")
+  )
+    throw new CoreError("REFUND_NOT_ALLOWED");
   const tickets = await refundableTickets(orderId, ticketIds, true);
   const refund = await db.refund.create({
     data: {
@@ -286,7 +489,12 @@ export async function refundTickets(ctx: OrgContext, orderId: string, ticketIds:
       amountMinor: refundAmount(tickets),
       handledById: ctx.user.id,
       handledAt: new Date(),
-      items: { create: tickets.map((t) => ({ ticketId: t.id, amountMinor: t.faceValueMinor })) },
+      items: {
+        create: tickets.map((t) => ({
+          ticketId: t.id,
+          amountMinor: t.faceValueMinor,
+        })),
+      },
     },
   });
   await audit({
@@ -313,17 +521,34 @@ export async function refundOptions(
 ) {
   const order = await db.order.findFirst({
     where: { id: orderId, organizationId: ctx.organization.id },
-    include: { event: { select: { startsAt: true, optionsRefundAfterStart: true } }, options: true },
+    include: {
+      event: { select: { startsAt: true, optionsRefundAfterStart: true } },
+      options: true,
+    },
   });
-  if (!order || (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")) throw new CoreError("REFUND_NOT_ALLOWED");
-  if (now >= order.event.startsAt && !order.event.optionsRefundAfterStart) throw new CoreError("OPTIONS_REFUND_CLOSED");
+  if (
+    !order ||
+    (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")
+  )
+    throw new CoreError("REFUND_NOT_ALLOWED");
+  if (now >= order.event.startsAt && !order.event.optionsRefundAfterStart)
+    throw new CoreError("OPTIONS_REFUND_CLOSED");
   const wanted = lines.filter((l) => l.quantity !== 0);
   if (wanted.length === 0) throw new CoreError("OPTION_NOT_REFUNDABLE");
   const items = wanted.map((l) => {
     const o = order.options.find((x) => x.id === l.orderOptionId);
-    if (!o || !Number.isInteger(l.quantity) || l.quantity < 1 || l.quantity > o.quantity - o.redeemed - o.refunded)
+    if (
+      !o ||
+      !Number.isInteger(l.quantity) ||
+      l.quantity < 1 ||
+      l.quantity > o.quantity - o.redeemed - o.refunded
+    )
       throw new CoreError("OPTION_NOT_REFUNDABLE");
-    return { orderOptionId: o.id, quantity: l.quantity, amountMinor: l.quantity * o.unitPriceMinor };
+    return {
+      orderOptionId: o.id,
+      quantity: l.quantity,
+      amountMinor: l.quantity * o.unitPriceMinor,
+    };
   });
   const refund = await db.refund.create({
     data: {
@@ -344,7 +569,10 @@ export async function refundOptions(
     actorUserId: ctx.user.id,
     targetType: "Refund",
     targetId: refund.id,
-    metadata: { amountMinor: refund.amountMinor, options: items.reduce((n, i) => n + i.quantity, 0) },
+    metadata: {
+      amountMinor: refund.amountMinor,
+      options: items.reduce((n, i) => n + i.quantity, 0),
+    },
   });
   return processRefund(refund.id);
 }
@@ -353,11 +581,24 @@ export async function refundOptions(
  * RG-REF-07 : annulation d'un événement, après double confirmation. Commandes payées remboursées intégralement,
  * billets gratuits annulés, réservations en cours libérées, annonces de revente retirées, acheteurs prévenus.
  */
-export async function cancelEvent(ctx: OrgContext, eventId: string, reason: string, confirmation: string) {
+export async function cancelEvent(
+  ctx: OrgContext,
+  eventId: string,
+  reason: string,
+  confirmation: string,
+) {
   const event = await findEvent(ctx, eventId);
-  if (confirmation.trim() !== event.title.trim()) throw new CoreError("CANCEL_CONFIRMATION_MISMATCH");
+  if (confirmation.trim() !== event.title.trim())
+    throw new CoreError("CANCEL_CONFIRMATION_MISMATCH");
   assertTransition(EVENT_TRANSITIONS, event.status, "CANCELLED", "événement");
-  await db.event.update({ where: { id: event.id }, data: { status: "CANCELLED", cancelledAt: new Date(), cancellationReason: reason.trim().slice(0, 500) } });
+  await db.event.update({
+    where: { id: event.id },
+    data: {
+      status: "CANCELLED",
+      cancelledAt: new Date(),
+      cancellationReason: reason.trim().slice(0, 500),
+    },
+  });
   await audit({
     action: "event.cancelled",
     organizationId: ctx.organization.id,
@@ -373,11 +614,19 @@ export async function cancelEvent(ctx: OrgContext, eventId: string, reason: stri
     body: `Événement annulé : ${reason.trim().slice(0, 200)}`,
     link: `/events/${event.id}`,
   });
-  const pending = await db.order.findMany({ where: { eventId, status: "PENDING" }, select: { id: true, accessTokenVersion: true } });
-  for (const p of pending) await cancelReservation(orderAccessToken(p.id, p.accessTokenVersion)).catch(() => undefined);
+  const pending = await db.order.findMany({
+    where: { eventId, status: "PENDING" },
+    select: { id: true, accessTokenVersion: true },
+  });
+  for (const p of pending)
+    await cancelReservation(orderAccessToken(p.id, p.accessTokenVersion)).catch(
+      () => undefined,
+    );
   const orders = await db.order.findMany({
     where: { eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } },
-    include: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } },
+    include: {
+      tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } },
+    },
   });
   let refunded = 0;
   for (const o of orders) {
@@ -388,7 +637,11 @@ export async function cancelEvent(ctx: OrgContext, eventId: string, reason: stri
       await db.$transaction([
         db.ticket.updateMany({
           where: { orderId: o.id, status: { in: ["VALID", "CHECKED_IN"] } },
-          data: { status: "VOID", voidReason: "EVENT_CANCELLED", voidedAt: new Date() },
+          data: {
+            status: "VOID",
+            voidReason: "EVENT_CANCELLED",
+            voidedAt: new Date(),
+          },
         }),
         db.order.update({ where: { id: o.id }, data: { status: "REFUNDED" } }),
       ]);
@@ -402,7 +655,12 @@ export async function cancelEvent(ctx: OrgContext, eventId: string, reason: stri
           amountMinor: amount,
           handledById: ctx.user.id,
           handledAt: new Date(),
-          items: { create: o.tickets.map((t) => ({ ticketId: t.id, amountMinor: t.faceValueMinor })) },
+          items: {
+            create: o.tickets.map((t) => ({
+              ticketId: t.id,
+              amountMinor: t.faceValueMinor,
+            })),
+          },
         },
       });
       await processRefund(refund.id, { notify: false });
@@ -414,10 +672,26 @@ export async function cancelEvent(ctx: OrgContext, eventId: string, reason: stri
 }
 
 /** État des remboursements Stripe reçu par webhook (`charge.refund.updated`). */
-export async function syncStripeRefund(stripeRefundId: string, status: string, failureReason?: string | null) {
+export async function syncStripeRefund(
+  stripeRefundId: string,
+  status: string,
+  failureReason?: string | null,
+) {
   const refund = await db.refund.findUnique({ where: { stripeRefundId } });
   if (!refund) return false;
-  const next = status === "succeeded" ? "SUCCEEDED" : status === "failed" || status === "canceled" ? "FAILED" : "PROCESSING";
-  await db.refund.update({ where: { id: refund.id }, data: { status: next, failureReason: next === "FAILED" ? (failureReason ?? "échec Stripe") : null } });
+  const next =
+    status === "succeeded"
+      ? "SUCCEEDED"
+      : status === "failed" || status === "canceled"
+        ? "FAILED"
+        : "PROCESSING";
+  await db.refund.update({
+    where: { id: refund.id },
+    data: {
+      status: next,
+      failureReason:
+        next === "FAILED" ? (failureReason ?? "échec Stripe") : null,
+    },
+  });
   return true;
 }

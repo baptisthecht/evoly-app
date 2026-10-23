@@ -9,16 +9,25 @@ import { seatingDistributorAction } from "../../actions";
 
 // Places du plan confiées à un réseau de billetterie (docs/COMPATIBILITE_RESEAUX.md) : retirées de la vente en ligne
 type Seat = SeatingEditorState["seats"][number];
-type Outcome = { ok: boolean; error?: string; data?: unknown } | null | undefined;
+type Outcome =
+  { ok: boolean; error?: string; data?: unknown } | null | undefined;
 type Run = (fn: () => Promise<Outcome>, after?: (r: Outcome) => void) => void;
 interface Network {
   id: string;
   name: string;
 }
-const changedCount = (r: Outcome) => (r?.data as { changed?: number } | undefined)?.changed ?? 0;
+const changedCount = (r: Outcome) =>
+  (r?.data as { changed?: number } | undefined)?.changed ?? 0;
 
 /** Une place : vendue par Evoly (en ligne) ou par un réseau ; une place vendue ne change plus de réseau. */
-export function DistributorSeatPanel(props: { orgSlug: string; eventId: string; seat: Seat; networks: Network[]; pending: boolean; run: Run }) {
+export function DistributorSeatPanel(props: {
+  orgSlug: string;
+  eventId: string;
+  seat: Seat;
+  networks: Network[];
+  pending: boolean;
+  run: Run;
+}) {
   const t = useTranslations("seatingEditor");
   const id = useId();
   const [note, setNote] = useState<string | null>(null);
@@ -29,18 +38,38 @@ export function DistributorSeatPanel(props: { orgSlug: string; eventId: string; 
     props.run(
       async () => {
         if (current) {
-          const r = await seatingDistributorAction(props.orgSlug, props.eventId, { distributorId: current, seatIds: [seat.id], assign: false });
+          const r = await seatingDistributorAction(
+            props.orgSlug,
+            props.eventId,
+            { distributorId: current, seatIds: [seat.id], assign: false },
+          );
           if (!r?.ok || !next) return r;
         }
-        return next ? seatingDistributorAction(props.orgSlug, props.eventId, { distributorId: next, seatIds: [seat.id], assign: true }) : null;
+        return next
+          ? seatingDistributorAction(props.orgSlug, props.eventId, {
+              distributorId: next,
+              seatIds: [seat.id],
+              assign: true,
+            })
+          : null;
       },
-      (r) => setNote(next && changedCount(r) === 0 ? t("networkNoneChanged") : null),
+      (r) =>
+        setNote(next && changedCount(r) === 0 ? t("networkNoneChanged") : null),
     );
   return (
     <Card className="grid gap-3">
       <h3 className="font-semibold">{t("networkTitle")}</h3>
-      <Field label={t("soldBy")} htmlFor={id} hint={taken ? t("networkSeatTaken") : t("networkHint")}>
-        <Select id={id} value={current} disabled={taken || props.pending} onChange={(e) => change(e.target.value)}>
+      <Field
+        label={t("soldBy")}
+        htmlFor={id}
+        hint={taken ? t("networkSeatTaken") : t("networkHint")}
+      >
+        <Select
+          id={id}
+          value={current}
+          disabled={taken || props.pending}
+          onChange={(e) => change(e.target.value)}
+        >
           <option value="">{t("soldByEvoly")}</option>
           {props.networks.map((n) => (
             <option key={n.id} value={n.id}>
@@ -77,14 +106,31 @@ export function DistributorBlockPanel(props: {
   const ofNetwork = inBlock.filter((s) => s.distributorId === chosen);
   const send = (seatIds: string[], assign: boolean) =>
     props.run(
-      () => seatingDistributorAction(props.orgSlug, props.eventId, { distributorId: chosen, seatIds, assign }),
-      (r) => setNote(changedCount(r) === 0 ? t("networkNoneChanged") : t(assign ? "networkAssigned" : "networkReleased", { count: changedCount(r) })),
+      () =>
+        seatingDistributorAction(props.orgSlug, props.eventId, {
+          distributorId: chosen,
+          seatIds,
+          assign,
+        }),
+      (r) =>
+        setNote(
+          changedCount(r) === 0
+            ? t("networkNoneChanged")
+            : t(assign ? "networkAssigned" : "networkReleased", {
+                count: changedCount(r),
+              }),
+        ),
     );
   return (
     <Card className="grid gap-3">
       <h3 className="font-semibold">{t("networkTitle")}</h3>
       <Field label={t("networkChoose")} htmlFor={id} hint={t("networkHint")}>
-        <Select id={id} value={chosen} disabled={props.pending} onChange={(e) => setChosen(e.target.value)}>
+        <Select
+          id={id}
+          value={chosen}
+          disabled={props.pending}
+          onChange={(e) => setChosen(e.target.value)}
+        >
           {props.networks.map((n) => (
             <option key={n.id} value={n.id}>
               {n.name}

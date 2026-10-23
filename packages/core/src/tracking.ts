@@ -25,7 +25,11 @@ export interface Consent {
   at: string;
 }
 
-export function makeConsent(analytics: boolean, ads: boolean, now = new Date()): Consent {
+export function makeConsent(
+  analytics: boolean,
+  ads: boolean,
+  now = new Date(),
+): Consent {
   return { v: CONSENT_VERSION, analytics, ads, at: now.toISOString() };
 }
 
@@ -34,20 +38,37 @@ export function parseConsent(raw: string | null | undefined): Consent | null {
   if (!raw) return null;
   try {
     const c = JSON.parse(decodeURIComponent(raw)) as Partial<Consent>;
-    if (c.v !== CONSENT_VERSION || typeof c.analytics !== "boolean" || typeof c.ads !== "boolean" || typeof c.at !== "string") return null;
-    return { v: c.v, analytics: c.analytics, ads: c.ads, at: c.at.slice(0, 40) };
+    if (
+      c.v !== CONSENT_VERSION ||
+      typeof c.analytics !== "boolean" ||
+      typeof c.ads !== "boolean" ||
+      typeof c.at !== "string"
+    )
+      return null;
+    return {
+      v: c.v,
+      analytics: c.analytics,
+      ads: c.ads,
+      at: c.at.slice(0, 40),
+    };
   } catch {
     return null;
   }
 }
 
-export const serializeConsent = (c: Consent) => encodeURIComponent(JSON.stringify(c));
+export const serializeConsent = (c: Consent) =>
+  encodeURIComponent(JSON.stringify(c));
 
 /** Signaux du mode Consentement v2 de Google : tout refusé tant que l'internaute n'a pas choisi. */
 export function googleConsent(c: Consent | null) {
   const a = c?.analytics ? "granted" : "denied";
   const ad = c?.ads ? "granted" : "denied";
-  return { analytics_storage: a, ad_storage: ad, ad_user_data: ad, ad_personalization: ad } as const;
+  return {
+    analytics_storage: a,
+    ad_storage: ad,
+    ad_user_data: ad,
+    ad_personalization: ad,
+  } as const;
 }
 
 export interface Acquisition {
@@ -77,13 +98,22 @@ const hostOf = (u: string) => {
   }
 };
 /** Le site vitrine, l'application et les billetteries ne sont jamais une « source ». */
-const isOwn = (host: string, baseDomain: string) => host === baseDomain || host.endsWith(`.${baseDomain}`) || host === "localhost";
+const isOwn = (host: string, baseDomain: string) =>
+  host === baseDomain ||
+  host.endsWith(`.${baseDomain}`) ||
+  host === "localhost";
 
 /**
  * Source de la visite d'après son adresse : paramètres de campagne (utm_*), sinon le site d'origine, sinon « direct ».
  * Les identifiants de clic publicitaire ne sont gardés que si `adsAllowed`.
  */
-export function acquisitionFromVisit(input: { url: string; referrer: string; baseDomain: string; adsAllowed: boolean; now?: Date }): Acquisition {
+export function acquisitionFromVisit(input: {
+  url: string;
+  referrer: string;
+  baseDomain: string;
+  adsAllowed: boolean;
+  now?: Date;
+}): Acquisition {
   const url = new URL(input.url);
   const q = (k: string) => clip(url.searchParams.get(k));
   const ref = input.referrer ? hostOf(input.referrer) : null;
@@ -91,7 +121,14 @@ export function acquisitionFromVisit(input: { url: string; referrer: string; bas
   const gclid = q("gclid");
   const source = q("utm_source") ?? (gclid ? "google" : (external ?? "direct"));
   const medium =
-    q("utm_medium") ?? (gclid ? "cpc" : external ? (/(^|\.)google\.|bing\.|duckduckgo\.|ecosia\.|qwant\./.test(external) ? "organic" : "referral") : "none");
+    q("utm_medium") ??
+    (gclid
+      ? "cpc"
+      : external
+        ? /(^|\.)google\.|bing\.|duckduckgo\.|ecosia\.|qwant\./.test(external)
+          ? "organic"
+          : "referral"
+        : "none");
   const a: Acquisition = {
     source,
     medium,
@@ -112,11 +149,14 @@ export function acquisitionFromVisit(input: { url: string; referrer: string; bas
 }
 
 /** Source lue depuis le cookie : champs connus seulement, bornés (un cookie peut être falsifié). */
-export function parseAcquisition(raw: string | null | undefined): Acquisition | null {
+export function parseAcquisition(
+  raw: string | null | undefined,
+): Acquisition | null {
   if (!raw) return null;
   try {
     const a = JSON.parse(decodeURIComponent(raw)) as Record<string, unknown>;
-    const s = (k: string, n?: number) => (typeof a[k] === "string" ? clip(a[k] as string, n) : null);
+    const s = (k: string, n?: number) =>
+      typeof a[k] === "string" ? clip(a[k] as string, n) : null;
     const source = s("source"),
       medium = s("medium");
     if (!source || !medium) return null;
@@ -140,7 +180,8 @@ export function parseAcquisition(raw: string | null | undefined): Acquisition | 
   }
 }
 
-export const serializeAcquisition = (a: Acquisition) => encodeURIComponent(JSON.stringify(a));
+export const serializeAcquisition = (a: Acquisition) =>
+  encodeURIComponent(JSON.stringify(a));
 
 /** Sans consentement à la publicité, les identifiants de clic sont retirés (retrait du consentement compris). */
 export function withoutClickIds(a: Acquisition): Acquisition {
@@ -149,10 +190,14 @@ export function withoutClickIds(a: Acquisition): Acquisition {
 }
 
 /** Domaine des cookies : tout evoly.me (site et application) ; aucun en local. */
-export function cookieDomain(hostname: string, baseDomain: string): string | undefined {
+export function cookieDomain(
+  hostname: string,
+  baseDomain: string,
+): string | undefined {
   const base = baseDomain.split(":")[0]!.toLowerCase();
   const host = hostname.toLowerCase();
-  if (base === "localhost" || host === "localhost" || /^[\d.]+$/.test(host)) return undefined;
+  if (base === "localhost" || host === "localhost" || /^[\d.]+$/.test(host))
+    return undefined;
   return host === base || host.endsWith(`.${base}`) ? `.${base}` : undefined;
 }
 
@@ -162,5 +207,7 @@ export function parseEvents(raw: string | null | undefined): TrackedEvent[] {
   if (!raw) return [];
   return decodeURIComponent(raw)
     .split(",")
-    .filter((e): e is TrackedEvent => e === "sign_up" || e === "organization_created");
+    .filter(
+      (e): e is TrackedEvent => e === "sign_up" || e === "organization_created",
+    );
 }

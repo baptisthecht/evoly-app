@@ -11,7 +11,14 @@ const EMAIL = /^[^\s@<>;,]+@[^\s@<>;,]+\.[^\s@<>;,]{2,}$/;
  * « lea@exemple.be », « Léa Martin <lea@exemple.be> », « lea@exemple.be;Léa;Martin » (ou avec des virgules, comme un export de tableur).
  * Doublons retirés ; lignes invalides signalées avec leur numéro.
  */
-export function parseRecipients(text: string, max = 200): { recipients: Recipient[]; errors: Array<{ line: number; value: string }>; tooMany: boolean } {
+export function parseRecipients(
+  text: string,
+  max = 200,
+): {
+  recipients: Recipient[];
+  errors: Array<{ line: number; value: string }>;
+  tooMany: boolean;
+} {
   const recipients: Recipient[] = [];
   const errors: Array<{ line: number; value: string }> = [];
   const seen = new Set<string>();
@@ -24,7 +31,11 @@ export function parseRecipients(text: string, max = 200): { recipients: Recipien
     const angle = /^(.*?)<([^>]+)>\s*$/.exec(line);
     if (angle) {
       email = angle[2]!.trim();
-      const names = angle[1]!.trim().replace(/^"|"$/g, "").split(/\s+/).filter(Boolean);
+      const names = angle[1]!
+        .trim()
+        .replace(/^"|"$/g, "")
+        .split(/\s+/)
+        .filter(Boolean);
       firstName = names[0] ?? null;
       lastName = names.slice(1).join(" ") || null;
     } else {
@@ -34,10 +45,19 @@ export function parseRecipients(text: string, max = 200): { recipients: Recipien
       lastName = parts[2] || null;
     }
     email = email.toLowerCase();
-    if (!EMAIL.test(email)) return void errors.push({ line: i + 1, value: line.slice(0, 80) });
+    if (!EMAIL.test(email))
+      return void errors.push({ line: i + 1, value: line.slice(0, 80) });
     if (seen.has(email)) return;
     seen.add(email);
-    recipients.push({ email, firstName: firstName?.slice(0, 60) ?? null, lastName: lastName?.slice(0, 60) ?? null });
+    recipients.push({
+      email,
+      firstName: firstName?.slice(0, 60) ?? null,
+      lastName: lastName?.slice(0, 60) ?? null,
+    });
   });
-  return { recipients: recipients.slice(0, max), errors, tooMany: recipients.length > max };
+  return {
+    recipients: recipients.slice(0, max),
+    errors,
+    tooMany: recipients.length > max,
+  };
 }

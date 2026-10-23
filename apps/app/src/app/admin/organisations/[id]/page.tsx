@@ -15,11 +15,15 @@ import {
 } from "../../actions";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Organisation - Back-office Evoly", robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: "Organisation - Back-office Evoly",
+  robots: { index: false, follow: false },
+};
 
 const card = "rounded-2xl bg-surface-raised p-5 ring-1 ring-line";
 const input = "h-11 rounded-xl bg-surface-raised px-3 ring-1 ring-line-strong";
-const btn = "h-11 rounded-full bg-[var(--evoly-charbon)] px-5 text-sm font-semibold text-[var(--evoly-creme)]";
+const btn =
+  "h-11 rounded-full bg-[var(--evoly-charbon)] px-5 text-sm font-semibold text-[var(--evoly-creme)]";
 const RISK: Record<string, string> = {
   NEW_ORG_HIGH_PRICE: "Nouvelle organisation, billet à prix élevé",
   HIGH_DISPUTE_RATE: "Taux de litiges anormal",
@@ -30,7 +34,8 @@ const RISK: Record<string, string> = {
 const ERREURS: Record<string, string> = {
   PLAN_MANAGED_BY_STRIPE:
     "Cette organisation a un abonnement Stripe en cours : cochez « Résilier l'abonnement Stripe en cours » pour lui attribuer une autre offre (s'il n'existe plus chez Stripe, il sera simplement retiré).",
-  STRIPE_UNAVAILABLE: "Stripe n'est pas configuré sur ce serveur : l'abonnement ne peut pas être modifié.",
+  STRIPE_UNAVAILABLE:
+    "Stripe n'est pas configuré sur ce serveur : l'abonnement ne peut pas être modifié.",
   TRIAL_DAYS_INVALID: "Le nombre de jours doit être compris entre 1 et 90.",
   PLAN_UNTIL_PAST: "La date de fin doit être dans le futur.",
   PLAN_UNTIL_INVALID: "La date de fin n'est pas valide.",
@@ -38,7 +43,10 @@ const ERREURS: Record<string, string> = {
     "Cette organisation a déjà son offre sans limite de durée : il n'y a rien à prolonger. Pour la limiter, attribuez l'offre avec une date de fin.",
 };
 const erreurEnClair = (code: string) =>
-  ERREURS[code] ?? (code.startsWith("STRIPE_") ? `Stripe a refusé la modification (${code}).` : `Action impossible (${code}).`);
+  ERREURS[code] ??
+  (code.startsWith("STRIPE_")
+    ? `Stripe a refusé la modification (${code}).`
+    : `Action impossible (${code}).`);
 
 export default async function OrganizationSheetPage({
   params,
@@ -59,52 +67,82 @@ export default async function OrganizationSheetPage({
   return (
     <main className="min-h-dvh overflow-x-hidden bg-[var(--evoly-creme)] px-5 py-8 text-[var(--evoly-charbon)]">
       <div className="mx-auto grid min-w-0 max-w-6xl gap-5">
-        <Link href="/admin" className="text-sm font-semibold underline underline-offset-4">
+        <Link
+          href="/admin"
+          className="text-sm font-semibold underline underline-offset-4"
+        >
           ← Back-office
         </Link>
         <header className="flex flex-wrap items-center gap-3">
-          <h1 className="font-display text-3xl tracking-[-0.04em]">{org.name}</h1>
+          <h1 className="font-display text-3xl tracking-[-0.04em]">
+            {org.name}
+          </h1>
           <span
             className={`rounded-full px-3 py-1 text-xs font-bold ${org.status === "ACTIVE" ? "bg-success-soft text-success" : "bg-danger-soft text-danger"}`}
           >
             {org.status}
           </span>
           {sheet.risks.map((r) => (
-            <span key={r} className="rounded-full bg-warning-soft px-3 py-1 text-xs font-bold text-warning">
+            <span
+              key={r}
+              className="rounded-full bg-warning-soft px-3 py-1 text-xs font-bold text-warning"
+            >
               {RISK[r]}
             </span>
           ))}
         </header>
         <p className="text-sm text-ink-muted">
-          {org.slug} · {org.subdomain ?? "sans sous-domaine"} · {org.country} · créée le {formatDateTime(org.createdAt, org.timezone, "fr", "short")} ·{" "}
-          {org._count.members} membre(s) · {org._count.events} événement(s)
+          {org.slug} · {org.subdomain ?? "sans sous-domaine"} · {org.country} ·
+          créée le {formatDateTime(org.createdAt, org.timezone, "fr", "short")}{" "}
+          · {org._count.members} membre(s) · {org._count.events} événement(s)
         </p>
         <form action={supportViewAction.bind(null, org.id)}>
-          <button type="submit" className="h-11 rounded-full bg-[var(--evoly-lilas)] px-5 text-sm font-semibold">
+          <button
+            type="submit"
+            className="h-11 rounded-full bg-[var(--evoly-lilas)] px-5 text-sm font-semibold"
+          >
             Consulter l’app en lecture seule (journalisé)
           </button>
         </form>
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Volumes">
+        <section
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+          aria-label="Volumes"
+        >
           {[
             ["Commandes payées", String(sheet.sales.orders)],
             ["Ventes brutes", eur(sheet.sales.grossMinor)],
             ["Commissions", eur(sheet.sales.commissionMinor)],
-            ["Remboursements", `${sheet.refunds.count} · ${eur(sheet.refunds.amountMinor)}`],
-            ["Litiges (ouverts)", `${sheet.disputes.total} (${sheet.disputes.open})`],
+            [
+              "Remboursements",
+              `${sheet.refunds.count} · ${eur(sheet.refunds.amountMinor)}`,
+            ],
+            [
+              "Litiges (ouverts)",
+              `${sheet.disputes.total} (${sheet.disputes.open})`,
+            ],
             [
               "Offre",
               sub
                 ? [
                     `${sub.planId} · ${sub.status}`,
-                    sub.trialEndsAt ? `essai jusqu’au ${formatDateTime(sub.trialEndsAt, org.timezone, "fr", "short")}` : null,
-                    sub.currentPeriodEnd ? `période jusqu’au ${formatDateTime(sub.currentPeriodEnd, org.timezone, "fr", "short")}` : null,
+                    sub.trialEndsAt
+                      ? `essai jusqu’au ${formatDateTime(sub.trialEndsAt, org.timezone, "fr", "short")}`
+                      : null,
+                    sub.currentPeriodEnd
+                      ? `période jusqu’au ${formatDateTime(sub.currentPeriodEnd, org.timezone, "fr", "short")}`
+                      : null,
                     sub.stripeSubscriptionId ? "abonnement Stripe" : null,
                   ]
                     .filter(Boolean)
                     .join(" · ")
                 : "free",
             ],
-            ["Stripe", org.stripeAccount ? `${org.stripeAccount.status} · ${org.stripeAccount.stripeAccountId}` : "non connecté"],
+            [
+              "Stripe",
+              org.stripeAccount
+                ? `${org.stripeAccount.status} · ${org.stripeAccount.stripeAccountId}`
+                : "non connecté",
+            ],
             ["Abonnement Stripe", sub?.stripeSubscriptionId ?? "aucun"],
           ].map(([k, v]) => (
             <div key={k} className={card}>
@@ -117,7 +155,10 @@ export default async function OrganizationSheetPage({
           <section className={`${card} grid gap-4`} aria-label="Actions">
             <h2 className="font-display text-lg">Actions</h2>
             {org.status === "ACTIVE" ? (
-              <form action={suspendAction.bind(null, org.id)} className="flex flex-wrap gap-2">
+              <form
+                action={suspendAction.bind(null, org.id)}
+                className="flex flex-wrap gap-2"
+              >
                 <input
                   name="reason"
                   required
@@ -126,7 +167,10 @@ export default async function OrganizationSheetPage({
                   aria-label="Motif de la suspension"
                   className={`${input} min-w-0 flex-1`}
                 />
-                <button type="submit" className="h-11 rounded-full bg-danger px-5 text-sm font-semibold text-blanc">
+                <button
+                  type="submit"
+                  className="h-11 rounded-full bg-danger px-5 text-sm font-semibold text-blanc"
+                >
                   Suspendre l’organisation
                 </button>
               </form>
@@ -138,31 +182,66 @@ export default async function OrganizationSheetPage({
               </form>
             )}
             {ok && !erreur ? (
-              <p role="status" className="rounded-xl bg-surface-sunken p-3 text-sm font-semibold">
+              <p
+                role="status"
+                className="rounded-xl bg-surface-sunken p-3 text-sm font-semibold"
+              >
                 Modification enregistrée.
               </p>
             ) : null}
             {erreur ? (
-              <p role="alert" className="rounded-2xl p-4 text-sm font-semibold text-danger ring-1 ring-danger">
+              <p
+                role="alert"
+                className="rounded-2xl p-4 text-sm font-semibold text-danger ring-1 ring-danger"
+              >
                 {erreurEnClair(erreur)}
               </p>
             ) : null}
-            <form action={extendTrialAction.bind(null, org.id)} className="flex flex-wrap items-center gap-2">
-              <input name="days" type="number" min={1} max={90} defaultValue={14} aria-label="Jours d’essai" className={`${input} w-24`} />
+            <form
+              action={extendTrialAction.bind(null, org.id)}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <input
+                name="days"
+                type="number"
+                min={1}
+                max={90}
+                defaultValue={14}
+                aria-label="Jours d’essai"
+                className={`${input} w-24`}
+              />
               <button type="submit" className={btn}>
                 Prolonger l’essai Pro
               </button>
             </form>
-            <form action={assignPlanAction.bind(null, org.id)} className="flex flex-wrap items-center gap-2">
-              <select name="plan" aria-label="Offre attribuée" className={input}>
+            <form
+              action={assignPlanAction.bind(null, org.id)}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <select
+                name="plan"
+                aria-label="Offre attribuée"
+                className={input}
+              >
                 <option value="pro">Pro</option>
                 <option value="free">Free</option>
-                <option value="partner">Partenaire (Pro offert, sans commission)</option>
+                <option value="partner">
+                  Partenaire (Pro offert, sans commission)
+                </option>
               </select>
-              <input name="until" type="date" aria-label="Jusqu’au" className={input} />
+              <input
+                name="until"
+                type="date"
+                aria-label="Jusqu’au"
+                className={input}
+              />
               {sub?.stripeSubscriptionId ? (
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" name="resilierStripe" className="size-5" />
+                  <input
+                    type="checkbox"
+                    name="resilierStripe"
+                    className="size-5"
+                  />
                   Résilier l’abonnement Stripe en cours
                 </label>
               ) : null}
@@ -170,16 +249,38 @@ export default async function OrganizationSheetPage({
                 Attribuer l’offre
               </button>
             </form>
-            <form action={resendOrderAction.bind(null, org.id)} className="flex flex-wrap items-center gap-2">
-              <input name="orderId" placeholder="Identifiant de commande" aria-label="Identifiant de commande" className={`${input} min-w-0 flex-1`} />
+            <form
+              action={resendOrderAction.bind(null, org.id)}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <input
+                name="orderId"
+                placeholder="Identifiant de commande"
+                aria-label="Identifiant de commande"
+                className={`${input} min-w-0 flex-1`}
+              />
               <button type="submit" className={btn}>
                 Renvoyer les e-mails de la commande
               </button>
             </form>
-            <form action={featureFlagAction.bind(null, org.id)} className="flex flex-wrap items-center gap-2">
-              <input name="key" placeholder="clé de fonctionnalité" aria-label="Clé de fonctionnalité" className={input} />
+            <form
+              action={featureFlagAction.bind(null, org.id)}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <input
+                name="key"
+                placeholder="clé de fonctionnalité"
+                aria-label="Clé de fonctionnalité"
+                className={input}
+              />
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="enabled" defaultChecked className="size-5" /> activée
+                <input
+                  type="checkbox"
+                  name="enabled"
+                  defaultChecked
+                  className="size-5"
+                />{" "}
+                activée
               </label>
               <button type="submit" className={btn}>
                 Enregistrer
@@ -188,12 +289,19 @@ export default async function OrganizationSheetPage({
           </section>
         ) : null}
         {sheet.failedListings.length ? (
-          <section className={`${card} grid gap-2`} aria-label="Reventes en échec">
+          <section
+            className={`${card} grid gap-2`}
+            aria-label="Reventes en échec"
+          >
             <h2 className="font-display text-lg">Reventes en échec</h2>
             {sheet.failedListings.map((l) => (
-              <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <div
+                key={l.id}
+                className="flex flex-wrap items-center justify-between gap-2 text-sm"
+              >
                 <span>
-                  {l.event.title} · {l.linkCode} · {eur(l.priceMinor)} · {l.failureReason}
+                  {l.event.title} · {l.linkCode} · {eur(l.priceMinor)} ·{" "}
+                  {l.failureReason}
                 </span>
                 {admin ? (
                   <form action={retryResaleAction.bind(null, org.id, l.id)}>
@@ -211,7 +319,9 @@ export default async function OrganizationSheetPage({
             <h2 className="font-display text-lg">Événements récents</h2>
             {sheet.events.map((e) => (
               <p key={e.id} className="text-sm">
-                {e.title} · {formatDateTime(e.startsAt, org.timezone, "fr", "short")} · {e.status}
+                {e.title} ·{" "}
+                {formatDateTime(e.startsAt, org.timezone, "fr", "short")} ·{" "}
+                {e.status}
               </p>
             ))}
             <h2 className="mt-3 font-display text-lg">Fonctionnalités</h2>
@@ -230,7 +340,8 @@ export default async function OrganizationSheetPage({
             <ul className="grid max-h-[28rem] gap-1 overflow-y-auto text-xs">
               {sheet.auditLog.map((a) => (
                 <li key={a.id} className="border-t border-line pt-1">
-                  <span className="font-mono">{a.action}</span> · {a.actorType} · {formatDateTime(a.createdAt, org.timezone, "fr", "short")}
+                  <span className="font-mono">{a.action}</span> · {a.actorType}{" "}
+                  · {formatDateTime(a.createdAt, org.timezone, "fr", "short")}
                 </li>
               ))}
             </ul>

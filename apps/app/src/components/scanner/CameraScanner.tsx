@@ -51,9 +51,22 @@ function linearReader() {
     reader.setHints(hints);
     return (image: ImageData) => {
       const lum = new Uint8ClampedArray(image.width * image.height);
-      for (let i = 0, j = 0; j < lum.length; i += 4, j++) lum[j] = (image.data[i]! * 299 + image.data[i + 1]! * 587 + image.data[i + 2]! * 114) / 1000;
+      for (let i = 0, j = 0; j < lum.length; i += 4, j++)
+        lum[j] =
+          (image.data[i]! * 299 +
+            image.data[i + 1]! * 587 +
+            image.data[i + 2]! * 114) /
+          1000;
       try {
-        return reader.decodeWithState(new z.BinaryBitmap(new z.HybridBinarizer(new z.RGBLuminanceSource(lum, image.width, image.height)))).getText();
+        return reader
+          .decodeWithState(
+            new z.BinaryBitmap(
+              new z.HybridBinarizer(
+                new z.RGBLuminanceSource(lum, image.width, image.height),
+              ),
+            ),
+          )
+          .getText();
       } catch {
         return null;
       } finally {
@@ -64,43 +77,69 @@ function linearReader() {
   return zxing;
 }
 
-export function CameraScanner({ onCode, paused }: { onCode: (code: string) => void; paused: boolean }) {
+export function CameraScanner({
+  onCode,
+  paused,
+}: {
+  onCode: (code: string) => void;
+  paused: boolean;
+}) {
   const t = useTranslations("scanner");
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const last = useRef<{ value: string; at: number } | null>(null);
   const pausedRef = useRef(paused);
-  const [state, setState] = useState<"idle" | "starting" | "on" | "denied" | "unsupported">("idle");
+  const [state, setState] = useState<
+    "idle" | "starting" | "on" | "denied" | "unsupported"
+  >("idle");
   pausedRef.current = paused;
   // la boucle de lecture vit aussi longtemps que la caméra : elle appelle toujours la dernière fonction reçue, sinon le mode
   // choisi après l'allumage (vérification seule, bar et options) serait ignoré et le billet validé à l'entrée
   const onCodeRef = useRef(onCode);
   onCodeRef.current = onCode;
 
-  useEffect(() => () => stream.current?.getTracks().forEach((track) => track.stop()), []);
+  useEffect(
+    () => () => stream.current?.getTracks().forEach((track) => track.stop()),
+    [],
+  );
 
   const start = async () => {
     if (!navigator.mediaDevices?.getUserMedia) return setState("unsupported");
     setState("starting");
     try {
-      stream.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false });
+      stream.current = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
       const v = video.current!;
       v.srcObject = stream.current;
       await v.play();
       setState("on");
       // billets Evoly (QR) et billets des réseaux (codes linéaires, PDF417…) : seulement les formats que l'appareil sait lire
-      const Native = (window as unknown as { BarcodeDetector?: DetectorCtor & { getSupportedFormats?: () => Promise<string[]> } }).BarcodeDetector;
-      const supported = Native ? ((await Native.getSupportedFormats?.().catch(() => ["qr_code"])) ?? ["qr_code"]) : [];
+      const Native = (
+        window as unknown as {
+          BarcodeDetector?: DetectorCtor & {
+            getSupportedFormats?: () => Promise<string[]>;
+          };
+        }
+      ).BarcodeDetector;
+      const supported = Native
+        ? ((await Native.getSupportedFormats?.().catch(() => ["qr_code"])) ?? [
+            "qr_code",
+          ])
+        : [];
       const formats = SCAN_FORMATS.filter((f) => supported.includes(f));
-      const detector = Native && formats.length ? new Native({ formats }) : null;
+      const detector =
+        Native && formats.length ? new Native({ formats }) : null;
       let frame = 0;
       const tick = async () => {
         if (!stream.current) return;
         if (!pausedRef.current && v.readyState >= 2) {
           let value: string | null = null;
           try {
-            if (detector) value = (await detector.detect(v))[0]?.rawValue ?? null;
+            if (detector)
+              value = (await detector.detect(v))[0]?.rawValue ?? null;
             else {
               const c = canvas.current!;
               const scale = Math.min(1, 640 / v.videoWidth);
@@ -109,15 +148,26 @@ export function CameraScanner({ onCode, paused }: { onCode: (code: string) => vo
               const ctx = c.getContext("2d", { willReadFrequently: true })!;
               ctx.drawImage(v, 0, 0, c.width, c.height);
               const image = ctx.getImageData(0, 0, c.width, c.height);
-              value = jsQR(image.data, c.width, c.height, { inversionAttempts: "dontInvert" })?.data ?? null;
+              value =
+                jsQR(image.data, c.width, c.height, {
+                  inversionAttempts: "dontInvert",
+                })?.data ?? null;
               // sans détecteur (iPhone) : codes-barres des réseaux lus par ZXing, chargé seulement ici, une image sur deux
-              if (!value && frame++ % 2 === 0) value = (await linearReader())(image);
+              if (!value && frame++ % 2 === 0)
+                value = (await linearReader())(image);
             }
           } catch {
             value = null;
           }
           const now = Date.now();
-          if (value && !(last.current && last.current.value === value && now - last.current.at < 3000)) {
+          if (
+            value &&
+            !(
+              last.current &&
+              last.current.value === value &&
+              now - last.current.at < 3000
+            )
+          ) {
             last.current = { value, at: now };
             onCodeRef.current(value);
           }
@@ -132,7 +182,12 @@ export function CameraScanner({ onCode, paused }: { onCode: (code: string) => vo
 
   return (
     <div className="relative aspect-square w-full overflow-hidden rounded-[var(--r-panel)] bg-noir">
-      <video ref={video} playsInline muted className={`size-full object-cover ${state === "on" ? "" : "hidden"}`} />
+      <video
+        ref={video}
+        playsInline
+        muted
+        className={`size-full object-cover ${state === "on" ? "" : "hidden"}`}
+      />
       <canvas ref={canvas} className="hidden" />
       {state === "on" ? (
         <div

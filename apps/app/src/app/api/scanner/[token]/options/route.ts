@@ -21,18 +21,28 @@ const schema = z.discriminatedUnion("action", [
   }),
 ]);
 
-export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ token: string }> },
+) {
   const { token } = await params;
   const r = await linkOr410(token);
   if (r.error) return r.error;
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return json({ error: "INVALID_INPUT" }, 400);
-  if (await rateLimited(r.link.id, parsed.data.deviceId)) return json({ error: "RATE_LIMITED" }, 429);
+  if (await rateLimited(r.link.id, parsed.data.deviceId))
+    return json({ error: "RATE_LIMITED" }, 429);
   try {
-    if (parsed.data.action === "lookup") return json(await optionsForScan(r.link.eventId, parsed.data));
+    if (parsed.data.action === "lookup")
+      return json(await optionsForScan(r.link.eventId, parsed.data));
     if (r.link.checkOnly) return json({ error: "CHECK_ONLY" }, 403); // un lien de vérification seule ne retire rien
     return json(
-      await redeemOption(r.link.eventId, parsed.data.orderOptionId, parsed.data.quantity, { deviceId: parsed.data.deviceId, staffName: r.link.label }),
+      await redeemOption(
+        r.link.eventId,
+        parsed.data.orderOptionId,
+        parsed.data.quantity,
+        { deviceId: parsed.data.deviceId, staffName: r.link.label },
+      ),
     );
   } catch (err) {
     return failure(err);

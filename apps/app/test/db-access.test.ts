@@ -1,14 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
 
 // session et double authentification simulées : la vérification est testée telle que Caddy l'appelle
-const state: { session: unknown; twofa: boolean } = { session: null, twofa: false };
+const state: { session: unknown; twofa: boolean } = {
+  session: null,
+  twofa: false,
+};
 vi.mock("@/server/session", () => ({ getSession: async () => state.session }));
 vi.mock("@/server/twoFactor", async (original) => ({
   ...(await original<typeof import("@/server/twoFactor")>()),
   twoFactorSatisfied: async () => state.twofa,
 }));
 vi.mock("next/headers", () => ({
-  cookies: async () => ({ get: () => undefined, set: () => undefined, delete: () => undefined }),
+  cookies: async () => ({
+    get: () => undefined,
+    set: () => undefined,
+    delete: () => undefined,
+  }),
   headers: async () => new Headers(),
 }));
 
@@ -19,8 +26,17 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 const login = (userId: string) => {
   state.session = { user: { id: userId }, session: { id: `s-${rid()}` } };
 };
-const user = (data: { platformRole?: "ADMIN" | "SUPPORT"; twoFactorEnabled?: boolean } = {}) =>
-  db.user.create({ data: { name: "Camille", email: `u.${rid()}@exemple.be`, emailVerified: true, ...data } });
+const user = (
+  data: { platformRole?: "ADMIN" | "SUPPORT"; twoFactorEnabled?: boolean } = {},
+) =>
+  db.user.create({
+    data: {
+      name: "Camille",
+      email: `u.${rid()}@exemple.be`,
+      emailVerified: true,
+      ...data,
+    },
+  });
 
 describe("accès complet à la base par pgAdmin, vérifié par Caddy (RG-ADM-01)", () => {
   it("non connecté : connexion puis retour ; non membre de l'équipe : introuvable ; double authentification exigée ; support refusé ; administrateur vérifié accepté", async () => {

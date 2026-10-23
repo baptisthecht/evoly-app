@@ -12,7 +12,10 @@ export function ResendForm({ email }: { email: string }) {
     <form action={action} className="grid gap-3">
       <input type="hidden" name="email" value={email} />
       {state?.ok ? (
-        <p role="status" className="rounded-md bg-success-soft px-4 py-3 text-sm text-success">
+        <p
+          role="status"
+          className="rounded-md bg-success-soft px-4 py-3 text-sm text-success"
+        >
           {t("verifyResent")}
         </p>
       ) : null}

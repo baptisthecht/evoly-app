@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { availableFor, canDeleteTicketType, canSetQuantity, checkCart, remaining } from "../src";
+import {
+  availableFor,
+  canDeleteTicketType,
+  canSetQuantity,
+  checkCart,
+  remaining,
+} from "../src";
 
 // règle unique des places en vente (docs/COMPATIBILITE_RESEAUX.md) : places confiées aux réseaux retirées de la vente en ligne
 const event = {
@@ -37,26 +43,66 @@ describe("places en vente : contingents des réseaux", () => {
   });
 
   it("jauge : les places confiées comptent, même sur un tarif illimité", () => {
-    const unlimited = type({ quantity: null, quantitySold: 0, quantityHeld: 0, quantityAllocated: 0 });
-    expect(availableFor(unlimited, { capacity: 50, soldTotal: 10, heldTotal: 2, allocatedTotal: 30 })).toBe(8);
-    expect(availableFor(unlimited, { capacity: 50, soldTotal: 10, heldTotal: 2 })).toBe(38);
+    const unlimited = type({
+      quantity: null,
+      quantitySold: 0,
+      quantityHeld: 0,
+      quantityAllocated: 0,
+    });
+    expect(
+      availableFor(unlimited, {
+        capacity: 50,
+        soldTotal: 10,
+        heldTotal: 2,
+        allocatedTotal: 30,
+      }),
+    ).toBe(8);
+    expect(
+      availableFor(unlimited, { capacity: 50, soldTotal: 10, heldTotal: 2 }),
+    ).toBe(38);
   });
 
   it("panier : refusé au-delà des places en ligne, par le tarif comme par la jauge", () => {
     const big = { ...event, maxTicketsPerOrder: 100 }; // grande commande : seule la limite des places compte ici
     const many = type({ maxPerOrder: 100 });
-    expect(checkCart(big, [many], [{ ticketTypeId: "t1", quantity: 46 }], now)).toContainEqual(
+    expect(
+      checkCart(big, [many], [{ ticketTypeId: "t1", quantity: 46 }], now),
+    ).toContainEqual(
       expect.objectContaining({ code: "NOT_ENOUGH_STOCK", available: 45 }),
     );
-    expect(checkCart(big, [many], [{ ticketTypeId: "t1", quantity: 45 }], now)).toEqual([]);
-    const full = { ...event, capacity: 60, soldTotal: 20, heldTotal: 5, allocatedTotal: 30 };
-    expect(checkCart(full, [type()], [{ ticketTypeId: "t1", quantity: 6 }], now)).toContainEqual(expect.objectContaining({ code: "EVENT_FULL", available: 5 }));
+    expect(
+      checkCart(big, [many], [{ ticketTypeId: "t1", quantity: 45 }], now),
+    ).toEqual([]);
+    const full = {
+      ...event,
+      capacity: 60,
+      soldTotal: 20,
+      heldTotal: 5,
+      allocatedTotal: 30,
+    };
+    expect(
+      checkCart(full, [type()], [{ ticketTypeId: "t1", quantity: 6 }], now),
+    ).toContainEqual(
+      expect.objectContaining({ code: "EVENT_FULL", available: 5 }),
+    );
   });
 
   it("catalogue : quantité jamais sous les places confiées ; tarif confié à un réseau impossible à supprimer", () => {
     expect(canSetQuantity(54, type())).toBe(false);
     expect(canSetQuantity(55, type())).toBe(true);
-    expect(canDeleteTicketType({ quantitySold: 0, quantityHeld: 0, quantityAllocated: 4 })).toBe(false);
-    expect(canDeleteTicketType({ quantitySold: 0, quantityHeld: 0, quantityAllocated: 0 })).toBe(true);
+    expect(
+      canDeleteTicketType({
+        quantitySold: 0,
+        quantityHeld: 0,
+        quantityAllocated: 4,
+      }),
+    ).toBe(false);
+    expect(
+      canDeleteTicketType({
+        quantitySold: 0,
+        quantityHeld: 0,
+        quantityAllocated: 0,
+      }),
+    ).toBe(true);
   });
 });

@@ -6,9 +6,18 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { ProLocked } from "@/components/ProLocked";
 import { Card } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
-import { DISTRIBUTOR_KINDS, eventChannelReport, eventDistribution } from "@/server/distributors";
+import {
+  DISTRIBUTOR_KINDS,
+  eventChannelReport,
+  eventDistribution,
+} from "@/server/distributors";
 import { getEventWithTickets } from "@/server/events";
-import { AddDistributorForm, AllocationForm, PrecreatedCodesForm, ReleaseUnsoldButton } from "./DistributionForms";
+import {
+  AddDistributorForm,
+  AllocationForm,
+  PrecreatedCodesForm,
+  ReleaseUnsoldButton,
+} from "./DistributionForms";
 import { ImportPanel } from "./ImportPanel";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,7 +26,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Réseaux de vente d'un événement : contingents par tarif ou places du plan, bilan par réseau (docs/COMPATIBILITE_RESEAUX.md, Pro). */
-export default async function DistributionPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function DistributionPage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
@@ -26,11 +39,18 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
     return (
       <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
-        <ProLocked orgSlug={orgSlug} feature="DISTRIBUTION" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
+        <ProLocked
+          orgSlug={orgSlug}
+          feature="DISTRIBUTION"
+          canUpgrade={can(ctx.membership, "BILLING_MANAGE")}
+        />
       </div>
     );
   }
-  const [data, report] = await Promise.all([eventDistribution(ctx, eventId), eventChannelReport(ctx, eventId)]);
+  const [data, report] = await Promise.all([
+    eventDistribution(ctx, eventId),
+    eventChannelReport(ctx, eventId),
+  ]);
   const locale = (await getLocale()) as Locale;
   const canEdit = can(ctx.membership, "EVENTS_EDIT");
   return (
@@ -40,7 +60,10 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="font-display text-xl">{t("reportTitle")}</h2>
           {canEdit ? (
-            <a href={`/o/${orgSlug}/events/${eventId}/distribution/bilan`} className="text-sm font-semibold underline underline-offset-4">
+            <a
+              href={`/o/${orgSlug}/events/${eventId}/distribution/bilan`}
+              className="text-sm font-semibold underline underline-offset-4"
+            >
               {t("exportCsv")}
             </a>
           ) : null}
@@ -65,13 +88,26 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
             </thead>
             <tbody>
               {report.rows.map((r) => (
-                <tr key={`${r.channel}-${r.name ?? ""}`} className="border-t border-line">
+                <tr
+                  key={`${r.channel}-${r.name ?? ""}`}
+                  className="border-t border-line"
+                >
                   <th scope="row" className="py-2 pr-4 font-semibold">
-                    {r.channel === "NETWORK" ? r.name : t(`channel_${r.channel}`)}
+                    {r.channel === "NETWORK"
+                      ? r.name
+                      : t(`channel_${r.channel}`)}
                   </th>
                   <td className="py-2 pr-4 text-right">{r.tickets}</td>
                   <td className="py-2 pr-4 text-right">{r.entered}</td>
-                  <td className="py-2 text-right">{r.declaredRevenueMinor == null ? "" : formatMoney(r.declaredRevenueMinor, event.currency, locale)}</td>
+                  <td className="py-2 text-right">
+                    {r.declaredRevenueMinor == null
+                      ? ""
+                      : formatMoney(
+                          r.declaredRevenueMinor,
+                          event.currency,
+                          locale,
+                        )}
+                  </td>
                 </tr>
               ))}
               <tr className="border-t-2 border-line font-semibold">
@@ -93,10 +129,15 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
         ) : (
           <ul className="grid gap-3">
             {data.distributors.map((d) => (
-              <li key={d.id} className="flex flex-wrap items-center justify-between gap-4 rounded-md bg-surface-sunken p-4">
+              <li
+                key={d.id}
+                className="flex flex-wrap items-center justify-between gap-4 rounded-md bg-surface-sunken p-4"
+              >
                 <div className="grid min-w-0 gap-0.5">
                   <span className="font-semibold">{d.name}</span>
-                  <span className="text-sm text-ink-muted">{t(`kind_${d.kind}`)}</span>
+                  <span className="text-sm text-ink-muted">
+                    {t(`kind_${d.kind}`)}
+                  </span>
                 </div>
                 <dl className="flex flex-wrap gap-6 text-sm">
                   <div className="grid">
@@ -113,20 +154,50 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
                   </div>
                 </dl>
                 {canEdit && d.allocated > d.imported ? (
-                  <ReleaseUnsoldButton orgSlug={orgSlug} eventId={eventId} distributorId={d.id} count={d.allocated - d.imported} />
+                  <ReleaseUnsoldButton
+                    orgSlug={orgSlug}
+                    eventId={eventId}
+                    distributorId={d.id}
+                    count={d.allocated - d.imported}
+                  />
                 ) : null}
-                {canEdit ? <ImportPanel orgSlug={orgSlug} eventId={eventId} distributorId={d.id} /> : null}
+                {canEdit ? (
+                  <ImportPanel
+                    orgSlug={orgSlug}
+                    eventId={eventId}
+                    distributorId={d.id}
+                  />
+                ) : null}
                 {canEdit && !data.seated
                   ? (() => {
                       // codes créés à l'avance : seulement sur les tarifs confiés à ce réseau, dans la limite des places libres
                       const types = data.ticketTypes
                         .map((tt) => {
-                          const a = tt.allocations.find((x) => x.distributorId === d.id);
-                          return a ? { id: tt.id, name: tt.name, free: a.quantity - a.imported } : null;
+                          const a = tt.allocations.find(
+                            (x) => x.distributorId === d.id,
+                          );
+                          return a
+                            ? {
+                                id: tt.id,
+                                name: tt.name,
+                                free: a.quantity - a.imported,
+                              }
+                            : null;
                         })
-                        .filter((x): x is { id: string; name: string; free: number } => !!x && x.free > 0);
+                        .filter(
+                          (
+                            x,
+                          ): x is { id: string; name: string; free: number } =>
+                            !!x && x.free > 0,
+                        );
                       return types.length || d.precreated ? (
-                        <PrecreatedCodesForm orgSlug={orgSlug} eventId={eventId} distributorId={d.id} ticketTypes={types} existing={d.precreated} />
+                        <PrecreatedCodesForm
+                          orgSlug={orgSlug}
+                          eventId={eventId}
+                          distributorId={d.id}
+                          ticketTypes={types}
+                          existing={d.precreated}
+                        />
                       ) : null;
                     })()
                   : null}
@@ -135,7 +206,14 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
           </ul>
         )}
         {canEdit ? (
-          <AddDistributorForm orgSlug={orgSlug} eventId={eventId} kinds={DISTRIBUTOR_KINDS.map((k) => ({ value: k, label: t(`kind_${k}`) }))} />
+          <AddDistributorForm
+            orgSlug={orgSlug}
+            eventId={eventId}
+            kinds={DISTRIBUTOR_KINDS.map((k) => ({
+              value: k,
+              label: t(`kind_${k}`),
+            }))}
+          />
         ) : null}
       </Card>
 
@@ -144,7 +222,10 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
           <h2 className="font-display text-xl">{t("seatsTitle")}</h2>
           <p className="max-w-prose text-ink-muted">{t("seatsBody")}</p>
           <div>
-            <Link href={`/o/${orgSlug}/events/${eventId}/seating`} className="font-semibold underline underline-offset-4">
+            <Link
+              href={`/o/${orgSlug}/events/${eventId}/seating`}
+              className="font-semibold underline underline-offset-4"
+            >
               {t("seatsLink")}
             </Link>
           </div>
@@ -153,7 +234,9 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
         <Card className="grid gap-5">
           <div className="grid gap-1">
             <h2 className="font-display text-xl">{t("allocationsTitle")}</h2>
-            <p className="max-w-prose text-sm text-ink-muted">{t("allocationsHint")}</p>
+            <p className="max-w-prose text-sm text-ink-muted">
+              {t("allocationsHint")}
+            </p>
           </div>
           {data.ticketTypes.map((tt) => (
             <section
@@ -165,11 +248,17 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
                 <h3 id={`alloc-${tt.id}`} className="font-semibold">
                   {tt.name}
                 </h3>
-                <span className="text-sm text-ink-muted">{tt.onlineLeft == null ? t("onlineUnlimited") : t("onlineLeft", { count: tt.onlineLeft })}</span>
+                <span className="text-sm text-ink-muted">
+                  {tt.onlineLeft == null
+                    ? t("onlineUnlimited")
+                    : t("onlineLeft", { count: tt.onlineLeft })}
+                </span>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {data.distributors.map((d) => {
-                  const a = tt.allocations.find((x) => x.distributorId === d.id);
+                  const a = tt.allocations.find(
+                    (x) => x.distributorId === d.id,
+                  );
                   return (
                     <AllocationForm
                       key={d.id}

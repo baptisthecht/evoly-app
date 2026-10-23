@@ -7,5 +7,7 @@ import { env } from "./env";
  * Jamais sur les billetteries des organisateurs (leurs acheteurs ne doivent pas se voir proposer « Evoly ») ni sur le scanner.
  */
 export async function isAppHost(): Promise<boolean> {
-  return (await headers()).get("host") === new URL(env().NEXT_PUBLIC_APP_URL).host;
+  return (
+    (await headers()).get("host") === new URL(env().NEXT_PUBLIC_APP_URL).host
+  );
 }

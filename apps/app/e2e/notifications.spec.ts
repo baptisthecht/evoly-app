@@ -1,10 +1,25 @@
 import { expect, test } from "./fixtures";
-import { appUrl, buyFree, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
+import {
+  appUrl,
+  buyFree,
+  organizer,
+  publishedFreeEvent,
+  siteUrl,
+  sql,
+} from "./helpers";
 
-test("notifications : cloche, ouverture de l'élément, annulation d'une entrée (sections 9.20 et 9.17)", async ({ page }) => {
+test("notifications : cloche, ouverture de l'élément, annulation d'une entrée (sections 9.20 et 9.17)", async ({
+  page,
+}) => {
   const { id, slug } = await organizer(page);
   await publishedFreeEvent(page, slug, `Concert ${id}`, 30);
-  await buyFree(page, siteUrl(slug, `/concert-${id}`), "Fosse", 1, `lea.${id}@exemple.be`);
+  await buyFree(
+    page,
+    siteUrl(slug, `/concert-${id}`),
+    "Fosse",
+    1,
+    `lea.${id}@exemple.be`,
+  );
 
   await page.goto(appUrl(`/o/${slug}`));
   await expect(page.getByTestId("unread-count").first()).toHaveText("1");

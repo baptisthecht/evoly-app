@@ -1,9 +1,28 @@
 "use client";
 
-import { bestSeats, createsOrphan, hasOrphanFreeChoice, type PlanSeat, PALETTE } from "@evoly/core";
+import {
+  bestSeats,
+  createsOrphan,
+  hasOrphanFreeChoice,
+  type PlanSeat,
+  PALETTE,
+} from "@evoly/core";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { RowLabels, S, ShapeView, StandingView, Tables, blockBounds } from "@/components/seating/PlanParts";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
+import {
+  RowLabels,
+  S,
+  ShapeView,
+  StandingView,
+  Tables,
+  blockBounds,
+} from "@/components/seating/PlanParts";
 import type { PublicSeatMap } from "@/server/seating";
 
 type Mode = "best" | "map";
@@ -24,7 +43,11 @@ export function SeatMapPicker({
   map: PublicSeatMap;
   needed: Record<string, number>;
   chosen: string[];
-  friend?: { firstName: string; seatIds: string[]; center: { x: number; y: number } } | null;
+  friend?: {
+    firstName: string;
+    seatIds: string[];
+    center: { x: number; y: number };
+  } | null;
   ownSeatIds?: string[];
   fixedMode?: "map" | "view";
   onChange: (ids: string[], valid: boolean) => void;
@@ -38,14 +61,30 @@ export function SeatMapPicker({
   const seats = useMemo(
     () =>
       map.rows.flatMap((r) =>
-        r.seats.map((s) => ({ ...s, available: s.available || ownSeatIds.includes(s.id), rowId: r.id, row: r.name, blockId: r.blockId })),
+        r.seats.map((s) => ({
+          ...s,
+          available: s.available || ownSeatIds.includes(s.id),
+          rowId: r.id,
+          row: r.name,
+          blockId: r.blockId,
+        })),
       ),
     [map, ownKey],
   );
   const byId = useMemo(() => new Map(seats.map((s) => [s.id, s])), [seats]);
-  const colors = useMemo(() => new Map(map.categories.map((c) => [c.id, c.color])), [map.categories]);
+  const colors = useMemo(
+    () => new Map(map.categories.map((c) => [c.id, c.color])),
+    [map.categories],
+  );
   const planFor = (pred: (s: (typeof seats)[number]) => boolean): PlanSeat[] =>
-    seats.filter(pred).map((s) => ({ id: s.id, rowId: s.rowId, order: s.order, x: s.x, y: s.y, available: s.available }));
+    seats.filter(pred).map((s) => ({
+      id: s.id,
+      rowId: s.rowId,
+      order: s.order,
+      x: s.x,
+      y: s.y,
+      available: s.available,
+    }));
   const neededKey = JSON.stringify(needed);
 
   const suggestion = useMemo(() => {
@@ -93,15 +132,27 @@ export function SeatMapPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, suggestionKey]);
 
-  const picked = (cat: string) => chosen.filter((id) => byId.get(id)?.categoryId === cat).length;
+  const picked = (cat: string) =>
+    chosen.filter((id) => byId.get(id)?.categoryId === cat).length;
   // une place libre de ses catégories ; quand le compte est atteint, toucher une autre place remplace la plus ancienne
-  const selectable = (s: (typeof seats)[number]) => mode === "map" && !viewOnly && s.available && (needed[s.categoryId] ?? 0) > 0;
+  const selectable = (s: (typeof seats)[number]) =>
+    mode === "map" &&
+    !viewOnly &&
+    s.available &&
+    (needed[s.categoryId] ?? 0) > 0;
   const toggle = (id: string) => {
     const s = byId.get(id);
     if (!s || !selectable(s)) return;
-    let next = chosen.includes(id) ? chosen.filter((x) => x !== id) : [...chosen, id];
-    if (!chosen.includes(id) && picked(s.categoryId) >= (needed[s.categoryId] ?? 0)) {
-      const oldest = chosen.find((x) => byId.get(x)?.categoryId === s.categoryId);
+    let next = chosen.includes(id)
+      ? chosen.filter((x) => x !== id)
+      : [...chosen, id];
+    if (
+      !chosen.includes(id) &&
+      picked(s.categoryId) >= (needed[s.categoryId] ?? 0)
+    ) {
+      const oldest = chosen.find(
+        (x) => byId.get(x)?.categoryId === s.categoryId,
+      );
       next = next.filter((x) => x !== oldest);
     }
     onChange(next, !orphanFor(next));
@@ -112,14 +163,23 @@ export function SeatMapPicker({
       const s = byId.get(id);
       if (s) groups.set(s.row, [...(groups.get(s.row) ?? []), s.label]);
     }
-    return [...groups].map(([row, labels]) => t("rowSeats", { row, seats: labels.join(", ") })).join(" · ");
+    return [...groups]
+      .map(([row, labels]) => t("rowSeats", { row, seats: labels.join(", ") }))
+      .join(" · ");
   };
 
   // -- vue : zoom à deux doigts, déplacement à un doigt, boutons --
   const bounds = useMemo(() => {
     const boxes = [
       ...map.blocks.map((b) => blockBounds(b, seats)),
-      ...seats.filter((s) => !s.blockId).map((s) => ({ x1: s.x - 16, y1: s.y - 16, x2: s.x + 16, y2: s.y + 16 })),
+      ...seats
+        .filter((s) => !s.blockId)
+        .map((s) => ({
+          x1: s.x - 16,
+          y1: s.y - 16,
+          x2: s.x + 16,
+          y2: s.y + 16,
+        })),
     ];
     if (!boxes.length) return { x: -200, y: -150, w: 400, h: 300 };
     const x1 = Math.min(...boxes.map((b) => b.x1)) - 30,
@@ -131,7 +191,10 @@ export function SeatMapPicker({
   const svgRef = useRef<SVGSVGElement>(null);
   const [zoom, setZoom] = useState(1);
   const [center, setCenter] = useState<{ x: number; y: number } | null>(null);
-  const c = center ?? { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h / 2 };
+  const c = center ?? {
+    x: bounds.x + bounds.w / 2,
+    y: bounds.y + bounds.h / 2,
+  };
   const vb = { w: bounds.w / zoom, h: bounds.h / zoom };
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<{
@@ -149,14 +212,24 @@ export function SeatMapPicker({
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
-      gesture.current = { x: e.clientX, y: e.clientY, c0: c, seatId: null, moved: true, pinch: { d0: Math.hypot(a!.x - b!.x, a!.y - b!.y) || 1, z0: zoom } };
+      gesture.current = {
+        x: e.clientX,
+        y: e.clientY,
+        c0: c,
+        seatId: null,
+        moved: true,
+        pinch: { d0: Math.hypot(a!.x - b!.x, a!.y - b!.y) || 1, z0: zoom },
+      };
       return;
     }
     gesture.current = {
       x: e.clientX,
       y: e.clientY,
       c0: c,
-      seatId: (e.target as Element).closest("[data-seat]")?.getAttribute("data-seat") ?? null,
+      seatId:
+        (e.target as Element)
+          .closest("[data-seat]")
+          ?.getAttribute("data-seat") ?? null,
       moved: false,
     };
   };
@@ -167,14 +240,22 @@ export function SeatMapPicker({
     if (!g) return;
     if (g.pinch && pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
-      setZoom(clampZoom(g.pinch.z0 * (Math.hypot(a!.x - b!.x, a!.y - b!.y) / g.pinch.d0)));
+      setZoom(
+        clampZoom(
+          g.pinch.z0 * (Math.hypot(a!.x - b!.x, a!.y - b!.y) / g.pinch.d0),
+        ),
+      );
       return;
     }
     const dx = e.clientX - g.x,
       dy = e.clientY - g.y;
     if (!g.moved && Math.hypot(dx, dy) < 6) return;
     g.moved = true;
-    if (zoom > 1) setCenter({ x: g.c0.x - dx * unitsPerPx(), y: g.c0.y - dy * unitsPerPx() });
+    if (zoom > 1)
+      setCenter({
+        x: g.c0.x - dx * unitsPerPx(),
+        y: g.c0.y - dy * unitsPerPx(),
+      });
   };
   const up = (e: ReactPointerEvent<SVGSVGElement>) => {
     pointers.current.delete(e.pointerId);
@@ -186,12 +267,20 @@ export function SeatMapPicker({
 
   const neededCats = Object.entries(needed);
   // vue depuis la place : photo du bloc des places proposées ou choisies
-  const viewBlock = map.blocks.find((b) => typeof b.params.viewUrl === "string" && chosen.some((id) => byId.get(id)?.blockId === b.id));
+  const viewBlock = map.blocks.find(
+    (b) =>
+      typeof b.params.viewUrl === "string" &&
+      chosen.some((id) => byId.get(id)?.blockId === b.id),
+  );
   const dialogRef = useRef<HTMLDialogElement>(null);
   return (
     <div className="grid gap-3">
       {fixedMode ? null : (
-        <div role="radiogroup" aria-label={t("modeLabel")} className="grid grid-cols-2 gap-1 rounded-full bg-surface-raised p-1 ring-1 ring-line">
+        <div
+          role="radiogroup"
+          aria-label={t("modeLabel")}
+          className="grid grid-cols-2 gap-1 rounded-full bg-surface-raised p-1 ring-1 ring-line"
+        >
           {(["best", "map"] as const).map((m) => (
             <button
               key={m}
@@ -213,7 +302,10 @@ export function SeatMapPicker({
         <p className="text-sm" role="status">
           {suggestion ? (
             <>
-              {friend ? t("nearFriend", { name: friend.firstName }) : t("bestHint")} <strong>{describe(suggestion)}</strong>
+              {friend
+                ? t("nearFriend", { name: friend.firstName })
+                : t("bestHint")}{" "}
+              <strong>{describe(suggestion)}</strong>
             </>
           ) : (
             t("bestNone")
@@ -222,9 +314,19 @@ export function SeatMapPicker({
       ) : (
         <ul className="flex flex-wrap gap-2 text-sm" aria-live="polite">
           {neededCats.map(([cid, n]) => (
-            <li key={cid} className="flex items-center gap-2 rounded-full px-3 py-1 ring-1 ring-line">
-              <span className="size-3 rounded-full" style={{ background: colors.get(cid) }} aria-hidden="true" />
-              {t("remaining", { name: map.categories.find((x) => x.id === cid)?.name ?? "", count: n - picked(cid) })}
+            <li
+              key={cid}
+              className="flex items-center gap-2 rounded-full px-3 py-1 ring-1 ring-line"
+            >
+              <span
+                className="size-3 rounded-full"
+                style={{ background: colors.get(cid) }}
+                aria-hidden="true"
+              />
+              {t("remaining", {
+                name: map.categories.find((x) => x.id === cid)?.name ?? "",
+                count: n - picked(cid),
+              })}
             </li>
           ))}
         </ul>
@@ -277,21 +379,37 @@ export function SeatMapPicker({
             b.kind === "SHAPE" ? (
               <ShapeView key={b.id} block={b} />
             ) : b.kind === "STANDING" ? (
-              <StandingView key={b.id} block={b} color={colors.get(S(b, "category")) ?? PALETTE.rose} />
+              <StandingView
+                key={b.id}
+                block={b}
+                color={colors.get(S(b, "category")) ?? PALETTE.rose}
+              />
             ) : b.kind === "TABLE_ROUND" || b.kind === "TABLE_RECT" ? (
               <Tables key={b.id} block={b} seats={seats} rows={map.rows} />
             ) : b.kind === "ROWS" ? (
-              <RowLabels key={b.id} seats={seats.filter((s) => s.blockId === b.id)} rows={map.rows.filter((r) => r.blockId === b.id)} />
+              <RowLabels
+                key={b.id}
+                seats={seats.filter((s) => s.blockId === b.id)}
+                rows={map.rows.filter((r) => r.blockId === b.id)}
+              />
             ) : null,
           )}
-          {!map.blocks.length ? <RowLabels seats={seats} rows={map.rows} /> : null}
+          {!map.blocks.length ? (
+            <RowLabels seats={seats} rows={map.rows} />
+          ) : null}
         </g>
         {seats.map((s) => {
           const mine = chosen.includes(s.id);
           const can = selectable(s);
           const ours = (needed[s.categoryId] ?? 0) > 0;
           const friendSeat = friend?.seatIds.includes(s.id) ?? false;
-          const fill = mine ? PALETTE.charbon : friendSeat ? PALETTE.rose : !s.available ? PALETTE.seatBlocked : (colors.get(s.categoryId) ?? PALETTE.catLilas);
+          const fill = mine
+            ? PALETTE.charbon
+            : friendSeat
+              ? PALETTE.rose
+              : !s.available
+                ? PALETTE.seatBlocked
+                : (colors.get(s.categoryId) ?? PALETTE.catLilas);
           return (
             <g
               key={s.id}
@@ -302,7 +420,11 @@ export function SeatMapPicker({
                     role: "button",
                     tabIndex: 0,
                     "aria-pressed": mine,
-                    "aria-label": t("seat", { row: s.row, seat: s.label, state: mine ? t("selected") : t("free") }),
+                    "aria-label": t("seat", {
+                      row: s.row,
+                      seat: s.label,
+                      state: mine ? t("selected") : t("free"),
+                    }),
                     onKeyDown: (e: React.KeyboardEvent) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
@@ -322,45 +444,83 @@ export function SeatMapPicker({
                 height={19}
                 rx={5}
                 fill={fill}
-                stroke={mine ? PALETTE.rose : friendSeat ? PALETTE.charbon : "none"}
+                stroke={
+                  mine ? PALETTE.rose : friendSeat ? PALETTE.charbon : "none"
+                }
                 strokeWidth={2}
               />
               {friendSeat ? (
-                <text y={3.5} textAnchor="middle" fontSize={10} fontWeight={800} fill={PALETTE.charbon} style={{ pointerEvents: "none" }}>
+                <text
+                  y={3.5}
+                  textAnchor="middle"
+                  fontSize={10}
+                  fontWeight={800}
+                  fill={PALETTE.charbon}
+                  style={{ pointerEvents: "none" }}
+                >
                   {friend!.firstName.charAt(0).toUpperCase()}
                 </text>
               ) : null}
               {mine ? (
-                <path d="M-5 0 l3.5 3.5 l6 -7" fill="none" stroke={PALETTE.creme} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M-5 0 l3.5 3.5 l6 -7"
+                  fill="none"
+                  stroke={PALETTE.creme}
+                  strokeWidth={2.2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               ) : s.accessible ? (
-                <circle r={4.5} fill={PALETTE.blanc} stroke={PALETTE.charbon} strokeWidth={1.5} />
+                <circle
+                  r={4.5}
+                  fill={PALETTE.blanc}
+                  stroke={PALETTE.charbon}
+                  strokeWidth={1.5}
+                />
               ) : null}
             </g>
           );
         })}
       </svg>
-      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted" aria-label={t("legend")}>
+      <ul
+        className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted"
+        aria-label={t("legend")}
+      >
         <li className="flex items-center gap-1.5">
           <span className="size-3 rounded-sm bg-charbon" aria-hidden="true" />
           {t("legendSelected")}
         </li>
         {friend ? (
           <li className="flex items-center gap-1.5">
-            <span className="size-3 rounded-sm border-[1.5px] border-charbon bg-rose" aria-hidden="true" />
+            <span
+              className="size-3 rounded-sm border-[1.5px] border-charbon bg-rose"
+              aria-hidden="true"
+            />
             {t("legendFriend", { name: friend.firstName })}
           </li>
         ) : null}
         <li className="flex items-center gap-1.5">
-          <span className="size-3 rounded-sm" style={{ background: PALETTE.seatBlocked }} aria-hidden="true" />
+          <span
+            className="size-3 rounded-sm"
+            style={{ background: PALETTE.seatBlocked }}
+            aria-hidden="true"
+          />
           {t("legendTaken")}
         </li>
         <li className="flex items-center gap-1.5">
-          <span className="size-3 rounded-full border-[1.5px] border-charbon bg-blanc" aria-hidden="true" />
+          <span
+            className="size-3 rounded-full border-[1.5px] border-charbon bg-blanc"
+            aria-hidden="true"
+          />
           {t("legendAccessible")}
         </li>
       </ul>
       {mode === "map" && !viewOnly && chosen.length ? (
-        <button type="button" onClick={() => onChange([], true)} className="min-h-11 justify-self-start rounded-full px-4 text-sm font-semibold">
+        <button
+          type="button"
+          onClick={() => onChange([], true)}
+          className="min-h-11 justify-self-start rounded-full px-4 text-sm font-semibold"
+        >
           {t("clear")}
         </button>
       ) : null}
@@ -387,9 +547,15 @@ export function SeatMapPicker({
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={viewBlock.params.viewUrl as string} alt={t("viewTitle", { name: viewBlock.name })} className="block h-auto w-full" />
+            <img
+              src={viewBlock.params.viewUrl as string}
+              alt={t("viewTitle", { name: viewBlock.name })}
+              className="block h-auto w-full"
+            />
             <form method="dialog" className="flex justify-end p-3">
-              <button className="min-h-11 rounded-full bg-surface-inverse px-5 text-sm font-semibold text-ink-inverse">{t("viewClose")}</button>
+              <button className="min-h-11 rounded-full bg-surface-inverse px-5 text-sm font-semibold text-ink-inverse">
+                {t("viewClose")}
+              </button>
             </form>
           </dialog>
         </>

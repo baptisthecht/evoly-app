@@ -12,8 +12,13 @@ const background = (page: Page, value: string) =>
     return c;
   }, value);
 
-test("barre latérale (maquette validée) : page active sur fond gris, autres pages sans fond, fond gris au survol", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "la barre latérale est visible sur ordinateur ; sur téléphone, elle est dans le menu");
+test("barre latérale (maquette validée) : page active sur fond gris, autres pages sans fond, fond gris au survol", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop",
+    "la barre latérale est visible sur ordinateur ; sur téléphone, elle est dans le menu",
+  );
   const { slug } = await organizer(page);
   await page.goto(appUrl(`/o/${slug}`));
   const nav = page.getByRole("navigation", { name: "Navigation principale" });
@@ -29,41 +34,90 @@ test("barre latérale (maquette validée) : page active sur fond gris, autres pa
   await expect(finances).toHaveCSS("background-color", grey);
 });
 
-test("événement : la barre de l'organisation reste, six parties en onglets, toutes les pages de la partie ouverte, retour", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "la barre latérale est visible sur ordinateur");
+test("événement : la barre de l'organisation reste, six parties en onglets, toutes les pages de la partie ouverte, retour", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "desktop",
+    "la barre latérale est visible sur ordinateur",
+  );
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Soirée ${id}`, 10);
   await page.goto(eventUrl);
   const main = page.getByRole("navigation", { name: "Navigation principale" });
-  await expect(main.getByRole("link", { name: "Événements" })).toHaveAttribute("aria-current", "page");
-  const tabs = page.getByRole("navigation", { name: "Sections de l’événement" });
-  await expect(tabs.getByRole("link")).toHaveText(["Vue d’ensemble", "Billetterie", "Participants", "Vente et promotion", "Jour J", "Réglages"]);
-  await expect(tabs.getByRole("link", { name: "Vue d’ensemble" })).toHaveAttribute("aria-current", "page");
+  await expect(main.getByRole("link", { name: "Événements" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  const tabs = page.getByRole("navigation", {
+    name: "Sections de l’événement",
+  });
+  await expect(tabs.getByRole("link")).toHaveText([
+    "Vue d’ensemble",
+    "Billetterie",
+    "Participants",
+    "Vente et promotion",
+    "Jour J",
+    "Réglages",
+  ]);
+  await expect(
+    tabs.getByRole("link", { name: "Vue d’ensemble" }),
+  ).toHaveAttribute("aria-current", "page");
   await tabs.getByRole("link", { name: "Billetterie" }).click();
   await expect(page).toHaveURL(/\/tickets$/);
   const pages = page.getByRole("navigation", { name: "Pages de la section" });
-  await expect(pages.getByRole("link", { name: "Tarifs" })).toHaveAttribute("aria-current", "page");
-  await expect(tabs.getByRole("link", { name: "Billetterie" })).toHaveAttribute("aria-current", "page");
+  await expect(pages.getByRole("link", { name: "Tarifs" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(tabs.getByRole("link", { name: "Billetterie" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
   // toutes les fonctionnalités affichées directement, sans menu à déplier
-  await expect(pages.getByRole("link")).toHaveText(["Tarifs", "Plan de salle", "Tables", "Options"]);
+  await expect(pages.getByRole("link")).toHaveText([
+    "Tarifs",
+    "Plan de salle",
+    "Tables",
+    "Options",
+  ]);
   await pages.getByRole("link", { name: "Options", exact: true }).click();
   await expect(page).toHaveURL(/\/options$/);
-  await expect(pages.getByRole("link", { name: "Options", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(
+    pages.getByRole("link", { name: "Options", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
   await main.getByRole("link", { name: "Événements" }).click();
   await expect(page).toHaveURL(new RegExp(`/o/${slug}/events$`));
-  await expect(page.getByRole("navigation", { name: "Sections de l’événement" })).toHaveCount(0);
+  await expect(
+    page.getByRole("navigation", { name: "Sections de l’événement" }),
+  ).toHaveCount(0);
 });
 
-test("téléphone : la navigation de l'organisation est dans le menu ; dans un événement, ses parties en onglets en haut", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "le menu remplace la barre latérale sur téléphone");
+test("téléphone : la navigation de l'organisation est dans le menu ; dans un événement, ses parties en onglets en haut", async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    testInfo.project.name !== "mobile",
+    "le menu remplace la barre latérale sur téléphone",
+  );
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Soirée ${id}`, 10);
   await page.goto(appUrl(`/o/${slug}`));
   await page.getByRole("button", { name: "Menu" }).click();
-  await expect(page.getByRole("navigation", { name: "Navigation principale" }).getByRole("link", { name: "Finances" })).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Navigation principale" })
+      .getByRole("link", { name: "Finances" }),
+  ).toBeVisible();
   await page.goto(eventUrl);
-  const tabs = page.getByRole("navigation", { name: "Sections de l’événement" });
+  const tabs = page.getByRole("navigation", {
+    name: "Sections de l’événement",
+  });
   await tabs.getByRole("link", { name: "Billetterie" }).click();
   await expect(page).toHaveURL(/\/tickets$/);
-  await expect(page.getByRole("navigation", { name: "Pages de la section" }).getByRole("link", { name: "Tarifs" })).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Pages de la section" })
+      .getByRole("link", { name: "Tarifs" }),
+  ).toBeVisible();
 });

@@ -36,9 +36,21 @@ const IMPORTANT = new Set<NotificationType>([
 async function recipients(organizationId: string, type: NotificationType) {
   const members = await db.organizationMember.findMany({
     where: { organizationId, status: "ACTIVE" },
-    include: { role: true, user: { select: { id: true, email: true, name: true } } },
+    include: {
+      role: true,
+      user: { select: { id: true, email: true, name: true } },
+    },
   });
-  return members.filter((m) => can({ status: m.status, systemRole: m.role.systemKey as never, permissions: m.role.permissions }, PERMISSION[type]));
+  return members.filter((m) =>
+    can(
+      {
+        status: m.status,
+        systemRole: m.role.systemKey as never,
+        permissions: m.role.permissions,
+      },
+      PERMISSION[type],
+    ),
+  );
 }
 
 /**
@@ -67,9 +79,16 @@ export async function notify(
       })),
     });
     if (IMPORTANT.has(type) && opts.email !== false) {
-      const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { name: true, slug: true } });
+      const org = await db.organization.findUniqueOrThrow({
+        where: { id: organizationId },
+        select: { name: true, slug: true },
+      });
       const url = `${env().NEXT_PUBLIC_APP_URL}/o/${org.slug}${content.link ?? "/notifications"}`;
-      for (const m of all.filter((x) => (x.role.systemKey === "OWNER" || x.role.systemKey === "ADMIN") && !x.mutedEmails.includes(type)))
+      for (const m of all.filter(
+        (x) =>
+          (x.role.systemKey === "OWNER" || x.role.systemKey === "ADMIN") &&
+          !x.mutedEmails.includes(type),
+      ))
         await sendEmail({
           to: m.user.email,
           template: `notification.${type.toLowerCase()}`,
@@ -81,18 +100,33 @@ export async function notify(
         }).catch(() => undefined);
     }
   } catch (err) {
-    console.error("notification non créée", type, err instanceof Error ? err.message : "erreur");
+    console.error(
+      "notification non créée",
+      type,
+      err instanceof Error ? err.message : "erreur",
+    );
   }
 }
 
 /** Nouvelle commande : individuelle jusqu'à 10 par heure, puis regroupée (section 9.20). */
-export async function notifyNewOrder(organizationId: string, order: { id: string; reference: string; eventTitle: string; tickets: number }, now = new Date()) {
+export async function notifyNewOrder(
+  organizationId: string,
+  order: { id: string; reference: string; eventTitle: string; tickets: number },
+  now = new Date(),
+) {
   const hour = new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000);
   const groupLink = `/orders?heure=${hour.toISOString().slice(0, 13)}`;
   const members = await recipients(organizationId, "NEW_ORDER");
   if (members.length === 0) return;
   const probe = members[0]!.user.id;
-  const thisHour = await db.notification.count({ where: { organizationId, userId: probe, type: "NEW_ORDER", createdAt: { gte: hour } } });
+  const thisHour = await db.notification.count({
+    where: {
+      organizationId,
+      userId: probe,
+      type: "NEW_ORDER",
+      createdAt: { gte: hour },
+    },
+  });
   if (thisHour < 10) {
     // horodatée à l'heure de référence du regroupement (et non à l'heure du serveur)
     await db.notification.createMany({
@@ -109,8 +143,17 @@ export async function notifyNewOrder(organizationId: string, order: { id: string
     return;
   }
   // au-delà : une notification groupée par heure, mise à jour à chaque commande
-  const grouped = await db.notification.findFirst({ where: { organizationId, userId: probe, type: "NEW_ORDER", link: groupLink } });
-  const count = grouped ? Number(/^(\d+)/.exec(grouped.title)?.[1] ?? 0) + 1 : 1;
+  const grouped = await db.notification.findFirst({
+    where: {
+      organizationId,
+      userId: probe,
+      type: "NEW_ORDER",
+      link: groupLink,
+    },
+  });
+  const count = grouped
+    ? Number(/^(\d+)/.exec(grouped.title)?.[1] ?? 0) + 1
+    : 1;
   const title = `${count} autre${count > 1 ? "s" : ""} commande${count > 1 ? "s" : ""} cette heure-ci`;
   if (grouped)
     await db.notification.updateMany({
@@ -135,7 +178,13 @@ export async function notifyNewOrder(organizationId: string, order: { id: string
 export async function notifySalesMilestone(eventId: string) {
   const e = await db.event.findUnique({
     where: { id: eventId },
-    select: { id: true, title: true, organizationId: true, capacity: true, ticketTypes: { select: { quantity: true, quantitySold: true } } },
+    select: {
+      id: true,
+      title: true,
+      organizationId: true,
+      capacity: true,
+      ticketTypes: { select: { quantity: true, quantitySold: true } },
+    },
   });
   if (!e) return;
   const capacity = eventCapacity(
@@ -143,32 +192,63 @@ export async function notifySalesMilestone(eventId: string) {
     e.ticketTypes.map((t) => t.quantity),
   );
   if (!capacity) return;
-  const ratio = e.ticketTypes.reduce((n, t) => n + t.quantitySold, 0) / capacity;
+  const ratio =
+    e.ticketTypes.reduce((n, t) => n + t.quantitySold, 0) / capacity;
   const reached = [100, 80, 50].find((p) => ratio >= p / 100);
   if (!reached) return;
   const link = `/events/${e.id}?palier=${reached}`;
-  if (await db.notification.findFirst({ where: { organizationId: e.organizationId, type: "SALES_MILESTONE", link }, select: { id: true } })) return;
+  if (
+    await db.notification.findFirst({
+      where: {
+        organizationId: e.organizationId,
+        type: "SALES_MILESTONE",
+        link,
+      },
+      select: { id: true },
+    })
+  )
+    return;
   await notify(e.organizationId, "SALES_MILESTONE", {
     title: e.title,
-    body: reached === 100 ? "Complet : toutes les places sont vendues." : `${reached} % de la jauge atteints.`,
+    body:
+      reached === 100
+        ? "Complet : toutes les places sont vendues."
+        : `${reached} % de la jauge atteints.`,
     link,
   });
 }
 
 /** Cloche : non lues de la personne connectée. */
-export const unreadCount = (organizationId: string, userId: string) => db.notification.count({ where: { organizationId, userId, readAt: null } });
+export const unreadCount = (organizationId: string, userId: string) =>
+  db.notification.count({ where: { organizationId, userId, readAt: null } });
 
-export async function listNotifications(organizationId: string, userId: string, page = 0) {
+export async function listNotifications(
+  organizationId: string,
+  userId: string,
+  page = 0,
+) {
   const where = { organizationId, userId };
   const [rows, total] = await Promise.all([
-    db.notification.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 30, skip: page * 30 }),
+    db.notification.findMany({
+      where,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: 30,
+      skip: page * 30,
+    }),
     db.notification.count({ where }),
   ]);
   return { rows, pages: Math.ceil(total / 30) };
 }
 
-export async function markRead(organizationId: string, userId: string, id?: string) {
-  await db.notification.updateMany({ where: { organizationId, userId, readAt: null, ...(id ? { id } : {}) }, data: { readAt: new Date() } });
+export async function markRead(
+  organizationId: string,
+  userId: string,
+  id?: string,
+) {
+  await db.notification.updateMany({
+    where: { organizationId, userId, readAt: null, ...(id ? { id } : {}) },
+    data: { readAt: new Date() },
+  });
 }
 
 /** Alerte au support d'Evoly : remboursement du vendeur d'une revente impossible (section 9.13). */
@@ -186,20 +266,43 @@ export async function alertSupport(subject: string, text: string) {
 }
 
 /** Préférences de notification du membre connecté (P1) : seulement les types qu'il a le droit de voir ; e-mails des types importants pour les propriétaires et administrateurs. */
-export async function notificationPreferences(organizationId: string, userId: string) {
-  const m = await db.organizationMember.findFirst({ where: { organizationId, userId, status: "ACTIVE" }, include: { role: true } });
+export async function notificationPreferences(
+  organizationId: string,
+  userId: string,
+) {
+  const m = await db.organizationMember.findFirst({
+    where: { organizationId, userId, status: "ACTIVE" },
+    include: { role: true },
+  });
   if (!m) return null;
-  const input = { status: m.status, systemRole: m.role.systemKey as never, permissions: m.role.permissions };
+  const input = {
+    status: m.status,
+    systemRole: m.role.systemKey as never,
+    permissions: m.role.permissions,
+  };
   const emails = m.role.systemKey === "OWNER" || m.role.systemKey === "ADMIN";
   return (Object.keys(PERMISSION) as NotificationType[])
     .filter((type) => can(input, PERMISSION[type]))
-    .map((type) => ({ type, inApp: !m.mutedNotifications.includes(type), email: emails && IMPORTANT.has(type) ? !m.mutedEmails.includes(type) : null }));
+    .map((type) => ({
+      type,
+      inApp: !m.mutedNotifications.includes(type),
+      email:
+        emails && IMPORTANT.has(type) ? !m.mutedEmails.includes(type) : null,
+    }));
 }
 
-export async function saveNotificationPreferences(organizationId: string, userId: string, muted: NotificationType[], mutedEmails: NotificationType[]) {
+export async function saveNotificationPreferences(
+  organizationId: string,
+  userId: string,
+  muted: NotificationType[],
+  mutedEmails: NotificationType[],
+) {
   const valid = new Set(Object.keys(PERMISSION));
   await db.organizationMember.updateMany({
     where: { organizationId, userId },
-    data: { mutedNotifications: [...new Set(muted.filter((t) => valid.has(t)))], mutedEmails: [...new Set(mutedEmails.filter((t) => valid.has(t)))] },
+    data: {
+      mutedNotifications: [...new Set(muted.filter((t) => valid.has(t)))],
+      mutedEmails: [...new Set(mutedEmails.filter((t) => valid.has(t)))],
+    },
   });
 }

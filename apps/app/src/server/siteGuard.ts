@@ -13,6 +13,9 @@ export async function siteGate(sub: string, path: string) {
   await assertSiteRequest(sub);
   const site = await resolveSite(sub);
   if (!site) notFound();
-  if (site.kind === "REDIRECT") permanentRedirect(`${site.base}${path === "/" ? site.rootPath || "/" : path}`);
+  if (site.kind === "REDIRECT")
+    permanentRedirect(
+      `${site.base}${path === "/" ? site.rootPath || "/" : path}`,
+    );
   return site;
 }

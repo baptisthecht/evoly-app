@@ -27,17 +27,31 @@ export async function presaleCodeFor(
   input: string,
   now = new Date(),
 ) {
-  if (event.presaleStartsAt && event.presaleStartsAt > now) throw new CoreError("PRESALE_INVALID");
+  if (event.presaleStartsAt && event.presaleStartsAt > now)
+    throw new CoreError("PRESALE_INVALID");
   const code = normalizePresaleCode(input);
   if (!code || code.length > 40) throw new CoreError("PRESALE_INVALID");
-  const row = await client.presaleCode.findUnique({ where: { eventId_code: { eventId: event.id, code } } });
+  const row = await client.presaleCode.findUnique({
+    where: { eventId_code: { eventId: event.id, code } },
+  });
   if (!row || row.disabledAt) throw new CoreError("PRESALE_INVALID");
-  const pending = await client.order.count({ where: { presaleCodeId: row.id, status: "PENDING", holdExpiresAt: { gt: now } } });
-  if (row.usedCount + pending >= row.maxUses) throw new CoreError("PRESALE_EXHAUSTED");
+  const pending = await client.order.count({
+    where: {
+      presaleCodeId: row.id,
+      status: "PENDING",
+      holdExpiresAt: { gt: now },
+    },
+  });
+  if (row.usedCount + pending >= row.maxUses)
+    throw new CoreError("PRESALE_EXHAUSTED");
   return row;
 }
 
-export async function presaleUsable(event: { id: string; presaleStartsAt: Date | null }, input: string, now = new Date()) {
+export async function presaleUsable(
+  event: { id: string; presaleStartsAt: Date | null },
+  input: string,
+  now = new Date(),
+) {
   try {
     await presaleCodeFor(db, event, input, now);
     return true;
@@ -52,16 +66,23 @@ export async function presaleCookie(eventId: string) {
 }
 
 /** Déverrouillage par le visiteur, depuis le formulaire ou un lien « ?prevente=CODE ». */
-export async function unlockPresale(eventId: string, input: string, now = new Date()) {
+export async function unlockPresale(
+  eventId: string,
+  input: string,
+  now = new Date(),
+) {
   const event = await db.event.findFirst({
     where: { id: eventId, deletedAt: null, status: "PUBLISHED" },
     select: {
       id: true,
       presaleStartsAt: true,
-      organization: { select: { subscription: { select: PLAN_SUBSCRIPTION_SELECT } } },
+      organization: {
+        select: { subscription: { select: PLAN_SUBSCRIPTION_SELECT } },
+      },
     },
   });
-  if (!event || !(await presaleIncluded(event.organization.subscription, now))) throw new CoreError("PRESALE_INVALID");
+  if (!event || !(await presaleIncluded(event.organization.subscription, now)))
+    throw new CoreError("PRESALE_INVALID");
   await presaleCodeFor(db, event, input, now);
   (await cookies()).set(cookieName(event.id), normalizePresaleCode(input), {
     httpOnly: true,
@@ -74,63 +95,124 @@ export async function unlockPresale(eventId: string, input: string, now = new Da
 
 /** La prévente est réservée à Pro (et Partenaire) : une organisation revenue en Free ne peut plus utiliser ses codes. */
 export async function presaleIncluded(
-  subscription: { planId: string; status: string; currentPeriodEnd: Date | null; pastDueSince: Date | null } | null,
+  subscription: {
+    planId: string;
+    status: string;
+    currentPeriodEnd: Date | null;
+    pastDueSince: Date | null;
+  } | null,
   now = new Date(),
 ) {
   const plans = await getPlans();
-  return hasFeature(plans[effectivePlan(subscription as never, now)].features, "PRESALE_CODES");
+  return hasFeature(
+    plans[effectivePlan(subscription as never, now)].features,
+    "PRESALE_CODES",
+  );
 }
 
 async function ownEvent(ctx: OrgContext, eventId: string) {
-  if (!hasFeature(ctx.features, "PRESALE_CODES")) throw new CoreError("PRO_REQUIRED");
-  const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null } });
+  if (!hasFeature(ctx.features, "PRESALE_CODES"))
+    throw new CoreError("PRO_REQUIRED");
+  const event = await db.event.findFirst({
+    where: {
+      id: eventId,
+      organizationId: ctx.organization.id,
+      deletedAt: null,
+    },
+  });
   if (!event) throw new CoreError("NOT_FOUND");
   return event;
 }
 
-export type GenerateInput = { quantity: number; usesPerCode: number; customCode: string | null; label: string | null };
+export type GenerateInput = {
+  quantity: number;
+  usesPerCode: number;
+  customCode: string | null;
+  label: string | null;
+};
 
 /**
  * RG-PRV-01 : N codes utilisables X fois chacun. Usage unique en masse (N codes, X = 1), code partagé (un code, X utilisations,
  * éventuellement personnalisé) ou plusieurs codes à usages multiples.
  */
-export async function generatePresaleCodes(ctx: OrgContext, eventId: string, input: GenerateInput) {
+export async function generatePresaleCodes(
+  ctx: OrgContext,
+  eventId: string,
+  input: GenerateInput,
+) {
   const event = await ownEvent(ctx, eventId);
   const quantity = Math.trunc(input.quantity);
   const uses = Math.trunc(input.usesPerCode);
-  if (!(quantity >= 1 && quantity <= 5000 && uses >= 1 && uses <= 100_000)) throw new CoreError("INVALID_INPUT");
-  if ((await db.presaleCode.count({ where: { eventId: event.id } })) + quantity > MAX_CODES_PER_EVENT) throw new CoreError("PRESALE_LIMIT");
+  if (!(quantity >= 1 && quantity <= 5000 && uses >= 1 && uses <= 100_000))
+    throw new CoreError("INVALID_INPUT");
+  if (
+    (await db.presaleCode.count({ where: { eventId: event.id } })) + quantity >
+    MAX_CODES_PER_EVENT
+  )
+    throw new CoreError("PRESALE_LIMIT");
   const label = input.label?.trim().slice(0, 60) || null;
   if (input.customCode?.trim()) {
     if (quantity !== 1) throw new CoreError("INVALID_INPUT");
     const code = normalizePresaleCode(input.customCode);
-    if (!isValidCustomPresaleCode(code)) throw new CoreError("PRESALE_CODE_FORMAT");
-    if (await db.presaleCode.findUnique({ where: { eventId_code: { eventId: event.id, code } } })) throw new CoreError("PRESALE_CODE_TAKEN");
-    await db.presaleCode.create({ data: { eventId: event.id, code, label, maxUses: uses } });
+    if (!isValidCustomPresaleCode(code))
+      throw new CoreError("PRESALE_CODE_FORMAT");
+    if (
+      await db.presaleCode.findUnique({
+        where: { eventId_code: { eventId: event.id, code } },
+      })
+    )
+      throw new CoreError("PRESALE_CODE_TAKEN");
+    await db.presaleCode.create({
+      data: { eventId: event.id, code, label, maxUses: uses },
+    });
     return 1;
   }
   let created = 0;
   for (let round = 0; round < 6 && created < quantity; round++) {
     const codes = new Set<string>();
-    while (codes.size < quantity - created) codes.add(humanCode(8, PRESALE_ALPHABET));
-    const r = await db.presaleCode.createMany({ data: [...codes].map((code) => ({ eventId: event.id, code, label, maxUses: uses })), skipDuplicates: true });
+    while (codes.size < quantity - created)
+      codes.add(humanCode(8, PRESALE_ALPHABET));
+    const r = await db.presaleCode.createMany({
+      data: [...codes].map((code) => ({
+        eventId: event.id,
+        code,
+        label,
+        maxUses: uses,
+      })),
+      skipDuplicates: true,
+    });
     created += r.count;
   }
   return created;
 }
 
-export async function setPresaleCodeActive(ctx: OrgContext, eventId: string, codeId: string, active: boolean) {
+export async function setPresaleCodeActive(
+  ctx: OrgContext,
+  eventId: string,
+  codeId: string,
+  active: boolean,
+) {
   const event = await ownEvent(ctx, eventId);
-  const r = await db.presaleCode.updateMany({ where: { id: codeId, eventId: event.id }, data: { disabledAt: active ? null : new Date() } });
+  const r = await db.presaleCode.updateMany({
+    where: { id: codeId, eventId: event.id },
+    data: { disabledAt: active ? null : new Date() },
+  });
   if (r.count === 0) throw new CoreError("NOT_FOUND");
 }
 
 /** Début facultatif de la prévente, à l'heure du lieu ; elle s'arrête d'elle-même à l'ouverture publique. */
-export async function savePresaleStart(ctx: OrgContext, eventId: string, startsLocal: string | null) {
+export async function savePresaleStart(
+  ctx: OrgContext,
+  eventId: string,
+  startsLocal: string | null,
+) {
   const event = await ownEvent(ctx, eventId);
   const at = startsLocal ? zonedLocalToUtc(startsLocal, event.timezone) : null;
   if (at && at >= event.startsAt) throw new CoreError("PRESALE_AFTER_START");
-  await db.event.update({ where: { id: event.id }, data: { presaleStartsAt: at } });
+  await db.event.update({
+    where: { id: event.id },
+    data: { presaleStartsAt: at },
+  });
 }
 
 export async function presaleOverview(eventId: string, limit = 50) {
@@ -139,12 +221,30 @@ export async function presaleOverview(eventId: string, limit = 50) {
       where: { eventId },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: limit,
-      select: { id: true, code: true, label: true, maxUses: true, usedCount: true, disabledAt: true },
+      select: {
+        id: true,
+        code: true,
+        label: true,
+        maxUses: true,
+        usedCount: true,
+        disabledAt: true,
+      },
     }),
-    db.presaleCode.aggregate({ where: { eventId }, _count: { _all: true }, _sum: { usedCount: true, maxUses: true } }),
+    db.presaleCode.aggregate({
+      where: { eventId },
+      _count: { _all: true },
+      _sum: { usedCount: true, maxUses: true },
+    }),
   ]);
   return {
-    codes: codes.map((c) => ({ id: c.id, code: c.code, label: c.label, maxUses: c.maxUses, usedCount: c.usedCount, active: !c.disabledAt })),
+    codes: codes.map((c) => ({
+      id: c.id,
+      code: c.code,
+      label: c.label,
+      maxUses: c.maxUses,
+      usedCount: c.usedCount,
+      active: !c.disabledAt,
+    })),
     count: totals._count._all,
     used: totals._sum.usedCount ?? 0,
     capacity: totals._sum.maxUses ?? 0,
@@ -152,14 +252,32 @@ export async function presaleOverview(eventId: string, limit = 50) {
 }
 
 /** Export CSV de tous les codes, avec le lien personnel de chacun. */
-export async function presaleCsv(ctx: OrgContext, eventId: string, eventUrl: string) {
+export async function presaleCsv(
+  ctx: OrgContext,
+  eventId: string,
+  eventUrl: string,
+) {
   const event = await ownEvent(ctx, eventId);
-  const rows = await db.presaleCode.findMany({ where: { eventId: event.id }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
+  const rows = await db.presaleCode.findMany({
+    where: { eventId: event.id },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  });
   const cell = (v: string | number) => `"${csvSafe(v).replace(/"/g, '""')}"`;
-  const lines = [["code", "libellé", "utilisations max", "utilisations", "état", "lien"].map(cell).join(",")];
+  const lines = [
+    ["code", "libellé", "utilisations max", "utilisations", "état", "lien"]
+      .map(cell)
+      .join(","),
+  ];
   for (const r of rows)
     lines.push(
-      [r.code, r.label ?? "", r.maxUses, r.usedCount, r.disabledAt ? "désactivé" : "actif", `${eventUrl}?prevente=${encodeURIComponent(r.code)}`]
+      [
+        r.code,
+        r.label ?? "",
+        r.maxUses,
+        r.usedCount,
+        r.disabledAt ? "désactivé" : "actif",
+        `${eventUrl}?prevente=${encodeURIComponent(r.code)}`,
+      ]
         .map(cell)
         .join(","),
     );

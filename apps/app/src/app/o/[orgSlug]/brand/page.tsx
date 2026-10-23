@@ -18,7 +18,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Section 9.19 : adresse de la billetterie (toutes offres), marque et domaines personnalisés (Pro). */
-export default async function BrandPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ tab?: string }> }) {
+export default async function BrandPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const { orgSlug } = await params;
   const tab = (await searchParams).tab === "domains" ? "domains" : "brand";
   const ctx = await requireOrgContext(orgSlug);
@@ -27,14 +33,25 @@ export default async function BrandPage({ params, searchParams }: { params: Prom
   const canAddress = can(ctx.membership, "ORG_SETTINGS_EDIT");
   if (!canBrand && !canDomains && !canAddress) notFound();
   const [brand, domains, events, url] = await Promise.all([
-    db.organizationBrand.findUnique({ where: { organizationId: ctx.organization.id } }),
+    db.organizationBrand.findUnique({
+      where: { organizationId: ctx.organization.id },
+    }),
     canDomains ? listCustomDomains(ctx) : Promise.resolve([]),
     db.event.findMany({
-      where: { organizationId: ctx.organization.id, deletedAt: null, status: { notIn: ["ARCHIVED", "CANCELLED"] } },
+      where: {
+        organizationId: ctx.organization.id,
+        deletedAt: null,
+        status: { notIn: ["ARCHIVED", "CANCELLED"] },
+      },
       select: { id: true, title: true },
       orderBy: { startsAt: "desc" },
     }),
-    canonicalOrgUrl({ id: ctx.organization.id, subdomain: ctx.organization.subdomain, slug: ctx.organization.slug, features: ctx.features }),
+    canonicalOrgUrl({
+      id: ctx.organization.id,
+      subdomain: ctx.organization.subdomain,
+      slug: ctx.organization.slug,
+      features: ctx.features,
+    }),
   ]);
   const t = await getTranslations("brand");
   const pro = {
@@ -45,7 +62,10 @@ export default async function BrandPage({ params, searchParams }: { params: Prom
   const upsell = (text: string) => (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-accent px-4 py-3">
       <p className="text-sm">{text}</p>
-      <Link href={`/o/${orgSlug}/billing`} className={buttonClass("dark", "sm")}>
+      <Link
+        href={`/o/${orgSlug}/billing`}
+        className={buttonClass("dark", "sm")}
+      >
         {t("upgrade")}
       </Link>
     </div>
@@ -55,21 +75,34 @@ export default async function BrandPage({ params, searchParams }: { params: Prom
       {/* onglet « Domaines » : adresse de la billetterie et domaines personnalisés (seul onglet sans la marque) */}
       {canAddress && (tab === "domains" || !canBrand) ? (
         <Card className="grid gap-3">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("addressTitle")}</h2>
+          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+            {t("addressTitle")}
+          </h2>
           <p className="text-sm text-ink-muted">
             {t("addressIntro")}{" "}
-            <a href={url} target="_blank" rel="noreferrer" className="font-mono font-semibold text-ink underline underline-offset-4">
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono font-semibold text-ink underline underline-offset-4"
+            >
               {url.replace(/^https?:\/\//, "")}
             </a>
           </p>
-          <SubdomainForm orgSlug={orgSlug} current={ctx.organization.subdomain ?? ""} baseDomain={env().NEXT_PUBLIC_BASE_DOMAIN} />
+          <SubdomainForm
+            orgSlug={orgSlug}
+            current={ctx.organization.subdomain ?? ""}
+            baseDomain={env().NEXT_PUBLIC_BASE_DOMAIN}
+          />
         </Card>
       ) : null}
 
       {canBrand && tab === "brand" ? (
         <Card className="grid gap-4">
           <div className="grid gap-1">
-            <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("brandTitle")}</h2>
+            <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+              {t("brandTitle")}
+            </h2>
             <p className="text-sm text-ink-muted">{t("brandIntro")}</p>
           </div>
           {pro.brand ? (
@@ -92,11 +125,29 @@ export default async function BrandPage({ params, searchParams }: { params: Prom
                 bodyFont: brand?.bodyFont ?? "",
                 buttonLabel: brand?.buttonLabel ?? "",
                 socials: Object.fromEntries(
-                  (["website", "instagram", "facebook", "tiktok", "linkedin", "youtube"] as const).map((k) => [
+                  (
+                    [
+                      "website",
+                      "instagram",
+                      "facebook",
+                      "tiktok",
+                      "linkedin",
+                      "youtube",
+                    ] as const
+                  ).map((k) => [
                     k,
-                    ((brand?.socialLinks ?? {}) as Record<string, string>)[k] ?? "",
+                    ((brand?.socialLinks ?? {}) as Record<string, string>)[k] ??
+                      "",
                   ]),
-                ) as Record<"website" | "instagram" | "facebook" | "tiktok" | "linkedin" | "youtube", string>,
+                ) as Record<
+                  | "website"
+                  | "instagram"
+                  | "facebook"
+                  | "tiktok"
+                  | "linkedin"
+                  | "youtube",
+                  string
+                >,
               }}
             />
           ) : (
@@ -107,11 +158,16 @@ export default async function BrandPage({ params, searchParams }: { params: Prom
 
       {canDomains && (tab === "domains" || !canBrand) ? (
         <section className="grid gap-3" aria-labelledby="domains-title">
-          <h2 id="domains-title" className="font-display text-xl tracking-[var(--tracking-title)]">
+          <h2
+            id="domains-title"
+            className="font-display text-xl tracking-[var(--tracking-title)]"
+          >
             {t("domainsTitle")}
           </h2>
           <p className="-mt-1 text-sm text-ink-muted">{t("domainsIntro")}</p>
-          {!pro.domains ? upsell(domains.length ? t("domainsDisabled") : t("domainsUpsell")) : null}
+          {!pro.domains
+            ? upsell(domains.length ? t("domainsDisabled") : t("domainsUpsell"))
+            : null}
           {domains.map((d) => (
             <DomainRow
               key={d.id}
@@ -124,7 +180,10 @@ export default async function BrandPage({ params, searchParams }: { params: Prom
                 dnsTarget: d.dnsTarget,
                 lastError: d.lastError,
                 checksStopped: !!d.checksStoppedAt,
-                target: d.scope === "EVENT" ? t("scopeEvent", { title: d.event?.title ?? "-" }) : t("scopeOrganization"),
+                target:
+                  d.scope === "EVENT"
+                    ? t("scopeEvent", { title: d.event?.title ?? "-" })
+                    : t("scopeOrganization"),
               }}
             />
           ))}
@@ -134,7 +193,9 @@ export default async function BrandPage({ params, searchParams }: { params: Prom
                 <AddDomain orgSlug={orgSlug} events={events} />
               </Card>
             ) : (
-              <p className="text-sm text-ink-muted">{t("domainsLimit", { max: MAX_CUSTOM_DOMAINS })}</p>
+              <p className="text-sm text-ink-muted">
+                {t("domainsLimit", { max: MAX_CUSTOM_DOMAINS })}
+              </p>
             )
           ) : null}
         </section>

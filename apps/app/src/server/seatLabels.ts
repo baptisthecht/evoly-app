@@ -1,14 +1,36 @@
-import { CoreError, customFormat, hasFeature, paginate, PALETTE, placementOrder, SHEET_PRESETS, type LabelSeat, type SheetFormat } from "@evoly/core";
+import {
+  CoreError,
+  customFormat,
+  hasFeature,
+  paginate,
+  PALETTE,
+  placementOrder,
+  SHEET_PRESETS,
+  type LabelSeat,
+  type SheetFormat,
+} from "@evoly/core";
 import { MESSAGES, toLocale } from "@evoly/i18n";
 import { createTranslator } from "next-intl";
 import { db } from "@/lib/db";
 import type { OrgContext } from "./context";
 import { emailBrandFor, logoBytes } from "./email/brand";
 import { findEvent } from "./events";
-import { buildGuidePdf, buildLabelsPdf, buildTestPagePdf, type KitBrand, type LabelModel, type LabelWords } from "./seatLabelsPdf";
+import {
+  buildGuidePdf,
+  buildLabelsPdf,
+  buildTestPagePdf,
+  type KitBrand,
+  type LabelModel,
+  type LabelWords,
+} from "./seatLabelsPdf";
 
 /** Kit d'installation de salle (section 9.33) : options choisies, plan de l'événement dans l'ordre de pose, PDF. */
-export const LABEL_MODELS: LabelModel[] = ["classique", "contraste", "zone", "econome"];
+export const LABEL_MODELS: LabelModel[] = [
+  "classique",
+  "contraste",
+  "zone",
+  "econome",
+];
 export type KitOptions = {
   format: SheetFormat;
   formatId: string;
@@ -50,19 +72,34 @@ export function parseKitOptions(q: URLSearchParams): KitOptions {
 }
 
 /** Plan de l'événement, prêt pour les étiquettes : places dans l'ordre de pose (RG-ETIQ-01 et 05). */
-export async function loadKit(ctx: OrgContext, eventId: string, opts: Pick<KitOptions, "blockId" | "rowId">) {
-  if (!hasFeature(ctx.features, "SEATING_MAPS")) throw new CoreError("FEATURE_UNAVAILABLE");
+export async function loadKit(
+  ctx: OrgContext,
+  eventId: string,
+  opts: Pick<KitOptions, "blockId" | "rowId">,
+) {
+  if (!hasFeature(ctx.features, "SEATING_MAPS"))
+    throw new CoreError("FEATURE_UNAVAILABLE");
   const event = await findEvent(ctx, eventId);
   const map = await db.seatingMap.findUnique({
     where: { eventId },
-    include: { blocks: { orderBy: { sortOrder: "asc" } }, rows: { include: { seats: true, category: true, block: true } } },
+    include: {
+      blocks: { orderBy: { sortOrder: "asc" } },
+      rows: { include: { seats: true, category: true, block: true } },
+    },
   });
-  const rows = (map?.rows ?? []).filter((r) => r.block?.kind !== "STANDING" && r.block?.kind !== "SHAPE");
+  const rows = (map?.rows ?? []).filter(
+    (r) => r.block?.kind !== "STANDING" && r.block?.kind !== "SHAPE",
+  );
   const seats: LabelSeat[] = rows.flatMap((r) =>
     r.seats.map((s) => ({
       id: s.id,
       block: { name: r.block?.name ?? "", sortOrder: r.block?.sortOrder ?? 0 },
-      row: { name: r.name, sortOrder: r.sortOrder, table: r.block?.kind === "TABLE_ROUND" || r.block?.kind === "TABLE_RECT" },
+      row: {
+        name: r.name,
+        sortOrder: r.sortOrder,
+        table:
+          r.block?.kind === "TABLE_ROUND" || r.block?.kind === "TABLE_RECT",
+      },
       label: s.label,
       sortOrder: s.sortOrder,
       x: s.x,
@@ -72,14 +109,26 @@ export async function loadKit(ctx: OrgContext, eventId: string, opts: Pick<KitOp
       blocked: s.status === "BLOCKED",
     })),
   );
-  const focus = map?.focusX != null && map.focusY != null ? { x: map.focusX, y: map.focusY } : null;
+  const focus =
+    map?.focusX != null && map.focusY != null
+      ? { x: map.focusX, y: map.focusY }
+      : null;
   const wanted = seats.filter((s) => {
     const row = rows.find((r) => r.seats.some((x) => x.id === s.id))!;
-    return (!opts.blockId || row.blockId === opts.blockId) && (!opts.rowId || row.id === opts.rowId);
+    return (
+      (!opts.blockId || row.blockId === opts.blockId) &&
+      (!opts.rowId || row.id === opts.rowId)
+    );
   });
   const zones = (map?.blocks ?? [])
-    .filter((b) => b.kind !== "SHAPE" && (!opts.blockId || b.id === opts.blockId))
-    .map((b) => ({ name: b.name, color: rows.find((r) => r.blockId === b.id)?.category.color ?? PALETTE.charbon }));
+    .filter(
+      (b) => b.kind !== "SHAPE" && (!opts.blockId || b.id === opts.blockId),
+    )
+    .map((b) => ({
+      name: b.name,
+      color:
+        rows.find((r) => r.blockId === b.id)?.category.color ?? PALETTE.charbon,
+    }));
   const choices = (map?.blocks ?? [])
     .filter((b) => b.kind !== "STANDING" && b.kind !== "SHAPE")
     .map((b) => ({
@@ -96,7 +145,11 @@ export async function loadKit(ctx: OrgContext, eventId: string, opts: Pick<KitOp
 async function kitWords(locale: string): Promise<LabelWords> {
   // traduction hors du rendu d'une page (PDF) : mêmes fichiers de langue que l'app, langue de l'événement
   const l = toLocale(locale);
-  const t = createTranslator({ locale: l, messages: MESSAGES[l], namespace: "seatKit" });
+  const t = createTranslator({
+    locale: l,
+    messages: MESSAGES[l],
+    namespace: "seatKit",
+  });
   return {
     row: t("row"),
     seat: t("seat"),
@@ -107,7 +160,8 @@ async function kitWords(locale: string): Promise<LabelWords> {
     stepPrint: t("stepPrint"),
     stepTest: t("stepTest"),
     stepOrder: t("stepOrder"),
-    summary: (labels, sheets, chairs) => t("summary", { labels, sheets, chairs }),
+    summary: (labels, sheets, chairs) =>
+      t("summary", { labels, sheets, chairs }),
     floorAdvice: t("floorAdvice"),
     placementTitle: t("placementTitle"),
     stage: t("stage"),
@@ -123,10 +177,18 @@ async function kitWords(locale: string): Promise<LabelWords> {
 }
 async function kitBrand(ctx: OrgContext): Promise<KitBrand> {
   const b = await emailBrandFor(ctx.organization.id);
-  return { primary: b.primary, primaryInk: b.primaryInk, logo: await logoBytes(b.logoUrl) };
+  return {
+    primary: b.primary,
+    primaryInk: b.primaryInk,
+    logo: await logoBytes(b.logoUrl),
+  };
 }
 
-export async function seatLabelsPdf(ctx: OrgContext, eventId: string, opts: KitOptions) {
+export async function seatLabelsPdf(
+  ctx: OrgContext,
+  eventId: string,
+  opts: KitOptions,
+) {
   const kit = await loadKit(ctx, eventId, opts);
   return buildLabelsPdf({
     seats: kit.seats,
@@ -137,7 +199,11 @@ export async function seatLabelsPdf(ctx: OrgContext, eventId: string, opts: KitO
     eventTitle: opts.showEvent ? kit.event.title : null,
   });
 }
-export async function seatGuidePdf(ctx: OrgContext, eventId: string, opts: KitOptions) {
+export async function seatGuidePdf(
+  ctx: OrgContext,
+  eventId: string,
+  opts: KitOptions,
+) {
   const kit = await loadKit(ctx, eventId, opts);
   return buildGuidePdf({
     seats: kit.seats,
@@ -150,13 +216,22 @@ export async function seatGuidePdf(ctx: OrgContext, eventId: string, opts: KitOp
     zoneShape: opts.zoneShape,
   });
 }
-export async function seatTestPagePdf(ctx: OrgContext, eventId: string, opts: KitOptions) {
-  if (!hasFeature(ctx.features, "SEATING_MAPS")) throw new CoreError("FEATURE_UNAVAILABLE");
+export async function seatTestPagePdf(
+  ctx: OrgContext,
+  eventId: string,
+  opts: KitOptions,
+) {
+  if (!hasFeature(ctx.features, "SEATING_MAPS"))
+    throw new CoreError("FEATURE_UNAVAILABLE");
   const event = await findEvent(ctx, eventId);
   return buildTestPagePdf(opts.format, await kitWords(event.locale));
 }
 /** Récapitulatif pour l'écran : nombre d'étiquettes et de feuilles, première feuille pour l'aperçu. */
-export async function kitPreview(ctx: OrgContext, eventId: string, opts: KitOptions) {
+export async function kitPreview(
+  ctx: OrgContext,
+  eventId: string,
+  opts: KitOptions,
+) {
   const kit = await loadKit(ctx, eventId, opts);
   const sheets = paginate(kit.seats, opts.format);
   return { ...kit, sheets: sheets.length, first: sheets[0] ?? null };

@@ -1,10 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const stripeState = vi.hoisted(() => ({ available: true, retrieve: vi.fn() }));
-vi.mock("@/lib/stripe", () => ({ stripe: () => (stripeState.available ? { events: { retrieve: stripeState.retrieve } } : null) }));
-const handlers = vi.hoisted(() => ({ connect: vi.fn(async () => "PROCESSED"), platform: vi.fn(async () => "PROCESSED") }));
-vi.mock("@/server/stripeConnectEvents", () => ({ handleConnectEvent: handlers.connect }));
-vi.mock("@/server/stripePlatformEvents", () => ({ handlePlatformEvent: handlers.platform }));
+vi.mock("@/lib/stripe", () => ({
+  stripe: () =>
+    stripeState.available
+      ? { events: { retrieve: stripeState.retrieve } }
+      : null,
+}));
+const handlers = vi.hoisted(() => ({
+  connect: vi.fn(async () => "PROCESSED"),
+  platform: vi.fn(async () => "PROCESSED"),
+}));
+vi.mock("@/server/stripeConnectEvents", () => ({
+  handleConnectEvent: handlers.connect,
+}));
+vi.mock("@/server/stripePlatformEvents", () => ({
+  handlePlatformEvent: handlers.platform,
+}));
 
 const { db } = await import("@/lib/db");
 const { retryFailedWebhooks } = await import("@/server/webhookRetry");
@@ -12,7 +24,13 @@ const { retryFailedWebhooks } = await import("@/server/webhookRetry");
 const rid = () => Math.random().toString(36).slice(2, 10);
 // une période que les autres tests n'utilisent pas : leurs événements en échec ne sont jamais concernés
 const now = new Date("2099-01-10T12:00:00Z");
-const failed = (over: { accountId?: string | null; attempts?: number; receivedAt?: Date } = {}) =>
+const failed = (
+  over: {
+    accountId?: string | null;
+    attempts?: number;
+    receivedAt?: Date;
+  } = {},
+) =>
   db.stripeWebhookEvent.create({
     data: {
       id: `evt_${rid()}`,
@@ -27,7 +45,10 @@ const failed = (over: { accountId?: string | null; attempts?: number; receivedAt
 beforeEach(() => {
   stripeState.available = true;
   stripeState.retrieve.mockReset();
-  stripeState.retrieve.mockImplementation(async (id: string) => ({ id, type: "charge.refunded" }));
+  stripeState.retrieve.mockImplementation(async (id: string) => ({
+    id,
+    type: "charge.refunded",
+  }));
   handlers.connect.mockClear();
   handlers.platform.mockClear();
 });
@@ -43,11 +64,23 @@ describe("rejeu des événements Stripe en échec (section 11)", () => {
     const connect = await failed({ accountId: "acct_club" });
     const r = await retryFailedWebhooks(now);
     expect(r.retried).toBeGreaterThanOrEqual(2);
-    expect(stripeState.retrieve).toHaveBeenCalledWith(platform.id, undefined, undefined);
-    expect(stripeState.retrieve).toHaveBeenCalledWith(connect.id, undefined, { stripeAccount: "acct_club" });
+    expect(stripeState.retrieve).toHaveBeenCalledWith(
+      platform.id,
+      undefined,
+      undefined,
+    );
+    expect(stripeState.retrieve).toHaveBeenCalledWith(connect.id, undefined, {
+      stripeAccount: "acct_club",
+    });
     expect(handlers.platform).toHaveBeenCalled();
     expect(handlers.connect).toHaveBeenCalled();
-    expect((await db.stripeWebhookEvent.findUniqueOrThrow({ where: { id: platform.id } })).status).toBe("PROCESSED");
+    expect(
+      (
+        await db.stripeWebhookEvent.findUniqueOrThrow({
+          where: { id: platform.id },
+        })
+      ).status,
+    ).toBe("PROCESSED");
   });
 
   it("trop ancien (plus de 3 jours) ou déjà tenté 10 fois : laissé de côté", async () => {
@@ -67,6 +100,12 @@ describe("rejeu des événements Stripe en échec (section 11)", () => {
     });
     const r = await retryFailedWebhooks(now);
     expect(r.failed).toBeGreaterThanOrEqual(1);
-    expect((await db.stripeWebhookEvent.findUniqueOrThrow({ where: { id: lost.id } })).status).toBe("FAILED");
+    expect(
+      (
+        await db.stripeWebhookEvent.findUniqueOrThrow({
+          where: { id: lost.id },
+        })
+      ).status,
+    ).toBe("FAILED");
   });
 });

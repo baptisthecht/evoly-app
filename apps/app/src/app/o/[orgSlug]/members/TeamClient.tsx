@@ -3,7 +3,12 @@
 import { PERMISSION_GROUPS, type Permission } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
-import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
+import {
+  FormError,
+  SubmitButton,
+  useActionForm,
+  useFieldError,
+} from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
@@ -20,14 +25,38 @@ import {
 
 type RoleOption = { id: string; label: string };
 
-export function InviteForm({ orgSlug, roles }: { orgSlug: string; roles: RoleOption[] }) {
+export function InviteForm({
+  orgSlug,
+  roles,
+}: {
+  orgSlug: string;
+  roles: RoleOption[];
+}) {
   const t = useTranslations("team");
-  const { state, pending, formProps } = useActionForm(inviteAction.bind(null, orgSlug), null);
+  const { state, pending, formProps } = useActionForm(
+    inviteAction.bind(null, orgSlug),
+    null,
+  );
   const error = useFieldError(state);
   return (
-    <form {...formProps} className="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end" noValidate>
-      <Field label={t("inviteEmail")} htmlFor="invite-email" error={error("email")}>
-        <Input id="invite-email" name="email" type="email" inputMode="email" autoComplete="off" required />
+    <form
+      {...formProps}
+      className="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end"
+      noValidate
+    >
+      <Field
+        label={t("inviteEmail")}
+        htmlFor="invite-email"
+        error={error("email")}
+      >
+        <Input
+          id="invite-email"
+          name="email"
+          type="email"
+          inputMode="email"
+          autoComplete="off"
+          required
+        />
       </Field>
       <Field label={t("role")} htmlFor="invite-role">
         <Select id="invite-role" name="roleId" defaultValue={roles[0]?.id}>
@@ -53,9 +82,22 @@ export function InviteForm({ orgSlug, roles }: { orgSlug: string; roles: RoleOpt
   );
 }
 
-export function MemberRole({ orgSlug, memberId, roleId, roles }: { orgSlug: string; memberId: string; roleId: string; roles: RoleOption[] }) {
+export function MemberRole({
+  orgSlug,
+  memberId,
+  roleId,
+  roles,
+}: {
+  orgSlug: string;
+  memberId: string;
+  roleId: string;
+  roles: RoleOption[];
+}) {
   const t = useTranslations("team");
-  const [state, action, pending] = useActionState(memberRoleAction.bind(null, orgSlug, memberId), null);
+  const [state, action, pending] = useActionState(
+    memberRoleAction.bind(null, orgSlug, memberId),
+    null,
+  );
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
       <Select
@@ -77,11 +119,29 @@ export function MemberRole({ orgSlug, memberId, roleId, roles }: { orgSlug: stri
   );
 }
 
-export function RemoveMember({ orgSlug, memberId, name }: { orgSlug: string; memberId: string; name: string }) {
+export function RemoveMember({
+  orgSlug,
+  memberId,
+  name,
+}: {
+  orgSlug: string;
+  memberId: string;
+  name: string;
+}) {
   const t = useTranslations("team");
-  const [state, action, pending] = useActionState(removeMemberAction.bind(null, orgSlug, memberId), null);
+  const [state, action, pending] = useActionState(
+    removeMemberAction.bind(null, orgSlug, memberId),
+    null,
+  );
   return (
-    <form action={action} onSubmit={(e) => (window.confirm(t("confirmRemove", { name })) ? undefined : e.preventDefault())}>
+    <form
+      action={action}
+      onSubmit={(e) =>
+        window.confirm(t("confirmRemove", { name }))
+          ? undefined
+          : e.preventDefault()
+      }
+    >
       <Button type="submit" size="sm" variant="ghost" disabled={pending}>
         {t("remove")}
       </Button>
@@ -90,14 +150,31 @@ export function RemoveMember({ orgSlug, memberId, name }: { orgSlug: string; mem
   );
 }
 
-export function InvitationActions({ orgSlug, invitationId }: { orgSlug: string; invitationId: string }) {
+export function InvitationActions({
+  orgSlug,
+  invitationId,
+}: {
+  orgSlug: string;
+  invitationId: string;
+}) {
   const t = useTranslations("team");
-  const [resendState, resend, resending] = useActionState(invitationCommandAction.bind(null, orgSlug, invitationId, "resend"), null);
-  const [revokeState, revoke, revoking] = useActionState(invitationCommandAction.bind(null, orgSlug, invitationId, "revoke"), null);
+  const [resendState, resend, resending] = useActionState(
+    invitationCommandAction.bind(null, orgSlug, invitationId, "resend"),
+    null,
+  );
+  const [revokeState, revoke, revoking] = useActionState(
+    invitationCommandAction.bind(null, orgSlug, invitationId, "revoke"),
+    null,
+  );
   return (
     <div className="flex flex-wrap items-center gap-2">
       <form action={resend}>
-        <Button type="submit" size="sm" variant="secondary" disabled={resending}>
+        <Button
+          type="submit"
+          size="sm"
+          variant="secondary"
+          disabled={resending}
+        >
           {resendState?.ok ? t("resent") : t("resend")}
         </Button>
       </form>
@@ -111,14 +188,28 @@ export function InvitationActions({ orgSlug, invitationId }: { orgSlug: string; 
   );
 }
 
-export function TransferOwnership({ orgSlug, members }: { orgSlug: string; members: Array<{ id: string; label: string }> }) {
+export function TransferOwnership({
+  orgSlug,
+  members,
+}: {
+  orgSlug: string;
+  members: Array<{ id: string; label: string }>;
+}) {
   const t = useTranslations("team");
-  const { state, pending, formProps } = useActionForm(transferAction.bind(null, orgSlug), null);
-  if (members.length === 0) return <p className="text-sm text-ink-muted">{t("transferNobody")}</p>;
+  const { state, pending, formProps } = useActionForm(
+    transferAction.bind(null, orgSlug),
+    null,
+  );
+  if (members.length === 0)
+    return <p className="text-sm text-ink-muted">{t("transferNobody")}</p>;
   return (
     <form
       {...formProps}
-      onSubmit={(e) => (window.confirm(t("confirmTransfer")) ? formProps.onSubmit(e) : e.preventDefault())}
+      onSubmit={(e) =>
+        window.confirm(t("confirmTransfer"))
+          ? formProps.onSubmit(e)
+          : e.preventDefault()
+      }
       className="flex flex-wrap items-end gap-2"
     >
       <Field label={t("transferTo")} htmlFor="transfer-to">
@@ -140,10 +231,25 @@ export function TransferOwnership({ orgSlug, members }: { orgSlug: string; membe
 
 export function LeaveOrganization({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations("team");
-  const [state, action, pending] = useActionState(leaveAction.bind(null, orgSlug), null);
+  const [state, action, pending] = useActionState(
+    leaveAction.bind(null, orgSlug),
+    null,
+  );
   return (
-    <form action={action} onSubmit={(e) => (window.confirm(t("confirmLeave")) ? undefined : e.preventDefault())} className="grid gap-2">
-      <Button type="submit" variant="ghost" size="sm" className="justify-self-start text-danger" disabled={pending}>
+    <form
+      action={action}
+      onSubmit={(e) =>
+        window.confirm(t("confirmLeave")) ? undefined : e.preventDefault()
+      }
+      className="grid gap-2"
+    >
+      <Button
+        type="submit"
+        variant="ghost"
+        size="sm"
+        className="justify-self-start text-danger"
+        disabled={pending}
+      >
         {t("leave")}
       </Button>
       <FormError state={state} />
@@ -158,18 +264,34 @@ export function RoleEditor({
   allowed,
 }: {
   orgSlug: string;
-  role: { id: string; name: string; description: string; permissions: Permission[] } | null;
+  role: {
+    id: string;
+    name: string;
+    description: string;
+    permissions: Permission[];
+  } | null;
   allowed: Permission[];
 }) {
   const t = useTranslations("team");
   const tp = useTranslations("permissions");
   const [open, setOpen] = useState(!role ? false : false);
-  const { state, pending, formProps } = useActionForm(saveRoleAction.bind(null, orgSlug, role?.id ?? null), null);
-  const [delState, del, deleting] = useActionState(deleteRoleAction.bind(null, orgSlug, role?.id ?? ""), null);
+  const { state, pending, formProps } = useActionForm(
+    saveRoleAction.bind(null, orgSlug, role?.id ?? null),
+    null,
+  );
+  const [delState, del, deleting] = useActionState(
+    deleteRoleAction.bind(null, orgSlug, role?.id ?? ""),
+    null,
+  );
   const error = useFieldError(state);
   if (!open)
     return (
-      <Button type="button" size="sm" variant={role ? "secondary" : "dark"} onClick={() => setOpen(true)}>
+      <Button
+        type="button"
+        size="sm"
+        variant={role ? "secondary" : "dark"}
+        onClick={() => setOpen(true)}
+      >
         {role ? t("editRole") : `+ ${t("newRole")}`}
       </Button>
     );
@@ -178,19 +300,42 @@ export function RoleEditor({
       <form {...formProps} className="grid gap-4" noValidate>
         <FormError state={state} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t("roleName")} htmlFor={`role-name-${role?.id ?? "new"}`} error={error("name")}>
-            <Input id={`role-name-${role?.id ?? "new"}`} name="name" defaultValue={role?.name ?? ""} maxLength={40} required />
+          <Field
+            label={t("roleName")}
+            htmlFor={`role-name-${role?.id ?? "new"}`}
+            error={error("name")}
+          >
+            <Input
+              id={`role-name-${role?.id ?? "new"}`}
+              name="name"
+              defaultValue={role?.name ?? ""}
+              maxLength={40}
+              required
+            />
           </Field>
-          <Field label={t("roleDescription")} htmlFor={`role-desc-${role?.id ?? "new"}`}>
-            <Input id={`role-desc-${role?.id ?? "new"}`} name="description" defaultValue={role?.description ?? ""} maxLength={200} />
+          <Field
+            label={t("roleDescription")}
+            htmlFor={`role-desc-${role?.id ?? "new"}`}
+          >
+            <Input
+              id={`role-desc-${role?.id ?? "new"}`}
+              name="description"
+              defaultValue={role?.description ?? ""}
+              maxLength={200}
+            />
           </Field>
         </div>
         {PERMISSION_GROUPS.map((g) => (
           <fieldset key={g.key} className="grid gap-2">
-            <legend className="mb-1 font-label text-[0.8rem] font-bold">{t(`group_${g.key}`)}</legend>
+            <legend className="mb-1 font-label text-[0.8rem] font-bold">
+              {t(`group_${g.key}`)}
+            </legend>
             <div className="grid gap-2 sm:grid-cols-2">
               {g.permissions.map((p) => (
-                <label key={p} className={`flex items-center gap-3 text-sm ${allowed.includes(p) ? "" : "opacity-50"}`}>
+                <label
+                  key={p}
+                  className={`flex items-center gap-3 text-sm ${allowed.includes(p) ? "" : "opacity-50"}`}
+                >
                   <input
                     type="checkbox"
                     name="permissions"
@@ -207,14 +352,32 @@ export function RoleEditor({
         ))}
         <div className="flex flex-wrap gap-2">
           <SubmitButton pending={pending}>{t("saveRole")}</SubmitButton>
-          <Button type="button" variant="ghost" size="lg" onClick={() => setOpen(false)}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            onClick={() => setOpen(false)}
+          >
             {t("cancel")}
           </Button>
         </div>
       </form>
       {role ? (
-        <form action={del} onSubmit={(e) => (window.confirm(t("confirmDeleteRole", { name: role.name })) ? undefined : e.preventDefault())}>
-          <Button type="submit" size="sm" variant="ghost" className="text-danger" disabled={deleting}>
+        <form
+          action={del}
+          onSubmit={(e) =>
+            window.confirm(t("confirmDeleteRole", { name: role.name }))
+              ? undefined
+              : e.preventDefault()
+          }
+        >
+          <Button
+            type="submit"
+            size="sm"
+            variant="ghost"
+            className="text-danger"
+            disabled={deleting}
+          >
             {t("deleteRole")}
           </Button>
           <FormError state={delState} />

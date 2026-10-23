@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { estimateBankFee, EUR_TERMS, organizerNet, ticketCommission } from "../src";
+import {
+  estimateBankFee,
+  EUR_TERMS,
+  organizerNet,
+  ticketCommission,
+} from "../src";
 
 describe("frais bancaires estimés et net de l'organisateur (annexe C)", () => {
   it("carte européenne standard : 1,5 % + 0,25 €", () => {
@@ -20,6 +25,8 @@ describe("frais bancaires estimés et net de l'organisateur (annexe C)", () => {
   it("billet à 30 €, Free : 28,41 € par carte, 28,76 € par Bancontact", () => {
     const c = ticketCommission(3000, EUR_TERMS.free);
     expect(organizerNet(3000, c, estimateBankFee(3000))).toBe(2841); // 30 € − 0,89 € − 0,70 €
-    expect(organizerNet(3000, c, estimateBankFee(3000, "bancontact"))).toBe(2876); // 30 € − 0,89 € − 0,35 €
+    expect(organizerNet(3000, c, estimateBankFee(3000, "bancontact"))).toBe(
+      2876,
+    ); // 30 € − 0,89 € − 0,35 €
   });
 });

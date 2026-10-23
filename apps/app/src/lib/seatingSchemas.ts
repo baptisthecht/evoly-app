@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 /** Validation des blocs du plan de salle, commune aux actions de l'éditeur et au plan proposé d'après une photo. */
-export const sInt = (min: number, max: number) => z.coerce.number().int().min(min).max(max);
-export const num = (min: number, max: number) => z.coerce.number().min(min).max(max);
+export const sInt = (min: number, max: number) =>
+  z.coerce.number().int().min(min).max(max);
+export const num = (min: number, max: number) =>
+  z.coerce.number().min(min).max(max);
 export const NUMBERING = z.enum(["ltr", "rtl", "odd-left", "odd-right"]);
 export const rowLabels = z.object({
   style: z.enum(["letters", "numbers"]),
@@ -36,10 +38,14 @@ export const blockSchema = z.discriminatedUnion("kind", [
         seatNumbering: NUMBERING,
         seatStart: sInt(0, 9999),
         categories: z.array(catRef).min(1).max(100),
-        accessible: z.array(z.object({ row: sInt(0, 99), ends: sInt(0, 10) })).max(100),
+        accessible: z
+          .array(z.object({ row: sInt(0, 99), ends: sInt(0, 10) }))
+          .max(100),
         ...viewUrl,
       })
-      .refine((p) => p.rows * Math.max(p.seatsFirst, p.seatsLast) <= 10000, { message: "validation.tooManySeats" }),
+      .refine((p) => p.rows * Math.max(p.seatsFirst, p.seatsLast) <= 10000, {
+        message: "validation.tooManySeats",
+      }),
   }),
   z.object({
     ...blockBase,
@@ -84,7 +90,15 @@ export const blockSchema = z.discriminatedUnion("kind", [
     ...blockBase,
     kind: z.literal("SHAPE"),
     params: z.object({
-      shape: z.enum(["stage", "screen", "pitch", "altar", "bar", "entrance", "label"]),
+      shape: z.enum([
+        "stage",
+        "screen",
+        "pitch",
+        "altar",
+        "bar",
+        "entrance",
+        "label",
+      ]),
       width: num(10, 5000),
       height: num(10, 5000),
       label: z.string().trim().max(40),

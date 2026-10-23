@@ -40,7 +40,13 @@ services:
     # pas de port publié : Caddy relaie, ce qui permet de faire tourner deux versions pendant une mise à jour (ops/deploy.sh)
     stop_grace_period: 30s
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 5s
       timeout: 4s
       start_period: 60s

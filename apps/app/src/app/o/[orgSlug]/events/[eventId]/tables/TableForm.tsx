@@ -14,17 +14,38 @@ export function TableForm({
 }: {
   orgSlug: string;
   eventId: string;
-  type: { id: string; groupSize: number; tableLabels: string[]; locked: boolean; includedOptions: Array<{ optionId: string; quantity: number }> };
+  type: {
+    id: string;
+    groupSize: number;
+    tableLabels: string[];
+    locked: boolean;
+    includedOptions: Array<{ optionId: string; quantity: number }>;
+  };
   options: Array<{ id: string; name: string }>;
 }) {
   const t = useTranslations("tables");
-  const { state, pending, formProps } = useActionForm(saveTablesAction.bind(null, orgSlug, eventId, type.id), null);
+  const { state, pending, formProps } = useActionForm(
+    saveTablesAction.bind(null, orgSlug, eventId, type.id),
+    null,
+  );
   const p = `table-${type.id}`;
   return (
     <form {...formProps} className="grid gap-4" noValidate>
       <FormError state={state} />
-      <Field label={t("groupSize")} htmlFor={`${p}-size`} hint={type.locked ? t("locked") : t("groupSizeHint")}>
-        <Input id={`${p}-size`} name="groupSize" type="number" min={1} max={30} defaultValue={type.groupSize} readOnly={type.locked} />
+      <Field
+        label={t("groupSize")}
+        htmlFor={`${p}-size`}
+        hint={type.locked ? t("locked") : t("groupSizeHint")}
+      >
+        <Input
+          id={`${p}-size`}
+          name="groupSize"
+          type="number"
+          min={1}
+          max={30}
+          defaultValue={type.groupSize}
+          readOnly={type.locked}
+        />
       </Field>
       <label className="grid gap-1 text-sm" htmlFor={`${p}-labels`}>
         <span className="font-semibold">{t("labels")}</span>
@@ -42,14 +63,20 @@ export function TableForm({
           <legend className="text-sm font-semibold">{t("included")}</legend>
           <p className="text-sm text-ink-muted">{t("includedHint")}</p>
           {options.map((o) => (
-            <label key={o.id} className="flex items-center justify-between gap-3 text-sm">
+            <label
+              key={o.id}
+              className="flex items-center justify-between gap-3 text-sm"
+            >
               <span>{o.name}</span>
               <input
                 type="number"
                 name={`include_${o.id}`}
                 min={0}
                 max={100}
-                defaultValue={type.includedOptions.find((i) => i.optionId === o.id)?.quantity ?? 0}
+                defaultValue={
+                  type.includedOptions.find((i) => i.optionId === o.id)
+                    ?.quantity ?? 0
+                }
                 aria-label={o.name}
                 className="h-10 w-20 rounded-xl bg-surface-raised px-3 ring-1 ring-line-strong"
               />

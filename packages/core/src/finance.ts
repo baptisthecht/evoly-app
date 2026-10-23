@@ -53,14 +53,18 @@ export function financeTotals(orders: readonly FinanceOrder[]): FinanceTotals {
       t.bankFeeMinor += o.paymentFeeMinor ?? estimateBankFee(o.totalMinor);
     }
   }
-  t.netMinor = t.grossMinor - t.refundedMinor - t.commissionMinor - t.bankFeeMinor;
+  t.netMinor =
+    t.grossMinor - t.refundedMinor - t.commissionMinor - t.bankFeeMinor;
   return t;
 }
 
 /** Tableau par événement de la page Finances. */
-export function financeByEvent(orders: readonly FinanceOrder[]): Map<string, FinanceTotals> {
+export function financeByEvent(
+  orders: readonly FinanceOrder[],
+): Map<string, FinanceTotals> {
   const groups = new Map<string, FinanceOrder[]>();
-  for (const o of orders) groups.set(o.eventId, [...(groups.get(o.eventId) ?? []), o]);
+  for (const o of orders)
+    groups.set(o.eventId, [...(groups.get(o.eventId) ?? []), o]);
   return new Map([...groups].map(([id, list]) => [id, financeTotals(list)]));
 }
 
@@ -116,17 +120,28 @@ export type VatMention = "BE_VAT" | "REVERSE_CHARGE" | "OSS" | "OUTSIDE_EU";
  * non assujetti de l'Union → TVA de son pays via le guichet unique (OSS) ; hors Union → hors champ.
  * Les commissions affichées sont toutes taxes comprises : la TVA est extraite du montant.
  */
-export function commissionVat(org: { country: string; vatRegistered: boolean; vatNumber?: string | null }): { rateBps: number; mention: VatMention } {
+export function commissionVat(org: {
+  country: string;
+  vatRegistered: boolean;
+  vatNumber?: string | null;
+}): { rateBps: number; mention: VatMention } {
   const country = org.country.toUpperCase();
-  if (country === "BE") return { rateBps: VAT_RATES_BPS.BE!, mention: "BE_VAT" };
+  if (country === "BE")
+    return { rateBps: VAT_RATES_BPS.BE!, mention: "BE_VAT" };
   if (!EU.has(country)) return { rateBps: 0, mention: "OUTSIDE_EU" };
-  if (org.vatRegistered && org.vatNumber?.trim()) return { rateBps: 0, mention: "REVERSE_CHARGE" };
-  return { rateBps: VAT_RATES_BPS[country] ?? VAT_RATES_BPS.BE!, mention: "OSS" };
+  if (org.vatRegistered && org.vatNumber?.trim())
+    return { rateBps: 0, mention: "REVERSE_CHARGE" };
+  return {
+    rateBps: VAT_RATES_BPS[country] ?? VAT_RATES_BPS.BE!,
+    mention: "OSS",
+  };
 }
 
 /** TVA comprise dans un montant toutes taxes comprises, arrondie au centime. */
 export function vatIncluded(totalMinor: Minor, rateBps: number): Minor {
-  return rateBps <= 0 ? 0 : Math.round((totalMinor * rateBps) / (10_000 + rateBps));
+  return rateBps <= 0
+    ? 0
+    : Math.round((totalMinor * rateBps) / (10_000 + rateBps));
 }
 
 /** Numéro de relevé : EVO-2026-000123 (séquence sans trou, RG-FEE-30). */

@@ -1,18 +1,30 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useRef, useState, type ChangeEvent, type InputHTMLAttributes } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type InputHTMLAttributes,
+} from "react";
 import { Input } from "@/components/ui/Field";
 import type { PlaceSuggestion } from "@/server/places";
 
 /** Valeur posée par le code dans un champ non contrôlé, avec l'événement de saisie (enregistrement automatique). */
 export function fillInput(el: HTMLInputElement | null, value: string) {
   if (!el) return;
-  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(el, value);
+  Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value",
+  )!.set!.call(el, value);
   el.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "onSelect" | "type" | "role"> & {
+type Props = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "onSelect" | "type" | "role"
+> & {
   id: string;
   /** Lieu ou adresse choisi dans les suggestions. */
   onSelect: (place: PlaceSuggestion) => void;
@@ -23,7 +35,15 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "onSelect" | "type" | "
  * Lieu ou adresse, avec des suggestions pendant la saisie (Photon via /api/places, dès 3 caractères) ; la saisie libre
  * reste possible. Liste de suggestions accessible : flèches, Entrée pour choisir, Échap pour fermer.
  */
-export function AddressSearch({ id, onSelect, onChange, value, className, invalid, ...rest }: Props) {
+export function AddressSearch({
+  id,
+  onSelect,
+  onChange,
+  value,
+  className,
+  invalid,
+  ...rest
+}: Props) {
   const t = useTranslations("addressSearch");
   const locale = useLocale();
   const [places, setPlaces] = useState<PlaceSuggestion[]>([]);
@@ -55,8 +75,13 @@ export function AddressSearch({ id, onSelect, onChange, value, className, invali
       setStatus("loading");
       setOpen(true);
       try {
-        const res = await fetch(`/api/places?${new URLSearchParams({ q, lang: locale })}`, { signal: ctrl.signal });
-        const data = res.ok ? ((await res.json()) as { places: PlaceSuggestion[] }) : { places: [] };
+        const res = await fetch(
+          `/api/places?${new URLSearchParams({ q, lang: locale })}`,
+          { signal: ctrl.signal },
+        );
+        const data = res.ok
+          ? ((await res.json()) as { places: PlaceSuggestion[] })
+          : { places: [] };
         if (ctrl.signal.aborted) return;
         setPlaces(data.places);
         setActive(data.places.length ? 0 : -1);
@@ -104,7 +129,9 @@ export function AddressSearch({ id, onSelect, onChange, value, className, invali
         aria-autocomplete="list"
         aria-expanded={open}
         aria-controls={listId}
-        aria-activedescendant={open && active >= 0 ? `${id}-option-${active}` : undefined}
+        aria-activedescendant={
+          open && active >= 0 ? `${id}-option-${active}` : undefined
+        }
         autoComplete="off"
         className={`pl-10 ${className ?? ""}`}
         onChange={(e: ChangeEvent<HTMLInputElement>) => {
@@ -148,13 +175,25 @@ export function AddressSearch({ id, onSelect, onChange, value, className, invali
                 className={`flex min-h-11 cursor-pointer flex-col justify-center border-b border-line px-3 py-2 last:border-b-0 ${i === active ? "bg-surface" : ""}`}
               >
                 <span className="text-[0.8125rem] font-medium">{p.name}</span>
-                {p.detail ? <span className="text-xs text-ink-muted">{p.detail}</span> : null}
+                {p.detail ? (
+                  <span className="text-xs text-ink-muted">{p.detail}</span>
+                ) : null}
               </li>
             ))}
           </ul>
-          {status === "loading" && !places.length ? <p className="px-3 py-2.5 text-xs text-ink-muted">{t("searching")}</p> : null}
-          {status === "done" && !places.length ? <p className="px-3 py-2.5 text-xs text-ink-muted">{t("noResults")}</p> : null}
-          <p className="bg-surface px-3 py-1.5 text-[0.6875rem] text-ink-muted">{t("attribution")}</p>
+          {status === "loading" && !places.length ? (
+            <p className="px-3 py-2.5 text-xs text-ink-muted">
+              {t("searching")}
+            </p>
+          ) : null}
+          {status === "done" && !places.length ? (
+            <p className="px-3 py-2.5 text-xs text-ink-muted">
+              {t("noResults")}
+            </p>
+          ) : null}
+          <p className="bg-surface px-3 py-1.5 text-[0.6875rem] text-ink-muted">
+            {t("attribution")}
+          </p>
         </div>
       ) : null}
     </div>

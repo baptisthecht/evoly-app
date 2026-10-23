@@ -20,7 +20,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("launch") };
 }
 
-export default async function EventLaunchPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function EventLaunchPage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const e = await getEventWithTickets(ctx, eventId);
@@ -31,8 +35,15 @@ export default async function EventLaunchPage({ params }: { params: Promise<{ or
   const presaleOn = hasFeature(ctx.features, "PRESALE_CODES");
   const presale = presaleOn ? await presaleOverview(eventId) : null;
   const tp = await getTranslations("publication");
-  const when = e.publishAt ? formatDateTime(e.publishAt, e.timezone, toLocale(await getLocale())) : null;
-  const publicationStatus = e.publishAt && when ? tp(e.publishAt > new Date() ? "statusScheduled" : "statusLive", { date: when }) : null;
+  const when = e.publishAt
+    ? formatDateTime(e.publishAt, e.timezone, toLocale(await getLocale()))
+    : null;
+  const publicationStatus =
+    e.publishAt && when
+      ? tp(e.publishAt > new Date() ? "statusScheduled" : "statusLive", {
+          date: when,
+        })
+      : null;
   return (
     <div>
       {canPublish ? (
@@ -43,10 +54,17 @@ export default async function EventLaunchPage({ params }: { params: Promise<{ or
           publishLocal={e.publishAt ? local(e.publishAt) : null}
           mode={e.prePublishMode}
           teaserText={e.teaserText}
-          previewUrl={e.previewToken ? `${eventPublicUrl(ctx.organization, e)}?apercu=${e.previewToken}` : null}
+          previewUrl={
+            e.previewToken
+              ? `${eventPublicUrl(ctx.organization, e)}?apercu=${e.previewToken}`
+              : null
+          }
           status={publicationStatus}
           waiting={waiting}
-          readOnly={ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)}
+          readOnly={
+            ctx.readOnly ||
+            ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)
+          }
         />
       ) : null}
       {canPublish ? (
@@ -55,7 +73,11 @@ export default async function EventLaunchPage({ params }: { params: Promise<{ or
           eventId={eventId}
           enabled={e.botProtection}
           readOnly={ctx.readOnly}
-          labels={{ title: tp("botTitle"), hint: tp("botHint"), saved: tp("botSaved") }}
+          labels={{
+            title: tp("botTitle"),
+            hint: tp("botHint"),
+            saved: tp("botSaved"),
+          }}
         />
       ) : null}
       {canPublish && presale ? (
@@ -67,10 +89,19 @@ export default async function EventLaunchPage({ params }: { params: Promise<{ or
           overview={presale}
           eventUrl={eventPublicUrl(ctx.organization, e)}
           csvUrl={`/o/${orgSlug}/events/${eventId}/presale.csv`}
-          readOnly={ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)}
+          readOnly={
+            ctx.readOnly ||
+            ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)
+          }
         />
       ) : null}
-      {canPublish && !presaleOn ? <ProLocked orgSlug={orgSlug} feature="PRESALE_CODES" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} /> : null}
+      {canPublish && !presaleOn ? (
+        <ProLocked
+          orgSlug={orgSlug}
+          feature="PRESALE_CODES"
+          canUpgrade={can(ctx.membership, "BILLING_MANAGE")}
+        />
+      ) : null}
     </div>
   );
 }

@@ -22,7 +22,11 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
-import { findOrderIdByToken, orderAccessToken, type Reservation } from "./checkout";
+import {
+  findOrderIdByToken,
+  orderAccessToken,
+  type Reservation,
+} from "./checkout";
 import { sendEmail } from "./email/send";
 import { resaleSellerEmail } from "./email/templates";
 import { emailBrandFor } from "./email/brand";
@@ -40,7 +44,8 @@ async function termsFor(organizationId: string, currency: string) {
     where: { id: organizationId },
     select: { subscription: { select: PLAN_SUBSCRIPTION_SELECT } },
   });
-  const terms = (await getPlans())[effectivePlan(org.subscription, new Date())].terms[currency];
+  const terms = (await getPlans())[effectivePlan(org.subscription, new Date())]
+    .terms[currency];
   if (!terms) throw new CoreError("CURRENCY_NOT_SUPPORTED");
   return terms;
 }
@@ -60,7 +65,16 @@ async function sellerTicket(token: string, ticketId: string) {
       order: true,
       ticketType: { select: { id: true, name: true, resaleAllowed: true } },
       event: {
-        select: { id: true, slug: true, status: true, startsAt: true, resaleEnabled: true, resaleCutoffMinutes: true, organizationId: true, currency: true },
+        select: {
+          id: true,
+          slug: true,
+          status: true,
+          startsAt: true,
+          resaleEnabled: true,
+          resaleCutoffMinutes: true,
+          organizationId: true,
+          currency: true,
+        },
       },
       resaleListings: { where: { status: { in: [...OPEN] } } },
     },
@@ -70,7 +84,11 @@ async function sellerTicket(token: string, ticketId: string) {
 }
 
 /** RG-RSL-01 à 05 : conditions et montant estimé rendu au vendeur (RG-FEE-51). */
-export async function resaleQuote(token: string, ticketId: string, now = new Date()) {
+export async function resaleQuote(
+  token: string,
+  ticketId: string,
+  now = new Date(),
+) {
   const t = await sellerTicket(token, ticketId);
   const blockers = resaleBlockers({
     eventStatus: t.event.status,
@@ -80,15 +98,30 @@ export async function resaleQuote(token: string, ticketId: string, now = new Dat
     resaleCutoffMinutes: t.event.resaleCutoffMinutes,
     ticketStatus: t.status,
     hasOpenListing: t.resaleListings.length > 0,
-    originalPaymentRefundable: originalPaymentRefundable(t.order, t.faceValueMinor, now),
+    originalPaymentRefundable: originalPaymentRefundable(
+      t.order,
+      t.faceValueMinor,
+      now,
+    ),
     now,
   });
   const terms = await termsFor(t.event.organizationId, t.event.currency);
-  return { ticket: t, blockers, terms, faceValueMinor: t.faceValueMinor, cutoff: resaleCutoff(t.event.startsAt, t.event.resaleCutoffMinutes) };
+  return {
+    ticket: t,
+    blockers,
+    terms,
+    faceValueMinor: t.faceValueMinor,
+    cutoff: resaleCutoff(t.event.startsAt, t.event.resaleCutoffMinutes),
+  };
 }
 
 /** Mise en revente (section 9.13) : prix au plus égal à la valeur faciale, lien partageable. */
-export async function createListing(token: string, ticketId: string, priceInput: string, now = new Date()) {
+export async function createListing(
+  token: string,
+  ticketId: string,
+  priceInput: string,
+  now = new Date(),
+) {
   const q = await resaleQuote(token, ticketId, now);
   if (q.blockers.length > 0) throw new CoreError(`RESALE_${q.blockers[0]}`);
   const priceMinor = parseMajorToMinor(priceInput);
@@ -96,8 +129,12 @@ export async function createListing(token: string, ticketId: string, priceInput:
   const check = checkResalePrice(priceMinor, q.faceValueMinor);
   if (check !== "OK") throw new CoreError(`RESALE_${check}`);
   if (priceMinor > 0) {
-    const account = await db.stripeAccount.findUnique({ where: { organizationId: q.ticket.event.organizationId }, select: { chargesEnabled: true } });
-    if (!account?.chargesEnabled) throw new CoreError("RESALE_PAYMENTS_UNAVAILABLE");
+    const account = await db.stripeAccount.findUnique({
+      where: { organizationId: q.ticket.event.organizationId },
+      select: { chargesEnabled: true },
+    });
+    if (!account?.chargesEnabled)
+      throw new CoreError("RESALE_PAYMENTS_UNAVAILABLE");
   }
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
@@ -124,11 +161,22 @@ export async function createListing(token: string, ticketId: string, priceInput:
       });
       // section 9.30 : liste d'attente d'abord, si l'organisateur l'a choisi ; le lien du vendeur fonctionne déjà
       const { offerResaleToWaitlist } = await import("./waitlist");
-      await offerResaleToWaitlist(listing.id, now).catch((err) => console.error("revente et liste d'attente", err instanceof Error ? err.message : "erreur"));
+      await offerResaleToWaitlist(listing.id, now).catch((err) =>
+        console.error(
+          "revente et liste d'attente",
+          err instanceof Error ? err.message : "erreur",
+        ),
+      );
       return listing;
     } catch (err) {
-      if (!(err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")) throw err;
-      const open = await db.resaleListing.count({ where: { ticketId, status: { in: [...OPEN] } } });
+      if (!(
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002"
+      ))
+        throw err;
+      const open = await db.resaleListing.count({
+        where: { ticketId, status: { in: [...OPEN] } },
+      });
       if (open > 0) throw new CoreError("RESALE_ALREADY_LISTED"); // index unique partiel : une seule annonce ouverte (RG-RSL-03)
     }
   }
@@ -138,20 +186,40 @@ export async function createListing(token: string, ticketId: string, priceInput:
 /** RG-RSL-07 : le vendeur retire une annonce active ; une annonce réservée ne peut pas l'être. */
 export async function withdrawListing(token: string, listingId: string) {
   const orderId = await findOrderIdByToken(token);
-  const listing = orderId ? await db.resaleListing.findFirst({ where: { id: listingId, sellerOrderId: orderId } }) : null;
+  const listing = orderId
+    ? await db.resaleListing.findFirst({
+        where: { id: listingId, sellerOrderId: orderId },
+      })
+    : null;
   if (!listing) throw new CoreError("NOT_FOUND");
-  const done = await db.resaleListing.updateMany({ where: { id: listing.id, status: "ACTIVE" }, data: { status: "CANCELLED", cancelledAt: new Date() } });
-  if (done.count === 0) throw new CoreError(listing.status === "RESERVED" ? "RESALE_RESERVED" : "RESALE_NOT_ACTIVE");
+  const done = await db.resaleListing.updateMany({
+    where: { id: listing.id, status: "ACTIVE" },
+    data: { status: "CANCELLED", cancelledAt: new Date() },
+  });
+  if (done.count === 0)
+    throw new CoreError(
+      listing.status === "RESERVED" ? "RESALE_RESERVED" : "RESALE_NOT_ACTIVE",
+    );
 }
 
 type CloseReason = "ORGANIZER" | "DISABLED" | "EXPIRED" | "TICKET_USED";
 
 /** Fermeture d'annonces actives, avec prévenance des vendeurs (RG-RSL-08, RG-RSL-09). */
-async function closeListings(where: Prisma.ResaleListingWhereInput, status: "CANCELLED" | "EXPIRED", reason: CloseReason) {
+async function closeListings(
+  where: Prisma.ResaleListingWhereInput,
+  status: "CANCELLED" | "EXPIRED",
+  reason: CloseReason,
+) {
   const listings = await db.resaleListing.findMany({
     where: { ...where, status: "ACTIVE" },
     include: {
-      event: { select: { title: true, organizationId: true, organization: { select: { name: true } } } },
+      event: {
+        select: {
+          title: true,
+          organizationId: true,
+          organization: { select: { name: true } },
+        },
+      },
       sellerOrder: { select: { buyerLocale: true, buyerFirstName: true } },
     },
   });
@@ -186,17 +254,36 @@ async function closeListings(where: Prisma.ResaleListingWhereInput, status: "CAN
   return listings.length;
 }
 
-export const cancelListingsForEvent = (eventId: string) => closeListings({ eventId }, "CANCELLED", "DISABLED");
-export const cancelListingsForTicketType = (ticketTypeId: string) => closeListings({ ticket: { ticketTypeId } }, "CANCELLED", "DISABLED");
-export const cancelListingsForTicket = (ticketId: string) => closeListings({ ticketId }, "CANCELLED", "TICKET_USED");
+export const cancelListingsForEvent = (eventId: string) =>
+  closeListings({ eventId }, "CANCELLED", "DISABLED");
+export const cancelListingsForTicketType = (ticketTypeId: string) =>
+  closeListings({ ticket: { ticketTypeId } }, "CANCELLED", "DISABLED");
+export const cancelListingsForTicket = (ticketId: string) =>
+  closeListings({ ticketId }, "CANCELLED", "TICKET_USED");
 
 /** RG-RSL-09 : l'organisateur retire une annonce précise. */
-export async function cancelListingByOrganizer(organizationId: string, eventId: string, listingId: string, actorUserId: string) {
-  const listing = await db.resaleListing.findFirst({ where: { id: listingId, eventId, event: { organizationId } } });
+export async function cancelListingByOrganizer(
+  organizationId: string,
+  eventId: string,
+  listingId: string,
+  actorUserId: string,
+) {
+  const listing = await db.resaleListing.findFirst({
+    where: { id: listingId, eventId, event: { organizationId } },
+  });
   if (!listing) throw new CoreError("NOT_FOUND");
-  if (listing.status !== "ACTIVE") throw new CoreError(listing.status === "RESERVED" ? "RESALE_RESERVED" : "RESALE_NOT_ACTIVE");
+  if (listing.status !== "ACTIVE")
+    throw new CoreError(
+      listing.status === "RESERVED" ? "RESALE_RESERVED" : "RESALE_NOT_ACTIVE",
+    );
   await closeListings({ id: listing.id }, "CANCELLED", "ORGANIZER");
-  await audit({ action: "resale.cancelled_by_organizer", organizationId, actorUserId, targetType: "ResaleListing", targetId: listing.id });
+  await audit({
+    action: "resale.cancelled_by_organizer",
+    organizationId,
+    actorUserId,
+    targetType: "ResaleListing",
+    targetId: listing.id,
+  });
 }
 
 /** RG-RSL-08 : fin de la revente. Tâche planifiée, et vérification à chaque lecture (les requêtes filtrent sur expiresAt). */
@@ -212,11 +299,24 @@ export async function publicListings(eventId: string, now = new Date()) {
       showOnEventPage: true,
       expiresAt: { gt: now },
       AND: [
-        { OR: [{ status: "ACTIVE" }, { status: "RESERVED", reservedUntil: { lt: now } }] },
+        {
+          OR: [
+            { status: "ACTIVE" },
+            { status: "RESERVED", reservedUntil: { lt: now } },
+          ],
+        },
         { OR: [{ publicFrom: null }, { publicFrom: { lte: now } }] }, // délai réservé à la liste d'attente écoulé
       ],
     },
-    select: { id: true, linkCode: true, priceMinor: true, createdAt: true, ticket: { select: { ticketTypeId: true, ticketType: { select: { name: true } } } } },
+    select: {
+      id: true,
+      linkCode: true,
+      priceMinor: true,
+      createdAt: true,
+      ticket: {
+        select: { ticketTypeId: true, ticketType: { select: { name: true } } },
+      },
+    },
   });
   const codes = new Map(rows.map((r) => [r.id, r.linkCode]));
   return groupListings(
@@ -227,15 +327,27 @@ export async function publicListings(eventId: string, now = new Date()) {
       priceMinor: r.priceMinor,
       createdAt: r.createdAt,
     })),
-  ).map((g) => ({ ...g, listings: g.listings.map((l) => ({ ...l, linkCode: codes.get(l.id)! })) }));
+  ).map((g) => ({
+    ...g,
+    listings: g.listings.map((l) => ({ ...l, linkCode: codes.get(l.id)! })),
+  }));
 }
 
 export async function getListingByCode(linkCode: string) {
   return db.resaleListing.findUnique({
     where: { linkCode },
     include: {
-      ticket: { select: { status: true, ticketType: { select: { name: true, description: true } } } },
-      event: { include: { organization: { select: { subdomain: true, slug: true, name: true } } } },
+      ticket: {
+        select: {
+          status: true,
+          ticketType: { select: { name: true, description: true } },
+        },
+      },
+      event: {
+        include: {
+          organization: { select: { subdomain: true, slug: true, name: true } },
+        },
+      },
     },
   });
 }
@@ -244,15 +356,24 @@ export async function getListingByCode(linkCode: string) {
  * Achat d'une place en revente, étape 2 : l'annonce est réservée pendant la durée de réservation de l'événement,
  * les autres visiteurs la voient indisponible. Le paiement suit le tunnel habituel (commande RESALE).
  */
-export async function reserveResale(linkCode: string, locale: string, now = new Date()): Promise<Reservation> {
+export async function reserveResale(
+  linkCode: string,
+  locale: string,
+  now = new Date(),
+): Promise<Reservation> {
   const orderId = `c${humanCode(24, ID_ALPHABET)}`;
   const token = orderAccessToken(orderId, 1);
   const accessTokenHash = await sha256Hex(token);
   const head = await db.resaleListing.findUnique({
     where: { linkCode },
-    select: { eventId: true, currency: true, event: { select: { organizationId: true, publishAt: true } } },
+    select: {
+      eventId: true,
+      currency: true,
+      event: { select: { organizationId: true, publishAt: true } },
+    },
   });
-  if (!head || isPrepublished(head.event, now)) throw new CoreError("NOT_FOUND"); // RG-PRG-02
+  if (!head || isPrepublished(head.event, now))
+    throw new CoreError("NOT_FOUND"); // RG-PRG-02
   const terms = await termsFor(head.event.organizationId, head.currency);
   const result = await db.$transaction(
     async (tx) => {
@@ -260,21 +381,42 @@ export async function reserveResale(linkCode: string, locale: string, now = new 
       const listing = await tx.resaleListing.findUniqueOrThrow({
         where: { linkCode },
         include: {
-          ticket: { include: { ticketType: { select: { id: true, name: true } } } },
-          event: { select: { checkoutHoldMinutes: true, organizationId: true } },
+          ticket: {
+            include: { ticketType: { select: { id: true, name: true } } },
+          },
+          event: {
+            select: { checkoutHoldMinutes: true, organizationId: true },
+          },
         },
       });
-      const stale = listing.status === "RESERVED" && (!listing.reservedUntil || listing.reservedUntil <= now);
-      if (listing.status !== "ACTIVE" && !stale) throw new CoreError(listing.status === "RESERVED" ? "RESALE_RESERVED" : "RESALE_UNAVAILABLE");
+      const stale =
+        listing.status === "RESERVED" &&
+        (!listing.reservedUntil || listing.reservedUntil <= now);
+      if (listing.status !== "ACTIVE" && !stale)
+        throw new CoreError(
+          listing.status === "RESERVED"
+            ? "RESALE_RESERVED"
+            : "RESALE_UNAVAILABLE",
+        );
       if (listing.expiresAt <= now) throw new CoreError("RESALE_EXPIRED");
-      if (listing.ticket.status !== "VALID") throw new CoreError("RESALE_UNAVAILABLE");
+      if (listing.ticket.status !== "VALID")
+        throw new CoreError("RESALE_UNAVAILABLE");
       // la réservation précédente, expirée, rend l'annonce : sa commande n'y est plus rattachée
       await tx.order.updateMany({
         where: { resaleListingId: listing.id, status: { not: "PAID" } },
-        data: { resaleListingId: null, ...(stale ? { status: "EXPIRED" } : {}) },
+        data: {
+          resaleListingId: null,
+          ...(stale ? { status: "EXPIRED" } : {}),
+        },
       });
-      const amounts = resaleAmounts(listing.priceMinor, terms, estimateBankFee(listing.priceMinor));
-      const holdExpiresAt = new Date(now.getTime() + listing.event.checkoutHoldMinutes * 60_000);
+      const amounts = resaleAmounts(
+        listing.priceMinor,
+        terms,
+        estimateBankFee(listing.priceMinor),
+      );
+      const holdExpiresAt = new Date(
+        now.getTime() + listing.event.checkoutHoldMinutes * 60_000,
+      );
       const order = await tx.order.create({
         data: {
           id: orderId,
@@ -291,24 +433,38 @@ export async function reserveResale(linkCode: string, locale: string, now = new 
           subtotalMinor: listing.priceMinor,
           totalMinor: listing.priceMinor,
           applicationFeeMinor: amounts.commissionMinor,
-          feeSnapshot: { resale: true, terms } as unknown as Prisma.InputJsonValue,
+          feeSnapshot: {
+            resale: true,
+            terms,
+          } as unknown as Prisma.InputJsonValue,
           holdExpiresAt,
           accessTokenHash,
           resaleListingId: listing.id,
           items: {
-            create: { ticketTypeId: listing.ticket.ticketTypeId, quantity: 1, unitPriceMinor: listing.priceMinor, unitFeeMinor: amounts.commissionMinor },
+            create: {
+              ticketTypeId: listing.ticket.ticketTypeId,
+              quantity: 1,
+              unitPriceMinor: listing.priceMinor,
+              unitFeeMinor: amounts.commissionMinor,
+            },
           },
         },
         include: { items: true },
       });
-      await tx.resaleListing.update({ where: { id: listing.id }, data: { status: "RESERVED", reservedUntil: holdExpiresAt } });
+      await tx.resaleListing.update({
+        where: { id: listing.id },
+        data: { status: "RESERVED", reservedUntil: holdExpiresAt },
+      });
       return { order, listing };
     },
     { timeout: 15_000, maxWait: 10_000 },
   );
   const account =
     result.order.totalMinor > 0
-      ? await db.stripeAccount.findUnique({ where: { organizationId: result.order.organizationId }, select: { stripeAccountId: true, chargesEnabled: true } })
+      ? await db.stripeAccount.findUnique({
+          where: { organizationId: result.order.organizationId },
+          select: { stripeAccountId: true, chargesEnabled: true },
+        })
       : null;
   return {
     orderId,
@@ -343,19 +499,50 @@ export async function reserveResale(linkCode: string, locale: string, now = new 
 export async function settleResale(buyerOrderId: string): Promise<void> {
   const order = await db.order.findUnique({
     where: { id: buyerOrderId },
-    include: { resaleListing: { include: { sellerOrder: true, event: { select: { title: true, organization: { select: { name: true } } } } } } },
+    include: {
+      resaleListing: {
+        include: {
+          sellerOrder: true,
+          event: {
+            select: { title: true, organization: { select: { name: true } } },
+          },
+        },
+      },
+    },
   });
   const listing = order?.resaleListing;
-  if (!order || order.source !== "RESALE" || !listing || listing.status !== "SOLD" || listing.sellerRefundMinor != null) return;
-  const terms = (order.feeSnapshot as { terms?: Parameters<typeof resaleAmounts>[1] } | null)?.terms ?? (await termsFor(order.organizationId, order.currency));
-  const amounts = resaleAmounts(listing.priceMinor, terms, order.paymentFeeMinor ?? estimateBankFee(listing.priceMinor));
+  if (
+    !order ||
+    order.source !== "RESALE" ||
+    !listing ||
+    listing.status !== "SOLD" ||
+    listing.sellerRefundMinor != null
+  )
+    return;
+  const terms =
+    (
+      order.feeSnapshot as {
+        terms?: Parameters<typeof resaleAmounts>[1];
+      } | null
+    )?.terms ?? (await termsFor(order.organizationId, order.currency));
+  const amounts = resaleAmounts(
+    listing.priceMinor,
+    terms,
+    order.paymentFeeMinor ?? estimateBankFee(listing.priceMinor),
+  );
   const seller = listing.sellerOrder;
   const locale = toLocale(seller.buyerLocale); // e-mails de revente dans les 7 langues
   if (amounts.sellerRefundMinor > 0) {
     const s = stripe();
-    const account = await db.stripeAccount.findUnique({ where: { organizationId: order.organizationId }, select: { stripeAccountId: true } });
+    const account = await db.stripeAccount.findUnique({
+      where: { organizationId: order.organizationId },
+      select: { stripeAccountId: true },
+    });
     try {
-      if (!s || !account || !seller.stripePaymentIntentId) throw new Error("paiement d'origine introuvable ou Stripe indisponible");
+      if (!s || !account || !seller.stripePaymentIntentId)
+        throw new Error(
+          "paiement d'origine introuvable ou Stripe indisponible",
+        );
       const refund = await s.refunds.create(
         {
           payment_intent: seller.stripePaymentIntentId,
@@ -364,20 +551,36 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
           reason: "requested_by_customer",
           metadata: { resaleListingId: listing.id, buyerOrderId },
         },
-        { stripeAccount: account.stripeAccountId, idempotencyKey: `resale:${listing.id}:seller-refund` },
+        {
+          stripeAccount: account.stripeAccountId,
+          idempotencyKey: `resale:${listing.id}:seller-refund`,
+        },
       );
       await db.$transaction([
-        db.resaleListing.update({ where: { id: listing.id }, data: { sellerRefundMinor: amounts.sellerRefundMinor, sellerStripeRefundId: refund.id } }),
+        db.resaleListing.update({
+          where: { id: listing.id },
+          data: {
+            sellerRefundMinor: amounts.sellerRefundMinor,
+            sellerStripeRefundId: refund.id,
+          },
+        }),
         db.order.update({
           where: { id: seller.id },
           data: {
             refundedMinor: { increment: amounts.sellerRefundMinor },
-            status: seller.refundedMinor + amounts.sellerRefundMinor >= seller.totalMinor ? "REFUNDED" : "PARTIALLY_REFUNDED",
+            status:
+              seller.refundedMinor + amounts.sellerRefundMinor >=
+              seller.totalMinor
+                ? "REFUNDED"
+                : "PARTIALLY_REFUNDED",
           },
         }),
       ]);
     } catch (err) {
-      await db.resaleListing.update({ where: { id: listing.id }, data: { status: "FAILED", failureReason: String(err).slice(0, 300) } });
+      await db.resaleListing.update({
+        where: { id: listing.id },
+        data: { status: "FAILED", failureReason: String(err).slice(0, 300) },
+      });
       await audit({
         action: "resale.seller_refund_failed",
         organizationId: order.organizationId,
@@ -386,7 +589,11 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
         targetId: listing.id,
         metadata: { error: String(err).slice(0, 300) },
       });
-      console.error("revente : remboursement du vendeur à traiter par le support", listing.id, err instanceof Error ? err.message : "erreur");
+      console.error(
+        "revente : remboursement du vendeur à traiter par le support",
+        listing.id,
+        err instanceof Error ? err.message : "erreur",
+      );
       await alertSupport(
         "remboursement du vendeur impossible",
         `Annonce ${listing.id}\nCommande du vendeur ${seller.id}\nMontant ${amounts.sellerRefundMinor} (centimes)\nErreur : ${String(err).slice(0, 300)}`,
@@ -394,7 +601,10 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
       return;
     }
   } else {
-    await db.resaleListing.update({ where: { id: listing.id }, data: { sellerRefundMinor: 0 } });
+    await db.resaleListing.update({
+      where: { id: listing.id },
+      data: { sellerRefundMinor: 0 },
+    });
   }
   const brand = await emailBrandFor(order.organizationId);
   const mail = resaleSellerEmail({
@@ -404,7 +614,10 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
     organizationName: listing.event.organization.name,
     eventTitle: listing.event.title,
     firstName: seller.buyerFirstName,
-    amount: amounts.sellerRefundMinor > 0 ? formatMoney(amounts.sellerRefundMinor, order.currency, locale) : null,
+    amount:
+      amounts.sellerRefundMinor > 0
+        ? formatMoney(amounts.sellerRefundMinor, order.currency, locale)
+        : null,
   });
   await sendEmail({
     ...mail,
@@ -415,7 +628,9 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
     orderId: seller.id,
     fromName: brand.fromName,
     replyTo: brand.replyTo,
-  }).catch((err) => console.error("e-mail vendeur", listing.id, safeError(err)));
+  }).catch((err) =>
+    console.error("e-mail vendeur", listing.id, safeError(err)),
+  );
   await notify(order.organizationId, "RESALE_SOLD", {
     title: listing.event.title,
     body: `Une place a été revendue${amounts.sellerRefundMinor > 0 ? `, vendeur remboursé de ${formatMoney(amounts.sellerRefundMinor, order.currency, locale)}` : ""}.`,
@@ -427,32 +642,62 @@ export async function listingsForOrganizer(eventId: string) {
   return db.resaleListing.findMany({
     where: { eventId },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    include: { ticket: { select: { shortCode: true, ticketType: { select: { name: true } } } } },
+    include: {
+      ticket: {
+        select: { shortCode: true, ticketType: { select: { name: true } } },
+      },
+    },
   });
 }
 
-export const resaleEventUrl = (org: { subdomain: string | null; slug: string }, linkCode: string) =>
-  `${organizationPublicUrl(org.subdomain ?? org.slug)}/revente/${linkCode}`;
+export const resaleEventUrl = (
+  org: { subdomain: string | null; slug: string },
+  linkCode: string,
+) => `${organizationPublicUrl(org.subdomain ?? org.slug)}/revente/${linkCode}`;
 
 /**
  * US-RSL-05 : vue d'ensemble des reventes de l'organisation. Chiffres de toutes ses annonces, événements à venir ou
  * avec annonces (état de la revente, compteurs), et dernières annonces tous événements confondus.
  */
-export async function organizationResaleOverview(organizationId: string, now = new Date()) {
+export async function organizationResaleOverview(
+  organizationId: string,
+  now = new Date(),
+) {
   const [grouped, recent, events] = await Promise.all([
-    db.resaleListing.groupBy({ by: ["eventId", "status"], where: { event: { organizationId } }, _count: { _all: true }, _sum: { priceMinor: true } }),
+    db.resaleListing.groupBy({
+      by: ["eventId", "status"],
+      where: { event: { organizationId } },
+      _count: { _all: true },
+      _sum: { priceMinor: true },
+    }),
     db.resaleListing.findMany({
       where: { event: { organizationId } },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 20,
       include: {
         event: { select: { id: true, title: true, timezone: true } },
-        ticket: { select: { shortCode: true, ticketType: { select: { name: true } } } },
+        ticket: {
+          select: { shortCode: true, ticketType: { select: { name: true } } },
+        },
       },
     }),
     db.event.findMany({
-      where: { organizationId, OR: [{ resaleListings: { some: {} } }, { status: "PUBLISHED", startsAt: { gte: now } }] },
-      select: { id: true, title: true, startsAt: true, timezone: true, status: true, resaleEnabled: true, resaleCutoffMinutes: true },
+      where: {
+        organizationId,
+        OR: [
+          { resaleListings: { some: {} } },
+          { status: "PUBLISHED", startsAt: { gte: now } },
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        startsAt: true,
+        timezone: true,
+        status: true,
+        resaleEnabled: true,
+        resaleCutoffMinutes: true,
+      },
       orderBy: { startsAt: "desc" },
       take: 30,
     }),
@@ -474,5 +719,12 @@ export async function organizationResaleOverview(organizationId: string, now = n
     if (g.status === "FAILED") totals.failed += n;
     perEvent.set(g.eventId, row);
   }
-  return { totals, recent, events: events.map((e) => ({ ...e, ...(perEvent.get(e.id) ?? { open: 0, sold: 0 }) })) };
+  return {
+    totals,
+    recent,
+    events: events.map((e) => ({
+      ...e,
+      ...(perEvent.get(e.id) ?? { open: 0, sold: 0 }),
+    })),
+  };
 }

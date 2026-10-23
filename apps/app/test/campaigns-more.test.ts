@@ -24,7 +24,13 @@ const CONTENT = blocksToEmailDoc([
 
 async function setup() {
   const id = rid();
-  const user = await db.user.create({ data: { name: "Camille Dupont", email: `own.${id}@exemple.be`, emailVerified: true } });
+  const user = await db.user.create({
+    data: {
+      name: "Camille Dupont",
+      email: `own.${id}@exemple.be`,
+      emailVerified: true,
+    },
+  });
   const org = await db.organization.create({
     data: {
       name: `Club ${id}`,
@@ -39,7 +45,14 @@ async function setup() {
       city: "Bruxelles",
     },
   });
-  await db.subscription.create({ data: { organizationId: org.id, planId: "pro", status: "ACTIVE", currentPeriodEnd: new Date(Date.now() + 60 * DAY) } });
+  await db.subscription.create({
+    data: {
+      organizationId: org.id,
+      planId: "pro",
+      status: "ACTIVE",
+      currentPeriodEnd: new Date(Date.now() + 60 * DAY),
+    },
+  });
   const event = await db.event.create({
     data: {
       organizationId: org.id,
@@ -50,14 +63,36 @@ async function setup() {
       timezone: "Europe/Brussels",
       startsAt: new Date(Date.now() + 20 * DAY),
       status: "PUBLISHED",
-      ticketTypes: { create: { name: "Entrée", priceMinor: 0, currency: "EUR", quantity: 50 } },
+      ticketTypes: {
+        create: {
+          name: "Entrée",
+          priceMinor: 0,
+          currency: "EUR",
+          quantity: 50,
+        },
+      },
     },
     include: { ticketTypes: true },
   });
-  const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" });
-  await submitBuyer(r.token, { firstName: "Anna", lastName: "Test", email: `anna.${id}@exemple.be`, marketingOptIn: true });
+  const r = await reserveOrder({
+    eventId: event.id,
+    lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }],
+    locale: "fr",
+  });
+  await submitBuyer(r.token, {
+    firstName: "Anna",
+    lastName: "Test",
+    email: `anna.${id}@exemple.be`,
+    marketingOptIn: true,
+  });
   const ctx = {
-    organization: { id: org.id, slug: org.slug, name: org.name, locale: "fr", timezone: "Europe/Brussels" },
+    organization: {
+      id: org.id,
+      slug: org.slug,
+      name: org.name,
+      locale: "fr",
+      timezone: "Europe/Brussels",
+    },
     user: { id: user.id, name: user.name, email: user.email },
     features: (await getPlans()).pro.features,
   } as unknown as OrgContext;
@@ -69,12 +104,30 @@ describe("campagnes : audience, rendu, aperçu, envoi de test, programmation, su
     const s = await setup();
     expect(await countAudience(s.ctx, { kind: "ALL_CONSENTING" })).toBe(1);
     expect(await countAudience(s.ctx, { kind: "INCONNU" })).toBe(0);
-    expect(JSON.stringify(await renderCampaignDraft(s.ctx, { subject: "Notre prochaine date", content: CONTENT }))).toContain("Notre prochaine date arrive.");
-    const c = await saveCampaign(s.ctx, { name: "Relance", subject: "Notre prochaine date", content: CONTENT, segment: { kind: "ALL_CONSENTING" } });
-    expect(JSON.stringify(await previewCampaign(s.ctx, c.id))).toContain("Camille"); // prénom de l'organisateur dans l'aperçu
-    const avant = await db.emailMessage.count({ where: { toEmail: s.user.email } });
+    expect(
+      JSON.stringify(
+        await renderCampaignDraft(s.ctx, {
+          subject: "Notre prochaine date",
+          content: CONTENT,
+        }),
+      ),
+    ).toContain("Notre prochaine date arrive.");
+    const c = await saveCampaign(s.ctx, {
+      name: "Relance",
+      subject: "Notre prochaine date",
+      content: CONTENT,
+      segment: { kind: "ALL_CONSENTING" },
+    });
+    expect(JSON.stringify(await previewCampaign(s.ctx, c.id))).toContain(
+      "Camille",
+    ); // prénom de l'organisateur dans l'aperçu
+    const avant = await db.emailMessage.count({
+      where: { toEmail: s.user.email },
+    });
     expect(await sendTestCampaign(s.ctx, c.id)).toBe(s.user.email);
-    expect(await db.emailMessage.count({ where: { toEmail: s.user.email } })).toBeGreaterThan(avant);
+    expect(
+      await db.emailMessage.count({ where: { toEmail: s.user.email } }),
+    ).toBeGreaterThan(avant);
   });
 
   it("programmation trop proche refusée ; campagne programmée verrouillée ; brouillon supprimé ; événement annulé : campagne annulée et auteur prévenu", async () => {
@@ -85,15 +138,35 @@ describe("campagnes : audience, rendu, aperçu, envoi de test, programmation, su
       content: CONTENT,
       segment: { kind: "EVENTS", eventIds: [s.event.id], attendance: "ANY" },
     });
-    await expect(scheduleCampaign(s.ctx, c.id, new Date(Date.now() + 60_000))).rejects.toMatchObject({ code: "CAMPAIGN_SCHEDULE_TOO_SOON" });
+    await expect(
+      scheduleCampaign(s.ctx, c.id, new Date(Date.now() + 60_000)),
+    ).rejects.toMatchObject({ code: "CAMPAIGN_SCHEDULE_TOO_SOON" });
     await scheduleCampaign(s.ctx, c.id, new Date(Date.now() + DAY));
-    await expect(deleteCampaign(s.ctx, c.id)).rejects.toMatchObject({ code: "CAMPAIGN_LOCKED" });
-    const avant = await db.emailMessage.count({ where: { toEmail: s.user.email, template: "campaign.cancelled" } });
+    await expect(deleteCampaign(s.ctx, c.id)).rejects.toMatchObject({
+      code: "CAMPAIGN_LOCKED",
+    });
+    const avant = await db.emailMessage.count({
+      where: { toEmail: s.user.email, template: "campaign.cancelled" },
+    });
     await cancelCampaignsForEvent(s.event.id);
-    expect((await db.emailCampaign.findUniqueOrThrow({ where: { id: c.id } })).status).toBe("CANCELLED");
-    expect(await db.emailMessage.count({ where: { toEmail: s.user.email, template: "campaign.cancelled" } })).toBe(avant + 1);
-    const brouillon = await saveCampaign(s.ctx, { name: "Brouillon", subject: "À supprimer", content: CONTENT, segment: { kind: "ALL_CONSENTING" } });
+    expect(
+      (await db.emailCampaign.findUniqueOrThrow({ where: { id: c.id } }))
+        .status,
+    ).toBe("CANCELLED");
+    expect(
+      await db.emailMessage.count({
+        where: { toEmail: s.user.email, template: "campaign.cancelled" },
+      }),
+    ).toBe(avant + 1);
+    const brouillon = await saveCampaign(s.ctx, {
+      name: "Brouillon",
+      subject: "À supprimer",
+      content: CONTENT,
+      segment: { kind: "ALL_CONSENTING" },
+    });
     await deleteCampaign(s.ctx, brouillon.id);
-    expect(await db.emailCampaign.findUnique({ where: { id: brouillon.id } })).toBeNull();
+    expect(
+      await db.emailCampaign.findUnique({ where: { id: brouillon.id } }),
+    ).toBeNull();
   });
 });

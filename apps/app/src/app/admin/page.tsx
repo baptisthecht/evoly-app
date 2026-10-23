@@ -1,10 +1,17 @@
 import { formatDate, formatMoney } from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { platformDashboard, platformSearch, requireStaff } from "@/server/platform";
+import {
+  platformDashboard,
+  platformSearch,
+  requireStaff,
+} from "@/server/platform";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Back-office - Evoly", robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: "Back-office - Evoly",
+  robots: { index: false, follow: false },
+};
 
 const RISK: Record<string, string> = {
   NEW_ORG_HIGH_PRICE: "Nouvelle organisation, billet à prix élevé",
@@ -14,36 +21,61 @@ const RISK: Record<string, string> = {
 const card = "rounded-2xl bg-surface-raised p-5 ring-1 ring-line";
 
 /** Section 9.24 : tableau de bord et recherche du back-office Evoly. */
-export default async function AdminHome({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function AdminHome({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const st = await requireStaff("SUPPORT");
   const { q } = await searchParams;
-  const [dash, results] = await Promise.all([platformDashboard(), q ? platformSearch(q) : Promise.resolve(null)]);
+  const [dash, results] = await Promise.all([
+    platformDashboard(),
+    q ? platformSearch(q) : Promise.resolve(null),
+  ]);
   const eur = (v: number) => formatMoney(v, "EUR", "fr");
   return (
     <main className="min-h-dvh overflow-x-hidden bg-[var(--evoly-creme)] px-5 py-8 text-[var(--evoly-charbon)]">
       <div className="mx-auto grid min-w-0 max-w-6xl gap-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-baseline gap-4">
-            <h1 className="font-display text-3xl tracking-[-0.04em]">Back-office Evoly</h1>
-            <Link href="/admin/offres" className="text-sm underline underline-offset-4">
+            <h1 className="font-display text-3xl tracking-[-0.04em]">
+              Back-office Evoly
+            </h1>
+            <Link
+              href="/admin/offres"
+              className="text-sm underline underline-offset-4"
+            >
               Offres
             </Link>
-            <Link href="/admin/acquisition" className="text-sm underline underline-offset-4">
+            <Link
+              href="/admin/acquisition"
+              className="text-sm underline underline-offset-4"
+            >
               Acquisition
             </Link>
-            <Link href="/admin/prospection" className="text-sm underline underline-offset-4">
+            <Link
+              href="/admin/prospection"
+              className="text-sm underline underline-offset-4"
+            >
               Prospection
             </Link>
             {st.user.platformRole === "ADMIN" ? (
               // accès complet à la base (RG-ADM-01) : pgAdmin, derrière la session Evoly et la double authentification
-              <a href="/pgadmin/" target="_blank" rel="noopener" className="text-sm underline underline-offset-4">
+              <a
+                href="/pgadmin/"
+                target="_blank"
+                rel="noopener"
+                className="text-sm underline underline-offset-4"
+              >
                 Base de données
               </a>
             ) : null}
           </div>
           <p className="text-sm">
             {st.user.name} ·{" "}
-            <span className="rounded-full bg-[var(--evoly-charbon)] px-2 py-0.5 text-xs font-bold text-[var(--evoly-creme)]">{st.user.platformRole}</span>
+            <span className="rounded-full bg-[var(--evoly-charbon)] px-2 py-0.5 text-xs font-bold text-[var(--evoly-creme)]">
+              {st.user.platformRole}
+            </span>
           </p>
         </header>
         <form className="grid gap-2 sm:flex" role="search">
@@ -54,7 +86,10 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
             placeholder="Organisation, e-mail, événement, commande, billet, revente"
             className="h-12 w-full min-w-0 sm:flex-1 rounded-xl bg-surface-raised px-4 ring-1 ring-line-strong outline-none focus:ring-2 focus:ring-[var(--evoly-charbon)]"
           />
-          <button type="submit" className="h-12 rounded-full bg-[var(--evoly-charbon)] px-6 font-semibold text-[var(--evoly-creme)]">
+          <button
+            type="submit"
+            className="h-12 rounded-full bg-[var(--evoly-charbon)] px-6 font-semibold text-[var(--evoly-creme)]"
+          >
             Rechercher
           </button>
         </form>
@@ -62,13 +97,25 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
           <section className={`${card} grid gap-4`} aria-label="Résultats">
             {(
               [
-                ["Organisations", results.organizations.map((o) => ({ href: `/admin/organisations/${o.id}`, label: o.name, meta: `${o.slug} · ${o.status}` }))],
+                [
+                  "Organisations",
+                  results.organizations.map((o) => ({
+                    href: `/admin/organisations/${o.id}`,
+                    label: o.name,
+                    meta: `${o.slug} · ${o.status}`,
+                  })),
+                ],
                 [
                   "Utilisateurs",
                   results.users.map((u) => ({
-                    href: u.memberships[0] ? `/admin/organisations/${u.memberships[0].organization.id}` : null,
+                    href: u.memberships[0]
+                      ? `/admin/organisations/${u.memberships[0].organization.id}`
+                      : null,
                     label: `${u.name} <${u.email}>`,
-                    meta: u.memberships.map((m) => m.organization.name).join(", ") || "sans organisation",
+                    meta:
+                      u.memberships
+                        .map((m) => m.organization.name)
+                        .join(", ") || "sans organisation",
                   })),
                 ],
                 [
@@ -112,7 +159,10 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                     {rows.map((r, i) => (
                       <li key={i}>
                         {r.href ? (
-                          <Link href={r.href} className="font-semibold underline underline-offset-4">
+                          <Link
+                            href={r.href}
+                            className="font-semibold underline underline-offset-4"
+                          >
                             {r.label}
                           </Link>
                         ) : (
@@ -125,15 +175,23 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
                 </div>
               ) : null,
             )}
-            {Object.values(results).every((r) => r.length === 0) ? <p>Aucun résultat.</p> : null}
+            {Object.values(results).every((r) => r.length === 0) ? (
+              <p>Aucun résultat.</p>
+            ) : null}
           </section>
         ) : null}
-        <section className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6" aria-label="Indicateurs">
+        <section
+          className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6"
+          aria-label="Indicateurs"
+        >
           {[
             ["Ventes (30 j)", eur(dash.grossMinor)],
             ["Commissions (30 j)", eur(dash.commissionMinor)],
             ["Organisations actives", String(dash.activeOrganizations)],
-            ["Pro · essais · impayés", `${dash.subscriptions.pro} · ${dash.subscriptions.trialing} · ${dash.subscriptions.pastDue}`],
+            [
+              "Pro · essais · impayés",
+              `${dash.subscriptions.pro} · ${dash.subscriptions.trialing} · ${dash.subscriptions.pastDue}`,
+            ],
             ["Taux de litiges (90 j)", `${dash.disputeRate} %`],
             ["Taux de remboursements (90 j)", `${dash.refundRate} %`],
           ].map(([k, v]) => (
@@ -143,13 +201,21 @@ export default async function AdminHome({ searchParams }: { searchParams: Promis
             </div>
           ))}
         </section>
-        <section className={`${card} grid gap-2`} aria-label="Signaux de risque">
+        <section
+          className={`${card} grid gap-2`}
+          aria-label="Signaux de risque"
+        >
           <h2 className="font-display text-lg">Signaux de risque</h2>
-          {dash.risky.length === 0 ? <p className="text-sm text-ink-muted">Aucun signal.</p> : null}
+          {dash.risky.length === 0 ? (
+            <p className="text-sm text-ink-muted">Aucun signal.</p>
+          ) : null}
           <ul className="grid gap-1 text-sm">
             {dash.risky.map((r) => (
               <li key={r.id}>
-                <Link href={`/admin/organisations/${r.id}`} className="font-semibold underline underline-offset-4">
+                <Link
+                  href={`/admin/organisations/${r.id}`}
+                  className="font-semibold underline underline-offset-4"
+                >
                   {r.name}
                 </Link>{" "}
                 · {r.risks.map((k) => RISK[k]).join(", ")}

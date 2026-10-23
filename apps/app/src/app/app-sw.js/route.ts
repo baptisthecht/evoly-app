@@ -11,7 +11,14 @@ export const dynamic = "force-static";
  */
 export function GET() {
   const texts = Object.fromEntries(
-    LOCALES.map((l) => [l, { title: MESSAGES[l].pwa.offlineTitle, body: MESSAGES[l].pwa.offlineBody, retry: MESSAGES[l].pwa.offlineRetry }]),
+    LOCALES.map((l) => [
+      l,
+      {
+        title: MESSAGES[l].pwa.offlineTitle,
+        body: MESSAGES[l].pwa.offlineBody,
+        retry: MESSAGES[l].pwa.offlineRetry,
+      },
+    ]),
   );
   const js = `/* Evoly : application installable, sans cache de pages ; page « hors ligne » sans réseau. */
 const TEXTS = ${JSON.stringify(texts)};
@@ -42,5 +49,11 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(fetch(request).catch(() => offline()));
 });
 `;
-  return new Response(js, { headers: { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "no-cache", "Service-Worker-Allowed": "/" } });
+  return new Response(js, {
+    headers: {
+      "Content-Type": "text/javascript; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "Service-Worker-Allowed": "/",
+    },
+  });
 }

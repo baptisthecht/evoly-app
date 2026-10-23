@@ -27,7 +27,11 @@ async function tenter(id: string, action: () => Promise<unknown>) {
     code = err.code;
   }
   revalidatePath(orgPath(id));
-  redirect(code ? `${orgPath(id)}?erreur=${encodeURIComponent(code)}` : `${orgPath(id)}?ok=1`); // la réussite est confirmée
+  redirect(
+    code
+      ? `${orgPath(id)}?erreur=${encodeURIComponent(code)}`
+      : `${orgPath(id)}?ok=1`,
+  ); // la réussite est confirmée
 }
 const text = (f: FormData, k: string, max = 300) =>
   String(f.get(k) ?? "")
@@ -59,7 +63,11 @@ export async function assignPlanAction(id: string, form: FormData) {
     assignPlan(
       st,
       id,
-      form.get("plan") === "free" ? "free" : form.get("plan") === "partner" ? "partner" : "pro",
+      form.get("plan") === "free"
+        ? "free"
+        : form.get("plan") === "partner"
+          ? "partner"
+          : "pro",
       until ? new Date(`${until}T23:59:59Z`) : null,
       {
         resilierStripe: form.get("resilierStripe") === "on",
@@ -69,7 +77,10 @@ export async function assignPlanAction(id: string, form: FormData) {
 }
 
 export async function resendOrderAction(id: string, form: FormData) {
-  await resendOrderEmail(await requireStaff("ADMIN"), text(form, "orderId", 40));
+  await resendOrderEmail(
+    await requireStaff("ADMIN"),
+    text(form, "orderId", 40),
+  );
   revalidatePath(orgPath(id));
 }
 
@@ -79,7 +90,12 @@ export async function retryResaleAction(id: string, listingId: string) {
 }
 
 export async function featureFlagAction(id: string | null, form: FormData) {
-  await setFeatureFlag(await requireStaff("ADMIN"), text(form, "key", 60), id, form.get("enabled") === "on");
+  await setFeatureFlag(
+    await requireStaff("ADMIN"),
+    text(form, "key", 60),
+    id,
+    form.get("enabled") === "on",
+  );
   revalidatePath(id ? orgPath(id) : "/admin");
 }
 

@@ -21,10 +21,29 @@ const map = (taken: number[] = []) =>
   ({
     focus: { x: 75, y: -100 },
     blocks: [],
-    categories: [{ id: "c1", name: "Parterre", color: "#FFB8E8", ticketTypeIds: ["t1"], standing: false }],
-    rows: [{ id: "r1", name: "A", blockId: null, seats: [1, 2, 3, 4, 5, 6].map((n) => seat(n, !taken.includes(n))) }],
+    categories: [
+      {
+        id: "c1",
+        name: "Parterre",
+        color: "#FFB8E8",
+        ticketTypeIds: ["t1"],
+        standing: false,
+      },
+    ],
+    rows: [
+      {
+        id: "r1",
+        name: "A",
+        blockId: null,
+        seats: [1, 2, 3, 4, 5, 6].map((n) => seat(n, !taken.includes(n))),
+      },
+    ],
   }) as never;
-const label = (n: number, state: "selected" | "free") => sp.seat!.replace("{row}", "A").replace("{seat}", String(n)).replace("{state}", sp[state]!);
+const label = (n: number, state: "selected" | "free") =>
+  sp
+    .seat!.replace("{row}", "A")
+    .replace("{seat}", String(n))
+    .replace("{state}", sp[state]!);
 
 /** Le composant parent garde le choix, comme le panier. */
 function Harness({
@@ -62,7 +81,13 @@ const draw = (props: Omit<Parameters<typeof Harness>[0], "log"> = {}) => {
   return log;
 };
 const press = (n: number, state: "selected" | "free" = "free") =>
-  act(() => void fireEvent.keyDown(screen.getByRole("button", { name: label(n, state) }), { key: "Enter" }));
+  act(
+    () =>
+      void fireEvent.keyDown(
+        screen.getByRole("button", { name: label(n, state) }),
+        { key: "Enter" },
+      ),
+  );
 
 describe("choix des places : gestes au doigt", () => {
   // le navigateur simulé ne connaît pas les événements de pointeur : version minimale, avec la capture du pointeur
@@ -79,7 +104,8 @@ describe("choix des places : gestes au doigt", () => {
     Element.prototype.releasePointerCapture = () => undefined;
     Element.prototype.hasPointerCapture = () => false;
   });
-  const frame = (svg: Element) => svg.getAttribute("viewBox")!.split(/\s+/).map(Number);
+  const frame = (svg: Element) =>
+    svg.getAttribute("viewBox")!.split(/\s+/).map(Number);
 
   it("glissement d'un doigt : le plan se déplace", () => {
     const { container } = render(

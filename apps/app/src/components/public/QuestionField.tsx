@@ -3,7 +3,14 @@
 import type { QuestionType } from "@evoly/core";
 import { Input, Select } from "../ui/Field";
 
-export type PublicQuestion = { id: string; label: string; helpText: string | null; type: QuestionType; required: boolean; options?: string[] | null };
+export type PublicQuestion = {
+  id: string;
+  label: string;
+  helpText: string | null;
+  type: QuestionType;
+  required: boolean;
+  options?: string[] | null;
+};
 
 /** Champ d'une question à l'achat (US-QST-01), selon son type. */
 export function QuestionField({
@@ -25,7 +32,9 @@ export function QuestionField({
       {q.required ? <span aria-hidden="true"> *</span> : null}
     </span>
   );
-  const help = q.helpText ? <span className="text-xs text-ink-muted">{q.helpText}</span> : null;
+  const help = q.helpText ? (
+    <span className="text-xs text-ink-muted">{q.helpText}</span>
+  ) : null;
   const err = error ? (
     <span className="text-sm text-danger" role="alert">
       {error}
@@ -62,7 +71,11 @@ export function QuestionField({
             <input
               type="checkbox"
               checked={list.includes(o)}
-              onChange={(e) => onChange(e.target.checked ? [...list, o] : list.filter((x) => x !== o))}
+              onChange={(e) =>
+                onChange(
+                  e.target.checked ? [...list, o] : list.filter((x) => x !== o),
+                )
+              }
               className="size-5 accent-[var(--ink)]"
             />
             {o}
@@ -77,7 +90,12 @@ export function QuestionField({
     <label className="grid gap-1.5" htmlFor={id}>
       {label}
       {q.type === "SELECT" ? (
-        <Select id={id} value={typeof value === "string" ? value : ""} onChange={(e) => onChange(e.target.value)} aria-invalid={!!error}>
+        <Select
+          id={id}
+          value={typeof value === "string" ? value : ""}
+          onChange={(e) => onChange(e.target.value)}
+          aria-invalid={!!error}
+        >
           <option value="">-</option>
           {(q.options ?? []).map((o) => (
             <option key={o} value={o}>
@@ -98,9 +116,33 @@ export function QuestionField({
       ) : (
         <Input
           id={id}
-          type={q.type === "NUMBER" ? "text" : q.type === "DATE" ? "date" : q.type === "PHONE" ? "tel" : q.type === "EMAIL" ? "email" : "text"}
-          inputMode={q.type === "NUMBER" ? "decimal" : q.type === "PHONE" ? "tel" : q.type === "EMAIL" ? "email" : undefined}
-          value={typeof value === "string" ? value : value == null ? "" : String(value)}
+          type={
+            q.type === "NUMBER"
+              ? "text"
+              : q.type === "DATE"
+                ? "date"
+                : q.type === "PHONE"
+                  ? "tel"
+                  : q.type === "EMAIL"
+                    ? "email"
+                    : "text"
+          }
+          inputMode={
+            q.type === "NUMBER"
+              ? "decimal"
+              : q.type === "PHONE"
+                ? "tel"
+                : q.type === "EMAIL"
+                  ? "email"
+                  : undefined
+          }
+          value={
+            typeof value === "string"
+              ? value
+              : value == null
+                ? ""
+                : String(value)
+          }
           onChange={(e) => onChange(e.target.value)}
           maxLength={q.type === "TEXT" ? 200 : 200}
           invalid={!!error}

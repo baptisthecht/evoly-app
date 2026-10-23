@@ -11,7 +11,11 @@ export function isLocale(value: string | null | undefined): value is Locale {
  * Choisit la langue d'affichage à partir de l'en-tête Accept-Language du navigateur (RG-I18N, section 7.3).
  * Ordre : préférence mémorisée, langues du navigateur par poids, langue de repli.
  */
-export function negotiateLocale(acceptLanguage: string | null | undefined, remembered?: string | null, fallback: Locale = DEFAULT_LOCALE): Locale {
+export function negotiateLocale(
+  acceptLanguage: string | null | undefined,
+  remembered?: string | null,
+  fallback: Locale = DEFAULT_LOCALE,
+): Locale {
   if (isLocale(remembered)) return remembered;
   if (!acceptLanguage) return fallback;
   const ranked = acceptLanguage
@@ -50,12 +54,18 @@ export function baseLocale(locale: string | null | undefined): "fr" | "en" {
 }
 
 /** Une langue connue, sinon le repli indiqué. */
-export function toLocale(value: string | null | undefined, fallback: Locale = DEFAULT_LOCALE): Locale {
+export function toLocale(
+  value: string | null | undefined,
+  fallback: Locale = DEFAULT_LOCALE,
+): Locale {
   return isLocale(value) ? value : fallback;
 }
 
 /** Texte d'un modèle dans la langue demandée, sinon en anglais (modèles traduits progressivement). */
-export function pick<C extends { en: unknown }>(copy: C, locale: string | null | undefined): C["en"] {
+export function pick<C extends { en: unknown }>(
+  copy: C,
+  locale: string | null | undefined,
+): C["en"] {
   const all = copy as unknown as Partial<Record<Locale, C["en"]>>;
   return (isLocale(locale) ? all[locale] : undefined) ?? copy.en;
 }

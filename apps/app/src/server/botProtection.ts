@@ -1,5 +1,10 @@
 import "server-only";
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { hit } from "./rateLimit";
@@ -12,12 +17,19 @@ import { hit } from "./rateLimit";
 export const BOT_DIFFICULTY = 14; // bits nuls : environ 16 000 essais en moyenne
 const TTL_MS = 10 * 60_000;
 
-export type BotChallenge = { salt: string; difficulty: number; expires: number; signature: string };
+export type BotChallenge = {
+  salt: string;
+  difficulty: number;
+  expires: number;
+  signature: string;
+};
 export type BotProof = BotChallenge & { nonce: number };
 
 const secret = () => env().ORDER_TOKEN_SECRET ?? env().BETTER_AUTH_SECRET;
 const sign = (eventId: string, c: Omit<BotChallenge, "signature">) =>
-  createHmac("sha256", secret()).update(`${eventId}|${c.salt}|${c.difficulty}|${c.expires}`).digest("hex");
+  createHmac("sha256", secret())
+    .update(`${eventId}|${c.salt}|${c.difficulty}|${c.expires}`)
+    .digest("hex");
 
 export function leadingZeroBits(bytes: Uint8Array): number {
   let n = 0;
@@ -32,26 +44,67 @@ export function leadingZeroBits(bytes: Uint8Array): number {
   return n;
 }
 
-export function createChallenge(eventId: string, now = Date.now(), difficulty = BOT_DIFFICULTY): BotChallenge {
-  const c = { salt: randomBytes(16).toString("hex"), difficulty, expires: now + TTL_MS };
+export function createChallenge(
+  eventId: string,
+  now = Date.now(),
+  difficulty = BOT_DIFFICULTY,
+): BotChallenge {
+  const c = {
+    salt: randomBytes(16).toString("hex"),
+    difficulty,
+    expires: now + TTL_MS,
+  };
   return { ...c, signature: sign(eventId, c) };
 }
 
 /** Vérifie la preuve : signature, validité, calcul ; une seule utilisation par défi. */
-export async function verifyProof(eventId: string, proof: unknown, now = Date.now()): Promise<boolean> {
+export async function verifyProof(
+  eventId: string,
+  proof: unknown,
+  now = Date.now(),
+): Promise<boolean> {
   if (!proof || typeof proof !== "object") return false;
   const p = proof as Partial<BotProof>;
-  if (typeof p.salt !== "string" || !/^[0-9a-f]{32}$/.test(p.salt) || typeof p.nonce !== "number" || !Number.isInteger(p.nonce) || p.nonce < 0) return false;
-  if (typeof p.difficulty !== "number" || p.difficulty < BOT_DIFFICULTY || typeof p.expires !== "number" || p.expires < now || typeof p.signature !== "string")
+  if (
+    typeof p.salt !== "string" ||
+    !/^[0-9a-f]{32}$/.test(p.salt) ||
+    typeof p.nonce !== "number" ||
+    !Number.isInteger(p.nonce) ||
+    p.nonce < 0
+  )
     return false;
-  const expected = Buffer.from(sign(eventId, { salt: p.salt, difficulty: p.difficulty, expires: p.expires }), "hex");
+  if (
+    typeof p.difficulty !== "number" ||
+    p.difficulty < BOT_DIFFICULTY ||
+    typeof p.expires !== "number" ||
+    p.expires < now ||
+    typeof p.signature !== "string"
+  )
+    return false;
+  const expected = Buffer.from(
+    sign(eventId, {
+      salt: p.salt,
+      difficulty: p.difficulty,
+      expires: p.expires,
+    }),
+    "hex",
+  );
   const given = Buffer.from(p.signature, "hex");
-  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return false;
-  if (leadingZeroBits(createHash("sha256").update(`${p.salt}${p.nonce}`).digest()) < p.difficulty) return false;
+  if (given.length !== expected.length || !timingSafeEqual(given, expected))
+    return false;
+  if (
+    leadingZeroBits(
+      createHash("sha256").update(`${p.salt}${p.nonce}`).digest(),
+    ) < p.difficulty
+  )
+    return false;
   return (await hit(`bot:${p.salt}`, Math.ceil(TTL_MS / 1000))) === 1;
 }
 
 export async function botProtected(eventId: string): Promise<boolean> {
-  const e = await db.event.findUnique({ where: { id: eventId }, select: { botProtection: true } });
+  const e = await db.event.findUnique({
+    where: { id: eventId },
+    select: { botProtection: true },
+  });
   return !!e?.botProtection;
 }

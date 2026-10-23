@@ -14,9 +14,17 @@ describe("publication programmée (RG-PRG-01, RG-PRG-02)", () => {
 
   it("les ventes ouvrent à la plus tardive des deux dates", () => {
     expect(salesOpeningAt({ publishAt: null, salesStartAt: null })).toBeNull();
-    expect(salesOpeningAt({ publishAt: later, salesStartAt: null })).toEqual(later);
-    expect(salesOpeningAt({ publishAt: null, salesStartAt: earlier })).toEqual(earlier);
-    expect(salesOpeningAt({ publishAt: later, salesStartAt: earlier })).toEqual(later);
-    expect(salesOpeningAt({ publishAt: earlier, salesStartAt: later })).toEqual(later);
+    expect(salesOpeningAt({ publishAt: later, salesStartAt: null })).toEqual(
+      later,
+    );
+    expect(salesOpeningAt({ publishAt: null, salesStartAt: earlier })).toEqual(
+      earlier,
+    );
+    expect(salesOpeningAt({ publishAt: later, salesStartAt: earlier })).toEqual(
+      later,
+    );
+    expect(salesOpeningAt({ publishAt: earlier, salesStartAt: later })).toEqual(
+      later,
+    );
   });
 });

@@ -6,15 +6,26 @@ import { useEffect, useState } from "react";
  * « Installer l'application » : invitation du navigateur quand elle existe (Chrome, Edge, Android) ; sur iPhone et iPad,
  * où Safari n'en propose pas, la marche à suivre. Masqué quand l'app est déjà installée ou que rien n'est possible.
  */
-export function InstallAppButton({ label, iosHint }: { label: string; iosHint: string }) {
+export function InstallAppButton({
+  label,
+  iosHint,
+}: {
+  label: string;
+  iosHint: string;
+}) {
   const [mode, setMode] = useState<"hidden" | "prompt" | "ios">("hidden");
   const [hint, setHint] = useState(false);
 
   useEffect(() => {
-    const installed = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    const installed =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
     if (installed) return;
-    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const update = () => setMode(window.__evolyInstall ? "prompt" : ios ? "ios" : "hidden");
+    const ios =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const update = () =>
+      setMode(window.__evolyInstall ? "prompt" : ios ? "ios" : "hidden");
     update();
     window.addEventListener("evoly:installable", update);
     return () => window.removeEventListener("evoly:installable", update);

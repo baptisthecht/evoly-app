@@ -11,7 +11,12 @@ type Labels = {
   file: string;
   consent: string;
   submit: string;
-  done: (r: { created: number; updated: number; unsubscribed: number; invalid: number }) => string;
+  done: (r: {
+    created: number;
+    updated: number;
+    unsubscribed: number;
+    invalid: number;
+  }) => string;
   error: (code: string) => string;
 };
 
@@ -21,7 +26,11 @@ export function ImportContacts({
   labels,
 }: {
   orgSlug: string;
-  labels: Omit<Labels, "done" | "error"> & { doneTemplate: string; errors: Record<string, string>; fallbackError: string };
+  labels: Omit<Labels, "done" | "error"> & {
+    doneTemplate: string;
+    errors: Record<string, string>;
+    fallbackError: string;
+  };
 }) {
   const id = useId();
   const [file, setFile] = useState<File | null>(null);
@@ -38,19 +47,48 @@ export function ImportContacts({
           e.preventDefault();
           if (!file) return;
           start(async () => {
-            const r = await importContactsAction(orgSlug, await file.text(), consent);
+            const r = await importContactsAction(
+              orgSlug,
+              await file.text(),
+              consent,
+            );
             if (r?.ok)
-              setMsg({ ok: true, text: labels.doneTemplate.replace(/\{(\w+)\}/g, (_, k: string) => String((r.data as Record<string, number>)[k] ?? 0)) });
-            else setMsg({ ok: false, text: (r && !r.ok && labels.errors[r.error]) || labels.fallbackError });
+              setMsg({
+                ok: true,
+                text: labels.doneTemplate.replace(
+                  /\{(\w+)\}/g,
+                  (_, k: string) =>
+                    String((r.data as Record<string, number>)[k] ?? 0),
+                ),
+              });
+            else
+              setMsg({
+                ok: false,
+                text:
+                  (r && !r.ok && labels.errors[r.error]) ||
+                  labels.fallbackError,
+              });
           });
         }}
       >
         <label className="grid gap-1 text-sm" htmlFor={`${id}-f`}>
           <span className="font-medium">{labels.file}</span>
-          <input id={`${id}-f`} type="file" accept=".csv,text/csv,text/plain" required onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input
+            id={`${id}-f`}
+            type="file"
+            accept=".csv,text/csv,text/plain"
+            required
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
         </label>
         <label className="flex items-start gap-2 text-sm">
-          <input type="checkbox" className="mt-1 size-4 accent-ink" required checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+          <input
+            type="checkbox"
+            className="mt-1 size-4 accent-ink"
+            required
+            checked={consent}
+            onChange={(e) => setConsent(e.target.checked)}
+          />
           <span>{labels.consent}</span>
         </label>
         <div>
@@ -59,7 +97,10 @@ export function ImportContacts({
           </Button>
         </div>
         {msg ? (
-          <p role="status" className={msg.ok ? "text-sm text-success" : "text-sm text-danger"}>
+          <p
+            role="status"
+            className={msg.ok ? "text-sm text-success" : "text-sm text-danger"}
+          >
             {msg.text}
           </p>
         ) : null}

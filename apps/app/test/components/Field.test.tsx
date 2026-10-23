@@ -12,7 +12,9 @@ describe("champ de formulaire accessible (WCAG 3.3.1, 1.3.1)", () => {
     const input = screen.getByLabelText("Nom");
     expect(input.getAttribute("aria-invalid")).toBe("true");
     expect(input.getAttribute("aria-describedby")).toBe("nom-error");
-    expect(document.getElementById("nom-error")!.textContent).toBe("Obligatoire.");
+    expect(document.getElementById("nom-error")!.textContent).toBe(
+      "Obligatoire.",
+    );
   });
 
   it("avec une aide : relié à l'aide, sans être marqué invalide", () => {
@@ -22,7 +24,10 @@ describe("champ de formulaire accessible (WCAG 3.3.1, 1.3.1)", () => {
       </Field>,
     );
     const input = screen.getByLabelText("Jauge");
-    expect([input.getAttribute("aria-invalid"), input.getAttribute("aria-describedby")]).toEqual([null, "jauge-hint"]);
+    expect([
+      input.getAttribute("aria-invalid"),
+      input.getAttribute("aria-describedby"),
+    ]).toEqual([null, "jauge-hint"]);
   });
 
   it("un lien déjà présent est conservé ; une précision de l'écran est respectée", () => {
@@ -38,8 +43,12 @@ describe("champ de formulaire accessible (WCAG 3.3.1, 1.3.1)", () => {
         </Field>
       </>,
     );
-    expect(screen.getByLabelText("Code").getAttribute("aria-describedby")).toBe("code-exemple code-error");
-    expect(screen.getByLabelText("Pays").getAttribute("aria-invalid")).toBe("false");
+    expect(screen.getByLabelText("Code").getAttribute("aria-describedby")).toBe(
+      "code-exemple code-error",
+    );
+    expect(screen.getByLabelText("Pays").getAttribute("aria-invalid")).toBe(
+      "false",
+    );
   });
 
   it("sans erreur ni aide : rien n'est ajouté", () => {
@@ -49,7 +58,10 @@ describe("champ de formulaire accessible (WCAG 3.3.1, 1.3.1)", () => {
       </Field>,
     );
     const input = screen.getByLabelText("Ville");
-    expect([input.getAttribute("aria-invalid"), input.getAttribute("aria-describedby")]).toEqual([null, null]);
+    expect([
+      input.getAttribute("aria-invalid"),
+      input.getAttribute("aria-describedby"),
+    ]).toEqual([null, null]);
   });
 
   it("plusieurs éléments : laissés tels quels", () => {
@@ -59,6 +71,8 @@ describe("champ de formulaire accessible (WCAG 3.3.1, 1.3.1)", () => {
         <span>€</span>
       </Field>,
     );
-    expect(screen.getByLabelText("Prix").getAttribute("aria-describedby")).toBeNull();
+    expect(
+      screen.getByLabelText("Prix").getAttribute("aria-describedby"),
+    ).toBeNull();
   });
 });

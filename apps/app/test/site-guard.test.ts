@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const req = vi.hoisted(() => ({ site: "club" as string | null }));
-vi.mock("next/headers", () => ({ headers: async () => new Headers(req.site ? { "x-evoly-site": req.site } : {}) }));
+vi.mock("next/headers", () => ({
+  headers: async () =>
+    new Headers(req.site ? { "x-evoly-site": req.site } : {}),
+}));
 vi.mock("next/navigation", () => ({
   notFound: () => {
     throw new Error("NOT_FOUND");
@@ -11,7 +14,9 @@ vi.mock("next/navigation", () => ({
   },
 }));
 const site = vi.hoisted(() => ({ value: null as unknown }));
-vi.mock("@/server/publicEvents", () => ({ resolveSite: async () => site.value }));
+vi.mock("@/server/publicEvents", () => ({
+  resolveSite: async () => site.value,
+}));
 
 const { assertSiteRequest, siteGate } = await import("@/server/siteGuard");
 
@@ -30,7 +35,10 @@ describe("pages publiques (RG-DOM-01, RG-SDM-03)", () => {
   });
 
   it("site connu : rendu tel quel", async () => {
-    expect(await siteGate("club", "/")).toEqual({ kind: "ORGANIZATION", id: "o1" });
+    expect(await siteGate("club", "/")).toEqual({
+      kind: "ORGANIZATION",
+      id: "o1",
+    });
   });
 
   it("site inconnu : introuvable", async () => {
@@ -39,14 +47,32 @@ describe("pages publiques (RG-DOM-01, RG-SDM-03)", () => {
   });
 
   it("ancienne adresse : redirection définitive, l'accueil vers la page racine du nouveau site", async () => {
-    site.value = { kind: "REDIRECT", base: "https://neuf.evoly.me", rootPath: "/gala" };
-    await expect(siteGate("club", "/")).rejects.toThrow("REDIRECT https://neuf.evoly.me/gala");
-    site.value = { kind: "REDIRECT", base: "https://neuf.evoly.me", rootPath: "" };
-    await expect(siteGate("club", "/")).rejects.toThrow("REDIRECT https://neuf.evoly.me/");
+    site.value = {
+      kind: "REDIRECT",
+      base: "https://neuf.evoly.me",
+      rootPath: "/gala",
+    };
+    await expect(siteGate("club", "/")).rejects.toThrow(
+      "REDIRECT https://neuf.evoly.me/gala",
+    );
+    site.value = {
+      kind: "REDIRECT",
+      base: "https://neuf.evoly.me",
+      rootPath: "",
+    };
+    await expect(siteGate("club", "/")).rejects.toThrow(
+      "REDIRECT https://neuf.evoly.me/",
+    );
   });
 
   it("ancienne adresse d'une sous-page : redirigée vers la même sous-page", async () => {
-    site.value = { kind: "REDIRECT", base: "https://neuf.evoly.me", rootPath: "/gala" };
-    await expect(siteGate("club", "/billets")).rejects.toThrow("REDIRECT https://neuf.evoly.me/billets");
+    site.value = {
+      kind: "REDIRECT",
+      base: "https://neuf.evoly.me",
+      rootPath: "/gala",
+    };
+    await expect(siteGate("club", "/billets")).rejects.toThrow(
+      "REDIRECT https://neuf.evoly.me/billets",
+    );
   });
 });

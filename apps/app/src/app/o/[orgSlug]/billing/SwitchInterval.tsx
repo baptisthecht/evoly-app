@@ -26,7 +26,13 @@ export function SwitchInterval({
         type="button"
         variant="secondary"
         disabled={pending}
-        onClick={() => start(async () => setMsg((await switchIntervalAction(orgSlug, target))?.ok ? done : error))}
+        onClick={() =>
+          start(async () =>
+            setMsg(
+              (await switchIntervalAction(orgSlug, target))?.ok ? done : error,
+            ),
+          )
+        }
       >
         {label}
       </Button>

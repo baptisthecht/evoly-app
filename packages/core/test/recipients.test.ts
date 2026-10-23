@@ -28,7 +28,9 @@ describe("billets offerts : liste des destinataires (US-ORD-03)", () => {
     expect(r.tooMany).toBe(false);
   });
   it("au plus 200 destinataires par envoi", () => {
-    const r = parseRecipients(Array.from({ length: 205 }, (_, i) => `p${i}@exemple.be`).join("\n"));
+    const r = parseRecipients(
+      Array.from({ length: 205 }, (_, i) => `p${i}@exemple.be`).join("\n"),
+    );
     expect(r.recipients).toHaveLength(200);
     expect(r.tooMany).toBe(true);
   });

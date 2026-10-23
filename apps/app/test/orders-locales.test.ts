@@ -8,7 +8,15 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 async function event(o: { online?: boolean; quantity?: number } = {}) {
   const id = rid();
   const org = await db.organization.create({
-    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    data: {
+      name: `Club ${id}`,
+      slug: `club-${id}`,
+      subdomain: `club-${id}`,
+      country: "BE",
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      locale: "fr",
+    },
   });
   const e = await db.event.create({
     data: {
@@ -23,8 +31,23 @@ async function event(o: { online?: boolean; quantity?: number } = {}) {
       visibility: "PUBLIC",
       ...(o.online
         ? { locationType: "ONLINE", onlineUrl: "https://visio.exemple.be/gala" }
-        : { locationType: "PHYSICAL", locationName: "Salle des fêtes", city: "Mouscron", country: "BE" }),
-      ticketTypes: { create: [{ name: "Entrée", priceMinor: 0, currency: "EUR", quantity: o.quantity ?? 100, sortOrder: 0 }] },
+        : {
+            locationType: "PHYSICAL",
+            locationName: "Salle des fêtes",
+            city: "Mouscron",
+            country: "BE",
+          }),
+      ticketTypes: {
+        create: [
+          {
+            name: "Entrée",
+            priceMinor: 0,
+            currency: "EUR",
+            quantity: o.quantity ?? 100,
+            sortOrder: 0,
+          },
+        ],
+      },
     },
     include: { ticketTypes: true },
   });
@@ -36,10 +59,23 @@ describe("confirmation de commande", () => {
     const { event: e, ticketTypeId, id } = await event({ online: true });
     const subjects: string[] = [];
     for (const locale of ["en", "es", "de", "it", "pt", "nl"]) {
-      const r = await reserveOrder({ eventId: e.id, lines: [{ ticketTypeId, quantity: 2 }], locale });
-      await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${locale}.${id}@exemple.be`, marketingOptIn: false });
-      const order = await db.order.findFirstOrThrow({ where: { eventId: e.id, buyerEmail: `lea.${locale}.${id}@exemple.be` } });
-      const mail = await db.emailMessage.findFirst({ where: { orderId: order.id, template: "order.confirmation" } });
+      const r = await reserveOrder({
+        eventId: e.id,
+        lines: [{ ticketTypeId, quantity: 2 }],
+        locale,
+      });
+      await submitBuyer(r.token, {
+        firstName: "Léa",
+        lastName: "Martin",
+        email: `lea.${locale}.${id}@exemple.be`,
+        marketingOptIn: false,
+      });
+      const order = await db.order.findFirstOrThrow({
+        where: { eventId: e.id, buyerEmail: `lea.${locale}.${id}@exemple.be` },
+      });
+      const mail = await db.emailMessage.findFirst({
+        where: { orderId: order.id, template: "order.confirmation" },
+      });
       expect(mail, `confirmation en ${locale}`).not.toBeNull();
       expect(mail!.locale).toBe(locale); // langue enregistrée avec l'e-mail
       expect(mail!.subject).toContain(e.title);
@@ -53,10 +89,31 @@ describe("confirmation de commande", () => {
 describe("liste d'attente : inscription sans doublon", () => {
   it("déjà inscrit et en attente : la même inscription est rendue, rien n'est dupliqué", async () => {
     const { event: e, ticketTypeId, id } = await event({ quantity: 1 });
-    const r = await reserveOrder({ eventId: e.id, lines: [{ ticketTypeId, quantity: 1 }], locale: "fr" });
-    await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `premier.${id}@exemple.be`, marketingOptIn: false });
-    const first = await joinWaitlist(e.id, ticketTypeId, `attente.${id}@exemple.be`, 1, "fr");
-    const again = await joinWaitlist(e.id, ticketTypeId, `attente.${id}@exemple.be`, 2, "fr");
+    const r = await reserveOrder({
+      eventId: e.id,
+      lines: [{ ticketTypeId, quantity: 1 }],
+      locale: "fr",
+    });
+    await submitBuyer(r.token, {
+      firstName: "Léa",
+      lastName: "Martin",
+      email: `premier.${id}@exemple.be`,
+      marketingOptIn: false,
+    });
+    const first = await joinWaitlist(
+      e.id,
+      ticketTypeId,
+      `attente.${id}@exemple.be`,
+      1,
+      "fr",
+    );
+    const again = await joinWaitlist(
+      e.id,
+      ticketTypeId,
+      `attente.${id}@exemple.be`,
+      2,
+      "fr",
+    );
     expect(again.id).toBe(first.id);
     expect(await db.waitlistEntry.count({ where: { ticketTypeId } })).toBe(1);
   });

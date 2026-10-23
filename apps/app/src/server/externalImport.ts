@@ -10,7 +10,11 @@ import { type ColumnMap, detectColumns, readRows } from "./importFile";
 // commission, absents des finances, des remboursements, de la revente et des e-mails ; comptés dans la jauge (contingent)
 // et dans les entrées.
 
-export type IgnoredReason = "LINE_NO_CODE" | "CODE_TOO_LONG" | "DUPLICATE_IN_FILE" | "CODE_USED_BY_OTHER_NETWORK";
+export type IgnoredReason =
+  | "LINE_NO_CODE"
+  | "CODE_TOO_LONG"
+  | "DUPLICATE_IN_FILE"
+  | "CODE_USED_BY_OTHER_NETWORK";
 export interface ImportReport {
   created: number;
   updated: number;
@@ -20,7 +24,11 @@ export interface ImportReport {
   keptEntered: number;
   ignored: Array<{ line: number; reason: IgnoredReason }>;
   withoutTarif: number;
-  overAllocation: Array<{ ticketType: string; allocated: number; imported: number }>;
+  overAllocation: Array<{
+    ticketType: string;
+    allocated: number;
+    imported: number;
+  }>;
   /** Places numérotées : place introuvable sur le plan, ou déjà vendue par Evoly (double vente). */
   seatsNotFound: number;
   seatsSoldOnEvoly: Array<{ line: number; seat: string }>;
@@ -57,19 +65,28 @@ export function priceMinorOf(raw: string): number | null {
   if (!s) return null;
   const decimal = /[,.](\d{1,2})$/.exec(s);
   const units = (decimal ? s.slice(0, decimal.index) : s).replace(/[,.]/g, "");
-  const n = Number(units) * 100 + (decimal ? Number(decimal[1]!.padEnd(2, "0")) : 0);
+  const n =
+    Number(units) * 100 + (decimal ? Number(decimal[1]!.padEnd(2, "0")) : 0);
   return Number.isFinite(n) && n >= 0 && n < 100_000_000 ? Math.round(n) : null;
 }
 
 /** Place indiquée par le fichier : colonnes rang et place, ou texte « Rang C place 12 », « C-12 », « C12 ». */
-export function seatOf(row: string | undefined, seat: string | undefined): { row: string; label: string } | null {
+export function seatOf(
+  row: string | undefined,
+  seat: string | undefined,
+): { row: string; label: string } | null {
   if (row && seat) return { row: row.trim(), label: seat.trim() };
   const text = (seat ?? row ?? "").trim();
   if (!text) return null;
-  const words = /rang(?:ee)?\s*([a-z0-9]{1,4}).*?(?:place|siege|fauteuil|seat)\s*([a-z0-9]{1,5})/i.exec(plain(text));
+  const words =
+    /rang(?:ee)?\s*([a-z0-9]{1,4}).*?(?:place|siege|fauteuil|seat)\s*([a-z0-9]{1,5})/i.exec(
+      plain(text),
+    );
   if (words) return { row: words[1]!.toUpperCase(), label: words[2]! };
   const compact = /^([a-z]{1,3})\s*[-/ ]?\s*(\d{1,4})$/i.exec(text);
-  return compact ? { row: compact[1]!.toUpperCase(), label: compact[2]! } : null;
+  return compact
+    ? { row: compact[1]!.toUpperCase(), label: compact[2]! }
+    : null;
 }
 
 export async function importExternalTickets(
@@ -79,25 +96,46 @@ export async function importExternalTickets(
   file: { name: string; bytes: Uint8Array },
   opts: { mapping?: ColumnMap; header?: boolean; fullFile?: boolean } = {},
 ): Promise<ImportReport> {
-  if (!hasFeature(ctx.features, "DISTRIBUTION")) throw new CoreError("PRO_REQUIRED");
+  if (!hasFeature(ctx.features, "DISTRIBUTION"))
+    throw new CoreError("PRO_REQUIRED");
   const event = await findEvent(ctx, eventId);
-  const distributor = await db.distributor.findFirst({ where: { id: distributorId, organizationId: ctx.organization.id, archivedAt: null } });
+  const distributor = await db.distributor.findFirst({
+    where: {
+      id: distributorId,
+      organizationId: ctx.organization.id,
+      archivedAt: null,
+    },
+  });
   if (!distributor) throw new CoreError("NOT_FOUND");
   const { rows, lines } = readRows(file.bytes, file.name);
   const detected = detectColumns(rows);
-  const remembered = distributor.importMapping as { signature: string; map: ColumnMap; header: boolean } | null;
+  const remembered = distributor.importMapping as {
+    signature: string;
+    map: ColumnMap;
+    header: boolean;
+  } | null;
   let map: ColumnMap | null = null;
   let header = detected.header;
   if (opts.mapping) {
     map = opts.mapping;
     header = opts.header ?? true;
-    await db.distributor.update({ where: { id: distributor.id }, data: { importMapping: { signature: signature(rows[0]!), map, header } } });
+    await db.distributor.update({
+      where: { id: distributor.id },
+      data: { importMapping: { signature: signature(rows[0]!), map, header } },
+    });
   } else if (remembered && remembered.signature === signature(rows[0]!)) {
     map = remembered.map;
     header = remembered.header;
   } else if (detected.sure) map = detected.map;
   if (!map || (map.code === undefined && map.reservation === undefined)) {
-    return { ...emptyReport(), needsMapping: { headers: rows[0]!, sample: rows.slice(1, 4), guess: detected.map } };
+    return {
+      ...emptyReport(),
+      needsMapping: {
+        headers: rows[0]!,
+        sample: rows.slice(1, 4),
+        guess: detected.map,
+      },
+    };
   }
 
   const report = emptyReport();
@@ -106,17 +144,39 @@ export async function importExternalTickets(
     return i === undefined ? undefined : (r[i] ?? "").trim() || undefined;
   };
   const [ticketTypes, allocations, otherCodes] = await Promise.all([
-    db.ticketType.findMany({ where: { eventId }, select: { id: true, name: true } }),
-    db.distributorAllocation.findMany({ where: { eventId, distributorId: distributor.id }, select: { ticketTypeId: true, quantity: true } }),
-    db.externalTicket.findMany({ where: { eventId, distributorId: { not: distributor.id }, code: { not: null } }, select: { code: true } }),
+    db.ticketType.findMany({
+      where: { eventId },
+      select: { id: true, name: true },
+    }),
+    db.distributorAllocation.findMany({
+      where: { eventId, distributorId: distributor.id },
+      select: { ticketTypeId: true, quantity: true },
+    }),
+    db.externalTicket.findMany({
+      where: {
+        eventId,
+        distributorId: { not: distributor.id },
+        code: { not: null },
+      },
+      select: { code: true },
+    }),
   ]);
   const taken = new Set(otherCodes.map((c) => c.code!));
-  const fallbackType = allocations.length === 1 ? allocations[0]!.ticketTypeId : ticketTypes.length === 1 ? ticketTypes[0]!.id : null;
+  const fallbackType =
+    allocations.length === 1
+      ? allocations[0]!.ticketTypeId
+      : ticketTypes.length === 1
+        ? ticketTypes[0]!.id
+        : null;
   const typeOf = (label: string | undefined) => {
     if (label) {
       const l = plain(label);
       const exact = ticketTypes.find((t) => plain(t.name) === l);
-      const near = exact ?? ticketTypes.find((t) => plain(t.name).includes(l) || l.includes(plain(t.name)));
+      const near =
+        exact ??
+        ticketTypes.find(
+          (t) => plain(t.name).includes(l) || l.includes(plain(t.name)),
+        );
       if (near) return near.id;
     }
     return fallbackType;
@@ -125,10 +185,18 @@ export async function importExternalTickets(
   const seats = seated
     ? await db.seat.findMany({
         where: { row: { seatingMap: { eventId } } },
-        select: { id: true, label: true, status: true, distributorId: true, row: { select: { name: true } } },
+        select: {
+          id: true,
+          label: true,
+          status: true,
+          distributorId: true,
+          row: { select: { name: true } },
+        },
       })
     : [];
-  const seatByKey = new Map(seats.map((s) => [`${plain(s.row.name)}|${plain(s.label)}`, s]));
+  const seatByKey = new Map(
+    seats.map((s) => [`${plain(s.row.name)}|${plain(s.label)}`, s]),
+  );
 
   // lignes du fichier → billets (un par place)
   type Wanted = {
@@ -149,24 +217,44 @@ export async function importExternalTickets(
     const line = lines[index + (header ? 1 : 0)]!; // numéro réel dans le fichier
     const code = cell(r, "code") ?? null;
     const reservation = cell(r, "reservation") ?? null;
-    if (!code && !reservation) return void report.ignored.push({ line, reason: "LINE_NO_CODE" });
-    if (code && code.length > 64) return void report.ignored.push({ line, reason: "CODE_TOO_LONG" });
-    if (code && taken.has(code)) return void report.ignored.push({ line, reason: "CODE_USED_BY_OTHER_NETWORK" });
-    const quantity = Math.min(MAX_PLACES_PER_LINE, Math.max(1, Number.parseInt(cell(r, "quantity") ?? "1", 10) || 1));
-    const name = cell(r, "fullName") ?? ([cell(r, "firstName"), cell(r, "lastName")].filter(Boolean).join(" ") || null);
-    const seatText = [cell(r, "row"), cell(r, "seat")].filter(Boolean).join(" ") || null;
+    if (!code && !reservation)
+      return void report.ignored.push({ line, reason: "LINE_NO_CODE" });
+    if (code && code.length > 64)
+      return void report.ignored.push({ line, reason: "CODE_TOO_LONG" });
+    if (code && taken.has(code))
+      return void report.ignored.push({
+        line,
+        reason: "CODE_USED_BY_OTHER_NETWORK",
+      });
+    const quantity = Math.min(
+      MAX_PLACES_PER_LINE,
+      Math.max(1, Number.parseInt(cell(r, "quantity") ?? "1", 10) || 1),
+    );
+    const name =
+      cell(r, "fullName") ??
+      ([cell(r, "firstName"), cell(r, "lastName")].filter(Boolean).join(" ") ||
+        null);
+    const seatText =
+      [cell(r, "row"), cell(r, "seat")].filter(Boolean).join(" ") || null;
     const place = seatOf(cell(r, "row"), cell(r, "seat"));
     let seatId: string | null = null;
     if (seated && place) {
       const s = seatByKey.get(`${plain(place.row)}|${plain(place.label)}`);
       if (!s) report.seatsNotFound++;
-      else if (s.status === "SOLD" || s.status === "HELD") report.seatsSoldOnEvoly.push({ line, seat: `${place.row} ${place.label}` });
+      else if (s.status === "SOLD" || s.status === "HELD")
+        report.seatsSoldOnEvoly.push({
+          line,
+          seat: `${place.row} ${place.label}`,
+        });
       else seatId = s.id;
     }
     for (let rank = 1; rank <= quantity; rank++) {
-      const key = code ? `c:${rank === 1 ? code : `${code}#${rank}`}` : `r:${reservation}|${rank}`;
+      const key = code
+        ? `c:${rank === 1 ? code : `${code}#${rank}`}`
+        : `r:${reservation}|${rank}`;
       if (seen.has(key)) {
-        if (rank === 1) report.ignored.push({ line, reason: "DUPLICATE_IN_FILE" });
+        if (rank === 1)
+          report.ignored.push({ line, reason: "DUPLICATE_IN_FILE" });
         return;
       }
       seen.add(key);
@@ -202,14 +290,22 @@ export async function importExternalTickets(
       priceMinor: true,
     },
   });
-  const byCode = new Map(existing.filter((e) => e.code).map((e) => [e.code!, e]));
-  const byReservation = new Map(existing.filter((e) => !e.code && e.reservation).map((e) => [`${e.reservation}|${e.rank}`, e]));
+  const byCode = new Map(
+    existing.filter((e) => e.code).map((e) => [e.code!, e]),
+  );
+  const byReservation = new Map(
+    existing
+      .filter((e) => !e.code && e.reservation)
+      .map((e) => [`${e.reservation}|${e.rank}`, e]),
+  );
   const kept = new Set<string>();
   const toCreate: Wanted[] = [];
   await db.$transaction(
     async (tx) => {
       for (const w of wanted) {
-        const e = w.code ? byCode.get(w.code) : byReservation.get(`${w.reservation}|${w.rank}`);
+        const e = w.code
+          ? byCode.get(w.code)
+          : byReservation.get(`${w.reservation}|${w.rank}`);
         if (!e) {
           toCreate.push(w);
           continue;
@@ -257,10 +353,15 @@ export async function importExternalTickets(
         report.created += r.count;
       }
       // place vendue par le réseau : retirée de la vente en ligne, marquée du réseau
-      const seatIds = wanted.map((w) => w.seatId).filter((s): s is string => !!s);
+      const seatIds = wanted
+        .map((w) => w.seatId)
+        .filter((s): s is string => !!s);
       if (seatIds.length)
         await tx.seat.updateMany({
-          where: { id: { in: seatIds }, status: { in: ["AVAILABLE", "BLOCKED"] } },
+          where: {
+            id: { in: seatIds },
+            status: { in: ["AVAILABLE", "BLOCKED"] },
+          },
           data: { status: "BLOCKED", distributorId: distributor.id },
         });
       if (opts.fullFile) {
@@ -268,7 +369,10 @@ export async function importExternalTickets(
           if (kept.has(e.id) || e.status !== "VALID") continue;
           if (e.checkedInAt) report.keptEntered++;
           else {
-            await tx.externalTicket.update({ where: { id: e.id }, data: { status: "CANCELLED" } });
+            await tx.externalTicket.update({
+              where: { id: e.id },
+              data: { status: "CANCELLED" },
+            });
             report.cancelled++;
           }
         }
@@ -284,9 +388,15 @@ export async function importExternalTickets(
     _count: { _all: true },
   });
   for (const a of allocations) {
-    const imported = counts.find((c) => c.ticketTypeId === a.ticketTypeId)?._count._all ?? 0;
+    const imported =
+      counts.find((c) => c.ticketTypeId === a.ticketTypeId)?._count._all ?? 0;
     if (imported > a.quantity)
-      report.overAllocation.push({ ticketType: ticketTypes.find((t) => t.id === a.ticketTypeId)?.name ?? "", allocated: a.quantity, imported });
+      report.overAllocation.push({
+        ticketType:
+          ticketTypes.find((t) => t.id === a.ticketTypeId)?.name ?? "",
+        allocated: a.quantity,
+        imported,
+      });
   }
   await audit({
     action: "distributor.tickets_imported",
@@ -294,7 +404,13 @@ export async function importExternalTickets(
     actorUserId: ctx.user.id,
     targetType: "Distributor",
     targetId: distributor.id,
-    metadata: { eventId, created: report.created, updated: report.updated, cancelled: report.cancelled, ignored: report.ignored.length },
+    metadata: {
+      eventId,
+      created: report.created,
+      updated: report.updated,
+      cancelled: report.cancelled,
+      ignored: report.ignored.length,
+    },
   });
   return report;
 }

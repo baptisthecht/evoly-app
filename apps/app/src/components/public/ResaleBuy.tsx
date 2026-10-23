@@ -2,7 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { reserveResaleAction, type ReservationView } from "@/app/site/[sub]/[eventSlug]/actions";
+import {
+  reserveResaleAction,
+  type ReservationView,
+} from "@/app/site/[sub]/[eventSlug]/actions";
 import { Button } from "../ui/Button";
 import { CheckoutPanel } from "./CheckoutPanel";
 
@@ -38,7 +41,10 @@ export function ResaleBuy({
   return (
     <div className="grid gap-3">
       {error ? (
-        <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+        <p
+          role="alert"
+          className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger"
+        >
           {error}
         </p>
       ) : null}
@@ -53,7 +59,11 @@ export function ResaleBuy({
           const res = await reserveResaleAction(linkCode);
           setBusy(false);
           if (res.ok) return setReservation(res.data);
-          setError(t.has(`error_${res.error}`) ? t(`error_${res.error}`) : tc("error_UNKNOWN"));
+          setError(
+            t.has(`error_${res.error}`)
+              ? t(`error_${res.error}`)
+              : tc("error_UNKNOWN"),
+          );
         }}
       >
         {busy ? tc("processing") : label}

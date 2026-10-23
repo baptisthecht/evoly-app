@@ -3,19 +3,41 @@
 import { slugify } from "@evoly/core";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
+import {
+  FormError,
+  SubmitButton,
+  useActionForm,
+  useFieldError,
+} from "@/components/forms";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { cn } from "@/components/ui/cn";
 import { LAUNCH_COUNTRIES } from "@/lib/countries";
 import { checkSubdomainAction, createOrganizationAction } from "./actions";
 
-type Availability = "idle" | "checking" | "available" | "LENGTH" | "FORMAT" | "RESERVED" | "TAKEN" | "RATE_LIMITED";
+type Availability =
+  | "idle"
+  | "checking"
+  | "available"
+  | "LENGTH"
+  | "FORMAT"
+  | "RESERVED"
+  | "TAKEN"
+  | "RATE_LIMITED";
 
-export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; siteUrl: string }) {
+export function OrganizationForm({
+  baseDomain,
+  siteUrl,
+}: {
+  baseDomain: string;
+  siteUrl: string;
+}) {
   const t = useTranslations("onboarding");
   const tv = useTranslations("validation");
   const locale = useLocale() as "fr" | "en";
-  const { state, pending, formProps } = useActionForm(createOrganizationAction, null);
+  const { state, pending, formProps } = useActionForm(
+    createOrganizationAction,
+    null,
+  );
   const fieldError = useFieldError(state);
   const [name, setName] = useState("");
   const [subdomain, setSubdomain] = useState("");
@@ -38,12 +60,20 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
     return () => clearTimeout(timer);
   }, [subdomain]);
 
-  const subError = fieldError("subdomain") ?? (["LENGTH", "FORMAT", "RESERVED", "TAKEN"].includes(availability) ? tv(`SUBDOMAIN_${availability}`) : null);
+  const subError =
+    fieldError("subdomain") ??
+    (["LENGTH", "FORMAT", "RESERVED", "TAKEN"].includes(availability)
+      ? tv(`SUBDOMAIN_${availability}`)
+      : null);
 
   return (
     <form {...formProps} className="grid gap-6" noValidate>
       <FormError state={state} />
-      <Field label={t("organizationName")} htmlFor="name" error={fieldError("name")}>
+      <Field
+        label={t("organizationName")}
+        htmlFor="name"
+        error={fieldError("name")}
+      >
         <Input
           id="name"
           name="name"
@@ -76,7 +106,9 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
             value={subdomain}
             onChange={(e) => {
               setTouched(true);
-              setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+              setSubdomain(
+                e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+              );
             }}
             inputMode="url"
             autoCapitalize="none"
@@ -85,12 +117,18 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
             className="h-12 min-w-0 flex-1 bg-surface-raised px-4 text-base outline-none"
             required
           />
-          <span className="flex items-center bg-surface-sunken px-3 text-sm text-ink-muted">.{baseDomain}</span>
+          <span className="flex items-center bg-surface-sunken px-3 text-sm text-ink-muted">
+            .{baseDomain}
+          </span>
         </div>
       </Field>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <Field label={t("country")} htmlFor="country" error={fieldError("country")}>
+        <Field
+          label={t("country")}
+          htmlFor="country"
+          error={fieldError("country")}
+        >
           <Select id="country" name="country" defaultValue="BE">
             {LAUNCH_COUNTRIES.map((c) => (
               <option key={c.code} value={c.code}>
@@ -100,9 +138,13 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
           </Select>
         </Field>
         <fieldset className="grid gap-1.5">
-          <legend className="mb-1.5 font-label text-[0.8rem] font-bold">{t("type")}</legend>
+          <legend className="mb-1.5 font-label text-[0.8rem] font-bold">
+            {t("type")}
+          </legend>
           <div className="grid grid-cols-2 gap-2">
-            {(["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"] as const).map((v, i) => (
+            {(
+              ["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"] as const
+            ).map((v, i) => (
               <label
                 key={v}
                 className={cn(
@@ -110,7 +152,13 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
                   "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:shadow-none",
                 )}
               >
-                <input type="radio" name="type" value={v} defaultChecked={i === 0} className="sr-only" />
+                <input
+                  type="radio"
+                  name="type"
+                  value={v}
+                  defaultChecked={i === 0}
+                  className="sr-only"
+                />
                 {t(`type_${v}`)}
               </label>
             ))}
@@ -119,23 +167,40 @@ export function OrganizationForm({ baseDomain, siteUrl }: { baseDomain: string; 
       </div>
 
       <label className="flex items-start gap-3 text-sm text-ink-muted">
-        <input type="checkbox" name="terms" className="mt-0.5 size-5 accent-[var(--ink)]" required />
+        <input
+          type="checkbox"
+          name="terms"
+          className="mt-0.5 size-5 accent-[var(--ink)]"
+          required
+        />
         <span>
           {t.rich("terms", {
             cgu: (chunks) => (
-              <a href={`${siteUrl}/cgu`} target="_blank" rel="noreferrer" className="font-semibold text-ink underline underline-offset-4">
+              <a
+                href={`${siteUrl}/cgu`}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-ink underline underline-offset-4"
+              >
                 {chunks}
               </a>
             ),
             dpa: (chunks) => (
-              <a href={`${siteUrl}/sous-traitance`} target="_blank" rel="noreferrer" className="font-semibold text-ink underline underline-offset-4">
+              <a
+                href={`${siteUrl}/sous-traitance`}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-ink underline underline-offset-4"
+              >
                 {chunks}
               </a>
             ),
           })}
         </span>
       </label>
-      {fieldError("terms") ? <p className="-mt-4 text-sm text-danger">{fieldError("terms")}</p> : null}
+      {fieldError("terms") ? (
+        <p className="-mt-4 text-sm text-danger">{fieldError("terms")}</p>
+      ) : null}
 
       <SubmitButton pending={pending}>{t("createOrganization")}</SubmitButton>
     </form>

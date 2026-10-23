@@ -17,17 +17,32 @@ const escape = (s: string) =>
     .replace(/\r?\n/g, "\\n");
 
 /** Ajout au calendrier (fichier ICS, section 9.12). */
-export async function GET(_req: Request, { params }: { params: Promise<{ sub: string; token: string }> }) {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ sub: string; token: string }> },
+) {
   const { sub, token } = await params;
   await assertSiteRequest(sub);
   const orderId = await findOrderIdByToken(token);
-  const order = orderId ? await db.order.findUnique({ where: { id: orderId }, include: { event: true } }) : null;
-  if (!order || order.status !== "PAID") return new Response("Introuvable", { status: 404 });
+  const order = orderId
+    ? await db.order.findUnique({
+        where: { id: orderId },
+        include: { event: true },
+      })
+    : null;
+  if (!order || order.status !== "PAID")
+    return new Response("Introuvable", { status: 404 });
   const e = order.event;
   const location =
     e.locationType === "ONLINE"
       ? (e.onlineUrl ?? "")
-      : [e.locationName, e.addressLine1, [e.postalCode, e.city].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+      : [
+          e.locationName,
+          e.addressLine1,
+          [e.postalCode, e.city].filter(Boolean).join(" "),
+        ]
+          .filter(Boolean)
+          .join(", ");
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",

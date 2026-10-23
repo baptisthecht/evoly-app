@@ -5,7 +5,9 @@
   var cfg = window.EVOLY_TRACKING || {};
   var app = (cfg.app || "https://app.evoly.me").replace(/\/$/, "");
   var lang = (document.documentElement.lang || "fr").slice(0, 2);
-  var code = (new URLSearchParams(location.search).get("offre") || "").toLowerCase();
+  var code = (
+    new URLSearchParams(location.search).get("offre") || ""
+  ).toLowerCase();
   if (!/^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(code)) code = "";
   function apply(o) {
     var banner = document.querySelector("[data-evoly-offer]");
@@ -22,10 +24,20 @@
   }
   if (code)
     document.querySelectorAll('a[href^="' + app + '"]').forEach(function (a) {
-      if (a.href.indexOf("offre=") < 0) a.href += (a.href.indexOf("?") < 0 ? "?" : "&") + "offre=" + encodeURIComponent(code);
+      if (a.href.indexOf("offre=") < 0)
+        a.href +=
+          (a.href.indexOf("?") < 0 ? "?" : "&") +
+          "offre=" +
+          encodeURIComponent(code);
     });
   if (!window.fetch) return;
-  fetch(app + "/api/public/offer?lang=" + lang + (code ? "&offre=" + encodeURIComponent(code) : ""), { credentials: "omit" })
+  fetch(
+    app +
+      "/api/public/offer?lang=" +
+      lang +
+      (code ? "&offre=" + encodeURIComponent(code) : ""),
+    { credentials: "omit" },
+  )
     .then(function (r) {
       return r.ok ? r.json() : null;
     })

@@ -9,7 +9,10 @@ export function ShareLink({ url, title }: { url: string; title: string }) {
   const t = useTranslations("nav");
   const [copied, setCopied] = useState(false);
   const share = async () => {
-    if (typeof navigator.share === "function" && window.matchMedia?.("(pointer: coarse)").matches) {
+    if (
+      typeof navigator.share === "function" &&
+      window.matchMedia?.("(pointer: coarse)").matches
+    ) {
       try {
         await navigator.share({ url, title });
         return;

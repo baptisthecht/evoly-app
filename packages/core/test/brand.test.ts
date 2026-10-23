@@ -3,7 +3,8 @@ import { dominantColors, normalizeHexColor, sniffImage } from "../src";
 
 const pixels = (colors: Array<[number, number, number, number, number]>) => {
   const out: number[] = [];
-  for (const [r, g, b, a, n] of colors) for (let i = 0; i < n; i++) out.push(r, g, b, a);
+  for (const [r, g, b, a, n] of colors)
+    for (let i = 0; i < n; i++) out.push(r, g, b, a);
   return Uint8ClampedArray.from(out);
 };
 
@@ -31,9 +32,19 @@ describe("marque (section 9.19)", () => {
     expect(dominantColors(logo)[1]).toBe("#1E783C");
   });
   it("type réel des images importées", () => {
-    expect(sniffImage(Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))).toBe("image/png");
-    expect(sniffImage(Uint8Array.from([0xff, 0xd8, 0xff, 0xe0]))).toBe("image/jpeg");
-    expect(sniffImage(new TextEncoder().encode("RIFF\u0000\u0000\u0000\u0000WEBPVP8 "))).toBe("image/webp");
+    expect(
+      sniffImage(
+        Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      ),
+    ).toBe("image/png");
+    expect(sniffImage(Uint8Array.from([0xff, 0xd8, 0xff, 0xe0]))).toBe(
+      "image/jpeg",
+    );
+    expect(
+      sniffImage(
+        new TextEncoder().encode("RIFF\u0000\u0000\u0000\u0000WEBPVP8 "),
+      ),
+    ).toBe("image/webp");
     expect(sniffImage(new TextEncoder().encode("<svg xmlns"))).toBeNull();
     expect(sniffImage(new TextEncoder().encode("GIF89a"))).toBeNull();
   });
@@ -49,7 +60,9 @@ describe("logos SVG (RG-FILE-01)", async () => {
   const { isSvg, svgIsSafe } = await import("../src");
   const enc = (s: string) => new TextEncoder().encode(s);
   it("reconnaît un SVG, avec ou sans déclaration XML", () => {
-    expect(isSvg(enc('<svg xmlns="http://www.w3.org/2000/svg"></svg>'))).toBe(true);
+    expect(isSvg(enc('<svg xmlns="http://www.w3.org/2000/svg"></svg>'))).toBe(
+      true,
+    );
     expect(isSvg(enc('\uFEFF<?xml version="1.0"?>\n<svg></svg>'))).toBe(true);
     expect(isSvg(enc("<html><body></body></html>"))).toBe(false);
   });
@@ -76,9 +89,17 @@ describe("certificats des domaines personnalisés (RG-CDM-02)", async () => {
   const now = new Date("2026-10-01T00:00:00Z");
   const inDays = (d: number) => new Date(now.getTime() + d * 86_400_000);
   it("invalide, bientôt expiré (renouvellement en échec) ou sain", () => {
-    expect(certificateProblem({ authorized: false, validTo: inDays(60) }, now)).toBe("INVALID");
-    expect(certificateProblem({ authorized: true, validTo: inDays(-1) }, now)).toBe("INVALID");
-    expect(certificateProblem({ authorized: true, validTo: inDays(10) }, now)).toBe("EXPIRING");
-    expect(certificateProblem({ authorized: true, validTo: inDays(45) }, now)).toBeNull();
+    expect(
+      certificateProblem({ authorized: false, validTo: inDays(60) }, now),
+    ).toBe("INVALID");
+    expect(
+      certificateProblem({ authorized: true, validTo: inDays(-1) }, now),
+    ).toBe("INVALID");
+    expect(
+      certificateProblem({ authorized: true, validTo: inDays(10) }, now),
+    ).toBe("EXPIRING");
+    expect(
+      certificateProblem({ authorized: true, validTo: inDays(45) }, now),
+    ).toBeNull();
   });
 });

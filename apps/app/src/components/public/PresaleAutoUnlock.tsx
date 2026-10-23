@@ -5,7 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { unlockPresaleAction } from "@/app/site/[sub]/[eventSlug]/actions";
 
 /** Lien « ?prevente=CODE » : le code est vérifié et mémorisé, puis la page se recharge sans le code dans l'adresse. */
-export function PresaleAutoUnlock({ eventId, code, labels }: { eventId: string; code: string; labels: { working: string; invalid: string; back: string } }) {
+export function PresaleAutoUnlock({
+  eventId,
+  code,
+  labels,
+}: {
+  eventId: string;
+  code: string;
+  labels: { working: string; invalid: string; back: string };
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [failed, setFailed] = useState(false);
@@ -13,7 +21,9 @@ export function PresaleAutoUnlock({ eventId, code, labels }: { eventId: string; 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    void unlockPresaleAction(eventId, code).then((r) => (r.ok ? router.replace(pathname) : setFailed(true)));
+    void unlockPresaleAction(eventId, code).then((r) =>
+      r.ok ? router.replace(pathname) : setFailed(true),
+    );
   }, [eventId, code, pathname, router]);
   return (
     <div className="grid min-h-dvh place-items-center bg-surface px-6 text-center text-ink">

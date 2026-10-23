@@ -4,8 +4,12 @@ import { appUrl, organizer, publishedFreeEvent, siteUrl } from "./helpers";
 
 // Accessibilité (WCAG 2.1 AA) : aucune violation grave ni critique sur les pages clés, sur ordinateur et téléphone
 async function audit(page: Page, name: string) {
-  const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
-  const serious = r.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+  const r = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  const serious = r.violations.filter(
+    (v) => v.impact === "serious" || v.impact === "critical",
+  );
   if (serious.length)
     console.log(
       `\n[${name}]`,
@@ -22,7 +26,10 @@ async function audit(page: Page, name: string) {
   return serious.map((v) => `${name} · ${v.id}`);
 }
 
-test("accessibilité des pages clés (WCAG 2.1 AA)", async ({ page, browser }) => {
+test("accessibilité des pages clés (WCAG 2.1 AA)", async ({
+  page,
+  browser,
+}) => {
   test.setTimeout(120_000); // onze pages auditées par axe : plus long qu’un parcours ordinaire
   const found: string[] = [];
   const guest = await (await browser.newContext({ locale: "fr-BE" })).newPage();
@@ -43,7 +50,9 @@ test("accessibilité des pages clés (WCAG 2.1 AA)", async ({ page, browser }) =
   const box = guest.locator("#billets");
   await box.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box.getByRole("button", { name: "Continuer" }).click();
-  await expect(box.getByLabel("Adresse e-mail")).toBeVisible({ timeout: 20_000 }); // réservation côté serveur : plus lente sous charge
+  await expect(box.getByLabel("Adresse e-mail")).toBeVisible({
+    timeout: 20_000,
+  }); // réservation côté serveur : plus lente sous charge
   found.push(...(await audit(guest, "formulaire d'achat")));
   await box.getByLabel("Prénom").first().fill("Léa");
   await box.getByLabel("Nom", { exact: true }).fill("Martin");
@@ -65,12 +74,22 @@ test("accessibilité des pages clés (WCAG 2.1 AA)", async ({ page, browser }) =
   expect(found).toEqual([]);
 });
 
-test("après connexion, retour à la page demandée (sécurité : chemin interne uniquement)", async ({ page, browser }) => {
+test("après connexion, retour à la page demandée (sécurité : chemin interne uniquement)", async ({
+  page,
+  browser,
+}) => {
   const { id } = await organizer(page);
-  const ctx = await browser.newContext({ locale: "fr-BE", extraHTTPHeaders: { "x-forwarded-for": `10.64.${Math.floor(Math.random() * 250)}.3` } });
+  const ctx = await browser.newContext({
+    locale: "fr-BE",
+    extraHTTPHeaders: {
+      "x-forwarded-for": `10.64.${Math.floor(Math.random() * 250)}.3`,
+    },
+  });
   const p = await ctx.newPage();
   await p.goto(appUrl("/acces-scanner"));
-  await p.waitForURL(/\/login\?next=%2Facces-scanner|\/login\?next=\/acces-scanner/);
+  await p.waitForURL(
+    /\/login\?next=%2Facces-scanner|\/login\?next=\/acces-scanner/,
+  );
   await p.getByLabel("Adresse e-mail").fill(`orga${id}@exemple.be`);
   await p.getByLabel("Mot de passe").fill("Motdepasse-2026!");
   await p.getByRole("button", { name: "Se connecter" }).click();

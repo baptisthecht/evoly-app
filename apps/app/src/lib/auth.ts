@@ -13,11 +13,23 @@ import { resetPasswordEmail, verifyEmailEmail } from "@/server/email/templates";
 const e = env();
 
 const socialProviders = {
-  ...(e.AUTH_GOOGLE_ID && e.AUTH_GOOGLE_SECRET ? { google: { clientId: e.AUTH_GOOGLE_ID, clientSecret: e.AUTH_GOOGLE_SECRET } } : {}),
-  ...(e.AUTH_APPLE_ID && e.AUTH_APPLE_SECRET ? { apple: { clientId: e.AUTH_APPLE_ID, clientSecret: e.AUTH_APPLE_SECRET } } : {}),
+  ...(e.AUTH_GOOGLE_ID && e.AUTH_GOOGLE_SECRET
+    ? {
+        google: {
+          clientId: e.AUTH_GOOGLE_ID,
+          clientSecret: e.AUTH_GOOGLE_SECRET,
+        },
+      }
+    : {}),
+  ...(e.AUTH_APPLE_ID && e.AUTH_APPLE_SECRET
+    ? {
+        apple: { clientId: e.AUTH_APPLE_ID, clientSecret: e.AUTH_APPLE_SECRET },
+      }
+    : {}),
 };
 
-const localeOf = (user: unknown): Locale => toLocale((user as { locale?: string }).locale);
+const localeOf = (user: unknown): Locale =>
+  toLocale((user as { locale?: string }).locale);
 
 export const auth = betterAuth({
   baseURL: e.BETTER_AUTH_URL,
@@ -27,12 +39,21 @@ export const auth = betterAuth({
   // RG-AUTH-03 : identifiants des jetons stockés hachés
   verification: { storeIdentifier: "hashed" },
   user: {
-    additionalFields: { locale: { type: "string", required: false, defaultValue: "fr", input: true } },
+    additionalFields: {
+      locale: {
+        type: "string",
+        required: false,
+        defaultValue: "fr",
+        input: true,
+      },
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
-    additionalFields: { activeOrganizationId: { type: "string", required: false, input: false } },
+    additionalFields: {
+      activeOrganizationId: { type: "string", required: false, input: false },
+    },
   },
   emailAndPassword: {
     enabled: true,
@@ -57,11 +78,18 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     expiresIn: 60 * 60 * 24, // 24 heures
     sendVerificationEmail: async ({ user, url }) => {
-      await sendEmail({ to: user.email, ...verifyEmailEmail({ url, locale: localeOf(user) }), template: "account.verify_email", category: "TRANSACTIONAL" });
+      await sendEmail({
+        to: user.email,
+        ...verifyEmailEmail({ url, locale: localeOf(user) }),
+        template: "account.verify_email",
+        category: "TRANSACTIONAL",
+      });
     },
   },
   socialProviders,
-  account: { accountLinking: { enabled: true, trustedProviders: ["google", "apple"] } },
+  account: {
+    accountLinking: { enabled: true, trustedProviders: ["google", "apple"] },
+  },
   // RG-AUTH-05 : limitation des tentatives, stockée en base (plusieurs instances)
   rateLimit: {
     enabled: true,

@@ -17,8 +17,19 @@ vi.mock("@/components/scanner/CameraScanner", () => ({
 const manifest = (hasOptions: boolean) => ({
   serverTime: new Date().toISOString(),
   salt: "sel",
-  event: { title: "Gala de test", startsAt: new Date(Date.now() + 3_600_000).toISOString(), timezone: "Europe/Brussels", place: null },
-  link: { label: "Porte A", allowManualSearch: true, checkOnly: false, canSell: false, expiresAt: new Date(Date.now() + 86_400_000).toISOString() },
+  event: {
+    title: "Gala de test",
+    startsAt: new Date(Date.now() + 3_600_000).toISOString(),
+    timezone: "Europe/Brussels",
+    place: null,
+  },
+  link: {
+    label: "Porte A",
+    allowManualSearch: true,
+    checkOnly: false,
+    canSell: false,
+    expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+  },
   sale: null,
   tickets: [],
   options: {},
@@ -34,13 +45,35 @@ const serve = (hasOptions = true) => {
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       const path = String(url).replace(/^.*\/api\/scanner\/[^/]+/, "");
-      const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : null;
+      const body = init?.body
+        ? (JSON.parse(String(init.body)) as Record<string, unknown>)
+        : null;
       calls.push({ path, body });
-      const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
+      const json = (data: unknown, status = 200) =>
+        new Response(JSON.stringify(data), {
+          status,
+          headers: { "content-type": "application/json" },
+        });
       if (path === "/manifest") return json(manifest(hasOptions));
-      if (path === "/scan") return json({ result: "VALID", ticket: { holder: "Léa Martin", typeName: "Table VIP" } });
+      if (path === "/scan")
+        return json({
+          result: "VALID",
+          ticket: { holder: "Léa Martin", typeName: "Table VIP" },
+        });
       if (path === "/options")
-        return json({ holder: "Léa Martin", options: [{ id: "l1", name: "Bouteille VIP", quantity: 2, redeemed: 0, refunded: 0, left: 2 }] });
+        return json({
+          holder: "Léa Martin",
+          options: [
+            {
+              id: "l1",
+              name: "Bouteille VIP",
+              quantity: 2,
+              redeemed: 0,
+              refunded: 0,
+              left: 2,
+            },
+          ],
+        });
       return json({ results: [] });
     }),
   );
@@ -55,7 +88,10 @@ const open = async () => {
 };
 const typeShortCode = async (code: string) => {
   const user = userEvent.setup();
-  await user.type(screen.getByPlaceholderText(fr.scanner.shortCode), `${code}{Enter}`); // envoyé comme au clavier
+  await user.type(
+    screen.getByPlaceholderText(fr.scanner.shortCode),
+    `${code}{Enter}`,
+  ); // envoyé comme au clavier
 };
 const called = (path: string) => calls.filter((c) => c.path === path);
 
@@ -71,7 +107,12 @@ describe("scanner : identifiant de l'appareil", () => {
         <ScannerApp token="jeton" />
       </Fr>,
     );
-  const sentDevice = () => (calls.find((c) => c.path === "/scan")?.body as { deviceId?: string } | null)?.deviceId;
+  const sentDevice = () =>
+    (
+      calls.find((c) => c.path === "/scan")?.body as {
+        deviceId?: string;
+      } | null
+    )?.deviceId;
 
   it("appareil déjà connu : le même identifiant, envoyé avec le scan", async () => {
     localStorage.setItem("evoly-scan:device", "appareil-42");

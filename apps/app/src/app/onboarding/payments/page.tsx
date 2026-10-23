@@ -16,15 +16,24 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("paymentsTitle") };
 }
 
-export default async function OnboardingPaymentsPage({ searchParams }: { searchParams: Promise<{ org?: string }> }) {
+export default async function OnboardingPaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ org?: string }>;
+}) {
   const { org } = await searchParams;
   if (!org) notFound();
   const ctx = await requireOrgContext(org);
   const t = await getTranslations("onboarding");
   // RG-AUTH-08 : venu du site par « ?plan=pro » → l'essai Pro est proposé juste après
-  const sub = await db.subscription.findUnique({ where: { organizationId: ctx.organization.id }, select: PLAN_SUBSCRIPTION_SELECT });
+  const sub = await db.subscription.findUnique({
+    where: { organizationId: ctx.organization.id },
+    select: PLAN_SUBSCRIPTION_SELECT,
+  });
   // déjà en Pro (offre de lancement) : pas d'essai à proposer
-  const wantsPro = (await cookies()).get("evoly_plan")?.value === "pro" && effectivePlan(sub, new Date()) !== "pro";
+  const wantsPro =
+    (await cookies()).get("evoly_plan")?.value === "pro" &&
+    effectivePlan(sub, new Date()) !== "pro";
   return (
     <>
       <Steps current={2} />
@@ -34,16 +43,29 @@ export default async function OnboardingPaymentsPage({ searchParams }: { searchP
       </header>
       <Card className="grid gap-5">
         <ul className="grid gap-3 text-[0.95rem]">
-          {(["paymentsPoint1", "paymentsPoint2", "paymentsPoint3"] as const).map((k) => (
+          {(
+            ["paymentsPoint1", "paymentsPoint2", "paymentsPoint3"] as const
+          ).map((k) => (
             <li key={k} className="flex gap-3">
-              <span aria-hidden="true" className="mt-2 size-2 shrink-0 rounded-full bg-accent ring-2 ring-ink" />
+              <span
+                aria-hidden="true"
+                className="mt-2 size-2 shrink-0 rounded-full bg-accent ring-2 ring-ink"
+              />
               {t(k)}
             </li>
           ))}
         </ul>
         <div className="grid gap-3 sm:grid-cols-2">
           <ConnectStripe orgSlug={ctx.organization.slug} />
-          <ButtonLink href={wantsPro ? `/o/${ctx.organization.slug}/billing?essai=1` : `/o/${ctx.organization.slug}`} variant="secondary" size="lg">
+          <ButtonLink
+            href={
+              wantsPro
+                ? `/o/${ctx.organization.slug}/billing?essai=1`
+                : `/o/${ctx.organization.slug}`
+            }
+            variant="secondary"
+            size="lg"
+          >
             {t("paymentsLater")}
           </ButtonLink>
         </div>

@@ -2,7 +2,11 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { describe, expect, it } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
-import { EventFields, type EventFieldValues, type PartnerVenueOption } from "@/components/events/EventFields";
+import {
+  EventFields,
+  type EventFieldValues,
+  type PartnerVenueOption,
+} from "@/components/events/EventFields";
 import { Fr } from "./intl";
 
 const ev = fr.events as unknown as Record<string, string>; // espace de traduction avec des sous-objets (statuts…)
@@ -21,18 +25,34 @@ const values = (over: Partial<EventFieldValues> = {}): EventFieldValues => ({
   onlineUrl: "",
   ...over,
 });
-const venue: PartnerVenueOption = { name: "La Rotonde", addressLine1: "Rue Haute 1", postalCode: "1000", city: "Bruxelles" };
-const draw = (v: EventFieldValues = values(), opts: { venue?: PartnerVenueOption; error?: (n: string) => string | null } = {}) =>
+const venue: PartnerVenueOption = {
+  name: "La Rotonde",
+  addressLine1: "Rue Haute 1",
+  postalCode: "1000",
+  city: "Bruxelles",
+};
+const draw = (
+  v: EventFieldValues = values(),
+  opts: {
+    venue?: PartnerVenueOption;
+    error?: (n: string) => string | null;
+  } = {},
+) =>
   render(
     <Fr>
       <form>
-        <EventFields values={v} venue={opts.venue} error={opts.error ?? (() => null)} />
+        <EventFields
+          values={v}
+          venue={opts.venue}
+          error={opts.error ?? (() => null)}
+        />
       </form>
     </Fr>,
   );
 const address = () => screen.queryByLabelText(new RegExp(ev.address!));
 const online = () => screen.queryByLabelText(new RegExp(ev.onlineUrl!));
-const pick = (type: "PHYSICAL" | "ONLINE" | "HYBRID") => fireEvent.click(screen.getByLabelText(ev[`locationType_${type}`]!));
+const pick = (type: "PHYSICAL" | "ONLINE" | "HYBRID") =>
+  fireEvent.click(screen.getByLabelText(ev[`locationType_${type}`]!));
 
 describe("informations d'un événement : champs du lieu (section 9.6)", () => {
   it("sur place : l'adresse, sans lien en ligne ; en ligne : le lien, sans adresse ; hybride : les deux", () => {
@@ -56,7 +76,9 @@ describe("informations d'un événement : champs du lieu (section 9.6)", () => {
 
   it("salle partenaire refusée auparavant : case décochée, adresse à saisir", () => {
     draw(values({ atVenue: false }), { venue });
-    expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(false);
+    expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(
+      false,
+    );
     expect(address()).not.toBeNull();
   });
 
@@ -67,14 +89,21 @@ describe("informations d'un événement : champs du lieu (section 9.6)", () => {
 
   it("fuseau horaire hors liste déjà enregistré : gardé en tête de liste, lisible", () => {
     draw(values({ timezone: "America/New_York" }));
-    const select = screen.getByLabelText(new RegExp(ev.timezone!)) as HTMLSelectElement;
-    expect([select.value, select.options[0]!.textContent]).toEqual(["America/New_York", "America/New York"]);
+    const select = screen.getByLabelText(
+      new RegExp(ev.timezone!),
+    ) as HTMLSelectElement;
+    expect([select.value, select.options[0]!.textContent]).toEqual([
+      "America/New_York",
+      "America/New York",
+    ]);
   });
 
   it("erreurs affichées sous leur champ, et le champ signalé", () => {
     draw(values(), { error: (n) => (n === "title" ? "Obligatoire." : null) });
     expect(screen.getByText("Obligatoire.")).toBeTruthy();
-    expect(screen.getByLabelText(new RegExp(ev.title!)).getAttribute("aria-invalid")).toBe("true");
+    expect(
+      screen.getByLabelText(new RegExp(ev.title!)).getAttribute("aria-invalid"),
+    ).toBe("true");
   });
 });
 
@@ -97,11 +126,24 @@ describe("lieu de l'événement : recherche d'adresse", () => {
       vi.fn(async () => new Response(JSON.stringify({ places: [zenith] }))),
     );
     const { container } = draw();
-    fireEvent.change(document.getElementById("locationName")!, { target: { value: "Zénith Paris" } });
-    fireEvent.mouseDown(await screen.findByRole("option", { name: /Le Zénith/ }));
-    const val = (id: string) => (document.getElementById(id) as HTMLInputElement).value;
-    expect([val("locationName"), val("addressLine1"), val("postalCode"), val("city")]).toEqual(["Le Zénith", "Avenue Jean Jaurès 211", "75019", "Paris"]);
-    expect((container.querySelector('input[name="country"]') as HTMLInputElement).value).toBe("FR");
+    fireEvent.change(document.getElementById("locationName")!, {
+      target: { value: "Zénith Paris" },
+    });
+    fireEvent.mouseDown(
+      await screen.findByRole("option", { name: /Le Zénith/ }),
+    );
+    const val = (id: string) =>
+      (document.getElementById(id) as HTMLInputElement).value;
+    expect([
+      val("locationName"),
+      val("addressLine1"),
+      val("postalCode"),
+      val("city"),
+    ]).toEqual(["Le Zénith", "Avenue Jean Jaurès 211", "75019", "Paris"]);
+    expect(
+      (container.querySelector('input[name="country"]') as HTMLInputElement)
+        .value,
+    ).toBe("FR");
     vi.unstubAllGlobals();
   });
 });

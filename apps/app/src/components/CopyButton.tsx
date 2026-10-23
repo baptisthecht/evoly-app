@@ -4,7 +4,13 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "./ui/Button";
 
-export function CopyButton({ value, label }: { value: string; label?: string }) {
+export function CopyButton({
+  value,
+  label,
+}: {
+  value: string;
+  label?: string;
+}) {
   const t = useTranslations("common");
   const [copied, setCopied] = useState(false);
   return (

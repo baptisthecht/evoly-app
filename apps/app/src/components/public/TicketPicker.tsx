@@ -54,10 +54,28 @@ export function TicketPicker({
   timeZone: string;
   maxPerOrder: number;
   state: "OPEN" | "NOT_STARTED" | "PAUSED" | "CLOSED" | "PREVIEW";
-  checkout?: { eventId: string; organizationName: string; requirePhone: boolean; publishableKey: string | null };
+  checkout?: {
+    eventId: string;
+    organizationName: string;
+    requirePhone: boolean;
+    publishableKey: string | null;
+  };
   seatMap?: PublicSeatMap | null;
-  options?: Array<{ id: string; name: string; description: string | null; priceMinor: number; maxPerOrder: number; left: number | null; standalone?: boolean }>;
-  waitlistOffer?: { token: string; ticketTypeId: string; quantity: number; expiresAt: string } | null;
+  options?: Array<{
+    id: string;
+    name: string;
+    description: string | null;
+    priceMinor: number;
+    maxPerOrder: number;
+    left: number | null;
+    standalone?: boolean;
+  }>;
+  waitlistOffer?: {
+    token: string;
+    ticketTypeId: string;
+    quantity: number;
+    expiresAt: string;
+  } | null;
 }) {
   const t = useTranslations("public");
   const locale = useLocale() as Locale;
@@ -68,7 +86,8 @@ export function TicketPicker({
   const [ambassadorCode, setAmbassadorCode] = useState<string | null>(null);
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get("a");
-    if (code && /^[a-z0-9-]{3,40}$/i.test(code)) setAmbassadorCode(code.toLowerCase());
+    if (code && /^[a-z0-9-]{3,40}$/i.test(code))
+      setAmbassadorCode(code.toLowerCase());
   }, []);
   const [reservation, setReservation] = useState<ReservationView | null>(null);
   const tseat = useTranslations("seatPicker");
@@ -83,14 +102,28 @@ export function TicketPicker({
     () =>
       baseTickets.map((b) =>
         waitlistOffer && b.id === waitlistOffer.ticketTypeId
-          ? { ...b, remaining: waitlistOffer.quantity, maxPerOrder: Math.min(b.maxPerOrder, waitlistOffer.quantity), onSale: true }
+          ? {
+              ...b,
+              remaining: waitlistOffer.quantity,
+              maxPerOrder: Math.min(b.maxPerOrder, waitlistOffer.quantity),
+              onSale: true,
+            }
           : b,
       ),
     [baseTickets, waitlistOffer],
   );
-  const tickets = useMemo(() => [...offered, ...(promo?.unlocked ?? []).filter((u) => !offered.some((b) => b.id === u.id))], [offered, promo]);
+  const tickets = useMemo(
+    () => [
+      ...offered,
+      ...(promo?.unlocked ?? []).filter(
+        (u) => !offered.some((b) => b.id === u.id),
+      ),
+    ],
+    [offered, promo],
+  );
   const discounted = (tt: PickerTicket) =>
-    promo && (promo.ticketTypeIds.length === 0 || promo.ticketTypeIds.includes(tt.id))
+    promo &&
+    (promo.ticketTypeIds.length === 0 || promo.ticketTypeIds.includes(tt.id))
       ? tt.priceMinor -
         unitDiscount(tt.priceMinor, {
           id: "",
@@ -111,46 +144,85 @@ export function TicketPicker({
     if (res.ok) {
       setPromo(res.data);
       setPromoOpen(false);
-    } else setPromoError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_PROMO_NOT_FOUND"));
+    } else
+      setPromoError(
+        tc.has(`error_${res.error}`)
+          ? tc(`error_${res.error}`)
+          : tc("error_PROMO_NOT_FOUND"),
+      );
   };
   // tout est complet : ni code promo ni total, la section Revente prend le relais (RG-EVT-04)
-  const allSoldOut = tickets.length > 0 && tickets.every((tt) => tt.remaining <= 0);
-  const total = tickets.reduce((n, tt) => n + (qty[tt.id] ?? 0) * discounted(tt), 0) + options.reduce((n, o) => n + (optQty[o.id] ?? 0) * o.priceMinor, 0);
+  const allSoldOut =
+    tickets.length > 0 && tickets.every((tt) => tt.remaining <= 0);
+  const total =
+    tickets.reduce((n, tt) => n + (qty[tt.id] ?? 0) * discounted(tt), 0) +
+    options.reduce((n, o) => n + (optQty[o.id] ?? 0) * o.priceMinor, 0);
   const setOpt = (o: (typeof options)[number], next: number) =>
-    setOptQty((q) => ({ ...q, [o.id]: Math.max(0, Math.min(next, o.maxPerOrder, o.left ?? o.maxPerOrder)) }));
+    setOptQty((q) => ({
+      ...q,
+      [o.id]: Math.max(
+        0,
+        Math.min(next, o.maxPerOrder, o.left ?? o.maxPerOrder),
+      ),
+    }));
   const count = Object.values(qty).reduce((a, b) => a + b, 0);
   // RG-OPT-03 : options seules (vestiaire seul…) : aucun billet, et seulement des options vendables sans billet
   const optCount = options.reduce((n, o) => n + (optQty[o.id] ?? 0), 0);
-  const optionsOnly = count === 0 && optCount > 0 && options.every((o) => !(optQty[o.id] ?? 0) || o.standalone);
+  const optionsOnly =
+    count === 0 &&
+    optCount > 0 &&
+    options.every((o) => !(optQty[o.id] ?? 0) || o.standalone);
   const canBuy = count > 0 || optionsOnly;
-  const money = (v: number) => (v === 0 ? t("free") : formatMoney(v, currency, locale, { trimZeroCents: true }));
+  const money = (v: number) =>
+    v === 0
+      ? t("free")
+      : formatMoney(v, currency, locale, { trimZeroCents: true });
   const set = (tt: PickerTicket, next: number) => {
     const others = count - (qty[tt.id] ?? 0);
-    const cap = Math.min(tt.maxPerOrder, Number.isFinite(tt.remaining) ? tt.remaining : tt.maxPerOrder, maxPerOrder - others);
+    const cap = Math.min(
+      tt.maxPerOrder,
+      Number.isFinite(tt.remaining) ? tt.remaining : tt.maxPerOrder,
+      maxPerOrder - others,
+    );
     let v = Math.max(0, Math.min(next, cap));
-    if (v > 0 && v < tt.minPerOrder) v = next > (qty[tt.id] ?? 0) ? Math.min(tt.minPerOrder, cap) : 0;
+    if (v > 0 && v < tt.minPerOrder)
+      v = next > (qty[tt.id] ?? 0) ? Math.min(tt.minPerOrder, cap) : 0;
     setQty((q) => ({ ...q, [tt.id]: v }));
   };
   // section 9.9 : places à choisir par catégorie, d'après les billets sélectionnés
   // « à côté de mes amis » : lien partagé (?amis=…), places de l'ami et meilleures places proches des siennes
-  const [friend, setFriend] = useState<{ code: string; firstName: string; seatIds: string[]; center: { x: number; y: number } } | null>(null);
+  const [friend, setFriend] = useState<{
+    code: string;
+    firstName: string;
+    seatIds: string[];
+    center: { x: number; y: number };
+  } | null>(null);
   useEffect(() => {
     if (!checkout) return;
     const code = new URLSearchParams(window.location.search).get("amis");
-    if (code) void friendSeatsAction(checkout.eventId, code).then((f) => f && setFriend({ code, ...f }));
+    if (code)
+      void friendSeatsAction(checkout.eventId, code).then(
+        (f) => f && setFriend({ code, ...f }),
+      );
   }, [checkout]);
   const needed: Record<string, number> = {};
   // fosse, zone debout : billets sans place, pas de choix sur le plan
   if (seatMap)
     for (const [ticketTypeId, n] of Object.entries(qty)) {
-      const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(ticketTypeId));
+      const c = seatMap.categories.find((x) =>
+        x.ticketTypeIds.includes(ticketTypeId),
+      );
       if (c && !c.standing && n > 0) needed[c.id] = (needed[c.id] ?? 0) + n;
     }
   useEffect(() => {
     if (count !== 0) return;
     // rien à retirer : le même objet, donc aucun nouveau rendu (sinon boucle sans fin avec le tableau d'options par défaut)
     setOptQty((q) => {
-      const kept = Object.fromEntries(Object.entries(q).filter(([id]) => options.find((o) => o.id === id)?.standalone));
+      const kept = Object.fromEntries(
+        Object.entries(q).filter(
+          ([id]) => options.find((o) => o.id === id)?.standalone,
+        ),
+      );
       return Object.keys(kept).length === Object.keys(q).length ? q : kept;
     });
   }, [count, options]);
@@ -164,7 +236,9 @@ export function TicketPicker({
     // meilleures places attribuées tout de suite (ou près de l'ami) ; l'acheteur peut les voir et les changer ensuite
     // RG-BUY-10 : défi anti-robots résolu dans le navigateur si l'organisateur l'a activé
     const challenge = await botChallengeAction(checkout.eventId);
-    const botProof = challenge ? await solveBotChallenge(challenge).catch(() => null) : null;
+    const botProof = challenge
+      ? await solveBotChallenge(challenge).catch(() => null)
+      : null;
     const opts = Object.entries(optQty)
       .filter(([, n]) => n > 0)
       .map(([optionId, quantity]) => ({ optionId, quantity }));
@@ -181,7 +255,11 @@ export function TicketPicker({
     );
     setPending(false);
     if (res.ok) return setReservation(res.data);
-    setError(tc.has(`error_${res.error}`) ? tc(`error_${res.error}`) : tc("error_UNKNOWN"));
+    setError(
+      tc.has(`error_${res.error}`)
+        ? tc(`error_${res.error}`)
+        : tc("error_UNKNOWN"),
+    );
   };
   if (reservation && checkout) {
     return (
@@ -210,7 +288,11 @@ export function TicketPicker({
       {waitlistOffer ? (
         <p role="status" className="rounded-md bg-info-soft px-4 py-3 text-sm">
           {t("waitlistOfferBanner", {
-            time: new Intl.DateTimeFormat(locale, { timeZone, hour: "2-digit", minute: "2-digit" }).format(new Date(waitlistOffer.expiresAt)),
+            time: new Intl.DateTimeFormat(locale, {
+              timeZone,
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(new Date(waitlistOffer.expiresAt)),
           })}
         </p>
       ) : null}
@@ -218,30 +300,61 @@ export function TicketPicker({
         {tickets.map((tt) => {
           const availability = availabilityDisplay(tt.remaining, tt.quantity);
           const n = qty[tt.id] ?? 0;
-          const selectable = tt.onSale && (state === "OPEN" || state === "PREVIEW");
+          const selectable =
+            tt.onSale && (state === "OPEN" || state === "PREVIEW");
           return (
             <li
               key={tt.id}
-              className={cn("grid gap-3 rounded-lg p-4 ring-1 ring-line", availability.kind === "SOLD_OUT" ? "bg-surface-sunken" : "bg-surface-raised")}
+              className={cn(
+                "grid gap-3 rounded-lg p-4 ring-1 ring-line",
+                availability.kind === "SOLD_OUT"
+                  ? "bg-surface-sunken"
+                  : "bg-surface-raised",
+              )}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="grid min-w-0 gap-1">
                   <p className="font-semibold">{tt.name}</p>
-                  {tt.description ? <p className="text-sm text-ink-muted">{tt.description}</p> : null}
-                  {tt.groupSize && tt.groupSize > 1 ? <p className="text-sm font-semibold">{t("tablePeople", { count: tt.groupSize })}</p> : null}
-                  {tt.included?.length ? <p className="text-sm text-ink-muted">{t("tableIncludes", { items: tt.included.join(", ") })}</p> : null}
+                  {tt.description ? (
+                    <p className="text-sm text-ink-muted">{tt.description}</p>
+                  ) : null}
+                  {tt.groupSize && tt.groupSize > 1 ? (
+                    <p className="text-sm font-semibold">
+                      {t("tablePeople", { count: tt.groupSize })}
+                    </p>
+                  ) : null}
+                  {tt.included?.length ? (
+                    <p className="text-sm text-ink-muted">
+                      {t("tableIncludes", { items: tt.included.join(", ") })}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap gap-2 text-sm">
-                    {tt.tierName ? <span className="rounded-full bg-surface-accent px-2 py-0.5 font-label text-xs font-bold">{tt.tierName}</span> : null}
-                    {availability.kind === "FEW_LEFT" ? (
-                      <span className="font-semibold text-warning">{t("fewLeft", { count: availability.remaining })}</span>
+                    {tt.tierName ? (
+                      <span className="rounded-full bg-surface-accent px-2 py-0.5 font-label text-xs font-bold">
+                        {tt.tierName}
+                      </span>
                     ) : null}
-                    {availability.kind === "SOLD_OUT" ? <span className="font-semibold text-ink-muted">{t("soldOut")}</span> : null}
-                    {availability.kind === "SOLD_OUT" && checkout && state === "OPEN" ? (
+                    {availability.kind === "FEW_LEFT" ? (
+                      <span className="font-semibold text-warning">
+                        {t("fewLeft", { count: availability.remaining })}
+                      </span>
+                    ) : null}
+                    {availability.kind === "SOLD_OUT" ? (
+                      <span className="font-semibold text-ink-muted">
+                        {t("soldOut")}
+                      </span>
+                    ) : null}
+                    {availability.kind === "SOLD_OUT" &&
+                    checkout &&
+                    state === "OPEN" ? (
                       <WaitlistJoin
                         eventId={checkout.eventId}
                         ticketTypeId={tt.id}
                         name={tt.name}
-                        max={Math.max(1, Math.min(4, tt.maxPerOrder, maxPerOrder))}
+                        max={Math.max(
+                          1,
+                          Math.min(4, tt.maxPerOrder, maxPerOrder),
+                        )}
                       />
                     ) : null}
                   </div>
@@ -249,7 +362,11 @@ export function TicketPicker({
                     <p className="text-xs text-ink-muted">
                       {t("nextTier", {
                         price: money(tt.next.priceMinor),
-                        date: new Intl.DateTimeFormat(locale, { timeZone, day: "numeric", month: "long" }).format(new Date(tt.next.startsAt)),
+                        date: new Intl.DateTimeFormat(locale, {
+                          timeZone,
+                          day: "numeric",
+                          month: "long",
+                        }).format(new Date(tt.next.startsAt)),
                       })}
                     </p>
                   ) : null}
@@ -257,7 +374,9 @@ export function TicketPicker({
                 <p className="grid shrink-0 justify-items-end font-display text-xl tracking-[-0.03em] tabular-nums">
                   {discounted(tt) !== tt.priceMinor ? (
                     <>
-                      <span className="font-sans text-sm font-normal text-ink-muted line-through">{money(tt.priceMinor)}</span>
+                      <span className="font-sans text-sm font-normal text-ink-muted line-through">
+                        {money(tt.priceMinor)}
+                      </span>
                       <span>{money(discounted(tt))}</span>
                     </>
                   ) : (
@@ -266,7 +385,11 @@ export function TicketPicker({
                 </p>
               </div>
               {selectable ? (
-                <div className="flex items-center justify-end gap-2" role="group" aria-label={t("quantityFor", { name: tt.name })}>
+                <div
+                  className="flex items-center justify-end gap-2"
+                  role="group"
+                  aria-label={t("quantityFor", { name: tt.name })}
+                >
                   <Button
                     type="button"
                     variant="secondary"
@@ -278,7 +401,10 @@ export function TicketPicker({
                   >
                     −
                   </Button>
-                  <output className="w-8 text-center font-display text-lg tabular-nums" aria-live="polite">
+                  <output
+                    className="w-8 text-center font-display text-lg tabular-nums"
+                    aria-live="polite"
+                  >
                     {n}
                   </output>
                   <Button
@@ -302,7 +428,13 @@ export function TicketPicker({
           <div className="grid gap-1">
             <h3 className="font-semibold">{t("optionsTitle")}</h3>
             <p className="text-sm text-ink-muted">
-              {count === 0 ? t(options.some((o) => o.standalone) ? "optionsStandaloneHint" : "optionsNeedTicket") : t("optionsHint")}
+              {count === 0
+                ? t(
+                    options.some((o) => o.standalone)
+                      ? "optionsStandaloneHint"
+                      : "optionsNeedTicket",
+                  )
+                : t("optionsHint")}
             </p>
           </div>
           <ul className="grid gap-2">
@@ -310,13 +442,24 @@ export function TicketPicker({
               const n = optQty[o.id] ?? 0;
               const cap = Math.min(o.maxPerOrder, o.left ?? o.maxPerOrder);
               return (
-                <li key={o.id} className="flex items-center justify-between gap-3">
+                <li
+                  key={o.id}
+                  className="flex items-center justify-between gap-3"
+                >
                   <div className="grid min-w-0 gap-0.5">
                     <p className="font-semibold">{o.name}</p>
-                    {o.description ? <p className="text-sm text-ink-muted">{o.description}</p> : null}
-                    <p className="text-sm tabular-nums">{money(o.priceMinor)}</p>
+                    {o.description ? (
+                      <p className="text-sm text-ink-muted">{o.description}</p>
+                    ) : null}
+                    <p className="text-sm tabular-nums">
+                      {money(o.priceMinor)}
+                    </p>
                   </div>
-                  <div className="flex items-center justify-end gap-2" role="group" aria-label={t("quantityFor", { name: o.name })}>
+                  <div
+                    className="flex items-center justify-end gap-2"
+                    role="group"
+                    aria-label={t("quantityFor", { name: o.name })}
+                  >
                     <Button
                       type="button"
                       variant="secondary"
@@ -328,7 +471,10 @@ export function TicketPicker({
                     >
                       −
                     </Button>
-                    <output className="w-8 text-center font-display text-lg tabular-nums" aria-live="polite">
+                    <output
+                      className="w-8 text-center font-display text-lg tabular-nums"
+                      aria-live="polite"
+                    >
                       {n}
                     </output>
                     <Button
@@ -353,7 +499,11 @@ export function TicketPicker({
         promo ? (
           <p className="flex items-center justify-between gap-3 rounded-md bg-surface-accent px-4 py-2.5 text-sm">
             <span>{tc("promoApplied", { code: promo.code })}</span>
-            <button type="button" className="font-semibold underline underline-offset-4" onClick={() => setPromo(null)}>
+            <button
+              type="button"
+              className="font-semibold underline underline-offset-4"
+              onClick={() => setPromo(null)}
+            >
               {tc("promoRemove")}
             </button>
           </p>
@@ -380,7 +530,11 @@ export function TicketPicker({
             ) : null}
           </div>
         ) : (
-          <button type="button" className="justify-self-start text-sm font-semibold underline underline-offset-4" onClick={() => setPromoOpen(true)}>
+          <button
+            type="button"
+            className="justify-self-start text-sm font-semibold underline underline-offset-4"
+            onClick={() => setPromoOpen(true)}
+          >
             {tc("promoToggle")}
           </button>
         )
@@ -389,10 +543,15 @@ export function TicketPicker({
         <div className="grid gap-3 border-t border-line pt-4">
           <div className="flex items-baseline justify-between">
             <span className="font-semibold">{t("total")}</span>
-            <span className="font-display text-2xl tracking-[-0.03em] tabular-nums">{!canBuy ? "-" : money(total)}</span>
+            <span className="font-display text-2xl tracking-[-0.03em] tabular-nums">
+              {!canBuy ? "-" : money(total)}
+            </span>
           </div>
           {error ? (
-            <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+            <p
+              role="alert"
+              className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger"
+            >
               {error}
             </p>
           ) : null}
@@ -406,10 +565,16 @@ export function TicketPicker({
           >
             {pending ? tc("processing") : t("continue")}
           </Button>
-          {state === "PREVIEW" ? <p className="text-center text-xs text-ink-muted">{t("previewNoPurchase")}</p> : null}
+          {state === "PREVIEW" ? (
+            <p className="text-center text-xs text-ink-muted">
+              {t("previewNoPurchase")}
+            </p>
+          ) : null}
         </div>
       ) : (
-        <p className="rounded-md bg-surface-sunken px-4 py-3 text-sm">{t(`salesState_${state}`)}</p>
+        <p className="rounded-md bg-surface-sunken px-4 py-3 text-sm">
+          {t(`salesState_${state}`)}
+        </p>
       )}
     </div>
   );

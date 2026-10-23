@@ -5,37 +5,118 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
-import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, updateEventSettings } from "@/server/events";
+import {
+  createEvent,
+  deleteDraft,
+  duplicateEvent,
+  pauseSales,
+  publishEvent,
+  updateEventSettings,
+} from "@/server/events";
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
-import { createOption, setOptionsRefundAfterStart, setOptionActive, updateOption } from "@/server/options";
-import { createAmbassador, removeAmbassadorPromo, setAmbassadorActive, setAmbassadorPromo } from "@/server/ambassadors";
-import { createDistributor, createPrecreatedCodes, releaseUnsold, setAllocation, setDistributorSeats } from "@/server/distributors";
+import {
+  createOption,
+  setOptionsRefundAfterStart,
+  setOptionActive,
+  updateOption,
+} from "@/server/options";
+import {
+  createAmbassador,
+  removeAmbassadorPromo,
+  setAmbassadorActive,
+  setAmbassadorPromo,
+} from "@/server/ambassadors";
+import {
+  createDistributor,
+  createPrecreatedCodes,
+  releaseUnsold,
+  setAllocation,
+  setDistributorSeats,
+} from "@/server/distributors";
 import { addEmbedOrigin, removeEmbedOrigin } from "@/server/embed";
 import { saveTableSettings } from "@/server/tables";
 import { cancelListingByOrganizer } from "@/server/resale";
 import { cancelEvent } from "@/server/refunds";
-import { saveMarketingAutomation, setReminderEnabled } from "@/server/automations";
-import { previewEventEmailBlock, saveEventEmailBlock } from "@/server/eventEmailBlocks";
-import { createPreviewToken, revokePreviewToken, savePublication } from "@/server/publication";
-import { generatePresaleCodes, savePresaleStart, setPresaleCodeActive } from "@/server/presale";
+import {
+  saveMarketingAutomation,
+  setReminderEnabled,
+} from "@/server/automations";
+import {
+  previewEventEmailBlock,
+  saveEventEmailBlock,
+} from "@/server/eventEmailBlocks";
+import {
+  createPreviewToken,
+  revokePreviewToken,
+  savePublication,
+} from "@/server/publication";
+import {
+  generatePresaleCodes,
+  savePresaleStart,
+  setPresaleCodeActive,
+} from "@/server/presale";
 import { moveQuestion, removeQuestion, saveQuestion } from "@/server/questions";
-import { sendComplimentaryTickets, type ComplimentaryResult } from "@/server/complimentary";
-import { applySeatingTemplate, deleteRow, saveCategory, setSeatChoice, setSeatingMode, toggleSeatBlocked } from "@/server/seating";
-import { deleteSeatingBlock, moveTicketSeat, saveSeatingBlock, setBlockView, updateSeat, updateSeatingCategory } from "@/server/seatingEditor";
+import {
+  sendComplimentaryTickets,
+  type ComplimentaryResult,
+} from "@/server/complimentary";
+import {
+  applySeatingTemplate,
+  deleteRow,
+  saveCategory,
+  setSeatChoice,
+  setSeatingMode,
+  toggleSeatBlocked,
+} from "@/server/seating";
+import {
+  deleteSeatingBlock,
+  moveTicketSeat,
+  saveSeatingBlock,
+  setBlockView,
+  updateSeat,
+  updateSeatingCategory,
+} from "@/server/seatingEditor";
 import { planFromPhoto } from "@/server/seatingPhoto";
 import { applyPlan, type StoredPlan } from "@/server/seating";
-import { applySeatingLayout, deleteSeatingLayout, listSeatingLayouts, saveSeatingLayout, type SeatingLayoutItem } from "@/server/seatingLayouts";
+import {
+  applySeatingLayout,
+  deleteSeatingLayout,
+  listSeatingLayouts,
+  saveSeatingLayout,
+  type SeatingLayoutItem,
+} from "@/server/seatingLayouts";
 import { SEATING_TEMPLATES, CoreError } from "@evoly/core";
 import { NUMBERING, blockSchema, rowLabels, sInt } from "@/lib/seatingSchemas";
 import { parseRecipients } from "@evoly/core";
-import { createScannerLink, personalScannerLink, revokeScannerLink, scannerUrl } from "@/server/scanner";
-import { createTicketType, deleteTicketType, moveTicketType, saveTiers, setTicketTypeStatus, updateTicketType } from "@/server/tickets";
+import {
+  createScannerLink,
+  personalScannerLink,
+  revokeScannerLink,
+  scannerUrl,
+} from "@/server/scanner";
+import {
+  createTicketType,
+  deleteTicketType,
+  moveTicketType,
+  saveTiers,
+  setTicketTypeStatus,
+  updateTicketType,
+} from "@/server/tickets";
 
-const text = (max: number, message = "validation.textLength") => z.string().trim().max(max, { message });
+const text = (max: number, message = "validation.textLength") =>
+  z.string().trim().max(max, { message });
 const optionalText = (max: number) =>
-  z.preprocess((v) => (v === "" || v == null ? null : v), z.string().trim().max(max, { message: "validation.textLength" }).nullable());
-const localDate = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, { message: "validation.datetime" });
-const optionalLocalDate = z.preprocess((v) => (v === "" || v == null ? null : v), localDate.nullable());
+  z.preprocess(
+    (v) => (v === "" || v == null ? null : v),
+    z.string().trim().max(max, { message: "validation.textLength" }).nullable(),
+  );
+const localDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, { message: "validation.datetime" });
+const optionalLocalDate = z.preprocess(
+  (v) => (v === "" || v == null ? null : v),
+  localDate.nullable(),
+);
 const optionalInt = (min: number, max: number) =>
   z.preprocess(
     (v) => (v === "" || v == null ? null : Number(v)),
@@ -55,8 +136,15 @@ const int = (min: number, max: number) =>
       .min(min, { message: "validation.number" })
       .max(max, { message: "validation.number" }),
   );
-const checkbox = z.preprocess((v) => v === "on" || v === "true" || v === true, z.boolean());
-const price = z.string().trim().min(1, { message: "validation.required" }).max(12);
+const checkbox = z.preprocess(
+  (v) => v === "on" || v === "true" || v === true,
+  z.boolean(),
+);
+const price = z
+  .string()
+  .trim()
+  .min(1, { message: "validation.required" })
+  .max(12);
 
 const essentials = {
   title: text(120).min(2, { message: "validation.textLength" }),
@@ -88,11 +176,26 @@ const settingsSchema = z.object({
   ...essentials,
   capacity: optionalInt(1, 1_000_000),
   maxTicketsPerOrder: int(1, 50),
-  maxTicketsPerBuyer: z.preprocess((v) => (v === "" || v == null ? null : v), z.coerce.number().int().min(1).max(200).nullable()).optional(),
+  maxTicketsPerBuyer: z
+    .preprocess(
+      (v) => (v === "" || v == null ? null : v),
+      z.coerce.number().int().min(1).max(200).nullable(),
+    )
+    .optional(),
   version: z.string().max(40).optional(),
   visibility: z.enum(["PUBLIC", "UNLISTED", "PRIVATE"]),
-  accessCode: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().trim().max(40).nullable()).optional(),
-  refundPolicy: z.enum(["NON_REFUNDABLE", "UNTIL_DEADLINE", "ON_REQUEST", "ALWAYS"]),
+  accessCode: z
+    .preprocess(
+      (v) => (v === "" || v == null ? null : v),
+      z.string().trim().max(40).nullable(),
+    )
+    .optional(),
+  refundPolicy: z.enum([
+    "NON_REFUNDABLE",
+    "UNTIL_DEADLINE",
+    "ON_REQUEST",
+    "ALWAYS",
+  ]),
   refundDeadlineLocal: optionalLocalDate,
   salesStartLocal: optionalLocalDate,
   salesEndLocal: optionalLocalDate,
@@ -131,11 +234,24 @@ const tiersSchema = z
   )
   .max(10);
 
-const eventPath = (orgSlug: string, eventId: string) => `/o/${orgSlug}/events/${eventId}`;
+const eventPath = (orgSlug: string, eventId: string) =>
+  `/o/${orgSlug}/events/${eventId}`;
 
-export async function createEventAction(orgSlug: string, _: ActionState, form: FormData): Promise<ActionState> {
-  const result = await runOrgAction(orgSlug, formToObject(form), { schema: createSchema, permission: "EVENTS_CREATE" }, (d, ctx) =>
-    createEvent(ctx, d, { name: d.ticketName, price: d.ticketPrice, quantity: d.ticketQuantity }),
+export async function createEventAction(
+  orgSlug: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: createSchema, permission: "EVENTS_CREATE" },
+    (d, ctx) =>
+      createEvent(ctx, d, {
+        name: d.ticketName,
+        price: d.ticketPrice,
+        quantity: d.ticketQuantity,
+      }),
   );
   if (result?.ok) redirect(eventPath(orgSlug, result.data.id));
   return result;
@@ -146,28 +262,57 @@ export async function saveEventSettingsAction(
   eventId: string,
   _: ActionState,
   form: FormData,
-): Promise<ActionState<{ savedAt: string; version: string; concurrent: boolean }>> {
-  const result = await runOrgAction(orgSlug, formToObject(form), { schema: settingsSchema, permission: "EVENTS_EDIT" }, async (d, ctx) => {
-    const updated = await updateEventSettings(ctx, eventId, d);
-    return { savedAt: new Date().toISOString(), version: updated.updatedAt.toISOString(), concurrent: updated.concurrent };
-  });
+): Promise<
+  ActionState<{ savedAt: string; version: string; concurrent: boolean }>
+> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: settingsSchema, permission: "EVENTS_EDIT" },
+    async (d, ctx) => {
+      const updated = await updateEventSettings(ctx, eventId, d);
+      return {
+        savedAt: new Date().toISOString(),
+        version: updated.updatedAt.toISOString(),
+        concurrent: updated.concurrent,
+      };
+    },
+  );
   if (result?.ok) revalidatePath(eventPath(orgSlug, eventId), "layout");
   return result;
 }
 
 type EventCommand = "publish" | "pause" | "resume" | "duplicate" | "delete";
 
-export async function eventCommandAction(orgSlug: string, eventId: string, command: EventCommand, _: ActionState): Promise<ActionState> {
-  const permission = command === "duplicate" ? "EVENTS_CREATE" : command === "delete" ? "EVENTS_DELETE" : "EVENTS_PUBLISH";
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission }, async (_d, ctx) => {
-    if (command === "publish" || command === "resume") await publishEvent(ctx, eventId);
-    if (command === "pause") await pauseSales(ctx, eventId);
-    if (command === "duplicate") return (await duplicateEvent(ctx, eventId)).id;
-    if (command === "delete") await deleteDraft(ctx, eventId);
-    return eventId;
-  });
+export async function eventCommandAction(
+  orgSlug: string,
+  eventId: string,
+  command: EventCommand,
+  _: ActionState,
+): Promise<ActionState> {
+  const permission =
+    command === "duplicate"
+      ? "EVENTS_CREATE"
+      : command === "delete"
+        ? "EVENTS_DELETE"
+        : "EVENTS_PUBLISH";
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission },
+    async (_d, ctx) => {
+      if (command === "publish" || command === "resume")
+        await publishEvent(ctx, eventId);
+      if (command === "pause") await pauseSales(ctx, eventId);
+      if (command === "duplicate")
+        return (await duplicateEvent(ctx, eventId)).id;
+      if (command === "delete") await deleteDraft(ctx, eventId);
+      return eventId;
+    },
+  );
   if (!result?.ok) return result;
-  if (command === "duplicate") redirect(eventPath(orgSlug, String(result.data)));
+  if (command === "duplicate")
+    redirect(eventPath(orgSlug, String(result.data)));
   if (command === "delete") redirect(`/o/${orgSlug}/events`);
   revalidatePath(eventPath(orgSlug, eventId), "layout");
   return result;
@@ -180,15 +325,23 @@ export async function saveTicketTypeAction(
   _: ActionState,
   form: FormData,
 ): Promise<ActionState<{ id: string }>> {
-  const result = await runOrgAction(orgSlug, formToObject(form), { schema: ticketSchema, permission: "TICKETS_MANAGE" }, async (d, ctx) => {
-    const tt = ticketTypeId ? await updateTicketType(ctx, eventId, ticketTypeId, d) : await createTicketType(ctx, eventId, d);
-    return { id: tt.id };
-  });
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: ticketSchema, permission: "TICKETS_MANAGE" },
+    async (d, ctx) => {
+      const tt = ticketTypeId
+        ? await updateTicketType(ctx, eventId, ticketTypeId, d)
+        : await createTicketType(ctx, eventId, d);
+      return { id: tt.id };
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/tickets`);
   return result;
 }
 
-type TicketCommand = "delete" | "pause" | "activate" | "archive" | "up" | "down";
+type TicketCommand =
+  "delete" | "pause" | "activate" | "archive" | "up" | "down";
 
 export async function ticketCommandAction(
   orgSlug: string,
@@ -197,14 +350,24 @@ export async function ticketCommandAction(
   command: TicketCommand,
   _: ActionState,
 ): Promise<ActionState> {
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "TICKETS_MANAGE" }, async (_d, ctx) => {
-    if (command === "delete") await deleteTicketType(ctx, eventId, ticketTypeId);
-    if (command === "pause") await setTicketTypeStatus(ctx, eventId, ticketTypeId, "PAUSED");
-    if (command === "activate") await setTicketTypeStatus(ctx, eventId, ticketTypeId, "ACTIVE");
-    if (command === "archive") await setTicketTypeStatus(ctx, eventId, ticketTypeId, "ARCHIVED");
-    if (command === "up" || command === "down") await moveTicketType(ctx, eventId, ticketTypeId, command);
-    return null;
-  });
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "TICKETS_MANAGE" },
+    async (_d, ctx) => {
+      if (command === "delete")
+        await deleteTicketType(ctx, eventId, ticketTypeId);
+      if (command === "pause")
+        await setTicketTypeStatus(ctx, eventId, ticketTypeId, "PAUSED");
+      if (command === "activate")
+        await setTicketTypeStatus(ctx, eventId, ticketTypeId, "ACTIVE");
+      if (command === "archive")
+        await setTicketTypeStatus(ctx, eventId, ticketTypeId, "ARCHIVED");
+      if (command === "up" || command === "down")
+        await moveTicketType(ctx, eventId, ticketTypeId, command);
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/tickets`);
   return result;
 }
@@ -214,11 +377,28 @@ export async function saveTiersAction(
   eventId: string,
   ticketTypeId: string,
   tiers: unknown,
-): Promise<ActionState<{ issues: Array<{ kind: string; from: string; to: string }> }>> {
-  const result = await runOrgAction(orgSlug, tiers, { schema: tiersSchema, permission: "TICKETS_MANAGE", feature: "DYNAMIC_PRICING" }, async (d, ctx) => {
-    const { issues } = await saveTiers(ctx, eventId, ticketTypeId, d);
-    return { issues: issues.map((i) => ({ kind: i.kind, from: i.from.toISOString(), to: i.to.toISOString() })) };
-  });
+): Promise<
+  ActionState<{ issues: Array<{ kind: string; from: string; to: string }> }>
+> {
+  const result = await runOrgAction(
+    orgSlug,
+    tiers,
+    {
+      schema: tiersSchema,
+      permission: "TICKETS_MANAGE",
+      feature: "DYNAMIC_PRICING",
+    },
+    async (d, ctx) => {
+      const { issues } = await saveTiers(ctx, eventId, ticketTypeId, d);
+      return {
+        issues: issues.map((i) => ({
+          kind: i.kind,
+          from: i.from.toISOString(),
+          to: i.to.toISOString(),
+        })),
+      };
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/tickets`);
   return result;
 }
@@ -228,7 +408,10 @@ const promoSchema = z.object({
   discountType: z.enum(["PERCENT", "AMOUNT", "FREE"]),
   percent: optionalText(6),
   amount: optionalText(12),
-  ticketTypeIds: z.preprocess((v) => (Array.isArray(v) ? v : v ? [v] : []), z.array(z.string().max(40)).max(50)),
+  ticketTypeIds: z.preprocess(
+    (v) => (Array.isArray(v) ? v : v ? [v] : []),
+    z.array(z.string().max(40)).max(50),
+  ),
   maxUses: optionalInt(1, 1_000_000),
   maxUsesPerEmail: optionalInt(1, 1000),
   startsAtLocal: optionalLocalDate,
@@ -236,11 +419,24 @@ const promoSchema = z.object({
   unlocksHidden: checkbox,
 });
 
-export async function createPromoAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState<{ code: string }>> {
-  const data = { ...formToObject(form), ticketTypeIds: form.getAll("ticketTypeIds").map(String) };
-  const result = await runOrgAction(orgSlug, data, { schema: promoSchema, permission: "PROMO_MANAGE", feature: "PROMO_CODES" }, async (d, ctx) => ({
-    code: (await createPromo(ctx, eventId, d)).code,
-  }));
+export async function createPromoAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState<{ code: string }>> {
+  const data = {
+    ...formToObject(form),
+    ticketTypeIds: form.getAll("ticketTypeIds").map(String),
+  };
+  const result = await runOrgAction(
+    orgSlug,
+    data,
+    { schema: promoSchema, permission: "PROMO_MANAGE", feature: "PROMO_CODES" },
+    async (d, ctx) => ({
+      code: (await createPromo(ctx, eventId, d)).code,
+    }),
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/promo`);
   return result;
 }
@@ -252,11 +448,16 @@ export async function promoCommandAction(
   command: "activate" | "deactivate" | "delete",
   _: ActionState,
 ): Promise<ActionState> {
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "PROMO_MANAGE" }, async (_d, ctx) => {
-    if (command === "delete") await deletePromo(ctx, eventId, promoId);
-    else await setPromoActive(ctx, eventId, promoId, command === "activate");
-    return null;
-  });
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "PROMO_MANAGE" },
+    async (_d, ctx) => {
+      if (command === "delete") await deletePromo(ctx, eventId, promoId);
+      else await setPromoActive(ctx, eventId, promoId, command === "activate");
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/promo`);
   return result;
 }
@@ -271,26 +472,50 @@ const scannerLinkSchema = z.object({
 });
 
 /** US-SCN-01 : lien bénévole, sans compte. */
-export async function createScannerLinkAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState<{ id: string }>> {
-  const result = await runOrgAction(orgSlug, formToObject(form), { schema: scannerLinkSchema, permission: "CHECKIN_MANAGE" }, async (d, ctx) => ({
-    id: (await createScannerLink(ctx, eventId, d)).id,
-  }));
+export async function createScannerLinkAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState<{ id: string }>> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: scannerLinkSchema, permission: "CHECKIN_MANAGE" },
+    async (d, ctx) => ({
+      id: (await createScannerLink(ctx, eventId, d)).id,
+    }),
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/entries`);
   return result;
 }
 
 /** US-SCN-05 : révocation immédiate d'un lien. */
-export async function revokeScannerLinkAction(orgSlug: string, eventId: string, linkId: string, _: ActionState): Promise<ActionState> {
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "CHECKIN_MANAGE" }, async (_d, ctx) => {
-    await revokeScannerLink(ctx, eventId, linkId);
-    return null;
-  });
+export async function revokeScannerLinkAction(
+  orgSlug: string,
+  eventId: string,
+  linkId: string,
+  _: ActionState,
+): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "CHECKIN_MANAGE" },
+    async (_d, ctx) => {
+      await revokeScannerLink(ctx, eventId, linkId);
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/entries`);
   return result;
 }
 
 /** US-SCN-06 : un membre autorisé ouvre le scanner avec son compte (lien personnel). */
-export async function openScannerAction(orgSlug: string, eventId: string, _: ActionState): Promise<ActionState> {
+export async function openScannerAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     {},
@@ -302,24 +527,50 @@ export async function openScannerAction(orgSlug: string, eventId: string, _: Act
 }
 
 /** RG-RSL-09 : l'organisateur retire une annonce précise. */
-export async function cancelListingAction(orgSlug: string, eventId: string, listingId: string, _: ActionState): Promise<ActionState> {
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "RESALE_MANAGE" }, async (_d, ctx) => {
-    await cancelListingByOrganizer(ctx.organization.id, eventId, listingId, ctx.user.id);
-    return null;
-  });
+export async function cancelListingAction(
+  orgSlug: string,
+  eventId: string,
+  listingId: string,
+  _: ActionState,
+): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "RESALE_MANAGE" },
+    async (_d, ctx) => {
+      await cancelListingByOrganizer(
+        ctx.organization.id,
+        eventId,
+        listingId,
+        ctx.user.id,
+      );
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/resale`);
   return result;
 }
 
 /** RG-REF-07 : annulation avec motif et saisie du titre (double confirmation). */
-export async function cancelEventAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState<{ orders: number }>> {
+export async function cancelEventAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState<{ orders: number }>> {
   const schema = z.object({
     reason: text(500).min(3, { message: "validation.textLength" }),
     confirmation: text(120).min(1, { message: "validation.required" }),
   });
-  const result = await runOrgAction(orgSlug, formToObject(form), { schema, permission: "EVENTS_CANCEL" }, async (d, ctx) => ({
-    orders: (await cancelEvent(ctx, eventId, d.reason, d.confirmation)).orders,
-  }));
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema, permission: "EVENTS_CANCEL" },
+    async (d, ctx) => ({
+      orders: (await cancelEvent(ctx, eventId, d.reason, d.confirmation))
+        .orders,
+    }),
+  );
   if (result?.ok) revalidatePath(eventPath(orgSlug, eventId), "layout");
   return result;
 }
@@ -335,7 +586,10 @@ export async function reminderAction(
     orgSlug,
     { type, enabled },
     {
-      schema: z.object({ type: z.enum(["REMINDER_J7", "REMINDER_J1", "REMINDER_J0"]), enabled: z.boolean() }),
+      schema: z.object({
+        type: z.enum(["REMINDER_J7", "REMINDER_J1", "REMINDER_J0"]),
+        enabled: z.boolean(),
+      }),
       permission: "MARKETING_MANAGE",
       feature: "EMAIL_MARKETING",
     },
@@ -368,17 +622,32 @@ export async function marketingAutomationAction(
       }
     }),
   });
-  const result = await runOrgAction(orgSlug, formToObject(form), { schema, permission: "MARKETING_MANAGE", feature: "EMAIL_MARKETING" }, async (d, ctx) => {
-    await saveMarketingAutomation(ctx, eventId, type, d);
-    return null;
-  });
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema, permission: "MARKETING_MANAGE", feature: "EMAIL_MARKETING" },
+    async (d, ctx) => {
+      await saveMarketingAutomation(ctx, eventId, type, d);
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/settings`);
   return result;
 }
 
 /** US-QST-01 : création ou modification d'une question à l'achat. */
-export async function saveQuestionAction(orgSlug: string, eventId: string, questionId: string | null, _: ActionState, form: FormData): Promise<ActionState> {
-  const data = { ...formToObject(form), ticketTypeIds: form.getAll("ticketTypeIds").map(String), required: form.get("required") === "on" };
+export async function saveQuestionAction(
+  orgSlug: string,
+  eventId: string,
+  questionId: string | null,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const data = {
+    ...formToObject(form),
+    ticketTypeIds: form.getAll("ticketTypeIds").map(String),
+    required: form.get("required") === "on",
+  };
   const schema = z.object({
     label: text(200),
     helpText: text(300).optional(),
@@ -388,10 +657,15 @@ export async function saveQuestionAction(orgSlug: string, eventId: string, quest
     scope: z.enum(["ORDER", "TICKET"]),
     ticketTypeIds: z.array(z.string().max(40)).max(50),
   });
-  const result = await runOrgAction(orgSlug, data, { schema, permission: "TICKETS_MANAGE" }, async (d, ctx) => {
-    await saveQuestion(ctx, eventId, questionId, d);
-    return null;
-  });
+  const result = await runOrgAction(
+    orgSlug,
+    data,
+    { schema, permission: "TICKETS_MANAGE" },
+    async (d, ctx) => {
+      await saveQuestion(ctx, eventId, questionId, d);
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/tickets`);
   return result;
 }
@@ -402,11 +676,17 @@ export async function questionCommandAction(
   questionId: string,
   command: "up" | "down" | "remove",
 ): Promise<ActionState<{ outcome: string }>> {
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "TICKETS_MANAGE" }, async (_d, ctx) => {
-    if (command === "remove") return { outcome: await removeQuestion(ctx, eventId, questionId) };
-    await moveQuestion(ctx, eventId, questionId, command === "up" ? -1 : 1);
-    return { outcome: "MOVED" };
-  });
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "TICKETS_MANAGE" },
+    async (_d, ctx) => {
+      if (command === "remove")
+        return { outcome: await removeQuestion(ctx, eventId, questionId) };
+      await moveQuestion(ctx, eventId, questionId, command === "up" ? -1 : 1);
+      return { outcome: "MOVED" };
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/tickets`);
   return result;
 }
@@ -417,23 +697,47 @@ export async function complimentaryAction(
   eventId: string,
   _: ActionState,
   form: FormData,
-): Promise<ActionState<{ results: ComplimentaryResult[]; invalid: Array<{ line: number; value: string }>; tooMany: boolean }>> {
-  const parsed = parseRecipients(String(form.get("recipients") ?? "").slice(0, 60_000));
-  const schema = z.object({ ticketTypeId: z.string().min(1).max(40), quantityEach: z.coerce.number().int().min(1).max(10) });
-  const result = await runOrgAction(orgSlug, formToObject(form), { schema, permission: "ORDERS_MANAGE" }, async (d, ctx) => {
-    if (parsed.recipients.length === 0) return { results: [], invalid: parsed.errors, tooMany: parsed.tooMany };
-    return {
-      results: await sendComplimentaryTickets(ctx, eventId, { ticketTypeId: d.ticketTypeId, quantityEach: d.quantityEach, recipients: parsed.recipients }),
-      invalid: parsed.errors,
-      tooMany: parsed.tooMany,
-    };
+): Promise<
+  ActionState<{
+    results: ComplimentaryResult[];
+    invalid: Array<{ line: number; value: string }>;
+    tooMany: boolean;
+  }>
+> {
+  const parsed = parseRecipients(
+    String(form.get("recipients") ?? "").slice(0, 60_000),
+  );
+  const schema = z.object({
+    ticketTypeId: z.string().min(1).max(40),
+    quantityEach: z.coerce.number().int().min(1).max(10),
   });
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema, permission: "ORDERS_MANAGE" },
+    async (d, ctx) => {
+      if (parsed.recipients.length === 0)
+        return { results: [], invalid: parsed.errors, tooMany: parsed.tooMany };
+      return {
+        results: await sendComplimentaryTickets(ctx, eventId, {
+          ticketTypeId: d.ticketTypeId,
+          quantityEach: d.quantityEach,
+          recipients: parsed.recipients,
+        }),
+        invalid: parsed.errors,
+        tooMany: parsed.tooMany,
+      };
+    },
+  );
   if (result?.ok) revalidatePath(eventPath(orgSlug, eventId), "layout");
   return result;
 }
 
 // -- plan de salle (section 9.9, Pro) --
-const SEATING = { permission: "TICKETS_MANAGE", feature: "SEATING_MAPS" } as const;
+const SEATING = {
+  permission: "TICKETS_MANAGE",
+  feature: "SEATING_MAPS",
+} as const;
 const seatingDone = (orgSlug: string, eventId: string) => {
   revalidatePath(`${eventPath(orgSlug, eventId)}/seating`);
   revalidatePath(`${eventPath(orgSlug, eventId)}/tickets`);
@@ -442,21 +746,37 @@ const seatingDone = (orgSlug: string, eventId: string) => {
 export async function seatingCommandAction(
   orgSlug: string,
   eventId: string,
-  command: { kind: "seat"; id: string } | { kind: "row"; id: string } | { kind: "mode"; assigned: boolean } | { kind: "choice"; allow: boolean },
+  command:
+    | { kind: "seat"; id: string }
+    | { kind: "row"; id: string }
+    | { kind: "mode"; assigned: boolean }
+    | { kind: "choice"; allow: boolean },
 ): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, {}, { schema: z.object({}), ...SEATING }, async (_d, ctx) => {
-    if (command.kind === "seat") await toggleSeatBlocked(ctx, eventId, command.id);
-    else if (command.kind === "row") await deleteRow(ctx, eventId, command.id);
-    else if (command.kind === "choice") await setSeatChoice(ctx, eventId, command.allow);
-    else await setSeatingMode(ctx, eventId, command.assigned);
-    return null;
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), ...SEATING },
+    async (_d, ctx) => {
+      if (command.kind === "seat")
+        await toggleSeatBlocked(ctx, eventId, command.id);
+      else if (command.kind === "row")
+        await deleteRow(ctx, eventId, command.id);
+      else if (command.kind === "choice")
+        await setSeatChoice(ctx, eventId, command.allow);
+      else await setSeatingMode(ctx, eventId, command.assigned);
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
 // -- éditeur visuel du plan de salle --
-export async function seatingTemplateAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState> {
+export async function seatingTemplateAction(
+  orgSlug: string,
+  eventId: string,
+  input: unknown,
+): Promise<ActionState> {
   const schema = z.object({
     template: z.enum(SEATING_TEMPLATES),
     options: z
@@ -474,45 +794,88 @@ export async function seatingTemplateAction(orgSlug: string, eventId: string, in
       })
       .partial(),
   });
-  const r = await runOrgAction(orgSlug, input, { schema, ...SEATING }, async (d, ctx) => {
-    await applySeatingTemplate(ctx, eventId, d.template, d.options);
-    return null;
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    input,
+    { schema, ...SEATING },
+    async (d, ctx) => {
+      await applySeatingTemplate(ctx, eventId, d.template, d.options);
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingBlockAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<{ id: string }>> {
-  const r = await runOrgAction(orgSlug, input, { schema: blockSchema, ...SEATING }, async (d, ctx) => ({ id: await saveSeatingBlock(ctx, eventId, d) }));
+export async function seatingBlockAction(
+  orgSlug: string,
+  eventId: string,
+  input: unknown,
+): Promise<ActionState<{ id: string }>> {
+  const r = await runOrgAction(
+    orgSlug,
+    input,
+    { schema: blockSchema, ...SEATING },
+    async (d, ctx) => ({ id: await saveSeatingBlock(ctx, eventId, d) }),
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingBlockDeleteAction(orgSlug: string, eventId: string, blockId: string): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, { blockId }, { schema: z.object({ blockId: z.string().min(1).max(40) }), ...SEATING }, async (d, ctx) => {
-    await deleteSeatingBlock(ctx, eventId, d.blockId);
-    return null;
-  });
+export async function seatingBlockDeleteAction(
+  orgSlug: string,
+  eventId: string,
+  blockId: string,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    { blockId },
+    { schema: z.object({ blockId: z.string().min(1).max(40) }), ...SEATING },
+    async (d, ctx) => {
+      await deleteSeatingBlock(ctx, eventId, d.blockId);
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingSeatAction(orgSlug: string, eventId: string, seatId: string, patch: unknown): Promise<ActionState> {
+export async function seatingSeatAction(
+  orgSlug: string,
+  eventId: string,
+  seatId: string,
+  patch: unknown,
+): Promise<ActionState> {
   const schema = z.object({
     seatId: z.string().min(1).max(40),
     patch: z
-      .object({ label: z.string().trim().min(1).max(12), blocked: z.boolean(), accessible: z.boolean(), note: z.string().trim().max(80).nullable() })
+      .object({
+        label: z.string().trim().min(1).max(12),
+        blocked: z.boolean(),
+        accessible: z.boolean(),
+        note: z.string().trim().max(80).nullable(),
+      })
       .partial(),
   });
-  const r = await runOrgAction(orgSlug, { seatId, patch }, { schema, ...SEATING }, async (d, ctx) => {
-    await updateSeat(ctx, eventId, d.seatId, d.patch);
-    return null;
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    { seatId, patch },
+    { schema, ...SEATING },
+    async (d, ctx) => {
+      await updateSeat(ctx, eventId, d.seatId, d.patch);
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingCategoryUpdateAction(orgSlug: string, eventId: string, categoryId: string, input: unknown): Promise<ActionState> {
+export async function seatingCategoryUpdateAction(
+  orgSlug: string,
+  eventId: string,
+  categoryId: string,
+  input: unknown,
+): Promise<ActionState> {
   const schema = z.object({
     categoryId: z.string().min(1).max(40),
     input: z.object({
@@ -521,58 +884,128 @@ export async function seatingCategoryUpdateAction(orgSlug: string, eventId: stri
       ticketTypeIds: z.array(z.string().max(40)).max(50),
     }),
   });
-  const r = await runOrgAction(orgSlug, { categoryId, input }, { schema, ...SEATING }, async (d, ctx) => {
-    await updateSeatingCategory(ctx, eventId, d.categoryId, d.input);
-    return null;
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    { categoryId, input },
+    { schema, ...SEATING },
+    async (d, ctx) => {
+      await updateSeatingCategory(ctx, eventId, d.categoryId, d.input);
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingCategoryAddAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState> {
-  const schema = z.object({ name: text(40).min(1, { message: "validation.textLength" }), color: z.string().regex(/^#[0-9a-fA-F]{6}$/) });
-  const r = await runOrgAction(orgSlug, input, { schema, ...SEATING }, async (d, ctx) => {
-    await saveCategory(ctx, eventId, { ...d, ticketTypeId: null });
-    return null;
+export async function seatingCategoryAddAction(
+  orgSlug: string,
+  eventId: string,
+  input: unknown,
+): Promise<ActionState> {
+  const schema = z.object({
+    name: text(40).min(1, { message: "validation.textLength" }),
+    color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   });
+  const r = await runOrgAction(
+    orgSlug,
+    input,
+    { schema, ...SEATING },
+    async (d, ctx) => {
+      await saveCategory(ctx, eventId, { ...d, ticketTypeId: null });
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingMoveAction(orgSlug: string, eventId: string, fromSeatId: string, toSeatId: string): Promise<ActionState> {
-  const schema = z.object({ fromSeatId: z.string().min(1).max(40), toSeatId: z.string().min(1).max(40) });
-  const r = await runOrgAction(orgSlug, { fromSeatId, toSeatId }, { schema, ...SEATING }, async (d, ctx) => {
-    await moveTicketSeat(ctx, eventId, d.fromSeatId, d.toSeatId);
-    return null;
+export async function seatingMoveAction(
+  orgSlug: string,
+  eventId: string,
+  fromSeatId: string,
+  toSeatId: string,
+): Promise<ActionState> {
+  const schema = z.object({
+    fromSeatId: z.string().min(1).max(40),
+    toSeatId: z.string().min(1).max(40),
   });
+  const r = await runOrgAction(
+    orgSlug,
+    { fromSeatId, toSeatId },
+    { schema, ...SEATING },
+    async (d, ctx) => {
+      await moveTicketSeat(ctx, eventId, d.fromSeatId, d.toSeatId);
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingLayoutSaveAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<{ id: string }>> {
-  const schema = z.object({ name: text(60).min(1, { message: "validation.textLength" }), city: z.string().trim().max(60).nullable(), shared: z.boolean() });
-  return runOrgAction(orgSlug, input, { schema, ...SEATING }, async (d, ctx) => ({ id: await saveSeatingLayout(ctx, eventId, d) }));
+export async function seatingLayoutSaveAction(
+  orgSlug: string,
+  eventId: string,
+  input: unknown,
+): Promise<ActionState<{ id: string }>> {
+  const schema = z.object({
+    name: text(60).min(1, { message: "validation.textLength" }),
+    city: z.string().trim().max(60).nullable(),
+    shared: z.boolean(),
+  });
+  return runOrgAction(
+    orgSlug,
+    input,
+    { schema, ...SEATING },
+    async (d, ctx) => ({ id: await saveSeatingLayout(ctx, eventId, d) }),
+  );
 }
 
-export async function seatingLayoutApplyAction(orgSlug: string, eventId: string, layoutId: string): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, { layoutId }, { schema: z.object({ layoutId: z.string().min(1).max(40) }), ...SEATING }, async (d, ctx) => {
-    await applySeatingLayout(ctx, eventId, d.layoutId);
-    return null;
-  });
+export async function seatingLayoutApplyAction(
+  orgSlug: string,
+  eventId: string,
+  layoutId: string,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    { layoutId },
+    { schema: z.object({ layoutId: z.string().min(1).max(40) }), ...SEATING },
+    async (d, ctx) => {
+      await applySeatingLayout(ctx, eventId, d.layoutId);
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingLayoutDeleteAction(orgSlug: string, layoutId: string): Promise<ActionState> {
-  return runOrgAction(orgSlug, { layoutId }, { schema: z.object({ layoutId: z.string().min(1).max(40) }), ...SEATING }, async (d, ctx) => {
-    await deleteSeatingLayout(ctx, d.layoutId);
-    return null;
-  });
+export async function seatingLayoutDeleteAction(
+  orgSlug: string,
+  layoutId: string,
+): Promise<ActionState> {
+  return runOrgAction(
+    orgSlug,
+    { layoutId },
+    { schema: z.object({ layoutId: z.string().min(1).max(40) }), ...SEATING },
+    async (d, ctx) => {
+      await deleteSeatingLayout(ctx, d.layoutId);
+      return null;
+    },
+  );
 }
 
-export async function seatingLayoutSearchAction(orgSlug: string, query: string): Promise<ActionState<SeatingLayoutItem[]>> {
-  return runOrgAction(orgSlug, { query }, { schema: z.object({ query: z.string().max(60) }), ...SEATING, write: false }, async (d, ctx) =>
-    listSeatingLayouts(ctx, d.query),
+export async function seatingLayoutSearchAction(
+  orgSlug: string,
+  query: string,
+): Promise<ActionState<SeatingLayoutItem[]>> {
+  return runOrgAction(
+    orgSlug,
+    { query },
+    {
+      schema: z.object({ query: z.string().max(60) }),
+      ...SEATING,
+      write: false,
+    },
+    async (d, ctx) => listSeatingLayouts(ctx, d.query),
   );
 }
 
@@ -583,44 +1016,91 @@ export async function seatingViewAction(
   form: FormData | null,
 ): Promise<ActionState<{ url: string | null }>> {
   const file = form?.get("photo");
-  const bytes = file instanceof File && file.size > 0 ? new Uint8Array(await file.arrayBuffer()) : null;
+  const bytes =
+    file instanceof File && file.size > 0
+      ? new Uint8Array(await file.arrayBuffer())
+      : null;
   if (form && !bytes) return { ok: false, error: "UPLOAD_TYPE" };
-  const r = await runOrgAction(orgSlug, { blockId }, { schema: z.object({ blockId: z.string().min(1).max(40) }), ...SEATING }, async (d, ctx) => ({
-    url: await setBlockView(ctx, eventId, d.blockId, bytes),
-  }));
+  const r = await runOrgAction(
+    orgSlug,
+    { blockId },
+    { schema: z.object({ blockId: z.string().min(1).max(40) }), ...SEATING },
+    async (d, ctx) => ({
+      url: await setBlockView(ctx, eventId, d.blockId, bytes),
+    }),
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
-export async function seatingPhotoAction(orgSlug: string, eventId: string, form: FormData): Promise<ActionState<StoredPlan>> {
+export async function seatingPhotoAction(
+  orgSlug: string,
+  eventId: string,
+  form: FormData,
+): Promise<ActionState<StoredPlan>> {
   const file = form.get("photo");
-  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "UPLOAD_TYPE" };
+  if (!(file instanceof File) || file.size === 0)
+    return { ok: false, error: "UPLOAD_TYPE" };
   const bytes = new Uint8Array(await file.arrayBuffer());
-  return runOrgAction(orgSlug, {}, { schema: z.object({}), ...SEATING }, async (_d, ctx) => planFromPhoto(ctx, eventId, bytes));
+  return runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), ...SEATING },
+    async (_d, ctx) => planFromPhoto(ctx, eventId, bytes),
+  );
 }
 
-export async function seatingPhotoApplyAction(orgSlug: string, eventId: string, plan: unknown): Promise<ActionState> {
+export async function seatingPhotoApplyAction(
+  orgSlug: string,
+  eventId: string,
+  plan: unknown,
+): Promise<ActionState> {
   const schema = z.object({
     categories: z
-      .array(z.object({ key: z.string().max(10), name: z.string().trim().min(1).max(40), color: z.string().regex(/^#[0-9a-fA-F]{6}$/) }))
+      .array(
+        z.object({
+          key: z.string().max(10),
+          name: z.string().trim().min(1).max(40),
+          color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+        }),
+      )
       .min(1)
       .max(3),
     blocks: z.array(blockSchema).min(1).max(40),
-    focus: z.object({ x: z.number().min(-20000).max(20000), y: z.number().min(-20000).max(20000) }),
+    focus: z.object({
+      x: z.number().min(-20000).max(20000),
+      y: z.number().min(-20000).max(20000),
+    }),
   });
-  const r = await runOrgAction(orgSlug, plan, { schema, ...SEATING }, async (d, ctx) => {
-    await applyPlan(ctx, eventId, d as unknown as StoredPlan, "photo");
-    return null;
-  });
+  const r = await runOrgAction(
+    orgSlug,
+    plan,
+    { schema, ...SEATING },
+    async (d, ctx) => {
+      await applyPlan(ctx, eventId, d as unknown as StoredPlan, "photo");
+      return null;
+    },
+  );
   if (r?.ok) seatingDone(orgSlug, eventId);
   return r;
 }
 
 /** Bloc personnalisé des e-mails de billets ou de rappel d'un événement. */
-const emailBlockSchema = z.object({ kind: z.enum(["ticket", "reminder"]), content: z.any() });
-export async function saveEventEmailBlockAction(orgSlug: string, eventId: string, kind: "ticket" | "reminder", content: unknown): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, { kind, content }, { schema: emailBlockSchema, permission: "EVENTS_EDIT" }, async (d, ctx) =>
-    saveEventEmailBlock(ctx, eventId, d.kind, d.content),
+const emailBlockSchema = z.object({
+  kind: z.enum(["ticket", "reminder"]),
+  content: z.any(),
+});
+export async function saveEventEmailBlockAction(
+  orgSlug: string,
+  eventId: string,
+  kind: "ticket" | "reminder",
+  content: unknown,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    { kind, content },
+    { schema: emailBlockSchema, permission: "EVENTS_EDIT" },
+    async (d, ctx) => saveEventEmailBlock(ctx, eventId, d.kind, d.content),
   );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
@@ -633,8 +1113,11 @@ export async function previewEventEmailBlockAction(
   input: unknown,
 ): Promise<ActionState<{ html: string; subject: string; warnings: string[] }>> {
   const content = (input as { content?: unknown } | null)?.content;
-  return runOrgAction(orgSlug, { kind, content }, { schema: emailBlockSchema, permission: "EVENTS_EDIT", write: false }, async (d, ctx) =>
-    previewEventEmailBlock(ctx, eventId, d.kind, d.content),
+  return runOrgAction(
+    orgSlug,
+    { kind, content },
+    { schema: emailBlockSchema, permission: "EVENTS_EDIT", write: false },
+    async (d, ctx) => previewEventEmailBlock(ctx, eventId, d.kind, d.content),
   );
 }
 
@@ -648,20 +1131,38 @@ const publicationSchema = z.object({
 });
 
 /** Publication programmée (RG-PRG-01) : réservée aux membres qui peuvent publier. */
-export async function savePublicationAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, input, { schema: publicationSchema, permission: "EVENTS_PUBLISH" }, async (d, ctx) => {
-    await savePublication(ctx, eventId, d);
-  });
+export async function savePublicationAction(
+  orgSlug: string,
+  eventId: string,
+  input: unknown,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    input,
+    { schema: publicationSchema, permission: "EVENTS_PUBLISH" },
+    async (d, ctx) => {
+      await savePublication(ctx, eventId, d);
+    },
+  );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
 }
 
 /** Lien d'aperçu secret (RG-PRG-03) : création ou désactivation. */
-export async function previewLinkAction(orgSlug: string, eventId: string, enable: boolean): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, { enable }, { schema: z.object({ enable: z.boolean() }), permission: "EVENTS_PUBLISH" }, async (d, ctx) => {
-    if (d.enable) await createPreviewToken(ctx, eventId);
-    else await revokePreviewToken(ctx, eventId);
-  });
+export async function previewLinkAction(
+  orgSlug: string,
+  eventId: string,
+  enable: boolean,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    { enable },
+    { schema: z.object({ enable: z.boolean() }), permission: "EVENTS_PUBLISH" },
+    async (d, ctx) => {
+      if (d.enable) await createPreviewToken(ctx, eventId);
+      else await revokePreviewToken(ctx, eventId);
+    },
+  );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
 }
@@ -674,19 +1175,39 @@ const presaleGenerateSchema = z.object({
 });
 
 /** Prévente privée (RG-PRV-01) : N codes utilisables X fois chacun. */
-export async function generatePresaleCodesAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<number>> {
-  const r = await runOrgAction(orgSlug, input, { schema: presaleGenerateSchema, permission: "EVENTS_PUBLISH", feature: "PRESALE_CODES" }, async (d, ctx) =>
-    generatePresaleCodes(ctx, eventId, d),
+export async function generatePresaleCodesAction(
+  orgSlug: string,
+  eventId: string,
+  input: unknown,
+): Promise<ActionState<number>> {
+  const r = await runOrgAction(
+    orgSlug,
+    input,
+    {
+      schema: presaleGenerateSchema,
+      permission: "EVENTS_PUBLISH",
+      feature: "PRESALE_CODES",
+    },
+    async (d, ctx) => generatePresaleCodes(ctx, eventId, d),
   );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
 }
 
-export async function setPresaleCodeActiveAction(orgSlug: string, eventId: string, codeId: string, active: boolean): Promise<ActionState> {
+export async function setPresaleCodeActiveAction(
+  orgSlug: string,
+  eventId: string,
+  codeId: string,
+  active: boolean,
+): Promise<ActionState> {
   const r = await runOrgAction(
     orgSlug,
     { codeId, active },
-    { schema: z.object({ codeId: z.string().max(40), active: z.boolean() }), permission: "EVENTS_PUBLISH", feature: "PRESALE_CODES" },
+    {
+      schema: z.object({ codeId: z.string().max(40), active: z.boolean() }),
+      permission: "EVENTS_PUBLISH",
+      feature: "PRESALE_CODES",
+    },
     async (d, ctx) => {
       await setPresaleCodeActive(ctx, eventId, d.codeId, d.active);
     },
@@ -695,7 +1216,11 @@ export async function setPresaleCodeActiveAction(orgSlug: string, eventId: strin
   return r;
 }
 
-export async function savePresaleStartAction(orgSlug: string, eventId: string, startsLocal: string | null): Promise<ActionState> {
+export async function savePresaleStartAction(
+  orgSlug: string,
+  eventId: string,
+  startsLocal: string | null,
+): Promise<ActionState> {
   const r = await runOrgAction(
     orgSlug,
     { startsLocal },
@@ -718,11 +1243,30 @@ export async function savePresaleStartAction(orgSlug: string, eventId: string, s
 }
 
 /** RG-BUY-10 : protection anti-robots activée ou non pour un événement à forte demande. */
-export async function saveBotProtectionAction(orgSlug: string, eventId: string, enabled: boolean): Promise<ActionState> {
-  const r = await runOrgAction(orgSlug, { enabled }, { schema: z.object({ enabled: z.boolean() }), permission: "EVENTS_PUBLISH" }, async (d, ctx) => {
-    const res = await db.event.updateMany({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null }, data: { botProtection: d.enabled } });
-    if (res.count === 0) throw new CoreError("NOT_FOUND");
-  });
+export async function saveBotProtectionAction(
+  orgSlug: string,
+  eventId: string,
+  enabled: boolean,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    { enabled },
+    {
+      schema: z.object({ enabled: z.boolean() }),
+      permission: "EVENTS_PUBLISH",
+    },
+    async (d, ctx) => {
+      const res = await db.event.updateMany({
+        where: {
+          id: eventId,
+          organizationId: ctx.organization.id,
+          deletedAt: null,
+        },
+        data: { botProtection: d.enabled },
+      });
+      if (res.count === 0) throw new CoreError("NOT_FOUND");
+    },
+  );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/events/${eventId}/settings`);
   return r;
 }
@@ -745,11 +1289,20 @@ const optionInput = (d: z.infer<typeof optionSchema>) => ({
   standalone: d.standalone === "on",
 });
 
-export async function createOptionAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function createOptionAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     formToObject(form),
-    { schema: optionSchema, permission: "TICKETS_MANAGE", feature: "PREPAID_OPTIONS" },
+    {
+      schema: optionSchema,
+      permission: "TICKETS_MANAGE",
+      feature: "PREPAID_OPTIONS",
+    },
     async (d, ctx) => {
       await createOption(ctx, eventId, optionInput(d));
       return null;
@@ -759,11 +1312,21 @@ export async function createOptionAction(orgSlug: string, eventId: string, _: Ac
   return result;
 }
 
-export async function updateOptionAction(orgSlug: string, eventId: string, optionId: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function updateOptionAction(
+  orgSlug: string,
+  eventId: string,
+  optionId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     formToObject(form),
-    { schema: optionSchema, permission: "TICKETS_MANAGE", feature: "PREPAID_OPTIONS" },
+    {
+      schema: optionSchema,
+      permission: "TICKETS_MANAGE",
+      feature: "PREPAID_OPTIONS",
+    },
     async (d, ctx) => {
       await updateOption(ctx, eventId, optionId, optionInput(d));
       return null;
@@ -780,10 +1343,15 @@ export async function optionCommandAction(
   command: "activate" | "deactivate",
   _: ActionState,
 ): Promise<ActionState> {
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "TICKETS_MANAGE" }, async (_d, ctx) => {
-    await setOptionActive(ctx, eventId, optionId, command === "activate");
-    return null;
-  });
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "TICKETS_MANAGE" },
+    async (_d, ctx) => {
+      await setOptionActive(ctx, eventId, optionId, command === "activate");
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/options`);
   return result;
 }
@@ -796,13 +1364,27 @@ const ambassadorSchema = z.object({
   reward: optionalText(200),
 });
 
-export async function createAmbassadorAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function createAmbassadorAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     formToObject(form),
-    { schema: ambassadorSchema, permission: "PROMO_MANAGE", feature: "AMBASSADORS" },
+    {
+      schema: ambassadorSchema,
+      permission: "PROMO_MANAGE",
+      feature: "AMBASSADORS",
+    },
     async (d, ctx) => {
-      await createAmbassador(ctx, eventId, { name: d.name, email: d.email ?? undefined, goal: d.goal ?? undefined, reward: d.reward ?? undefined });
+      await createAmbassador(ctx, eventId, {
+        name: d.name,
+        email: d.email ?? undefined,
+        goal: d.goal ?? undefined,
+        reward: d.reward ?? undefined,
+      });
       return null;
     },
   );
@@ -810,20 +1392,35 @@ export async function createAmbassadorAction(orgSlug: string, eventId: string, _
   return result;
 }
 
-const ambassadorPromoSchema = z.object({ discountType: z.enum(["PERCENT", "AMOUNT"]), value: z.string().trim().min(1).max(12) });
+const ambassadorPromoSchema = z.object({
+  discountType: z.enum(["PERCENT", "AMOUNT"]),
+  value: z.string().trim().min(1).max(12),
+});
 
 /** Réduction associée au code d'un ambassadeur (RG-AMB-01). */
-export async function ambassadorPromoAction(orgSlug: string, eventId: string, id: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function ambassadorPromoAction(
+  orgSlug: string,
+  eventId: string,
+  id: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     formToObject(form),
-    { schema: ambassadorPromoSchema, permission: "PROMO_MANAGE", feature: "AMBASSADORS" },
+    {
+      schema: ambassadorPromoSchema,
+      permission: "PROMO_MANAGE",
+      feature: "AMBASSADORS",
+    },
     async (d, ctx) => {
       await setAmbassadorPromo(
         ctx,
         eventId,
         id,
-        d.discountType === "PERCENT" ? { discountType: "PERCENT", percent: d.value } : { discountType: "AMOUNT", amount: d.value },
+        d.discountType === "PERCENT"
+          ? { discountType: "PERCENT", percent: d.value }
+          : { discountType: "AMOUNT", amount: d.value },
       );
       return null;
     },
@@ -839,21 +1436,38 @@ export async function ambassadorCommandAction(
   command: "activate" | "deactivate" | "removePromo",
   _: ActionState,
 ): Promise<ActionState> {
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "PROMO_MANAGE" }, async (_d, ctx) => {
-    if (command === "removePromo") await removeAmbassadorPromo(ctx, eventId, id);
-    else await setAmbassadorActive(ctx, eventId, id, command === "activate");
-    return null;
-  });
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "PROMO_MANAGE" },
+    async (_d, ctx) => {
+      if (command === "removePromo")
+        await removeAmbassadorPromo(ctx, eventId, id);
+      else await setAmbassadorActive(ctx, eventId, id, command === "activate");
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/ambassadors`);
   return result;
 }
 
 // Billetterie intégrable (section 9.26, Pro) : sites autorisés, communs à toute l'organisation
-export async function addEmbedOriginAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function addEmbedOriginAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     formToObject(form),
-    { schema: z.object({ origin: text(200).min(1, { message: "validation.required" }) }), permission: "MARKETING_MANAGE", feature: "EMBED_WIDGET" },
+    {
+      schema: z.object({
+        origin: text(200).min(1, { message: "validation.required" }),
+      }),
+      permission: "MARKETING_MANAGE",
+      feature: "EMBED_WIDGET",
+    },
     async (d, ctx) => {
       await addEmbedOrigin(ctx, d.origin);
       return null;
@@ -863,28 +1477,58 @@ export async function addEmbedOriginAction(orgSlug: string, eventId: string, _: 
   return result;
 }
 
-export async function removeEmbedOriginAction(orgSlug: string, eventId: string, origin: string, _: ActionState): Promise<ActionState> {
-  const result = await runOrgAction(orgSlug, {}, { schema: z.object({}), permission: "MARKETING_MANAGE" }, async (_d, ctx) => {
-    await removeEmbedOrigin(ctx, origin);
-    return null;
-  });
+export async function removeEmbedOriginAction(
+  orgSlug: string,
+  eventId: string,
+  origin: string,
+  _: ActionState,
+): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "MARKETING_MANAGE" },
+    async (_d, ctx) => {
+      await removeEmbedOrigin(ctx, origin);
+      return null;
+    },
+  );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/embed`);
   return result;
 }
 
 // Tables et forfaits (section 9.31, Pro)
-export async function saveTablesAction(orgSlug: string, eventId: string, ticketTypeId: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function saveTablesAction(
+  orgSlug: string,
+  eventId: string,
+  ticketTypeId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const included = [...form.entries()]
     .filter(([k]) => k.startsWith("include_"))
     .map(([k, v]) => ({ optionId: k.slice(8, 48), quantity: Number(v) }))
     .filter((i) => i.quantity > 0);
-  const data = { groupSize: String(form.get("groupSize") ?? "1"), tableLabels: String(form.get("tableLabels") ?? "") };
+  const data = {
+    groupSize: String(form.get("groupSize") ?? "1"),
+    tableLabels: String(form.get("tableLabels") ?? ""),
+  };
   const result = await runOrgAction(
     orgSlug,
     data,
-    { schema: z.object({ groupSize: text(3), tableLabels: z.string().max(12_000) }), permission: "TICKETS_MANAGE", feature: "SEATING_MAPS" },
+    {
+      schema: z.object({
+        groupSize: text(3),
+        tableLabels: z.string().max(12_000),
+      }),
+      permission: "TICKETS_MANAGE",
+      feature: "SEATING_MAPS",
+    },
     async (d, ctx) => {
-      await saveTableSettings(ctx, eventId, ticketTypeId, { groupSize: Number(d.groupSize || 1), tableLabels: d.tableLabels.split(/\r?\n/), included });
+      await saveTableSettings(ctx, eventId, ticketTypeId, {
+        groupSize: Number(d.groupSize || 1),
+        tableLabels: d.tableLabels.split(/\r?\n/),
+        included,
+      });
       return null;
     },
   );
@@ -893,11 +1537,20 @@ export async function saveTablesAction(orgSlug: string, eventId: string, ticketT
 }
 
 /** RG-OPT-07 : options remboursables après le début de l'événement (réglage, désactivé par défaut). */
-export async function optionsRefundPolicyAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function optionsRefundPolicyAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     { allowed: form.get("allowed") === "on" },
-    { schema: z.object({ allowed: z.boolean() }), permission: "TICKETS_MANAGE", feature: "PREPAID_OPTIONS" },
+    {
+      schema: z.object({ allowed: z.boolean() }),
+      permission: "TICKETS_MANAGE",
+      feature: "PREPAID_OPTIONS",
+    },
     async (d, ctx) => {
       await setOptionsRefundAfterStart(ctx, eventId, d.allowed);
       return null;
@@ -908,13 +1561,25 @@ export async function optionsRefundPolicyAction(orgSlug: string, eventId: string
 }
 
 // Réseaux de billetterie et contingents (docs/COMPATIBILITE_RESEAUX.md, Pro)
-const distributorSchema = z.object({ kind: z.string().trim().min(1).max(30), name: optionalText(60) });
+const distributorSchema = z.object({
+  kind: z.string().trim().min(1).max(30),
+  name: optionalText(60),
+});
 
-export async function createDistributorAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function createDistributorAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     formToObject(form),
-    { schema: distributorSchema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" },
+    {
+      schema: distributorSchema,
+      permission: "EVENTS_EDIT",
+      feature: "DISTRIBUTION",
+    },
     async (d, ctx) => {
       await createDistributor(ctx, { kind: d.kind, name: d.name });
       return null;
@@ -933,13 +1598,26 @@ const allocationSchema = z.object({
     .regex(/^\d{1,6}$/, { message: "validation.number" }),
 });
 
-export async function setAllocationAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState> {
+export async function setAllocationAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
   const result = await runOrgAction(
     orgSlug,
     formToObject(form),
-    { schema: allocationSchema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" },
+    {
+      schema: allocationSchema,
+      permission: "EVENTS_EDIT",
+      feature: "DISTRIBUTION",
+    },
     async (d, ctx) => {
-      await setAllocation(ctx, eventId, { distributorId: d.distributorId, ticketTypeId: d.ticketTypeId, quantity: Number(d.quantity) });
+      await setAllocation(ctx, eventId, {
+        distributorId: d.distributorId,
+        ticketTypeId: d.ticketTypeId,
+        quantity: Number(d.quantity),
+      });
       return null;
     },
   );
@@ -947,11 +1625,20 @@ export async function setAllocationAction(orgSlug: string, eventId: string, _: A
   return result;
 }
 
-export async function releaseUnsoldAction(orgSlug: string, eventId: string, distributorId: string, _: ActionState): Promise<ActionState<{ released: number }>> {
+export async function releaseUnsoldAction(
+  orgSlug: string,
+  eventId: string,
+  distributorId: string,
+  _: ActionState,
+): Promise<ActionState<{ released: number }>> {
   const result = await runOrgAction(
     orgSlug,
     { distributorId },
-    { schema: z.object({ distributorId: z.string().min(1).max(40) }), permission: "EVENTS_EDIT", feature: "DISTRIBUTION" },
+    {
+      schema: z.object({ distributorId: z.string().min(1).max(40) }),
+      permission: "EVENTS_EDIT",
+      feature: "DISTRIBUTION",
+    },
     (d, ctx) => releaseUnsold(ctx, eventId, d.distributorId),
   );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
@@ -959,10 +1646,26 @@ export async function releaseUnsoldAction(orgSlug: string, eventId: string, dist
 }
 
 /** Places du plan confiées à un réseau, ou rendues à la vente en ligne (seules des places libres se confient). */
-export async function seatingDistributorAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<{ changed: number }>> {
-  const schema = z.object({ distributorId: z.string().min(1).max(40), seatIds: z.array(z.string().min(1).max(40)).min(1).max(5000), assign: z.boolean() });
-  const r = await runOrgAction(orgSlug, input, { schema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" }, (d, ctx) =>
-    setDistributorSeats(ctx, eventId, { distributorId: d.distributorId, seatIds: d.seatIds, assign: d.assign }),
+export async function seatingDistributorAction(
+  orgSlug: string,
+  eventId: string,
+  input: unknown,
+): Promise<ActionState<{ changed: number }>> {
+  const schema = z.object({
+    distributorId: z.string().min(1).max(40),
+    seatIds: z.array(z.string().min(1).max(40)).min(1).max(5000),
+    assign: z.boolean(),
+  });
+  const r = await runOrgAction(
+    orgSlug,
+    input,
+    { schema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" },
+    (d, ctx) =>
+      setDistributorSeats(ctx, eventId, {
+        distributorId: d.distributorId,
+        seatIds: d.seatIds,
+        assign: d.assign,
+      }),
   );
   if (r?.ok) {
     seatingDone(orgSlug, eventId);
@@ -972,7 +1675,12 @@ export async function seatingDistributorAction(orgSlug: string, eventId: string,
 }
 
 /** Codes créés à l'avance pour un réseau (BilletReduc…), pris sur son contingent. */
-export async function createPrecreatedCodesAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState<{ created: number }>> {
+export async function createPrecreatedCodesAction(
+  orgSlug: string,
+  eventId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState<{ created: number }>> {
   const schema = z.object({
     distributorId: z.string().trim().min(1).max(40),
     ticketTypeId: z.string().trim().min(1).max(40),
@@ -981,8 +1689,16 @@ export async function createPrecreatedCodesAction(orgSlug: string, eventId: stri
       .trim()
       .regex(/^\d{1,5}$/, { message: "validation.number" }),
   });
-  const result = await runOrgAction(orgSlug, formToObject(form), { schema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" }, (d, ctx) =>
-    createPrecreatedCodes(ctx, eventId, { distributorId: d.distributorId, ticketTypeId: d.ticketTypeId, count: Number(d.count) }),
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" },
+    (d, ctx) =>
+      createPrecreatedCodes(ctx, eventId, {
+        distributorId: d.distributorId,
+        ticketTypeId: d.ticketTypeId,
+        count: Number(d.count),
+      }),
   );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
   return result;

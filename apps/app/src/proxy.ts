@@ -2,9 +2,20 @@ import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 import { buildCsp } from "@/lib/csp";
 
-const PROTECTED = ["/o/", "/onboarding", "/acces-scanner", "/admin", "/2fa", "/compte"];
-const BASE_DOMAIN = (process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "evoly.me").toLowerCase();
-const APP_HOST = new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").host.toLowerCase();
+const PROTECTED = [
+  "/o/",
+  "/onboarding",
+  "/acces-scanner",
+  "/admin",
+  "/2fa",
+  "/compte",
+];
+const BASE_DOMAIN = (
+  process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "evoly.me"
+).toLowerCase();
+const APP_HOST = new URL(
+  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
+).host.toLowerCase();
 /** Hôtes qui ne sont pas des pages d'organisateur (RG-DOM-02). */
 const RESERVED = new Set([
   "app",
@@ -57,8 +68,12 @@ async function embedOrigins(eventId: string, port: string): Promise<string[]> {
   if (hit && Date.now() - hit.at < 60_000) return hit.origins;
   let origins: string[] = [];
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/api/embed/${encodeURIComponent(eventId)}`, { cache: "no-store" });
-    if (res.ok) origins = ((await res.json()) as { origins?: string[] }).origins ?? [];
+    const res = await fetch(
+      `http://127.0.0.1:${port}/api/embed/${encodeURIComponent(eventId)}`,
+      { cache: "no-store" },
+    );
+    if (res.ok)
+      origins = ((await res.json()) as { origins?: string[] }).origins ?? [];
   } catch {
     origins = []; // indisponible : affichage refusé, jamais autorisé par défaut
   }
@@ -70,13 +85,26 @@ async function embedOrigins(eventId: string, port: string): Promise<string[]> {
 /** Module intégrable : affichage dans un cadre limité aux sites déclarés par l'organisateur, langue de la page d'accueil. */
 async function embedResponse(request: NextRequest, eventId: string) {
   const headers = new Headers(request.headers);
-  const lang = request.nextUrl.searchParams.get("lang")?.slice(0, 2).toLowerCase();
+  const lang = request.nextUrl.searchParams
+    .get("lang")
+    ?.slice(0, 2)
+    .toLowerCase();
   if (lang && /^[a-z]{2}$/.test(lang)) headers.set("x-evoly-locale", lang);
   const res = NextResponse.next({ request: { headers } });
   // port de l'app : PORT (production : 3000), sinon celui de la requête (parcours de test, développement)
-  const origins = (await embedOrigins(eventId, process.env.PORT ?? (request.nextUrl.port || "3000"))).filter((o) => /^https:\/\/[a-z0-9.-]+(:\d+)?$/.test(o));
+  const origins = (
+    await embedOrigins(
+      eventId,
+      process.env.PORT ?? (request.nextUrl.port || "3000"),
+    )
+  ).filter((o) => /^https:\/\/[a-z0-9.-]+(:\d+)?$/.test(o));
   const ancestors = origins.length ? origins.join(" ") : "'none'";
-  res.headers.set("Content-Security-Policy", process.env.NODE_ENV === "production" ? buildCsp(ancestors) : `frame-ancestors ${ancestors}`);
+  res.headers.set(
+    "Content-Security-Policy",
+    process.env.NODE_ENV === "production"
+      ? buildCsp(ancestors)
+      : `frame-ancestors ${ancestors}`,
+  );
   return res;
 }
 
@@ -97,7 +125,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(url, { request: { headers } });
   }
   // chemins internes : jamais servis directement, page introuvable habituelle
-  if (pathname === "/scanner" || pathname.startsWith("/scanner/")) return notFoundPage(request);
+  if (pathname === "/scanner" || pathname.startsWith("/scanner/"))
+    return notFoundPage(request);
   const sub = siteSubdomain(host);
   const hostname = host.split(":")[0] ?? "";
   // domaine personnalisé d'un organisateur (US-BRD-04) : tout hôte qui n'est ni Evoly ni local
@@ -124,8 +153,13 @@ export async function proxy(request: NextRequest) {
     headers.set("x-evoly-site", sub);
     return NextResponse.rewrite(url, { request: { headers } });
   }
-  if (pathname === "/site" || pathname.startsWith("/site/")) return notFoundPage(request);
-  if (PROTECTED.some((p) => pathname === p.replace(/\/$/, "") || pathname.startsWith(p))) {
+  if (pathname === "/site" || pathname.startsWith("/site/"))
+    return notFoundPage(request);
+  if (
+    PROTECTED.some(
+      (p) => pathname === p.replace(/\/$/, "") || pathname.startsWith(p),
+    )
+  ) {
     if (!getSessionCookie(request, { cookiePrefix: "evoly" })) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
@@ -139,20 +173,48 @@ export async function proxy(request: NextRequest) {
   const lieu = request.nextUrl.searchParams.get("lieu"); // section 9.32 : lien d'un lieu partenaire
   const lieuOk = !!lieu && /^[a-z0-9]{4,20}$/i.test(lieu);
   // offres commerciales (docs/OFFRES.md) : code de la campagne suivie, mémorisé 60 jours pour accorder l'offre demandée
-  const offre = (request.nextUrl.searchParams.get("offre") ?? "").trim().toLowerCase();
-  const offreOk = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(offre) && offre.length >= 2;
+  const offre = (request.nextUrl.searchParams.get("offre") ?? "")
+    .trim()
+    .toLowerCase();
+  const offreOk =
+    /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(offre) && offre.length >= 2;
   if ((ref && /^[a-z0-9]{4,20}$/i.test(ref)) || wantsPro || lieuOk || offreOk) {
     const res = NextResponse.next();
-    if (offreOk) res.cookies.set("evoly_offer", offre, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 86_400 });
-    if (lieuOk) res.cookies.set("evoly_lieu", lieu!.toUpperCase(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
+    if (offreOk)
+      res.cookies.set("evoly_offer", offre, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 86_400,
+      });
+    if (lieuOk)
+      res.cookies.set("evoly_lieu", lieu!.toUpperCase(), {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 30 * 86_400,
+      });
     if (ref && /^[a-z0-9]{4,20}$/i.test(ref))
-      res.cookies.set("evoly_ref", ref.toLowerCase(), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
-    if (wantsPro) res.cookies.set("evoly_plan", "pro", { httpOnly: true, sameSite: "lax", path: "/", maxAge: 30 * 86_400 });
+      res.cookies.set("evoly_ref", ref.toLowerCase(), {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 30 * 86_400,
+      });
+    if (wantsPro)
+      res.cookies.set("evoly_plan", "pro", {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 30 * 86_400,
+      });
     return res;
   }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|scanner-sw\\.js|.*\\.(?:svg|png|jpg|jpeg|webp|ico|woff2?)$).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|scanner-sw\\.js|.*\\.(?:svg|png|jpg|jpeg|webp|ico|woff2?)$).*)",
+  ],
 };

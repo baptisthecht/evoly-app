@@ -21,7 +21,10 @@ export function EventCommand({
   confirm?: string;
 }) {
   const t = useTranslations("events");
-  const [state, action] = useActionState(eventCommandAction.bind(null, orgSlug, eventId, command), null);
+  const [state, action] = useActionState(
+    eventCommandAction.bind(null, orgSlug, eventId, command),
+    null,
+  );
   return (
     <form
       action={action}
@@ -33,7 +36,11 @@ export function EventCommand({
       <SubmitButton
         pending={undefined}
         variant={variant}
-        className={command === "delete" ? "w-full text-danger sm:w-auto lg:w-full" : "w-full sm:w-auto lg:w-full"}
+        className={
+          command === "delete"
+            ? "w-full text-danger sm:w-auto lg:w-full"
+            : "w-full sm:w-auto lg:w-full"
+        }
       >
         {t(`command_${command}`)}
       </SubmitButton>

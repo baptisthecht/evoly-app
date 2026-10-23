@@ -3,7 +3,11 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/password";
 
-type Mail = (data: { user: Record<string, unknown>; url: string; token: string }) => Promise<void>;
+type Mail = (data: {
+  user: Record<string, unknown>;
+  url: string;
+  token: string;
+}) => Promise<void>;
 const o = auth.options as unknown as {
   emailAndPassword: {
     enabled: boolean;
@@ -15,7 +19,11 @@ const o = auth.options as unknown as {
     password: { hash: unknown; verify: unknown };
     sendResetPassword: Mail;
   };
-  emailVerification: { sendOnSignUp: boolean; expiresIn: number; sendVerificationEmail: Mail };
+  emailVerification: {
+    sendOnSignUp: boolean;
+    expiresIn: number;
+    sendVerificationEmail: Mail;
+  };
   session: { expiresIn: number };
   verification: { storeIdentifier: string };
   advanced: { cookiePrefix: string };
@@ -23,7 +31,12 @@ const o = auth.options as unknown as {
 };
 const rid = () => Math.random().toString(36).slice(2, 10);
 const lastSubject = async (template: string, to: string) =>
-  (await db.emailMessage.findFirstOrThrow({ where: { template, toEmail: to }, orderBy: [{ queuedAt: "desc" }, { id: "desc" }] })).subject;
+  (
+    await db.emailMessage.findFirstOrThrow({
+      where: { template, toEmail: to },
+      orderBy: [{ queuedAt: "desc" }, { id: "desc" }],
+    })
+  ).subject;
 
 describe("comptes : réglages de sécurité verrouillés (RG-AUTH-01 à 03)", () => {
   it("mots de passe, vérification de l'adresse, réinitialisation, jetons, sessions et limitation", () => {
@@ -35,8 +48,14 @@ describe("comptes : réglages de sécurité verrouillés (RG-AUTH-01 à 03)", ()
       resetPasswordTokenExpiresIn: 3600,
       revokeSessionsOnPasswordReset: true,
     });
-    expect(o.emailAndPassword.password).toEqual({ hash: hashPassword, verify: verifyPassword }); // Argon2id
-    expect(o.emailVerification).toMatchObject({ sendOnSignUp: true, expiresIn: 86_400 });
+    expect(o.emailAndPassword.password).toEqual({
+      hash: hashPassword,
+      verify: verifyPassword,
+    }); // Argon2id
+    expect(o.emailVerification).toMatchObject({
+      sendOnSignUp: true,
+      expiresIn: 86_400,
+    });
     expect(o.verification.storeIdentifier).toBe("hashed");
     expect(o.session.expiresIn).toBe(30 * 86_400);
     expect(o.advanced.cookiePrefix).toBe("evoly");
@@ -58,7 +77,10 @@ describe("e-mails du compte", () => {
       url: "https://app.evoly.me/reset?token=def",
       token: "def",
     });
-    const [sFr, sEn] = [await lastSubject("account.reset_password", fr), await lastSubject("account.reset_password", en)];
+    const [sFr, sEn] = [
+      await lastSubject("account.reset_password", fr),
+      await lastSubject("account.reset_password", en),
+    ];
     expect(sFr.length).toBeGreaterThan(0);
     expect(sEn).not.toBe(sFr);
   });

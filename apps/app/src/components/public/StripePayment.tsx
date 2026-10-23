@@ -5,20 +5,33 @@ import type { Locale } from "@evoly/i18n";
 
 import { palette } from "@evoly/ui";
 
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { loadStripe, type Stripe, type StripeElements } from "@stripe/stripe-js";
+import {
+  Elements,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import {
+  loadStripe,
+  type Stripe,
+  type StripeElements,
+} from "@stripe/stripe-js";
 import type { ReactNode } from "react";
 import { Button } from "../ui/Button";
 
 /** Police réelle de la page (celle de l'organisateur en Pro), transmise aux champs de carte de Stripe. */
-const pageFont = () => (typeof document === "undefined" ? "system-ui, sans-serif" : getComputedStyle(document.body).fontFamily || "system-ui, sans-serif");
+const pageFont = () =>
+  typeof document === "undefined"
+    ? "system-ui, sans-serif"
+    : getComputedStyle(document.body).fontFamily || "system-ui, sans-serif";
 
 const instances = new Map<string, Promise<Stripe | null>>();
 
 /** Stripe.js chargé pour le compte de l'organisateur : charges directes (RG-PAY-02). */
 function stripeFor(publishableKey: string, stripeAccount: string) {
   const key = `${publishableKey}:${stripeAccount}`;
-  if (!instances.has(key)) instances.set(key, loadStripe(publishableKey, { stripeAccount }));
+  if (!instances.has(key))
+    instances.set(key, loadStripe(publishableKey, { stripeAccount }));
   return instances.get(key)!;
 }
 
@@ -69,7 +82,15 @@ export function PaymentFields() {
 }
 
 /** Bouton de paiement : doit être placé dans <StripePayment>. */
-export function PayButton({ label, busy, onPay }: { label: string; busy: boolean; onPay: (stripe: Stripe, elements: StripeElements) => void }) {
+export function PayButton({
+  label,
+  busy,
+  onPay,
+}: {
+  label: string;
+  busy: boolean;
+  onPay: (stripe: Stripe, elements: StripeElements) => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   return (

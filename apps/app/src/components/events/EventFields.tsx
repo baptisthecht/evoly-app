@@ -42,24 +42,58 @@ export interface EventFieldValues {
 
 /** Champs communs à la création et aux réglages : l'essentiel et le lieu (section 9.6). */
 /** Salle du lieu partenaire qui a parrainé l'organisation (section 9.32). */
-export type PartnerVenueOption = { name: string; addressLine1: string; postalCode: string | null; city: string | null };
+export type PartnerVenueOption = {
+  name: string;
+  addressLine1: string;
+  postalCode: string | null;
+  city: string | null;
+};
 
-export function EventFields({ values, error, venue }: { values: EventFieldValues; error: (name: string) => string | null; venue?: PartnerVenueOption | null }) {
+export function EventFields({
+  values,
+  error,
+  venue,
+}: {
+  values: EventFieldValues;
+  error: (name: string) => string | null;
+  venue?: PartnerVenueOption | null;
+}) {
   const t = useTranslations("events");
   const [locationType, setLocationType] = useState(values.locationType);
   const [country, setCountry] = useState(values.country);
   const [atVenue, setAtVenue] = useState(!!venue && values.atVenue !== false);
-  const zones = TIMEZONES.includes(values.timezone) ? TIMEZONES : [values.timezone, ...TIMEZONES];
+  const zones = TIMEZONES.includes(values.timezone)
+    ? TIMEZONES
+    : [values.timezone, ...TIMEZONES];
   return (
     <>
       <fieldset className="grid gap-5">
-        <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionEssentials")}</legend>
+        <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+          {t("sectionEssentials")}
+        </legend>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label={t("title")} htmlFor="title" error={error("title")}>
-            <Input icon="type" id="title" name="title" defaultValue={values.title} maxLength={120} required invalid={!!error("title")} />
+            <Input
+              icon="type"
+              id="title"
+              name="title"
+              defaultValue={values.title}
+              maxLength={120}
+              required
+              invalid={!!error("title")}
+            />
           </Field>
-          <Field label={t("timezone")} htmlFor="timezone" error={error("timezone")}>
-            <Select icon="globe" id="timezone" name="timezone" defaultValue={values.timezone}>
+          <Field
+            label={t("timezone")}
+            htmlFor="timezone"
+            error={error("timezone")}
+          >
+            <Select
+              icon="globe"
+              id="timezone"
+              name="timezone"
+              defaultValue={values.timezone}
+            >
               {zones.map((z) => (
                 <option key={z} value={z}>
                   {z.replace("_", " ")}
@@ -69,7 +103,11 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
           </Field>
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t("startsAt")} htmlFor="startsAtLocal" error={error("startsAtLocal")}>
+          <Field
+            label={t("startsAt")}
+            htmlFor="startsAtLocal"
+            error={error("startsAtLocal")}
+          >
             <Input
               icon="calendar"
               id="startsAtLocal"
@@ -80,7 +118,12 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
               invalid={!!error("startsAtLocal")}
             />
           </Field>
-          <Field label={t("endsAt")} htmlFor="endsAtLocal" hint={t("optional")} error={error("endsAtLocal")}>
+          <Field
+            label={t("endsAt")}
+            htmlFor="endsAtLocal"
+            hint={t("optional")}
+            error={error("endsAtLocal")}
+          >
             <Input
               icon="calendar"
               id="endsAtLocal"
@@ -91,9 +134,17 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
             />
           </Field>
         </div>
-        <Field label={t("summary")} htmlFor="summary" hint={t("summaryHint")} error={error("summary")}>
+        <Field
+          label={t("summary")}
+          htmlFor="summary"
+          hint={t("summaryHint")}
+          error={error("summary")}
+        >
           <div className="relative">
-            <FieldIcon name="text" className={cn(FIELD_ICON_CLASS, "top-3.5")} />
+            <FieldIcon
+              name="text"
+              className={cn(FIELD_ICON_CLASS, "top-3.5")}
+            />
             <textarea
               id="summary"
               name="summary"
@@ -107,8 +158,14 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
       </fieldset>
 
       <fieldset className="grid gap-5">
-        <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">{t("sectionLocation")}</legend>
-        <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t("location")}>
+        <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+          {t("sectionLocation")}
+        </legend>
+        <div
+          className="grid grid-cols-3 gap-2"
+          role="radiogroup"
+          aria-label={t("location")}
+        >
           {(["PHYSICAL", "ONLINE", "HYBRID"] as const).map((v) => (
             <label
               key={v}
@@ -117,7 +174,14 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
                 "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:shadow-none",
               )}
             >
-              <input type="radio" name="locationType" value={v} checked={locationType === v} onChange={() => setLocationType(v)} className="sr-only" />
+              <input
+                type="radio"
+                name="locationType"
+                value={v}
+                checked={locationType === v}
+                onChange={() => setLocationType(v)}
+                className="sr-only"
+              />
               {t(`locationType_${v}`)}
             </label>
           ))}
@@ -132,17 +196,30 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
               className="mt-1 size-5 accent-[var(--ink)]"
             />
             <span>
-              <span className="font-semibold">{t("atVenue", { name: venue.name })}</span>
-              <span className="block text-sm text-ink-muted">
-                {[venue.addressLine1, [venue.postalCode, venue.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+              <span className="font-semibold">
+                {t("atVenue", { name: venue.name })}
               </span>
-              <span className="block text-xs text-ink-muted">{t("atVenueInfo")}</span>
+              <span className="block text-sm text-ink-muted">
+                {[
+                  venue.addressLine1,
+                  [venue.postalCode, venue.city].filter(Boolean).join(" "),
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+              </span>
+              <span className="block text-xs text-ink-muted">
+                {t("atVenueInfo")}
+              </span>
             </span>
           </label>
         ) : null}
         {locationType !== "ONLINE" && !(venue && atVenue) ? (
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field label={t("locationName")} htmlFor="locationName" error={error("locationName")}>
+            <Field
+              label={t("locationName")}
+              htmlFor="locationName"
+              error={error("locationName")}
+            >
               <AddressSearch
                 id="locationName"
                 name="locationName"
@@ -151,30 +228,81 @@ export function EventFields({ values, error, venue }: { values: EventFieldValues
                 placeholder={t("locationNamePlaceholder")}
                 onSelect={(p) => {
                   // lieu choisi : adresse complète remplie (et enregistrée automatiquement dans les réglages)
-                  fillInput(document.getElementById("addressLine1") as HTMLInputElement | null, p.addressLine1);
-                  fillInput(document.getElementById("postalCode") as HTMLInputElement | null, p.postalCode);
-                  fillInput(document.getElementById("city") as HTMLInputElement | null, p.city);
+                  fillInput(
+                    document.getElementById(
+                      "addressLine1",
+                    ) as HTMLInputElement | null,
+                    p.addressLine1,
+                  );
+                  fillInput(
+                    document.getElementById(
+                      "postalCode",
+                    ) as HTMLInputElement | null,
+                    p.postalCode,
+                  );
+                  fillInput(
+                    document.getElementById("city") as HTMLInputElement | null,
+                    p.city,
+                  );
                   setCountry(p.country);
                 }}
               />
             </Field>
-            <Field label={t("address")} htmlFor="addressLine1" error={error("addressLine1")}>
-              <Input icon="pin" id="addressLine1" name="addressLine1" defaultValue={values.addressLine1} maxLength={160} autoComplete="street-address" />
+            <Field
+              label={t("address")}
+              htmlFor="addressLine1"
+              error={error("addressLine1")}
+            >
+              <Input
+                icon="pin"
+                id="addressLine1"
+                name="addressLine1"
+                defaultValue={values.addressLine1}
+                maxLength={160}
+                autoComplete="street-address"
+              />
             </Field>
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-5 sm:col-span-2 sm:grid-cols-2">
               <Field label={t("postalCode")} htmlFor="postalCode">
-                <Input icon="hash" id="postalCode" name="postalCode" defaultValue={values.postalCode} maxLength={16} autoComplete="postal-code" />
+                <Input
+                  icon="hash"
+                  id="postalCode"
+                  name="postalCode"
+                  defaultValue={values.postalCode}
+                  maxLength={16}
+                  autoComplete="postal-code"
+                />
               </Field>
               <Field label={t("city")} htmlFor="city">
-                <Input icon="building" id="city" name="city" defaultValue={values.city} maxLength={80} autoComplete="address-level2" />
+                <Input
+                  icon="building"
+                  id="city"
+                  name="city"
+                  defaultValue={values.city}
+                  maxLength={80}
+                  autoComplete="address-level2"
+                />
               </Field>
             </div>
             <input type="hidden" name="country" value={country} />
           </div>
         ) : null}
         {locationType !== "PHYSICAL" ? (
-          <Field label={t("onlineUrl")} htmlFor="onlineUrl" hint={t("onlineUrlHint")} error={error("onlineUrl")}>
-            <Input icon="link" id="onlineUrl" name="onlineUrl" type="url" inputMode="url" defaultValue={values.onlineUrl} placeholder="https://" />
+          <Field
+            label={t("onlineUrl")}
+            htmlFor="onlineUrl"
+            hint={t("onlineUrlHint")}
+            error={error("onlineUrl")}
+          >
+            <Input
+              icon="link"
+              id="onlineUrl"
+              name="onlineUrl"
+              type="url"
+              inputMode="url"
+              defaultValue={values.onlineUrl}
+              placeholder="https://"
+            />
           </Field>
         ) : null}
       </fieldset>

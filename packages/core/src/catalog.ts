@@ -1,36 +1,75 @@
 import type { Minor } from "./money";
 
 /** Prix minimum d'un billet payant par devise (RG-TKT-01, décision 8). */
-export const MIN_PAID_PRICE: Readonly<Record<string, Minor>> = { EUR: 100, GBP: 100, CHF: 100, USD: 100, CAD: 100, AUD: 100 };
+export const MIN_PAID_PRICE: Readonly<Record<string, Minor>> = {
+  EUR: 100,
+  GBP: 100,
+  CHF: 100,
+  USD: 100,
+  CAD: 100,
+  AUD: 100,
+};
 
 export type PriceCheck = "OK" | "NEGATIVE" | "NOT_INTEGER" | "BELOW_MINIMUM";
 
-export function checkTicketPrice(priceMinor: number, currency: string): PriceCheck {
+export function checkTicketPrice(
+  priceMinor: number,
+  currency: string,
+): PriceCheck {
   if (!Number.isSafeInteger(priceMinor)) return "NOT_INTEGER";
   if (priceMinor < 0) return "NEGATIVE";
   if (priceMinor === 0) return "OK";
-  return priceMinor >= (MIN_PAID_PRICE[currency] ?? 100) ? "OK" : "BELOW_MINIMUM";
+  return priceMinor >= (MIN_PAID_PRICE[currency] ?? 100)
+    ? "OK"
+    : "BELOW_MINIMUM";
 }
 
 /** RG-TKT-05 : prix de base figé après la première vente. */
-export function canEditBasePrice(ticketType: { priceLockedAt?: Date | null; quantitySold: number }): boolean {
+export function canEditBasePrice(ticketType: {
+  priceLockedAt?: Date | null;
+  quantitySold: number;
+}): boolean {
   return !ticketType.priceLockedAt && ticketType.quantitySold === 0;
 }
 
 /** RG-TKT-05 : la quantité ne peut pas descendre sous le nombre déjà vendu ou réservé. */
-export function canSetQuantity(newQuantity: number | null, ticketType: { quantitySold: number; quantityHeld: number; quantityAllocated?: number }): boolean {
+export function canSetQuantity(
+  newQuantity: number | null,
+  ticketType: {
+    quantitySold: number;
+    quantityHeld: number;
+    quantityAllocated?: number;
+  },
+): boolean {
   if (newQuantity == null) return true;
   // jamais sous les places vendues, en cours de paiement ou confiées aux réseaux
-  return Number.isInteger(newQuantity) && newQuantity >= ticketType.quantitySold + ticketType.quantityHeld + (ticketType.quantityAllocated ?? 0);
+  return (
+    Number.isInteger(newQuantity) &&
+    newQuantity >=
+      ticketType.quantitySold +
+        ticketType.quantityHeld +
+        (ticketType.quantityAllocated ?? 0)
+  );
 }
 
 /** RG-TKT-06 : suppression uniquement sans vente ; sinon masquer ou archiver. */
-export function canDeleteTicketType(ticketType: { quantitySold: number; quantityHeld: number; quantityAllocated?: number }): boolean {
-  return ticketType.quantitySold === 0 && ticketType.quantityHeld === 0 && (ticketType.quantityAllocated ?? 0) === 0;
+export function canDeleteTicketType(ticketType: {
+  quantitySold: number;
+  quantityHeld: number;
+  quantityAllocated?: number;
+}): boolean {
+  return (
+    ticketType.quantitySold === 0 &&
+    ticketType.quantityHeld === 0 &&
+    (ticketType.quantityAllocated ?? 0) === 0
+  );
 }
 
 /** RG-TKT-09 : prix d'un palier figé dès sa première vente ; dates et quota restent modifiables. */
-export function canEditTierPrice(tier: { lockedAt?: Date | null; quantitySold: number }): boolean {
+export function canEditTierPrice(tier: {
+  lockedAt?: Date | null;
+  quantitySold: number;
+}): boolean {
   return !tier.lockedAt && tier.quantitySold === 0;
 }
 
@@ -42,9 +81,12 @@ export function publicationBlockers(input: {
   startsAt: Date;
   now: Date;
 }): Array<"NO_TICKET_TYPE" | "STRIPE_REQUIRED" | "IN_THE_PAST"> {
-  const blockers: Array<"NO_TICKET_TYPE" | "STRIPE_REQUIRED" | "IN_THE_PAST"> = [];
+  const blockers: Array<"NO_TICKET_TYPE" | "STRIPE_REQUIRED" | "IN_THE_PAST"> =
+    [];
   if (input.activeTicketTypes === 0) blockers.push("NO_TICKET_TYPE");
-  if (input.hasPaidTicketTypes && !input.stripeChargesEnabled) blockers.push("STRIPE_REQUIRED");
-  if (input.startsAt.getTime() <= input.now.getTime()) blockers.push("IN_THE_PAST");
+  if (input.hasPaidTicketTypes && !input.stripeChargesEnabled)
+    blockers.push("STRIPE_REQUIRED");
+  if (input.startsAt.getTime() <= input.now.getTime())
+    blockers.push("IN_THE_PAST");
   return blockers;
 }

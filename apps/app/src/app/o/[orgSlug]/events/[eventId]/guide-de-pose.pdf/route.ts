@@ -6,17 +6,32 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /** Kit d'installation de salle (section 9.33) : PDF A4, réservé au Pro. */
-export async function GET(req: Request, { params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ orgSlug: string; eventId: string }> },
+) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   try {
-    const pdf = await seatGuidePdf(ctx, eventId, parseKitOptions(new URL(req.url).searchParams));
+    const pdf = await seatGuidePdf(
+      ctx,
+      eventId,
+      parseKitOptions(new URL(req.url).searchParams),
+    );
     return new Response(Buffer.from(pdf), {
-      headers: { "Content-Type": "application/pdf", "Content-Disposition": 'attachment; filename="guide-de-pose.pdf"', "Cache-Control": "no-store" },
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="guide-de-pose.pdf"',
+        "Cache-Control": "no-store",
+      },
     });
   } catch (err) {
-    if (err instanceof CoreError) return new Response(err.code, { status: err.code === "FEATURE_UNAVAILABLE" ? 403 : 400 });
-    if (err instanceof Error && err.message === "LABEL_GRID_INVALID") return new Response("LABEL_GRID_INVALID", { status: 400 });
+    if (err instanceof CoreError)
+      return new Response(err.code, {
+        status: err.code === "FEATURE_UNAVAILABLE" ? 403 : 400,
+      });
+    if (err instanceof Error && err.message === "LABEL_GRID_INVALID")
+      return new Response("LABEL_GRID_INVALID", { status: 400 });
     throw err;
   }
 }

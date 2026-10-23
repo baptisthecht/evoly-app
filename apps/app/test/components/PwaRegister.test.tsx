@@ -3,17 +3,27 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PwaRegister } from "@/components/pwa/PwaRegister";
 
 const media = (standalone: boolean) =>
-  vi.stubGlobal("matchMedia", (q: string) => ({ matches: standalone && q.includes("standalone"), media: q, addEventListener() {}, removeEventListener() {} }));
+  vi.stubGlobal("matchMedia", (q: string) => ({
+    matches: standalone && q.includes("standalone"),
+    media: q,
+    addEventListener() {},
+    removeEventListener() {},
+  }));
 let register: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   register = vi.fn(async () => ({}));
-  Object.defineProperty(navigator, "serviceWorker", { configurable: true, value: { register } });
-  document.head.innerHTML = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+  Object.defineProperty(navigator, "serviceWorker", {
+    configurable: true,
+    value: { register },
+  });
+  document.head.innerHTML =
+    '<meta name="viewport" content="width=device-width, initial-scale=1">';
   window.__evolyInstall = undefined;
   media(false);
 });
 afterEach(() => vi.unstubAllGlobals());
-const viewport = () => document.querySelector<HTMLMetaElement>('meta[name="viewport"]')!.content;
+const viewport = () =>
+  document.querySelector<HTMLMetaElement>('meta[name="viewport"]')!.content;
 const prompt = () =>
   Object.assign(new Event("beforeinstallprompt", { cancelable: true }), {
     prompt: async () => undefined,
@@ -33,7 +43,11 @@ describe("application installable", () => {
     render(<PwaRegister />);
     const e = prompt();
     window.dispatchEvent(e);
-    expect([e.defaultPrevented, window.__evolyInstall === e, notified.mock.calls.length]).toEqual([true, true, 1]);
+    expect([
+      e.defaultPrevented,
+      window.__evolyInstall === e,
+      notified.mock.calls.length,
+    ]).toEqual([true, true, 1]);
     window.removeEventListener("evoly:installable", notified);
   });
 
@@ -43,7 +57,10 @@ describe("application installable", () => {
     render(<PwaRegister />);
     window.dispatchEvent(prompt());
     window.dispatchEvent(new Event("appinstalled"));
-    expect([window.__evolyInstall, notified.mock.calls.length]).toEqual([null, 2]);
+    expect([window.__evolyInstall, notified.mock.calls.length]).toEqual([
+      null,
+      2,
+    ]);
     window.removeEventListener("evoly:installable", notified);
   });
 
@@ -67,6 +84,9 @@ describe("application installable", () => {
     window.dispatchEvent(e);
     const gesture = new Event("gesturestart", { cancelable: true });
     document.dispatchEvent(gesture);
-    expect([e.defaultPrevented, gesture.defaultPrevented]).toEqual([false, false]);
+    expect([e.defaultPrevented, gesture.defaultPrevented]).toEqual([
+      false,
+      false,
+    ]);
   });
 });

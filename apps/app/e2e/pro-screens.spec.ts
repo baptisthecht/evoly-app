@@ -3,9 +3,22 @@ import { expect, test } from "./fixtures";
 import { appUrl, organizer, sql, uid } from "./helpers";
 
 // écrans Pro qu'aucun parcours n'ouvrait encore : prévente, protection anti-robots, ambassadeurs
-const fr = JSON.parse(readFileSync("../../packages/i18n/messages/fr.json", "utf8")) as Record<string, Record<string, string>>;
-const [pre, amb, emb, seat, tab] = [fr.presale!, fr.ambassadors!, fr["embed"]!, fr.seatingEditor!, fr.tables!];
-test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== "desktop", "un seul format suffit pour ces écrans"));
+const fr = JSON.parse(
+  readFileSync("../../packages/i18n/messages/fr.json", "utf8"),
+) as Record<string, Record<string, string>>;
+const [pre, amb, emb, seat, tab] = [
+  fr.presale!,
+  fr.ambassadors!,
+  fr["embed"]!,
+  fr.seatingEditor!,
+  fr.tables!,
+];
+test.beforeEach(({}, testInfo) =>
+  test.skip(
+    testInfo.project.name !== "desktop",
+    "un seul format suffit pour ces écrans",
+  ),
+);
 
 /** Organisation Pro (offre active 30 jours) avec un brouillon d'événement ; renvoie l'adresse de l'événement. */
 async function proDraft(page: import("@playwright/test").Page) {
@@ -26,7 +39,9 @@ async function proDraft(page: import("@playwright/test").Page) {
   return page.url();
 }
 
-test("prévente (Pro) : codes créés, nombre annoncé, puis listés", async ({ page }) => {
+test("prévente (Pro) : codes créés, nombre annoncé, puis listés", async ({
+  page,
+}) => {
   const eventUrl = await proDraft(page);
   await page.goto(`${eventUrl}/launch`);
   await page.locator("#presaleQuantity").fill("3");
@@ -35,7 +50,9 @@ test("prévente (Pro) : codes créés, nombre annoncé, puis listés", async ({ 
   await expect(page.getByText(pre.none!)).toHaveCount(0);
 });
 
-test("protection anti-robots (Pro) : activée, et toujours active après le rechargement", async ({ page }) => {
+test("protection anti-robots (Pro) : activée, et toujours active après le rechargement", async ({
+  page,
+}) => {
   const eventUrl = await proDraft(page);
   await page.goto(`${eventUrl}/launch`);
   const bot = page.getByRole("checkbox", { name: /robots/i });
@@ -46,7 +63,9 @@ test("protection anti-robots (Pro) : activée, et toujours active après le rech
   await expect(page.getByRole("checkbox", { name: /robots/i })).toBeChecked();
 });
 
-test("ambassadeurs (Pro) : un ambassadeur est ajouté puis listé", async ({ page }) => {
+test("ambassadeurs (Pro) : un ambassadeur est ajouté puis listé", async ({
+  page,
+}) => {
   const eventUrl = await proDraft(page);
   await page.goto(`${eventUrl}/ambassadors`);
   await page.locator("#amb-name").fill("Nora Ambassadrice");
@@ -55,7 +74,9 @@ test("ambassadeurs (Pro) : un ambassadeur est ajouté puis listé", async ({ pag
   await expect(page.getByText("Nora Ambassadrice").first()).toBeVisible();
 });
 
-test("intégration sur un site : un site est déclaré, listé, puis retiré", async ({ page }) => {
+test("intégration sur un site : un site est déclaré, listé, puis retiré", async ({
+  page,
+}) => {
   const eventUrl = await proDraft(page);
   await page.goto(`${eventUrl}/embed`);
   await page.locator("#embed-origin").fill("monclub.be");
@@ -65,19 +86,30 @@ test("intégration sur un site : un site est déclaré, listé, puis retiré", a
   await expect(page.getByText("https://monclub.be")).toHaveCount(0);
 });
 
-test("plan de salle (Pro) : un modèle est proposé, et « Théâtre » crée des places", async ({ page }) => {
+test("plan de salle (Pro) : un modèle est proposé, et « Théâtre » crée des places", async ({
+  page,
+}) => {
   const eventUrl = await proDraft(page);
   await page.goto(`${eventUrl}/seating`);
   await expect(page.getByText(seat.chooseTemplate!)).toBeVisible();
-  await page.getByRole("radio", { name: new RegExp(seat.tpl_theatre!) }).check();
+  await page
+    .getByRole("radio", { name: new RegExp(seat.tpl_theatre!) })
+    .check();
   await page.getByRole("button", { name: seat.generate, exact: true }).click();
-  await expect(page.getByText(/\d+ places/).first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/\d+ places/).first()).toBeVisible({
+    timeout: 20_000,
+  });
 });
 
-test("tables (Pro) : un tarif devient une table de 6 personnes, enregistrement confirmé", async ({ page }) => {
+test("tables (Pro) : un tarif devient une table de 6 personnes, enregistrement confirmé", async ({
+  page,
+}) => {
   const eventUrl = await proDraft(page);
   await page.goto(`${eventUrl}/tables`);
   await page.locator('input[id^="table-"][id$="-size"]').first().fill("6");
-  await page.getByRole("button", { name: tab.save, exact: true }).first().click();
+  await page
+    .getByRole("button", { name: tab.save, exact: true })
+    .first()
+    .click();
   await expect(page.getByText(tab.saved!).first()).toBeVisible();
 });

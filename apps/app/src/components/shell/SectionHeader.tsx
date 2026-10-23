@@ -5,22 +5,42 @@ import { requireOrgContext } from "@/server/context";
 import { PageHeader } from "./PageHeader";
 
 /** En-tête de chaque section de l'organisation : une seule configuration, le même rendu partout. */
-export async function SectionHeader({ orgSlug, section }: { orgSlug: string; section: string }) {
+export async function SectionHeader({
+  orgSlug,
+  section,
+}: {
+  orgSlug: string;
+  section: string;
+}) {
   const ctx = await requireOrgContext(orgSlug);
   const nav = await getTranslations("nav");
   const s = await getTranslations("sections");
   const base = `/o/${ctx.organization.slug}`;
-  const tabs = (list: Array<[string, string, string?]>) => list.map(([label, href, match]) => ({ label, href, match }));
+  const tabs = (list: Array<[string, string, string?]>) =>
+    list.map(([label, href, match]) => ({ label, href, match }));
   switch (section) {
     case "":
       return <PageHeader title={nav("home")} />;
     case "events": {
       const te = await getTranslations("events");
       const canCreate = can(ctx.membership, "EVENTS_CREATE") && !ctx.readOnly;
-      return <PageHeader title={nav("events")} actions={canCreate ? <ButtonLink href={`${base}/events/new`}>{te("newEvent")}</ButtonLink> : null} />;
+      return (
+        <PageHeader
+          title={nav("events")}
+          actions={
+            canCreate ? (
+              <ButtonLink href={`${base}/events/new`}>
+                {te("newEvent")}
+              </ButtonLink>
+            ) : null
+          }
+        />
+      );
     }
     case "events-new":
-      return <PageHeader title={(await getTranslations("events"))("newEvent")} />;
+      return (
+        <PageHeader title={(await getTranslations("events"))("newEvent")} />
+      );
     case "orders":
     case "resale":
     case "finances":
@@ -28,16 +48,28 @@ export async function SectionHeader({ orgSlug, section }: { orgSlug: string; sec
       return <PageHeader title={nav(section)} />;
     case "marketing": {
       const tc = await getTranslations("campaigns");
-      const canNew = hasFeature(ctx.features, "EMAIL_MARKETING") && can(ctx.membership, "MARKETING_MANAGE");
+      const canNew =
+        hasFeature(ctx.features, "EMAIL_MARKETING") &&
+        can(ctx.membership, "MARKETING_MANAGE");
       return (
         <PageHeader
           title={nav("marketing")}
           tabsLabel={s("tabs")}
           tabs={tabs([
             [s("tab_contacts"), `${base}/marketing`],
-            [s("tab_campaigns"), `${base}/marketing?tab=campaigns`, `${base}/marketing/campaigns`],
+            [
+              s("tab_campaigns"),
+              `${base}/marketing?tab=campaigns`,
+              `${base}/marketing/campaigns`,
+            ],
           ])}
-          actions={canNew ? <ButtonLink href={`${base}/marketing/campaigns/new`}>{tc("new")}</ButtonLink> : null}
+          actions={
+            canNew ? (
+              <ButtonLink href={`${base}/marketing/campaigns/new`}>
+                {tc("new")}
+              </ButtonLink>
+            ) : null
+          }
         />
       );
     }

@@ -6,9 +6,17 @@ import { togglePromotionAction } from "./actions";
 
 export const metadata: Metadata = { title: "Offres" };
 
-const STATUS = { RUNNING: "En cours", SCHEDULED: "Programmée", ENDED: "Terminée", EXHAUSTED: "Épuisée", DISABLED: "Suspendue" } as const;
-const pct = (n: number, d: number) => (d ? `${Math.round((100 * n) / d)} %` : "-");
-const day = (d: Date | null) => (d ? d.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" }) : "-");
+const STATUS = {
+  RUNNING: "En cours",
+  SCHEDULED: "Programmée",
+  ENDED: "Terminée",
+  EXHAUSTED: "Épuisée",
+  DISABLED: "Suspendue",
+} as const;
+const pct = (n: number, d: number) =>
+  d ? `${Math.round((100 * n) / d)} %` : "-";
+const day = (d: Date | null) =>
+  d ? d.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" }) : "-";
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.evoly.me";
 
 /** Offres commerciales : état, conditions et résultats de chaque campagne (docs/OFFRES.md). */
@@ -20,7 +28,10 @@ export default async function OffersPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl">Offres</h1>
-          <p className="text-sm text-ink-muted">Attribuées automatiquement à la création d’une organisation qui remplit leurs conditions, une seule fois.</p>
+          <p className="text-sm text-ink-muted">
+            Attribuées automatiquement à la création d’une organisation qui
+            remplit leurs conditions, une seule fois.
+          </p>
         </div>
         <Link href="/admin/offres/nouvelle" className="underline">
           Nouvelle offre
@@ -45,11 +56,17 @@ export default async function OffersPage() {
             {rows.map((r) => (
               <tr key={r.id} className="border-t border-line align-top">
                 <td>
-                  <Link href={`/admin/offres/${r.id}`} className="font-semibold underline">
+                  <Link
+                    href={`/admin/offres/${r.id}`}
+                    className="font-semibold underline"
+                  >
                     {r.name}
                   </Link>
                   <div className="text-xs text-ink-muted">
-                    {r.code} · {r.audience === "LINK" ? `lien ${APP}/start?offre=${r.code}` : "toute nouvelle organisation"}
+                    {r.code} ·{" "}
+                    {r.audience === "LINK"
+                      ? `lien ${APP}/start?offre=${r.code}`
+                      : "toute nouvelle organisation"}
                   </div>
                 </td>
                 <td>{STATUS[r.status]}</td>
@@ -71,7 +88,13 @@ export default async function OffersPage() {
                   {r.paidPro} · {pct(r.paidPro, r.redemptions)}
                 </td>
                 <td>
-                  <form action={togglePromotionAction.bind(null, r.id, r.status === "DISABLED")}>
+                  <form
+                    action={togglePromotionAction.bind(
+                      null,
+                      r.id,
+                      r.status === "DISABLED",
+                    )}
+                  >
                     <button type="submit" className="underline">
                       {r.status === "DISABLED" ? "Réactiver" : "Suspendre"}
                     </button>
@@ -82,7 +105,9 @@ export default async function OffersPage() {
           </tbody>
         </table>
       </div>
-      {rows.length === 0 ? <p className="text-sm text-ink-muted">Aucune offre pour l’instant.</p> : null}
+      {rows.length === 0 ? (
+        <p className="text-sm text-ink-muted">Aucune offre pour l’instant.</p>
+      ) : null}
     </main>
   );
 }

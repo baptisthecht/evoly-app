@@ -10,7 +10,12 @@ const strict = (error: IntlError) => {
 /** Les vrais textes français : le test voit ce que voit l'utilisateur. */
 export function Fr({ children }: { children: ReactNode }) {
   return (
-    <NextIntlClientProvider locale="fr" messages={fr} timeZone="Europe/Brussels" onError={strict}>
+    <NextIntlClientProvider
+      locale="fr"
+      messages={fr}
+      timeZone="Europe/Brussels"
+      onError={strict}
+    >
       {children}
     </NextIntlClientProvider>
   );

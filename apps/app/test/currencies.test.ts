@@ -18,7 +18,13 @@ describe("livre sterling et franc suisse (P1)", () => {
   });
 
   it("le Royaume-Uni et la Suisse sont proposés à l'inscription, avec leur devise", () => {
-    expect(findCountry("GB")).toMatchObject({ currency: "GBP", timezone: "Europe/London" });
-    expect(findCountry("CH")).toMatchObject({ currency: "CHF", timezone: "Europe/Zurich" });
+    expect(findCountry("GB")).toMatchObject({
+      currency: "GBP",
+      timezone: "Europe/London",
+    });
+    expect(findCountry("CH")).toMatchObject({
+      currency: "CHF",
+      timezone: "Europe/Zurich",
+    });
   });
 });

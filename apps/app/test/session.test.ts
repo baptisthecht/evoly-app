@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
-  session: null as null | { user: { id: string; email: string; emailVerified: boolean }; session: { id: string } },
+  session: null as null | {
+    user: { id: string; email: string; emailVerified: boolean };
+    session: { id: string };
+  },
   user: null as null | { id: string; twoFactorEnabled: boolean },
   satisfied: true,
 }));
@@ -11,12 +14,21 @@ vi.mock("next/navigation", () => ({
     throw new Error(`REDIRECT ${url}`);
   },
 }));
-vi.mock("@/lib/auth", () => ({ auth: { api: { getSession: async () => state.session } } }));
-vi.mock("@/lib/db", () => ({ db: { user: { findUnique: async () => state.user } } }));
-vi.mock("@/server/twoFactor", () => ({ twoFactorSatisfied: async () => state.satisfied }));
+vi.mock("@/lib/auth", () => ({
+  auth: { api: { getSession: async () => state.session } },
+}));
+vi.mock("@/lib/db", () => ({
+  db: { user: { findUnique: async () => state.user } },
+}));
+vi.mock("@/server/twoFactor", () => ({
+  twoFactorSatisfied: async () => state.satisfied,
+}));
 const { getSession, requireUser } = await import("@/server/session");
 
-const signedIn = (verified = true) => ({ user: { id: "u1", email: "lea+test@exemple.be", emailVerified: verified }, session: { id: "s1" } });
+const signedIn = (verified = true) => ({
+  user: { id: "u1", email: "lea+test@exemple.be", emailVerified: verified },
+  session: { id: "s1" },
+});
 beforeEach(() => {
   state.session = null;
   state.user = { id: "u1", twoFactorEnabled: false };
@@ -30,7 +42,9 @@ describe("accès aux pages : trois verrous (RG-AUTH-01, RG-AUTH-03, US-AUTH-06)"
 
   it("adresse non vérifiée : vers la vérification, l'adresse transmise encodée", async () => {
     state.session = signedIn(false);
-    await expect(requireUser()).rejects.toThrow(`REDIRECT /verify-email?email=${encodeURIComponent("lea+test@exemple.be")}`);
+    await expect(requireUser()).rejects.toThrow(
+      `REDIRECT /verify-email?email=${encodeURIComponent("lea+test@exemple.be")}`,
+    );
   });
 
   it("double authentification activée et code pas encore saisi pour cette session : vers le code", async () => {

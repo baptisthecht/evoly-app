@@ -9,8 +9,15 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("loginTitle") };
 }
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reset?: string; verified?: string; next?: string }> }) {
-  const next = typeof (await searchParams).next === "string" ? ((await searchParams).next as string) : null;
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reset?: string; verified?: string; next?: string }>;
+}) {
+  const next =
+    typeof (await searchParams).next === "string"
+      ? ((await searchParams).next as string)
+      : null;
   await redirectIfSignedIn();
   const t = await getTranslations("auth");
   const { reset } = await searchParams;
@@ -21,7 +28,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p className="text-ink-muted">{t("loginIntro")}</p>
       </header>
       {reset ? (
-        <p role="status" className="rounded-md bg-success-soft px-4 py-3 text-sm text-success">
+        <p
+          role="status"
+          className="rounded-md bg-success-soft px-4 py-3 text-sm text-success"
+        >
           {t("resetDone")}
         </p>
       ) : null}

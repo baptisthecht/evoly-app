@@ -8,7 +8,15 @@ const DAY = 86_400_000;
 async function eventEnded(daysAgo: number) {
   const id = rid();
   const org = await db.organization.create({
-    data: { name: `Cabaret ${id}`, slug: `cab-${id}`, subdomain: `cab-${id}`, country: "FR", currency: "EUR", timezone: "Europe/Paris", locale: "fr" },
+    data: {
+      name: `Cabaret ${id}`,
+      slug: `cab-${id}`,
+      subdomain: `cab-${id}`,
+      country: "FR",
+      currency: "EUR",
+      timezone: "Europe/Paris",
+      locale: "fr",
+    },
   });
   const ended = new Date(Date.now() - daysAgo * DAY);
   const event = await db.event.create({
@@ -24,7 +32,13 @@ async function eventEnded(daysAgo: number) {
       status: "PUBLISHED",
     },
   });
-  const tm = await db.distributor.create({ data: { organizationId: org.id, kind: "TICKETMASTER", name: "Ticketmaster" } });
+  const tm = await db.distributor.create({
+    data: {
+      organizationId: org.id,
+      kind: "TICKETMASTER",
+      name: "Ticketmaster",
+    },
+  });
   return db.externalTicket.create({
     data: {
       eventId: event.id,
@@ -43,16 +57,25 @@ describe("conservation : billets vendus par les réseaux", () => {
     const recent = await eventEnded(29);
     const first = await applyRetention();
     expect(first.externalTickets).toBeGreaterThanOrEqual(1);
-    const after = await db.externalTicket.findUniqueOrThrow({ where: { id: old.id } });
-    expect([after.holderName, after.anonymizedAt instanceof Date, after.code, after.seatLabel, after.checkedInAt instanceof Date]).toEqual([
-      null,
-      true,
-      old.code,
-      "C 12",
-      true,
-    ]);
-    expect((await db.externalTicket.findUniqueOrThrow({ where: { id: recent.id } })).holderName).toBe("Léa Martin");
+    const after = await db.externalTicket.findUniqueOrThrow({
+      where: { id: old.id },
+    });
+    expect([
+      after.holderName,
+      after.anonymizedAt instanceof Date,
+      after.code,
+      after.seatLabel,
+      after.checkedInAt instanceof Date,
+    ]).toEqual([null, true, old.code, "C 12", true]);
+    expect(
+      (await db.externalTicket.findUniqueOrThrow({ where: { id: recent.id } }))
+        .holderName,
+    ).toBe("Léa Martin");
     await applyRetention();
-    expect((await db.externalTicket.findUniqueOrThrow({ where: { id: old.id } })).anonymizedAt?.getTime()).toBe(after.anonymizedAt!.getTime());
+    expect(
+      (
+        await db.externalTicket.findUniqueOrThrow({ where: { id: old.id } })
+      ).anonymizedAt?.getTime(),
+    ).toBe(after.anonymizedAt!.getTime());
   });
 });

@@ -3,12 +3,22 @@
 import { useEffect, useState } from "react";
 
 /** Téléphone : bouton fixe « Voir les billets », masqué quand le bloc des billets est déjà à l'écran. */
-export function StickyTicketsButton({ targetId, label }: { targetId: string; label: string }) {
+export function StickyTicketsButton({
+  targetId,
+  label,
+}: {
+  targetId: string;
+  label: string;
+}) {
   const [hidden, setHidden] = useState(true);
   useEffect(() => {
     const target = document.getElementById(targetId);
-    if (!target || typeof IntersectionObserver === "undefined") return setHidden(false);
-    const observer = new IntersectionObserver(([entry]) => setHidden(!!entry?.isIntersecting), { threshold: 0.15 });
+    if (!target || typeof IntersectionObserver === "undefined")
+      return setHidden(false);
+    const observer = new IntersectionObserver(
+      ([entry]) => setHidden(!!entry?.isIntersecting),
+      { threshold: 0.15 },
+    );
     observer.observe(target);
     return () => observer.disconnect();
   }, [targetId]);

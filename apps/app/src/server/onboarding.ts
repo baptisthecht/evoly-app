@@ -19,7 +19,12 @@ export interface CreateOrganizationInput {
 }
 
 /** Création d'une organisation par son futur propriétaire (US-ONB-01, RG-ONB-01, RG-ONB-02, RG-ORG-04). */
-export async function createOrganization(userId: string, input: CreateOrganizationInput, acquisition: Acquisition | null = null, offerCode?: string | null) {
+export async function createOrganization(
+  userId: string,
+  input: CreateOrganizationInput,
+  acquisition: Acquisition | null = null,
+  offerCode?: string | null,
+) {
   const country = findCountry(input.country);
   if (!country) throw new CoreError("COUNTRY_NOT_AVAILABLE");
   const availability = await subdomainAvailability(input.subdomain);
@@ -29,7 +34,12 @@ export async function createOrganization(userId: string, input: CreateOrganizati
     where: {
       deletedAt: null,
       members: { some: { userId, role: { systemKey: "OWNER" } } },
-      NOT: { subscription: { planId: "pro", status: { in: ["TRIALING", "ACTIVE", "PAST_DUE"] } } },
+      NOT: {
+        subscription: {
+          planId: "pro",
+          status: { in: ["TRIALING", "ACTIVE", "PAST_DUE"] },
+        },
+      },
     },
   });
   // offres commerciales gérées dans l'administration (docs/OFFRES.md) : le seul endroit où elles sont attribuées
@@ -43,16 +53,26 @@ export async function createOrganization(userId: string, input: CreateOrganizati
     source: acquisition?.source ?? null,
     now,
   });
-  if (!canCreateOrganization({ ownedFreeOrganizations: ownedFree, startsAsPro: promotion?.planId === "pro" }))
+  if (
+    !canCreateOrganization({
+      ownedFreeOrganizations: ownedFree,
+      startsAsPro: promotion?.planId === "pro",
+    })
+  )
     throw new CoreError("PRO_REQUIRED_FOR_ANOTHER_ORGANIZATION");
 
-  const ownerRole = await db.role.findUnique({ where: { systemKey: "OWNER" }, select: { id: true } });
+  const ownerRole = await db.role.findUnique({
+    where: { systemKey: "OWNER" },
+    select: { id: true },
+  });
   if (!ownerRole) throw new Error("Rôles système absents : lancer le seed");
 
   const org = await db.$transaction(async (tx) => {
     const created = await tx.organization.create({
       data: {
-        ...(acquisition ? { acquisition: acquisition as unknown as Prisma.InputJsonValue } : {}),
+        ...(acquisition
+          ? { acquisition: acquisition as unknown as Prisma.InputJsonValue }
+          : {}),
         name: input.name.trim(),
         slug: availability.value,
         subdomain: availability.value,
@@ -67,15 +87,38 @@ export async function createOrganization(userId: string, input: CreateOrganizati
       },
     });
     // offre : attribuée une seule fois, sans dépasser son plafond ; sinon l'offre Free
-    const grantedUntil = promotion ? await redeemPromotion(tx, promotion, { organizationId: created.id, userId, now }) : null;
+    const grantedUntil = promotion
+      ? await redeemPromotion(tx, promotion, {
+          organizationId: created.id,
+          userId,
+          now,
+        })
+      : null;
     await tx.subscription.create({
       data:
         grantedUntil && promotion
-          ? { organizationId: created.id, planId: promotion.planId, status: "ACTIVE", currency: country.currency, currentPeriodEnd: grantedUntil } // attribué par Evoly : redevient Free seul
-          : { organizationId: created.id, planId: "free", status: "NONE", currency: country.currency },
+          ? {
+              organizationId: created.id,
+              planId: promotion.planId,
+              status: "ACTIVE",
+              currency: country.currency,
+              currentPeriodEnd: grantedUntil,
+            } // attribué par Evoly : redevient Free seul
+          : {
+              organizationId: created.id,
+              planId: "free",
+              status: "NONE",
+              currency: country.currency,
+            },
     });
-    await tx.session.updateMany({ where: { userId }, data: { activeOrganizationId: created.id } });
-    return { ...created, promotionCode: grantedUntil && promotion ? promotion.code : null };
+    await tx.session.updateMany({
+      where: { userId },
+      data: { activeOrganizationId: created.id },
+    });
+    return {
+      ...created,
+      promotionCode: grantedUntil && promotion ? promotion.code : null,
+    };
   });
 
   await audit({
@@ -84,16 +127,26 @@ export async function createOrganization(userId: string, input: CreateOrganizati
     actorUserId: userId,
     targetType: "Organization",
     targetId: org.id,
-    metadata: { country: country.code, ...(org.promotionCode ? { promotion: org.promotionCode } : {}) },
+    metadata: {
+      country: country.code,
+      ...(org.promotionCode ? { promotion: org.promotionCode } : {}),
+    },
   });
   // section 9.22 : organisation parrainée (code mémorisé à l'arrivée sur l'app)
   try {
     const { cookies } = await import("next/headers");
     const { attachReferral, REFERRAL_COOKIE } = await import("./referrals");
-    await attachReferral(org.id, userId, (await cookies()).get(REFERRAL_COOKIE)?.value);
+    await attachReferral(
+      org.id,
+      userId,
+      (await cookies()).get(REFERRAL_COOKIE)?.value,
+    );
     // section 9.32 : organisateur inscrit par le lien d'un lieu partenaire
     const { attachVenueReferral, VENUE_COOKIE } = await import("./venues");
-    await attachVenueReferral(org.id, (await cookies()).get(VENUE_COOKIE)?.value);
+    await attachVenueReferral(
+      org.id,
+      (await cookies()).get(VENUE_COOKIE)?.value,
+    );
   } catch {
     // hors requête (tests, scripts) : pas de parrainage
   }

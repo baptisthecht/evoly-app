@@ -16,7 +16,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function OnboardingPage() {
   // RG-ORG-02 : invité sans compte, inscrit puis vérifié : il rejoint automatiquement l'organisation qui l'a invité
   const session = await getSession();
-  if (session?.user && (await db.organizationMember.count({ where: { userId: session.user.id } })) === 0) {
+  if (
+    session?.user &&
+    (await db.organizationMember.count({
+      where: { userId: session.user.id },
+    })) === 0
+  ) {
     const joined = await autoJoinPendingInvitations(session.user.id);
     if (joined[0]) redirect(`/o/${joined[0]}`);
   }
@@ -29,7 +34,10 @@ export default async function OnboardingPage() {
         <h1 className="page-title">{t("organizationTitle")}</h1>
         <p className="max-w-prose text-ink-muted">{t("organizationIntro")}</p>
       </header>
-      <OrganizationForm baseDomain={e.NEXT_PUBLIC_BASE_DOMAIN} siteUrl={e.NEXT_PUBLIC_SITE_URL} />
+      <OrganizationForm
+        baseDomain={e.NEXT_PUBLIC_BASE_DOMAIN}
+        siteUrl={e.NEXT_PUBLIC_SITE_URL}
+      />
     </>
   );
 }

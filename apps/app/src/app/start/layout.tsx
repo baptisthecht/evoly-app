@@ -5,7 +5,11 @@ import { Logo } from "@/components/Brand";
 import { ThemePro } from "@/components/theme/ThemePro";
 
 /** Création rapide (visiteurs des annonces) : pleine largeur, thème pro. */
-export default async function StartLayout({ children }: { children: ReactNode }) {
+export default async function StartLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const t = await getTranslations("quickstart");
   return (
     <div className="min-h-dvh bg-surface">
@@ -23,7 +27,9 @@ export default async function StartLayout({ children }: { children: ReactNode })
           </p>
         </div>
       </header>
-      <main className="mx-auto max-w-[70rem] px-5 pt-8 pb-14 sm:px-8 lg:pt-10">{children}</main>
+      <main className="mx-auto max-w-[70rem] px-5 pt-8 pb-14 sm:px-8 lg:pt-10">
+        {children}
+      </main>
     </div>
   );
 }

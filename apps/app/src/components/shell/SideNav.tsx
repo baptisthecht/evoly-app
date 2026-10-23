@@ -70,7 +70,9 @@ const ICONS: Record<NavIcon, ReactNode> = {
       <rect x="3" y="16" width="7" height="5" rx="1.5" />
     </>
   ),
-  ticket: <path d="M3 9a2 2 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 0 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" />,
+  ticket: (
+    <path d="M3 9a2 2 0 0 0 0 6v3a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3a2 2 0 0 0 0-6V6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" />
+  ),
   megaphone: (
     <>
       <path d="M3 11v2a1 1 0 0 0 1 1h3l6 5V5L7 10H4a1 1 0 0 0-1 1z" />
@@ -157,7 +159,13 @@ const ICONS: Record<NavIcon, ReactNode> = {
   plus: <path d="M12 5v14M5 12h14" />,
 };
 
-export function NavGlyph({ name, className }: { name: NavIcon; className?: string }) {
+export function NavGlyph({
+  name,
+  className,
+}: {
+  name: NavIcon;
+  className?: string;
+}) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -181,7 +189,9 @@ const pathOf = (href: string) => href.split("?")[0]!;
 const itemClass = (on: boolean) =>
   cn(
     "flex min-h-10 items-center gap-2.5 rounded-sm px-2.5 text-[0.875rem] transition-colors",
-    on ? "bg-surface font-medium text-ink" : "text-ink-muted hover:bg-surface hover:text-ink",
+    on
+      ? "bg-surface font-medium text-ink"
+      : "text-ink-muted hover:bg-surface hover:text-ink",
   );
 const soloClass = itemClass;
 
@@ -204,10 +214,17 @@ export function SideNav({
   const pathname = usePathname();
   const active = (i: NavItem) => {
     const h = pathOf(i.href);
-    return i.exact ? pathname === h : pathname === h || pathname.startsWith(`${h}/`);
+    return i.exact
+      ? pathname === h
+      : pathname === h || pathname.startsWith(`${h}/`);
   };
   const solo = (i: NavSolo) => (
-    <Link key={i.href} href={i.href} aria-current={active(i) ? "page" : undefined} className={soloClass(active(i))}>
+    <Link
+      key={i.href}
+      href={i.href}
+      aria-current={active(i) ? "page" : undefined}
+      className={soloClass(active(i))}
+    >
       <NavGlyph name={i.icon} />
       {i.label}
     </Link>
@@ -219,15 +236,33 @@ export function SideNav({
       {sections.map((s, n) => {
         const open = s.items.some(active); // la catégorie de la page ouverte est active elle aussi
         return (
-          <div key={s.label} className={cn("grid gap-0.5", n > 0 || top ? "mt-4" : "")}>
-            <p className={cn("px-2.5 pb-1.5 text-[0.6875rem] font-semibold tracking-[0.05em] uppercase", open ? "text-ink" : "text-ink-muted")}>{s.label}</p>
+          <div
+            key={s.label}
+            className={cn("grid gap-0.5", n > 0 || top ? "mt-4" : "")}
+          >
+            <p
+              className={cn(
+                "px-2.5 pb-1.5 text-[0.6875rem] font-semibold tracking-[0.05em] uppercase",
+                open ? "text-ink" : "text-ink-muted",
+              )}
+            >
+              {s.label}
+            </p>
             <ul className="grid gap-0.5">
               {s.items.map((i) => (
                 <li key={i.href}>
-                  <Link href={i.href} aria-current={active(i) ? "page" : undefined} className={itemClass(active(i))}>
+                  <Link
+                    href={i.href}
+                    aria-current={active(i) ? "page" : undefined}
+                    className={itemClass(active(i))}
+                  >
                     {i.icon ? <NavGlyph name={i.icon} /> : null}
                     <span className="truncate">{i.label}</span>
-                    {i.pro ? <span className="ml-auto rounded-sm bg-surface-sunken px-1.5 py-px text-[0.625rem] font-semibold text-ink">{i.pro}</span> : null}
+                    {i.pro ? (
+                      <span className="ml-auto rounded-sm bg-surface-sunken px-1.5 py-px text-[0.625rem] font-semibold text-ink">
+                        {i.pro}
+                      </span>
+                    ) : null}
                   </Link>
                 </li>
               ))}
@@ -236,7 +271,11 @@ export function SideNav({
         );
       })}
       {after}
-      {bottom.length > 0 ? <div className="mt-3 grid gap-0.5 border-t border-line pt-2">{bottom.map(solo)}</div> : null}
+      {bottom.length > 0 ? (
+        <div className="mt-3 grid gap-0.5 border-t border-line pt-2">
+          {bottom.map(solo)}
+        </div>
+      ) : null}
     </nav>
   );
 }

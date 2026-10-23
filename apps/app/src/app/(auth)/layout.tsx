@@ -4,7 +4,11 @@ import { Logo, OMark } from "@/components/Brand";
 import { LocaleSwitch } from "@/components/LocaleSwitch";
 import { ThemePro } from "@/components/theme/ThemePro";
 
-export default async function AuthLayout({ children }: { children: ReactNode }) {
+export default async function AuthLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const t = await getTranslations("brand");
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
@@ -14,7 +18,8 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
         <p className="relative font-display text-[clamp(3rem,5vw,4.6rem)] leading-[0.92] tracking-[-0.055em]">
           {t("sloganStart")}
           <br />
-          {t("sloganMiddle")} <span className="script text-rose">{t("sloganScript")}</span>.
+          {t("sloganMiddle")}{" "}
+          <span className="script text-rose">{t("sloganScript")}</span>.
         </p>
       </aside>
       <main className="flex flex-col px-5 pt-[max(env(safe-area-inset-top),1.25rem)] pb-10 sm:px-10">

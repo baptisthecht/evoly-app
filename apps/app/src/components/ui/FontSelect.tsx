@@ -50,7 +50,10 @@ export function FontSelect({
     return () => document.removeEventListener("pointerdown", close);
   }, [open]);
   useEffect(() => {
-    if (open) list.current?.querySelector<HTMLElement>(`[data-index="${cursor}"]`)?.scrollIntoView?.({ block: "nearest" });
+    if (open)
+      list.current
+        ?.querySelector<HTMLElement>(`[data-index="${cursor}"]`)
+        ?.scrollIntoView?.({ block: "nearest" });
   }, [open, cursor]);
 
   const show = () => {
@@ -102,7 +105,10 @@ export function FontSelect({
         aria-activedescendant={open ? `${listId}-${cursor}` : undefined}
         onClick={() => (open ? setOpen(false) : show())}
         onKeyDown={onKeyDown}
-        className={cn(FIELD_CONTROL_CLASS, "flex items-center justify-between gap-3 text-left")}
+        className={cn(
+          FIELD_CONTROL_CLASS,
+          "flex items-center justify-between gap-3 text-left",
+        )}
         style={{ fontFamily: selected.family }}
       >
         <span className="truncate">{selected.label}</span>
@@ -137,11 +143,16 @@ export function FontSelect({
               onPointerDown={(e) => e.preventDefault()}
               onPointerMove={() => setCursor(i)}
               onClick={() => choose(i)}
-              className={cn("flex cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-base text-ink", i === cursor && "bg-surface-sunken")}
+              className={cn(
+                "flex cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-base text-ink",
+                i === cursor && "bg-surface-sunken",
+              )}
               style={{ fontFamily: o.family }}
             >
               <span className="truncate">{o.label}</span>
-              {o.value === value ? <CheckIcon className="size-4 shrink-0" aria-hidden="true" /> : null}
+              {o.value === value ? (
+                <CheckIcon className="size-4 shrink-0" aria-hidden="true" />
+              ) : null}
             </li>
           ))}
         </ul>

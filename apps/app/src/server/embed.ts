@@ -25,37 +25,69 @@ export function normalizeOrigin(input: string): string | null {
 }
 
 export async function addEmbedOrigin(ctx: OrgContext, input: string) {
-  if (!hasFeature(ctx.features, "EMBED_WIDGET")) throw new CoreError("FEATURE_UNAVAILABLE");
+  if (!hasFeature(ctx.features, "EMBED_WIDGET"))
+    throw new CoreError("FEATURE_UNAVAILABLE");
   const origin = normalizeOrigin(input);
   if (!origin) throw new CoreError("EMBED_ORIGIN_INVALID");
-  const org = await db.organization.findUniqueOrThrow({ where: { id: ctx.organization.id }, select: { embedOrigins: true } });
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: ctx.organization.id },
+    select: { embedOrigins: true },
+  });
   if (org.embedOrigins.includes(origin)) return org.embedOrigins;
-  if (org.embedOrigins.length >= MAX_EMBED_ORIGINS) throw new CoreError("EMBED_TOO_MANY");
+  if (org.embedOrigins.length >= MAX_EMBED_ORIGINS)
+    throw new CoreError("EMBED_TOO_MANY");
   const next = [...org.embedOrigins, origin];
-  await db.organization.update({ where: { id: ctx.organization.id }, data: { embedOrigins: next } });
+  await db.organization.update({
+    where: { id: ctx.organization.id },
+    data: { embedOrigins: next },
+  });
   return next;
 }
 
 export async function removeEmbedOrigin(ctx: OrgContext, origin: string) {
-  const org = await db.organization.findUniqueOrThrow({ where: { id: ctx.organization.id }, select: { embedOrigins: true } });
-  await db.organization.update({ where: { id: ctx.organization.id }, data: { embedOrigins: org.embedOrigins.filter((o) => o !== origin) } });
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: ctx.organization.id },
+    select: { embedOrigins: true },
+  });
+  await db.organization.update({
+    where: { id: ctx.organization.id },
+    data: { embedOrigins: org.embedOrigins.filter((o) => o !== origin) },
+  });
 }
 
 export async function listEmbedOrigins(ctx: OrgContext) {
-  return (await db.organization.findUniqueOrThrow({ where: { id: ctx.organization.id }, select: { embedOrigins: true } })).embedOrigins;
+  return (
+    await db.organization.findUniqueOrThrow({
+      where: { id: ctx.organization.id },
+      select: { embedOrigins: true },
+    })
+  ).embedOrigins;
 }
 
 /** Pour l'intercepteur : sites autorisés d'un événement publié, si l'organisation a l'offre Pro ; aucun sinon. */
-export async function embedOriginsFor(eventId: string, now = new Date()): Promise<string[]> {
+export async function embedOriginsFor(
+  eventId: string,
+  now = new Date(),
+): Promise<string[]> {
   const e = await db.event.findFirst({
     where: { id: eventId, deletedAt: null, status: "PUBLISHED" },
     select: {
-      organization: { select: { embedOrigins: true, subscription: { select: PLAN_SUBSCRIPTION_SELECT } } },
+      organization: {
+        select: {
+          embedOrigins: true,
+          subscription: { select: PLAN_SUBSCRIPTION_SELECT },
+        },
+      },
     },
   });
   if (!e) return [];
   const plans = await getPlans();
-  return hasFeature(plans[effectivePlan(e.organization.subscription, now)].features, "EMBED_WIDGET") ? e.organization.embedOrigins : [];
+  return hasFeature(
+    plans[effectivePlan(e.organization.subscription, now)].features,
+    "EMBED_WIDGET",
+  )
+    ? e.organization.embedOrigins
+    : [];
 }
 
 /** Module intégrable : l'événement publié et l'adresse de sa page de vente, si l'organisation a l'offre Pro. */
@@ -65,11 +97,21 @@ export async function embedEventFor(eventId: string, now = new Date()) {
     select: {
       id: true,
       organization: {
-        select: { slug: true, subdomain: true, subscription: { select: PLAN_SUBSCRIPTION_SELECT }, brand: { select: { buttonLabel: true } } },
+        select: {
+          slug: true,
+          subdomain: true,
+          subscription: { select: PLAN_SUBSCRIPTION_SELECT },
+          brand: { select: { buttonLabel: true } },
+        },
       },
     },
   });
   if (!e) return null;
   const plans = await getPlans();
-  return hasFeature(plans[effectivePlan(e.organization.subscription, now)].features, "EMBED_WIDGET") ? e : null;
+  return hasFeature(
+    plans[effectivePlan(e.organization.subscription, now)].features,
+    "EMBED_WIDGET",
+  )
+    ? e
+    : null;
 }

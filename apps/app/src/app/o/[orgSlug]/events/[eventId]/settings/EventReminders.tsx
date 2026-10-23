@@ -5,24 +5,47 @@ import { useState, useTransition } from "react";
 import { Card } from "@/components/ui/Card";
 import { reminderAction } from "@/app/o/[orgSlug]/events/actions";
 
-type Reminder = { type: "REMINDER_J7" | "REMINDER_J1" | "REMINDER_J0"; enabled: boolean; lastRunAt: string | null };
+type Reminder = {
+  type: "REMINDER_J7" | "REMINDER_J1" | "REMINDER_J0";
+  enabled: boolean;
+  lastRunAt: string | null;
+};
 
 /** US-MKT-01 : rappels J-7, J-1 et jour J, activés par défaut (Pro). */
-export function EventReminders({ orgSlug, eventId, pro, reminders }: { orgSlug: string; eventId: string; pro: boolean; reminders: Reminder[] }) {
+export function EventReminders({
+  orgSlug,
+  eventId,
+  pro,
+  reminders,
+}: {
+  orgSlug: string;
+  eventId: string;
+  pro: boolean;
+  reminders: Reminder[];
+}) {
   const t = useTranslations("reminders");
   const [state, setState] = useState(reminders);
   const [pending, start] = useTransition();
   return (
     <Card className="mt-10 grid gap-3">
-      <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("title")}</h2>
-      <p className="-mt-1 text-sm text-ink-muted">{pro ? t("intro") : t("upsell")}</p>
+      <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+        {t("title")}
+      </h2>
+      <p className="-mt-1 text-sm text-ink-muted">
+        {pro ? t("intro") : t("upsell")}
+      </p>
       {pro ? (
         <ul className="grid gap-2">
           {state.map((r) => (
-            <li key={r.type} className="flex items-center justify-between gap-3 border-t border-line pt-2">
+            <li
+              key={r.type}
+              className="flex items-center justify-between gap-3 border-t border-line pt-2"
+            >
               <div>
                 <p className="font-semibold">{t(`type_${r.type}`)}</p>
-                <p className="text-sm text-ink-muted">{r.lastRunAt ? t("sent") : t(`when_${r.type}`)}</p>
+                <p className="text-sm text-ink-muted">
+                  {r.lastRunAt ? t("sent") : t(`when_${r.type}`)}
+                </p>
               </div>
               <label className="relative inline-flex cursor-pointer items-center">
                 <input
@@ -33,11 +56,23 @@ export function EventReminders({ orgSlug, eventId, pro, reminders }: { orgSlug: 
                   aria-label={t(`type_${r.type}`)}
                   onChange={(e) => {
                     const enabled = e.target.checked;
-                    setState((s) => s.map((x) => (x.type === r.type ? { ...x, enabled } : x)));
+                    setState((s) =>
+                      s.map((x) => (x.type === r.type ? { ...x, enabled } : x)),
+                    );
                     start(async () => {
-                      const res = await reminderAction(orgSlug, eventId, r.type, enabled);
+                      const res = await reminderAction(
+                        orgSlug,
+                        eventId,
+                        r.type,
+                        enabled,
+                      );
                       // échec : retour à l'état réel, pour ne jamais afficher un rappel qui ne partira pas (comme la protection anti-robots)
-                      if (!res?.ok) setState((s) => s.map((x) => (x.type === r.type ? { ...x, enabled: !enabled } : x)));
+                      if (!res?.ok)
+                        setState((s) =>
+                          s.map((x) =>
+                            x.type === r.type ? { ...x, enabled: !enabled } : x,
+                          ),
+                        );
                     });
                   }}
                 />

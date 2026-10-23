@@ -7,8 +7,20 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 describe("liste des événements de l'organisation : places vendues et total", () => {
   it("total : la jauge si elle existe, sinon la somme des tarifs limités, sinon illimité", async () => {
     const id = rid();
-    const org = await db.organization.create({ data: { name: "Club", slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR" } });
-    const ev = (n: number, capacity: number | null, types: Array<{ quantity: number | null; sold: number }>) =>
+    const org = await db.organization.create({
+      data: {
+        name: "Club",
+        slug: `club-${id}`,
+        subdomain: `club-${id}`,
+        country: "BE",
+        currency: "EUR",
+      },
+    });
+    const ev = (
+      n: number,
+      capacity: number | null,
+      types: Array<{ quantity: number | null; sold: number }>,
+    ) =>
       db.event.create({
         data: {
           organizationId: org.id,
@@ -20,7 +32,14 @@ describe("liste des événements de l'organisation : places vendues et total", (
           startsAt: new Date(Date.now() + n * 86_400_000),
           capacity,
           ticketTypes: {
-            create: types.map((t, i) => ({ name: `T${i}`, priceMinor: 0, currency: "EUR", quantity: t.quantity, quantitySold: t.sold, sortOrder: i })),
+            create: types.map((t, i) => ({
+              name: `T${i}`,
+              priceMinor: 0,
+              currency: "EUR",
+              quantity: t.quantity,
+              quantitySold: t.sold,
+              sortOrder: i,
+            })),
           },
         },
       });
@@ -41,6 +60,10 @@ describe("liste des événements de l'organisation : places vendues et total", (
     expect([by(withCapacity).sold, by(withCapacity).total]).toEqual([15, 100]);
     expect([by(limited).sold, by(limited).total]).toEqual([5, 50]);
     expect([by(unlimited).sold, by(unlimited).total]).toEqual([8, null]);
-    expect(rows.map((r) => r.id)).toEqual([withCapacity.id, limited.id, unlimited.id]); // dans l'ordre des dates
+    expect(rows.map((r) => r.id)).toEqual([
+      withCapacity.id,
+      limited.id,
+      unlimited.id,
+    ]); // dans l'ordre des dates
   });
 });

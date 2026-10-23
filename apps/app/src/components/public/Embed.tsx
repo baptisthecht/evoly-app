@@ -7,7 +7,11 @@ import { sanitizeEmbedEvent } from "./embedEvents";
 export function EmbedHeight() {
   useEffect(() => {
     if (window.parent === window) return;
-    const send = () => window.parent.postMessage({ type: "evoly:height", height: document.documentElement.scrollHeight }, "*");
+    const send = () =>
+      window.parent.postMessage(
+        { type: "evoly:height", height: document.documentElement.scrollHeight },
+        "*",
+      );
     const observer = new ResizeObserver(send);
     observer.observe(document.body);
     send();
@@ -39,12 +43,17 @@ export function EmbedBook({ url, label }: { url: string; label: string }) {
         const h = Math.min(820, window.screen.availHeight || 820);
         const left = Math.max(0, ((window.screen.availWidth || w) - w) / 2);
         const top = Math.max(0, ((window.screen.availHeight || h) - h) / 2);
-        const win = window.open(url, "evoly-billetterie", `popup=yes,width=${w},height=${h},left=${left},top=${top}`);
+        const win = window.open(
+          url,
+          "evoly-billetterie",
+          `popup=yes,width=${w},height=${h},left=${left},top=${top}`,
+        );
         if (win) {
           popup.current = win;
           e.preventDefault();
         }
-        if (window.parent !== window) window.parent.postMessage({ type: "evoly:open" }, "*");
+        if (window.parent !== window)
+          window.parent.postMessage({ type: "evoly:open" }, "*");
       }}
       className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[var(--evoly-charbon)] px-6 font-semibold text-[var(--evoly-creme)]"
     >

@@ -13,19 +13,33 @@ export interface GoogleCredentials {
 
 export function googleCredentials(): GoogleCredentials | null {
   const e = env();
-  if (!e.GOOGLE_WALLET_ISSUER_ID || !e.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL || !e.GOOGLE_WALLET_PRIVATE_KEY) return null;
+  if (
+    !e.GOOGLE_WALLET_ISSUER_ID ||
+    !e.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL ||
+    !e.GOOGLE_WALLET_PRIVATE_KEY
+  )
+    return null;
   return {
     issuerId: e.GOOGLE_WALLET_ISSUER_ID,
     serviceAccountEmail: e.GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL,
-    privateKeyPem: Buffer.from(e.GOOGLE_WALLET_PRIVATE_KEY, "base64").toString("utf8"),
+    privateKeyPem: Buffer.from(e.GOOGLE_WALLET_PRIVATE_KEY, "base64").toString(
+      "utf8",
+    ),
   };
 }
 
 const b64url = (v: string | Buffer) => Buffer.from(v).toString("base64url");
-const text = (value: string, language: string) => ({ defaultValue: { language, value } });
+const text = (value: string, language: string) => ({
+  defaultValue: { language, value },
+});
 
 /** Contenu du jeton « Enregistrer dans Google Wallet » : classe de l'événement et billet (format eventTicket). */
-export function googleWalletClaims(t: WalletTicket, creds: Pick<GoogleCredentials, "issuerId" | "serviceAccountEmail">, origin: string, now = new Date()) {
+export function googleWalletClaims(
+  t: WalletTicket,
+  creds: Pick<GoogleCredentials, "issuerId" | "serviceAccountEmail">,
+  origin: string,
+  now = new Date(),
+) {
   const lang = toLocale(t.locale); // étiquette de langue des textes de l'événement
   const classId = `${creds.issuerId}.evoly_event_${t.eventId}`;
   return {
@@ -46,13 +60,24 @@ export function googleWalletClaims(t: WalletTicket, creds: Pick<GoogleCredential
                 venue: {
                   name: text(t.place, lang),
                   address: text(
-                    [t.address.line, [t.address.postalCode, t.address.city].filter(Boolean).join(" "), t.address.country].filter(Boolean).join(", ") || t.place,
+                    [
+                      t.address.line,
+                      [t.address.postalCode, t.address.city]
+                        .filter(Boolean)
+                        .join(" "),
+                      t.address.country,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || t.place,
                     lang,
                   ),
                 },
               }
             : {}),
-          dateTime: { start: t.startsAt.toISOString(), end: t.endsAt.toISOString() },
+          dateTime: {
+            start: t.startsAt.toISOString(),
+            end: t.endsAt.toISOString(),
+          },
           hexBackgroundColor: t.background,
         },
       ],
@@ -61,12 +86,20 @@ export function googleWalletClaims(t: WalletTicket, creds: Pick<GoogleCredential
           id: `${creds.issuerId}.evoly_ticket_${t.ticketId}`,
           classId,
           state: "ACTIVE",
-          barcode: { type: "QR_CODE", value: t.code, alternateText: t.shortCode },
+          barcode: {
+            type: "QR_CODE",
+            value: t.code,
+            alternateText: t.shortCode,
+          },
           ticketType: text(t.typeName, lang),
           ...(t.holder ? { ticketHolderName: t.holder } : {}),
           ...(t.seat ? { seatInfo: { seat: text(t.seat, lang) } } : {}), // comme sur la carte Apple : la place numérotée sur le billet
           reservationInfo: { confirmationCode: t.reference },
-          validTimeInterval: { end: { date: new Date(t.endsAt.getTime() + 24 * 3_600_000).toISOString() } },
+          validTimeInterval: {
+            end: {
+              date: new Date(t.endsAt.getTime() + 24 * 3_600_000).toISOString(),
+            },
+          },
         },
       ],
     },
@@ -74,9 +107,18 @@ export function googleWalletClaims(t: WalletTicket, creds: Pick<GoogleCredential
 }
 
 /** US-POST-03 : lien d'enregistrement Google Wallet (jeton RS256 signé par le compte de service). */
-export function googleSaveUrl(t: WalletTicket, creds: GoogleCredentials, origin: string, now = new Date()): string {
+export function googleSaveUrl(
+  t: WalletTicket,
+  creds: GoogleCredentials,
+  origin: string,
+  now = new Date(),
+): string {
   const head = b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
-  const body = b64url(JSON.stringify(googleWalletClaims(t, creds, origin, now)));
-  const sig = createSign("RSA-SHA256").update(`${head}.${body}`).sign(creds.privateKeyPem);
+  const body = b64url(
+    JSON.stringify(googleWalletClaims(t, creds, origin, now)),
+  );
+  const sig = createSign("RSA-SHA256")
+    .update(`${head}.${body}`)
+    .sign(creds.privateKeyPem);
   return `https://pay.google.com/gp/v/save/${head}.${body}.${b64url(sig)}`;
 }

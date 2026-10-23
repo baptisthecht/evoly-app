@@ -7,7 +7,8 @@ export function ViewBeacon({ eventId }: { eventId: string }) {
   useEffect(() => {
     const url = `/api/v/${encodeURIComponent(eventId)}`;
     try {
-      if (!navigator.sendBeacon?.(url)) void fetch(url, { method: "POST", keepalive: true }).catch(() => {});
+      if (!navigator.sendBeacon?.(url))
+        void fetch(url, { method: "POST", keepalive: true }).catch(() => {});
     } catch {
       // jamais bloquant pour la page
     }

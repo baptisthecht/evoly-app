@@ -5,10 +5,22 @@ import { useId, useState, useTransition } from "react";
 import { unlockPresaleAction } from "@/app/site/[sub]/[eventSlug]/actions";
 import { buttonClass } from "@/components/ui/Button";
 
-type Labels = { ask: string; code: string; submit: string; invalid: string; limited: string };
+type Labels = {
+  ask: string;
+  code: string;
+  submit: string;
+  invalid: string;
+  limited: string;
+};
 
 /** Prévente privée (RG-PRV-02) : saisie d'un code, qui ouvre l'achat avant l'ouverture publique. */
-export function PresaleForm({ eventId, labels }: { eventId: string; labels: Labels }) {
+export function PresaleForm({
+  eventId,
+  labels,
+}: {
+  eventId: string;
+  labels: Labels;
+}) {
   const id = useId();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -17,7 +29,11 @@ export function PresaleForm({ eventId, labels }: { eventId: string; labels: Labe
   const [pending, start] = useTransition();
   if (!open)
     return (
-      <button type="button" className="text-sm underline underline-offset-4" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="text-sm underline underline-offset-4"
+        onClick={() => setOpen(true)}
+      >
         {labels.ask}
       </button>
     );
@@ -29,7 +45,10 @@ export function PresaleForm({ eventId, labels }: { eventId: string; labels: Labe
         start(async () => {
           const r = await unlockPresaleAction(eventId, code);
           if (r.ok) router.refresh();
-          else setError(r.error === "RATE_LIMITED" ? labels.limited : labels.invalid);
+          else
+            setError(
+              r.error === "RATE_LIMITED" ? labels.limited : labels.invalid,
+            );
         });
       }}
     >
@@ -47,7 +66,11 @@ export function PresaleForm({ eventId, labels }: { eventId: string; labels: Labe
         placeholder={labels.code}
         className="h-11 min-w-0 flex-1 rounded-full bg-surface-raised px-4 text-sm uppercase ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-ink"
       />
-      <button type="submit" disabled={pending} className={buttonClass("secondary")}>
+      <button
+        type="submit"
+        disabled={pending}
+        className={buttonClass("secondary")}
+      >
         {labels.submit}
       </button>
       {error ? (

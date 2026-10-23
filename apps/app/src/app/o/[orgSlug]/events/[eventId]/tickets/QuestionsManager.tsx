@@ -2,13 +2,31 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
-import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
+import {
+  FormError,
+  SubmitButton,
+  useActionForm,
+  useFieldError,
+} from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
-import { questionCommandAction, saveQuestionAction } from "@/app/o/[orgSlug]/events/actions";
+import {
+  questionCommandAction,
+  saveQuestionAction,
+} from "@/app/o/[orgSlug]/events/actions";
 
-const TYPES = ["TEXT", "TEXTAREA", "SELECT", "MULTI_SELECT", "CHECKBOX", "NUMBER", "DATE", "PHONE", "EMAIL"] as const;
+const TYPES = [
+  "TEXT",
+  "TEXTAREA",
+  "SELECT",
+  "MULTI_SELECT",
+  "CHECKBOX",
+  "NUMBER",
+  "DATE",
+  "PHONE",
+  "EMAIL",
+] as const;
 type Question = {
   id: string;
   label: string;
@@ -37,7 +55,10 @@ function QuestionForm({
 }) {
   const t = useTranslations("questions");
   const [type, setType] = useState<Question["type"]>(q?.type ?? "TEXT");
-  const { state, pending, formProps } = useActionForm(saveQuestionAction.bind(null, orgSlug, eventId, q?.id ?? null), null);
+  const { state, pending, formProps } = useActionForm(
+    saveQuestionAction.bind(null, orgSlug, eventId, q?.id ?? null),
+    null,
+  );
   const error = useFieldError(state);
   // fermeture après l'enregistrement : dans un effet, jamais pendant l'affichage (affiché deux fois en mode strict, elle
   // serait demandée deux fois)
@@ -46,14 +67,32 @@ function QuestionForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
   return (
-    <form {...formProps} className="grid gap-4 rounded-md bg-surface-sunken p-4" noValidate>
+    <form
+      {...formProps}
+      className="grid gap-4 rounded-md bg-surface-sunken p-4"
+      noValidate
+    >
       <FormError state={state} />
       <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Field label={t("label")} htmlFor={`ql-${q?.id ?? "new"}`} error={error("label")}>
-          <Input id={`ql-${q?.id ?? "new"}`} name="label" defaultValue={q?.label ?? ""} maxLength={200} />
+        <Field
+          label={t("label")}
+          htmlFor={`ql-${q?.id ?? "new"}`}
+          error={error("label")}
+        >
+          <Input
+            id={`ql-${q?.id ?? "new"}`}
+            name="label"
+            defaultValue={q?.label ?? ""}
+            maxLength={200}
+          />
         </Field>
         <Field label={t("type")} htmlFor={`qt-${q?.id ?? "new"}`}>
-          <Select id={`qt-${q?.id ?? "new"}`} name="type" value={type} onChange={(e) => setType(e.target.value as Question["type"])}>
+          <Select
+            id={`qt-${q?.id ?? "new"}`}
+            name="type"
+            value={type}
+            onChange={(e) => setType(e.target.value as Question["type"])}
+          >
             {TYPES.map((k) => (
               <option key={k} value={k}>
                 {t(`type_${k}`)}
@@ -63,7 +102,11 @@ function QuestionForm({
         </Field>
       </div>
       {type === "SELECT" || type === "MULTI_SELECT" ? (
-        <Field label={t("options")} htmlFor={`qo-${q?.id ?? "new"}`} hint={t("optionsHint")}>
+        <Field
+          label={t("options")}
+          htmlFor={`qo-${q?.id ?? "new"}`}
+          hint={t("optionsHint")}
+        >
           <textarea
             id={`qo-${q?.id ?? "new"}`}
             name="options"
@@ -73,21 +116,40 @@ function QuestionForm({
           />
         </Field>
       ) : null}
-      <Field label={t("helpText")} htmlFor={`qh-${q?.id ?? "new"}`} hint={t("optional")}>
-        <Input id={`qh-${q?.id ?? "new"}`} name="helpText" defaultValue={q?.helpText ?? ""} maxLength={300} />
+      <Field
+        label={t("helpText")}
+        htmlFor={`qh-${q?.id ?? "new"}`}
+        hint={t("optional")}
+      >
+        <Input
+          id={`qh-${q?.id ?? "new"}`}
+          name="helpText"
+          defaultValue={q?.helpText ?? ""}
+          maxLength={300}
+        />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <fieldset className="grid gap-2">
-          <legend className="mb-1 font-label text-[0.8rem] font-bold">{t("scope")}</legend>
+          <legend className="mb-1 font-label text-[0.8rem] font-bold">
+            {t("scope")}
+          </legend>
           {(["ORDER", "TICKET"] as const).map((s) => (
             <label key={s} className="flex items-center gap-3 text-sm">
-              <input type="radio" name="scope" value={s} defaultChecked={(q?.scope ?? "ORDER") === s} className="size-5 accent-[var(--ink)]" />
+              <input
+                type="radio"
+                name="scope"
+                value={s}
+                defaultChecked={(q?.scope ?? "ORDER") === s}
+                className="size-5 accent-[var(--ink)]"
+              />
               {t(`scope_${s}`)}
             </label>
           ))}
         </fieldset>
         <fieldset className="grid gap-2">
-          <legend className="mb-1 font-label text-[0.8rem] font-bold">{t("ticketTypes")}</legend>
+          <legend className="mb-1 font-label text-[0.8rem] font-bold">
+            {t("ticketTypes")}
+          </legend>
           {ticketTypes.map((tt) => (
             <label key={tt.id} className="flex items-center gap-3 text-sm">
               <input
@@ -104,7 +166,12 @@ function QuestionForm({
         </fieldset>
       </div>
       <label className="flex items-center gap-3 text-sm">
-        <input type="checkbox" name="required" defaultChecked={q?.required} className="size-5 accent-[var(--ink)]" />
+        <input
+          type="checkbox"
+          name="required"
+          defaultChecked={q?.required}
+          className="size-5 accent-[var(--ink)]"
+        />
         {t("required")}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -140,15 +207,23 @@ export function QuestionsManager({
   const command = (id: string, c: "up" | "down" | "remove") =>
     start(async () => {
       const r = await questionCommandAction(orgSlug, eventId, id, c);
-      if (r?.ok && c === "remove") setMessage(r.data.outcome === "ARCHIVED" ? t("archived") : t("deleted"));
+      if (r?.ok && c === "remove")
+        setMessage(
+          r.data.outcome === "ARCHIVED" ? t("archived") : t("deleted"),
+        );
     });
   const active = questions.filter((q) => !q.archived);
   return (
     <Card className="mt-10 grid gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("title")}</h2>
+        <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+          {t("title")}
+        </h2>
         {questions.some((q) => q.answers > 0) ? (
-          <a href={`/o/${orgSlug}/events/${eventId}/questions/export`} className="text-sm font-semibold underline underline-offset-4">
+          <a
+            href={`/o/${orgSlug}/events/${eventId}/questions/export`}
+            className="text-sm font-semibold underline underline-offset-4"
+          >
             {t("export")}
           </a>
         ) : null}
@@ -163,19 +238,36 @@ export function QuestionsManager({
         {active.map((q, i) => (
           <li key={q.id} className="grid gap-2 border-t border-line pt-2">
             {editing === q.id ? (
-              <QuestionForm orgSlug={orgSlug} eventId={eventId} q={q} ticketTypes={ticketTypes} onDone={() => setEditing(null)} />
+              <QuestionForm
+                orgSlug={orgSlug}
+                eventId={eventId}
+                q={q}
+                ticketTypes={ticketTypes}
+                onDone={() => setEditing(null)}
+              />
             ) : (
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold">{q.label}</span>
                   <Badge>{t(`type_${q.type}`)}</Badge>
                   <Badge>{t(`scope_${q.scope}`)}</Badge>
-                  {q.required ? <Badge tone="warning">{t("requiredBadge")}</Badge> : null}
-                  <span className="text-xs text-ink-muted">{t("answers", { count: q.answers })}</span>
+                  {q.required ? (
+                    <Badge tone="warning">{t("requiredBadge")}</Badge>
+                  ) : null}
+                  <span className="text-xs text-ink-muted">
+                    {t("answers", { count: q.answers })}
+                  </span>
                 </p>
                 {!readOnly ? (
                   <span className="flex gap-1">
-                    <Button type="button" size="sm" variant="ghost" disabled={pending || i === 0} onClick={() => command(q.id, "up")} aria-label={t("up")}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={pending || i === 0}
+                      onClick={() => command(q.id, "up")}
+                      aria-label={t("up")}
+                    >
                       ↑
                     </Button>
                     <Button
@@ -188,7 +280,12 @@ export function QuestionsManager({
                     >
                       ↓
                     </Button>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(q.id)}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditing(q.id)}
+                    >
                       {t("edit")}
                     </Button>
                     <Button
@@ -196,7 +293,13 @@ export function QuestionsManager({
                       size="sm"
                       variant="ghost"
                       disabled={pending}
-                      onClick={() => (window.confirm(q.answers ? t("confirmArchive") : t("confirmDelete")) ? command(q.id, "remove") : undefined)}
+                      onClick={() =>
+                        window.confirm(
+                          q.answers ? t("confirmArchive") : t("confirmDelete"),
+                        )
+                          ? command(q.id, "remove")
+                          : undefined
+                      }
                     >
                       {q.answers ? t("archive") : t("delete")}
                     </Button>
@@ -209,15 +312,31 @@ export function QuestionsManager({
       </ul>
       {!readOnly ? (
         editing === "new" ? (
-          <QuestionForm orgSlug={orgSlug} eventId={eventId} q={null} ticketTypes={ticketTypes} onDone={() => setEditing(null)} />
+          <QuestionForm
+            orgSlug={orgSlug}
+            eventId={eventId}
+            q={null}
+            ticketTypes={ticketTypes}
+            onDone={() => setEditing(null)}
+          />
         ) : (
-          <Button type="button" variant="secondary" size="sm" className="justify-self-start" onClick={() => setEditing("new")}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="justify-self-start"
+            onClick={() => setEditing("new")}
+          >
             + {t("add")}
           </Button>
         )
       ) : null}
       {questions.some((q) => q.archived) ? (
-        <p className="text-xs text-ink-muted">{t("archivedCount", { count: questions.filter((q) => q.archived).length })}</p>
+        <p className="text-xs text-ink-muted">
+          {t("archivedCount", {
+            count: questions.filter((q) => q.archived).length,
+          })}
+        </p>
       ) : null}
     </Card>
   );

@@ -27,7 +27,8 @@ export const ticketShortCode = (): string => humanCode(8);
 export const eventPublicCode = (): string => humanCode(6);
 
 /** Référence de commande lisible : EVO-7KQ2-4X9M. */
-export const orderReference = (): string => `EVO-${humanCode(4)}-${humanCode(4)}`;
+export const orderReference = (): string =>
+  `EVO-${humanCode(4)}-${humanCode(4)}`;
 
 /** Jeton secret encodé en base64url (128 bits par défaut) : QR codes, liens magiques, liens bénévoles. */
 export function secretToken(bytes = 16): string {
@@ -38,12 +39,18 @@ export function secretToken(bytes = 16): string {
 
 /** Hachage SHA-256 en hexadécimal : seul le hachage des jetons d'accès est stocké. */
 export async function sha256Hex(value: string): Promise<string> {
-  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const digest = await globalThis.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+  return [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 /** Lien de revente : evoly.me/r/nuit-7KQ2 (préfixe lisible issu du titre). */
 export function resaleLinkCode(eventSlug: string): string {
-  const prefix = eventSlug.split("-").filter(Boolean)[0]?.slice(0, 12) ?? "billet";
+  const prefix =
+    eventSlug.split("-").filter(Boolean)[0]?.slice(0, 12) ?? "billet";
   return `${prefix}-${humanCode(4)}`;
 }

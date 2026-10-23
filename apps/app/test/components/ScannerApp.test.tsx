@@ -17,8 +17,19 @@ vi.mock("@/components/scanner/CameraScanner", () => ({
 const manifest = (hasOptions: boolean) => ({
   serverTime: new Date().toISOString(),
   salt: "sel",
-  event: { title: "Gala de test", startsAt: new Date(Date.now() + 3_600_000).toISOString(), timezone: "Europe/Brussels", place: null },
-  link: { label: "Porte A", allowManualSearch: true, checkOnly: false, canSell: false, expiresAt: new Date(Date.now() + 86_400_000).toISOString() },
+  event: {
+    title: "Gala de test",
+    startsAt: new Date(Date.now() + 3_600_000).toISOString(),
+    timezone: "Europe/Brussels",
+    place: null,
+  },
+  link: {
+    label: "Porte A",
+    allowManualSearch: true,
+    checkOnly: false,
+    canSell: false,
+    expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+  },
   sale: null,
   tickets: [],
   options: {},
@@ -34,13 +45,35 @@ const serve = (hasOptions = true) => {
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       const path = String(url).replace(/^.*\/api\/scanner\/[^/]+/, "");
-      const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : null;
+      const body = init?.body
+        ? (JSON.parse(String(init.body)) as Record<string, unknown>)
+        : null;
       calls.push({ path, body });
-      const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
+      const json = (data: unknown, status = 200) =>
+        new Response(JSON.stringify(data), {
+          status,
+          headers: { "content-type": "application/json" },
+        });
       if (path === "/manifest") return json(manifest(hasOptions));
-      if (path === "/scan") return json({ result: "VALID", ticket: { holder: "Léa Martin", typeName: "Table VIP" } });
+      if (path === "/scan")
+        return json({
+          result: "VALID",
+          ticket: { holder: "Léa Martin", typeName: "Table VIP" },
+        });
       if (path === "/options")
-        return json({ holder: "Léa Martin", options: [{ id: "l1", name: "Bouteille VIP", quantity: 2, redeemed: 0, refunded: 0, left: 2 }] });
+        return json({
+          holder: "Léa Martin",
+          options: [
+            {
+              id: "l1",
+              name: "Bouteille VIP",
+              quantity: 2,
+              redeemed: 0,
+              refunded: 0,
+              left: 2,
+            },
+          ],
+        });
       return json({ results: [] });
     }),
   );
@@ -55,7 +88,10 @@ const open = async () => {
 };
 const typeShortCode = async (code: string) => {
   const user = userEvent.setup();
-  await user.type(screen.getByPlaceholderText(fr.scanner.shortCode), `${code}{Enter}`); // envoyé comme au clavier
+  await user.type(
+    screen.getByPlaceholderText(fr.scanner.shortCode),
+    `${code}{Enter}`,
+  ); // envoyé comme au clavier
 };
 const called = (path: string) => calls.filter((c) => c.path === path);
 
@@ -77,7 +113,9 @@ describe("application du scanner : chaque mode appelle le bon service", () => {
   it("vérification : le billet est contrôlé sans être validé, jamais au bar", async () => {
     serve();
     await open();
-    await userEvent.setup().click(screen.getByRole("button", { name: fr.scanner.modeCheck }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: fr.scanner.modeCheck }));
     expect(screen.getByRole("button", { name: fr.scanner.check })).toBeTruthy(); // le bouton annonce une vérification
     await typeShortCode("ABC123");
     await screen.findByText(fr.scanner.result_CHECKED);
@@ -88,7 +126,9 @@ describe("application du scanner : chaque mode appelle le bon service", () => {
   it("bar et options : les options du billet sont cherchées, l'entrée n'est jamais validée", async () => {
     serve();
     await open();
-    await userEvent.setup().click(screen.getByRole("button", { name: fr.scanner.modeBar }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: fr.scanner.modeBar }));
     await typeShortCode("ABC123");
     await screen.findByText(/Bouteille VIP/);
     expect(called("/options")).toHaveLength(1);
@@ -98,43 +138,71 @@ describe("application du scanner : chaque mode appelle le bon service", () => {
   it("sans option dans l'événement, le mode bar n'est pas proposé", async () => {
     serve(false);
     await open();
-    expect(screen.queryByRole("button", { name: fr.scanner.modeBar })).toBeNull();
-    expect(screen.getByRole("button", { name: fr.scanner.modeCheck })).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: fr.scanner.modeBar }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: fr.scanner.modeCheck }),
+    ).toBeTruthy();
   });
 
   it("le bug du 18 octobre : caméra allumée, puis mode bar choisi ; le code lu par la caméra va au bar, pas à l'entrée", async () => {
     serve();
     await open();
     const atStart = camera.onCode!; // la fonction reçue par la caméra à l'allumage, en mode entrée
-    await userEvent.setup().click(screen.getByRole("button", { name: fr.scanner.modeBar }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: fr.scanner.modeBar }));
     expect(camera.onCode).not.toBe(atStart); // la caméra reçoit une nouvelle fonction, celle du mode bar
     await act(async () => camera.onCode!("CODE-DU-BILLET"));
     await waitFor(() => expect(called("/options")).toHaveLength(1));
-    expect(called("/options")[0]!.body).toMatchObject({ code: "CODE-DU-BILLET" });
+    expect(called("/options")[0]!.body).toMatchObject({
+      code: "CODE-DU-BILLET",
+    });
     expect(called("/scan")).toEqual([]);
   });
 });
 
 describe("application du scanner : lien expiré ou révoqué, réseau coupé", () => {
   // serveur simulé dont certaines réponses sont remplacées ; « coupure » : le réseau ne répond plus
-  const serveWith = (over: (path: string) => Response | "coupure" | undefined, m = manifest(false)) => {
+  const serveWith = (
+    over: (path: string) => Response | "coupure" | undefined,
+    m = manifest(false),
+  ) => {
     calls = [];
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url: string, init?: RequestInit) => {
         const path = String(url).replace(/^.*\/api\/scanner\/[^/]+/, "");
-        calls.push({ path, body: init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : null });
+        calls.push({
+          path,
+          body: init?.body
+            ? (JSON.parse(String(init.body)) as Record<string, unknown>)
+            : null,
+        });
         const r = over(path);
         if (r === "coupure") throw new TypeError("Failed to fetch");
         if (r) return r;
-        const json = (data: unknown) => new Response(JSON.stringify(data), { status: 200, headers: { "content-type": "application/json" } });
+        const json = (data: unknown) =>
+          new Response(JSON.stringify(data), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          });
         if (path === "/manifest") return json(m);
-        if (path === "/scan") return json({ result: "VALID", ticket: { holder: "Léa Martin", typeName: "Fosse" } });
+        if (path === "/scan")
+          return json({
+            result: "VALID",
+            ticket: { holder: "Léa Martin", typeName: "Fosse" },
+          });
         return json({ results: [] });
       }),
     );
   };
-  const gone = (error: string) => new Response(JSON.stringify({ error }), { status: 410, headers: { "content-type": "application/json" } });
+  const gone = (error: string) =>
+    new Response(JSON.stringify({ error }), {
+      status: 410,
+      headers: { "content-type": "application/json" },
+    });
   const draw = () =>
     render(
       <Fr>
@@ -159,7 +227,13 @@ describe("application du scanner : lien expiré ou révoqué, réseau coupé", (
 
   it("liste dont le lien a déjà expiré : arrêt dès le démarrage", async () => {
     const m = manifest(false);
-    serveWith(() => undefined, { ...m, link: { ...m.link, expiresAt: new Date(Date.now() - 60_000).toISOString() } });
+    serveWith(() => undefined, {
+      ...m,
+      link: {
+        ...m.link,
+        expiresAt: new Date(Date.now() - 60_000).toISOString(),
+      },
+    });
     draw();
     expect(await screen.findByText(fr.scanner.dead_EXPIRED!)).toBeTruthy();
   });
@@ -169,7 +243,11 @@ describe("application du scanner : lien expiré ou révoqué, réseau coupé", (
     draw();
     await screen.findByText("Gala de test");
     await typeShortCode("ABC123");
-    await waitFor(() => expect(screen.getAllByText(new RegExp(fr.scanner.offline!)).length).toBeGreaterThan(0));
+    await waitFor(() =>
+      expect(
+        screen.getAllByText(new RegExp(fr.scanner.offline!)).length,
+      ).toBeGreaterThan(0),
+    );
     expect(screen.queryByText(fr.scanner.dead_EXPIRED!)).toBeNull();
   });
 });

@@ -25,28 +25,57 @@ export default async function MarketingPage({
   searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
-  searchParams: Promise<{ q?: string; filter?: string; page?: string; tab?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    filter?: string;
+    page?: string;
+    tab?: string;
+  }>;
 }) {
   const { orgSlug } = await params;
   const sp = await searchParams;
   const ctx = await requireOrgContext(orgSlug);
-  if (!can(ctx.membership, "MARKETING_MANAGE") && !can(ctx.membership, "CONTACTS_EXPORT")) notFound();
-  const filter = (FILTERS as string[]).includes(sp.filter ?? "") ? (sp.filter as ContactFilter) : "ALL";
-  const result = await searchContacts(ctx, { q: sp.q, filter, page: Number(sp.page ?? 0) || 0 });
+  if (
+    !can(ctx.membership, "MARKETING_MANAGE") &&
+    !can(ctx.membership, "CONTACTS_EXPORT")
+  )
+    notFound();
+  const filter = (FILTERS as string[]).includes(sp.filter ?? "")
+    ? (sp.filter as ContactFilter)
+    : "ALL";
+  const result = await searchContacts(ctx, {
+    q: sp.q,
+    filter,
+    page: Number(sp.page ?? 0) || 0,
+  });
   const t = await getTranslations("marketing");
   const locale = (await getLocale()) as Locale;
   const pro = hasFeature(ctx.features, "EMAIL_MARKETING");
   const tab = sp.tab === "campaigns" ? "campaigns" : "contacts";
   const suspended =
-    (await db.organization.findUniqueOrThrow({ where: { id: ctx.organization.id }, select: { marketingDailyCap: true } })).marketingDailyCap === 0;
+    (
+      await db.organization.findUniqueOrThrow({
+        where: { id: ctx.organization.id },
+        select: { marketingDailyCap: true },
+      })
+    ).marketingDailyCap === 0;
   const banner = suspended ? (
-    <p role="alert" className="rounded-lg bg-danger-soft px-5 py-4 font-semibold text-danger">
+    <p
+      role="alert"
+      className="rounded-lg bg-danger-soft px-5 py-4 font-semibold text-danger"
+    >
       {t("suspended")}
     </p>
   ) : null;
   const tc = await getTranslations("campaigns");
   const campaigns =
-    tab === "campaigns" ? await db.emailCampaign.findMany({ where: { organizationId: ctx.organization.id }, orderBy: { createdAt: "desc" }, take: 50 }) : [];
+    tab === "campaigns"
+      ? await db.emailCampaign.findMany({
+          where: { organizationId: ctx.organization.id },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        })
+      : [];
   if (tab === "campaigns")
     return (
       <div className="grid gap-6">
@@ -54,7 +83,10 @@ export default async function MarketingPage({
         {!pro ? (
           <Card className="grid gap-2 bg-surface-accent">
             <p className="text-sm">{tc("upsell")}</p>
-            <Link href={`/o/${orgSlug}/billing`} className={buttonClass("dark", "sm", "justify-self-start")}>
+            <Link
+              href={`/o/${orgSlug}/billing`}
+              className={buttonClass("dark", "sm", "justify-self-start")}
+            >
               {t("upgrade")}
             </Link>
           </Card>
@@ -64,27 +96,61 @@ export default async function MarketingPage({
           <ul className="grid gap-2">
             {campaigns.map((c) => (
               <li key={c.id}>
-                <Link href={`/o/${orgSlug}/marketing/campaigns/${c.id}`} className="block rounded-lg">
+                <Link
+                  href={`/o/${orgSlug}/marketing/campaigns/${c.id}`}
+                  className="block rounded-lg"
+                >
                   <Card className="grid gap-2 transition-shadow hover:shadow-md sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                     <div className="grid min-w-0 gap-1">
                       <p className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold">{c.name}</span>
-                        <Badge tone={c.status === "SENT" ? "success" : c.status === "SCHEDULED" || c.status === "SENDING" ? "warning" : "neutral"}>
+                        <Badge
+                          tone={
+                            c.status === "SENT"
+                              ? "success"
+                              : c.status === "SCHEDULED" ||
+                                  c.status === "SENDING"
+                                ? "warning"
+                                : "neutral"
+                          }
+                        >
                           {tc(`status_${c.status}`)}
                         </Badge>
                       </p>
-                      <p className="truncate text-sm text-ink-muted">« {c.subject} »</p>
+                      <p className="truncate text-sm text-ink-muted">
+                        « {c.subject} »
+                      </p>
                     </div>
                     <p className="text-sm text-ink-muted sm:text-right">
                       {c.status === "SENT" || c.status === "SENDING"
                         ? tc("listStats", {
                             recipients: c.recipientCount ?? 0,
-                            opens: c.deliveredCount ? Math.round((c.openCount / c.deliveredCount) * 100) : 0,
-                            clicks: c.deliveredCount ? Math.round((c.clickCount / c.deliveredCount) * 100) : 0,
+                            opens: c.deliveredCount
+                              ? Math.round(
+                                  (c.openCount / c.deliveredCount) * 100,
+                                )
+                              : 0,
+                            clicks: c.deliveredCount
+                              ? Math.round(
+                                  (c.clickCount / c.deliveredCount) * 100,
+                                )
+                              : 0,
                           })
                         : c.scheduledAt
-                          ? tc("scheduledFor", { date: formatDate(c.scheduledAt, ctx.organization.timezone, locale) })
-                          : tc("draftSince", { date: formatDate(c.updatedAt, ctx.organization.timezone, locale) })}
+                          ? tc("scheduledFor", {
+                              date: formatDate(
+                                c.scheduledAt,
+                                ctx.organization.timezone,
+                                locale,
+                              ),
+                            })
+                          : tc("draftSince", {
+                              date: formatDate(
+                                c.updatedAt,
+                                ctx.organization.timezone,
+                                locale,
+                              ),
+                            })}
                     </p>
                   </Card>
                 </Link>
@@ -100,8 +166,12 @@ export default async function MarketingPage({
       <section className="grid gap-3 sm:grid-cols-3" aria-label={t("stats")}>
         {(["all", "consenting", "unsubscribed"] as const).map((k) => (
           <Card key={k} className="grid gap-1">
-            <p className="font-label text-[0.8rem] font-bold text-ink-muted">{t(`stat_${k}`)}</p>
-            <p className="font-display text-2xl tabular-nums">{result.stats[k]}</p>
+            <p className="font-label text-[0.8rem] font-bold text-ink-muted">
+              {t(`stat_${k}`)}
+            </p>
+            <p className="font-display text-2xl tabular-nums">
+              {result.stats[k]}
+            </p>
           </Card>
         ))}
       </section>
@@ -115,22 +185,38 @@ export default async function MarketingPage({
             consent: t("importConsent"),
             submit: t("importSubmit"),
             doneTemplate: t.raw("importDone") as string,
-            errors: { IMPORT_CONSENT_REQUIRED: t("importConsentRequired"), IMPORT_TOO_LARGE: t("importTooLarge") },
+            errors: {
+              IMPORT_CONSENT_REQUIRED: t("importConsentRequired"),
+              IMPORT_TOO_LARGE: t("importTooLarge"),
+            },
             fallbackError: t("importError"),
           }}
         />
       ) : null}
       <Card className="grid gap-2 bg-surface-accent">
         <p className="font-semibold">{t("remindersTitle")}</p>
-        <p className="text-sm">{pro ? t("remindersPro") : t("remindersFree")}</p>
+        <p className="text-sm">
+          {pro ? t("remindersPro") : t("remindersFree")}
+        </p>
         {!pro ? (
-          <Link href={`/o/${orgSlug}/billing`} className={buttonClass("dark", "sm", "justify-self-start")}>
+          <Link
+            href={`/o/${orgSlug}/billing`}
+            className={buttonClass("dark", "sm", "justify-self-start")}
+          >
             {t("upgrade")}
           </Link>
         ) : null}
       </Card>
-      <form className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]" role="search">
-        <Input name="q" defaultValue={sp.q ?? ""} placeholder={t("searchPlaceholder")} aria-label={t("search")} />
+      <form
+        className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]"
+        role="search"
+      >
+        <Input
+          name="q"
+          defaultValue={sp.q ?? ""}
+          placeholder={t("searchPlaceholder")}
+          aria-label={t("search")}
+        />
         <Select name="filter" defaultValue={filter} aria-label={t("filter")}>
           {FILTERS.map((f) => (
             <option key={f} value={f}>
@@ -151,11 +237,32 @@ export default async function MarketingPage({
               <Card className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                 <div className="grid min-w-0 gap-1">
                   <p className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold">{[c.firstName, c.lastName].filter(Boolean).join(" ") || c.email}</span>
+                    <span className="font-semibold">
+                      {[c.firstName, c.lastName].filter(Boolean).join(" ") ||
+                        c.email}
+                    </span>
                     {c.unsubscribedAt ? (
-                      <Badge tone="neutral">{t("unsubscribed", { date: formatDate(c.unsubscribedAt, ctx.organization.timezone, locale) })}</Badge>
+                      <Badge tone="neutral">
+                        {t("unsubscribed", {
+                          date: formatDate(
+                            c.unsubscribedAt,
+                            ctx.organization.timezone,
+                            locale,
+                          ),
+                        })}
+                      </Badge>
                     ) : c.marketingConsent ? (
-                      <Badge tone="success">{t("consent", { date: c.consentAt ? formatDate(c.consentAt, ctx.organization.timezone, locale) : "-" })}</Badge>
+                      <Badge tone="success">
+                        {t("consent", {
+                          date: c.consentAt
+                            ? formatDate(
+                                c.consentAt,
+                                ctx.organization.timezone,
+                                locale,
+                              )
+                            : "-",
+                        })}
+                      </Badge>
                     ) : (
                       <Badge>{t("noConsent")}</Badge>
                     )}
@@ -163,8 +270,19 @@ export default async function MarketingPage({
                   <p className="truncate text-sm text-ink-muted">{c.email}</p>
                 </div>
                 <p className="text-sm text-ink-muted sm:text-right">
-                  {t("history", { orders: c.ordersCount, tickets: c.ticketsCount })} · {formatMoney(c.totalSpentMinor, ctx.organization.currency, locale)}
-                  {c.lastOrderAt ? ` · ${formatDate(c.lastOrderAt, ctx.organization.timezone, locale)}` : ""}
+                  {t("history", {
+                    orders: c.ordersCount,
+                    tickets: c.ticketsCount,
+                  })}{" "}
+                  ·{" "}
+                  {formatMoney(
+                    c.totalSpentMinor,
+                    ctx.organization.currency,
+                    locale,
+                  )}
+                  {c.lastOrderAt
+                    ? ` · ${formatDate(c.lastOrderAt, ctx.organization.timezone, locale)}`
+                    : ""}
                 </p>
               </Card>
             </li>

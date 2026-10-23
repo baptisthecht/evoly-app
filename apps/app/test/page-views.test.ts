@@ -5,10 +5,22 @@ import { eventOverview } from "@/server/eventOverview";
 import { createOrganization } from "@/server/onboarding";
 
 const rid = () => Math.random().toString(36).slice(2, 8);
-const BROWSER = "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15";
+const BROWSER =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15";
 async function event(status: "PUBLISHED" | "DRAFT" = "PUBLISHED") {
-  const u = await db.user.create({ data: { name: "Nora", email: `vues.${rid()}@exemple.be`, emailVerified: true } });
-  const org = await createOrganization(u.id, { name: "Club", subdomain: `club-${rid()}`, country: "BE", type: "ASSOCIATION" } as never);
+  const u = await db.user.create({
+    data: {
+      name: "Nora",
+      email: `vues.${rid()}@exemple.be`,
+      emailVerified: true,
+    },
+  });
+  const org = await createOrganization(u.id, {
+    name: "Club",
+    subdomain: `club-${rid()}`,
+    country: "BE",
+    type: "ASSOCIATION",
+  } as never);
   return db.event.create({
     data: {
       organizationId: org.id,
@@ -22,11 +34,27 @@ async function event(status: "PUBLISHED" | "DRAFT" = "PUBLISHED") {
     },
   });
 }
-const visit = (eventId: string, ua = BROWSER, ip = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.1`) =>
-  POST(new Request(`https://club.evoly.me/api/v/${eventId}`, { method: "POST", headers: { "user-agent": ua, "x-forwarded-for": ip } }), {
-    params: Promise.resolve({ eventId }),
-  });
-const views = async (eventId: string) => (await db.eventDailyStat.aggregate({ where: { eventId }, _sum: { pageViews: true } }))._sum.pageViews ?? 0;
+const visit = (
+  eventId: string,
+  ua = BROWSER,
+  ip = `10.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}.1`,
+) =>
+  POST(
+    new Request(`https://club.evoly.me/api/v/${eventId}`, {
+      method: "POST",
+      headers: { "user-agent": ua, "x-forwarded-for": ip },
+    }),
+    {
+      params: Promise.resolve({ eventId }),
+    },
+  );
+const views = async (eventId: string) =>
+  (
+    await db.eventDailyStat.aggregate({
+      where: { eventId },
+      _sum: { pageViews: true },
+    })
+  )._sum.pageViews ?? 0;
 
 describe("visites des billetteries : comptage anonyme, sans cookie", () => {
   it("une visite, puis une autre : comptées ; réponse vide dans tous les cas", async () => {
@@ -63,10 +91,18 @@ describe("visites des billetteries : comptage anonyme, sans cookie", () => {
 
   it("vue d'ensemble : total des visites et part qui achète", async () => {
     const e = await event();
-    await db.eventDailyStat.create({ data: { eventId: e.id, date: new Date(Date.UTC(2026, 9, 1)), pageViews: 40 } });
+    await db.eventDailyStat.create({
+      data: {
+        eventId: e.id,
+        date: new Date(Date.UTC(2026, 9, 1)),
+        pageViews: 40,
+      },
+    });
     const o = await eventOverview(e.id, "Europe/Brussels", "14");
     expect([o.views, o.conversionPct, o.ordersCount]).toEqual([40, 0, 0]);
     const none = await event();
-    expect((await eventOverview(none.id, "Europe/Brussels", "14")).conversionPct).toBeNull();
+    expect(
+      (await eventOverview(none.id, "Europe/Brussels", "14")).conversionPct,
+    ).toBeNull();
   });
 });

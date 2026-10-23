@@ -33,8 +33,13 @@ export function resaleBlockers(i: ResaleEligibilityInput): ResaleBlocker[] {
   const b: ResaleBlocker[] = [];
   if (!i.eventResaleEnabled) b.push("EVENT_RESALE_DISABLED");
   if (!i.ticketTypeResaleAllowed) b.push("TICKET_TYPE_RESALE_DISABLED");
-  if (i.eventStatus !== "PUBLISHED" && i.eventStatus !== "SALES_PAUSED") b.push("EVENT_NOT_ON_SALE");
-  if (i.now.getTime() >= resaleCutoff(i.eventStartsAt, i.resaleCutoffMinutes).getTime()) b.push("CUTOFF_PASSED");
+  if (i.eventStatus !== "PUBLISHED" && i.eventStatus !== "SALES_PAUSED")
+    b.push("EVENT_NOT_ON_SALE");
+  if (
+    i.now.getTime() >=
+    resaleCutoff(i.eventStartsAt, i.resaleCutoffMinutes).getTime()
+  )
+    b.push("CUTOFF_PASSED");
   if (i.ticketStatus !== "VALID") b.push("TICKET_NOT_VALID");
   if (i.hasOpenListing) b.push("ALREADY_LISTED");
   if (!i.originalPaymentRefundable) b.push("PAYMENT_NOT_REFUNDABLE");
@@ -42,7 +47,10 @@ export function resaleBlockers(i: ResaleEligibilityInput): ResaleBlocker[] {
 }
 
 /** RG-RSL-02 : le prix de revente ne dépasse jamais la valeur faciale. */
-export function checkResalePrice(priceMinor: Minor, faceValueMinor: Minor): "OK" | "ABOVE_FACE_VALUE" | "NEGATIVE" | "NOT_INTEGER" {
+export function checkResalePrice(
+  priceMinor: Minor,
+  faceValueMinor: Minor,
+): "OK" | "ABOVE_FACE_VALUE" | "NEGATIVE" | "NOT_INTEGER" {
   if (!Number.isSafeInteger(priceMinor)) return "NOT_INTEGER";
   if (priceMinor < 0) return "NEGATIVE";
   return priceMinor <= faceValueMinor ? "OK" : "ABOVE_FACE_VALUE";
@@ -64,8 +72,18 @@ export interface ResaleAmounts {
  * L'acheteur paie le prix affiché ; le vendeur récupère ce prix moins la commission et les frais bancaires ;
  * l'organisateur reste neutre. Revente à 0 € : transfert, sans paiement ni remboursement (RG-RSL-04).
  */
-export function resaleAmounts(priceMinor: Minor, terms: FeeTerms, bankFeeMinor: Minor): ResaleAmounts {
-  if (priceMinor === 0) return { buyerPaysMinor: 0, commissionMinor: 0, bankFeeMinor: 0, sellerRefundMinor: 0 };
+export function resaleAmounts(
+  priceMinor: Minor,
+  terms: FeeTerms,
+  bankFeeMinor: Minor,
+): ResaleAmounts {
+  if (priceMinor === 0)
+    return {
+      buyerPaysMinor: 0,
+      commissionMinor: 0,
+      bankFeeMinor: 0,
+      sellerRefundMinor: 0,
+    };
   const commissionMinor = ticketCommission(priceMinor, terms);
   return {
     buyerPaysMinor: priceMinor,
@@ -76,7 +94,12 @@ export function resaleAmounts(priceMinor: Minor, terms: FeeTerms, bankFeeMinor: 
 }
 
 /** Moyens de paiement dont Stripe ne permet pas le remboursement (ou seulement hors ligne, par virement manuel). */
-const NON_REFUNDABLE_METHODS = new Set(["multibanco", "oxxo", "boleto", "konbini"]);
+const NON_REFUNDABLE_METHODS = new Set([
+  "multibanco",
+  "oxxo",
+  "boleto",
+  "konbini",
+]);
 /** Délai au-delà duquel un remboursement n'est plus garanti par les réseaux de paiement (180 jours pour la plupart). */
 const REFUND_WINDOW_DAYS = 175;
 
@@ -85,14 +108,29 @@ const REFUND_WINDOW_DAYS = 175;
  * Billet gratuit : toujours (transfert). Sinon : moyen de paiement remboursable, paiement récent, commande non remboursée en entier.
  */
 export function originalPaymentRefundable(
-  order: { totalMinor: Minor; refundedMinor: Minor; paymentMethodType: string | null; paidAt: Date | null; status: string },
+  order: {
+    totalMinor: Minor;
+    refundedMinor: Minor;
+    paymentMethodType: string | null;
+    paidAt: Date | null;
+    status: string;
+  },
   faceValueMinor: Minor,
   now: Date,
 ): boolean {
   if (faceValueMinor === 0 || order.totalMinor === 0) return true;
-  if (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED") return false;
-  if (order.paymentMethodType && NON_REFUNDABLE_METHODS.has(order.paymentMethodType)) return false;
-  if (!order.paidAt || now.getTime() - order.paidAt.getTime() > REFUND_WINDOW_DAYS * 86_400_000) return false;
+  if (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")
+    return false;
+  if (
+    order.paymentMethodType &&
+    NON_REFUNDABLE_METHODS.has(order.paymentMethodType)
+  )
+    return false;
+  if (
+    !order.paidAt ||
+    now.getTime() - order.paidAt.getTime() > REFUND_WINDOW_DAYS * 86_400_000
+  )
+    return false;
   return order.totalMinor - order.refundedMinor >= faceValueMinor;
 }
 
@@ -106,10 +144,29 @@ export interface PublicListing {
 
 /** RG-PUB-04 : annonces regroupées par tarif, triées par prix puis par ancienneté. */
 export function groupListings(listings: readonly PublicListing[]) {
-  const sorted = [...listings].sort((a, b) => a.priceMinor - b.priceMinor || a.createdAt.getTime() - b.createdAt.getTime());
-  const groups = new Map<string, { ticketTypeId: string; ticketTypeName: string; count: number; fromMinor: Minor; listings: PublicListing[] }>();
+  const sorted = [...listings].sort(
+    (a, b) =>
+      a.priceMinor - b.priceMinor ||
+      a.createdAt.getTime() - b.createdAt.getTime(),
+  );
+  const groups = new Map<
+    string,
+    {
+      ticketTypeId: string;
+      ticketTypeName: string;
+      count: number;
+      fromMinor: Minor;
+      listings: PublicListing[];
+    }
+  >();
   for (const l of sorted) {
-    const g = groups.get(l.ticketTypeId) ?? { ticketTypeId: l.ticketTypeId, ticketTypeName: l.ticketTypeName, count: 0, fromMinor: l.priceMinor, listings: [] };
+    const g = groups.get(l.ticketTypeId) ?? {
+      ticketTypeId: l.ticketTypeId,
+      ticketTypeName: l.ticketTypeName,
+      count: 0,
+      fromMinor: l.priceMinor,
+      listings: [],
+    };
     g.count += 1;
     g.listings.push(l);
     groups.set(l.ticketTypeId, g);

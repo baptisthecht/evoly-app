@@ -13,7 +13,8 @@
       necessary: "Nécessaires",
       necessaryHint: "Connexion et sécurité : toujours actifs.",
       analytics: "Mesure d’audience",
-      analyticsHint: "Google Analytics : pages vues et parcours, pour améliorer le site.",
+      analyticsHint:
+        "Google Analytics : pages vues et parcours, pour améliorer le site.",
       ads: "Publicité",
       adsHint: "Google Ads : mesurer les inscriptions venues de nos annonces.",
       policy: "Politique cookies",
@@ -29,7 +30,8 @@
       necessary: "Necessary",
       necessaryHint: "Sign-in and security: always on.",
       analytics: "Audience measurement",
-      analyticsHint: "Google Analytics: pages viewed and journeys, to improve the site.",
+      analyticsHint:
+        "Google Analytics: pages viewed and journeys, to improve the site.",
       ads: "Advertising",
       adsHint: "Google Ads: measure sign-ups that come from our ads.",
       policy: "Cookie policy",
@@ -45,7 +47,8 @@
       necessary: "Noodzakelijk",
       necessaryHint: "Aanmelden en beveiliging: altijd actief.",
       analytics: "Bezoekersmeting",
-      analyticsHint: "Google Analytics: bekeken pagina’s en trajecten, om de site te verbeteren.",
+      analyticsHint:
+        "Google Analytics: bekeken pagina’s en trajecten, om de site te verbeteren.",
       ads: "Advertenties",
       adsHint: "Google Ads: inschrijvingen via onze advertenties meten.",
       policy: "Cookiebeleid",
@@ -61,7 +64,8 @@
       necessary: "Notwendig",
       necessaryHint: "Anmeldung und Sicherheit: immer aktiv.",
       analytics: "Reichweitenmessung",
-      analyticsHint: "Google Analytics: aufgerufene Seiten und Wege, um die Website zu verbessern.",
+      analyticsHint:
+        "Google Analytics: aufgerufene Seiten und Wege, um die Website zu verbessern.",
       ads: "Werbung",
       adsHint: "Google Ads: Anmeldungen über unsere Anzeigen messen.",
       policy: "Cookie-Richtlinie",
@@ -77,9 +81,11 @@
       necessary: "Necesarias",
       necessaryHint: "Inicio de sesión y seguridad: siempre activas.",
       analytics: "Medición de audiencia",
-      analyticsHint: "Google Analytics: páginas vistas y recorridos, para mejorar el sitio.",
+      analyticsHint:
+        "Google Analytics: páginas vistas y recorridos, para mejorar el sitio.",
       ads: "Publicidad",
-      adsHint: "Google Ads: medir los registros que vienen de nuestros anuncios.",
+      adsHint:
+        "Google Ads: medir los registros que vienen de nuestros anuncios.",
       policy: "Política de cookies",
       manage: "Gestionar cookies",
     },
@@ -93,9 +99,11 @@
       necessary: "Necessari",
       necessaryHint: "Accesso e sicurezza: sempre attivi.",
       analytics: "Misurazione del pubblico",
-      analyticsHint: "Google Analytics: pagine viste e percorsi, per migliorare il sito.",
+      analyticsHint:
+        "Google Analytics: pagine viste e percorsi, per migliorare il sito.",
       ads: "Pubblicità",
-      adsHint: "Google Ads: misurare le iscrizioni provenienti dai nostri annunci.",
+      adsHint:
+        "Google Ads: misurare le iscrizioni provenienti dai nostri annunci.",
       policy: "Informativa sui cookie",
       manage: "Gestisci i cookie",
     },
@@ -109,7 +117,8 @@
       necessary: "Necessários",
       necessaryHint: "Início de sessão e segurança: sempre ativos.",
       analytics: "Medição de audiência",
-      analyticsHint: "Google Analytics: páginas vistas e percursos, para melhorar o site.",
+      analyticsHint:
+        "Google Analytics: páginas vistas e percursos, para melhorar o site.",
       ads: "Publicidade",
       adsHint: "Google Ads: medir as inscrições vindas dos nossos anúncios.",
       policy: "Política de cookies",
@@ -120,13 +129,24 @@
   var t = T[lang] || T.fr;
   var base = (cfg.base || "evoly.me").split(":")[0];
   var host = location.hostname;
-  var domain = host === base || host.slice(-base.length - 1) === "." + base ? "; Domain=." + base : "";
+  var domain =
+    host === base || host.slice(-base.length - 1) === "." + base
+      ? "; Domain=." + base
+      : "";
   function read(n) {
     var m = document.cookie.match(new RegExp("(?:^|; )" + n + "=([^;]*)"));
     return m ? m[1] : null;
   }
   function write(n, v, age) {
-    document.cookie = n + "=" + v + "; Max-Age=" + age + "; Path=/; SameSite=Lax" + (location.protocol === "https:" ? "; Secure" : "") + domain;
+    document.cookie =
+      n +
+      "=" +
+      v +
+      "; Max-Age=" +
+      age +
+      "; Path=/; SameSite=Lax" +
+      (location.protocol === "https:" ? "; Secure" : "") +
+      domain;
   }
   function consent() {
     try {
@@ -139,7 +159,12 @@
   function signals(c) {
     var a = c && c.analytics ? "granted" : "denied",
       d = c && c.ads ? "granted" : "denied";
-    return { analytics_storage: a, ad_storage: d, ad_user_data: d, ad_personalization: d };
+    return {
+      analytics_storage: a,
+      ad_storage: d,
+      ad_user_data: d,
+      ad_personalization: d,
+    };
   }
   function clip(v, n) {
     v = (v || "").replace(/[\u0000-\u001f<>"'`]/g, "").trim();
@@ -168,13 +193,20 @@
     try {
       ref = document.referrer ? new URL(document.referrer).hostname : null;
     } catch (e) {}
-    if (ref && (ref === base || ref.slice(-base.length - 1) === "." + base)) ref = null;
+    if (ref && (ref === base || ref.slice(-base.length - 1) === "." + base))
+      ref = null;
     var gclid = clip(q.get("gclid"));
     var a = {
       source: clip(q.get("utm_source")) || (gclid ? "google" : ref || "direct"),
       medium:
         clip(q.get("utm_medium")) ||
-        (gclid ? "cpc" : ref ? (/(^|\.)google\.|bing\.|duckduckgo\.|ecosia\.|qwant\./.test(ref) ? "organic" : "referral") : "none"),
+        (gclid
+          ? "cpc"
+          : ref
+            ? /(^|\.)google\.|bing\.|duckduckgo\.|ecosia\.|qwant\./.test(ref)
+              ? "organic"
+              : "referral"
+            : "none"),
       campaign: clip(q.get("utm_campaign")),
       term: clip(q.get("utm_term")),
       content: clip(q.get("utm_content")),
@@ -209,12 +241,19 @@
     if (cfg.ads) gtag("config", cfg.ads);
     var s = document.createElement("script");
     s.async = true;
-    s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(cfg.ga || cfg.ads);
+    s.src =
+      "https://www.googletagmanager.com/gtag/js?id=" +
+      encodeURIComponent(cfg.ga || cfg.ads);
     document.head.appendChild(s);
   }
   source(c0);
   function save(analytics, ads) {
-    var c = { v: 1, analytics: analytics, ads: ads, at: new Date().toISOString() };
+    var c = {
+      v: 1,
+      analytics: analytics,
+      ads: ads,
+      at: new Date().toISOString(),
+    };
     write("evoly_consent", encodeURIComponent(JSON.stringify(c)), 31536000);
     if (window.gtag) gtag("consent", "update", signals(c));
     source(c);
@@ -280,19 +319,34 @@
       t.accept +
       "</button></div>";
     box.addEventListener("click", function (e) {
-      var a = e.target && e.target.getAttribute && e.target.getAttribute("data-a");
+      var a =
+        e.target && e.target.getAttribute && e.target.getAttribute("data-a");
       if (a === "refuse") save(false, false);
       else if (a === "accept") save(true, true);
       else if (a === "custom") open(true);
-      else if (a === "save") save(document.getElementById("evoly-c-a").checked, document.getElementById("evoly-c-d").checked);
+      else if (a === "save")
+        save(
+          document.getElementById("evoly-c-a").checked,
+          document.getElementById("evoly-c-d").checked,
+        );
     });
     document.body.appendChild(box);
   }
   document.addEventListener("click", function (e) {
     var el = e.target && e.target.closest && e.target.closest("a[href]");
-    if (el && /\/(register|inscription|start)(?:[?#/]|$)/.test(el.getAttribute("href") || "") && window.gtag)
+    if (
+      el &&
+      /\/(register|inscription|start)(?:[?#/]|$)/.test(
+        el.getAttribute("href") || "",
+      ) &&
+      window.gtag
+    )
       gtag("event", "sign_up_start", { link_url: el.href });
-    if (e.target && e.target.closest && e.target.closest("[data-evoly-cookies]")) {
+    if (
+      e.target &&
+      e.target.closest &&
+      e.target.closest("[data-evoly-cookies]")
+    ) {
       e.preventDefault();
       open(true);
     }
@@ -308,6 +362,7 @@
     }
     if (!c0) open(false);
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", init);
   else init();
 })();

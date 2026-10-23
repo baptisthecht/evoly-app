@@ -4,11 +4,20 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 /** Section 9.9 : lien à partager pour que des amis réservent les places libres les plus proches. */
-export function ShareFriendLink({ url, eventTitle }: { url: string; eventTitle: string }) {
+export function ShareFriendLink({
+  url,
+  eventTitle,
+}: {
+  url: string;
+  eventTitle: string;
+}) {
   const t = useTranslations("orders");
   const [copied, setCopied] = useState(false);
   return (
-    <section aria-labelledby="friends-title" className="grid gap-3 rounded-lg bg-surface-sunken p-5">
+    <section
+      aria-labelledby="friends-title"
+      className="grid gap-3 rounded-lg bg-surface-sunken p-5"
+    >
       <h2 id="friends-title" className="font-display text-lg">
         {t("friendsTitle")}
       </h2>

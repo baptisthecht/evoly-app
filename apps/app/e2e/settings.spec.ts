@@ -1,7 +1,9 @@
 import { expect, test } from "./fixtures";
 import { appUrl, organizer, siteUrl } from "./helpers";
 
-test("paramètres de l'organisation, puis suppression avec double confirmation (section 9.3)", async ({ page }) => {
+test("paramètres de l'organisation, puis suppression avec double confirmation (section 9.3)", async ({
+  page,
+}) => {
   const { id, slug } = await organizer(page);
   await page.goto(appUrl(`/o/${slug}/settings`));
   await page.getByLabel("Raison sociale").fill(`Orga ${id} ASBL`);
@@ -11,13 +13,21 @@ test("paramètres de l'organisation, puis suppression avec double confirmation (
   await expect(page.getByText("Paramètres enregistrés.")).toBeVisible();
   await page.reload();
   await expect(page.getByLabel("Numéro de TVA")).toHaveValue("BE0123456789");
-  await expect(page.getByLabel("Raison sociale")).toHaveValue(`Orga ${id} ASBL`);
+  await expect(page.getByLabel("Raison sociale")).toHaveValue(
+    `Orga ${id} ASBL`,
+  );
 
   // RG-ORG-06 : double confirmation
-  await page.getByLabel("Je comprends que la suppression est définitive", { exact: false }).check();
+  await page
+    .getByLabel("Je comprends que la suppression est définitive", {
+      exact: false,
+    })
+    .check();
   await page.getByLabel(/Pour confirmer, saisissez le nom/).fill("mauvais nom");
   await page.getByRole("button", { name: "Supprimer définitivement" }).click();
-  await expect(page.getByText("Le nom saisi ne correspond pas à celui de l’organisation.")).toBeVisible();
+  await expect(
+    page.getByText("Le nom saisi ne correspond pas à celui de l’organisation."),
+  ).toBeVisible();
   await page.getByLabel(/Pour confirmer, saisissez le nom/).fill(`Orga ${id}`);
   await page.getByRole("button", { name: "Supprimer définitivement" }).click();
   await page.waitForURL(/\/onboarding/);

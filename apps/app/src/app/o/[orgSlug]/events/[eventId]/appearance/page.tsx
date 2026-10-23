@@ -14,15 +14,24 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("eventPage") };
 }
 
-export default async function EventAppearancePage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function EventAppearancePage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const e = await getEventWithTickets(ctx, eventId);
-  const readOnly = !can(ctx.membership, "EVENTS_EDIT") || ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
+  const readOnly =
+    !can(ctx.membership, "EVENTS_EDIT") ||
+    ctx.readOnly ||
+    ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
   const tn = await getTranslations("nav");
   return (
     <div>
-      {readOnly ? <p className="text-sm text-ink-muted">{tn("readOnlyPage")}</p> : null}
+      {readOnly ? (
+        <p className="text-sm text-ink-muted">{tn("readOnlyPage")}</p>
+      ) : null}
       {!readOnly ? (
         <EventAppearance
           orgSlug={orgSlug}
@@ -35,18 +44,41 @@ export default async function EventAppearancePage({ params }: { params: Promise<
         />
       ) : null}
       {!readOnly && hasFeature(ctx.features, "BRANDING") ? (
-        <EventTheme orgSlug={orgSlug} eventId={eventId} organizationId={ctx.organization.id} name={ctx.organization.name} />
+        <EventTheme
+          orgSlug={orgSlug}
+          eventId={eventId}
+          organizationId={ctx.organization.id}
+          name={ctx.organization.name}
+        />
       ) : null}
     </div>
   );
 }
 
 /** Style de cet événement : ses réglages, sinon ceux de la marque comme point de départ (Pro). */
-async function EventTheme({ orgSlug, eventId, organizationId, name }: { orgSlug: string; eventId: string; organizationId: string; name: string }) {
+async function EventTheme({
+  orgSlug,
+  eventId,
+  organizationId,
+  name,
+}: {
+  orgSlug: string;
+  eventId: string;
+  organizationId: string;
+  name: string;
+}) {
   const [e, brand] = await Promise.all([
     db.event.findUniqueOrThrow({
       where: { id: eventId },
-      select: { primaryColor: true, accentColor: true, backgroundColor: true, radius: true, headingFont: true, bodyFont: true, buttonLabel: true },
+      select: {
+        primaryColor: true,
+        accentColor: true,
+        backgroundColor: true,
+        radius: true,
+        headingFont: true,
+        bodyFont: true,
+        buttonLabel: true,
+      },
     }),
     db.organizationBrand.findUnique({ where: { organizationId } }),
   ]);
@@ -68,7 +100,14 @@ async function EventTheme({ orgSlug, eventId, organizationId, name }: { orgSlug:
           headingFont: pick("headingFont"),
           bodyFont: pick("bodyFont"),
           buttonLabel: pick("buttonLabel"),
-          socials: { website: "", instagram: "", facebook: "", tiktok: "", linkedin: "", youtube: "" },
+          socials: {
+            website: "",
+            instagram: "",
+            facebook: "",
+            tiktok: "",
+            linkedin: "",
+            youtube: "",
+          },
         }}
       />
     </div>

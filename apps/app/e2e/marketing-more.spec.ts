@@ -1,9 +1,14 @@
 import { expect, test } from "./fixtures";
 import { appUrl, organizer, publishedFreeEvent, sql } from "./helpers";
 
-const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR42mP8z8DwnwEIGBmgAhgYAAAAAP//AwBfDQX/AAAAAElFTkSuQmCC", "base64");
+const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR42mP8z8DwnwEIGBmgAhgYAAAAAP//AwBfDQX/AAAAAElFTkSuQmCC",
+  "base64",
+);
 
-test("remerciement après l'événement, image importée et modèle personnel réutilisé (section 9.18)", async ({ page }) => {
+test("remerciement après l'événement, image importée et modèle personnel réutilisé (section 9.18)", async ({
+  page,
+}) => {
   const { id, slug } = await organizer(page);
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
   sql(
@@ -13,9 +18,14 @@ test("remerciement après l'événement, image importée et modèle personnel r�
 
   // US-MKT-02 : remerciement activé, objet personnalisé
   await page.goto(`${eventUrl}/emails`);
-  const card = page.getByRole("heading", { name: "E-mails marketing de l’événement" }).locator("xpath=..");
+  const card = page
+    .getByRole("heading", { name: "E-mails marketing de l’événement" })
+    .locator("xpath=..");
   await card.getByLabel("Activer : Remerciement après l’événement").check();
-  await card.getByLabel("Objet").first().fill(`Merci d’être venu·e au Salon ${id}`);
+  await card
+    .getByLabel("Objet")
+    .first()
+    .fill(`Merci d’être venu·e au Salon ${id}`);
   await card.getByRole("button", { name: "Enregistrer" }).first().click();
   await expect(card.getByText("Enregistré.")).toBeVisible();
   expect(
@@ -26,13 +36,25 @@ test("remerciement après l'événement, image importée et modèle personnel r�
 
   // image importée dans une campagne, puis modèle personnel réutilisé
   await page.goto(appUrl(`/o/${slug}/marketing/campaigns/new?template=blank`));
-  await page.getByTestId("email-image-input").setInputFiles({ name: "affiche.png", mimeType: "image/png", buffer: PNG });
-  await expect(page.locator(".email-editor__content img")).toHaveAttribute("src", /\/files\/orgs\/.+\/campaign-[a-z0-9]+\.png$/);
+  await page
+    .getByTestId("email-image-input")
+    .setInputFiles({ name: "affiche.png", mimeType: "image/png", buffer: PNG });
+  await expect(page.locator(".email-editor__content img")).toHaveAttribute(
+    "src",
+    /\/files\/orgs\/.+\/campaign-[a-z0-9]+\.png$/,
+  );
   await page.getByLabel("Nom de la campagne").fill(`Modèle salon ${id}`);
   await page.getByRole("button", { name: "Enregistrer comme modèle" }).click();
-  await expect(page.getByText("Modèle enregistré", { exact: false })).toBeVisible();
+  await expect(
+    page.getByText("Modèle enregistré", { exact: false }),
+  ).toBeVisible();
   await page.goto(appUrl(`/o/${slug}/marketing/campaigns/new`));
   await page.getByRole("link", { name: `★ Modèle salon ${id}` }).click();
-  await expect(page.getByLabel("Nom de la campagne")).toHaveValue(`Modèle salon ${id}`);
-  await expect(page.locator(".email-editor__content img")).toHaveAttribute("src", /campaign-[a-z0-9]+\.png$/);
+  await expect(page.getByLabel("Nom de la campagne")).toHaveValue(
+    `Modèle salon ${id}`,
+  );
+  await expect(page.locator(".email-editor__content img")).toHaveAttribute(
+    "src",
+    /campaign-[a-z0-9]+\.png$/,
+  );
 });

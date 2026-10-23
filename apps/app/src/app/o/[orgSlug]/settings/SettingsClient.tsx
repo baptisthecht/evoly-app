@@ -4,7 +4,12 @@ import { LOCALE_NAMES, LOCALES } from "@evoly/i18n";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { TIMEZONES } from "@/components/events/EventFields";
-import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
+import {
+  FormError,
+  SubmitButton,
+  useActionForm,
+  useFieldError,
+} from "@/components/forms";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { deleteOrganizationAction, saveSettingsAction } from "./actions";
 
@@ -45,32 +50,71 @@ export function OrganizationSettingsForm({
   readOnly: boolean;
 }) {
   const t = useTranslations("orgSettings");
-  const { state, pending, formProps } = useActionForm(saveSettingsAction.bind(null, orgSlug), null);
+  const { state, pending, formProps } = useActionForm(
+    saveSettingsAction.bind(null, orgSlug),
+    null,
+  );
   const error = useFieldError(state);
-  const zones = TIMEZONES.includes(values.timezone) ? TIMEZONES : [values.timezone, ...TIMEZONES];
+  const zones = TIMEZONES.includes(values.timezone)
+    ? TIMEZONES
+    : [values.timezone, ...TIMEZONES];
   return (
     <form {...formProps} className="grid gap-8" noValidate>
       <FormError state={state} />
       <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">{t("identity")}</legend>
+        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">
+          {t("identity")}
+        </legend>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t("name")} htmlFor="org-name" hint={t("nameHint")} error={error("name")}>
-            <Input id="org-name" name="name" defaultValue={values.name} maxLength={80} required />
+          <Field
+            label={t("name")}
+            htmlFor="org-name"
+            hint={t("nameHint")}
+            error={error("name")}
+          >
+            <Input
+              id="org-name"
+              name="name"
+              defaultValue={values.name}
+              maxLength={80}
+              required
+            />
           </Field>
-          <Field label={t("legalName")} htmlFor="org-legal" hint={t("legalNameHint")}>
-            <Input id="org-legal" name="legalName" defaultValue={values.legalName} maxLength={160} />
+          <Field
+            label={t("legalName")}
+            htmlFor="org-legal"
+            hint={t("legalNameHint")}
+          >
+            <Input
+              id="org-legal"
+              name="legalName"
+              defaultValue={values.legalName}
+              maxLength={160}
+            />
           </Field>
           <Field label={t("type")} htmlFor="org-type">
             <Select id="org-type" name="type" defaultValue={values.type}>
-              {["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"].map((k) => (
-                <option key={k} value={k}>
-                  {t(`type_${k}`)}
-                </option>
-              ))}
+              {["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"].map(
+                (k) => (
+                  <option key={k} value={k}>
+                    {t(`type_${k}`)}
+                  </option>
+                ),
+              )}
             </Select>
           </Field>
-          <Field label={t("website")} htmlFor="org-web" error={error("website")}>
-            <Input id="org-web" name="website" defaultValue={values.website} placeholder="https://" inputMode="url" />
+          <Field
+            label={t("website")}
+            htmlFor="org-web"
+            error={error("website")}
+          >
+            <Input
+              id="org-web"
+              name="website"
+              defaultValue={values.website}
+              placeholder="https://"
+              inputMode="url"
+            />
           </Field>
         </div>
         <Field label={t("description")} htmlFor="org-desc">
@@ -86,22 +130,45 @@ export function OrganizationSettingsForm({
       </fieldset>
 
       <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">{t("contact")}</legend>
+        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">
+          {t("contact")}
+        </legend>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t("contactEmail")} htmlFor="org-email" hint={t("contactEmailHint")} error={error("contactEmail")}>
-            <Input id="org-email" name="contactEmail" type="email" defaultValue={values.contactEmail} />
+          <Field
+            label={t("contactEmail")}
+            htmlFor="org-email"
+            hint={t("contactEmailHint")}
+            error={error("contactEmail")}
+          >
+            <Input
+              id="org-email"
+              name="contactEmail"
+              type="email"
+              defaultValue={values.contactEmail}
+            />
           </Field>
           <Field label={t("phone")} htmlFor="org-phone">
-            <Input id="org-phone" name="phone" type="tel" defaultValue={values.phone} />
+            <Input
+              id="org-phone"
+              name="phone"
+              type="tel"
+              defaultValue={values.phone}
+            />
           </Field>
         </div>
       </fieldset>
 
       <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">{t("region")}</legend>
+        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">
+          {t("region")}
+        </legend>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label={t("country")} htmlFor="org-country">
-            <Select id="org-country" name="country" defaultValue={values.country}>
+            <Select
+              id="org-country"
+              name="country"
+              defaultValue={values.country}
+            >
               {countries.map((c) => (
                 <option key={c.code} value={c.code}>
                   {c.name}
@@ -109,17 +176,32 @@ export function OrganizationSettingsForm({
               ))}
             </Select>
           </Field>
-          <Field label={t("currency")} htmlFor="org-currency" hint={currencyLocked ? t("currencyLocked") : undefined}>
-            <Select id="org-currency" name="currency" defaultValue={values.currency} disabled={currencyLocked}>
+          <Field
+            label={t("currency")}
+            htmlFor="org-currency"
+            hint={currencyLocked ? t("currencyLocked") : undefined}
+          >
+            <Select
+              id="org-currency"
+              name="currency"
+              defaultValue={values.currency}
+              disabled={currencyLocked}
+            >
               {currencies.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
               ))}
             </Select>
-            {currencyLocked ? <input type="hidden" name="currency" value={values.currency} /> : null}
+            {currencyLocked ? (
+              <input type="hidden" name="currency" value={values.currency} />
+            ) : null}
           </Field>
-          <Field label={t("locale")} htmlFor="org-locale" hint={t("localeHint")}>
+          <Field
+            label={t("locale")}
+            htmlFor="org-locale"
+            hint={t("localeHint")}
+          >
             <Select id="org-locale" name="locale" defaultValue={values.locale}>
               {LOCALES.map((l) => (
                 <option key={l} value={l}>
@@ -141,28 +223,59 @@ export function OrganizationSettingsForm({
       </fieldset>
 
       <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">{t("billing")}</legend>
+        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">
+          {t("billing")}
+        </legend>
         <p className="-mt-3 text-sm text-ink-muted">{t("billingHint")}</p>
         <Field label={t("address")} htmlFor="org-addr">
-          <Input id="org-addr" name="addressLine1" defaultValue={values.addressLine1} autoComplete="street-address" />
+          <Input
+            id="org-addr"
+            name="addressLine1"
+            defaultValue={values.addressLine1}
+            autoComplete="street-address"
+          />
         </Field>
         <Field label={t("address2")} htmlFor="org-addr2">
-          <Input id="org-addr2" name="addressLine2" defaultValue={values.addressLine2} />
+          <Input
+            id="org-addr2"
+            name="addressLine2"
+            defaultValue={values.addressLine2}
+          />
         </Field>
         <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-5">
           <Field label={t("postalCode")} htmlFor="org-pc">
-            <Input id="org-pc" name="postalCode" defaultValue={values.postalCode} />
+            <Input
+              id="org-pc"
+              name="postalCode"
+              defaultValue={values.postalCode}
+            />
           </Field>
           <Field label={t("city")} htmlFor="org-city">
             <Input id="org-city" name="city" defaultValue={values.city} />
           </Field>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 sm:items-end">
-          <Field label={t("vatNumber")} htmlFor="org-vat" hint={t("vatNumberHint")} error={error("vatNumber")}>
-            <Input id="org-vat" name="vatNumber" defaultValue={values.vatNumber} placeholder="BE0123456789" className="font-mono" />
+          <Field
+            label={t("vatNumber")}
+            htmlFor="org-vat"
+            hint={t("vatNumberHint")}
+            error={error("vatNumber")}
+          >
+            <Input
+              id="org-vat"
+              name="vatNumber"
+              defaultValue={values.vatNumber}
+              placeholder="BE0123456789"
+              className="font-mono"
+            />
           </Field>
           <label className="flex items-center gap-3 pb-3 text-sm">
-            <input type="checkbox" name="vatRegistered" defaultChecked={values.vatRegistered} className="size-5 accent-[var(--ink)]" />
+            <input
+              type="checkbox"
+              name="vatRegistered"
+              defaultChecked={values.vatRegistered}
+              className="size-5 accent-[var(--ink)]"
+            />
             {t("vatRegistered")}
           </label>
         </div>
@@ -173,7 +286,10 @@ export function OrganizationSettingsForm({
         </p>
       ) : null}
       {!readOnly ? (
-        <SubmitButton pending={pending} className="w-full sm:w-auto sm:justify-self-start">
+        <SubmitButton
+          pending={pending}
+          className="w-full sm:w-auto sm:justify-self-start"
+        >
           {t("save")}
         </SubmitButton>
       ) : null}
@@ -182,11 +298,22 @@ export function OrganizationSettingsForm({
 }
 
 /** RG-ORG-06 : suppression, double confirmation. */
-export function DeleteOrganization({ orgSlug, name, blockers }: { orgSlug: string; name: string; blockers: string[] }) {
+export function DeleteOrganization({
+  orgSlug,
+  name,
+  blockers,
+}: {
+  orgSlug: string;
+  name: string;
+  blockers: string[];
+}) {
   const t = useTranslations("orgSettings");
   const [understood, setUnderstood] = useState(false);
   const [typed, setTyped] = useState("");
-  const { state, pending, formProps } = useActionForm(deleteOrganizationAction.bind(null, orgSlug), null);
+  const { state, pending, formProps } = useActionForm(
+    deleteOrganizationAction.bind(null, orgSlug),
+    null,
+  );
   if (blockers.length > 0)
     return (
       <ul className="grid gap-2 text-sm">
@@ -211,14 +338,29 @@ export function DeleteOrganization({ orgSlug, name, blockers }: { orgSlug: strin
         {t("deleteUnderstand")}
       </label>
       {understood ? (
-        <Field label={t("deleteConfirmLabel", { name })} htmlFor="delete-confirm">
-          <Input id="delete-confirm" name="confirmation" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+        <Field
+          label={t("deleteConfirmLabel", { name })}
+          htmlFor="delete-confirm"
+        >
+          <Input
+            id="delete-confirm"
+            name="confirmation"
+            value={typed}
+            onChange={(e) => setTyped(e.target.value)}
+            autoComplete="off"
+          />
         </Field>
       ) : null}
-      <SubmitButton pending={pending} variant="danger" className="w-full sm:w-auto sm:justify-self-start">
+      <SubmitButton
+        pending={pending}
+        variant="danger"
+        className="w-full sm:w-auto sm:justify-self-start"
+      >
         {t("deleteSubmit")}
       </SubmitButton>
-      {understood && typed && typed.trim() !== name.trim() ? <p className="text-sm text-danger">{t("deleteMismatch")}</p> : null}
+      {understood && typed && typed.trim() !== name.trim() ? (
+        <p className="text-sm text-danger">{t("deleteMismatch")}</p>
+      ) : null}
     </form>
   );
 }

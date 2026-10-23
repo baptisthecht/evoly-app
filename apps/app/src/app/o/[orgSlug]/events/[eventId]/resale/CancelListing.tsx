@@ -6,9 +6,20 @@ import { FormError } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { cancelListingAction } from "../../actions";
 
-export function CancelListing({ orgSlug, eventId, listingId }: { orgSlug: string; eventId: string; listingId: string }) {
+export function CancelListing({
+  orgSlug,
+  eventId,
+  listingId,
+}: {
+  orgSlug: string;
+  eventId: string;
+  listingId: string;
+}) {
   const t = useTranslations("resaleAdmin");
-  const [state, action, pending] = useActionState(cancelListingAction.bind(null, orgSlug, eventId, listingId), null);
+  const [state, action, pending] = useActionState(
+    cancelListingAction.bind(null, orgSlug, eventId, listingId),
+    null,
+  );
   return (
     <form
       action={action}

@@ -6,7 +6,10 @@ import { verifyAction } from "./actions";
 
 export function VerifyForm({ next }: { next: string }) {
   const t = useTranslations("twoFactor");
-  const [error, action, pending] = useActionState(verifyAction.bind(null, next), null);
+  const [error, action, pending] = useActionState(
+    verifyAction.bind(null, next),
+    null,
+  );
   return (
     <form action={action} className="grid gap-3">
       <label className="grid gap-1.5 text-sm font-semibold">
@@ -24,7 +27,11 @@ export function VerifyForm({ next }: { next: string }) {
           {t(error)}
         </p>
       ) : null}
-      <button type="submit" disabled={pending} className="h-12 rounded-full bg-surface-inverse font-semibold text-ink-inverse">
+      <button
+        type="submit"
+        disabled={pending}
+        className="h-12 rounded-full bg-surface-inverse font-semibold text-ink-inverse"
+      >
         {t("verify")}
       </button>
     </form>

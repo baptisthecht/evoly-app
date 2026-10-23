@@ -11,7 +11,12 @@ const t = (fr as unknown as Record<string, Record<string, string>>).events!;
 const draw = (command: "publish" | "delete", confirm?: string) =>
   render(
     <Fr>
-      <EventCommand orgSlug="club" eventId="e1" command={command} confirm={confirm} />
+      <EventCommand
+        orgSlug="club"
+        eventId="e1"
+        command={command}
+        confirm={confirm}
+      />
     </Fr>,
   );
 beforeEach(() => {
@@ -30,13 +35,20 @@ describe("commandes d'un événement", () => {
     vi.stubGlobal("confirm", () => true);
     fireEvent.submit(button.closest("form")!);
     await waitFor(() => expect(events.eventCommandAction).toHaveBeenCalled());
-    expect((events.eventCommandAction.mock.calls[0] as unknown[]).slice(0, 3)).toEqual(["club", "e1", "delete"]);
+    expect(
+      (events.eventCommandAction.mock.calls[0] as unknown[]).slice(0, 3),
+    ).toEqual(["club", "e1", "delete"]);
   });
 
   it("publication refusée par le serveur : l'erreur s'affiche", async () => {
-    events.eventCommandAction.mockResolvedValue({ ok: false, error: "PUBLISH_STRIPE_REQUIRED" });
+    events.eventCommandAction.mockResolvedValue({
+      ok: false,
+      error: "PUBLISH_STRIPE_REQUIRED",
+    });
     draw("publish");
-    fireEvent.submit(screen.getByRole("button", { name: t.command_publish }).closest("form")!);
+    fireEvent.submit(
+      screen.getByRole("button", { name: t.command_publish }).closest("form")!,
+    );
     expect(await screen.findByRole("alert")).toBeTruthy();
   });
 });

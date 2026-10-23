@@ -15,7 +15,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Tables et forfaits (section 9.31, Pro) : un tarif peut donner plusieurs billets par achat, avec consommations comprises. */
-export default async function TablesPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function TablesPage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
@@ -24,7 +28,11 @@ export default async function TablesPage({ params }: { params: Promise<{ orgSlug
     return (
       <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
-        <ProLocked orgSlug={orgSlug} feature="SEATING_MAPS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
+        <ProLocked
+          orgSlug={orgSlug}
+          feature="SEATING_MAPS"
+          canUpgrade={can(ctx.membership, "BILLING_MANAGE")}
+        />
       </div>
     );
   }
@@ -34,19 +42,30 @@ export default async function TablesPage({ params }: { params: Promise<{ orgSlug
   return (
     <div className="grid gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
-      {types.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
+      {types.length === 0 ? (
+        <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
+      ) : null}
       {types.map((tt) => (
         <Card key={tt.id} className="grid gap-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-display text-xl">{tt.name}</h2>
             <p className="text-sm text-ink-muted">
-              {formatMoney(tt.priceMinor, event.currency, locale, { trimZeroCents: true })}
+              {formatMoney(tt.priceMinor, event.currency, locale, {
+                trimZeroCents: true,
+              })}
               {tt.groupSize > 1
                 ? ` · ${t("perPerson", { amount: formatMoney(Math.round(tt.priceMinor / tt.groupSize), event.currency, locale, { trimZeroCents: true }), count: tt.groupSize })}`
                 : ""}
             </p>
           </div>
-          {manage ? <TableForm orgSlug={orgSlug} eventId={eventId} type={tt} options={options} /> : null}
+          {manage ? (
+            <TableForm
+              orgSlug={orgSlug}
+              eventId={eventId}
+              type={tt}
+              options={options}
+            />
+          ) : null}
         </Card>
       ))}
     </div>

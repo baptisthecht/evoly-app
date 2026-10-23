@@ -25,9 +25,20 @@ beforeEach(() => {
   stop.mockReset();
   vi.useFakeTimers();
   Object.assign(window, { BarcodeDetector: FakeDetector });
-  Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop }] })) } });
-  Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: vi.fn(async () => undefined) });
-  Object.defineProperty(HTMLMediaElement.prototype, "readyState", { configurable: true, get: () => 4 });
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: {
+      getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop }] })),
+    },
+  });
+  Object.defineProperty(HTMLMediaElement.prototype, "play", {
+    configurable: true,
+    value: vi.fn(async () => undefined),
+  });
+  Object.defineProperty(HTMLMediaElement.prototype, "readyState", {
+    configurable: true,
+    get: () => 4,
+  });
 });
 afterEach(() => vi.useRealTimers());
 
@@ -42,7 +53,8 @@ const start = async () => {
     await vi.advanceTimersByTimeAsync(0);
   });
 };
-const frames = (ms: number) => act(async () => void (await vi.advanceTimersByTimeAsync(ms)));
+const frames = (ms: number) =>
+  act(async () => void (await vi.advanceTimersByTimeAsync(ms)));
 
 describe("caméra : codes-barres des réseaux", () => {
   it("formats des réseaux demandés, seulement ceux que l'appareil sait lire ; un code-barres linéaire vu est transmis", async () => {

@@ -17,7 +17,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Billetterie intégrable au site de l'organisateur (section 9.26, Pro) : sites autorisés et codes à copier. */
-export default async function EmbedPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function EmbedPage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
@@ -26,14 +30,24 @@ export default async function EmbedPage({ params }: { params: Promise<{ orgSlug:
     return (
       <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
-        <ProLocked orgSlug={orgSlug} feature="EMBED_WIDGET" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
+        <ProLocked
+          orgSlug={orgSlug}
+          feature="EMBED_WIDGET"
+          canUpgrade={can(ctx.membership, "BILLING_MANAGE")}
+        />
       </div>
     );
   }
   const origins = await listEmbedOrigins(ctx);
   const manage = can(ctx.membership, "MARKETING_MANAGE") && !ctx.readOnly;
   const app = env().NEXT_PUBLIC_APP_URL;
-  const saleUrl = eventPublicUrl({ subdomain: ctx.organization.subdomain ?? null, slug: ctx.organization.slug }, event);
+  const saleUrl = eventPublicUrl(
+    {
+      subdomain: ctx.organization.subdomain ?? null,
+      slug: ctx.organization.slug,
+    },
+    event,
+  );
   const script = `<script src="${app}/embed.js" defer></script>`;
   const button = `${script}\n<a href="${saleUrl}" data-evoly-button>${t("bookLabel")}</a>`;
   const module = `${script}\n<div data-evoly-module="${event.id}"></div>`;
@@ -47,7 +61,14 @@ export default async function EmbedPage({ params }: { params: Promise<{ orgSlug:
             {origins.map((o) => (
               <li key={o} className="flex items-center justify-between gap-3">
                 <code className="break-all">{o}</code>
-                {manage ? <RemoveOrigin orgSlug={orgSlug} eventId={eventId} origin={o} label={t("remove")} /> : null}
+                {manage ? (
+                  <RemoveOrigin
+                    orgSlug={orgSlug}
+                    eventId={eventId}
+                    origin={o}
+                    label={t("remove")}
+                  />
+                ) : null}
               </li>
             ))}
           </ul>
@@ -78,7 +99,12 @@ export default async function EmbedPage({ params }: { params: Promise<{ orgSlug:
           <code>{`<script>\n  window.addEventListener("evoly:order_completed", (e) => {\n    // e.detail : { tickets, amountMinor, currency }\n  });\n</script>`}</code>
         </pre>
       </Card>
-      <a href={`${app}/integre/${event.id}`} target="_blank" rel="noopener" className="justify-self-start text-sm font-semibold underline underline-offset-4">
+      <a
+        href={`${app}/integre/${event.id}`}
+        target="_blank"
+        rel="noopener"
+        className="justify-self-start text-sm font-semibold underline underline-offset-4"
+      >
         {t("preview")}
       </a>
     </div>

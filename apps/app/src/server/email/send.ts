@@ -16,7 +16,11 @@ interface SendInput extends RenderedEmail {
   organizationId?: string;
   fromName?: string;
   replyTo?: string;
-  attachments?: Array<{ filename: string; content: Buffer; contentType: string }>;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType: string;
+  }>;
   /** Commande concernée : l'e-mail apparaît dans l'historique de la commande (RG-ORD-01). */
   orderId?: string;
   /** Langue de l'e-mail (destinataire), enregistrée avec l'e-mail envoyé. */
@@ -43,7 +47,11 @@ type Payload = {
   replyTo?: string | null;
   headers?: Record<string, string>;
   template: string;
-  attachments?: Array<{ filename: string; contentType?: string; content: Buffer }>;
+  attachments?: Array<{
+    filename: string;
+    contentType?: string;
+    content: Buffer;
+  }>;
 };
 
 /** Tests uniquement : simule des pannes du fournisseur d'e-mails (RG-ARC-06). */
@@ -55,7 +63,8 @@ async function deliver(p: Payload, messageId: string): Promise<string | null> {
     emailTestHooks.failNext -= 1;
     throw new Error("panne simulée du fournisseur d'e-mails");
   }
-  if (resend === undefined) resend = e.RESEND_API_KEY ? new Resend(e.RESEND_API_KEY) : null;
+  if (resend === undefined)
+    resend = e.RESEND_API_KEY ? new Resend(e.RESEND_API_KEY) : null;
   if (resend) {
     const { data, error } = await resend.emails.send({
       from: p.from,
@@ -65,7 +74,11 @@ async function deliver(p: Payload, messageId: string): Promise<string | null> {
       text: p.text,
       replyTo: p.replyTo ?? undefined,
       headers: p.headers,
-      attachments: p.attachments?.map((a) => ({ filename: a.filename, content: a.content, contentType: a.contentType })),
+      attachments: p.attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        contentType: a.contentType,
+      })),
     });
     if (error) throw new Error(error.message);
     return data?.id ?? null;
@@ -77,11 +90,29 @@ async function deliver(p: Payload, messageId: string): Promise<string | null> {
   for (const a of p.attachments ?? []) {
     const file = path.join(dir, `${stamp}-${a.filename}`);
     await writeFile(file, a.content);
-    attachments.push({ filename: a.filename, contentType: a.contentType, size: a.content.length, path: file });
+    attachments.push({
+      filename: a.filename,
+      contentType: a.contentType,
+      size: a.content.length,
+      path: file,
+    });
   }
   await writeFile(
     path.join(dir, `${stamp}.json`),
-    JSON.stringify({ from: p.from, to: p.to, subject: p.subject, template: p.template, headers: p.headers, text: p.text, html: p.html, attachments }, null, 2),
+    JSON.stringify(
+      {
+        from: p.from,
+        to: p.to,
+        subject: p.subject,
+        template: p.template,
+        headers: p.headers,
+        text: p.text,
+        html: p.html,
+        attachments,
+      },
+      null,
+      2,
+    ),
   );
   return null;
 }
@@ -90,14 +121,28 @@ const RETRY_BASE_MS = 5 * 60_000;
 const MAX_ATTEMPTS = 5;
 const toStored = (p: Payload) => ({
   ...p,
-  attachments: p.attachments?.map((a) => ({ filename: a.filename, contentType: a.contentType, content: a.content.toString("base64") })),
+  attachments: p.attachments?.map((a) => ({
+    filename: a.filename,
+    contentType: a.contentType,
+    content: a.content.toString("base64"),
+  })),
 });
-type StoredPayload = Omit<Payload, "attachments"> & { attachments?: Array<{ filename: string; contentType?: string; content: string }> };
+type StoredPayload = Omit<Payload, "attachments"> & {
+  attachments?: Array<{
+    filename: string;
+    contentType?: string;
+    content: string;
+  }>;
+};
 const fromStored = (v: unknown): Payload => {
   const p = v as StoredPayload;
   return {
     ...p,
-    attachments: p.attachments?.map((a) => ({ filename: a.filename, contentType: a.contentType, content: Buffer.from(String(a.content), "base64") })),
+    attachments: p.attachments?.map((a) => ({
+      filename: a.filename,
+      contentType: a.contentType,
+      content: Buffer.from(String(a.content), "base64"),
+    })),
   };
 };
 
@@ -114,7 +159,12 @@ export async function sendEmail(input: SendInput): Promise<void> {
     html: input.html,
     text: input.text,
     replyTo: input.replyTo ?? null,
-    headers: input.unsubscribeUrl ? { "List-Unsubscribe": `<${input.unsubscribeUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } : undefined,
+    headers: input.unsubscribeUrl
+      ? {
+          "List-Unsubscribe": `<${input.unsubscribeUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        }
+      : undefined,
     template: input.template,
     attachments: input.attachments,
   };
@@ -135,7 +185,15 @@ export async function sendEmail(input: SendInput): Promise<void> {
   });
   try {
     const providerMessageId = await deliver(payload, message.id);
-    await db.emailMessage.update({ where: { id: message.id }, data: { status: "SENT", sentAt: new Date(), providerMessageId, attempts: 1 } });
+    await db.emailMessage.update({
+      where: { id: message.id },
+      data: {
+        status: "SENT",
+        sentAt: new Date(),
+        providerMessageId,
+        attempts: 1,
+      },
+    });
   } catch (err) {
     await db.emailMessage.update({
       where: { id: message.id },
@@ -152,9 +210,16 @@ export async function sendEmail(input: SendInput): Promise<void> {
 }
 
 /** Tâche planifiée (RG-ARC-06) : renvoi des e-mails en échec, délai doublé à chaque essai, 5 tentatives au plus. */
-export async function retryFailedEmails(now = new Date()): Promise<{ sent: number; failed: number }> {
+export async function retryFailedEmails(
+  now = new Date(),
+): Promise<{ sent: number; failed: number }> {
   const due = await db.emailMessage.findMany({
-    where: { status: "FAILED", nextAttemptAt: { lte: now }, attempts: { lt: MAX_ATTEMPTS }, NOT: { retryPayload: { equals: Prisma.DbNull } } },
+    where: {
+      status: "FAILED",
+      nextAttemptAt: { lte: now },
+      attempts: { lt: MAX_ATTEMPTS },
+      NOT: { retryPayload: { equals: Prisma.DbNull } },
+    },
     take: 100,
     orderBy: { nextAttemptAt: "asc" },
   });
@@ -183,7 +248,10 @@ export async function retryFailedEmails(now = new Date()): Promise<{ sent: numbe
         data: {
           attempts,
           error: String(err).slice(0, 500),
-          nextAttemptAt: attempts >= MAX_ATTEMPTS ? null : new Date(now.getTime() + RETRY_BASE_MS * 2 ** (attempts - 1)),
+          nextAttemptAt:
+            attempts >= MAX_ATTEMPTS
+              ? null
+              : new Date(now.getTime() + RETRY_BASE_MS * 2 ** (attempts - 1)),
           ...(attempts >= MAX_ATTEMPTS ? { retryPayload: Prisma.DbNull } : {}),
         },
       });

@@ -7,10 +7,22 @@ import { createListing, reserveResale } from "@/server/resale";
 const rid = () => Math.random().toString(36).slice(2, 10);
 
 /** Une table (ou un billet simple) gratuite avec une option incluse, achetée par Léa. */
-async function setup(opts: { groupSize: number; included: number; tableLabels?: string[] }) {
+async function setup(opts: {
+  groupSize: number;
+  included: number;
+  tableLabels?: string[];
+}) {
   const id = rid();
   const org = await db.organization.create({
-    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    data: {
+      name: `Club ${id}`,
+      slug: `club-${id}`,
+      subdomain: `club-${id}`,
+      country: "BE",
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      locale: "fr",
+    },
   });
   const event = await db.event.create({
     data: {
@@ -24,7 +36,9 @@ async function setup(opts: { groupSize: number; included: number; tableLabels?: 
       status: "PUBLISHED",
     },
   });
-  const option = await db.eventOption.create({ data: { eventId: event.id, name: "Boisson", priceMinor: 0 } });
+  const option = await db.eventOption.create({
+    data: { eventId: event.id, name: "Boisson", priceMinor: 0 },
+  });
   const type = await db.ticketType.create({
     data: {
       eventId: event.id,
@@ -34,27 +48,67 @@ async function setup(opts: { groupSize: number; included: number; tableLabels?: 
       quantity: 10,
       groupSize: opts.groupSize,
       ...(opts.tableLabels ? { tableLabels: opts.tableLabels } : {}),
-      includedOptions: { create: [{ optionId: option.id, quantity: opts.included }] },
+      includedOptions: {
+        create: [{ optionId: option.id, quantity: opts.included }],
+      },
     },
   });
-  const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: type.id, quantity: 1 }], locale: "fr" });
-  expect(await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false })).toEqual({ kind: "PAID" });
-  const seats = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
+  const r = await reserveOrder({
+    eventId: event.id,
+    lines: [{ ticketTypeId: type.id, quantity: 1 }],
+    locale: "fr",
+  });
+  expect(
+    await submitBuyer(r.token, {
+      firstName: "Léa",
+      lastName: "Martin",
+      email: `lea.${id}@exemple.be`,
+      marketingOptIn: false,
+    }),
+  ).toEqual({ kind: "PAID" });
+  const seats = await db.ticket.findMany({
+    where: { orderId: r.orderId },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  });
   expect(seats).toHaveLength(opts.groupSize);
-  return { id, event, option, sellerToken: r.token, sellerOrderId: r.orderId, seats };
+  return {
+    id,
+    event,
+    option,
+    sellerToken: r.token,
+    sellerOrderId: r.orderId,
+    seats,
+  };
 }
 
 /** Revend une place à un nouvel acheteur, par le vrai chemin : annonce, réservation, coordonnées, validation. */
-async function resell(s: Awaited<ReturnType<typeof setup>>, ticketId: string, n: number) {
+async function resell(
+  s: Awaited<ReturnType<typeof setup>>,
+  ticketId: string,
+  n: number,
+) {
   const listing = await createListing(s.sellerToken, ticketId, "0");
   const r = await reserveResale(listing.linkCode, "fr");
-  expect(await submitBuyer(r.token, { firstName: "Tom", lastName: `Acheteur ${n}`, email: `tom${n}.${s.id}@exemple.be`, marketingOptIn: false })).toEqual({
+  expect(
+    await submitBuyer(r.token, {
+      firstName: "Tom",
+      lastName: `Acheteur ${n}`,
+      email: `tom${n}.${s.id}@exemple.be`,
+      marketingOptIn: false,
+    }),
+  ).toEqual({
     kind: "PAID",
   });
-  const ticket = await db.ticket.findFirstOrThrow({ where: { orderId: r.orderId } });
+  const ticket = await db.ticket.findFirstOrThrow({
+    where: { orderId: r.orderId },
+  });
   return { orderId: r.orderId, ticket };
 }
-const left = async (eventId: string, code: string) => (await optionsForScan(eventId, { code })).options.reduce((n, o) => n + o.left, 0);
+const left = async (eventId: string, code: string) =>
+  (await optionsForScan(eventId, { code })).options.reduce(
+    (n, o) => n + o.left,
+    0,
+  );
 
 describe("revente d'une place avec des options incluses (section 9.31)", () => {
   it("table de 4 avec 4 boissons : la place revendue emporte 1 boisson, retrouvée au bar par l'acheteur ; le vendeur en garde 3", async () => {
@@ -62,7 +116,9 @@ describe("revente d'une place avec des options incluses (section 9.31)", () => {
     const sold = await resell(s, s.seats[0]!.id, 1);
     expect(await left(s.event.id, sold.ticket.code)).toBe(1);
     expect(await left(s.event.id, s.seats[1]!.code)).toBe(3);
-    const lines = await db.orderOption.findMany({ where: { optionId: s.option.id } });
+    const lines = await db.orderOption.findMany({
+      where: { optionId: s.option.id },
+    });
     expect(lines.reduce((n, l) => n + l.quantity, 0)).toBe(4); // déplacé, jamais créé en plus
     expect(lines.every((l) => l.unitPriceMinor === 0)).toBe(true);
   });
@@ -76,27 +132,39 @@ describe("revente d'une place avec des options incluses (section 9.31)", () => {
     }
     const last = await resell(s, s.seats[3]!.id, 4);
     expect(await left(s.event.id, last.ticket.code)).toBe(1);
-    expect(await db.orderOption.count({ where: { orderId: s.sellerOrderId } })).toBe(0); // le vendeur n'a plus rien
+    expect(
+      await db.orderOption.count({ where: { orderId: s.sellerOrderId } }),
+    ).toBe(0); // le vendeur n'a plus rien
   });
 
   it("déjà servi au bar : rien n'est transmis au-delà de ce qui reste", async () => {
     const s = await setup({ groupSize: 4, included: 4 });
-    const line = await db.orderOption.findFirstOrThrow({ where: { orderId: s.sellerOrderId } });
+    const line = await db.orderOption.findFirstOrThrow({
+      where: { orderId: s.sellerOrderId },
+    });
     await redeemOption(s.event.id, line.id, 4);
     const sold = await resell(s, s.seats[0]!.id, 1);
     expect(await left(s.event.id, sold.ticket.code)).toBe(0);
-    expect(await db.orderOption.findUniqueOrThrow({ where: { id: line.id } })).toMatchObject({ quantity: 4, redeemed: 4 });
+    expect(
+      await db.orderOption.findUniqueOrThrow({ where: { id: line.id } }),
+    ).toMatchObject({ quantity: 4, redeemed: 4 });
   });
 
   it("billet simple avec une option incluse : la revente transmet toute l'option", async () => {
     const s = await setup({ groupSize: 1, included: 2 });
     const sold = await resell(s, s.seats[0]!.id, 1);
     expect(await left(s.event.id, sold.ticket.code)).toBe(2);
-    expect(await db.orderOption.count({ where: { orderId: s.sellerOrderId } })).toBe(0);
+    expect(
+      await db.orderOption.count({ where: { orderId: s.sellerOrderId } }),
+    ).toBe(0);
   });
 
   it("la table du billet suit la revente : le nouveau billet garde son libellé", async () => {
-    const s = await setup({ groupSize: 2, included: 2, tableLabels: ["Table 7"] });
+    const s = await setup({
+      groupSize: 2,
+      included: 2,
+      tableLabels: ["Table 7"],
+    });
     expect(s.seats.map((t) => t.tableLabel)).toEqual(["Table 7", "Table 7"]);
     const sold = await resell(s, s.seats[0]!.id, 1);
     expect(sold.ticket.tableLabel).toBe("Table 7");

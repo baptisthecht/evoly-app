@@ -1,10 +1,17 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import { AddressSearch } from "@/components/places/AddressSearch";
 import { Fr } from "./intl";
 
-const t = (fr as unknown as Record<string, Record<string, string>>).addressSearch!;
+const t = (fr as unknown as Record<string, Record<string, string>>)
+  .addressSearch!;
 const madeleine = {
   id: "1",
   kind: "venue",
@@ -31,7 +38,9 @@ const zenith = {
 };
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
-  fetchMock = vi.fn(async () => new Response(JSON.stringify({ places: [madeleine, zenith] })));
+  fetchMock = vi.fn(
+    async () => new Response(JSON.stringify({ places: [madeleine, zenith] })),
+  );
   vi.stubGlobal("fetch", fetchMock);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -48,8 +57,12 @@ describe("recherche d'adresse (liste de suggestions accessible)", () => {
     await new Promise((r) => setTimeout(r, 300));
     expect(fetchMock).not.toHaveBeenCalled();
     fireEvent.change(box, { target: { value: "La Mad" } });
-    expect(await screen.findByRole("option", { name: /La Madeleine/ })).toBeTruthy();
-    expect(String(fetchMock.mock.calls[0]![0])).toContain("/api/places?q=La+Mad&lang=fr");
+    expect(
+      await screen.findByRole("option", { name: /La Madeleine/ }),
+    ).toBeTruthy();
+    expect(String(fetchMock.mock.calls[0]![0])).toContain(
+      "/api/places?q=La+Mad&lang=fr",
+    );
     expect(box.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByText(t.attribution!)).toBeTruthy();
   });
@@ -79,7 +92,9 @@ describe("recherche d'adresse (liste de suggestions accessible)", () => {
   });
 
   it("aucun résultat : invitation à saisir le lieu à la main ; Échap ferme la liste", async () => {
-    fetchMock.mockImplementation(async () => new Response(JSON.stringify({ places: [] })));
+    fetchMock.mockImplementation(
+      async () => new Response(JSON.stringify({ places: [] })),
+    );
     render(
       <Fr>
         <AddressSearch id="lieu" onSelect={() => {}} />
@@ -89,7 +104,9 @@ describe("recherche d'adresse (liste de suggestions accessible)", () => {
     fireEvent.change(box, { target: { value: "Introuvable" } });
     expect(await screen.findByText(t.noResults!)).toBeTruthy();
     fireEvent.keyDown(box, { key: "Escape" });
-    await waitFor(() => expect(box.getAttribute("aria-expanded")).toBe("false"));
+    await waitFor(() =>
+      expect(box.getAttribute("aria-expanded")).toBe("false"),
+    );
   });
 
   it("panne du service : aucune suggestion, la saisie libre reste possible", async () => {
@@ -102,7 +119,9 @@ describe("recherche d'adresse (liste de suggestions accessible)", () => {
       </Fr>,
     );
     const box = screen.getByRole("combobox") as HTMLInputElement;
-    await act(async () => void fireEvent.change(box, { target: { value: "Ma salle" } }));
+    await act(
+      async () => void fireEvent.change(box, { target: { value: "Ma salle" } }),
+    );
     expect(await screen.findByText(t.noResults!)).toBeTruthy();
     expect(box.value).toBe("Ma salle");
   });

@@ -17,9 +17,20 @@ beforeEach(() => {
   stop.mockReset();
   vi.useFakeTimers();
   Object.assign(window, { BarcodeDetector: FakeDetector });
-  Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop }] })) } });
-  Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: vi.fn(async () => undefined) });
-  Object.defineProperty(HTMLMediaElement.prototype, "readyState", { configurable: true, get: () => 4 });
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: {
+      getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop }] })),
+    },
+  });
+  Object.defineProperty(HTMLMediaElement.prototype, "play", {
+    configurable: true,
+    value: vi.fn(async () => undefined),
+  });
+  Object.defineProperty(HTMLMediaElement.prototype, "readyState", {
+    configurable: true,
+    get: () => 4,
+  });
 });
 afterEach(() => vi.useRealTimers());
 
@@ -34,7 +45,8 @@ const start = async () => {
     await vi.advanceTimersByTimeAsync(0);
   });
 };
-const frames = (ms: number) => act(async () => void (await vi.advanceTimersByTimeAsync(ms)));
+const frames = (ms: number) =>
+  act(async () => void (await vi.advanceTimersByTimeAsync(ms)));
 
 describe("caméra du scanner", () => {
   it("après l'allumage, chaque code lu va à la dernière fonction reçue : le mode choisi ensuite compte (bug du mode bar)", async () => {
@@ -71,14 +83,22 @@ describe("caméra du scanner", () => {
   });
 
   it("caméra refusée : le bénévole est invité à saisir le code court ; la caméra s'éteint quand on quitte l'écran", async () => {
-    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: vi.fn(async () => Promise.reject(new Error("refus"))) } });
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: {
+        getUserMedia: vi.fn(async () => Promise.reject(new Error("refus"))),
+      },
+    });
     render(view(vi.fn()));
     await start();
     expect(screen.getByText(/La caméra est bloquée/)).toBeTruthy();
   });
 
   it("navigateur sans caméra : message dédié", async () => {
-    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: undefined });
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: undefined,
+    });
     render(view(vi.fn()));
     await start();
     expect(screen.getByText(/ne donne pas accès à la caméra/)).toBeTruthy();

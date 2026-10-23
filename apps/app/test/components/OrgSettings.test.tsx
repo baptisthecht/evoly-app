@@ -1,12 +1,25 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
-import { OrganizationSettingsForm, type SettingsValues } from "@/app/o/[orgSlug]/settings/SettingsClient";
+import {
+  OrganizationSettingsForm,
+  type SettingsValues,
+} from "@/app/o/[orgSlug]/settings/SettingsClient";
 import { Fr } from "./intl";
 
-const actions = vi.hoisted(() => ({ saveSettingsAction: vi.fn(), deleteOrganizationAction: vi.fn() }));
+const actions = vi.hoisted(() => ({
+  saveSettingsAction: vi.fn(),
+  deleteOrganizationAction: vi.fn(),
+}));
 vi.mock("@/app/o/[orgSlug]/settings/actions", () => actions);
-const t = (fr as unknown as Record<string, Record<string, string>>).orgSettings!;
+const t = (fr as unknown as Record<string, Record<string, string>>)
+  .orgSettings!;
 const values: SettingsValues = {
   name: "Club",
   legalName: "Club ASBL",
@@ -49,7 +62,12 @@ const draw = (over: { currencyLocked?: boolean; readOnly?: boolean } = {}) =>
     </Fr>,
   );
 const send = async () => {
-  await act(async () => void fireEvent.submit(screen.getByRole("button", { name: t.save }).closest("form")!));
+  await act(
+    async () =>
+      void fireEvent.submit(
+        screen.getByRole("button", { name: t.save }).closest("form")!,
+      ),
+  );
   await waitFor(() => expect(actions.saveSettingsAction).toHaveBeenCalled());
   return actions.saveSettingsAction.mock.calls.at(-1)!.at(-1) as FormData;
 };
@@ -57,14 +75,18 @@ const send = async () => {
 describe("paramètres de l'organisation : la devise", () => {
   it("devise verrouillée après les premières ventes : liste désactivée, devise envoyée une seule fois par le champ caché", async () => {
     draw({ currencyLocked: true });
-    expect((document.getElementById("org-currency") as HTMLSelectElement).disabled).toBe(true);
+    expect(
+      (document.getElementById("org-currency") as HTMLSelectElement).disabled,
+    ).toBe(true);
     expect(screen.getByText(t.currencyLocked!)).toBeTruthy();
     expect((await send()).getAll("currency")).toEqual(["EUR"]); // sans cela, l'enregistrement serait refusé faute de devise
   });
 
   it("devise libre : envoyée une seule fois, par la liste, sans champ caché", async () => {
     draw();
-    fireEvent.change(document.getElementById("org-currency")!, { target: { value: "CHF" } });
+    fireEvent.change(document.getElementById("org-currency")!, {
+      target: { value: "CHF" },
+    });
     expect((await send()).getAll("currency")).toEqual(["CHF"]);
   });
 });
@@ -82,11 +104,19 @@ describe("paramètres de l'organisation : enregistrement et lecture seule", () =
     draw();
     await send();
     expect(await screen.findByText(t.saved!)).toBeTruthy();
-    actions.saveSettingsAction.mockResolvedValue({ ok: false, error: "INVALID_INPUT", fields: { name: "validation.required" } });
+    actions.saveSettingsAction.mockResolvedValue({
+      ok: false,
+      error: "INVALID_INPUT",
+      fields: { name: "validation.required" },
+    });
     await send();
     const v = fr.validation as Record<string, string>;
     expect(await screen.findByText(v.required ?? v.invalid!)).toBeTruthy();
-    expect(document.getElementById("org-name-error")!.textContent).toBe(v.required ?? v.invalid); // sous le champ du nom
-    expect(document.getElementById("org-name")!.getAttribute("aria-invalid")).toBe("true"); // désormais marqué par le composant de champ
+    expect(document.getElementById("org-name-error")!.textContent).toBe(
+      v.required ?? v.invalid,
+    ); // sous le champ du nom
+    expect(
+      document.getElementById("org-name")!.getAttribute("aria-invalid"),
+    ).toBe("true"); // désormais marqué par le composant de champ
   });
 });

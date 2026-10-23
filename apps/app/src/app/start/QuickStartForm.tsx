@@ -12,7 +12,17 @@ import { AddressSearch } from "@/components/places/AddressSearch";
 import { Field, Input } from "@/components/ui/Field";
 import { CheckIcon } from "@/components/ui/icons";
 
-const EVENT_FIELDS = ["title", "startsAtLocal", "locationName", "addressLine1", "postalCode", "city", "country", "price", "quantity"] as const;
+const EVENT_FIELDS = [
+  "title",
+  "startsAtLocal",
+  "locationName",
+  "addressLine1",
+  "postalCode",
+  "city",
+  "country",
+  "price",
+  "quantity",
+] as const;
 const TYPES = ["ASSOCIATION", "COMPANY", "INDIVIDUAL", "PUBLIC_BODY"] as const;
 interface Ev {
   title: string;
@@ -26,7 +36,18 @@ interface Ev {
   price: string;
   quantity: string;
 }
-const empty: Ev = { title: "", date: "", time: "", locationName: "", addressLine1: "", postalCode: "", city: "", country: "", price: "", quantity: "" };
+const empty: Ev = {
+  title: "",
+  date: "",
+  time: "",
+  locationName: "",
+  addressLine1: "",
+  postalCode: "",
+  city: "",
+  country: "",
+  price: "",
+  quantity: "",
+};
 const slug = (s: string, fallback: string) =>
   s
     .normalize("NFD")
@@ -38,24 +59,55 @@ type T = ReturnType<typeof useTranslations<"quickstart">>;
 
 /** Étapes : la première cochée en vert une fois franchie. */
 function Steps({ step, t }: { step: 1 | 2; t: T }) {
-  const dot = "inline-flex size-5 items-center justify-center rounded-full text-[0.6875rem]";
+  const dot =
+    "inline-flex size-5 items-center justify-center rounded-full text-[0.6875rem]";
   return (
-    <ol className="flex items-center gap-3 text-[0.8125rem]" aria-label={t("title")}>
+    <ol
+      className="flex items-center gap-3 text-[0.8125rem]"
+      aria-label={t("title")}
+    >
       <li
-        className={step === 1 ? "inline-flex items-center gap-2 font-semibold" : "inline-flex items-center gap-2 font-medium text-success"}
+        className={
+          step === 1
+            ? "inline-flex items-center gap-2 font-semibold"
+            : "inline-flex items-center gap-2 font-medium text-success"
+        }
         aria-current={step === 1 ? "step" : undefined}
       >
-        <span className={step === 1 ? `${dot} bg-surface-inverse text-ink-inverse` : `${dot} bg-success text-blanc`}>
+        <span
+          className={
+            step === 1
+              ? `${dot} bg-surface-inverse text-ink-inverse`
+              : `${dot} bg-success text-blanc`
+          }
+        >
           {step === 1 ? "1" : <CheckIcon strokeWidth={3.4} />}
         </span>
         {t("stepEvent")}
       </li>
-      <li aria-hidden="true" className={step === 1 ? "h-px w-8 bg-line-strong" : "h-px w-8 bg-success"} />
       <li
-        className={step === 2 ? "inline-flex items-center gap-2 font-semibold" : "inline-flex items-center gap-2 text-ink-muted"}
+        aria-hidden="true"
+        className={
+          step === 1 ? "h-px w-8 bg-line-strong" : "h-px w-8 bg-success"
+        }
+      />
+      <li
+        className={
+          step === 2
+            ? "inline-flex items-center gap-2 font-semibold"
+            : "inline-flex items-center gap-2 text-ink-muted"
+        }
         aria-current={step === 2 ? "step" : undefined}
       >
-        <span className={step === 2 ? `${dot} bg-surface-inverse text-ink-inverse` : `${dot} ring-1 ring-line-strong`}>2</span>
+        <span
+          className={
+            step === 2
+              ? `${dot} bg-surface-inverse text-ink-inverse`
+              : `${dot} ring-1 ring-line-strong`
+          }
+        >
+          2
+        </span>
         {t("stepAccount")}
       </li>
     </ol>
@@ -63,68 +115,138 @@ function Steps({ step, t }: { step: 1 | 2; t: T }) {
 }
 
 /** Aperçu de la billetterie, mis à jour pendant la saisie. */
-function Preview({ ev, t, locale, org, compact = false }: { ev: Ev; t: T; locale: string; org: string | null; compact?: boolean }) {
+function Preview({
+  ev,
+  t,
+  locale,
+  org,
+  compact = false,
+}: {
+  ev: Ev;
+  t: T;
+  locale: string;
+  org: string | null;
+  compact?: boolean;
+}) {
   const d = ev.date ? new Date(`${ev.date}T${ev.time || "00:00"}`) : null;
   const ok = !!d && !Number.isNaN(d.getTime());
-  const when = ok ? new Intl.DateTimeFormat(locale, { dateStyle: "full", ...(ev.time ? { timeStyle: "short" } : {}) }).format(d!) : t("previewDate");
-  const where = ev.locationName ? [ev.locationName, ev.addressLine1, ev.city].filter(Boolean).join(", ") : t("previewPlace");
+  const when = ok
+    ? new Intl.DateTimeFormat(locale, {
+        dateStyle: "full",
+        ...(ev.time ? { timeStyle: "short" } : {}),
+      }).format(d!)
+    : t("previewDate");
+  const where = ev.locationName
+    ? [ev.locationName, ev.addressLine1, ev.city].filter(Boolean).join(", ")
+    : t("previewPlace");
   const n = parseInt(ev.quantity, 10);
   const p = Number(ev.price.replace(",", ".")) || 0;
-  const price = p > 0 ? formatMoney(Math.round(p * 100), "EUR", locale as Parameters<typeof formatMoney>[2]) : t("free");
+  const price =
+    p > 0
+      ? formatMoney(
+          Math.round(p * 100),
+          "EUR",
+          locale as Parameters<typeof formatMoney>[2],
+        )
+      : t("free");
   const stamp = (
     <div className="shrink-0 rounded-md bg-surface-raised px-3 py-1.5 text-center shadow-sm">
       <div className="text-[0.6875rem] font-semibold text-[var(--required)] uppercase">
-        {ok ? new Intl.DateTimeFormat(locale, { month: "short" }).format(d!).replace(".", "") : "-"}
+        {ok
+          ? new Intl.DateTimeFormat(locale, { month: "short" })
+              .format(d!)
+              .replace(".", "")
+          : "-"}
       </div>
-      <div className={compact ? "text-[1.0625rem] leading-tight font-semibold" : "text-[1.625rem] leading-tight font-semibold"}>{ok ? d!.getDate() : "-"}</div>
+      <div
+        className={
+          compact
+            ? "text-[1.0625rem] leading-tight font-semibold"
+            : "text-[1.625rem] leading-tight font-semibold"
+        }
+      >
+        {ok ? d!.getDate() : "-"}
+      </div>
     </div>
   );
   if (compact)
     return (
-      <div className="flex items-center gap-3 rounded-lg bg-surface-accent p-3 ring-1 ring-line" aria-label={t("preview")} role="region">
+      <div
+        className="flex items-center gap-3 rounded-lg bg-surface-accent p-3 ring-1 ring-line"
+        aria-label={t("preview")}
+        role="region"
+      >
         {stamp}
         <div className="grid min-w-0 flex-1">
-          <span className="truncate text-sm font-semibold">{ev.title || t("previewTitle")}</span>
+          <span className="truncate text-sm font-semibold">
+            {ev.title || t("previewTitle")}
+          </span>
           <span className="truncate text-xs text-ink-muted">{where}</span>
         </div>
         <span className="text-[0.8125rem] font-semibold">{price}</span>
       </div>
     );
   return (
-    <section aria-label={t("preview")} className="overflow-hidden rounded-lg bg-surface-raised shadow-lg ring-1 ring-line">
+    <section
+      aria-label={t("preview")}
+      className="overflow-hidden rounded-lg bg-surface-raised shadow-lg ring-1 ring-line"
+    >
       <div className="flex items-center gap-1.5 border-b border-line px-3.5 py-2.5">
         {[0, 1, 2].map((i) => (
-          <span key={i} aria-hidden="true" className="size-2 rounded-full bg-line" />
+          <span
+            key={i}
+            aria-hidden="true"
+            className="size-2 rounded-full bg-line"
+          />
         ))}
         <span className="ml-2.5 min-w-0 flex-1 truncate rounded-sm bg-surface px-2.5 py-1 text-xs text-ink-muted">
-          <span className="text-ink">{slug(org ?? "", "votre-asso")}</span>.evoly.me/<span className="text-ink">{slug(ev.title, "votre-evenement")}</span>
+          <span className="text-ink">{slug(org ?? "", "votre-asso")}</span>
+          .evoly.me/
+          <span className="text-ink">{slug(ev.title, "votre-evenement")}</span>
         </span>
       </div>
       <div className="flex items-center gap-4 bg-surface-accent px-7 pt-7 pb-6">
         {stamp}
         <div className="grid min-w-0 gap-1">
           {org !== null ? (
-            <span className="justify-self-start rounded-sm bg-surface-raised px-2 py-0.5 text-[0.6875rem] font-semibold text-ink-muted">{t("draft")}</span>
+            <span className="justify-self-start rounded-sm bg-surface-raised px-2 py-0.5 text-[0.6875rem] font-semibold text-ink-muted">
+              {t("draft")}
+            </span>
           ) : null}
-          <h2 className={`text-[1.375rem] leading-tight font-semibold tracking-[-0.01em] break-words ${ev.title ? "" : "text-ink-subtle"}`}>
+          <h2
+            className={`text-[1.375rem] leading-tight font-semibold tracking-[-0.01em] break-words ${ev.title ? "" : "text-ink-subtle"}`}
+          >
             {ev.title || t("previewTitle")}
           </h2>
           <span className="text-[0.8125rem] text-ink-muted">{when}</span>
           <span className="text-[0.8125rem] text-ink-muted">{where}</span>
-          {org ? <span className="text-[0.8125rem] text-ink-muted">{t("by", { name: org })}</span> : null}
+          {org ? (
+            <span className="text-[0.8125rem] text-ink-muted">
+              {t("by", { name: org })}
+            </span>
+          ) : null}
         </div>
       </div>
       <div className="grid gap-3 px-7 pt-5 pb-6">
-        <span className="text-xs font-semibold tracking-[0.05em] text-ink-muted uppercase">{t("tickets")}</span>
+        <span className="text-xs font-semibold tracking-[0.05em] text-ink-muted uppercase">
+          {t("tickets")}
+        </span>
         <div className="flex items-stretch rounded-md ring-1 ring-line">
           <div className="grid flex-1 gap-0.5 px-4 py-3">
             <span className="font-medium">{t("ticket")}</span>
-            <span className="text-xs text-ink-muted">{n > 0 ? t("places", { n }) : t("unlimited")}</span>
+            <span className="text-xs text-ink-muted">
+              {n > 0 ? t("places", { n }) : t("unlimited")}
+            </span>
           </div>
-          <div aria-hidden="true" className="my-2 border-l border-dashed border-line-strong" />
+          <div
+            aria-hidden="true"
+            className="my-2 border-l border-dashed border-line-strong"
+          />
           <div className="flex items-center gap-3.5 px-4 py-3">
             <span className="text-[0.9375rem] font-semibold">{price}</span>
-            <span className="inline-flex h-8 items-center rounded-sm bg-surface-inverse px-3.5 text-[0.8125rem] font-medium text-ink-inverse">{t("book")}</span>
+            <span className="inline-flex h-8 items-center rounded-sm bg-surface-inverse px-3.5 text-[0.8125rem] font-medium text-ink-inverse">
+              {t("book")}
+            </span>
           </div>
         </div>
         <span className="text-xs text-ink-muted">{t("secure")}</span>
@@ -151,18 +273,39 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
   const first = useRef<HTMLDivElement>(null);
   // une erreur sur un champ de l'événement ramène au premier écran
   useEffect(() => {
-    if (state && !state.ok && state.fields && EVENT_FIELDS.some((f) => state.fields?.[f])) setStep(1);
+    if (
+      state &&
+      !state.ok &&
+      state.fields &&
+      EVENT_FIELDS.some((f) => state.fields?.[f])
+    )
+      setStep(1);
   }, [state]);
-  const set = (k: keyof Ev) => (e: React.ChangeEvent<HTMLInputElement>) => setEv((v) => ({ ...v, [k]: e.target.value }));
-  const done = { title: !!ev.title.trim(), date: !!ev.date, time: !!ev.time, place: !!ev.locationName.trim() && !!ev.city.trim() };
+  const set = (k: keyof Ev) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setEv((v) => ({ ...v, [k]: e.target.value }));
+  const done = {
+    title: !!ev.title.trim(),
+    date: !!ev.date,
+    time: !!ev.time,
+    place: !!ev.locationName.trim() && !!ev.city.trim(),
+  };
   const filled = Object.values(done).filter(Boolean).length;
   const next = () => {
     const inputs = [...(first.current?.querySelectorAll("input") ?? [])];
     if (inputs.every((i) => i.reportValidity())) setStep(2);
   };
-  const level = pass.length === 0 ? 0 : pass.length < 10 ? 1 : /[A-Z]/.test(pass) && /\d/.test(pass) && pass.length >= 12 ? 3 : 2;
-  const bar = (i: number) => (level >= i ? (level === 1 ? "bg-warning" : "bg-success") : "bg-line");
-  const columns = "grid items-start gap-10 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:gap-12";
+  const level =
+    pass.length === 0
+      ? 0
+      : pass.length < 10
+        ? 1
+        : /[A-Z]/.test(pass) && /\d/.test(pass) && pass.length >= 12
+          ? 3
+          : 2;
+  const bar = (i: number) =>
+    level >= i ? (level === 1 ? "bg-warning" : "bg-success") : "bg-line";
+  const columns =
+    "grid items-start gap-10 lg:grid-cols-[minmax(0,30rem)_minmax(0,1fr)] lg:gap-12";
   return (
     <form action={action}>
       {step === 1 ? (
@@ -178,26 +321,77 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
             </div>
             <Card className="grid gap-4">
               <div ref={first} className="grid gap-4">
-                <Field label={t("eventTitle")} htmlFor="qs-title" required done={done.title} error={error("title")}>
-                  <Input id="qs-title" required minLength={2} maxLength={120} placeholder={t("eventTitlePh")} value={ev.title} onChange={set("title")} />
+                <Field
+                  label={t("eventTitle")}
+                  htmlFor="qs-title"
+                  required
+                  done={done.title}
+                  error={error("title")}
+                >
+                  <Input
+                    id="qs-title"
+                    required
+                    minLength={2}
+                    maxLength={120}
+                    placeholder={t("eventTitlePh")}
+                    value={ev.title}
+                    onChange={set("title")}
+                  />
                 </Field>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label={t("date")} htmlFor="qs-date" required done={done.date} error={error("startsAtLocal")}>
-                    <Input id="qs-date" type="date" required value={ev.date} onChange={set("date")} />
+                  <Field
+                    label={t("date")}
+                    htmlFor="qs-date"
+                    required
+                    done={done.date}
+                    error={error("startsAtLocal")}
+                  >
+                    <Input
+                      id="qs-date"
+                      type="date"
+                      required
+                      value={ev.date}
+                      onChange={set("date")}
+                    />
                   </Field>
-                  <Field label={t("time")} htmlFor="qs-time" required done={done.time}>
-                    <Input id="qs-time" type="time" required value={ev.time} onChange={set("time")} />
+                  <Field
+                    label={t("time")}
+                    htmlFor="qs-time"
+                    required
+                    done={done.time}
+                  >
+                    <Input
+                      id="qs-time"
+                      type="time"
+                      required
+                      value={ev.time}
+                      onChange={set("time")}
+                    />
                   </Field>
                 </div>
                 <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-3">
-                  <Field label={t("place")} htmlFor="qs-place" required done={done.place} error={error("locationName")}>
+                  <Field
+                    label={t("place")}
+                    htmlFor="qs-place"
+                    required
+                    done={done.place}
+                    error={error("locationName")}
+                  >
                     <AddressSearch
                       id="qs-place"
                       required
                       maxLength={120}
                       placeholder={t("placePh")}
                       value={ev.locationName}
-                      onChange={(e) => setEv((v) => ({ ...v, locationName: e.target.value, addressLine1: "", postalCode: "", country: "" }))}
+                      onChange={(e) =>
+                        setEv((v) => ({
+                          ...v,
+                          locationName: e.target.value,
+                          addressLine1: "",
+                          postalCode: "",
+                          country: "",
+                        }))
+                      }
                       onSelect={(p) =>
                         setEv((v) => ({
                           ...v,
@@ -210,12 +404,28 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                       }
                     />
                   </Field>
-                  <Field label={t("city")} htmlFor="qs-city" required error={error("city")}>
-                    <Input id="qs-city" required maxLength={80} value={ev.city} onChange={set("city")} />
+                  <Field
+                    label={t("city")}
+                    htmlFor="qs-city"
+                    required
+                    error={error("city")}
+                  >
+                    <Input
+                      id="qs-city"
+                      required
+                      maxLength={80}
+                      value={ev.city}
+                      onChange={set("city")}
+                    />
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Field label={t("price")} htmlFor="qs-price" optional={t("optional")} error={error("price")}>
+                  <Field
+                    label={t("price")}
+                    htmlFor="qs-price"
+                    optional={t("optional")}
+                    error={error("price")}
+                  >
                     <Input
                       id="qs-price"
                       inputMode="decimal"
@@ -225,19 +435,44 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                       onChange={set("price")}
                     />
                   </Field>
-                  <Field label={t("quantity")} htmlFor="qs-quantity" optional={t("optional")} error={error("quantity")}>
-                    <Input id="qs-quantity" type="number" min={1} max={100000} placeholder={t("quantityPh")} value={ev.quantity} onChange={set("quantity")} />
+                  <Field
+                    label={t("quantity")}
+                    htmlFor="qs-quantity"
+                    optional={t("optional")}
+                    error={error("quantity")}
+                  >
+                    <Input
+                      id="qs-quantity"
+                      type="number"
+                      min={1}
+                      max={100000}
+                      placeholder={t("quantityPh")}
+                      value={ev.quantity}
+                      onChange={set("quantity")}
+                    />
                   </Field>
                 </div>
               </div>
               <p className="-mt-1 text-xs text-ink-muted">{t("emptyHint")}</p>
               <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-4">
                 <div className="grid min-w-44 flex-1 gap-1.5">
-                  <span className={filled === 4 ? "text-xs font-medium text-success" : "text-xs font-medium text-ink-muted"}>
+                  <span
+                    className={
+                      filled === 4
+                        ? "text-xs font-medium text-success"
+                        : "text-xs font-medium text-ink-muted"
+                    }
+                  >
                     {filled === 4 ? t("ready") : t("progress", { n: filled })}
                   </span>
-                  <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-line">
-                    <div className="h-full rounded-full bg-success transition-[width] duration-300" style={{ width: `${filled * 25}%` }} />
+                  <div
+                    aria-hidden="true"
+                    className="h-1 overflow-hidden rounded-full bg-line"
+                  >
+                    <div
+                      className="h-full rounded-full bg-success transition-[width] duration-300"
+                      style={{ width: `${filled * 25}%` }}
+                    />
                   </div>
                 </div>
                 <Button type="button" onClick={next}>
@@ -253,7 +488,9 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
             </p>
           </section>
           <aside className="hidden gap-3 lg:sticky lg:top-6 lg:grid">
-            <p className="flex items-center justify-between text-[0.8125rem] font-medium">{t("preview")}</p>
+            <p className="flex items-center justify-between text-[0.8125rem] font-medium">
+              {t("preview")}
+            </p>
             <Preview ev={ev} t={t} locale={locale} org={null} />
           </aside>
         </div>
@@ -261,7 +498,12 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
         <div className={columns}>
           <section className="grid gap-5">
             {EVENT_FIELDS.map((k) => (
-              <input key={k} type="hidden" name={k} value={k === "startsAtLocal" ? `${ev.date}T${ev.time}` : ev[k]} />
+              <input
+                key={k}
+                type="hidden"
+                name={k}
+                value={k === "startsAtLocal" ? `${ev.date}T${ev.time}` : ev[k]}
+              />
             ))}
             <input type="hidden" name="type" value={type} />
             <Steps step={2} t={t} />
@@ -270,12 +512,21 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
               <p className="text-sm text-ink-muted">{t("accountLead")}</p>
             </header>
             {offer ? (
-              <p role="note" className="rounded-md bg-success-soft px-3.5 py-3 text-[0.8125rem] text-ink ring-1 ring-success/25">
+              <p
+                role="note"
+                className="rounded-md bg-success-soft px-3.5 py-3 text-[0.8125rem] text-ink ring-1 ring-success/25"
+              >
                 {offer}
               </p>
             ) : null}
             <Card className="grid gap-4">
-              <Field label={t("orgName")} htmlFor="qs-org" required done={org.trim().length >= 2} error={error("orgName")}>
+              <Field
+                label={t("orgName")}
+                htmlFor="qs-org"
+                required
+                done={org.trim().length >= 2}
+                error={error("orgName")}
+              >
                 <Input
                   id="qs-org"
                   name="orgName"
@@ -289,7 +540,9 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                 />
               </Field>
               <fieldset className="grid gap-1.5">
-                <legend className="mb-1.5 text-[0.8125rem] font-medium">{t("type")}</legend>
+                <legend className="mb-1.5 text-[0.8125rem] font-medium">
+                  {t("type")}
+                </legend>
                 <div className="grid grid-cols-2 overflow-hidden rounded-md ring-1 ring-line-strong sm:grid-cols-4">
                   {TYPES.map((k) => (
                     <button
@@ -308,10 +561,27 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                   ))}
                 </div>
               </fieldset>
-              <Field label={t("email")} htmlFor="qs-email" required error={error("email")}>
-                <Input id="qs-email" name="email" type="email" required autoComplete="email" />
+              <Field
+                label={t("email")}
+                htmlFor="qs-email"
+                required
+                error={error("email")}
+              >
+                <Input
+                  id="qs-email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                />
               </Field>
-              <Field label={t("password")} htmlFor="qs-password" required done={level >= 2} error={error("password")}>
+              <Field
+                label={t("password")}
+                htmlFor="qs-password"
+                required
+                done={level >= 2}
+                error={error("password")}
+              >
                 <div className="relative">
                   <Input
                     id="qs-password"
@@ -339,9 +609,22 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                   <span key={i} className={`h-[3px] rounded-full ${bar(i)}`} />
                 ))}
               </div>
-              <span className={level >= 2 ? "-mt-2 text-xs text-success" : "-mt-2 text-xs text-ink-muted"}>{t(`strength${level}`)}</span>
+              <span
+                className={
+                  level >= 2
+                    ? "-mt-2 text-xs text-success"
+                    : "-mt-2 text-xs text-ink-muted"
+                }
+              >
+                {t(`strength${level}`)}
+              </span>
               <label className="flex items-start gap-2.5 text-[0.8125rem] text-ink-muted">
-                <input type="checkbox" name="terms" required className="mt-0.5 size-4 accent-[var(--ink)]" />
+                <input
+                  type="checkbox"
+                  name="terms"
+                  required
+                  className="mt-0.5 size-4 accent-[var(--ink)]"
+                />
                 <span>
                   {t("terms")}{" "}
                   <span aria-hidden="true" className="text-[var(--required)]">
@@ -360,7 +643,11 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                 <FormError state={state} />
               )}
               <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line pt-4">
-                <button type="button" className="text-[0.8125rem] text-ink-muted underline-offset-4 hover:text-ink hover:underline" onClick={() => setStep(1)}>
+                <button
+                  type="button"
+                  className="text-[0.8125rem] text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+                  onClick={() => setStep(1)}
+                >
                   {t("back")}
                 </button>
                 <SubmitButton pending={pending}>{t("submit")}</SubmitButton>
@@ -368,9 +655,16 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
             </Card>
           </section>
           <aside className="grid gap-4 lg:sticky lg:top-6">
-            <Preview ev={ev} t={t} locale={locale} org={org.trim() || "votre organisation"} />
+            <Preview
+              ev={ev}
+              t={t}
+              locale={locale}
+              org={org.trim() || "votre organisation"}
+            />
             <div className="grid gap-3 rounded-lg bg-surface-raised p-5 ring-1 ring-line">
-              <span className="text-[0.8125rem] font-semibold">{t("nextTitle")}</span>
+              <span className="text-[0.8125rem] font-semibold">
+                {t("nextTitle")}
+              </span>
               <span className="flex items-center gap-2.5 text-[0.8125rem] font-medium text-success">
                 <span className="inline-flex size-5 items-center justify-center rounded-full bg-success text-[0.6875rem] text-blanc">
                   <CheckIcon strokeWidth={3.4} />
@@ -378,11 +672,15 @@ export function QuickStartForm({ offer }: { offer: string | null }) {
                 {t("next1")}
               </span>
               <span className="flex items-center gap-2.5 text-[0.8125rem]">
-                <span className="inline-flex size-5 items-center justify-center rounded-full text-[0.6875rem] ring-1 ring-line-strong">2</span>
+                <span className="inline-flex size-5 items-center justify-center rounded-full text-[0.6875rem] ring-1 ring-line-strong">
+                  2
+                </span>
                 {t("next2")}
               </span>
               <span className="flex items-center gap-2.5 text-[0.8125rem]">
-                <span className="inline-flex size-5 items-center justify-center rounded-full text-[0.6875rem] ring-1 ring-line-strong">3</span>
+                <span className="inline-flex size-5 items-center justify-center rounded-full text-[0.6875rem] ring-1 ring-line-strong">
+                  3
+                </span>
                 {t("next3")}
               </span>
             </div>

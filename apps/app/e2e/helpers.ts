@@ -3,22 +3,33 @@ import { execFileSync } from "node:child_process";
 import { expect, type Page } from "@playwright/test";
 import { firstLink, lastEmail } from "./outbox";
 
-export const uid = () => `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 90 + 10)}`;
+export const uid = () =>
+  `${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 90 + 10)}`;
 
 /** Requête SQL directe sur la base de test (préparation de cas : passage en Pro…). */
 export function sql(query: string): string {
-  const url = process.env.DATABASE_URL ?? "postgresql://evoly:evoly@localhost:5432/evoly";
-  return execFileSync("psql", [url, "-tAc", query], { encoding: "utf8" }).trim();
+  const url =
+    process.env.DATABASE_URL ?? "postgresql://evoly:evoly@localhost:5432/evoly";
+  return execFileSync("psql", [url, "-tAc", query], {
+    encoding: "utf8",
+  }).trim();
 }
 
 export const baseDomain = () => process.env.E2E_BASE_DOMAIN ?? "localhost:3001";
-export const siteUrl = (sub: string, path = "") => `http://${sub}.${baseDomain()}${path}`;
-export const appUrl = (path: string) => new URL(path, process.env.E2E_BASE_URL ?? "http://localhost:3001").toString();
+export const siteUrl = (sub: string, path = "") =>
+  `http://${sub}.${baseDomain()}${path}`;
+export const appUrl = (path: string) =>
+  new URL(path, process.env.E2E_BASE_URL ?? "http://localhost:3001").toString();
 
 /** Adresse IP propre à chaque test : les limites anti-abus s'appliquent par adresse. */
-const randomIp = () => `10.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 254) + 1}`;
+const randomIp = () =>
+  `10.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 254) + 1}`;
 
-export async function signUpAndVerify(page: Page, email: string, password = "Motdepasse-2026!") {
+export async function signUpAndVerify(
+  page: Page,
+  email: string,
+  password = "Motdepasse-2026!",
+) {
   await page.setExtraHTTPHeaders({ "x-forwarded-for": randomIp() });
   await page.goto("/register");
   await page.getByLabel("Votre nom").fill("Camille Dupont");
@@ -26,11 +37,17 @@ export async function signUpAndVerify(page: Page, email: string, password = "Mot
   await page.getByLabel("Mot de passe").fill(password);
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await page.waitForURL(/\/verify-email/);
-  await page.goto(firstLink((await lastEmail(email, "account.verify_email")).text));
+  await page.goto(
+    firstLink((await lastEmail(email, "account.verify_email")).text),
+  );
   await page.waitForURL(/\/onboarding/);
 }
 
-export async function createOrganization(page: Page, name: string, slug: string) {
+export async function createOrganization(
+  page: Page,
+  name: string,
+  slug: string,
+) {
   await page.getByLabel("Nom de l’organisation").fill(name);
   await page.locator("#subdomain").fill(slug);
   await expect(page.getByText("Cette adresse est disponible.")).toBeVisible();
@@ -50,7 +67,12 @@ export async function organizer(page: Page) {
 }
 
 /** Événement gratuit publié, avec un tarif « Fosse » de la quantité donnée. Renvoie l'adresse du tableau de bord. */
-export async function publishedFreeEvent(page: Page, slug: string, title: string, quantity: number) {
+export async function publishedFreeEvent(
+  page: Page,
+  slug: string,
+  title: string,
+  quantity: number,
+) {
   await page.goto(appUrl(`/o/${slug}/events/new`));
   await page.getByLabel("Titre").fill(title);
   await page.getByLabel("Nom du lieu").fill("La Madeleine");
@@ -67,10 +89,19 @@ export async function publishedFreeEvent(page: Page, slug: string, title: string
 }
 
 /** Achat gratuit depuis la page publique : quantité du premier tarif, coordonnées, confirmation. */
-export async function buyFree(page: Page, eventPageUrl: string, ticketName: string, quantity: number, email: string) {
+export async function buyFree(
+  page: Page,
+  eventPageUrl: string,
+  ticketName: string,
+  quantity: number,
+  email: string,
+) {
   await page.goto(eventPageUrl);
   const box = page.locator("#billets");
-  for (let i = 0; i < quantity; i++) await box.getByRole("button", { name: `Un billet ${ticketName} de plus` }).click();
+  for (let i = 0; i < quantity; i++)
+    await box
+      .getByRole("button", { name: `Un billet ${ticketName} de plus` })
+      .click();
   await box.getByRole("button", { name: "Continuer" }).click();
   await box.getByLabel("Prénom").first().fill("Léa");
   await box.getByLabel("Nom", { exact: true }).fill("Martin");
@@ -84,12 +115,17 @@ export function envValue(name: string): string | undefined {
   if (process.env[name]) return process.env[name];
   const file = new URL("../.env.local", import.meta.url);
   if (!existsSync(file)) return undefined;
-  return new RegExp(`^${name}="?([^"\\n]+)"?`, "m").exec(readFileSync(file, "utf8"))?.[1];
+  return new RegExp(`^${name}="?([^"\\n]+)"?`, "m").exec(
+    readFileSync(file, "utf8"),
+  )?.[1];
 }
 
 /** Secret des tâches planifiées, partagé avec le serveur de test. */
 export function cronSecret(): string {
   const v = envValue("CRON_SECRET");
-  if (!v) throw new Error("CRON_SECRET introuvable (variable d'environnement ou apps/app/.env.local)");
+  if (!v)
+    throw new Error(
+      "CRON_SECRET introuvable (variable d'environnement ou apps/app/.env.local)",
+    );
   return v;
 }

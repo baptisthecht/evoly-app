@@ -8,7 +8,9 @@ let client: Stripe | null | undefined;
 export function stripe(): Stripe | null {
   if (client === undefined) {
     const key = env().STRIPE_SECRET_KEY;
-    client = key ? new Stripe(key, { appInfo: { name: "Evoly", url: "https://evoly.me" } }) : null;
+    client = key
+      ? new Stripe(key, { appInfo: { name: "Evoly", url: "https://evoly.me" } })
+      : null;
   }
   return client;
 }

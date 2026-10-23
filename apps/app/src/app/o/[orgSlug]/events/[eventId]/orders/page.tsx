@@ -13,9 +13,19 @@ export default async function EventOrdersPage({
   searchParams,
 }: {
   params: Promise<{ orgSlug: string; eventId: string }>;
-  searchParams: Promise<{ q?: string; type?: string; filter?: string; page?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    type?: string;
+    filter?: string;
+    page?: string;
+  }>;
 }) {
   const { orgSlug, eventId } = await params;
   const sp = await searchParams;
-  return <OrdersPage params={Promise.resolve({ orgSlug })} searchParams={Promise.resolve({ ...sp, event: eventId })} />;
+  return (
+    <OrdersPage
+      params={Promise.resolve({ orgSlug })}
+      searchParams={Promise.resolve({ ...sp, event: eventId })}
+    />
+  );
 }

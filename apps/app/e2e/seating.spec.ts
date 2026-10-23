@@ -2,7 +2,10 @@ import { expect, test } from "./fixtures";
 import sharp from "sharp";
 import { organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
-test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de l'acheteur, billet avec sa place (section 9.9)", async ({ page, browser }) => {
+test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de l'acheteur, billet avec sa place (section 9.9)", async ({
+  page,
+  browser,
+}) => {
   const { id, slug } = await organizer(page);
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
   sql(
@@ -21,17 +24,25 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await page.getByLabel("Catégories de prix").selectOption("1");
   await page.getByRole("button", { name: "Générer le plan" }).click();
   await expect(page.getByText(/^12 places/)).toBeVisible();
-  await expect(page.getByRole("img", { name: "Plan de salle, 12 places" })).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: "Plan de salle, 12 places" }),
+  ).toBeVisible();
 
   // déplacement d'un bloc en le faisant glisser
   const blockX = () =>
-    sql(`select b.x from "SeatingBlock" b join "SeatingMap" m on m.id = b."seatingMapId" where m."eventId" = '${eventId}' and b.kind = 'ROWS'`);
+    sql(
+      `select b.x from "SeatingBlock" b join "SeatingMap" m on m.id = b."seatingMapId" where m."eventId" = '${eventId}' and b.kind = 'ROWS'`,
+    );
   const seat = page.locator("[data-seat]").first();
   await seat.scrollIntoViewIfNeeded();
   const box = (await seat.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 10, { steps: 6 });
+  await page.mouse.move(
+    box.x + box.width / 2 + 40,
+    box.y + box.height / 2 + 10,
+    { steps: 6 },
+  );
   await page.mouse.up();
   await expect.poll(blockX).not.toBe("0");
 
@@ -41,7 +52,9 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
     await page.getByLabel("Rang", { exact: true }).fill("A");
     await page.getByLabel("Place", { exact: true }).fill("1");
     await page.getByRole("button", { name: "Trouver" }).click();
-    await expect(page.getByRole("heading", { name: "Rang A, place 1" })).toBeVisible({ timeout: 3_000 });
+    await expect(
+      page.getByRole("heading", { name: "Rang A, place 1" }),
+    ).toBeVisible({ timeout: 3_000 });
     await page.getByLabel("Bloquée (non vendue)").check({ timeout: 3_000 });
   }).toPass({ timeout: 30_000 });
   await page.getByRole("button", { name: "Enregistrer la place" }).click();
@@ -49,46 +62,89 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
 
   // vente : placement numéroté, choix par l'acheteur
   await page.getByLabel(/Placement numéroté/).check();
-  await expect.poll(() => sql(`select "seatingMode" from "Event" where id = '${eventId}'`)).toBe("ASSIGNED");
+  await expect
+    .poll(() =>
+      sql(`select "seatingMode" from "Event" where id = '${eventId}'`),
+    )
+    .toBe("ASSIGNED");
   await page.getByLabel(/L’acheteur choisit ses places/).check();
-  await expect.poll(() => sql(`select "allowSeatChoice" from "Event" where id = '${eventId}'`)).toBe("t");
+  await expect
+    .poll(() =>
+      sql(`select "allowSeatChoice" from "Event" where id = '${eventId}'`),
+    )
+    .toBe("t");
 
   const guest = await (await browser.newContext({ locale: "fr-BE" })).newPage();
   await guest.goto(siteUrl(slug, `/opera-${id}`));
   const tickets = guest.locator("#billets");
-  await tickets.getByRole("button", { name: "Un billet Fosse de plus" }).click();
-  await tickets.getByRole("button", { name: "Un billet Fosse de plus" }).click();
+  await tickets
+    .getByRole("button", { name: "Un billet Fosse de plus" })
+    .click();
+  await tickets
+    .getByRole("button", { name: "Un billet Fosse de plus" })
+    .click();
   // « Continuer » réserve directement les meilleures places ; l'acheteur peut les voir et les changer
   await tickets.getByRole("button", { name: "Continuer" }).click();
-  await expect(tickets.getByText(/^Nous vous avons réservé les meilleures places disponibles : rang/)).toBeVisible();
-  await tickets.getByRole("button", { name: "Voir ou changer mes places" }).click();
+  await expect(
+    tickets.getByText(
+      /^Nous vous avons réservé les meilleures places disponibles : rang/,
+    ),
+  ).toBeVisible();
+  await tickets
+    .getByRole("button", { name: "Voir ou changer mes places" })
+    .click();
   await tickets.getByRole("button", { name: "Effacer ma sélection" }).click();
-  await tickets.getByRole("button", { name: "Rang A, place 2 : libre" }).click();
-  await tickets.getByRole("button", { name: "Rang A, place 3 : libre" }).click();
+  await tickets
+    .getByRole("button", { name: "Rang A, place 2 : libre" })
+    .click();
+  await tickets
+    .getByRole("button", { name: "Rang A, place 3 : libre" })
+    .click();
   await tickets.getByRole("button", { name: "Valider ces places" }).click();
-  await expect(tickets.getByText("Vos places : rang A, places 2 et 3.")).toBeVisible();
+  await expect(
+    tickets.getByText("Vos places : rang A, places 2 et 3."),
+  ).toBeVisible();
   await tickets.getByLabel("Prénom").first().fill("Léa");
   await tickets.getByLabel("Nom", { exact: true }).fill("Martin");
   await tickets.getByLabel("Adresse e-mail").fill(`lea.${id}@exemple.be`);
-  await tickets.getByRole("button", { name: "Confirmer ma réservation" }).click();
+  await tickets
+    .getByRole("button", { name: "Confirmer ma réservation" })
+    .click();
   await guest.waitForURL(/\/billets\//);
-  await expect(guest.getByTestId("seat")).toHaveText(["Rang A · Place 2", "Rang A · Place 3"]);
+  await expect(guest.getByTestId("seat")).toHaveText([
+    "Rang A · Place 2",
+    "Rang A · Place 3",
+  ]);
 
   // « venez à plusieurs » : le lien partagé depuis la page des billets
-  await expect(guest.getByRole("heading", { name: "Venez à plusieurs ?" })).toBeVisible();
+  await expect(
+    guest.getByRole("heading", { name: "Venez à plusieurs ?" }),
+  ).toBeVisible();
   const friendLink = await guest.getByLabel("Lien à partager").inputValue();
   expect(friendLink).toContain("?amis=");
 
   // second acheteur, venu par le lien de Léa : il garde les places proposées, les plus proches des siennes
-  const guest2 = await (await browser.newContext({ locale: "fr-BE" })).newPage();
-  await guest2.goto(siteUrl(slug, `/opera-${id}?amis=${new URL(friendLink).searchParams.get("amis")}`));
+  const guest2 = await (
+    await browser.newContext({ locale: "fr-BE" })
+  ).newPage();
+  await guest2.goto(
+    siteUrl(
+      slug,
+      `/opera-${id}?amis=${new URL(friendLink).searchParams.get("amis")}`,
+    ),
+  );
   await expect(guest2.getByText(/Léa a réservé ses places/)).toBeVisible();
   const box2 = guest2.locator("#billets");
   await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box2.getByRole("button", { name: "Un billet Fosse de plus" }).click();
   await box2.getByRole("button", { name: "Continuer" }).click();
-  await expect(box2.getByText(/^Nous vous avons réservé les places libres les plus proches de Léa : rang [AB], places \d+ et \d+\./)).toBeVisible();
-  if (process.env.SEAT_SHOT) await guest2.screenshot({ path: process.env.SEAT_SHOT });
+  await expect(
+    box2.getByText(
+      /^Nous vous avons réservé les places libres les plus proches de Léa : rang [AB], places \d+ et \d+\./,
+    ),
+  ).toBeVisible();
+  if (process.env.SEAT_SHOT)
+    await guest2.screenshot({ path: process.env.SEAT_SHOT });
   await box2.getByLabel("Prénom").first().fill("Hugo");
   await box2.getByLabel("Nom", { exact: true }).fill("Leroy");
   await box2.getByLabel("Adresse e-mail").fill(`hugo.${id}@exemple.be`);
@@ -110,13 +166,23 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   );
   expect(target).not.toBe("");
   await page.locator(`[data-seat="${target}"]`).click();
-  await page.getByRole("button", { name: "Confirmer le changement de place" }).click();
-  await expect.poll(() => sql(`select count(*) from "Ticket" where "seatId" = '${target}'`)).toBe("1");
+  await page
+    .getByRole("button", { name: "Confirmer le changement de place" })
+    .click();
+  await expect
+    .poll(() =>
+      sql(`select count(*) from "Ticket" where "seatId" = '${target}'`),
+    )
+    .toBe("1");
 
   // plan d'occupation pour l'accueil
   await page.goto(`${eventUrl}/entries`);
-  await expect(page.getByRole("heading", { name: "Plan d’occupation" })).toBeVisible();
-  await expect(page.getByText(/Personne n’est encore entré sur 4 places vendues/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Plan d’occupation" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Personne n’est encore entré sur 4 places vendues/),
+  ).toBeVisible();
 
   // bibliothèque : la salle enregistrée se retrouve dans le choix du modèle
   await page.goto(`${eventUrl}/seating`);
@@ -126,24 +192,44 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await expect(page.getByText("Salle enregistrée")).toBeVisible();
 
   // carte de chaleur des ventes
-  await page.getByRole("button", { name: "Carte de chaleur des ventes" }).click();
+  await page
+    .getByRole("button", { name: "Carte de chaleur des ventes" })
+    .click();
   await expect(page.getByText(/places vendues sur/)).toBeVisible();
 
   // vue depuis la place : photo du bloc, visible par l'acheteur
   await page.getByRole("button", { name: "Salle", exact: true }).click();
-  const photo = await sharp({ create: { width: 120, height: 80, channels: 3, background: "#A9C4F2" } })
+  const photo = await sharp({
+    create: { width: 120, height: 80, channels: 3, background: "#A9C4F2" },
+  })
     .jpeg()
     .toBuffer();
-  await page.getByLabel("Photo de la vue").setInputFiles({ name: "vue.jpg", mimeType: "image/jpeg", buffer: photo });
+  await page
+    .getByLabel("Photo de la vue")
+    .setInputFiles({ name: "vue.jpg", mimeType: "image/jpeg", buffer: photo });
   await page.getByRole("button", { name: "Ajouter la photo" }).click();
   // envoi, traitement de l'image par le serveur puis rafraîchissement : plus de 5 secondes quand la machine est chargée
-  await expect(page.getByRole("img", { name: "Vue depuis Salle" })).toBeVisible({ timeout: 20_000 });
-  const guest3 = await (await browser.newContext({ locale: "fr-BE" })).newPage();
+  await expect(page.getByRole("img", { name: "Vue depuis Salle" })).toBeVisible(
+    { timeout: 20_000 },
+  );
+  const guest3 = await (
+    await browser.newContext({ locale: "fr-BE" })
+  ).newPage();
   await guest3.goto(siteUrl(slug, `/opera-${id}`));
-  await guest3.locator("#billets").getByRole("button", { name: "Un billet Fosse de plus" }).click();
-  await guest3.locator("#billets").getByRole("button", { name: "Continuer" }).click();
-  await guest3.getByRole("button", { name: "Voir ou changer mes places" }).click();
-  await guest3.getByRole("button", { name: "Voir la vue depuis ces places" }).click();
+  await guest3
+    .locator("#billets")
+    .getByRole("button", { name: "Un billet Fosse de plus" })
+    .click();
+  await guest3
+    .locator("#billets")
+    .getByRole("button", { name: "Continuer" })
+    .click();
+  await guest3
+    .getByRole("button", { name: "Voir ou changer mes places" })
+    .click();
+  await guest3
+    .getByRole("button", { name: "Voir la vue depuis ces places" })
+    .click();
   await expect(guest3.getByRole("dialog")).toBeVisible();
   await guest3.getByRole("button", { name: "Fermer" }).click();
   await expect(guest3.getByRole("dialog")).toBeHidden();
@@ -159,14 +245,22 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
 
   // kit d'installation de salle (section 9.33) : depuis le plan, aperçu, avertissement « non réutilisable », trois PDF
   await page.getByRole("link", { name: "Imprimer les étiquettes" }).click();
-  await expect(page.getByRole("heading", { name: "Imprimer les étiquettes" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Imprimer les étiquettes" }),
+  ).toBeVisible();
   await expect(page.getByText(/^\d+ étiquettes · \d+ feuilles$/)).toBeVisible();
-  const avertissement = page.getByText(/ces étiquettes ne pourront pas resservir/);
+  const avertissement = page.getByText(
+    /ces étiquettes ne pourront pas resservir/,
+  );
   await expect(avertissement).toBeHidden(); // réutilisables par défaut
   await page.getByLabel("Afficher le nom de l'événement").check();
   await expect(avertissement).toBeVisible();
   const kit = page.url().replace(/\/etiquettes.*$/, "");
-  for (const f of ["etiquettes.pdf?format=a4-21&modele=zone&evenement=1", "guide-de-pose.pdf", "page-test.pdf?format=a4-8"]) {
+  for (const f of [
+    "etiquettes.pdf?format=a4-21&modele=zone&evenement=1",
+    "guide-de-pose.pdf",
+    "page-test.pdf?format=a4-8",
+  ]) {
     const r = await page.request.get(`${kit}/${f}`);
     expect(r.status(), f).toBe(200);
     expect(r.headers()["content-type"]).toBe("application/pdf");

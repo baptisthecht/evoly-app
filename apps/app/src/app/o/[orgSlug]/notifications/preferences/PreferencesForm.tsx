@@ -4,17 +4,38 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { savePreferencesAction } from "./actions";
 
-type Row = { type: string; label: string; inApp: boolean; email: boolean | null };
-type Labels = { type: string; inApp: string; email: string; save: string; saved: string };
+type Row = {
+  type: string;
+  label: string;
+  inApp: boolean;
+  email: boolean | null;
+};
+type Labels = {
+  type: string;
+  inApp: string;
+  email: string;
+  save: string;
+  saved: string;
+};
 
 /** Préférences de notification (P1) : par type, dans l'app et par e-mail. */
-export function PreferencesForm({ orgSlug, rows, labels }: { orgSlug: string; rows: Row[]; labels: Labels }) {
+export function PreferencesForm({
+  orgSlug,
+  rows,
+  labels,
+}: {
+  orgSlug: string;
+  rows: Row[];
+  labels: Labels;
+}) {
   const [state, setState] = useState(rows);
   const [saved, setSaved] = useState(false);
   const [pending, start] = useTransition();
   const toggle = (type: string, key: "inApp" | "email") => {
     setSaved(false);
-    setState((s) => s.map((r) => (r.type === type ? { ...r, [key]: !r[key] } : r)));
+    setState((s) =>
+      s.map((r) => (r.type === type ? { ...r, [key]: !r[key] } : r)),
+    );
   };
   return (
     <form
@@ -36,7 +57,9 @@ export function PreferencesForm({ orgSlug, rows, labels }: { orgSlug: string; ro
           <thead className="text-ink-muted">
             <tr>
               <th className="py-2 pr-3 font-medium">{labels.type}</th>
-              <th className="py-2 pr-3 text-center font-medium">{labels.inApp}</th>
+              <th className="py-2 pr-3 text-center font-medium">
+                {labels.inApp}
+              </th>
               <th className="py-2 text-center font-medium">{labels.email}</th>
             </tr>
           </thead>

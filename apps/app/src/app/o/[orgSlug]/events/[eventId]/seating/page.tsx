@@ -15,21 +15,37 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Section 9.9 : plan de salle de l'événement, éditeur visuel (Pro). */
-export default async function SeatingPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function SeatingPage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const t = await getTranslations("seatingEditor");
   if (!hasFeature(ctx.features, "SEATING_MAPS"))
     return (
       <div className="grid gap-4">
-        <ProLocked orgSlug={orgSlug} feature="SEATING_MAPS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} preview={<SeatingPreview />} />
+        <ProLocked
+          orgSlug={orgSlug}
+          feature="SEATING_MAPS"
+          canUpgrade={can(ctx.membership, "BILLING_MANAGE")}
+          preview={<SeatingPreview />}
+        />
       </div>
     );
-  const [state, layouts, heat] = await Promise.all([seatingEditor(ctx, eventId), listSeatingLayouts(ctx), seatSalesHeat(ctx, eventId)]);
+  const [state, layouts, heat] = await Promise.all([
+    seatingEditor(ctx, eventId),
+    listSeatingLayouts(ctx),
+    seatSalesHeat(ctx, eventId),
+  ]);
   return (
     <div className="grid gap-4">
       <p className="max-w-3xl text-ink-muted">{t("intro")}</p>
-      <a href={`/o/${orgSlug}/events/${eventId}/etiquettes`} className="w-fit text-sm font-semibold underline underline-offset-4">
+      <a
+        href={`/o/${orgSlug}/events/${eventId}/etiquettes`}
+        className="w-fit text-sm font-semibold underline underline-offset-4"
+      >
         {(await getTranslations("seatKit"))("openKit")}
       </a>
       <SeatingEditor
@@ -39,7 +55,14 @@ export default async function SeatingPage({ params }: { params: Promise<{ orgSlu
         layouts={layouts}
         heat={heat}
         photoEnabled={Boolean(env().ANTHROPIC_API_KEY)}
-        networks={hasFeature(ctx.features, "DISTRIBUTION") ? (await listDistributors(ctx)).map((d) => ({ id: d.id, name: d.name })) : []}
+        networks={
+          hasFeature(ctx.features, "DISTRIBUTION")
+            ? (await listDistributors(ctx)).map((d) => ({
+                id: d.id,
+                name: d.name,
+              }))
+            : []
+        }
         readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly}
       />
     </div>

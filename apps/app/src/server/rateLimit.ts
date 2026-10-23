@@ -19,13 +19,22 @@ export async function hit(key: string, windowSeconds: number): Promise<number> {
 }
 
 /** Nombre de tentatives en cours dans la fenêtre, sans en ajouter. */
-export async function peek(key: string, windowSeconds: number): Promise<number> {
+export async function peek(
+  key: string,
+  windowSeconds: number,
+): Promise<number> {
   const row = await db.rateLimit.findUnique({ where: { key } });
   if (!row) return 0;
-  return Date.now() - Number(row.lastRequest) > windowSeconds * 1000 ? 0 : row.count;
+  return Date.now() - Number(row.lastRequest) > windowSeconds * 1000
+    ? 0
+    : row.count;
 }
 
-export async function isLimited(key: string, windowSeconds: number, max: number): Promise<boolean> {
+export async function isLimited(
+  key: string,
+  windowSeconds: number,
+  max: number,
+): Promise<boolean> {
   return (await peek(key, windowSeconds)) >= max;
 }
 

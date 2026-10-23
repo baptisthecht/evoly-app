@@ -7,7 +7,12 @@ import { formatMoney, type Locale } from "@evoly/i18n";
 import type { Stripe, StripeElements } from "@stripe/stripe-js";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { cancelReservationAction, changeSeatsAction, submitBuyerAction, type ReservationView } from "@/app/site/[sub]/[eventSlug]/actions";
+import {
+  cancelReservationAction,
+  changeSeatsAction,
+  submitBuyerAction,
+  type ReservationView,
+} from "@/app/site/[sub]/[eventSlug]/actions";
 import type { PublicSeatMap } from "@/server/seating";
 import { SeatMapPicker } from "./SeatMapPicker";
 import { Button } from "../ui/Button";
@@ -73,39 +78,91 @@ export function CheckoutPanel({
   const t = useTranslations("checkout");
   const tp = useTranslations("public");
   const locale = useLocale() as Locale;
-  const [left, setLeft] = useState(() => new Date(reservation.expiresAt).getTime() - Date.now());
-  const [buyer, setBuyer] = useState<Buyer>({ firstName: "", lastName: "", email: "", phone: "", marketingOptIn: false });
-  const [errors, setErrors] = useState<Partial<Record<keyof Buyer, string>>>({});
+  const [left, setLeft] = useState(
+    () => new Date(reservation.expiresAt).getTime() - Date.now(),
+  );
+  const [buyer, setBuyer] = useState<Buyer>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    marketingOptIn: false,
+  });
+  const [errors, setErrors] = useState<Partial<Record<keyof Buyer, string>>>(
+    {},
+  );
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const nominative = reservation.lines.filter((l) => l.nominative);
-  const [holders, setHolders] = useState<Record<string, Array<{ firstName: string; lastName: string; email?: string }>>>(() =>
+  const [holders, setHolders] = useState<
+    Record<
+      string,
+      Array<{ firstName: string; lastName: string; email?: string }>
+    >
+  >(() =>
     Object.fromEntries(
       nominative.map((l) => [
         l.orderItemId,
-        Array.from({ length: l.quantity }, () => ({ firstName: "", lastName: "", ...(l.holderEmail ? { email: "" } : {}) })),
+        Array.from({ length: l.quantity }, () => ({
+          firstName: "",
+          lastName: "",
+          ...(l.holderEmail ? { email: "" } : {}),
+        })),
       ]),
     ),
   );
   const [holdersError, setHoldersError] = useState(false);
   // US-QST-01 : réponses aux questions de la commande et de chaque billet
   const questions = reservation.questions ?? { order: [], perLine: {} };
-  const [answers, setAnswers] = useState<{ order: Record<string, unknown>; tickets: Record<string, Array<Record<string, unknown>>> }>(() => ({
+  const [answers, setAnswers] = useState<{
+    order: Record<string, unknown>;
+    tickets: Record<string, Array<Record<string, unknown>>>;
+  }>(() => ({
     order: {},
-    tickets: Object.fromEntries(reservation.lines.map((l) => [l.orderItemId, Array.from({ length: l.quantity }, () => ({}))])),
+    tickets: Object.fromEntries(
+      reservation.lines.map((l) => [
+        l.orderItemId,
+        Array.from({ length: l.quantity }, () => ({})),
+      ]),
+    ),
   }));
   const [answerErrors, setAnswerErrors] = useState<Record<string, string>>({});
-  const setOrderAnswer = (qid: string, v: unknown) => setAnswers((a) => ({ ...a, order: { ...a.order, [qid]: v } }));
+  const setOrderAnswer = (qid: string, v: unknown) =>
+    setAnswers((a) => ({ ...a, order: { ...a.order, [qid]: v } }));
   const setTicketAnswer = (item: string, i: number, qid: string, v: unknown) =>
-    setAnswers((a) => ({ ...a, tickets: { ...a.tickets, [item]: (a.tickets[item] ?? []).map((x, k) => (k === i ? { ...x, [qid]: v } : x)) } }));
-  const answerMessage = (code: "REQUIRED" | "INVALID") => (code === "REQUIRED" ? t("required") : t("invalidAnswer"));
-  const setHolder = (itemId: string, index: number, patch: Partial<{ firstName: string; lastName: string; email: string }>) =>
-    setHolders((h) => ({ ...h, [itemId]: h[itemId]!.map((x, i) => (i === index ? { ...x, ...patch } : x)) }));
+    setAnswers((a) => ({
+      ...a,
+      tickets: {
+        ...a.tickets,
+        [item]: (a.tickets[item] ?? []).map((x, k) =>
+          k === i ? { ...x, [qid]: v } : x,
+        ),
+      },
+    }));
+  const answerMessage = (code: "REQUIRED" | "INVALID") =>
+    code === "REQUIRED" ? t("required") : t("invalidAnswer");
+  const setHolder = (
+    itemId: string,
+    index: number,
+    patch: Partial<{ firstName: string; lastName: string; email: string }>,
+  ) =>
+    setHolders((h) => ({
+      ...h,
+      [itemId]: h[itemId]!.map((x, i) =>
+        i === index ? { ...x, ...patch } : x,
+      ),
+    }));
   useEffect(() => {
-    const id = setInterval(() => setLeft(new Date(reservation.expiresAt).getTime() - Date.now()), 1000);
+    const id = setInterval(
+      () => setLeft(new Date(reservation.expiresAt).getTime() - Date.now()),
+      1000,
+    );
     return () => clearInterval(id);
   }, [reservation.expiresAt]);
-  const money = (v: number) => (v === 0 ? tp("free") : formatMoney(v, reservation.currency, locale, { trimZeroCents: true }));
+  const money = (v: number) =>
+    v === 0
+      ? tp("free")
+      : formatMoney(v, reservation.currency, locale, { trimZeroCents: true });
   const ticketsHref = `/billets/${reservation.token}`;
   // RG-EMB-07 : la page qui a ouvert la fenêtre d'achat apprend la commande terminée, sans donnée personnelle
   const done = () => {
@@ -123,11 +180,18 @@ export function CheckoutPanel({
     const e: Partial<Record<keyof Buyer, string>> = {};
     if (!buyer.firstName.trim()) e.firstName = t("required");
     if (!buyer.lastName.trim()) e.lastName = t("required");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(buyer.email.trim())) e.email = t("invalidEmail");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(buyer.email.trim()))
+      e.email = t("invalidEmail");
     if (requirePhone && buyer.phone.trim().length < 6) e.phone = t("required");
     setErrors(e);
     const holdersOk = Object.values(holders).every((list) =>
-      list.every((h) => h.firstName.trim() && h.lastName.trim() && (h.email === undefined || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(h.email.trim()))),
+      list.every(
+        (h) =>
+          h.firstName.trim() &&
+          h.lastName.trim() &&
+          (h.email === undefined ||
+            /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(h.email.trim())),
+      ),
     );
     setHoldersError(!holdersOk);
     const ae: Record<string, string> = {};
@@ -139,10 +203,13 @@ export function CheckoutPanel({
       for (let i = 0; i < l.quantity; i++)
         for (const q of questions.perLine[l.orderItemId] ?? []) {
           const r = answerFor(q, answers.tickets[l.orderItemId]?.[i]?.[q.id]);
-          if (!r.ok) ae[`t:${l.orderItemId}:${i}:${q.id}`] = answerMessage(r.code);
+          if (!r.ok)
+            ae[`t:${l.orderItemId}:${i}:${q.id}`] = answerMessage(r.code);
         }
     setAnswerErrors(ae);
-    return Object.keys(e).length === 0 && holdersOk && Object.keys(ae).length === 0;
+    return (
+      Object.keys(e).length === 0 && holdersOk && Object.keys(ae).length === 0
+    );
   };
   const payload = () => ({
     firstName: buyer.firstName.trim(),
@@ -153,7 +220,8 @@ export function CheckoutPanel({
     holders,
     answers,
   });
-  const explain = (code: string) => (t.has(`error_${code}`) ? t(`error_${code}`) : t("error_UNKNOWN"));
+  const explain = (code: string) =>
+    t.has(`error_${code}`) ? t(`error_${code}`) : t("error_UNKNOWN");
 
   const confirmFree = async () => {
     if (!validate()) return;
@@ -185,7 +253,12 @@ export function CheckoutPanel({
       clientSecret: res.data.clientSecret,
       confirmParams: {
         return_url: `${window.location.origin}${ticketsHref}`,
-        payment_method_data: { billing_details: { name: `${buyer.firstName} ${buyer.lastName}`.trim(), email: buyer.email.trim() } },
+        payment_method_data: {
+          billing_details: {
+            name: `${buyer.firstName} ${buyer.lastName}`.trim(),
+            email: buyer.email.trim(),
+          },
+        },
       },
       redirect: "if_required",
     });
@@ -200,7 +273,10 @@ export function CheckoutPanel({
   if (left <= 0) {
     return (
       <div className="grid gap-4">
-        <p className="rounded-md bg-warning-soft px-4 py-3 text-sm text-warning" role="alert">
+        <p
+          className="rounded-md bg-warning-soft px-4 py-3 text-sm text-warning"
+          role="alert"
+        >
           {t("expired")}
         </p>
         <Button type="button" variant="dark" size="lg" onClick={onCancel}>
@@ -211,11 +287,16 @@ export function CheckoutPanel({
   }
   const minutes = Math.floor(left / 60_000);
   const seconds = Math.floor((left % 60_000) / 1000);
-  const canPay = !reservation.isFree && publishableKey && reservation.stripeAccountId;
+  const canPay =
+    !reservation.isFree && publishableKey && reservation.stripeAccountId;
   const form = (
     <div className="grid gap-4">
       <div className="grid grid-cols-2 gap-3">
-        <Field label={t("firstName")} htmlFor="buyer-first" error={errors.firstName}>
+        <Field
+          label={t("firstName")}
+          htmlFor="buyer-first"
+          error={errors.firstName}
+        >
           <Input
             id="buyer-first"
             autoComplete="given-name"
@@ -224,7 +305,11 @@ export function CheckoutPanel({
             invalid={!!errors.firstName}
           />
         </Field>
-        <Field label={t("lastName")} htmlFor="buyer-last" error={errors.lastName}>
+        <Field
+          label={t("lastName")}
+          htmlFor="buyer-last"
+          error={errors.lastName}
+        >
           <Input
             id="buyer-last"
             autoComplete="family-name"
@@ -234,7 +319,12 @@ export function CheckoutPanel({
           />
         </Field>
       </div>
-      <Field label={t("email")} htmlFor="buyer-email" hint={t("emailHint")} error={errors.email}>
+      <Field
+        label={t("email")}
+        htmlFor="buyer-email"
+        hint={t("emailHint")}
+        error={errors.email}
+      >
         <Input
           id="buyer-email"
           type="email"
@@ -246,7 +336,11 @@ export function CheckoutPanel({
         />
       </Field>
       {suggestion ? (
-        <button type="button" className="-mt-2 justify-self-start text-left text-sm underline underline-offset-4" onClick={() => set({ email: suggestion })}>
+        <button
+          type="button"
+          className="-mt-2 justify-self-start text-left text-sm underline underline-offset-4"
+          onClick={() => set({ email: suggestion })}
+        >
           {t("didYouMean", { email: suggestion })}
         </button>
       ) : null}
@@ -278,7 +372,9 @@ export function CheckoutPanel({
           ))}
         </fieldset>
       ) : null}
-      {reservation.lines.some((l) => (questions.perLine[l.orderItemId] ?? []).length > 0) ? (
+      {reservation.lines.some(
+        (l) => (questions.perLine[l.orderItemId] ?? []).length > 0,
+      ) ? (
         <fieldset className="grid gap-4 rounded-md bg-surface-sunken p-4">
           <legend className="sr-only">{t("ticketQuestionsTitle")}</legend>
           {reservation.lines.flatMap((l) =>
@@ -286,14 +382,18 @@ export function CheckoutPanel({
               ? []
               : Array.from({ length: l.quantity }, (_, i) => (
                   <div key={`${l.orderItemId}-q-${i}`} className="grid gap-3">
-                    <p className="text-sm font-semibold">{t("holderFor", { name: l.name, index: i + 1 })}</p>
+                    <p className="text-sm font-semibold">
+                      {t("holderFor", { name: l.name, index: i + 1 })}
+                    </p>
                     {(questions.perLine[l.orderItemId] ?? []).map((q) => (
                       <QuestionField
                         key={q.id}
                         q={q}
                         id={`q-${l.orderItemId}-${i}-${q.id}`}
                         value={answers.tickets[l.orderItemId]?.[i]?.[q.id]}
-                        onChange={(v) => setTicketAnswer(l.orderItemId, i, q.id, v)}
+                        onChange={(v) =>
+                          setTicketAnswer(l.orderItemId, i, q.id, v)
+                        }
                         error={answerErrors[`t:${l.orderItemId}:${i}:${q.id}`]}
                       />
                     ))}
@@ -311,13 +411,19 @@ export function CheckoutPanel({
             holders[l.orderItemId]!.map((h, i) => (
               <div key={`${l.orderItemId}-${i}`} className="grid gap-2">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold">{t("holderFor", { name: l.name, index: i + 1 })}</p>
+                  <p className="text-sm font-semibold">
+                    {t("holderFor", { name: l.name, index: i + 1 })}
+                  </p>
                   {l === nominative[0] && i === 0 ? (
                     <button
                       type="button"
                       className="text-sm underline underline-offset-4"
                       onClick={() =>
-                        setHolder(l.orderItemId, 0, { firstName: buyer.firstName, lastName: buyer.lastName, ...(l.holderEmail ? { email: buyer.email } : {}) })
+                        setHolder(l.orderItemId, 0, {
+                          firstName: buyer.firstName,
+                          lastName: buyer.lastName,
+                          ...(l.holderEmail ? { email: buyer.email } : {}),
+                        })
                       }
                     >
                       {t("holderIsMe")}
@@ -326,26 +432,41 @@ export function CheckoutPanel({
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
-                    aria-label={t("holderFirstName", { index: i + 1, name: l.name })}
+                    aria-label={t("holderFirstName", {
+                      index: i + 1,
+                      name: l.name,
+                    })}
                     placeholder={t("firstName")}
                     value={h.firstName}
-                    onChange={(e) => setHolder(l.orderItemId, i, { firstName: e.target.value })}
+                    onChange={(e) =>
+                      setHolder(l.orderItemId, i, { firstName: e.target.value })
+                    }
                   />
                   <Input
-                    aria-label={t("holderLastName", { index: i + 1, name: l.name })}
+                    aria-label={t("holderLastName", {
+                      index: i + 1,
+                      name: l.name,
+                    })}
                     placeholder={t("lastName")}
                     value={h.lastName}
-                    onChange={(e) => setHolder(l.orderItemId, i, { lastName: e.target.value })}
+                    onChange={(e) =>
+                      setHolder(l.orderItemId, i, { lastName: e.target.value })
+                    }
                   />
                 </div>
                 {l.holderEmail ? (
                   <Input
                     type="email"
                     inputMode="email"
-                    aria-label={t("holderEmail", { index: i + 1, name: l.name })}
+                    aria-label={t("holderEmail", {
+                      index: i + 1,
+                      name: l.name,
+                    })}
                     placeholder={t("email")}
                     value={h.email ?? ""}
-                    onChange={(e) => setHolder(l.orderItemId, i, { email: e.target.value })}
+                    onChange={(e) =>
+                      setHolder(l.orderItemId, i, { email: e.target.value })
+                    }
                   />
                 ) : null}
               </div>
@@ -369,7 +490,10 @@ export function CheckoutPanel({
       </label>
       {canPay ? <PaymentFields /> : null}
       {message ? (
-        <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+        <p
+          role="alert"
+          className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger"
+        >
           {message}
         </p>
       ) : null}
@@ -399,13 +523,30 @@ export function CheckoutPanel({
         })}
       </p>
       {reservation.isFree ? (
-        <Button type="button" size="lg" className="w-full" disabled={busy} aria-busy={busy} onClick={confirmFree}>
+        <Button
+          type="button"
+          size="lg"
+          className="w-full"
+          disabled={busy}
+          aria-busy={busy}
+          onClick={confirmFree}
+        >
           {busy ? t("processing") : t("confirmFree")}
         </Button>
       ) : canPay ? (
-        <PayButton label={busy ? t("processing") : t("pay", { amount: money(reservation.totalMinor) })} busy={busy} onPay={pay} />
+        <PayButton
+          label={
+            busy
+              ? t("processing")
+              : t("pay", { amount: money(reservation.totalMinor) })
+          }
+          busy={busy}
+          onPay={pay}
+        />
       ) : (
-        <p className="rounded-md bg-surface-sunken px-4 py-3 text-sm">{t("paymentsUnavailable")}</p>
+        <p className="rounded-md bg-surface-sunken px-4 py-3 text-sm">
+          {t("paymentsUnavailable")}
+        </p>
       )}
     </div>
   );
@@ -418,35 +559,63 @@ export function CheckoutPanel({
         </span>
       </div>
       {reservation.seats?.length ? (
-        <ReservedSeats token={reservation.token} lines={reservation.lines} initial={reservation.seats} seatMap={seatMap} friendName={friendName} />
+        <ReservedSeats
+          token={reservation.token}
+          lines={reservation.lines}
+          initial={reservation.seats}
+          seatMap={seatMap}
+          friendName={friendName}
+        />
       ) : null}
       <ul className="grid gap-2">
         {reservation.lines.map((l, i) => (
-          <li key={`${l.ticketTypeId}-${i}`} className="flex items-baseline justify-between gap-3 text-sm">
+          <li
+            key={`${l.ticketTypeId}-${i}`}
+            className="flex items-baseline justify-between gap-3 text-sm"
+          >
             <span>
               {l.quantity} × {l.name}
-              {l.tierName ? <span className="text-ink-muted"> · {l.tierName}</span> : null}
+              {l.tierName ? (
+                <span className="text-ink-muted"> · {l.tierName}</span>
+              ) : null}
             </span>
-            <span className="font-semibold tabular-nums">{money(l.unitPriceMinor * l.quantity)}</span>
+            <span className="font-semibold tabular-nums">
+              {money(l.unitPriceMinor * l.quantity)}
+            </span>
           </li>
         ))}
         {reservation.options.map((o) => (
-          <li key={o.optionId} className="flex items-baseline justify-between gap-3 text-sm">
+          <li
+            key={o.optionId}
+            className="flex items-baseline justify-between gap-3 text-sm"
+          >
             <span>
               {o.quantity} × {o.name}
             </span>
-            <span className="font-semibold tabular-nums">{money(o.unitPriceMinor * o.quantity)}</span>
+            <span className="font-semibold tabular-nums">
+              {money(o.unitPriceMinor * o.quantity)}
+            </span>
           </li>
         ))}
         {reservation.discountMinor > 0 && reservation.promoCode ? (
           <li className="flex items-baseline justify-between gap-3 text-sm text-ink-muted">
             <span>{t("promoLine", { code: reservation.promoCode })}</span>
-            <span className="tabular-nums">−{formatMoney(reservation.discountMinor, reservation.currency, locale, { trimZeroCents: true })}</span>
+            <span className="tabular-nums">
+              −
+              {formatMoney(
+                reservation.discountMinor,
+                reservation.currency,
+                locale,
+                { trimZeroCents: true },
+              )}
+            </span>
           </li>
         ) : null}
         <li className="flex items-baseline justify-between border-t border-line pt-2">
           <span className="font-semibold">{tp("total")}</span>
-          <span className="font-display text-xl tabular-nums">{money(reservation.totalMinor)}</span>
+          <span className="font-display text-xl tabular-nums">
+            {money(reservation.totalMinor)}
+          </span>
         </li>
       </ul>
       {canPay ? (
@@ -503,25 +672,40 @@ function ReservedSeats({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const groups = new Map<string, string[]>();
-  for (const s of seats) groups.set(s.row, [...(groups.get(s.row) ?? []), s.label]);
+  for (const s of seats)
+    groups.set(s.row, [...(groups.get(s.row) ?? []), s.label]);
   const list = new Intl.ListFormat(useLocale(), { type: "conjunction" });
-  const summary = [...groups].map(([row, labels]) => t("seatsRow", { row, count: labels.length, seats: list.format(labels) })).join(" · ");
+  const summary = [...groups]
+    .map(([row, labels]) =>
+      t("seatsRow", { row, count: labels.length, seats: list.format(labels) }),
+    )
+    .join(" · ");
   const needed: Record<string, number> = {};
   if (seatMap)
     for (const l of lines) {
-      const c = seatMap.categories.find((x) => x.ticketTypeIds.includes(l.ticketTypeId));
+      const c = seatMap.categories.find((x) =>
+        x.ticketTypeIds.includes(l.ticketTypeId),
+      );
       if (c && !c.standing) needed[c.id] = (needed[c.id] ?? 0) + l.quantity;
     }
   const canChange = seatMap?.allowChoice ?? false;
-  const complete = Object.values(needed).reduce((a, b) => a + b, 0) === draft.length;
+  const complete =
+    Object.values(needed).reduce((a, b) => a + b, 0) === draft.length;
   return (
     <div className="grid gap-2 rounded-md bg-surface-sunken px-4 py-3 text-sm">
       <p role="status">
-        {t.rich(changed ? "seatsChosen" : friendName ? "seatsNearFriend" : "seatsBest", {
-          seats: summary,
-          name: friendName ?? "",
-          b: (chunks) => <strong>{chunks}</strong>,
-        })}
+        {t.rich(
+          changed
+            ? "seatsChosen"
+            : friendName
+              ? "seatsNearFriend"
+              : "seatsBest",
+          {
+            seats: summary,
+            name: friendName ?? "",
+            b: (chunks) => <strong>{chunks}</strong>,
+          },
+        )}
       </p>
       {seatMap && !open ? (
         <button
@@ -550,7 +734,9 @@ function ReservedSeats({
           />
           {error ? (
             <p role="alert" className="text-sm text-danger">
-              {t.has(`error_${error}`) ? t(`error_${error}`) : t("error_UNKNOWN")}
+              {t.has(`error_${error}`)
+                ? t(`error_${error}`)
+                : t("error_UNKNOWN")}
             </p>
           ) : null}
           <div className="flex flex-wrap gap-2">

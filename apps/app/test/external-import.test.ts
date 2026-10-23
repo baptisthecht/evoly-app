@@ -20,50 +20,125 @@ const essentials = {
 };
 async function setup(o: { pro?: boolean } = {}) {
   const id = rid();
-  const owner = await db.user.create({ data: { name: "Camille Dupont", email: `own.${id}@exemple.fr`, emailVerified: true } });
-  const org = await db.organization.create({
-    data: { name: `Cabaret ${id}`, slug: `cab-${id}`, subdomain: `cab-${id}`, country: "FR", currency: "EUR", timezone: "Europe/Paris", locale: "fr" },
+  const owner = await db.user.create({
+    data: {
+      name: "Camille Dupont",
+      email: `own.${id}@exemple.fr`,
+      emailVerified: true,
+    },
   });
-  const ownerRole = await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } });
-  await db.organizationMember.create({ data: { organizationId: org.id, userId: owner.id, roleId: ownerRole.id, status: "ACTIVE" } });
+  const org = await db.organization.create({
+    data: {
+      name: `Cabaret ${id}`,
+      slug: `cab-${id}`,
+      subdomain: `cab-${id}`,
+      country: "FR",
+      currency: "EUR",
+      timezone: "Europe/Paris",
+      locale: "fr",
+    },
+  });
+  const ownerRole = await db.role.findFirstOrThrow({
+    where: { systemKey: "OWNER" },
+  });
+  await db.organizationMember.create({
+    data: {
+      organizationId: org.id,
+      userId: owner.id,
+      roleId: ownerRole.id,
+      status: "ACTIVE",
+    },
+  });
   if (o.pro !== false)
     await db.subscription.create({
-      data: { organizationId: org.id, planId: "pro", status: "ACTIVE", currentPeriodEnd: new Date(Date.now() + 60 * 86_400_000) },
+      data: {
+        organizationId: org.id,
+        planId: "pro",
+        status: "ACTIVE",
+        currentPeriodEnd: new Date(Date.now() + 60 * 86_400_000),
+      },
     });
-  const ctx = { ...(await findOrgContext(owner.id, org.slug))!, user: { id: owner.id, name: owner.name ?? "", email: owner.email } };
-  const event = await createEvent(ctx, essentials, { name: "Plein tarif", price: "0", quantity: 100 });
-  const tm = o.pro === false ? null : await createDistributor(ctx, { kind: "TICKETMASTER" });
+  const ctx = {
+    ...(await findOrgContext(owner.id, org.slug))!,
+    user: { id: owner.id, name: owner.name ?? "", email: owner.email },
+  };
+  const event = await createEvent(ctx, essentials, {
+    name: "Plein tarif",
+    price: "0",
+    quantity: 100,
+  });
+  const tm =
+    o.pro === false
+      ? null
+      : await createDistributor(ctx, { kind: "TICKETMASTER" });
   return { ctx, eventId: event.id, tm, id };
 }
-const csv = (text: string, name = "ticketmaster.csv") => ({ name, bytes: new TextEncoder().encode(text) });
-const tickets = (eventId: string) => db.externalTicket.findMany({ where: { eventId }, orderBy: [{ code: "asc" }, { reservation: "asc" }, { rank: "asc" }] });
+const csv = (text: string, name = "ticketmaster.csv") => ({
+  name,
+  bytes: new TextEncoder().encode(text),
+});
+const tickets = (eventId: string) =>
+  db.externalTicket.findMany({
+    where: { eventId },
+    orderBy: [{ code: "asc" }, { reservation: "asc" }, { rank: "asc" }],
+  });
 
 describe("import des billets d'un réseau", () => {
   it("import, réimport identique sans changement, nom modifié mis à jour ; fichier complet : disparu annulé, déjà entré gardé", async () => {
     const { ctx, eventId, tm } = await setup();
     const file =
       "Code-barres;Nom;Tarif;Prix TTC\n4006381333931;Léa Martin;Plein tarif;25,00 €\n4006381333948;Tom Dubois;Plein tarif;25,00\n4006381333955;Inès Benali;Plein tarif;25\n";
-    expect(await importExternalTickets(ctx, eventId, tm!.id, csv(file))).toMatchObject({ created: 3, updated: 0, ignored: [] });
+    expect(
+      await importExternalTickets(ctx, eventId, tm!.id, csv(file)),
+    ).toMatchObject({ created: 3, updated: 0, ignored: [] });
     const first = await tickets(eventId);
-    expect(first.map((t) => [t.code, t.holderName, t.priceMinor, t.status])).toEqual([
+    expect(
+      first.map((t) => [t.code, t.holderName, t.priceMinor, t.status]),
+    ).toEqual([
       ["4006381333931", "Léa Martin", 2500, "VALID"],
       ["4006381333948", "Tom Dubois", 2500, "VALID"],
       ["4006381333955", "Inès Benali", 2500, "VALID"],
     ]);
     expect(first.every((t) => t.ticketTypeId)).toBe(true);
-    expect(await importExternalTickets(ctx, eventId, tm!.id, csv(file))).toMatchObject({ created: 0, updated: 0, unchanged: 3 });
-    expect(await importExternalTickets(ctx, eventId, tm!.id, csv(file.replace("Tom Dubois", "Thomas Dubois")))).toMatchObject({ updated: 1, unchanged: 2 });
-    await db.externalTicket.update({ where: { id: first[2]!.id }, data: { checkedInAt: new Date() } });
+    expect(
+      await importExternalTickets(ctx, eventId, tm!.id, csv(file)),
+    ).toMatchObject({ created: 0, updated: 0, unchanged: 3 });
+    expect(
+      await importExternalTickets(
+        ctx,
+        eventId,
+        tm!.id,
+        csv(file.replace("Tom Dubois", "Thomas Dubois")),
+      ),
+    ).toMatchObject({ updated: 1, unchanged: 2 });
+    await db.externalTicket.update({
+      where: { id: first[2]!.id },
+      data: { checkedInAt: new Date() },
+    });
     const shorter = "Code-barres;Nom\n4006381333931;Léa Martin\n";
-    expect(await importExternalTickets(ctx, eventId, tm!.id, csv(shorter), { fullFile: true })).toMatchObject({ cancelled: 1, keptEntered: 1 });
-    expect((await tickets(eventId)).map((t) => t.status)).toEqual(["VALID", "CANCELLED", "VALID"]);
+    expect(
+      await importExternalTickets(ctx, eventId, tm!.id, csv(shorter), {
+        fullFile: true,
+      }),
+    ).toMatchObject({ cancelled: 1, keptEntered: 1 });
+    expect((await tickets(eventId)).map((t) => t.status)).toEqual([
+      "VALID",
+      "CANCELLED",
+      "VALID",
+    ]);
   });
 
   it("réservations BilletReduc sans code-barres : un billet par place ; doublon et ligne vide ignorés avec leur ligne", async () => {
     const { ctx, eventId, id } = await setup();
     const br = await createDistributor(ctx, { kind: "BILLETREDUC" });
-    const file = "N° réservation;Nom;Nb places\nBR-1;Durand;2\nBR-2;Lefèvre;1\nBR-1;Durand;2\n;;\n;Sans réservation;1\n";
-    const report = await importExternalTickets(ctx, eventId, br.id, csv(file, `billetreduc-${id}.csv`));
+    const file =
+      "N° réservation;Nom;Nb places\nBR-1;Durand;2\nBR-2;Lefèvre;1\nBR-1;Durand;2\n;;\n;Sans réservation;1\n";
+    const report = await importExternalTickets(
+      ctx,
+      eventId,
+      br.id,
+      csv(file, `billetreduc-${id}.csv`),
+    );
     expect(report).toMatchObject({
       created: 3,
       ignored: [
@@ -71,7 +146,13 @@ describe("import des billets d'un réseau", () => {
         { line: 6, reason: "LINE_NO_CODE" },
       ],
     });
-    expect((await tickets(eventId)).map((t) => [t.reservation, t.rank, t.holderName])).toEqual([
+    expect(
+      (await tickets(eventId)).map((t) => [
+        t.reservation,
+        t.rank,
+        t.holderName,
+      ]),
+    ).toEqual([
       ["BR-1", 1, "Durand"],
       ["BR-1", 2, "Durand"],
       ["BR-2", 1, "Lefèvre"],
@@ -83,30 +164,66 @@ describe("import des billets d'un réseau", () => {
     const file = "Ref;Client\nX-9001;Léa\n";
     const first = await importExternalTickets(ctx, eventId, tm!.id, csv(file));
     expect(first.needsMapping).toMatchObject({ headers: ["Ref", "Client"] });
-    expect(await importExternalTickets(ctx, eventId, tm!.id, csv(file), { mapping: { code: 0, fullName: 1 }, header: true })).toMatchObject({ created: 1 });
-    const again = await importExternalTickets(ctx, eventId, tm!.id, csv("Ref;Client\nX-9002;Tom\n"));
+    expect(
+      await importExternalTickets(ctx, eventId, tm!.id, csv(file), {
+        mapping: { code: 0, fullName: 1 },
+        header: true,
+      }),
+    ).toMatchObject({ created: 1 });
+    const again = await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv("Ref;Client\nX-9002;Tom\n"),
+    );
     expect([again.created, again.needsMapping]).toEqual([1, undefined]);
   });
 
   it("code déjà utilisé par un autre réseau : ignoré ; dépassement de contingent : signalé sans bloquer ; Pro exigé", async () => {
     const { ctx, eventId, tm } = await setup();
     const fnac = await createDistributor(ctx, { kind: "FRANCE_BILLET" });
-    const ticketTypeId = (await db.ticketType.findFirstOrThrow({ where: { eventId } })).id;
-    await setAllocation(ctx, eventId, { distributorId: tm!.id, ticketTypeId, quantity: 1 });
-    await importExternalTickets(ctx, eventId, fnac.id, csv("Code-barres\n9990001112223\n"));
-    const report = await importExternalTickets(ctx, eventId, tm!.id, csv("Code-barres\n9990001112223\n4006381333931\n4006381333948\n"));
+    const ticketTypeId = (
+      await db.ticketType.findFirstOrThrow({ where: { eventId } })
+    ).id;
+    await setAllocation(ctx, eventId, {
+      distributorId: tm!.id,
+      ticketTypeId,
+      quantity: 1,
+    });
+    await importExternalTickets(
+      ctx,
+      eventId,
+      fnac.id,
+      csv("Code-barres\n9990001112223\n"),
+    );
+    const report = await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv("Code-barres\n9990001112223\n4006381333931\n4006381333948\n"),
+    );
     expect(report).toMatchObject({
       created: 2,
       ignored: [{ line: 2, reason: "CODE_USED_BY_OTHER_NETWORK" }],
-      overAllocation: [{ ticketType: "Plein tarif", allocated: 1, imported: 2 }],
+      overAllocation: [
+        { ticketType: "Plein tarif", allocated: 1, imported: 2 },
+      ],
     });
     const free = await setup({ pro: false });
-    await expect(importExternalTickets(free.ctx, free.eventId, "x", csv("Code\n1\n"))).rejects.toMatchObject({ code: "PRO_REQUIRED" });
+    await expect(
+      importExternalTickets(free.ctx, free.eventId, "x", csv("Code\n1\n")),
+    ).rejects.toMatchObject({ code: "PRO_REQUIRED" });
   });
 
   it("places numérotées : place reliée et retirée de la vente en ligne ; déjà vendue par Evoly : double vente signalée ; inconnue : comptée", async () => {
     const { ctx, eventId, tm } = await setup();
-    await applySeatingTemplate(ctx, eventId, "hall", { rows: 1, seatsFirst: 4, seatsLast: 4, centerAisle: false, categories: 1 });
+    await applySeatingTemplate(ctx, eventId, "hall", {
+      rows: 1,
+      seatsFirst: 4,
+      seatsLast: 4,
+      centerAisle: false,
+      categories: 1,
+    });
     await setSeatingMode(ctx, eventId, true);
     const seats = await db.seat.findMany({
       where: { row: { seatingMap: { eventId } } },
@@ -117,13 +234,30 @@ describe("import des billets d'un réseau", () => {
     await db.seat.update({ where: { id: a2!.id }, data: { status: "SOLD" } }); // vendue en ligne sur Evoly
     const file = `Code-barres;Rang;Place\nTM-1;${a1!.row.name};${a1!.label}\nTM-2;${a2!.row.name};${a2!.label}\nTM-3;Z;99\n`;
     const report = await importExternalTickets(ctx, eventId, tm!.id, csv(file));
-    expect(report).toMatchObject({ created: 3, seatsNotFound: 1, seatsSoldOnEvoly: [{ line: 3, seat: `${a2!.row.name} ${a2!.label}` }] });
-    const linked = await db.externalTicket.findFirstOrThrow({ where: { eventId, code: "TM-1" } });
+    expect(report).toMatchObject({
+      created: 3,
+      seatsNotFound: 1,
+      seatsSoldOnEvoly: [{ line: 3, seat: `${a2!.row.name} ${a2!.label}` }],
+    });
+    const linked = await db.externalTicket.findFirstOrThrow({
+      where: { eventId, code: "TM-1" },
+    });
     expect(linked.seatId).toBe(a1!.id);
-    expect(await db.seat.findUniqueOrThrow({ where: { id: a1!.id }, select: { status: true, distributorId: true } })).toEqual({
+    expect(
+      await db.seat.findUniqueOrThrow({
+        where: { id: a1!.id },
+        select: { status: true, distributorId: true },
+      }),
+    ).toEqual({
       status: "BLOCKED",
       distributorId: tm!.id,
     });
-    expect((await db.externalTicket.findFirstOrThrow({ where: { eventId, code: "TM-2" } })).seatId).toBeNull();
+    expect(
+      (
+        await db.externalTicket.findFirstOrThrow({
+          where: { eventId, code: "TM-2" },
+        })
+      ).seatId,
+    ).toBeNull();
   });
 });

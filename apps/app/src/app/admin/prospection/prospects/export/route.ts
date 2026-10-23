@@ -6,7 +6,9 @@ export const dynamic = "force-dynamic";
 /** Export des prospects en CSV (Excel), réservé aux administrateurs. */
 export async function GET() {
   await requireStaff("ADMIN");
-  const jour = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Brussels" }).format(new Date());
+  const jour = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Brussels",
+  }).format(new Date());
   return new Response(await prospectsCsv(), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",

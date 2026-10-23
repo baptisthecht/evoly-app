@@ -15,26 +15,48 @@ import { applyUnsubscribe, unsubscribeToken } from "./unsubscribe";
  */
 const COOKIE = "evoly_participant";
 const secret = () => env().ORDER_TOKEN_SECRET ?? env().BETTER_AUTH_SECRET;
-const sign = (purpose: string, v: string) => createHmac("sha256", `${purpose}:${secret()}`).update(v).digest("base64url");
+const sign = (purpose: string, v: string) =>
+  createHmac("sha256", `${purpose}:${secret()}`).update(v).digest("base64url");
 const pack = (purpose: string, email: string, exp: number) => {
   const body = Buffer.from(`${email}|${exp}`).toString("base64url");
   return `${body}.${sign(purpose, body)}`;
 };
-function unpack(purpose: string, token: string | undefined | null): string | null {
+function unpack(
+  purpose: string,
+  token: string | undefined | null,
+): string | null {
   const [body, sig] = (token ?? "").split(".");
   if (!body || !sig) return null;
   const expected = sign(purpose, body);
-  if (sig.length !== expected.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  if (
+    sig.length !== expected.length ||
+    !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))
+  )
+    return null;
   const [email, exp] = Buffer.from(body, "base64url").toString().split("|");
   return email && Number(exp) > Date.now() ? email : null;
 }
 
 /** Demande de lien : même réponse que l'adresse ait des billets ou non (aucune fuite), tentatives limitées. */
-export async function requestParticipantLink(rawEmail: string, ip: string, locale: "fr" | "en") {
+export async function requestParticipantLink(
+  rawEmail: string,
+  ip: string,
+  locale: "fr" | "en",
+) {
   const email = rawEmail.trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 200) return;
-  if ((await hit(`participant:ip:${ip}`, 3600)) > 20 || (await hit(`participant:email:${email}`, 3600)) > 5) return;
-  const known = await db.order.count({ where: { buyerEmail: email, status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] } } });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 200)
+    return;
+  if (
+    (await hit(`participant:ip:${ip}`, 3600)) > 20 ||
+    (await hit(`participant:email:${email}`, 3600)) > 5
+  )
+    return;
+  const known = await db.order.count({
+    where: {
+      buyerEmail: email,
+      status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] },
+    },
+  });
   if (known === 0) return;
   const url = `${env().NEXT_PUBLIC_APP_URL}/mon-espace/connexion/${pack("participant-link", email, Date.now() + 30 * 60_000)}`;
   const fr = locale !== "en";
@@ -42,7 +64,9 @@ export async function requestParticipantLink(rawEmail: string, ip: string, local
     to: email,
     template: "participant.magic_link",
     category: "TRANSACTIONAL",
-    subject: fr ? "Votre lien vers vos billets Evoly" : "Your link to your Evoly tickets",
+    subject: fr
+      ? "Votre lien vers vos billets Evoly"
+      : "Your link to your Evoly tickets",
     text: fr
       ? `Bonjour,\n\nVoici votre lien pour retrouver tous vos billets (valable 30 minutes) :\n${url}\n\nVous n'avez rien demandé ? Ignorez cet e-mail.\n\nEvoly`
       : `Hello,\n\nHere is your link to all your tickets (valid for 30 minutes):\n${url}\n\nDidn't ask for it? Ignore this email.\n\nEvoly`,
@@ -52,16 +76,22 @@ export async function requestParticipantLink(rawEmail: string, ip: string, local
   });
 }
 
-export async function openParticipantSession(linkToken: string): Promise<boolean> {
+export async function openParticipantSession(
+  linkToken: string,
+): Promise<boolean> {
   const email = unpack("participant-link", linkToken);
   if (!email) return false;
-  (await cookies()).set(COOKIE, pack("participant-session", email, Date.now() + 30 * 86_400_000), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: env().NEXT_PUBLIC_APP_URL.startsWith("https"),
-    path: "/",
-    maxAge: 30 * 86_400,
-  });
+  (await cookies()).set(
+    COOKIE,
+    pack("participant-session", email, Date.now() + 30 * 86_400_000),
+    {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: env().NEXT_PUBLIC_APP_URL.startsWith("https"),
+      path: "/",
+      maxAge: 30 * 86_400,
+    },
+  );
   return true;
 }
 
@@ -77,23 +107,43 @@ export async function closeParticipantSession() {
 export async function participantOverview(email: string, now = new Date()) {
   const [orders, listings, contacts] = await Promise.all([
     db.order.findMany({
-      where: { buyerEmail: email, status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] } },
+      where: {
+        buyerEmail: email,
+        status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] },
+      },
       include: {
-        event: { select: { title: true, startsAt: true, timezone: true, locationName: true, city: true, status: true } },
+        event: {
+          select: {
+            title: true,
+            startsAt: true,
+            timezone: true,
+            locationName: true,
+            city: true,
+            status: true,
+          },
+        },
         organization: { select: { name: true, subdomain: true, slug: true } },
-        _count: { select: { tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } } } },
+        _count: {
+          select: {
+            tickets: { where: { status: { in: ["VALID", "CHECKED_IN"] } } },
+          },
+        },
       },
       orderBy: { event: { startsAt: "asc" } },
     }),
     db.resaleListing.findMany({
       where: { sellerEmail: email },
-      include: { event: { select: { title: true, startsAt: true, timezone: true } } },
+      include: {
+        event: { select: { title: true, startsAt: true, timezone: true } },
+      },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: 30,
     }),
     db.contact.findMany({
       where: { email },
-      include: { organization: { select: { id: true, name: true, status: true } } },
+      include: {
+        organization: { select: { id: true, name: true, status: true } },
+      },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     }),
   ]);
@@ -111,8 +161,12 @@ export async function participantOverview(email: string, now = new Date()) {
     url: ticketsUrl(o.organization, o.id, o.accessTokenVersion),
   }));
   return {
-    upcoming: rows.filter((r) => r.startsAt >= new Date(now.getTime() - 12 * 3_600_000)),
-    past: rows.filter((r) => r.startsAt < new Date(now.getTime() - 12 * 3_600_000)).reverse(),
+    upcoming: rows.filter(
+      (r) => r.startsAt >= new Date(now.getTime() - 12 * 3_600_000),
+    ),
+    past: rows
+      .filter((r) => r.startsAt < new Date(now.getTime() - 12 * 3_600_000))
+      .reverse(),
     listings: listings.map((l) => ({
       id: l.id,
       title: l.event.title,
@@ -124,22 +178,50 @@ export async function participantOverview(email: string, now = new Date()) {
     })),
     preferences: contacts
       .filter((c) => c.organization.status !== "DELETED")
-      .map((c) => ({ organizationId: c.organization.id, organization: c.organization.name, marketing: c.marketingConsent && !c.unsubscribedAt })),
+      .map((c) => ({
+        organizationId: c.organization.id,
+        organization: c.organization.name,
+        marketing: c.marketingConsent && !c.unsubscribedAt,
+      })),
   };
 }
 
 /** Préférences : désinscription (lien signé habituel) ou nouvel accord explicite, journalisé. */
-export async function setMarketingPreference(email: string, organizationId: string, consent: boolean) {
-  const contact = await db.contact.findFirst({ where: { email, organizationId } });
+export async function setMarketingPreference(
+  email: string,
+  organizationId: string,
+  consent: boolean,
+) {
+  const contact = await db.contact.findFirst({
+    where: { email, organizationId },
+  });
   if (!contact) return;
   if (!consent) {
-    await applyUnsubscribe(unsubscribeToken(email, organizationId), "ORGANIZATION");
+    await applyUnsubscribe(
+      unsubscribeToken(email, organizationId),
+      "ORGANIZATION",
+    );
     return;
   }
   await db.$transaction([
-    db.contact.update({ where: { id: contact.id }, data: { marketingConsent: true, consentAt: new Date(), consentSource: "FORM", unsubscribedAt: null } }),
+    db.contact.update({
+      where: { id: contact.id },
+      data: {
+        marketingConsent: true,
+        consentAt: new Date(),
+        consentSource: "FORM",
+        unsubscribedAt: null,
+      },
+    }),
     // seule la désinscription volontaire est levée : les blocages pour rebond ou plainte restent
-    db.emailSuppression.deleteMany({ where: { email, organizationId, scope: "ORGANIZATION", reason: "UNSUBSCRIBED" } }),
+    db.emailSuppression.deleteMany({
+      where: {
+        email,
+        organizationId,
+        scope: "ORGANIZATION",
+        reason: "UNSUBSCRIBED",
+      },
+    }),
   ]);
   await audit({
     action: "contact.consent_given",

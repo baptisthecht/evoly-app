@@ -14,11 +14,21 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Section 9.20 : liste paginée, lien vers l'élément concerné, « tout marquer comme lu ». */
-export default async function NotificationsPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ page?: string }> }) {
+export default async function NotificationsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { orgSlug } = await params;
   const page = Math.max(0, Number((await searchParams).page ?? 0) || 0);
   const ctx = await requireOrgContext(orgSlug);
-  const { rows, pages } = await listNotifications(ctx.organization.id, ctx.user.id, page);
+  const { rows, pages } = await listNotifications(
+    ctx.organization.id,
+    ctx.user.id,
+    page,
+  );
   const t = await getTranslations("notifications");
   const locale = (await getLocale()) as Locale;
   async function open(id: string, link: string | null) {
@@ -27,7 +37,9 @@ export default async function NotificationsPage({ params, searchParams }: { para
     await markRead(c.organization.id, c.user.id, id);
     // la mise en page (et donc le compteur de la cloche) est conservée par la navigation : on la rafraîchit
     revalidatePath(`/o/${orgSlug}`, "layout");
-    redirect(`/o/${orgSlug}${link && link.startsWith("/") ? link : "/notifications"}`);
+    redirect(
+      `/o/${orgSlug}${link && link.startsWith("/") ? link : "/notifications"}`,
+    );
   }
   async function readAll() {
     "use server";
@@ -54,15 +66,31 @@ export default async function NotificationsPage({ params, searchParams }: { para
           {rows.map((n) => (
             <li key={n.id}>
               <form action={open.bind(null, n.id, n.link)}>
-                <button type="submit" className="block w-full rounded-lg text-left">
-                  <Card className={`grid gap-1 transition-shadow hover:shadow-md ${n.readAt ? "" : "ring-2 ring-rose"}`}>
+                <button
+                  type="submit"
+                  className="block w-full rounded-lg text-left"
+                >
+                  <Card
+                    className={`grid gap-1 transition-shadow hover:shadow-md ${n.readAt ? "" : "ring-2 ring-rose"}`}
+                  >
                     <p className="flex flex-wrap items-center justify-between gap-2">
                       <span className="flex items-center gap-2 font-semibold">
-                        {!n.readAt ? <span className="size-2.5 rounded-full bg-rose" aria-label={t("unread")} /> : null}
+                        {!n.readAt ? (
+                          <span
+                            className="size-2.5 rounded-full bg-rose"
+                            aria-label={t("unread")}
+                          />
+                        ) : null}
                         {n.title}
                       </span>
                       <span className="text-xs text-ink-muted">
-                        {t(`type_${n.type}`)} · {formatDateTime(n.createdAt, ctx.organization.timezone, locale, "short")}
+                        {t(`type_${n.type}`)} ·{" "}
+                        {formatDateTime(
+                          n.createdAt,
+                          ctx.organization.timezone,
+                          locale,
+                          "short",
+                        )}
                       </span>
                     </p>
                     <p className="text-sm text-ink-muted">{n.body}</p>
@@ -76,14 +104,20 @@ export default async function NotificationsPage({ params, searchParams }: { para
       {pages > 1 ? (
         <nav className="flex justify-between" aria-label={t("pagination")}>
           {page > 0 ? (
-            <a href={`?page=${page - 1}`} className={buttonClass("secondary", "md")}>
+            <a
+              href={`?page=${page - 1}`}
+              className={buttonClass("secondary", "md")}
+            >
               {t("previous")}
             </a>
           ) : (
             <span />
           )}
           {page < pages - 1 ? (
-            <a href={`?page=${page + 1}`} className={buttonClass("secondary", "md")}>
+            <a
+              href={`?page=${page + 1}`}
+              className={buttonClass("secondary", "md")}
+            >
               {t("next")}
             </a>
           ) : null}

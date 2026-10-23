@@ -5,10 +5,17 @@ import fr from "../../../../packages/i18n/messages/fr.json";
 import { ScannerApp } from "@/components/scanner/ScannerApp";
 import { Fr } from "./intl";
 
-vi.mock("@/components/scanner/CameraScanner", () => ({ CameraScanner: () => null }));
+vi.mock("@/components/scanner/CameraScanner", () => ({
+  CameraScanner: () => null,
+}));
 const s = (fr as unknown as Record<string, Record<string, string>>).scanner!;
-const hash = (code: string) => createHash("sha256").update(`sel:${code}`).digest("hex");
-const ticket = (id: string, shortCode: string, over: Record<string, unknown> = {}) => ({
+const hash = (code: string) =>
+  createHash("sha256").update(`sel:${code}`).digest("hex");
+const ticket = (
+  id: string,
+  shortCode: string,
+  over: Record<string, unknown> = {},
+) => ({
   id,
   codeHash: hash(`CODE-${id}`),
   shortCode,
@@ -24,12 +31,26 @@ const ticket = (id: string, shortCode: string, over: Record<string, unknown> = {
 const manifest = () => ({
   serverTime: new Date().toISOString(),
   salt: "sel",
-  event: { title: "Gala hors ligne", startsAt: new Date().toISOString(), timezone: "Europe/Brussels", place: null },
-  link: { label: "Porte A", allowManualSearch: true, checkOnly: false, canSell: false, expiresAt: new Date(Date.now() + 86_400_000).toISOString() },
+  event: {
+    title: "Gala hors ligne",
+    startsAt: new Date().toISOString(),
+    timezone: "Europe/Brussels",
+    place: null,
+  },
+  link: {
+    label: "Porte A",
+    allowManualSearch: true,
+    checkOnly: false,
+    canSell: false,
+    expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+  },
   sale: null,
   tickets: [
     ticket("t1", "AAAAAA"),
-    ticket("t2", "BBBBBB", { status: "CHECKED_IN", checkedInAt: new Date().toISOString() }),
+    ticket("t2", "BBBBBB", {
+      status: "CHECKED_IN",
+      checkedInAt: new Date().toISOString(),
+    }),
     ticket("t3", "CCCCCC", { status: "VOID", voidReason: "REFUNDED" }),
     // réservation BilletReduc de 2 places sur un même code (billets importés)
     ticket("x:e1", "", {
@@ -56,10 +77,22 @@ const manifest = () => ({
 const net = {
   online: true,
   scan: (_b: Record<string, unknown>): Response =>
-    json({ result: "VALID", ticket: { id: "t1", status: "CHECKED_IN", holder: "Léa Martin", typeName: "Fosse" } }),
+    json({
+      result: "VALID",
+      ticket: {
+        id: "t1",
+        status: "CHECKED_IN",
+        holder: "Léa Martin",
+        typeName: "Fosse",
+      },
+    }),
   syncs: [] as Array<Record<string, unknown>>,
 };
-const json = (d: unknown, status = 200) => new Response(JSON.stringify(d), { status, headers: { "content-type": "application/json" } });
+const json = (d: unknown, status = 200) =>
+  new Response(JSON.stringify(d), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 beforeEach(() => {
   localStorage.clear();
   net.online = true;
@@ -70,12 +103,19 @@ beforeEach(() => {
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       const path = String(url).replace(/^.*\/api\/scanner\/[^/]+/, "");
-      const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {};
+      const body = init?.body
+        ? (JSON.parse(String(init.body)) as Record<string, unknown>)
+        : {};
       if (path === "/manifest") return json(manifest());
       if (path === "/scan") return net.scan(body);
       if (path === "/sync") {
         net.syncs.push(body);
-        return json({ results: (body.scans as Array<{ clientId: string }>).map((x) => ({ clientId: x.clientId })), redemptions: [] });
+        return json({
+          results: (body.scans as Array<{ clientId: string }>).map((x) => ({
+            clientId: x.clientId,
+          })),
+          redemptions: [],
+        });
       }
       return json({});
     }),
@@ -108,7 +148,9 @@ describe("scanner : billets des réseaux", () => {
     net.online = false;
     await type("BR-77812");
     expect(await title("result_VALID")).toBeTruthy();
-    expect(screen.getByText((c) => c.includes("Durand · Plein tarif · BilletReduc"))).toBeTruthy();
+    expect(
+      screen.getByText((c) => c.includes("Durand · Plein tarif · BilletReduc")),
+    ).toBeTruthy();
     await type("br-77812");
     expect(await title("result_VALID")).toBeTruthy();
     await type("BR-77812");

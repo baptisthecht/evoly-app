@@ -39,11 +39,17 @@ function luminance(hex: string): number {
 }
 
 export function contrastRatio(a: string, b: string): number {
-  const [l1, l2] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
+  const [l1, l2] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [
+    number,
+    number,
+  ];
   return (l1 + 0.05) / (l2 + 0.05);
 }
 
 /** Texte charbon ou blanc sur une couleur de marque, selon le meilleur contraste (RG-BRD-01). */
 export function inkOn(background: string): "#222222" | "#FFFFFF" {
-  return contrastRatio(background, palette.charbon) >= contrastRatio(background, palette.blanc) ? "#222222" : "#FFFFFF";
+  return contrastRatio(background, palette.charbon) >=
+    contrastRatio(background, palette.blanc)
+    ? "#222222"
+    : "#FFFFFF";
 }

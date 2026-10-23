@@ -17,10 +17,18 @@ export type AlertLabels = {
 };
 
 /** « Prévenez-moi » (RG-PRG-04) : un e-mail à l'ouverture des ventes, avec un accord explicite et limité à cet usage. */
-export function AlertForm({ eventId, labels }: { eventId: string; labels: AlertLabels }) {
+export function AlertForm({
+  eventId,
+  labels,
+}: {
+  eventId: string;
+  labels: AlertLabels;
+}) {
   const id = useId();
   const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "done" | "error" | "invalid" | "limited">("idle");
+  const [state, setState] = useState<
+    "idle" | "done" | "error" | "invalid" | "limited"
+  >("idle");
   const [pending, start] = useTransition();
   if (state === "done")
     return (
@@ -35,7 +43,15 @@ export function AlertForm({ eventId, labels }: { eventId: string; labels: AlertL
         e.preventDefault();
         start(async () => {
           const r = await subscribeAlertAction(eventId, email);
-          setState(r.ok ? "done" : r.error === "INVALID_EMAIL" ? "invalid" : r.error === "RATE_LIMITED" ? "limited" : "error");
+          setState(
+            r.ok
+              ? "done"
+              : r.error === "INVALID_EMAIL"
+                ? "invalid"
+                : r.error === "RATE_LIMITED"
+                  ? "limited"
+                  : "error",
+          );
         });
       }}
     >
@@ -56,14 +72,22 @@ export function AlertForm({ eventId, labels }: { eventId: string; labels: AlertL
           placeholder={labels.email}
           className="h-11 min-w-0 flex-1 rounded-full bg-surface-raised px-4 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-ink"
         />
-        <button type="submit" disabled={pending} className={buttonClass("primary")}>
+        <button
+          type="submit"
+          disabled={pending}
+          className={buttonClass("primary")}
+        >
           {labels.submit}
         </button>
       </div>
       <p className="text-xs text-ink-muted">{labels.consent}</p>
       {state !== "idle" ? (
         <p role="alert" className="text-sm text-danger">
-          {state === "invalid" ? labels.invalid : state === "limited" ? labels.limited : labels.error}
+          {state === "invalid"
+            ? labels.invalid
+            : state === "limited"
+              ? labels.limited
+              : labels.error}
         </p>
       ) : null}
     </form>

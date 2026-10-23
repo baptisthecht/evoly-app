@@ -7,7 +7,10 @@ import { toLocale } from "@evoly/i18n";
 export const dynamic = "force-dynamic";
 
 /** PDF des billets : une page par billet (section 9.12). */
-export async function GET(_req: Request, { params }: { params: Promise<{ sub: string; token: string }> }) {
+export async function GET(
+  _req: Request,
+  { params }: { params: Promise<{ sub: string; token: string }> },
+) {
   const { sub, token } = await params;
   await assertSiteRequest(sub);
   const orderId = await findOrderIdByToken(token);
@@ -18,14 +21,23 @@ export async function GET(_req: Request, { params }: { params: Promise<{ sub: st
           organization: { select: { name: true } },
           event: true,
           tickets: {
-            include: { ticketType: { select: { name: true } }, seat: { select: { label: true, row: { select: { name: true } } } } },
+            include: {
+              ticketType: { select: { name: true } },
+              seat: {
+                select: { label: true, row: { select: { name: true } } },
+              },
+            },
             orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }],
           },
         },
       })
     : null;
   // une commande en partie remboursée (place revendue, par exemple) garde ses autres billets
-  if (!order || (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")) return new Response("Introuvable", { status: 404 });
+  if (
+    !order ||
+    (order.status !== "PAID" && order.status !== "PARTIALLY_REFUNDED")
+  )
+    return new Response("Introuvable", { status: 404 });
   const bytes = await ticketsPdfFor(order, toLocale(order.buyerLocale)); // billets PDF dans les 7 langues;
   return new Response(Buffer.from(bytes), {
     headers: {

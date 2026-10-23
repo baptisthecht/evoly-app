@@ -8,8 +8,10 @@ import sanitizeHtml from "sanitize-html";
  * liens en https, http, mailto ou tel, images en https seulement. Appliqué à l'enregistrement puis à chaque rendu.
  */
 const LENGTH = /^-?\d+(?:\.\d+)?(?:px|em|rem|%|pt)?$/i;
-const BOX = /^(?:-?\d+(?:\.\d+)?(?:px|em|rem|%|pt)?|auto)(?:\s+(?:-?\d+(?:\.\d+)?(?:px|em|rem|%|pt)?|auto)){0,3}$/i;
-const COLOR = /^(?:#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)|[a-z]{3,20})$/i;
+const BOX =
+  /^(?:-?\d+(?:\.\d+)?(?:px|em|rem|%|pt)?|auto)(?:\s+(?:-?\d+(?:\.\d+)?(?:px|em|rem|%|pt)?|auto)){0,3}$/i;
+const COLOR =
+  /^(?:#[0-9a-f]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(?:,\s*(?:0|1|0?\.\d+)\s*)?\)|[a-z]{3,20})$/i;
 const BORDER =
   /^(?:(?:\d+(?:\.\d+)?(?:px|em)?|thin|medium|thick)\s*)?(?:none|solid|dashed|dotted|double)?\s*(?:#[0-9a-f]{3,8}|[a-z]{3,20}|rgba?\([\d\s.,]+\))?$/i;
 const STYLES: Record<string, RegExp[]> = {
@@ -92,7 +94,16 @@ const OPTIONS: sanitizeHtml.IOptions = {
     "ul",
   ],
   allowedAttributes: {
-    "*": ["style", "align", "valign", "dir", "title", "width", "height", "bgcolor"],
+    "*": [
+      "style",
+      "align",
+      "valign",
+      "dir",
+      "title",
+      "width",
+      "height",
+      "bgcolor",
+    ],
     a: ["href", "target", "rel", "name"],
     img: ["src", "alt", "border"],
     table: ["cellpadding", "cellspacing", "border", "role"],
@@ -105,13 +116,38 @@ const OPTIONS: sanitizeHtml.IOptions = {
   allowProtocolRelative: false,
   allowedStyles: { "*": STYLES },
   disallowedTagsMode: "discard",
-  nonTextTags: ["script", "style", "textarea", "option", "noscript", "title", "head", "template", "svg", "math", "iframe", "object"],
-  transformTags: { a: (tagName, attribs) => ({ tagName, attribs: { ...attribs, rel: "noopener noreferrer" } }) },
+  nonTextTags: [
+    "script",
+    "style",
+    "textarea",
+    "option",
+    "noscript",
+    "title",
+    "head",
+    "template",
+    "svg",
+    "math",
+    "iframe",
+    "object",
+  ],
+  transformTags: {
+    a: (tagName, attribs) => ({
+      tagName,
+      attribs: { ...attribs, rel: "noopener noreferrer" },
+    }),
+  },
   exclusiveFilter: (frame) => frame.tag === "img" && !frame.attribs.src,
 };
 
 /** Ce qui a été retiré, pour prévenir l'utilisateur dans l'éditeur. */
-export type HtmlWarning = "SCRIPT" | "EVENT_HANDLER" | "DANGEROUS_URL" | "EMBED" | "FORM" | "STYLESHEET" | "META";
+export type HtmlWarning =
+  | "SCRIPT"
+  | "EVENT_HANDLER"
+  | "DANGEROUS_URL"
+  | "EMBED"
+  | "FORM"
+  | "STYLESHEET"
+  | "META";
 const CHECKS: Array<[HtmlWarning, RegExp]> = [
   ["SCRIPT", /<\s*script\b/i],
   ["EVENT_HANDLER", /[\s"'/]on[a-z]+\s*=/i],
@@ -126,6 +162,12 @@ export function sanitizeEmailHtml(raw: string): string {
   return sanitizeHtml(raw, OPTIONS).trim();
 }
 
-export function inspectEmailHtml(raw: string): { html: string; warnings: HtmlWarning[] } {
-  return { html: sanitizeEmailHtml(raw), warnings: CHECKS.filter(([, re]) => re.test(raw)).map(([code]) => code) };
+export function inspectEmailHtml(raw: string): {
+  html: string;
+  warnings: HtmlWarning[];
+} {
+  return {
+    html: sanitizeEmailHtml(raw),
+    warnings: CHECKS.filter(([, re]) => re.test(raw)).map(([code]) => code),
+  };
 }

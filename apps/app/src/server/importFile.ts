@@ -14,18 +14,28 @@ export function readTable(bytes: Uint8Array, filename: string): string[][] {
 }
 
 /** Lignes non vides et leur numéro dans le fichier (1 = première ligne), pour signaler la bonne ligne à l'organisateur. */
-export function readRows(bytes: Uint8Array, filename: string): { rows: string[][]; lines: number[] } {
+export function readRows(
+  bytes: Uint8Array,
+  filename: string,
+): { rows: string[][]; lines: number[] } {
   if (bytes.byteLength === 0) throw new CoreError("IMPORT_FILE_EMPTY");
-  if (bytes.byteLength > MAX_IMPORT_BYTES) throw new CoreError("IMPORT_FILE_TOO_LARGE");
+  if (bytes.byteLength > MAX_IMPORT_BYTES)
+    throw new CoreError("IMPORT_FILE_TOO_LARGE");
   const name = filename.toLowerCase();
   const zip = bytes[0] === 0x50 && bytes[1] === 0x4b; // « PK » : archive, donc Excel moderne
-  if (name.endsWith(".xls") && !zip) throw new CoreError("IMPORT_FILE_OLD_EXCEL");
+  if (name.endsWith(".xls") && !zip)
+    throw new CoreError("IMPORT_FILE_OLD_EXCEL");
   const rows = zip ? readXlsx(bytes) : readCsv(decodeText(bytes));
-  const cleaned = rows.map((r) => r.map((c) => c.replace(/\u00a0/g, " ").trim()));
-  const lines = cleaned.map((_, i) => i + 1).filter((_, i) => cleaned[i]!.some((c) => c !== ""));
+  const cleaned = rows.map((r) =>
+    r.map((c) => c.replace(/\u00a0/g, " ").trim()),
+  );
+  const lines = cleaned
+    .map((_, i) => i + 1)
+    .filter((_, i) => cleaned[i]!.some((c) => c !== ""));
   const kept = lines.map((n) => cleaned[n - 1]!);
   if (kept.length === 0) throw new CoreError("IMPORT_FILE_EMPTY");
-  if (kept.length > MAX_IMPORT_ROWS + 1) throw new CoreError("IMPORT_FILE_TOO_LARGE");
+  if (kept.length > MAX_IMPORT_ROWS + 1)
+    throw new CoreError("IMPORT_FILE_TOO_LARGE");
   return { rows: kept, lines };
 }
 
@@ -34,7 +44,9 @@ export function readRows(bytes: Uint8Array, filename: string): { rows: string[][
 /** UTF-8, sinon Windows-1252 (CSV enregistré par Excel en français : « é » en un seul octet). */
 export function decodeText(bytes: Uint8Array): string {
   const utf8 = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-  const text = utf8.includes("\ufffd") ? new TextDecoder("windows-1252").decode(bytes) : utf8;
+  const text = utf8.includes("\ufffd")
+    ? new TextDecoder("windows-1252").decode(bytes)
+    : utf8;
   return text.replace(/^\ufeff/, "");
 }
 
@@ -65,7 +77,8 @@ function guessSeparator(text: string): string {
     if (n > 0 || counts.length === 0) counts.push(n);
     const filled = counts.filter((c, k) => c > 0 || k === 0);
     const min = Math.min(...filled);
-    const score = min > 0 ? min * 1000 + filled.filter((c) => c === filled[0]).length : 0;
+    const score =
+      min > 0 ? min * 1000 + filled.filter((c) => c === filled[0]).length : 0;
     if (score > bestScore) {
       best = sep;
       bestScore = score;
@@ -75,7 +88,10 @@ function guessSeparator(text: string): string {
 }
 
 /** CSV selon la RFC 4180 : guillemets, guillemets doublés, retours à la ligne dans une cellule entre guillemets. */
-export function readCsv(text: string, separator = guessSeparator(text)): string[][] {
+export function readCsv(
+  text: string,
+  separator = guessSeparator(text),
+): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = "";
@@ -110,16 +126,33 @@ export function readCsv(text: string, separator = guessSeparator(text)): string[
 
 // ─── Excel (.xlsx) ──────────────────────────────────────────────────────────────────────────────────────────────────
 
-const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+const ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+};
 const xmlText = (s: string) =>
   s.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos);/gi, (_, e: string) =>
     e[0] === "#"
-      ? String.fromCodePoint(e[1] === "x" || e[1] === "X" ? Number.parseInt(e.slice(2), 16) : Number(e.slice(1)))
+      ? String.fromCodePoint(
+          e[1] === "x" || e[1] === "X"
+            ? Number.parseInt(e.slice(2), 16)
+            : Number(e.slice(1)),
+        )
       : (ENTITIES[e.toLowerCase()] ?? ""),
   );
 /** Texte d'un élément partagé ou en ligne : toutes ses balises <t>, texte enrichi compris. */
-const runsText = (xml: string) => [...xml.matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)].map((m) => xmlText(m[1]!)).join("");
-const columnIndex = (ref: string) => [...ref.replace(/\d+/g, "")].reduce((n, ch) => n * 26 + (ch.toUpperCase().charCodeAt(0) - 64), 0) - 1;
+const runsText = (xml: string) =>
+  [...xml.matchAll(/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g)]
+    .map((m) => xmlText(m[1]!))
+    .join("");
+const columnIndex = (ref: string) =>
+  [...ref.replace(/\d+/g, "")].reduce(
+    (n, ch) => n * 26 + (ch.toUpperCase().charCodeAt(0) - 64),
+    0,
+  ) - 1;
 
 /** Nombre d'Excel en texte : entier sans exposant quand c'est possible (codes-barres saisis comme nombres). */
 function numberText(raw: string): string {
@@ -135,7 +168,8 @@ export function readXlsx(bytes: Uint8Array): string[][] {
     files = unzipSync(bytes, {
       filter: (f) => {
         total += f.originalSize;
-        if (total > MAX_XLSX_UNZIPPED) throw new CoreError("IMPORT_FILE_TOO_LARGE");
+        if (total > MAX_XLSX_UNZIPPED)
+          throw new CoreError("IMPORT_FILE_TOO_LARGE");
         return (
           f.name === "xl/workbook.xml" ||
           f.name === "xl/_rels/workbook.xml.rels" ||
@@ -148,14 +182,25 @@ export function readXlsx(bytes: Uint8Array): string[][] {
     if (e instanceof CoreError) throw e;
     throw new CoreError("IMPORT_FILE_UNREADABLE");
   }
-  const text = (name: string) => (files[name] ? new TextDecoder().decode(files[name]) : "");
+  const text = (name: string) =>
+    files[name] ? new TextDecoder().decode(files[name]) : "";
   // première feuille du classeur, par son lien
-  const rid = /<sheet\b[^>]*\br:id="([^"]+)"/.exec(text("xl/workbook.xml"))?.[1];
-  const target = rid ? new RegExp(`<Relationship\\b[^>]*\\bId="${rid}"[^>]*\\bTarget="([^"]+)"`).exec(text("xl/_rels/workbook.xml.rels"))?.[1] : undefined;
-  const sheetName = target ? `xl/${target.replace(/^\/?xl\//, "").replace(/^\//, "")}` : Object.keys(files).find((n) => n.startsWith("xl/worksheets/"));
+  const rid = /<sheet\b[^>]*\br:id="([^"]+)"/.exec(
+    text("xl/workbook.xml"),
+  )?.[1];
+  const target = rid
+    ? new RegExp(
+        `<Relationship\\b[^>]*\\bId="${rid}"[^>]*\\bTarget="([^"]+)"`,
+      ).exec(text("xl/_rels/workbook.xml.rels"))?.[1]
+    : undefined;
+  const sheetName = target
+    ? `xl/${target.replace(/^\/?xl\//, "").replace(/^\//, "")}`
+    : Object.keys(files).find((n) => n.startsWith("xl/worksheets/"));
   const sheet = sheetName ? text(sheetName) : "";
   if (!sheet) throw new CoreError("IMPORT_FILE_UNREADABLE");
-  const shared = [...text("xl/sharedStrings.xml").matchAll(/<si>([\s\S]*?)<\/si>/g)].map((m) => runsText(m[1]!));
+  const shared = [
+    ...text("xl/sharedStrings.xml").matchAll(/<si>([\s\S]*?)<\/si>/g),
+  ].map((m) => runsText(m[1]!));
   const rows: string[][] = [];
   for (const r of sheet.matchAll(/<row\b[^>]*>([\s\S]*?)<\/row>/g)) {
     const row: string[] = [];
@@ -190,7 +235,17 @@ export function readXlsx(bytes: Uint8Array): string[][] {
 
 // ─── Reconnaissance des colonnes ────────────────────────────────────────────────────────────────────────────────────
 
-export type ImportField = "code" | "reservation" | "firstName" | "lastName" | "fullName" | "tarif" | "price" | "seat" | "row" | "quantity";
+export type ImportField =
+  | "code"
+  | "reservation"
+  | "firstName"
+  | "lastName"
+  | "fullName"
+  | "tarif"
+  | "price"
+  | "seat"
+  | "row"
+  | "quantity";
 export type ColumnMap = Partial<Record<ImportField, number>>;
 
 const plain = (s: string) =>
@@ -248,7 +303,17 @@ const SYNONYMS: Array<[ImportField, string[]]> = [
     ],
   ],
   ["firstName", ["prenom", "first name", "firstname", "given name"]],
-  ["lastName", ["nom", "nom de famille", "last name", "lastname", "surname", "family name"]],
+  [
+    "lastName",
+    [
+      "nom",
+      "nom de famille",
+      "last name",
+      "lastname",
+      "surname",
+      "family name",
+    ],
+  ],
   [
     "fullName",
     [
@@ -284,26 +349,69 @@ const SYNONYMS: Array<[ImportField, string[]]> = [
       "ticket type",
     ],
   ],
-  ["price", ["prix", "prix ttc", "montant", "montant ttc", "prix unitaire", "price", "amount", "total"]],
-  ["seat", ["place", "numero place", "numero de place", "siege", "fauteuil", "seat", "seat number"]],
+  [
+    "price",
+    [
+      "prix",
+      "prix ttc",
+      "montant",
+      "montant ttc",
+      "prix unitaire",
+      "price",
+      "amount",
+      "total",
+    ],
+  ],
+  [
+    "seat",
+    [
+      "place",
+      "numero place",
+      "numero de place",
+      "siege",
+      "fauteuil",
+      "seat",
+      "seat number",
+    ],
+  ],
   ["row", ["rang", "rangee", "row"]],
-  ["quantity", ["nb places", "nombre de places", "nb de places", "places", "quantite", "qte", "qty", "quantity", "nombre"]],
+  [
+    "quantity",
+    [
+      "nb places",
+      "nombre de places",
+      "nb de places",
+      "places",
+      "quantite",
+      "qte",
+      "qty",
+      "quantity",
+      "nombre",
+    ],
+  ],
 ];
 
 /** Une valeur qui ressemble à un code-barres : 6 à 40 caractères, chiffres compris, sans espace. */
-const looksLikeCode = (v: string) => /^[A-Za-z0-9*+\-]{6,40}$/.test(v) && /\d/.test(v);
+const looksLikeCode = (v: string) =>
+  /^[A-Za-z0-9*+\-]{6,40}$/.test(v) && /\d/.test(v);
 
 /**
  * Colonnes du fichier : depuis la ligne d'en-tête si elle est reconnue, sinon la colonne qui ressemble à des codes-barres.
  * « sure » : le fichier peut être importé sans rien demander (un code-barres, ou une réservation avec un nom).
  */
-export function detectColumns(rows: string[][]): { header: boolean; map: ColumnMap; sure: boolean } {
+export function detectColumns(rows: string[][]): {
+  header: boolean;
+  map: ColumnMap;
+  sure: boolean;
+} {
   const first = rows[0] ?? [];
   const map: ColumnMap = {};
   first.forEach((cell, i) => {
     const h = plain(cell);
     if (!h) return;
-    for (const [field, names] of SYNONYMS) if (map[field] === undefined && names.includes(h)) return void (map[field] = i);
+    for (const [field, names] of SYNONYMS)
+      if (map[field] === undefined && names.includes(h))
+        return void (map[field] = i);
   });
   const header = Object.keys(map).length > 0 && !first.some(looksLikeCode);
   if (!header) {
@@ -313,7 +421,8 @@ export function detectColumns(rows: string[][]): { header: boolean; map: ColumnM
     let bestShare = 0;
     for (let i = 0; i < width; i++) {
       const values = rows.slice(0, 50).map((r) => r[i] ?? "");
-      const share = values.filter(looksLikeCode).length / Math.max(1, values.length);
+      const share =
+        values.filter(looksLikeCode).length / Math.max(1, values.length);
       if (share > bestShare) {
         best = i;
         bestShare = share;
@@ -323,5 +432,9 @@ export function detectColumns(rows: string[][]): { header: boolean; map: ColumnM
     return { header: false, map: guessed, sure: guessed.code !== undefined };
   }
   const named = map.fullName !== undefined || map.lastName !== undefined;
-  return { header: true, map, sure: map.code !== undefined || (map.reservation !== undefined && named) };
+  return {
+    header: true,
+    map,
+    sure: map.code !== undefined || (map.reservation !== undefined && named),
+  };
 }

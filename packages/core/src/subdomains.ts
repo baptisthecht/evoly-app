@@ -21,13 +21,17 @@ export const RESERVED_SUBDOMAINS: ReadonlySet<string> = new Set([
   "e",
 ]);
 
-export type SubdomainCheck = { ok: true; value: string } | { ok: false; reason: "LENGTH" | "FORMAT" | "RESERVED" };
+export type SubdomainCheck =
+  | { ok: true; value: string }
+  | { ok: false; reason: "LENGTH" | "FORMAT" | "RESERVED" };
 
 /** RG-SDM-01 : [a-z0-9-], 3 à 50 caractères, sans tiret en début ou en fin, hors liste réservée. */
 export function checkSubdomain(input: string): SubdomainCheck {
   const value = input.trim().toLowerCase();
-  if (value.length < 3 || value.length > 50) return { ok: false, reason: "LENGTH" };
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) return { ok: false, reason: "FORMAT" };
+  if (value.length < 3 || value.length > 50)
+    return { ok: false, reason: "LENGTH" };
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))
+    return { ok: false, reason: "FORMAT" };
   if (RESERVED_SUBDOMAINS.has(value)) return { ok: false, reason: "RESERVED" };
   return { ok: true, value };
 }
@@ -56,7 +60,12 @@ export function normalizeDomain(input: string): string | null {
     .replace(/\.$/, "");
   const label = /^(?!-)[a-z0-9-]{1,63}(?<!-)$/;
   const parts = host.split(".");
-  if (parts.length < 2 || !parts.every((p) => label.test(p)) || host.length > 253) return null;
+  if (
+    parts.length < 2 ||
+    !parts.every((p) => label.test(p)) ||
+    host.length > 253
+  )
+    return null;
   if (!/^[a-z]{2,63}$/.test(parts[parts.length - 1]!)) return null;
   return host;
 }

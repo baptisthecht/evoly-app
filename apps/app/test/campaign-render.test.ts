@@ -16,10 +16,21 @@ const doc: EmailDoc = {
       ],
     },
     { type: "eventCard", attrs: { eventId: "e1" } },
-    { type: "rawHtml", attrs: { html: '<p>Bloc maison</p><script>alert(1)</script><img src="https://exemple.be/a.png" onerror="alert(2)">' } },
+    {
+      type: "rawHtml",
+      attrs: {
+        html: '<p>Bloc maison</p><script>alert(1)</script><img src="https://exemple.be/a.png" onerror="alert(2)">',
+      },
+    },
   ],
 };
-const brand = { fromName: "Club", logoUrl: null, accent: null, accentInk: null, primary: null } as unknown as EmailBrand;
+const brand = {
+  fromName: "Club",
+  logoUrl: null,
+  accent: null,
+  accentInk: null,
+  primary: null,
+} as unknown as EmailBrand;
 const render = (over: Partial<Parameters<typeof renderCampaign>[0]> = {}) =>
   renderCampaign({
     subject: "Le gala approche, {{prenom}}",
@@ -68,15 +79,30 @@ describe("rendu d'une campagne (section 9.18, RG-MKT-02)", () => {
   it("pied de page obligatoire, en HTML comme en texte : organisation, adresse, raison et lien de désinscription", () => {
     const r = render();
     expect(r.html).toContain("Club &lt;Amis&gt; · Rue Haute 1, Bruxelles");
-    expect(r.html).toContain("vous avez accepté de recevoir les actualités de Club &lt;Amis&gt;");
-    expect(r.html).toContain('href="https://club.evoly.me/desinscription?t=abc&amp;x=1"');
+    expect(r.html).toContain(
+      "vous avez accepté de recevoir les actualités de Club &lt;Amis&gt;",
+    );
+    expect(r.html).toContain(
+      'href="https://club.evoly.me/desinscription?t=abc&amp;x=1"',
+    );
     expect(r.html).toContain("Se désinscrire");
-    expect(r.text).toContain("Se désinscrire : https://club.evoly.me/desinscription?t=abc&x=1");
-    expect(render({ organizationAddress: "" }).html).not.toContain("Club &lt;Amis&gt; · ");
+    expect(r.text).toContain(
+      "Se désinscrire : https://club.evoly.me/desinscription?t=abc&x=1",
+    );
+    expect(render({ organizationAddress: "" }).html).not.toContain(
+      "Club &lt;Amis&gt; · ",
+    );
   });
 
   it("en-tête : logo de la marque, sinon le nom de l'organisation", () => {
-    expect(render({ brand: { ...brand, logoUrl: "https://cdn.evoly.me/logo.png" } as EmailBrand }).html).toContain(
+    expect(
+      render({
+        brand: {
+          ...brand,
+          logoUrl: "https://cdn.evoly.me/logo.png",
+        } as EmailBrand,
+      }).html,
+    ).toContain(
       '<img src="https://cdn.evoly.me/logo.png" alt="Club &lt;Amis&gt;"',
     );
     expect(render().html).not.toContain("cdn.evoly.me/logo.png");
@@ -98,7 +124,9 @@ describe("rendu d'une campagne (section 9.18, RG-MKT-02)", () => {
 
   it("langue du destinataire pour le pied de page ; sans aperçu, pas de bloc caché", () => {
     expect(render({ locale: "nl" }).html).toContain("Uitschrijven");
-    expect(render({ locale: "en" }).text).toContain("Unsubscribe : https://club.evoly.me/desinscription?t=abc&x=1");
+    expect(render({ locale: "en" }).text).toContain(
+      "Unsubscribe : https://club.evoly.me/desinscription?t=abc&x=1",
+    );
     expect(render({ previewText: null }).html).not.toContain("display:none");
   });
 });

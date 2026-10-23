@@ -21,7 +21,14 @@ const b64 = (v: string) => Buffer.from(v, "base64").toString("utf8");
 /** Identifiants Apple lus depuis l'environnement ; null tant qu'ils ne sont pas tous fournis. */
 export function appleCredentials(): AppleCredentials | null {
   const e = env();
-  if (!e.APPLE_PASS_TYPE_ID || !e.APPLE_TEAM_ID || !e.APPLE_PASS_CERT_PEM || !e.APPLE_PASS_KEY_PEM || !e.APPLE_WWDR_PEM) return null;
+  if (
+    !e.APPLE_PASS_TYPE_ID ||
+    !e.APPLE_TEAM_ID ||
+    !e.APPLE_PASS_CERT_PEM ||
+    !e.APPLE_PASS_KEY_PEM ||
+    !e.APPLE_WWDR_PEM
+  )
+    return null;
   return {
     passTypeIdentifier: e.APPLE_PASS_TYPE_ID,
     teamIdentifier: e.APPLE_TEAM_ID,
@@ -44,7 +51,8 @@ const LABELS = {
     order: "Commande",
     code: "Code du billet",
     info: "À savoir",
-    infoText: "Présentez ce QR code à l’entrée. Il n’est valable qu’une fois : ne le partagez pas.",
+    infoText:
+      "Présentez ce QR code à l’entrée. Il n’est valable qu’une fois : ne le partagez pas.",
   },
   en: {
     seat: "SEAT",
@@ -57,7 +65,8 @@ const LABELS = {
     order: "Order",
     code: "Ticket code",
     info: "Good to know",
-    infoText: "Show this QR code at the entrance. It works only once: don't share it.",
+    infoText:
+      "Show this QR code at the entrance. It works only once: don't share it.",
   },
   es: {
     seat: "PLAZA",
@@ -70,7 +79,8 @@ const LABELS = {
     order: "Pedido",
     code: "Código de la entrada",
     info: "Información",
-    infoText: "Muestra este código QR en el acceso. Solo vale una vez: no lo compartas.",
+    infoText:
+      "Muestra este código QR en el acceso. Solo vale una vez: no lo compartas.",
   },
   de: {
     seat: "PLATZ",
@@ -83,7 +93,8 @@ const LABELS = {
     order: "Bestellung",
     code: "Ticketcode",
     info: "Gut zu wissen",
-    infoText: "Zeigen Sie diesen QR-Code am Eingang vor. Er gilt nur einmal: Geben Sie ihn nicht weiter.",
+    infoText:
+      "Zeigen Sie diesen QR-Code am Eingang vor. Er gilt nur einmal: Geben Sie ihn nicht weiter.",
   },
   it: {
     seat: "POSTO",
@@ -96,7 +107,8 @@ const LABELS = {
     order: "Ordine",
     code: "Codice del biglietto",
     info: "Da sapere",
-    infoText: "Mostra questo codice QR all’ingresso. Vale una sola volta: non condividerlo.",
+    infoText:
+      "Mostra questo codice QR all’ingresso. Vale una sola volta: non condividerlo.",
   },
   pt: {
     seat: "LUGAR",
@@ -109,7 +121,8 @@ const LABELS = {
     order: "Encomenda",
     code: "Código do bilhete",
     info: "A saber",
-    infoText: "Apresente este código QR à entrada. Só é válido uma vez: não o partilhe.",
+    infoText:
+      "Apresente este código QR à entrada. Só é válido uma vez: não o partilhe.",
   },
   nl: {
     seat: "PLAATS",
@@ -122,19 +135,26 @@ const LABELS = {
     order: "Bestelling",
     code: "Ticketcode",
     info: "Goed om te weten",
-    infoText: "Toon deze QR-code aan de ingang. Hij is maar één keer geldig: deel hem niet.",
+    infoText:
+      "Toon deze QR-code aan de ingang. Hij is maar één keer geldig: deel hem niet.",
   },
 } as const;
 
 /** Contenu du pass (format Apple « eventTicket »). */
 /** Jeton du service de mise à jour d'un pass (RG-POST-04) : dérivé du billet, rien à stocker. */
 export function applePassToken(ticketId: string): string {
-  return createHmac("sha256", env().ORDER_TOKEN_SECRET ?? env().BETTER_AUTH_SECRET)
+  return createHmac(
+    "sha256",
+    env().ORDER_TOKEN_SECRET ?? env().BETTER_AUTH_SECRET,
+  )
     .update(`apple-pass:${ticketId}`)
     .digest("hex");
 }
 
-export function passJson(t: WalletTicket, creds: Pick<AppleCredentials, "passTypeIdentifier" | "teamIdentifier">) {
+export function passJson(
+  t: WalletTicket,
+  creds: Pick<AppleCredentials, "passTypeIdentifier" | "teamIdentifier">,
+) {
   const L = pick(LABELS, t.locale);
   return {
     formatVersion: 1,
@@ -153,15 +173,32 @@ export function passJson(t: WalletTicket, creds: Pick<AppleCredentials, "passTyp
     labelColor: rgb(t.foreground),
     relevantDate: t.startsAt.toISOString(),
     expirationDate: new Date(t.endsAt.getTime() + 24 * 3_600_000).toISOString(),
-    barcodes: [{ format: "PKBarcodeFormatQR", message: t.code, messageEncoding: "iso-8859-1", altText: t.shortCode }],
-    barcode: { format: "PKBarcodeFormatQR", message: t.code, messageEncoding: "iso-8859-1", altText: t.shortCode },
+    barcodes: [
+      {
+        format: "PKBarcodeFormatQR",
+        message: t.code,
+        messageEncoding: "iso-8859-1",
+        altText: t.shortCode,
+      },
+    ],
+    barcode: {
+      format: "PKBarcodeFormatQR",
+      message: t.code,
+      messageEncoding: "iso-8859-1",
+      altText: t.shortCode,
+    },
     eventTicket: {
       primaryFields: [{ key: "event", label: L.event, value: t.title }],
-      secondaryFields: [{ key: "when", label: L.when, value: t.when }, ...(t.place ? [{ key: "where", label: L.where, value: t.place }] : [])],
+      secondaryFields: [
+        { key: "when", label: L.when, value: t.when },
+        ...(t.place ? [{ key: "where", label: L.where, value: t.place }] : []),
+      ],
       auxiliaryFields: [
         { key: "type", label: L.type, value: t.typeName },
         ...(t.seat ? [{ key: "seat", label: L.seat, value: t.seat }] : []),
-        ...(t.holder ? [{ key: "holder", label: L.holder, value: t.holder }] : []),
+        ...(t.holder
+          ? [{ key: "holder", label: L.holder, value: t.holder }]
+          : []),
       ],
       backFields: [
         { key: "order", label: L.order, value: t.reference },
@@ -172,15 +209,23 @@ export function passJson(t: WalletTicket, creds: Pick<AppleCredentials, "passTyp
   };
 }
 
-const sha1 = (data: Uint8Array) => createHash("sha1").update(data).digest("hex");
+const sha1 = (data: Uint8Array) =>
+  createHash("sha1").update(data).digest("hex");
 
 /** Signature PKCS#7 détachée du manifeste, avec le certificat du type de pass et le certificat intermédiaire WWDR. */
-function signManifest(manifest: Uint8Array, creds: AppleCredentials): Uint8Array {
+function signManifest(
+  manifest: Uint8Array,
+  creds: AppleCredentials,
+): Uint8Array {
   const cert = forge.pki.certificateFromPem(creds.certPem);
-  const key = creds.passphrase ? forge.pki.decryptRsaPrivateKey(creds.keyPem, creds.passphrase) : forge.pki.privateKeyFromPem(creds.keyPem);
+  const key = creds.passphrase
+    ? forge.pki.decryptRsaPrivateKey(creds.keyPem, creds.passphrase)
+    : forge.pki.privateKeyFromPem(creds.keyPem);
   if (!key) throw new Error("clé du certificat Apple illisible");
   const p7 = forge.pkcs7.createSignedData();
-  p7.content = forge.util.createBuffer(Buffer.from(manifest).toString("binary"));
+  p7.content = forge.util.createBuffer(
+    Buffer.from(manifest).toString("binary"),
+  );
   p7.addCertificate(cert);
   p7.addCertificate(forge.pki.certificateFromPem(creds.wwdrPem));
   p7.addSigner({
@@ -194,11 +239,16 @@ function signManifest(manifest: Uint8Array, creds: AppleCredentials): Uint8Array
     ],
   });
   p7.sign({ detached: true });
-  return Uint8Array.from(Buffer.from(forge.asn1.toDer(p7.toAsn1()).getBytes(), "binary"));
+  return Uint8Array.from(
+    Buffer.from(forge.asn1.toDer(p7.toAsn1()).getBytes(), "binary"),
+  );
 }
 
 /** US-POST-03 : fichier .pkpass (archive signée : pass.json, images, manifest.json, signature). */
-export function buildPkpass(t: WalletTicket, creds: AppleCredentials): Uint8Array {
+export function buildPkpass(
+  t: WalletTicket,
+  creds: AppleCredentials,
+): Uint8Array {
   const files: Record<string, Uint8Array> = {
     "pass.json": strToU8(JSON.stringify(passJson(t, creds))),
     "icon.png": new Uint8Array(ICON),
@@ -207,6 +257,19 @@ export function buildPkpass(t: WalletTicket, creds: AppleCredentials): Uint8Arra
     "logo.png": new Uint8Array(LOGO),
     "logo@2x.png": new Uint8Array(LOGO_2X),
   };
-  const manifest = strToU8(JSON.stringify(Object.fromEntries(Object.entries(files).map(([name, data]) => [name, sha1(data)]))));
-  return zipSync({ ...files, "manifest.json": manifest, signature: signManifest(manifest, creds) }, { level: 6 });
+  const manifest = strToU8(
+    JSON.stringify(
+      Object.fromEntries(
+        Object.entries(files).map(([name, data]) => [name, sha1(data)]),
+      ),
+    ),
+  );
+  return zipSync(
+    {
+      ...files,
+      "manifest.json": manifest,
+      signature: signManifest(manifest, creds),
+    },
+    { level: 6 },
+  );
 }

@@ -6,8 +6,22 @@ import type { OrgContext } from "@/server/context";
 const rid = () => Math.random().toString(36).slice(2, 10);
 async function setup() {
   const id = rid();
-  const org = await db.organization.create({ data: { name: "Club", slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR" } });
-  const add = (email: string, firstName: string, lastName: string, consent: boolean, unsubscribed = false) =>
+  const org = await db.organization.create({
+    data: {
+      name: "Club",
+      slug: `club-${id}`,
+      subdomain: `club-${id}`,
+      country: "BE",
+      currency: "EUR",
+    },
+  });
+  const add = (
+    email: string,
+    firstName: string,
+    lastName: string,
+    consent: boolean,
+    unsubscribed = false,
+  ) =>
     db.contact.create({
       data: {
         organizationId: org.id,
@@ -21,9 +35,19 @@ async function setup() {
   const lea = await add("lea", "Léa", "Martin", true);
   const tom = await add("tom", "Tom", "Dubois", false);
   const zoe = await add("zoe", "Zoé", "Lambert", true, true); // avait consenti, puis s'est désinscrite
-  return { id, org, lea, tom, zoe, ctx: { organization: { id: org.id } } as unknown as OrgContext };
+  return {
+    id,
+    org,
+    lea,
+    tom,
+    zoe,
+    ctx: { organization: { id: org.id } } as unknown as OrgContext,
+  };
 }
-const ids = async (ctx: OrgContext, opts: Parameters<typeof searchContacts>[1]) => (await searchContacts(ctx, opts)).rows.map((c) => c.id).sort();
+const ids = async (
+  ctx: OrgContext,
+  opts: Parameters<typeof searchContacts>[1],
+) => (await searchContacts(ctx, opts)).rows.map((c) => c.id).sort();
 
 describe("contacts de l'organisation (US-MKT-04, RGPD)", () => {
   it("recherche par e-mail, prénom ou nom, sans tenir compte des majuscules", async () => {
@@ -51,10 +75,20 @@ describe("contacts de l'organisation (US-MKT-04, RGPD)", () => {
     const s = await setup();
     const other = await setup();
     expect(await ids(other.ctx, { q: `lea.${s.id}` })).toEqual([]);
-    await db.contact.createMany({ data: Array.from({ length: 52 }, (_, i) => ({ organizationId: s.org.id, email: `p${i}.${s.id}@exemple.be` })) });
+    await db.contact.createMany({
+      data: Array.from({ length: 52 }, (_, i) => ({
+        organizationId: s.org.id,
+        email: `p${i}.${s.id}@exemple.be`,
+      })),
+    });
     const first = await searchContacts(s.ctx, { page: 0 });
     const second = await searchContacts(s.ctx, { page: 1 });
-    expect([first.rows.length, second.rows.length, first.total, first.pages]).toEqual([50, 5, 55, 2]);
+    expect([
+      first.rows.length,
+      second.rows.length,
+      first.total,
+      first.pages,
+    ]).toEqual([50, 5, 55, 2]);
     expect((await searchContacts(s.ctx, { page: -3 })).rows.length).toBe(50); // une page négative revient à la première
   });
 });

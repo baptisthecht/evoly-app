@@ -3,10 +3,20 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import { ViewBeacon } from "@/components/public/ViewBeacon";
 import { SubmitOnChange } from "@/components/events/overview/SubmitOnChange";
-import { Gauge, Kpi, RecentOrders, SalesChart, TiersCard } from "@/components/events/overview/Widgets";
+import {
+  Gauge,
+  Kpi,
+  RecentOrders,
+  SalesChart,
+  TiersCard,
+} from "@/components/events/overview/Widgets";
 
 const ov = (fr as unknown as Record<string, Record<string, string>>).overview!;
-const t = (k: string, v: Record<string, string | number> = {}) => Object.entries(v).reduce((s, [a, b]) => s.replace(`{${a}}`, String(b)), ov[k] ?? k);
+const t = (k: string, v: Record<string, string | number> = {}) =>
+  Object.entries(v).reduce(
+    (s, [a, b]) => s.replace(`{${a}}`, String(b)),
+    ov[k] ?? k,
+  );
 const today = "2026-10-20";
 const o = {
   days: [
@@ -49,12 +59,25 @@ describe("widgets de la vue d'ensemble", () => {
       </Kpi>,
     );
     expect(screen.getByText("Billets vendus")).toBeTruthy();
-    expect((document.querySelector("[aria-hidden] > div") as HTMLElement).style.width).toBe("100%");
+    expect(
+      (document.querySelector("[aria-hidden] > div") as HTMLElement).style
+        .width,
+    ).toBe("100%");
   });
 
   it("graphique : total dans sa description, période active marquée, jours en liens", () => {
-    render(<SalesChart o={o} t={t} period="7" base="/o/club/events/e1" locale="fr" />);
-    expect(screen.getByRole("img", { name: t("chartLabel", { total: 8 }) })).toBeTruthy();
+    render(
+      <SalesChart
+        o={o}
+        t={t}
+        period="7"
+        base="/o/club/events/e1"
+        locale="fr"
+      />,
+    );
+    expect(
+      screen.getByRole("img", { name: t("chartLabel", { total: 8 }) }),
+    ).toBeTruthy();
     const periods = screen.getByRole("navigation", { name: ov.period });
     expect(
       within(periods)
@@ -70,9 +93,27 @@ describe("widgets de la vue d'ensemble", () => {
 
   it("tarifs : épuisé, limité, illimité, ventes par palier ; sans droit d'édition, pas de lien", () => {
     const types = [
-      { id: "a", name: "Normal", priceMinor: 1000, quantity: 10, quantitySold: 10 },
-      { id: "b", name: "Réduit", priceMinor: 500, quantity: 50, quantitySold: 12 },
-      { id: "c", name: "Soutien", priceMinor: 2500, quantity: null, quantitySold: 3 },
+      {
+        id: "a",
+        name: "Normal",
+        priceMinor: 1000,
+        quantity: 10,
+        quantitySold: 10,
+      },
+      {
+        id: "b",
+        name: "Réduit",
+        priceMinor: 500,
+        quantity: 50,
+        quantitySold: 12,
+      },
+      {
+        id: "c",
+        name: "Soutien",
+        priceMinor: 2500,
+        quantity: null,
+        quantitySold: 3,
+      },
     ];
     const tiers = new Map([
       [
@@ -83,23 +124,63 @@ describe("widgets de la vue d'ensemble", () => {
         ],
       ],
     ]);
-    const { rerender } = render(<TiersCard t={t} locale="fr" currency="EUR" types={types} tiersSold={tiers} ticketsHref="/o/club/events/e1/tickets" />);
+    const { rerender } = render(
+      <TiersCard
+        t={t}
+        locale="fr"
+        currency="EUR"
+        types={types}
+        tiersSold={tiers}
+        ticketsHref="/o/club/events/e1/tickets"
+      />,
+    );
     expect(screen.getByText(ov.soldOut!)).toBeTruthy();
     expect(screen.getByText(t("soldOf", { sold: 12, total: 50 }))).toBeTruthy();
     expect(screen.getByText(t("soldUnlimited", { sold: 3 }))).toBeTruthy();
-    expect(screen.getByTestId("tier-sales").textContent).toBe("Prévente : 8 · Normal : 4");
+    expect(screen.getByTestId("tier-sales").textContent).toBe(
+      "Prévente : 8 · Normal : 4",
+    );
     expect(screen.getByRole("link", { name: ov.addTier })).toBeTruthy();
-    rerender(<TiersCard t={t} locale="fr" currency="EUR" types={types} tiersSold={tiers} ticketsHref={null} />);
+    rerender(
+      <TiersCard
+        t={t}
+        locale="fr"
+        currency="EUR"
+        types={types}
+        tiersSold={tiers}
+        ticketsHref={null}
+      />,
+    );
     expect(screen.queryByRole("link", { name: ov.addTier })).toBeNull();
   });
 
   it("dernières commandes : lignes, statuts, montants selon le droit, aucune commande", () => {
-    const { rerender } = render(<RecentOrders o={o} t={t} locale="fr" ordersHref="/o/club/events/e1/orders" exportHref="/x.csv" showAmounts />);
-    expect(screen.getByRole("link", { name: "Léa Martin" }).getAttribute("href")).toBe("/o/club/events/e1/orders/o1");
+    const { rerender } = render(
+      <RecentOrders
+        o={o}
+        t={t}
+        locale="fr"
+        ordersHref="/o/club/events/e1/orders"
+        exportHref="/x.csv"
+        showAmounts
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Léa Martin" }).getAttribute("href"),
+    ).toBe("/o/club/events/e1/orders/o1");
     expect(screen.getByText(ov.PAID!, { selector: "span" })).toBeTruthy();
     expect(screen.getByText(ov.REFUNDED!, { selector: "span" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: ov.amount })).toBeTruthy();
-    rerender(<RecentOrders o={{ ...(o as object), recent: [] } as never} t={t} locale="fr" ordersHref="/o" exportHref="/x.csv" showAmounts={false} />);
+    rerender(
+      <RecentOrders
+        o={{ ...(o as object), recent: [] } as never}
+        t={t}
+        locale="fr"
+        ordersHref="/o"
+        exportHref="/x.csv"
+        showAmounts={false}
+      />,
+    );
     expect(screen.getByText(ov.noOrders!)).toBeTruthy();
   });
 
@@ -113,7 +194,9 @@ describe("widgets de la vue d'ensemble", () => {
         </SubmitOnChange>
       </form>,
     );
-    fireEvent.change(screen.getByRole("combobox", { name: "Statut" }), { target: { value: "PAID" } });
+    fireEvent.change(screen.getByRole("combobox", { name: "Statut" }), {
+      target: { value: "PAID" },
+    });
     expect(submit).toHaveBeenCalledTimes(1);
   });
 
@@ -126,6 +209,9 @@ describe("widgets de la vue d'ensemble", () => {
     vi.stubGlobal("navigator", { ...navigator, sendBeacon: () => false });
     vi.stubGlobal("fetch", f);
     await act(async () => void render(<ViewBeacon eventId="cdef456" />));
-    expect(f).toHaveBeenCalledWith("/api/v/cdef456", { method: "POST", keepalive: true });
+    expect(f).toHaveBeenCalledWith("/api/v/cdef456", {
+      method: "POST",
+      keepalive: true,
+    });
   });
 });

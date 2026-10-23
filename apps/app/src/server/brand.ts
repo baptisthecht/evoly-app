@@ -1,5 +1,14 @@
 import "server-only";
-import { checkSubdomain, CoreError, hasFeature, normalizeHexColor, secretToken, isSvg, sniffImage, svgIsSafe } from "@evoly/core";
+import {
+  checkSubdomain,
+  CoreError,
+  hasFeature,
+  normalizeHexColor,
+  secretToken,
+  isSvg,
+  sniffImage,
+  svgIsSafe,
+} from "@evoly/core";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { audit } from "./audit";
@@ -9,21 +18,44 @@ import { ensurePaymentDomains } from "./stripeConnect";
 import { BRAND_FONTS, BRAND_RADII, isBrandFont } from "@evoly/ui";
 import { Prisma } from "@evoly/db";
 
-const MAX_BYTES = { logo: 2_000_000, favicon: 500_000, cover: 5_000_000, campaign: 5_000_000, seatview: 8_000_000 } as const;
+const MAX_BYTES = {
+  logo: 2_000_000,
+  favicon: 500_000,
+  cover: 5_000_000,
+  campaign: 5_000_000,
+  seatview: 8_000_000,
+} as const;
 export type UploadKind = keyof typeof MAX_BYTES;
 
 /** Import d'une image : type réel vérifié, taille limitée, clé aléatoire (le nom du fichier d'origine n'est jamais repris). */
-export async function uploadImage(ctx: OrgContext, kind: UploadKind, bytes: Uint8Array, eventId?: string | null): Promise<string> {
-  if (bytes.length === 0 || bytes.length > MAX_BYTES[kind]) throw new CoreError("UPLOAD_TOO_LARGE");
+export async function uploadImage(
+  ctx: OrgContext,
+  kind: UploadKind,
+  bytes: Uint8Array,
+  eventId?: string | null,
+): Promise<string> {
+  if (bytes.length === 0 || bytes.length > MAX_BYTES[kind])
+    throw new CoreError("UPLOAD_TOO_LARGE");
   let type = sniffImage(bytes);
   if (!type && isSvg(bytes)) {
     // RG-FILE-01 : SVG vérifié puis converti en PNG (jamais conservé tel quel : aucun script possible)
-    if (!svgIsSafe(new TextDecoder().decode(bytes))) throw new CoreError("UPLOAD_SVG_UNSAFE");
+    if (!svgIsSafe(new TextDecoder().decode(bytes)))
+      throw new CoreError("UPLOAD_SVG_UNSAFE");
     const sharp = (await import("sharp")).default;
-    const width = kind === "favicon" ? 256 : kind === "logo" ? 1024 : kind === "campaign" ? 1200 : 1600;
+    const width =
+      kind === "favicon"
+        ? 256
+        : kind === "logo"
+          ? 1024
+          : kind === "campaign"
+            ? 1200
+            : 1600;
     try {
       bytes = new Uint8Array(
-        await sharp(Buffer.from(bytes), { density: 300, limitInputPixels: 40_000_000 })
+        await sharp(Buffer.from(bytes), {
+          density: 300,
+          limitInputPixels: 40_000_000,
+        })
           .resize({ width, fit: "inside", withoutEnlargement: false })
           .png()
           .toBuffer(),
@@ -34,10 +66,14 @@ export async function uploadImage(ctx: OrgContext, kind: UploadKind, bytes: Uint
     type = "image/png";
   }
   if (!type) throw new CoreError("UPLOAD_TYPE");
-  const ext = type === "image/png" ? "png" : type === "image/jpeg" ? "jpg" : "webp";
+  const ext =
+    type === "image/png" ? "png" : type === "image/jpeg" ? "jpg" : "webp";
   if (kind === "seatview") {
     // vue depuis la place : photo réduite à 1 600 px de large, légère sur un téléphone
-    const event = await db.event.findFirst({ where: { id: eventId ?? "", organizationId: ctx.organization.id }, select: { id: true } });
+    const event = await db.event.findFirst({
+      where: { id: eventId ?? "", organizationId: ctx.organization.id },
+      select: { id: true },
+    });
     if (!event) throw new CoreError("NOT_FOUND");
     const sharp = (await import("sharp")).default;
     try {
@@ -60,7 +96,10 @@ export async function uploadImage(ctx: OrgContext, kind: UploadKind, bytes: Uint
     );
   }
   if (kind === "cover") {
-    const event = await db.event.findFirst({ where: { id: eventId ?? "", organizationId: ctx.organization.id }, select: { id: true } });
+    const event = await db.event.findFirst({
+      where: { id: eventId ?? "", organizationId: ctx.organization.id },
+      select: { id: true },
+    });
     if (!event) throw new CoreError("NOT_FOUND");
     return putPublicFile(
       `events/${event.id}/cover-${secretToken(9)
@@ -96,7 +135,14 @@ export interface BrandInput {
   socialLinks?: Partial<Record<SocialNetwork, string>> | null;
 }
 
-export const SOCIAL_NETWORKS = ["website", "instagram", "facebook", "tiktok", "linkedin", "youtube"] as const;
+export const SOCIAL_NETWORKS = [
+  "website",
+  "instagram",
+  "facebook",
+  "tiktok",
+  "linkedin",
+  "youtube",
+] as const;
 export type SocialNetwork = (typeof SOCIAL_NETWORKS)[number];
 const SOCIAL_HOSTS: Record<Exclude<SocialNetwork, "website">, RegExp> = {
   instagram: /(^|\.)instagram\.com$/,
@@ -120,7 +166,11 @@ export function normalizeSocialLinks(
     } catch {
       throw new CoreError("BRAND_SOCIAL_INVALID");
     }
-    if (url.protocol !== "https:" || (k !== "website" && !SOCIAL_HOSTS[k].test(url.hostname.toLowerCase()))) throw new CoreError("BRAND_SOCIAL_INVALID");
+    if (
+      url.protocol !== "https:" ||
+      (k !== "website" && !SOCIAL_HOSTS[k].test(url.hostname.toLowerCase()))
+    )
+      throw new CoreError("BRAND_SOCIAL_INVALID");
     out[k] = url.toString().slice(0, 300);
   }
   return Object.keys(out).length ? out : null;
@@ -128,18 +178,31 @@ export function normalizeSocialLinks(
 
 /** Fond, arrondi, polices, bouton et réseaux sociaux de la billetterie, contrôlés (BRAND_THEME_INVALID sinon). */
 function theme(input: BrandInput) {
-  return { ...themeFields(input), socialLinks: normalizeSocialLinks(input.socialLinks) ?? Prisma.DbNull };
+  return {
+    ...themeFields(input),
+    socialLinks: normalizeSocialLinks(input.socialLinks) ?? Prisma.DbNull,
+  };
 }
 
 /** Fond, arrondi, polices et bouton : mêmes contrôles pour la marque et pour un événement. */
-export function themeFields(input: Pick<BrandInput, "backgroundColor" | "radius" | "headingFont" | "bodyFont" | "buttonLabel">) {
+export function themeFields(
+  input: Pick<
+    BrandInput,
+    "backgroundColor" | "radius" | "headingFont" | "bodyFont" | "buttonLabel"
+  >,
+) {
   const backgroundColor = normalizeHexColor(input.backgroundColor);
-  if (input.backgroundColor && !backgroundColor) throw new CoreError("BRAND_COLOR_INVALID");
+  if (input.backgroundColor && !backgroundColor)
+    throw new CoreError("BRAND_COLOR_INVALID");
   const radius = input.radius?.trim() || null;
-  if (radius && !(BRAND_RADII as readonly string[]).includes(radius)) throw new CoreError("BRAND_THEME_INVALID");
+  if (radius && !(BRAND_RADII as readonly string[]).includes(radius))
+    throw new CoreError("BRAND_THEME_INVALID");
   const headingFont = input.headingFont?.trim() || null;
   const bodyFont = input.bodyFont?.trim() || null;
-  if ((headingFont && !isBrandFont(headingFont)) || (bodyFont && !(isBrandFont(bodyFont) && BRAND_FONTS[bodyFont].body)))
+  if (
+    (headingFont && !isBrandFont(headingFont)) ||
+    (bodyFont && !(isBrandFont(bodyFont) && BRAND_FONTS[bodyFont].body))
+  )
     throw new CoreError("BRAND_THEME_INVALID");
   const buttonLabel = input.buttonLabel?.trim().slice(0, 40) || null;
   return { backgroundColor, radius, headingFont, bodyFont, buttonLabel };
@@ -158,21 +221,56 @@ export interface EventThemeInput {
 }
 
 /** Style propre à un événement (Pro) : mêmes contrôles que la marque ; « style de l'organisation » efface tout. */
-export async function saveEventTheme(ctx: OrgContext, eventId: string, input: EventThemeInput) {
-  if (!hasFeature(ctx.features, "BRANDING")) throw new CoreError("PRO_REQUIRED");
-  const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null }, select: { id: true } });
+export async function saveEventTheme(
+  ctx: OrgContext,
+  eventId: string,
+  input: EventThemeInput,
+) {
+  if (!hasFeature(ctx.features, "BRANDING"))
+    throw new CoreError("PRO_REQUIRED");
+  const event = await db.event.findFirst({
+    where: {
+      id: eventId,
+      organizationId: ctx.organization.id,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
   if (!event) throw new CoreError("EVENT_NOT_FOUND");
-  const empty = { primaryColor: null, accentColor: null, backgroundColor: null, radius: null, headingFont: null, bodyFont: null, buttonLabel: null };
-  let data: typeof empty | (ReturnType<typeof themeFields> & { primaryColor: string | null; accentColor: string | null }) = empty;
+  const empty = {
+    primaryColor: null,
+    accentColor: null,
+    backgroundColor: null,
+    radius: null,
+    headingFont: null,
+    bodyFont: null,
+    buttonLabel: null,
+  };
+  let data:
+    | typeof empty
+    | (ReturnType<typeof themeFields> & {
+        primaryColor: string | null;
+        accentColor: string | null;
+      }) = empty;
   if (!input.useOrganization) {
-    const colors = { primaryColor: normalizeHexColor(input.primaryColor), accentColor: normalizeHexColor(input.accentColor) };
-    if ((input.primaryColor && !colors.primaryColor) || (input.accentColor && !colors.accentColor)) throw new CoreError("BRAND_COLOR_INVALID");
+    const colors = {
+      primaryColor: normalizeHexColor(input.primaryColor),
+      accentColor: normalizeHexColor(input.accentColor),
+    };
+    if (
+      (input.primaryColor && !colors.primaryColor) ||
+      (input.accentColor && !colors.accentColor)
+    )
+      throw new CoreError("BRAND_COLOR_INVALID");
     data = { ...colors, ...themeFields(input) };
   }
   const saved = await db.event.update({
     where: { id: eventId },
     data,
-    select: { id: true, ...Object.fromEntries(Object.keys(empty).map((k) => [k, true])) } as never,
+    select: {
+      id: true,
+      ...Object.fromEntries(Object.keys(empty).map((k) => [k, true])),
+    } as never,
   });
   await audit({
     action: "event.theme_updated",
@@ -185,12 +283,36 @@ export async function saveEventTheme(ctx: OrgContext, eventId: string, input: Ev
   return saved as unknown as typeof empty;
 }
 
-type ThemeSource = Partial<Record<"primaryColor" | "accentColor" | "backgroundColor" | "radius" | "headingFont" | "bodyFont" | "buttonLabel", string | null>>;
+type ThemeSource = Partial<
+  Record<
+    | "primaryColor"
+    | "accentColor"
+    | "backgroundColor"
+    | "radius"
+    | "headingFont"
+    | "bodyFont"
+    | "buttonLabel",
+    string | null
+  >
+>;
 /** Style appliqué à la billetterie d'un événement : chaque réglage de l'événement remplace celui de la marque. */
-export function themeForEvent<B extends ThemeSource>(brand: B | null | undefined, event: ThemeSource | null | undefined): B | null {
+export function themeForEvent<B extends ThemeSource>(
+  brand: B | null | undefined,
+  event: ThemeSource | null | undefined,
+): B | null {
   const overrides = Object.fromEntries(
     Object.entries(event ?? {}).filter(
-      ([k, v]) => v && ["primaryColor", "accentColor", "backgroundColor", "radius", "headingFont", "bodyFont", "buttonLabel"].includes(k),
+      ([k, v]) =>
+        v &&
+        [
+          "primaryColor",
+          "accentColor",
+          "backgroundColor",
+          "radius",
+          "headingFont",
+          "bodyFont",
+          "buttonLabel",
+        ].includes(k),
     ),
   );
   if (!brand && !Object.keys(overrides).length) return null;
@@ -199,12 +321,27 @@ export function themeForEvent<B extends ThemeSource>(brand: B | null | undefined
 
 /** US-BRD-01, US-BRD-02 (Pro) : configurateur de marque. Le contraste du texte est choisi automatiquement à l'affichage (RG-BRD-01). */
 export async function saveBrand(ctx: OrgContext, input: BrandInput) {
-  if (!hasFeature(ctx.features, "BRANDING")) throw new CoreError("PRO_REQUIRED");
+  if (!hasFeature(ctx.features, "BRANDING"))
+    throw new CoreError("PRO_REQUIRED");
   const own = (u?: string | null) =>
-    !u ? null : u.startsWith(env().R2_PUBLIC_URL ?? "\u0000") || u.startsWith(`${env().NEXT_PUBLIC_APP_URL}/files/`) ? u : null;
-  const colors = { primaryColor: normalizeHexColor(input.primaryColor), accentColor: normalizeHexColor(input.accentColor) };
-  if ((input.primaryColor && !colors.primaryColor) || (input.accentColor && !colors.accentColor)) throw new CoreError("BRAND_COLOR_INVALID");
-  const before = await db.organizationBrand.findUnique({ where: { organizationId: ctx.organization.id } });
+    !u
+      ? null
+      : u.startsWith(env().R2_PUBLIC_URL ?? "\u0000") ||
+          u.startsWith(`${env().NEXT_PUBLIC_APP_URL}/files/`)
+        ? u
+        : null;
+  const colors = {
+    primaryColor: normalizeHexColor(input.primaryColor),
+    accentColor: normalizeHexColor(input.accentColor),
+  };
+  if (
+    (input.primaryColor && !colors.primaryColor) ||
+    (input.accentColor && !colors.accentColor)
+  )
+    throw new CoreError("BRAND_COLOR_INVALID");
+  const before = await db.organizationBrand.findUnique({
+    where: { organizationId: ctx.organization.id },
+  });
   const data = {
     displayName: input.displayName?.trim() || null,
     logoUrl: own(input.logoUrl),
@@ -212,7 +349,9 @@ export async function saveBrand(ctx: OrgContext, input: BrandInput) {
     ...colors,
     emailFromName: input.emailFromName?.trim() || null,
     emailReplyTo: input.emailReplyTo?.trim().toLowerCase() || null,
-    hideEvolyBranding: hasFeature(ctx.features, "REMOVE_EVOLY_BRANDING") ? input.hideEvolyBranding : false,
+    hideEvolyBranding: hasFeature(ctx.features, "REMOVE_EVOLY_BRANDING")
+      ? input.hideEvolyBranding
+      : false,
     // personnalisation de la billetterie : valeurs inconnues refusées
     ...theme(input),
   };
@@ -221,49 +360,101 @@ export async function saveBrand(ctx: OrgContext, input: BrandInput) {
     create: { organizationId: ctx.organization.id, ...data },
     update: data,
   });
-  if (before?.logoUrl && before.logoUrl !== brand.logoUrl) await deletePublicFile(before.logoUrl);
-  if (before?.faviconUrl && before.faviconUrl !== brand.faviconUrl) await deletePublicFile(before.faviconUrl);
-  await audit({ action: "brand.updated", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "OrganizationBrand", targetId: brand.id });
+  if (before?.logoUrl && before.logoUrl !== brand.logoUrl)
+    await deletePublicFile(before.logoUrl);
+  if (before?.faviconUrl && before.faviconUrl !== brand.faviconUrl)
+    await deletePublicFile(before.faviconUrl);
+  await audit({
+    action: "brand.updated",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "OrganizationBrand",
+    targetId: brand.id,
+  });
   return brand;
 }
 
 const host = (sub: string) => `${sub}.${env().NEXT_PUBLIC_BASE_DOMAIN}`;
 
 /** RG-SDM-01 : format, liste réservée, et disponibilité sur toute la plateforme (organisations, événements, anciennes adresses). */
-export async function subdomainAvailable(value: string, opts: { organizationId?: string; eventId?: string } = {}) {
+export async function subdomainAvailable(
+  value: string,
+  opts: { organizationId?: string; eventId?: string } = {},
+) {
   const check = checkSubdomain(value);
   if (!check.ok) return { ok: false as const, reason: check.reason };
   const [org, event, redirect] = await Promise.all([
     db.organization.findFirst({
-      where: { subdomain: check.value, ...(opts.organizationId ? { id: { not: opts.organizationId } } : {}) },
+      where: {
+        subdomain: check.value,
+        ...(opts.organizationId ? { id: { not: opts.organizationId } } : {}),
+      },
       select: { id: true },
     }),
-    db.event.findFirst({ where: { subdomain: check.value, ...(opts.eventId ? { id: { not: opts.eventId } } : {}) }, select: { id: true } }),
+    db.event.findFirst({
+      where: {
+        subdomain: check.value,
+        ...(opts.eventId ? { id: { not: opts.eventId } } : {}),
+      },
+      select: { id: true },
+    }),
     db.hostRedirect.findFirst({
-      where: { host: host(check.value), expiresAt: { gt: new Date() }, ...(opts.organizationId ? { organizationId: { not: opts.organizationId } } : {}) },
+      where: {
+        host: host(check.value),
+        expiresAt: { gt: new Date() },
+        ...(opts.organizationId
+          ? { organizationId: { not: opts.organizationId } }
+          : {}),
+      },
       select: { id: true },
     }),
   ]);
-  if (org || event || redirect) return { ok: false as const, reason: "TAKEN" as const };
+  if (org || event || redirect)
+    return { ok: false as const, reason: "TAKEN" as const };
   return { ok: true as const, value: check.value };
 }
 
 /** RG-SDM-03 : changement de l'adresse de l'organisation, l'ancienne redirige en 301 pendant 6 mois. */
-export async function changeOrganizationSubdomain(ctx: OrgContext, value: string, now = new Date()) {
-  const available = await subdomainAvailable(value, { organizationId: ctx.organization.id });
+export async function changeOrganizationSubdomain(
+  ctx: OrgContext,
+  value: string,
+  now = new Date(),
+) {
+  const available = await subdomainAvailable(value, {
+    organizationId: ctx.organization.id,
+  });
   if (!available.ok) throw new CoreError(`SUBDOMAIN_${available.reason}`);
-  const org = await db.organization.findUniqueOrThrow({ where: { id: ctx.organization.id }, select: { subdomain: true } });
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: ctx.organization.id },
+    select: { subdomain: true },
+  });
   if (org.subdomain === available.value) return;
   const expiresAt = new Date(now.getTime() + 183 * 86_400_000);
   await db.$transaction([
-    db.organization.update({ where: { id: ctx.organization.id }, data: { subdomain: available.value } }),
-    db.hostRedirect.deleteMany({ where: { host: host(available.value), organizationId: ctx.organization.id } }), // reprise d'une ancienne adresse
+    db.organization.update({
+      where: { id: ctx.organization.id },
+      data: { subdomain: available.value },
+    }),
+    db.hostRedirect.deleteMany({
+      where: {
+        host: host(available.value),
+        organizationId: ctx.organization.id,
+      },
+    }), // reprise d'une ancienne adresse
     ...(org.subdomain
       ? [
           db.hostRedirect.upsert({
             where: { host: host(org.subdomain) },
-            create: { host: host(org.subdomain), organizationId: ctx.organization.id, expiresAt },
-            update: { organizationId: ctx.organization.id, eventId: null, expiresAt },
+            create: {
+              host: host(org.subdomain),
+              organizationId: ctx.organization.id,
+              expiresAt,
+            },
+            update: {
+              organizationId: ctx.organization.id,
+              eventId: null,
+              expiresAt,
+            },
           }),
         ]
       : []),
@@ -280,17 +471,31 @@ export async function changeOrganizationSubdomain(ctx: OrgContext, value: string
 }
 
 /** US-BRD-05 (Pro) : sous-domaine dédié à un événement, unique sur toute la plateforme. */
-export async function setEventSubdomain(ctx: OrgContext, eventId: string, value: string | null) {
-  if (!hasFeature(ctx.features, "EVENT_SUBDOMAINS")) throw new CoreError("PRO_REQUIRED");
-  const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id }, select: { id: true } });
+export async function setEventSubdomain(
+  ctx: OrgContext,
+  eventId: string,
+  value: string | null,
+) {
+  if (!hasFeature(ctx.features, "EVENT_SUBDOMAINS"))
+    throw new CoreError("PRO_REQUIRED");
+  const event = await db.event.findFirst({
+    where: { id: eventId, organizationId: ctx.organization.id },
+    select: { id: true },
+  });
   if (!event) throw new CoreError("NOT_FOUND");
   if (!value) {
-    await db.event.update({ where: { id: event.id }, data: { subdomain: null } });
+    await db.event.update({
+      where: { id: event.id },
+      data: { subdomain: null },
+    });
     return null;
   }
   const available = await subdomainAvailable(value, { eventId: event.id });
   if (!available.ok) throw new CoreError(`SUBDOMAIN_${available.reason}`);
-  await db.event.update({ where: { id: event.id }, data: { subdomain: available.value } });
+  await db.event.update({
+    where: { id: event.id },
+    data: { subdomain: available.value },
+  });
   await ensurePaymentDomains(ctx.organization.id).catch(() => undefined);
   return available.value;
 }

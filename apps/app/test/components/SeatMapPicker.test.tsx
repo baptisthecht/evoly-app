@@ -21,10 +21,29 @@ const map = (taken: number[] = []) =>
   ({
     focus: { x: 75, y: -100 },
     blocks: [],
-    categories: [{ id: "c1", name: "Parterre", color: "#FFB8E8", ticketTypeIds: ["t1"], standing: false }],
-    rows: [{ id: "r1", name: "A", blockId: null, seats: [1, 2, 3, 4, 5, 6].map((n) => seat(n, !taken.includes(n))) }],
+    categories: [
+      {
+        id: "c1",
+        name: "Parterre",
+        color: "#FFB8E8",
+        ticketTypeIds: ["t1"],
+        standing: false,
+      },
+    ],
+    rows: [
+      {
+        id: "r1",
+        name: "A",
+        blockId: null,
+        seats: [1, 2, 3, 4, 5, 6].map((n) => seat(n, !taken.includes(n))),
+      },
+    ],
   }) as never;
-const label = (n: number, state: "selected" | "free") => sp.seat!.replace("{row}", "A").replace("{seat}", String(n)).replace("{state}", sp[state]!);
+const label = (n: number, state: "selected" | "free") =>
+  sp
+    .seat!.replace("{row}", "A")
+    .replace("{seat}", String(n))
+    .replace("{state}", sp[state]!);
 
 /** Le composant parent garde le choix, comme le panier. */
 function Harness({
@@ -62,12 +81,25 @@ const draw = (props: Omit<Parameters<typeof Harness>[0], "log"> = {}) => {
   return log;
 };
 const press = (n: number, state: "selected" | "free" = "free") =>
-  act(() => void fireEvent.keyDown(screen.getByRole("button", { name: label(n, state) }), { key: "Enter" }));
+  act(
+    () =>
+      void fireEvent.keyDown(
+        screen.getByRole("button", { name: label(n, state) }),
+        { key: "Enter" },
+      ),
+  );
 
 describe("choix des places sur le plan (section 9.9)", () => {
   it("meilleures places : exactement celles de la règle commune au serveur, décrites à l'acheteur", () => {
     const log = draw();
-    const plan = [1, 2, 3, 4, 5, 6].map((n) => ({ id: `s${n}`, rowId: "r1", order: n, x: (n - 1) * 30, y: 0, available: true }));
+    const plan = [1, 2, 3, 4, 5, 6].map((n) => ({
+      id: `s${n}`,
+      rowId: "r1",
+      order: n,
+      x: (n - 1) * 30,
+      y: 0,
+      available: true,
+    }));
     const expected = bestSeats(plan, 2, { x: 75, y: -100 })!;
     expect(log).toHaveBeenLastCalledWith(expected, true);
     expect(screen.getByRole("status").textContent).toContain("A");
@@ -120,7 +152,12 @@ describe("choix des places : zoom du plan", () => {
         <Harness log={() => {}} />
       </Fr>,
     );
-    const frame = () => container.querySelector("svg")!.getAttribute("viewBox")!.split(/\s+/).map(Number);
+    const frame = () =>
+      container
+        .querySelector("svg")!
+        .getAttribute("viewBox")!
+        .split(/\s+/)
+        .map(Number);
     const start = frame();
     const width = (f: number[]) => f[2]!;
     fireEvent.click(screen.getByRole("button", { name: sp.zoomIn! }));

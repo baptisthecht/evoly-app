@@ -1,10 +1,17 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import { AddressSearch, fillInput } from "@/components/places/AddressSearch";
 import { Fr } from "./intl";
 
-const t = (fr as unknown as Record<string, Record<string, string>>).addressSearch!;
+const t = (fr as unknown as Record<string, Record<string, string>>)
+  .addressSearch!;
 const madeleine = {
   id: "1",
   kind: "venue",
@@ -31,7 +38,9 @@ const zenith = {
 };
 let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
-  fetchMock = vi.fn(async () => new Response(JSON.stringify({ places: [madeleine, zenith] })));
+  fetchMock = vi.fn(
+    async () => new Response(JSON.stringify({ places: [madeleine, zenith] })),
+  );
   vi.stubGlobal("fetch", fetchMock);
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -56,7 +65,9 @@ describe("recherche d'adresse : clavier, aucun résultat, remplissage", () => {
     await screen.findByRole("listbox");
     fireEvent.keyDown(box, { key: "ArrowDown" });
     fireEvent.keyDown(box, { key: "Enter" });
-    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: zenith.id, name: "Le Zénith" }));
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({ id: zenith.id, name: "Le Zénith" }),
+    );
   });
 
   it("Échap ferme la liste des suggestions", async () => {
@@ -69,7 +80,9 @@ describe("recherche d'adresse : clavier, aucun résultat, remplissage", () => {
   });
 
   it("aucun résultat : message affiché", async () => {
-    fetchMock.mockImplementation(async () => new Response(JSON.stringify({ places: [] })));
+    fetchMock.mockImplementation(
+      async () => new Response(JSON.stringify({ places: [] })),
+    );
     const { box } = draw();
     await type(box, "Lieu introuvable");
     expect(await screen.findByText(t.noResults!)).toBeTruthy();
@@ -78,9 +91,14 @@ describe("recherche d'adresse : clavier, aucun résultat, remplissage", () => {
   it("remplissage d'un champ : valeur posée et événement de saisie émis (formulaires React)", () => {
     const input = document.createElement("input");
     const seen = vi.fn();
-    input.addEventListener("input", (e) => seen((e.target as HTMLInputElement).value));
+    input.addEventListener("input", (e) =>
+      seen((e.target as HTMLInputElement).value),
+    );
     fillInput(input, "Bruxelles");
-    expect([input.value, seen.mock.calls[0]?.[0]]).toEqual(["Bruxelles", "Bruxelles"]);
+    expect([input.value, seen.mock.calls[0]?.[0]]).toEqual([
+      "Bruxelles",
+      "Bruxelles",
+    ]);
     expect(() => fillInput(null, "rien")).not.toThrow();
   });
 });

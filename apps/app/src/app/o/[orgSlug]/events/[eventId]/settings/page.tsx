@@ -11,12 +11,19 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("tabSettings") };
 }
 
-export default async function EventSettingsPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function EventSettingsPage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const e = await getEventWithTickets(ctx, eventId);
   const local = (d: Date | null) => (d ? utcToZonedLocal(d, e.timezone) : "");
-  const readOnly = !can(ctx.membership, "EVENTS_EDIT") || ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
+  const readOnly =
+    !can(ctx.membership, "EVENTS_EDIT") ||
+    ctx.readOnly ||
+    ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
   return (
     <div>
       <SettingsForm

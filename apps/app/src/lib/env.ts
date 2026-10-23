@@ -2,9 +2,13 @@ import { z } from "zod";
 
 /** Variables d'environnement, validées au premier accès côté serveur. */
 const schema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  NODE_ENV: z
+    .enum(["development", "test", "production"])
+    .default("development"),
   DATABASE_URL: z.string().min(1),
-  BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET doit faire au moins 32 caractères"),
+  BETTER_AUTH_SECRET: z
+    .string()
+    .min(32, "BETTER_AUTH_SECRET doit faire au moins 32 caractères"),
   BETTER_AUTH_URL: z.url().default("http://localhost:3001"),
   AUTH_GOOGLE_ID: z.string().optional(),
   AUTH_GOOGLE_SECRET: z.string().optional(),
@@ -34,7 +38,9 @@ const schema = z.object({
   STRIPE_PRICE_PRO_MONTH: z.string().optional(), // abonnement Pro (compte Stripe d’Evoly) ; à défaut, prix de la base
   STRIPE_PRICE_PRO_YEAR: z.string().optional(),
   STRIPE_TAX_ENABLED: z.enum(["true", "false"]).default("false"),
-  EVOLY_LEGAL_ADDRESS: z.string().default("Rue du Bilemont 376, 7700 Mouscron, Belgique"),
+  EVOLY_LEGAL_ADDRESS: z
+    .string()
+    .default("Rue du Bilemont 376, 7700 Mouscron, Belgique"),
   EVOLY_VAT_NUMBER: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   APPLE_PASS_TYPE_ID: z.string().optional(), // US-POST-03 : Apple Wallet (pass.me.evoly.ticket)
@@ -62,6 +68,11 @@ let cached: Env | undefined;
 
 export function env(): Env {
   // une valeur laissée vide (VAR="") compte comme absente : service non configuré, jamais une erreur de format
-  if (!cached) cached = schema.parse(Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== "")));
+  if (!cached)
+    cached = schema.parse(
+      Object.fromEntries(
+        Object.entries(process.env).filter(([, v]) => v !== ""),
+      ),
+    );
   return cached;
 }

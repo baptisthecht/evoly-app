@@ -11,11 +11,18 @@ export interface SectionTab {
 }
 
 /** Onglets d'une section dans la bande d'en-tête : même dessin que ceux d'un événement. */
-export function SectionTabs({ tabs, label }: { tabs: SectionTab[]; label: string }) {
+export function SectionTabs({
+  tabs,
+  label,
+}: {
+  tabs: SectionTab[];
+  label: string;
+}) {
   const path = (usePathname() ?? "").replace(/\/$/, "");
   const sp = useSearchParams();
   const score = (tab: SectionTab) => {
-    if (tab.match && (path === tab.match || path.startsWith(`${tab.match}/`))) return 5000;
+    if (tab.match && (path === tab.match || path.startsWith(`${tab.match}/`)))
+      return 5000;
     const u = new URL(tab.href, "https://evoly.me");
     const p = u.pathname.replace(/\/$/, "");
     if (path !== p && !path.startsWith(`${p}/`)) return -1;
@@ -25,7 +32,10 @@ export function SectionTabs({ tabs, label }: { tabs: SectionTab[]; label: string
   const scores = tabs.map(score);
   const best = Math.max(...scores);
   return (
-    <nav aria-label={label} className="-mb-px flex gap-1 overflow-x-auto [mask-image:linear-gradient(to_right,#000_82%,transparent)] sm:[mask-image:none]">
+    <nav
+      aria-label={label}
+      className="-mb-px flex gap-1 overflow-x-auto [mask-image:linear-gradient(to_right,#000_82%,transparent)] sm:[mask-image:none]"
+    >
       {tabs.map((x, i) => {
         const on = best >= 0 && scores[i] === best;
         return (

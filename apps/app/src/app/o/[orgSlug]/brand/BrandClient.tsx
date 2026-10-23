@@ -7,11 +7,22 @@ import { contrastRatio, inkOn } from "@evoly/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
-import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
+import {
+  FormError,
+  SubmitButton,
+  useActionForm,
+  useFieldError,
+} from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
-import { addDomainAction, changeSubdomainAction, checkSubdomainAction, domainCommandAction, saveBrandAction } from "./actions";
+import {
+  addDomainAction,
+  changeSubdomainAction,
+  checkSubdomainAction,
+  domainCommandAction,
+  saveBrandAction,
+} from "./actions";
 import { ThemeFields, ThemePreview, type SocialKey } from "./BrandTheme";
 
 /** Import d'une image vers la route d'import, renvoie son adresse publique. */
@@ -25,7 +36,10 @@ export async function uploadFile(
   body.set("file", file);
   body.set("kind", kind);
   if (eventId) body.set("eventId", eventId);
-  const res = await fetch(`/o/${orgSlug}/brand/upload`, { method: "POST", body });
+  const res = await fetch(`/o/${orgSlug}/brand/upload`, {
+    method: "POST",
+    body,
+  });
   return res.json();
 }
 
@@ -40,14 +54,29 @@ async function colorsOf(url: string): Promise<string[]> {
   canvas.height = Math.max(1, Math.round(img.height * scale));
   const ctx = canvas.getContext("2d")!;
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  return dominantColors(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
+  return dominantColors(
+    ctx.getImageData(0, 0, canvas.width, canvas.height).data,
+  );
 }
 
-export function SubdomainForm({ orgSlug, current, baseDomain }: { orgSlug: string; current: string; baseDomain: string }) {
+export function SubdomainForm({
+  orgSlug,
+  current,
+  baseDomain,
+}: {
+  orgSlug: string;
+  current: string;
+  baseDomain: string;
+}) {
   const t = useTranslations("brand");
   const [value, setValue] = useState(current);
-  const [check, setCheck] = useState<{ ok: boolean; reason?: string } | null>(null);
-  const { state, pending, formProps } = useActionForm(changeSubdomainAction.bind(null, orgSlug), null);
+  const [check, setCheck] = useState<{ ok: boolean; reason?: string } | null>(
+    null,
+  );
+  const { state, pending, formProps } = useActionForm(
+    changeSubdomainAction.bind(null, orgSlug),
+    null,
+  );
   useEffect(() => {
     if (value === current) return setCheck(null);
     // une réponse qui ne correspond plus à la saisie est ignorée (comme pour l'adresse d'un événement)
@@ -74,14 +103,25 @@ export function SubdomainForm({ orgSlug, current, baseDomain }: { orgSlug: strin
         />
         <span className="font-mono text-sm text-ink-muted">.{baseDomain}</span>
       </div>
-      {check ? <p className={`text-sm ${check.ok ? "text-success" : "text-danger"}`}>{check.ok ? t("available") : t(`unavailable_${check.reason}`)}</p> : null}
-      {value !== current ? <p className="text-sm text-ink-muted">{t("redirectNotice", { old: `${current}.${baseDomain}` })}</p> : null}
+      {check ? (
+        <p className={`text-sm ${check.ok ? "text-success" : "text-danger"}`}>
+          {check.ok ? t("available") : t(`unavailable_${check.reason}`)}
+        </p>
+      ) : null}
+      {value !== current ? (
+        <p className="text-sm text-ink-muted">
+          {t("redirectNotice", { old: `${current}.${baseDomain}` })}
+        </p>
+      ) : null}
       {state?.ok ? (
         <p className="text-sm text-success" role="status">
           {t("subdomainChanged")}
         </p>
       ) : null}
-      <SubmitButton pending={pending} className="w-full sm:w-auto sm:justify-self-start">
+      <SubmitButton
+        pending={pending}
+        className="w-full sm:w-auto sm:justify-self-start"
+      >
         {t("changeSubdomain")}
       </SubmitButton>
     </form>
@@ -127,28 +167,53 @@ export function BrandForm({
     bodyFont: "",
     buttonLabel: "",
     ...(values as Partial<BrandValues>),
-    socials: { website: "", instagram: "", facebook: "", tiktok: "", linkedin: "", youtube: "", ...((values as Partial<BrandValues>).socials ?? {}) },
+    socials: {
+      website: "",
+      instagram: "",
+      facebook: "",
+      tiktok: "",
+      linkedin: "",
+      youtube: "",
+      ...((values as Partial<BrandValues>).socials ?? {}),
+    },
   });
   const [suggested, setSuggested] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const { state, pending, formProps } = useActionForm(saveBrandAction.bind(null, orgSlug), null);
+  const { state, pending, formProps } = useActionForm(
+    saveBrandAction.bind(null, orgSlug),
+    null,
+  );
   const error = useFieldError(state);
-  const set = (patch: Partial<BrandValues>) => setV((x) => ({ ...x, ...patch }));
-  const primary = /^#[0-9a-fA-F]{6}$/.test(v.primaryColor) ? v.primaryColor : palette.charbon;
-  const accent = /^#[0-9a-fA-F]{6}$/.test(v.accentColor) ? v.accentColor : palette.rose;
+  const set = (patch: Partial<BrandValues>) =>
+    setV((x) => ({ ...x, ...patch }));
+  const primary = /^#[0-9a-fA-F]{6}$/.test(v.primaryColor)
+    ? v.primaryColor
+    : palette.charbon;
+  const accent = /^#[0-9a-fA-F]{6}$/.test(v.accentColor)
+    ? v.accentColor
+    : palette.rose;
   const upload = async (file: File | undefined, kind: "logo" | "favicon") => {
     if (!file) return;
     setBusy(kind);
     setUploadError(null);
     const res = await uploadFile(orgSlug, file, kind);
     setBusy(null);
-    if (!res.url) return setUploadError(t.has(`upload_${res.error}`) ? t(`upload_${res.error}`) : t("upload_UNKNOWN"));
+    if (!res.url)
+      return setUploadError(
+        t.has(`upload_${res.error}`)
+          ? t(`upload_${res.error}`)
+          : t("upload_UNKNOWN"),
+      );
     set(kind === "logo" ? { logoUrl: res.url } : { faviconUrl: res.url });
     if (kind === "logo") {
       const colors = await colorsOf(res.url).catch(() => []);
       setSuggested(colors);
-      if (colors[0] && !values.primaryColor) set({ primaryColor: colors[0], ...(colors[1] ? { accentColor: colors[1] } : {}) });
+      if (colors[0] && !values.primaryColor)
+        set({
+          primaryColor: colors[0],
+          ...(colors[1] ? { accentColor: colors[1] } : {}),
+        });
     }
   };
   const ratio = (c: string) => Math.round(contrastRatio(c, inkOn(c)) * 10) / 10;
@@ -158,7 +223,11 @@ export function BrandForm({
         <FormError state={state} />
         <input type="hidden" name="logoUrl" value={v.logoUrl} />
         <input type="hidden" name="faviconUrl" value={v.faviconUrl} />
-        <Field label={t("displayName")} htmlFor="displayName" hint={t("displayNameHint")}>
+        <Field
+          label={t("displayName")}
+          htmlFor="displayName"
+          hint={t("displayNameHint")}
+        >
           <Input
             id="displayName"
             name="displayName"
@@ -172,10 +241,18 @@ export function BrandForm({
           <div className="grid content-start gap-2">
             <p className="font-label text-[0.8rem] font-bold">{t("logo")}</p>
             {v.logoUrl ? (
-              <img src={v.logoUrl} alt={t("logoAlt")} className="h-16 w-auto justify-self-start rounded-md bg-surface-sunken object-contain p-2" />
+              <img
+                src={v.logoUrl}
+                alt={t("logoAlt")}
+                className="h-16 w-auto justify-self-start rounded-md bg-surface-sunken object-contain p-2"
+              />
             ) : null}
             <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
-              {busy === "logo" ? t("uploading") : v.logoUrl ? t("replaceLogo") : t("uploadLogo")}
+              {busy === "logo"
+                ? t("uploading")
+                : v.logoUrl
+                  ? t("replaceLogo")
+                  : t("uploadLogo")}
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -185,7 +262,11 @@ export function BrandForm({
               />
             </label>
             {v.logoUrl ? (
-              <button type="button" className="w-fit text-sm underline underline-offset-4" onClick={() => set({ logoUrl: "" })}>
+              <button
+                type="button"
+                className="w-fit text-sm underline underline-offset-4"
+                onClick={() => set({ logoUrl: "" })}
+              >
                 {t("removeLogo")}
               </button>
             ) : null}
@@ -193,7 +274,13 @@ export function BrandForm({
           </div>
           <div className="grid content-start gap-2">
             <p className="font-label text-[0.8rem] font-bold">{t("favicon")}</p>
-            {v.faviconUrl ? <img src={v.faviconUrl} alt="" className="size-10 rounded-md bg-surface-sunken object-contain p-1" /> : null}
+            {v.faviconUrl ? (
+              <img
+                src={v.faviconUrl}
+                alt=""
+                className="size-10 rounded-md bg-surface-sunken object-contain p-1"
+              />
+            ) : null}
             <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
               {busy === "favicon" ? t("uploading") : t("uploadFavicon")}
               <input
@@ -218,10 +305,16 @@ export function BrandForm({
                 <button
                   key={c}
                   type="button"
-                  onClick={() => set(i === 0 ? { primaryColor: c } : { accentColor: c })}
+                  onClick={() =>
+                    set(i === 0 ? { primaryColor: c } : { accentColor: c })
+                  }
                   className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ring-1 ring-line-strong"
                 >
-                  <span className="size-4 rounded-full ring-1 ring-line" style={{ background: c }} aria-hidden="true" />
+                  <span
+                    className="size-4 rounded-full ring-1 ring-line"
+                    style={{ background: c }}
+                    aria-hidden="true"
+                  />
                   {c}
                 </button>
               ))}
@@ -230,7 +323,15 @@ export function BrandForm({
         ) : null}
         <div className="grid gap-5 sm:grid-cols-2">
           {(["primaryColor", "accentColor"] as const).map((k) => (
-            <Field key={k} label={t(k)} htmlFor={k} hint={t("contrast", { ratio: ratio(k === "primaryColor" ? primary : accent) })} error={error(k)}>
+            <Field
+              key={k}
+              label={t(k)}
+              htmlFor={k}
+              hint={t("contrast", {
+                ratio: ratio(k === "primaryColor" ? primary : accent),
+              })}
+              error={error(k)}
+            >
               <div className="flex items-center gap-2">
                 <input
                   type="color"
@@ -244,7 +345,9 @@ export function BrandForm({
                   name={k}
                   value={v[k]}
                   onChange={(e) => set({ [k]: e.target.value })}
-                  placeholder={k === "primaryColor" ? palette.charbon : palette.rose}
+                  placeholder={
+                    k === "primaryColor" ? palette.charbon : palette.rose
+                  }
                   className="font-mono"
                   maxLength={9}
                 />
@@ -254,7 +357,11 @@ export function BrandForm({
         </div>
         <ThemeFields v={v} set={set} />
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t("emailFromName")} htmlFor="emailFromName" hint={t("emailFromNameHint")}>
+          <Field
+            label={t("emailFromName")}
+            htmlFor="emailFromName"
+            hint={t("emailFromNameHint")}
+          >
             <Input
               id="emailFromName"
               name="emailFromName"
@@ -264,8 +371,18 @@ export function BrandForm({
               maxLength={80}
             />
           </Field>
-          <Field label={t("emailReplyTo")} htmlFor="emailReplyTo" error={error("emailReplyTo")}>
-            <Input id="emailReplyTo" name="emailReplyTo" type="email" value={v.emailReplyTo} onChange={(e) => set({ emailReplyTo: e.target.value })} />
+          <Field
+            label={t("emailReplyTo")}
+            htmlFor="emailReplyTo"
+            error={error("emailReplyTo")}
+          >
+            <Input
+              id="emailReplyTo"
+              name="emailReplyTo"
+              type="email"
+              value={v.emailReplyTo}
+              onChange={(e) => set({ emailReplyTo: e.target.value })}
+            />
           </Field>
         </div>
         {canHide ? (
@@ -285,31 +402,63 @@ export function BrandForm({
             {t("saved")}
           </p>
         ) : null}
-        <SubmitButton pending={pending} className="w-full sm:w-auto sm:justify-self-start">
+        <SubmitButton
+          pending={pending}
+          className="w-full sm:w-auto sm:justify-self-start"
+        >
           {t("save")}
         </SubmitButton>
       </form>
-      <aside aria-label={t("preview")} className="order-first grid content-start gap-2 lg:order-none lg:sticky lg:top-6">
-        <p className="font-label text-[0.8rem] font-bold text-ink-muted">{t("preview")}</p>
+      <aside
+        aria-label={t("preview")}
+        className="order-first grid content-start gap-2 lg:order-none lg:sticky lg:top-6"
+      >
+        <p className="font-label text-[0.8rem] font-bold text-ink-muted">
+          {t("preview")}
+        </p>
         <ThemePreview
           v={v}
           name={v.displayName || organizationName}
           logoUrl={v.logoUrl}
           poweredBy={!v.hideEvolyBranding || !canHide ? t("poweredBy") : null}
-          labels={{ date: t("previewDate"), title: t("previewTitle"), ticket: t("previewTicket"), button: t("previewButton") }}
+          labels={{
+            date: t("previewDate"),
+            title: t("previewTitle"),
+            ticket: t("previewTicket"),
+            button: t("previewButton"),
+          }}
         />
       </aside>
     </div>
   );
 }
 
-export function AddDomain({ orgSlug, events }: { orgSlug: string; events: Array<{ id: string; title: string }> }) {
+export function AddDomain({
+  orgSlug,
+  events,
+}: {
+  orgSlug: string;
+  events: Array<{ id: string; title: string }>;
+}) {
   const t = useTranslations("brand");
-  const { state, pending, formProps } = useActionForm(addDomainAction.bind(null, orgSlug), null);
+  const { state, pending, formProps } = useActionForm(
+    addDomainAction.bind(null, orgSlug),
+    null,
+  );
   return (
-    <form {...formProps} className="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end" noValidate>
+    <form
+      {...formProps}
+      className="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end"
+      noValidate
+    >
       <Field label={t("domain")} htmlFor="new-domain" hint={t("domainHint")}>
-        <Input id="new-domain" name="domain" placeholder="billetterie.monsite.be" autoCapitalize="none" spellCheck={false} />
+        <Input
+          id="new-domain"
+          name="domain"
+          placeholder="billetterie.monsite.be"
+          autoCapitalize="none"
+          spellCheck={false}
+        />
       </Field>
       <Field label={t("scope")} htmlFor="domain-target">
         <Select id="domain-target" name="target" defaultValue="ORGANIZATION">
@@ -337,14 +486,35 @@ export function DomainRow({
   planOk,
 }: {
   orgSlug: string;
-  d: { id: string; domain: string; status: string; dnsTarget: string; lastError: string | null; target: string; checksStopped: boolean };
+  d: {
+    id: string;
+    domain: string;
+    status: string;
+    dnsTarget: string;
+    lastError: string | null;
+    target: string;
+    checksStopped: boolean;
+  };
   planOk: boolean;
 }) {
   const t = useTranslations("brand");
-  const [verifyState, verify, verifying] = useActionState(domainCommandAction.bind(null, orgSlug, d.id, "verify"), null);
-  const [removeState, remove] = useActionState(domainCommandAction.bind(null, orgSlug, d.id, "remove"), null);
+  const [verifyState, verify, verifying] = useActionState(
+    domainCommandAction.bind(null, orgSlug, d.id, "verify"),
+    null,
+  );
+  const [removeState, remove] = useActionState(
+    domainCommandAction.bind(null, orgSlug, d.id, "remove"),
+    null,
+  );
   const status = !planOk ? "DISABLED" : d.status;
-  const tone = status === "ACTIVE" ? "success" : status === "PENDING_DNS" ? "warning" : status === "ERROR" ? "danger" : "neutral";
+  const tone =
+    status === "ACTIVE"
+      ? "success"
+      : status === "PENDING_DNS"
+        ? "warning"
+        : status === "ERROR"
+          ? "danger"
+          : "neutral";
   const errorCode = d.lastError?.split(":")[0];
   return (
     <Card className="grid gap-3">
@@ -367,8 +537,18 @@ export function DomainRow({
             <span className="truncate">{d.dnsTarget}</span>
             <CopyButton value={d.dnsTarget} />
           </div>
-          {errorCode ? <p className="text-danger">{t(`dnsError_${errorCode}`, { found: d.lastError?.split(":")[1] ?? "" })}</p> : null}
-          {d.checksStopped ? <p className="text-ink-muted">{t("checksStopped")}</p> : <p className="text-ink-muted">{t("autoChecks")}</p>}
+          {errorCode ? (
+            <p className="text-danger">
+              {t(`dnsError_${errorCode}`, {
+                found: d.lastError?.split(":")[1] ?? "",
+              })}
+            </p>
+          ) : null}
+          {d.checksStopped ? (
+            <p className="text-ink-muted">{t("checksStopped")}</p>
+          ) : (
+            <p className="text-ink-muted">{t("autoChecks")}</p>
+          )}
         </div>
       ) : null}
       <div className="flex flex-wrap gap-2">
@@ -379,7 +559,14 @@ export function DomainRow({
             </Button>
           </form>
         ) : null}
-        <form action={remove} onSubmit={(e) => (window.confirm(t("confirmRemove", { domain: d.domain })) ? undefined : e.preventDefault())}>
+        <form
+          action={remove}
+          onSubmit={(e) =>
+            window.confirm(t("confirmRemove", { domain: d.domain }))
+              ? undefined
+              : e.preventDefault()
+          }
+        >
           <Button type="submit" size="sm" variant="ghost">
             {t("removeDomain")}
           </Button>

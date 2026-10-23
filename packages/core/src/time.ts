@@ -13,8 +13,17 @@ export function timeZoneOffsetMinutes(date: Date, timeZone: string): number {
     second: "2-digit",
   }).formatToParts(date);
   const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
-  const asUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
-  return Math.round((asUtc - Math.floor(date.getTime() / 1000) * 1000) / 60_000);
+  const asUtc = Date.UTC(
+    get("year"),
+    get("month") - 1,
+    get("day"),
+    get("hour"),
+    get("minute"),
+    get("second"),
+  );
+  return Math.round(
+    (asUtc - Math.floor(date.getTime() / 1000) * 1000) / 60_000,
+  );
 }
 
 export function isValidTimeZone(timeZone: string): boolean {
@@ -35,22 +44,37 @@ const LOCAL = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
 export function zonedLocalToUtc(local: string, timeZone: string): Date {
   const m = LOCAL.exec(local);
   if (!m) throw new CoreError("INVALID_DATETIME", `date invalide : ${local}`);
-  const [, y, mo, d, h, mi] = m.map(Number) as [number, number, number, number, number, number];
-  if (mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59) throw new CoreError("INVALID_DATETIME", `date invalide : ${local}`);
+  const [, y, mo, d, h, mi] = m.map(Number) as [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ];
+  if (mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59)
+    throw new CoreError("INVALID_DATETIME", `date invalide : ${local}`);
   const wall = Date.UTC(y, mo - 1, d, h, mi);
-  if (new Date(wall).getUTCDate() !== d) throw new CoreError("INVALID_DATETIME", `date invalide : ${local}`);
+  if (new Date(wall).getUTCDate() !== d)
+    throw new CoreError("INVALID_DATETIME", `date invalide : ${local}`);
   // décalages de part et d'autre d'un éventuel changement d'heure
   const before = timeZoneOffsetMinutes(new Date(wall - 86_400_000), timeZone);
   const after = timeZoneOffsetMinutes(new Date(wall + 86_400_000), timeZone);
-  const candidates = [...new Set([wall - before * 60_000, wall - after * 60_000])].sort((a, b) => a - b);
-  const valid = candidates.filter((c) => utcToZonedLocal(new Date(c), timeZone) === local);
+  const candidates = [
+    ...new Set([wall - before * 60_000, wall - after * 60_000]),
+  ].sort((a, b) => a - b);
+  const valid = candidates.filter(
+    (c) => utcToZonedLocal(new Date(c), timeZone) === local,
+  );
   if (valid.length > 0) return new Date(valid[0]!); // heure ambiguë : la première
   return new Date(wall - before * 60_000); // heure inexistante : décalée après le saut
 }
 
 /** Instant UTC vers la valeur d'un champ datetime-local dans le fuseau donné. */
 export function utcToZonedLocal(date: Date, timeZone: string): string {
-  const shifted = new Date(date.getTime() + timeZoneOffsetMinutes(date, timeZone) * 60_000);
+  const shifted = new Date(
+    date.getTime() + timeZoneOffsetMinutes(date, timeZone) * 60_000,
+  );
   return shifted.toISOString().slice(0, 16);
 }
 

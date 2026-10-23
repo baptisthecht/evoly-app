@@ -24,7 +24,14 @@ const MergeTag = Node.create<{ label: string }>({
   addAttributes: () => ({ name: { default: "prenom" } }),
   parseHTML: () => [{ tag: "span[data-merge-tag]" }],
   renderHTML({ HTMLAttributes }) {
-    return ["span", mergeAttributes(HTMLAttributes, { "data-merge-tag": "prenom", class: "email-chip" }), this.options.label];
+    return [
+      "span",
+      mergeAttributes(HTMLAttributes, {
+        "data-merge-tag": "prenom",
+        class: "email-chip",
+      }),
+      this.options.label,
+    ];
   },
   renderText: () => "{{prenom}}",
 });
@@ -35,14 +42,31 @@ const EmailButton = Node.create({
   atom: true,
   selectable: true,
   draggable: true,
-  addAttributes: () => ({ label: { default: "" }, href: { default: "https://" }, color: { default: null }, align: { default: "left" } }),
+  addAttributes: () => ({
+    label: { default: "" },
+    href: { default: "https://" },
+    color: { default: null },
+    align: { default: "left" },
+  }),
   parseHTML: () => [{ tag: "div[data-email-button]" }],
   renderHTML({ node }) {
     const color = safeEmailColor(node.attrs.color);
     return [
       "div",
-      { "data-email-button": "", class: `email-atom email-atom--button email-align-${align(node.attrs.align)}` },
-      ["span", { class: "email-atom__btn", ...(color ? { style: `background:${color};color:${inkFor(color)}` } : {}) }, String(node.attrs.label || "…")],
+      {
+        "data-email-button": "",
+        class: `email-atom email-atom--button email-align-${align(node.attrs.align)}`,
+      },
+      [
+        "span",
+        {
+          class: "email-atom__btn",
+          ...(color
+            ? { style: `background:${color};color:${inkFor(color)}` }
+            : {}),
+        },
+        String(node.attrs.label || "…"),
+      ],
     ];
   },
 });
@@ -57,7 +81,11 @@ const EventCard = Node.create<{ titleOf: (id: string) => string }>({
   addAttributes: () => ({ eventId: { default: "" } }),
   parseHTML: () => [{ tag: "div[data-event-card]" }],
   renderHTML({ node }) {
-    return ["div", { "data-event-card": "", class: "email-atom email-atom--event" }, this.options.titleOf(String(node.attrs.eventId))];
+    return [
+      "div",
+      { "data-event-card": "", class: "email-atom email-atom--event" },
+      this.options.titleOf(String(node.attrs.eventId)),
+    ];
   },
 });
 
@@ -71,7 +99,14 @@ const Spacer = Node.create({
   parseHTML: () => [{ tag: "div[data-spacer]" }],
   renderHTML({ node }) {
     const h = Math.min(96, Math.max(8, Number(node.attrs.height) || 24));
-    return ["div", { "data-spacer": "", class: "email-atom email-atom--spacer", style: `height:${h}px` }];
+    return [
+      "div",
+      {
+        "data-spacer": "",
+        class: "email-atom email-atom--spacer",
+        style: `height:${h}px`,
+      },
+    ];
   },
 });
 
@@ -85,33 +120,66 @@ const RawHtml = Node.create<{ label: string }>({
   addAttributes: () => ({ html: { default: "" } }),
   parseHTML: () => [{ tag: "div[data-raw-html]" }],
   renderHTML() {
-    return ["div", { "data-raw-html": "", class: "email-atom email-atom--html" }, `</> ${this.options.label}`];
+    return [
+      "div",
+      { "data-raw-html": "", class: "email-atom email-atom--html" },
+      `</> ${this.options.label}`,
+    ];
   },
 });
 
 const EmailImage = Image.extend({
   addAttributes() {
-    return { ...this.parent?.(), width: { default: 100 }, align: { default: "center" } };
+    return {
+      ...this.parent?.(),
+      width: { default: 100 },
+      align: { default: "center" },
+    };
   },
   renderHTML({ node }) {
     const w = Math.min(100, Math.max(20, Number(node.attrs.width) || 100));
     return [
       "div",
-      { class: `email-image email-align-${align(node.attrs.align ?? "center")}` },
-      ["img", { src: String(node.attrs.src ?? ""), alt: String(node.attrs.alt ?? ""), style: `width:${w}%` }],
+      {
+        class: `email-image email-align-${align(node.attrs.align ?? "center")}`,
+      },
+      [
+        "img",
+        {
+          src: String(node.attrs.src ?? ""),
+          alt: String(node.attrs.alt ?? ""),
+          style: `width:${w}%`,
+        },
+      ],
     ];
   },
 }).configure({ inline: false, allowBase64: false });
 
-export const EMAIL_BLOCKS = ["button", "image", "eventCard", "spacer", "rawHtml"] as const;
+export const EMAIL_BLOCKS = [
+  "button",
+  "image",
+  "eventCard",
+  "spacer",
+  "rawHtml",
+] as const;
 
-export function emailExtensions(o: { placeholder: string; firstName: string; html: string; titleOf: (id: string) => string }) {
+export function emailExtensions(o: {
+  placeholder: string;
+  firstName: string;
+  html: string;
+  titleOf: (id: string) => string;
+}) {
   return [
     StarterKit.configure({
       code: false,
       codeBlock: false,
       heading: { levels: [1, 2, 3] },
-      link: { openOnClick: false, autolink: true, defaultProtocol: "https", protocols: ["mailto", "tel"] },
+      link: {
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: "https",
+        protocols: ["mailto", "tel"],
+      },
     }),
     TextStyle,
     Color,

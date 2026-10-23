@@ -34,7 +34,10 @@ import { safeError } from "@/lib/redact";
 const LOCKED = ["SENDING", "SENT", "CANCELLED", "FAILED"];
 
 /** Destinataires d'une campagne : consentants, sans désinscription ni blocage (RG-MKT-01, RG-MKT-03), selon le segment. */
-export async function campaignAudience(organizationId: string, segment: CampaignSegment) {
+export async function campaignAudience(
+  organizationId: string,
+  segment: CampaignSegment,
+) {
   const where: Prisma.ContactWhereInput = {
     organizationId,
     marketingConsent: true,
@@ -53,11 +56,16 @@ export async function campaignAudience(organizationId: string, segment: Campaign
         eventId: { in: segment.eventIds },
         status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
         ...tickets,
-        ...(segment.ticketTypeIds?.length ? { items: { some: { ticketTypeId: { in: segment.ticketTypeIds } } } } : {}),
+        ...(segment.ticketTypeIds?.length
+          ? { items: { some: { ticketTypeId: { in: segment.ticketTypeIds } } } }
+          : {}),
       },
     };
   }
-  const contacts = await db.contact.findMany({ where, select: { id: true, email: true, firstName: true, locale: true } });
+  const contacts = await db.contact.findMany({
+    where,
+    select: { id: true, email: true, firstName: true, locale: true },
+  });
   if (contacts.length === 0) return [];
   const blocked = await db.emailSuppression.findMany({
     where: {
@@ -65,7 +73,15 @@ export async function campaignAudience(organizationId: string, segment: Campaign
       OR: [
         { scope: "GLOBAL" },
         { scope: "ORGANIZATION", organizationId },
-        ...(segment.kind === "EVENTS" ? [{ scope: "EVENT" as const, organizationId, eventId: { in: segment.eventIds } }] : []),
+        ...(segment.kind === "EVENTS"
+          ? [
+              {
+                scope: "EVENT" as const,
+                organizationId,
+                eventId: { in: segment.eventIds },
+              },
+            ]
+          : []),
       ],
     },
     select: { email: true },
@@ -75,7 +91,9 @@ export async function campaignAudience(organizationId: string, segment: Campaign
 }
 
 async function ownCampaign(ctx: OrgContext, id: string) {
-  const c = await db.emailCampaign.findFirst({ where: { id, organizationId: ctx.organization.id } });
+  const c = await db.emailCampaign.findFirst({
+    where: { id, organizationId: ctx.organization.id },
+  });
   if (!c) throw new CoreError("NOT_FOUND");
   return c;
 }
@@ -83,11 +101,21 @@ async function ownCampaign(ctx: OrgContext, id: string) {
 /** Brouillon ou campagne programmée modifiable (RG-MKT-04, RG-MKT-05). */
 export async function saveCampaign(
   ctx: OrgContext,
-  input: { id?: string | null; name: string; subject: string; previewText?: string | null; content: unknown; segment: unknown },
+  input: {
+    id?: string | null;
+    name: string;
+    subject: string;
+    previewText?: string | null;
+    content: unknown;
+    segment: unknown;
+  },
   now = new Date(),
 ) {
-  if (!hasFeature(ctx.features, "EMAIL_MARKETING")) throw new CoreError("PRO_REQUIRED");
-  const blocks = validateEmailDoc(input.content, { sanitizeHtml: sanitizeEmailHtml }); // document riche, nettoyé
+  if (!hasFeature(ctx.features, "EMAIL_MARKETING"))
+    throw new CoreError("PRO_REQUIRED");
+  const blocks = validateEmailDoc(input.content, {
+    sanitizeHtml: sanitizeEmailHtml,
+  }); // document riche, nettoyé
   const segment = validateSegment(input.segment);
   if (emailDocIsEmpty(blocks)) throw new CoreError("CAMPAIGN_CONTENT_INVALID");
   if (!segment) throw new CoreError("CAMPAIGN_SEGMENT_INVALID");
@@ -97,24 +125,54 @@ export async function saveCampaign(
     previewText: input.previewText?.trim() || null,
     content: blocks as unknown as Prisma.InputJsonValue,
     segment: segment as unknown as Prisma.InputJsonValue,
-    eventId: segment.kind === "EVENTS" && segment.eventIds.length === 1 ? segment.eventIds[0] : null,
+    eventId:
+      segment.kind === "EVENTS" && segment.eventIds.length === 1
+        ? segment.eventIds[0]
+        : null,
   };
   if (input.id) {
     const c = await ownCampaign(ctx, input.id);
     if (LOCKED.includes(c.status)) throw new CoreError("CAMPAIGN_LOCKED");
-    if (c.status === "SCHEDULED" && c.scheduledAt && !scheduledEditable(c.scheduledAt, now)) throw new CoreError("CAMPAIGN_TOO_LATE");
+    if (
+      c.status === "SCHEDULED" &&
+      c.scheduledAt &&
+      !scheduledEditable(c.scheduledAt, now)
+    )
+      throw new CoreError("CAMPAIGN_TOO_LATE");
     return db.emailCampaign.update({ where: { id: c.id }, data });
   }
-  return db.emailCampaign.create({ data: { ...data, organizationId: ctx.organization.id, createdById: ctx.user.id } });
+  return db.emailCampaign.create({
+    data: {
+      ...data,
+      organizationId: ctx.organization.id,
+      createdById: ctx.user.id,
+    },
+  });
 }
 
-export async function eventCards(organizationId: string, ids: string[]): Promise<Map<string, CampaignEventCard>> {
+export async function eventCards(
+  organizationId: string,
+  ids: string[],
+): Promise<Map<string, CampaignEventCard>> {
   if (ids.length === 0) return new Map();
-  const org = await db.organization.findUniqueOrThrow({ where: { id: organizationId }, select: { subdomain: true } });
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: organizationId },
+    select: { subdomain: true },
+  });
   const pub = org.subdomain ? await getPublicOrganization(org.subdomain) : null;
   const events = await db.event.findMany({
     where: { id: { in: ids }, organizationId },
-    select: { id: true, slug: true, subdomain: true, title: true, startsAt: true, timezone: true, locationName: true, city: true, coverImageUrl: true },
+    select: {
+      id: true,
+      slug: true,
+      subdomain: true,
+      title: true,
+      startsAt: true,
+      timezone: true,
+      locationName: true,
+      city: true,
+      coverImageUrl: true,
+    },
   });
   const cards = new Map<string, CampaignEventCard>();
   for (const e of events)
@@ -129,39 +187,77 @@ export async function eventCards(organizationId: string, ids: string[]): Promise
   return cards;
 }
 
-type CampaignLike = { organizationId: string; subject: string; previewText: string | null; content: unknown; id?: string | null };
+type CampaignLike = {
+  organizationId: string;
+  subject: string;
+  previewText: string | null;
+  content: unknown;
+  id?: string | null;
+};
 
 /** Ce qui ne dépend pas du destinataire (organisation, marque, blocs, cartes d'événement) : chargé une fois par campagne. */
 export async function campaignBase(campaign: CampaignLike) {
   const [org, brand] = await Promise.all([
-    db.organization.findUniqueOrThrow({ where: { id: campaign.organizationId }, select: { name: true, addressLine1: true, postalCode: true, city: true } }),
+    db.organization.findUniqueOrThrow({
+      where: { id: campaign.organizationId },
+      select: { name: true, addressLine1: true, postalCode: true, city: true },
+    }),
     emailBrandFor(campaign.organizationId),
   ]);
-  const doc = toEmailDoc(campaign.content ?? [], { sanitizeHtml: sanitizeEmailHtml }); // anciens blocs ou document riche
-  return { org, brand, doc, events: await eventCards(campaign.organizationId, emailDocEventIds(doc)) };
+  const doc = toEmailDoc(campaign.content ?? [], {
+    sanitizeHtml: sanitizeEmailHtml,
+  }); // anciens blocs ou document riche
+  return {
+    org,
+    brand,
+    doc,
+    events: await eventCards(campaign.organizationId, emailDocEventIds(doc)),
+  };
 }
 
 /** Aperçu en temps réel d'un brouillon, sans l'enregistrer : même rendu que l'envoi, nettoyage du HTML compris. */
-export async function renderCampaignDraft(ctx: OrgContext, input: { subject: string; previewText?: string | null; content: unknown }) {
+export async function renderCampaignDraft(
+  ctx: OrgContext,
+  input: { subject: string; previewText?: string | null; content: unknown },
+) {
   const warnings = new Set<string>();
   const walk = (n: unknown) => {
     if (!n || typeof n !== "object") return;
-    const r = n as { type?: unknown; attrs?: { html?: unknown }; content?: unknown };
-    if (r.type === "rawHtml" && typeof r.attrs?.html === "string") for (const w of inspectEmailHtml(r.attrs.html).warnings) warnings.add(w);
+    const r = n as {
+      type?: unknown;
+      attrs?: { html?: unknown };
+      content?: unknown;
+    };
+    if (r.type === "rawHtml" && typeof r.attrs?.html === "string")
+      for (const w of inspectEmailHtml(r.attrs.html).warnings) warnings.add(w);
     if (Array.isArray(r.content)) r.content.forEach(walk);
   };
   walk(input.content);
-  const campaign = { organizationId: ctx.organization.id, subject: input.subject, previewText: input.previewText ?? null, content: input.content, id: null };
+  const campaign = {
+    organizationId: ctx.organization.id,
+    subject: input.subject,
+    previewText: input.previewText ?? null,
+    content: input.content,
+    id: null,
+  };
   const base = await campaignBase(campaign);
   const firstName = ctx.user.name.trim().split(/\s+/)[0] || null;
-  const { mail } = renderWithBase(base, campaign, { email: ctx.user.email, firstName, locale: ctx.organization.locale });
+  const { mail } = renderWithBase(base, campaign, {
+    email: ctx.user.email,
+    firstName,
+    locale: ctx.organization.locale,
+  });
   return { html: mail.html, subject: mail.subject, warnings: [...warnings] };
 }
 
 export function renderWithBase(
   base: Awaited<ReturnType<typeof campaignBase>>,
   campaign: CampaignLike,
-  recipient: { email: string; firstName?: string | null; locale?: string | null },
+  recipient: {
+    email: string;
+    firstName?: string | null;
+    locale?: string | null;
+  },
 ) {
   const { org, brand, doc, events } = base;
   const mail = renderCampaign({
@@ -170,30 +266,63 @@ export function renderWithBase(
     doc,
     brand,
     organizationName: brand.fromName || org.name,
-    organizationAddress: [org.addressLine1, [org.postalCode, org.city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
+    organizationAddress: [
+      org.addressLine1,
+      [org.postalCode, org.city].filter(Boolean).join(" "),
+    ]
+      .filter(Boolean)
+      .join(", "),
     firstName: recipient.firstName,
     locale: toLocale(recipient.locale),
-    unsubscribeUrl: unsubscribeUrl(recipient.email, campaign.organizationId, null, campaign.id ?? null),
+    unsubscribeUrl: unsubscribeUrl(
+      recipient.email,
+      campaign.organizationId,
+      null,
+      campaign.id ?? null,
+    ),
     events,
   });
   return { mail, brand };
 }
 
-export async function renderFor(campaign: CampaignLike, recipient: { email: string; firstName?: string | null; locale?: string | null }) {
+export async function renderFor(
+  campaign: CampaignLike,
+  recipient: {
+    email: string;
+    firstName?: string | null;
+    locale?: string | null;
+  },
+) {
   return renderWithBase(await campaignBase(campaign), campaign, recipient);
 }
 
 /** Section 9.18, étape 3 : aperçu (HTML) et envoi de test à la personne connectée. */
 export async function previewCampaign(ctx: OrgContext, id: string) {
   const c = await ownCampaign(ctx, id);
-  const user = await db.user.findUniqueOrThrow({ where: { id: ctx.user.id }, select: { email: true, name: true } });
-  return (await renderFor(c, { email: user.email, firstName: user.name.split(" ")[0], locale: ctx.organization.locale })).mail;
+  const user = await db.user.findUniqueOrThrow({
+    where: { id: ctx.user.id },
+    select: { email: true, name: true },
+  });
+  return (
+    await renderFor(c, {
+      email: user.email,
+      firstName: user.name.split(" ")[0],
+      locale: ctx.organization.locale,
+    })
+  ).mail;
 }
 
 export async function sendTestCampaign(ctx: OrgContext, id: string) {
   const c = await ownCampaign(ctx, id);
-  const user = await db.user.findUniqueOrThrow({ where: { id: ctx.user.id }, select: { email: true, name: true } });
-  const { mail, brand } = await renderFor(c, { email: user.email, firstName: user.name.split(" ")[0], locale: ctx.organization.locale });
+  const user = await db.user.findUniqueOrThrow({
+    where: { id: ctx.user.id },
+    select: { email: true, name: true },
+  });
+  const { mail, brand } = await renderFor(c, {
+    email: user.email,
+    firstName: user.name.split(" ")[0],
+    locale: ctx.organization.locale,
+  });
   await sendEmail({
     ...mail,
     subject: `[Test] ${mail.subject}`,
@@ -213,14 +342,27 @@ export async function countAudience(ctx: OrgContext, segment: unknown) {
 }
 
 /** Section 9.18, étape 4 : envoi immédiat ou programmé ; jamais sans destinataire (RG-MKT-04). */
-export async function scheduleCampaign(ctx: OrgContext, id: string, at: Date | null, now = new Date()) {
+export async function scheduleCampaign(
+  ctx: OrgContext,
+  id: string,
+  at: Date | null,
+  now = new Date(),
+) {
   const c = await ownCampaign(ctx, id);
   if (LOCKED.includes(c.status)) throw new CoreError("CAMPAIGN_LOCKED");
   const segment = validateSegment(c.segment);
-  if (!segment || (await campaignAudience(c.organizationId, segment)).length === 0) throw new CoreError("CAMPAIGN_NO_RECIPIENTS");
+  if (
+    !segment ||
+    (await campaignAudience(c.organizationId, segment)).length === 0
+  )
+    throw new CoreError("CAMPAIGN_NO_RECIPIENTS");
   const when = at ?? now;
-  if (at && at.getTime() < now.getTime() + 5 * 60_000) throw new CoreError("CAMPAIGN_SCHEDULE_TOO_SOON");
-  await db.emailCampaign.update({ where: { id: c.id }, data: { status: "SCHEDULED", scheduledAt: when } });
+  if (at && at.getTime() < now.getTime() + 5 * 60_000)
+    throw new CoreError("CAMPAIGN_SCHEDULE_TOO_SOON");
+  await db.emailCampaign.update({
+    where: { id: c.id },
+    data: { status: "SCHEDULED", scheduledAt: when },
+  });
   await audit({
     action: at ? "campaign.scheduled" : "campaign.send_now",
     organizationId: c.organizationId,
@@ -232,11 +374,20 @@ export async function scheduleCampaign(ctx: OrgContext, id: string, at: Date | n
 }
 
 /** RG-MKT-05 : annulable jusqu'à 5 minutes avant l'envoi ; elle redevient un brouillon. */
-export async function unscheduleCampaign(ctx: OrgContext, id: string, now = new Date()) {
+export async function unscheduleCampaign(
+  ctx: OrgContext,
+  id: string,
+  now = new Date(),
+) {
   const c = await ownCampaign(ctx, id);
-  if (c.status !== "SCHEDULED" || !c.scheduledAt) throw new CoreError("CAMPAIGN_NOT_SCHEDULED");
-  if (!scheduledCancellable(c.scheduledAt, now)) throw new CoreError("CAMPAIGN_TOO_LATE");
-  await db.emailCampaign.update({ where: { id: c.id }, data: { status: "DRAFT", scheduledAt: null } });
+  if (c.status !== "SCHEDULED" || !c.scheduledAt)
+    throw new CoreError("CAMPAIGN_NOT_SCHEDULED");
+  if (!scheduledCancellable(c.scheduledAt, now))
+    throw new CoreError("CAMPAIGN_TOO_LATE");
+  await db.emailCampaign.update({
+    where: { id: c.id },
+    data: { status: "DRAFT", scheduledAt: null },
+  });
 }
 
 export async function deleteCampaign(ctx: OrgContext, id: string) {
@@ -246,33 +397,65 @@ export async function deleteCampaign(ctx: OrgContext, id: string) {
 }
 
 async function sentToday(organizationId: string, timezone: string, now: Date) {
-  const start = zonedLocalToUtc(`${utcToZonedLocal(now, timezone).slice(0, 10)}T00:00`, timezone);
-  return db.emailMessage.count({ where: { organizationId, category: "MARKETING", queuedAt: { gte: start } } });
+  const start = zonedLocalToUtc(
+    `${utcToZonedLocal(now, timezone).slice(0, 10)}T00:00`,
+    timezone,
+  );
+  return db.emailMessage.count({
+    where: { organizationId, category: "MARKETING", queuedAt: { gte: start } },
+  });
 }
 
 /**
  * Tâche planifiée (toutes les 5 minutes) : campagnes dues, envoyées par lots dans la limite du plafond quotidien
  * (RG-MKT-07). Destinataires recalculés à chaque lot : une désinscription en cours d'envoi est respectée.
  */
-export async function processCampaigns(now = new Date(), batchSize = 200): Promise<number> {
-  await db.emailCampaign.updateMany({ where: { status: "SCHEDULED", scheduledAt: { lte: now } }, data: { status: "SENDING", sendingStartedAt: now } });
+export async function processCampaigns(
+  now = new Date(),
+  batchSize = 200,
+): Promise<number> {
+  await db.emailCampaign.updateMany({
+    where: { status: "SCHEDULED", scheduledAt: { lte: now } },
+    data: { status: "SENDING", sendingStartedAt: now },
+  });
   const sending = await db.emailCampaign.findMany({
     where: { status: "SENDING" },
-    include: { organization: { select: { timezone: true, marketingDailyCap: true, status: true } } },
+    include: {
+      organization: {
+        select: { timezone: true, marketingDailyCap: true, status: true },
+      },
+    },
   });
   let sent = 0;
   for (const c of sending) {
     if (c.organization.status !== "ACTIVE") continue;
     const segment = validateSegment(c.segment);
     if (!segment) {
-      await db.emailCampaign.update({ where: { id: c.id }, data: { status: "FAILED" } });
+      await db.emailCampaign.update({
+        where: { id: c.id },
+        data: { status: "FAILED" },
+      });
       continue;
     }
     const audience = await campaignAudience(c.organizationId, segment);
-    const done = new Set((await db.emailMessage.findMany({ where: { campaignId: c.id }, select: { contactId: true } })).map((m) => m.contactId));
+    const done = new Set(
+      (
+        await db.emailMessage.findMany({
+          where: { campaignId: c.id },
+          select: { contactId: true },
+        })
+      ).map((m) => m.contactId),
+    );
     const pending = audience.filter((r) => !done.has(r.id));
-    if (c.recipientCount == null) await db.emailCampaign.update({ where: { id: c.id }, data: { recipientCount: pending.length + done.size } });
-    const quota = remainingDailyQuota(c.organization.marketingDailyCap, await sentToday(c.organizationId, c.organization.timezone, now));
+    if (c.recipientCount == null)
+      await db.emailCampaign.update({
+        where: { id: c.id },
+        data: { recipientCount: pending.length + done.size },
+      });
+    const quota = remainingDailyQuota(
+      c.organization.marketingDailyCap,
+      await sentToday(c.organizationId, c.organization.timezone, now),
+    );
     const base = pending.length ? await campaignBase(c) : null; // une fois par campagne, pas par destinataire
     for (const r of pending.slice(0, Math.min(batchSize, quota))) {
       const { mail, brand } = renderWithBase(base!, c, r);
@@ -286,14 +469,24 @@ export async function processCampaigns(now = new Date(), batchSize = 200): Promi
         contactId: r.id,
         fromName: brand.fromName,
         replyTo: brand.replyTo,
-        unsubscribeUrl: oneClickUnsubscribeUrl(r.email, c.organizationId, null, c.id),
+        unsubscribeUrl: oneClickUnsubscribeUrl(
+          r.email,
+          c.organizationId,
+          null,
+          c.id,
+        ),
       })
         .then(() => (sent += 1))
-        .catch((err) => console.error("campagne : envoi échoué", c.id, r.id, safeError(err)));
+        .catch((err) =>
+          console.error("campagne : envoi échoué", c.id, r.id, safeError(err)),
+        );
     }
     const remaining = pending.length - Math.min(batchSize, quota);
     if (remaining <= 0) {
-      await db.emailCampaign.update({ where: { id: c.id }, data: { status: "SENT", sentAt: now } });
+      await db.emailCampaign.update({
+        where: { id: c.id },
+        data: { status: "SENT", sentAt: now },
+      });
       await notify(c.organizationId, "CAMPAIGN_SENT", {
         title: c.name,
         body: `Campagne envoyée à ${pending.length + done.size} destinataires.`,
@@ -308,10 +501,16 @@ export async function processCampaigns(now = new Date(), batchSize = 200): Promi
 export async function cancelCampaignsForEvent(eventId: string) {
   const scheduled = await db.emailCampaign.findMany({
     where: { eventId, status: "SCHEDULED" },
-    include: { createdBy: { select: { email: true } }, organization: { select: { name: true } } },
+    include: {
+      createdBy: { select: { email: true } },
+      organization: { select: { name: true } },
+    },
   });
   for (const c of scheduled) {
-    await db.emailCampaign.update({ where: { id: c.id }, data: { status: "CANCELLED" } });
+    await db.emailCampaign.update({
+      where: { id: c.id },
+      data: { status: "CANCELLED" },
+    });
     if (c.createdBy?.email)
       await sendEmail({
         to: c.createdBy.email,
@@ -327,9 +526,20 @@ export async function cancelCampaignsForEvent(eventId: string) {
 }
 
 /** Modèles personnels réutilisables (section 9.18, étape 2). */
-export async function saveTemplate(ctx: OrgContext, input: { name: string; subject: string; previewText?: string | null; content: unknown }) {
-  if (!hasFeature(ctx.features, "EMAIL_MARKETING")) throw new CoreError("PRO_REQUIRED");
-  const blocks = validateEmailDoc(input.content, { sanitizeHtml: sanitizeEmailHtml }); // document riche, nettoyé
+export async function saveTemplate(
+  ctx: OrgContext,
+  input: {
+    name: string;
+    subject: string;
+    previewText?: string | null;
+    content: unknown;
+  },
+) {
+  if (!hasFeature(ctx.features, "EMAIL_MARKETING"))
+    throw new CoreError("PRO_REQUIRED");
+  const blocks = validateEmailDoc(input.content, {
+    sanitizeHtml: sanitizeEmailHtml,
+  }); // document riche, nettoyé
   if (emailDocIsEmpty(blocks)) throw new CoreError("CAMPAIGN_CONTENT_INVALID");
   return db.emailTemplate.create({
     data: {
@@ -352,6 +562,9 @@ export async function listTemplates(ctx: OrgContext) {
 }
 
 export async function archiveTemplate(ctx: OrgContext, id: string) {
-  const done = await db.emailTemplate.updateMany({ where: { id, organizationId: ctx.organization.id }, data: { isArchived: true } });
+  const done = await db.emailTemplate.updateMany({
+    where: { id, organizationId: ctx.organization.id },
+    data: { isArchived: true },
+  });
   if (done.count === 0) throw new CoreError("NOT_FOUND");
 }

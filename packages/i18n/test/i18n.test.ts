@@ -38,8 +38,12 @@ describe("langues", () => {
 describe("formats", () => {
   it("montants", () => {
     expect(nbsp(formatMoney(2400, "EUR", "fr"))).toBe("24,00 €");
-    expect(nbsp(formatMoney(2400, "EUR", "fr", { trimZeroCents: true }))).toBe("24 €");
-    expect(nbsp(formatMoney(2451, "EUR", "fr", { trimZeroCents: true }))).toBe("24,51 €");
+    expect(nbsp(formatMoney(2400, "EUR", "fr", { trimZeroCents: true }))).toBe(
+      "24 €",
+    );
+    expect(nbsp(formatMoney(2451, "EUR", "fr", { trimZeroCents: true }))).toBe(
+      "24,51 €",
+    );
     expect(formatMoney(2400, "EUR", "en")).toBe("€24.00");
     expect(formatMoney(1500, "GBP", "en")).toBe("£15.00");
     expect(nbsp(formatMoney(29580, "EUR", "fr"))).toBe("295,80 €");
@@ -57,8 +61,12 @@ describe("formats", () => {
     const d = new Date("2026-11-14T20:00:00Z");
     expect(formatTime(d, "Europe/Brussels", "fr")).toBe("21:00");
     expect(formatDate(d, "Europe/Brussels", "fr")).toBe("14 novembre 2026");
-    expect(formatDateTime(d, "Europe/Brussels", "fr")).toContain("samedi 14 novembre 2026");
-    expect(formatDateTime(d, "Europe/London", "en", "short")).toContain("20:00");
+    expect(formatDateTime(d, "Europe/Brussels", "fr")).toContain(
+      "samedi 14 novembre 2026",
+    );
+    expect(formatDateTime(d, "Europe/London", "en", "short")).toContain(
+      "20:00",
+    );
     expect(timeZoneLabel(d, "Europe/Brussels", "en")).toBe("GMT+1");
   });
 });
@@ -85,7 +93,9 @@ describe("messages", () => {
     }
   });
   it("aucun message vide", () => {
-    const values = (o: unknown): string[] => (typeof o === "string" ? [o] : Object.values(o as object).flatMap(values));
-    for (const locale of ["fr", "en"] as const) for (const v of values(MESSAGES[locale])) expect(v.trim()).not.toBe("");
+    const values = (o: unknown): string[] =>
+      typeof o === "string" ? [o] : Object.values(o as object).flatMap(values);
+    for (const locale of ["fr", "en"] as const)
+      for (const v of values(MESSAGES[locale])) expect(v.trim()).not.toBe("");
   });
 });

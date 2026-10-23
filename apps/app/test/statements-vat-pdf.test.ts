@@ -30,36 +30,54 @@ const situations = [
 
 describe("relevés de commissions : mention de TVA imprimée", () => {
   for (const locale of Object.keys(MENTIONS) as Array<keyof typeof MENTIONS>) {
-    it(`en ${locale} : les 4 mentions, avec le taux quand il y en a un`, { timeout: 60_000 }, async () => {
-      const id = rid();
-      const org = await db.organization.create({
-        data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale },
-      });
-      for (const [n, { mention, rateBps }] of situations.entries()) {
-        // un relevé par organisation, par mois et par devise : un mois différent pour chaque situation
-        const month = String(n + 1).padStart(2, "0");
-        const st = await db.commissionStatement.create({
+    it(
+      `en ${locale} : les 4 mentions, avec le taux quand il y en a un`,
+      { timeout: 60_000 },
+      async () => {
+        const id = rid();
+        const org = await db.organization.create({
           data: {
-            organizationId: org.id,
-            number: `TEST-${id}-${mention}`,
-            periodStart: new Date(`2026-${month}-01T00:00:00Z`),
-            periodEnd: new Date(`2026-${String(n + 2).padStart(2, "0")}-01T00:00:00Z`),
+            name: `Club ${id}`,
+            slug: `club-${id}`,
+            subdomain: `club-${id}`,
+            country: "BE",
             currency: "EUR",
-            ticketsCount: 10,
-            feesMinor: 2_500,
-            feesRefundedMinor: 0,
-            vatRateBps: rateBps,
-            vatMinor: rateBps ? Math.round((2_500 * rateBps) / (10_000 + rateBps)) : 0,
-            totalMinor: 2_500,
-            vatMention: mention,
-            status: "ISSUED",
-            issuedAt: new Date("2026-10-01T08:00:00Z"),
+            timezone: "Europe/Brussels",
+            locale,
           },
         });
-        const text = pdfText((await statementPdf(st.id)).bytes);
-        const expected = norm(MENTIONS[locale][mention](`${(rateBps ?? 0) / 100} %`));
-        expect(text, `${locale} · ${mention}`).toContain(expected);
-      }
-    });
+        for (const [n, { mention, rateBps }] of situations.entries()) {
+          // un relevé par organisation, par mois et par devise : un mois différent pour chaque situation
+          const month = String(n + 1).padStart(2, "0");
+          const st = await db.commissionStatement.create({
+            data: {
+              organizationId: org.id,
+              number: `TEST-${id}-${mention}`,
+              periodStart: new Date(`2026-${month}-01T00:00:00Z`),
+              periodEnd: new Date(
+                `2026-${String(n + 2).padStart(2, "0")}-01T00:00:00Z`,
+              ),
+              currency: "EUR",
+              ticketsCount: 10,
+              feesMinor: 2_500,
+              feesRefundedMinor: 0,
+              vatRateBps: rateBps,
+              vatMinor: rateBps
+                ? Math.round((2_500 * rateBps) / (10_000 + rateBps))
+                : 0,
+              totalMinor: 2_500,
+              vatMention: mention,
+              status: "ISSUED",
+              issuedAt: new Date("2026-10-01T08:00:00Z"),
+            },
+          });
+          const text = pdfText((await statementPdf(st.id)).bytes);
+          const expected = norm(
+            MENTIONS[locale][mention](`${(rateBps ?? 0) / 100} %`),
+          );
+          expect(text, `${locale} · ${mention}`).toContain(expected);
+        }
+      },
+    );
   }
 });

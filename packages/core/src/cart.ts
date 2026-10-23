@@ -1,12 +1,18 @@
 import { CoreError } from "./errors";
-import { ticketCommission, feeSnapshot, type FeeSnapshot, type FeeTerms } from "./fees";
+import {
+  ticketCommission,
+  feeSnapshot,
+  type FeeSnapshot,
+  type FeeTerms,
+} from "./fees";
 import { sum, type Minor } from "./money";
 import { promoAppliesTo, unitDiscount, type PromoInput } from "./promo";
 import { allocateTiers, type PriceTierInput } from "./tiers";
 
 export type TicketTypeStatus = "ACTIVE" | "PAUSED" | "SOLD_OUT" | "ARCHIVED";
 export type TicketVisibility = "VISIBLE" | "HIDDEN" | "CODE_ONLY";
-export type EventStatus = "DRAFT" | "PUBLISHED" | "SALES_PAUSED" | "CANCELLED" | "ENDED" | "ARCHIVED";
+export type EventStatus =
+  "DRAFT" | "PUBLISHED" | "SALES_PAUSED" | "CANCELLED" | "ENDED" | "ARCHIVED";
 
 export interface StockInput {
   quantity: number | null;
@@ -69,17 +75,41 @@ export type CartError =
 export function remaining(stock: StockInput): number {
   if (stock.quantity == null) return Number.POSITIVE_INFINITY;
   // règle unique des places en vente (docs/COMPATIBILITE_RESEAUX.md) : quantité − vendues − en cours de paiement − confiées aux réseaux
-  return Math.max(0, stock.quantity - stock.quantitySold - stock.quantityHeld - (stock.quantityAllocated ?? 0));
+  return Math.max(
+    0,
+    stock.quantity -
+      stock.quantitySold -
+      stock.quantityHeld -
+      (stock.quantityAllocated ?? 0),
+  );
 }
 
 /** RG-TKT-03 : disponibilité d'un tarif, dans la limite de la jauge de l'événement. */
-export function availableFor(tt: StockInput, event: Pick<EventForSale, "capacity" | "soldTotal" | "heldTotal" | "allocatedTotal">): number {
+export function availableFor(
+  tt: StockInput,
+  event: Pick<
+    EventForSale,
+    "capacity" | "soldTotal" | "heldTotal" | "allocatedTotal"
+  >,
+): number {
   const eventLeft =
-    event.capacity == null ? Number.POSITIVE_INFINITY : Math.max(0, event.capacity - event.soldTotal - event.heldTotal - (event.allocatedTotal ?? 0));
+    event.capacity == null
+      ? Number.POSITIVE_INFINITY
+      : Math.max(
+          0,
+          event.capacity -
+            event.soldTotal -
+            event.heldTotal -
+            (event.allocatedTotal ?? 0),
+        );
   return Math.min(remaining(tt), eventLeft);
 }
 
-function inWindow(now: Date, start?: Date | null, end?: Date | null): "BEFORE" | "OPEN" | "AFTER" {
+function inWindow(
+  now: Date,
+  start?: Date | null,
+  end?: Date | null,
+): "BEFORE" | "OPEN" | "AFTER" {
   if (start && now.getTime() < start.getTime()) return "BEFORE";
   if (end && now.getTime() >= end.getTime()) return "AFTER";
   return "OPEN";
@@ -98,17 +128,27 @@ export function checkCart(
 ): CartError[] {
   const errors: CartError[] = [];
   if (event.status !== "PUBLISHED") return [{ code: "EVENT_NOT_ON_SALE" }];
-  const eventWindow = inWindow(now, event.salesStartAt, event.salesEndAt ?? event.startsAt);
+  const eventWindow = inWindow(
+    now,
+    event.salesStartAt,
+    event.salesEndAt ?? event.startsAt,
+  );
   if (eventWindow === "BEFORE") return [{ code: "EVENT_SALES_NOT_STARTED" }];
   if (eventWindow === "AFTER") return [{ code: "EVENT_SALES_ENDED" }];
 
   const merged = new Map<string, number>();
   for (const line of lines) {
     if (!Number.isInteger(line.quantity) || line.quantity < 1) {
-      errors.push({ code: "INVALID_QUANTITY", ticketTypeId: line.ticketTypeId });
+      errors.push({
+        code: "INVALID_QUANTITY",
+        ticketTypeId: line.ticketTypeId,
+      });
       continue;
     }
-    merged.set(line.ticketTypeId, (merged.get(line.ticketTypeId) ?? 0) + line.quantity);
+    merged.set(
+      line.ticketTypeId,
+      (merged.get(line.ticketTypeId) ?? 0) + line.quantity,
+    );
   }
   if (merged.size === 0 && errors.length === 0) return [{ code: "EMPTY_CART" }];
 
@@ -120,23 +160,37 @@ export function checkCart(
       errors.push({ code: "UNKNOWN_TICKET_TYPE", ticketTypeId });
       continue;
     }
-    const hidden = tt.visibility === "HIDDEN" || (tt.visibility === "CODE_ONLY" && !options.unlocksHidden);
+    const hidden =
+      tt.visibility === "HIDDEN" ||
+      (tt.visibility === "CODE_ONLY" && !options.unlocksHidden);
     if (tt.status !== "ACTIVE" || hidden) {
       errors.push({ code: "TICKET_TYPE_UNAVAILABLE", ticketTypeId });
       continue;
     }
     const w = inWindow(now, tt.salesStartAt, tt.salesEndAt);
-    if (w === "BEFORE") errors.push({ code: "SALES_NOT_STARTED", ticketTypeId });
+    if (w === "BEFORE")
+      errors.push({ code: "SALES_NOT_STARTED", ticketTypeId });
     else if (w === "AFTER") errors.push({ code: "SALES_ENDED", ticketTypeId });
-    if (quantity < tt.minPerOrder) errors.push({ code: "BELOW_MIN", ticketTypeId, min: tt.minPerOrder });
-    if (quantity > tt.maxPerOrder) errors.push({ code: "ABOVE_MAX", ticketTypeId, max: tt.maxPerOrder });
+    if (quantity < tt.minPerOrder)
+      errors.push({ code: "BELOW_MIN", ticketTypeId, min: tt.minPerOrder });
+    if (quantity > tt.maxPerOrder)
+      errors.push({ code: "ABOVE_MAX", ticketTypeId, max: tt.maxPerOrder });
     const available = remaining(tt);
-    if (quantity > available) errors.push({ code: "NOT_ENOUGH_STOCK", ticketTypeId, available });
+    if (quantity > available)
+      errors.push({ code: "NOT_ENOUGH_STOCK", ticketTypeId, available });
   }
-  if (total > event.maxTicketsPerOrder) errors.push({ code: "ORDER_LIMIT", max: event.maxTicketsPerOrder });
+  if (total > event.maxTicketsPerOrder)
+    errors.push({ code: "ORDER_LIMIT", max: event.maxTicketsPerOrder });
   if (event.capacity != null) {
-    const eventLeft = Math.max(0, event.capacity - event.soldTotal - event.heldTotal - (event.allocatedTotal ?? 0));
-    if (total > eventLeft) errors.push({ code: "EVENT_FULL", available: eventLeft });
+    const eventLeft = Math.max(
+      0,
+      event.capacity -
+        event.soldTotal -
+        event.heldTotal -
+        (event.allocatedTotal ?? 0),
+    );
+    if (total > eventLeft)
+      errors.push({ code: "EVENT_FULL", available: eventLeft });
   }
   return errors;
 }
@@ -180,9 +234,20 @@ export function priceOrder(
   for (const line of lines) {
     const tt = ticketTypes.find((t) => t.id === line.ticketTypeId);
     if (!tt) throw new CoreError("UNKNOWN_TICKET_TYPE", line.ticketTypeId);
-    for (const alloc of allocateTiers(tt.priceMinor, tt.tiers, now, line.quantity, options.tiersEnabled ?? true)) {
-      const promo = options.promo && promoAppliesTo(options.promo, tt.id) ? options.promo : null;
-      const unitDiscountMinor = promo ? unitDiscount(alloc.priceMinor, promo) : 0;
+    for (const alloc of allocateTiers(
+      tt.priceMinor,
+      tt.tiers,
+      now,
+      line.quantity,
+      options.tiersEnabled ?? true,
+    )) {
+      const promo =
+        options.promo && promoAppliesTo(options.promo, tt.id)
+          ? options.promo
+          : null;
+      const unitDiscountMinor = promo
+        ? unitDiscount(alloc.priceMinor, promo)
+        : 0;
       const unitPaidMinor = alloc.priceMinor - unitDiscountMinor;
       const unitFeeMinor = ticketCommission(unitPaidMinor, terms);
       priced.push({
@@ -199,7 +264,9 @@ export function priceOrder(
     }
   }
   const subtotalMinor = sum(priced.map((l) => l.unitPriceMinor * l.quantity));
-  const discountMinor = sum(priced.map((l) => l.unitDiscountMinor * l.quantity));
+  const discountMinor = sum(
+    priced.map((l) => l.unitDiscountMinor * l.quantity),
+  );
   const totalMinor = subtotalMinor - discountMinor;
   return {
     currency: terms.currency,
@@ -228,7 +295,10 @@ export const STRIPE_MINIMUM_CHARGE: Readonly<Record<string, Minor>> = {
   PLN: 200,
 };
 
-export function meetsMinimumCharge(totalMinor: Minor, currency: string): boolean {
+export function meetsMinimumCharge(
+  totalMinor: Minor,
+  currency: string,
+): boolean {
   if (totalMinor === 0) return true;
   return totalMinor >= (STRIPE_MINIMUM_CHARGE[currency] ?? 50);
 }

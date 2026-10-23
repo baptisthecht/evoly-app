@@ -28,16 +28,32 @@ async function setup(price = 2000) {
           name: `${p} ${id}`,
           email: `${p}.${id}@exemple.be`,
           emailVerified: true,
-          ...(p === "adm" ? { platformRole: "ADMIN" as const, twoFactorEnabled: true } : {}),
+          ...(p === "adm"
+            ? { platformRole: "ADMIN" as const, twoFactorEnabled: true }
+            : {}),
         },
       }),
     ),
   );
   const org = await db.organization.create({
-    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    data: {
+      name: `Club ${id}`,
+      slug: `club-${id}`,
+      subdomain: `club-${id}`,
+      country: "BE",
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      locale: "fr",
+    },
   });
   await db.organizationMember.create({
-    data: { organizationId: org.id, userId: owner!.id, roleId: (await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })).id },
+    data: {
+      organizationId: org.id,
+      userId: owner!.id,
+      roleId: (
+        await db.role.findFirstOrThrow({ where: { systemKey: "OWNER" } })
+      ).id,
+    },
   });
   const event = await db.event.create({
     data: {
@@ -49,18 +65,32 @@ async function setup(price = 2000) {
       timezone: "Europe/Brussels",
       startsAt: new Date(Date.now() + 5 * 86_400_000),
       status: "PUBLISHED",
-      ticketTypes: { create: { name: "Entrée", priceMinor: price, currency: "EUR", quantity: 50 } },
+      ticketTypes: {
+        create: {
+          name: "Entrée",
+          priceMinor: price,
+          currency: "EUR",
+          quantity: 50,
+        },
+      },
     },
     include: { ticketTypes: true },
   });
   const st = {
-    user: { id: admin!.id, email: admin!.email, name: admin!.name, platformRole: "ADMIN", twoFactorEnabled: true },
+    user: {
+      id: admin!.id,
+      email: admin!.email,
+      name: admin!.name,
+      platformRole: "ADMIN",
+      twoFactorEnabled: true,
+    },
     sessionId: "s",
     verified: true,
   } as unknown as Staff;
   return { id, org, owner: owner!, event, st };
 }
-const sub = (organizationId: string) => db.subscription.findUnique({ where: { organizationId } });
+const sub = (organizationId: string) =>
+  db.subscription.findUnique({ where: { organizationId } });
 
 describe("back-office Evoly (section 9.24)", () => {
   it("double authentification : secret chiffré, code TOTP vérifié", () => {
@@ -76,15 +106,37 @@ describe("back-office Evoly (section 9.24)", () => {
   it("suspension : ventes refusées, membres en lecture seule, puis réactivation", async () => {
     const s = await setup();
     await suspendOrganization(s.st, s.org.id, "Soupçon de fraude au paiement");
-    await expect(reserveOrder({ eventId: s.event.id, lines: [{ ticketTypeId: s.event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" })).rejects.toThrow(
-      "SALES_SUSPENDED",
-    );
+    await expect(
+      reserveOrder({
+        eventId: s.event.id,
+        lines: [{ ticketTypeId: s.event.ticketTypes[0]!.id, quantity: 1 }],
+        locale: "fr",
+      }),
+    ).rejects.toThrow("SALES_SUSPENDED");
     const ctx = await findOrgContext(s.owner.id, s.org.slug);
     expect(ctx).toMatchObject({ readOnly: true, suspended: true });
-    expect(await db.emailMessage.count({ where: { organizationId: s.org.id, template: "platform.suspended" } })).toBe(1);
-    expect(await db.auditLog.count({ where: { organizationId: s.org.id, action: "platform.organization_suspended", actorType: "ADMIN" } })).toBe(1);
+    expect(
+      await db.emailMessage.count({
+        where: { organizationId: s.org.id, template: "platform.suspended" },
+      }),
+    ).toBe(1);
+    expect(
+      await db.auditLog.count({
+        where: {
+          organizationId: s.org.id,
+          action: "platform.organization_suspended",
+          actorType: "ADMIN",
+        },
+      }),
+    ).toBe(1);
     await reactivateOrganization(s.st, s.org.id);
-    await expect(reserveOrder({ eventId: s.event.id, lines: [{ ticketTypeId: s.event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" })).resolves.toBeTruthy();
+    await expect(
+      reserveOrder({
+        eventId: s.event.id,
+        lines: [{ ticketTypeId: s.event.ticketTypes[0]!.id, quantity: 1 }],
+        locale: "fr",
+      }),
+    ).resolves.toBeTruthy();
   });
 
   it("essai prolongé, offre attribuée jusqu'à une date, refus si l'abonnement est géré par Stripe", async () => {
@@ -93,14 +145,24 @@ describe("back-office Evoly (section 9.24)", () => {
     const first = (await sub(s.org.id))!;
     expect(first).toMatchObject({ planId: "pro", status: "TRIALING" });
     await extendTrial(s.st, s.org.id, 5);
-    expect((await sub(s.org.id))!.trialEndsAt!.getTime() - first.trialEndsAt!.getTime()).toBe(5 * 86_400_000);
+    expect(
+      (await sub(s.org.id))!.trialEndsAt!.getTime() -
+        first.trialEndsAt!.getTime(),
+    ).toBe(5 * 86_400_000);
     const until = new Date(Date.now() + 20 * 86_400_000);
     await assignPlan(s.st, s.org.id, "pro", until);
     const assigned = (await sub(s.org.id))!;
     expect(effectivePlan(assigned, new Date())).toBe("pro");
-    expect(effectivePlan(assigned, new Date(until.getTime() + 60_000))).toBe("free");
-    await db.subscription.update({ where: { organizationId: s.org.id }, data: { stripeSubscriptionId: `sub_${s.id}`, status: "ACTIVE" } });
-    await expect(assignPlan(s.st, s.org.id, "free", null)).rejects.toThrow("PLAN_MANAGED_BY_STRIPE");
+    expect(effectivePlan(assigned, new Date(until.getTime() + 60_000))).toBe(
+      "free",
+    );
+    await db.subscription.update({
+      where: { organizationId: s.org.id },
+      data: { stripeSubscriptionId: `sub_${s.id}`, status: "ACTIVE" },
+    });
+    await expect(assignPlan(s.st, s.org.id, "free", null)).rejects.toThrow(
+      "PLAN_MANAGED_BY_STRIPE",
+    );
   });
 
   it("offre Partenaire attribuée par un administrateur, avec ou sans date de fin", async () => {
@@ -111,7 +173,9 @@ describe("back-office Evoly (section 9.24)", () => {
     await assignPlan(s.st, s.org.id, "partner", until);
     const assigned = (await sub(s.org.id))!;
     expect(effectivePlan(assigned, new Date())).toBe("partner");
-    expect(effectivePlan(assigned, new Date(until.getTime() + 60_000))).toBe("free");
+    expect(effectivePlan(assigned, new Date(until.getTime() + 60_000))).toBe(
+      "free",
+    );
     await assignPlan(s.st, s.org.id, "free", null);
     expect(effectivePlan((await sub(s.org.id))!, new Date())).toBe("free");
   });
@@ -123,8 +187,12 @@ describe("back-office Evoly (section 9.24)", () => {
     expect(await featureEnabled(key, s.org.id)).toBe(true);
     await setFeatureFlag(s.st, key, s.org.id, false);
     expect(await featureEnabled(key, s.org.id)).toBe(false);
-    expect((await organizationSheet(s.org.id))?.risks).toContain("NEW_ORG_HIGH_PRICE");
-    const view = await findOrgContext(s.st.user.id, s.org.slug, { supportView: true });
+    expect((await organizationSheet(s.org.id))?.risks).toContain(
+      "NEW_ORG_HIGH_PRICE",
+    );
+    const view = await findOrgContext(s.st.user.id, s.org.slug, {
+      supportView: true,
+    });
     expect(view).toMatchObject({ readOnly: true, supportView: true });
     expect(await findOrgContext(s.st.user.id, s.org.slug)).toBeNull(); // hors consultation : pas membre, aucune action possible
   });

@@ -19,7 +19,15 @@ export interface PromoInput {
   unlocksHidden?: boolean;
 }
 
-export type PromoError = "NOT_FOUND" | "WRONG_EVENT" | "INACTIVE" | "NOT_STARTED" | "EXPIRED" | "EXHAUSTED" | "EMAIL_LIMIT" | "NOT_APPLICABLE";
+export type PromoError =
+  | "NOT_FOUND"
+  | "WRONG_EVENT"
+  | "INACTIVE"
+  | "NOT_STARTED"
+  | "EXPIRED"
+  | "EXHAUSTED"
+  | "EMAIL_LIMIT"
+  | "NOT_APPLICABLE";
 
 export type PromoCheck = { ok: true } | { ok: false; error: PromoError };
 
@@ -37,20 +45,34 @@ export function normalizePromoCode(code: string): string {
 }
 
 /** Validation côté serveur d'un code promo (RG-PRM-01). */
-export function validatePromo(promo: PromoInput | null | undefined, ctx: PromoContext): PromoCheck {
+export function validatePromo(
+  promo: PromoInput | null | undefined,
+  ctx: PromoContext,
+): PromoCheck {
   if (!promo) return { ok: false, error: "NOT_FOUND" };
   if (promo.eventId !== ctx.eventId) return { ok: false, error: "WRONG_EVENT" };
   if (!promo.isActive) return { ok: false, error: "INACTIVE" };
-  if (promo.startsAt && ctx.now.getTime() < promo.startsAt.getTime()) return { ok: false, error: "NOT_STARTED" };
-  if (promo.expiresAt && ctx.now.getTime() >= promo.expiresAt.getTime()) return { ok: false, error: "EXPIRED" };
-  if (promo.maxUses != null && promo.usedCount >= promo.maxUses) return { ok: false, error: "EXHAUSTED" };
-  if (promo.maxUsesPerEmail != null && ctx.usesByEmail >= promo.maxUsesPerEmail) return { ok: false, error: "EMAIL_LIMIT" };
-  if (!ctx.cartTicketTypeIds.some((id) => promoAppliesTo(promo, id))) return { ok: false, error: "NOT_APPLICABLE" };
+  if (promo.startsAt && ctx.now.getTime() < promo.startsAt.getTime())
+    return { ok: false, error: "NOT_STARTED" };
+  if (promo.expiresAt && ctx.now.getTime() >= promo.expiresAt.getTime())
+    return { ok: false, error: "EXPIRED" };
+  if (promo.maxUses != null && promo.usedCount >= promo.maxUses)
+    return { ok: false, error: "EXHAUSTED" };
+  if (promo.maxUsesPerEmail != null && ctx.usesByEmail >= promo.maxUsesPerEmail)
+    return { ok: false, error: "EMAIL_LIMIT" };
+  if (!ctx.cartTicketTypeIds.some((id) => promoAppliesTo(promo, id)))
+    return { ok: false, error: "NOT_APPLICABLE" };
   return { ok: true };
 }
 
-export function promoAppliesTo(promo: PromoInput, ticketTypeId: string): boolean {
-  return promo.ticketTypeIds.length === 0 || promo.ticketTypeIds.includes(ticketTypeId);
+export function promoAppliesTo(
+  promo: PromoInput,
+  ticketTypeId: string,
+): boolean {
+  return (
+    promo.ticketTypeIds.length === 0 ||
+    promo.ticketTypeIds.includes(ticketTypeId)
+  );
 }
 
 /** Remise sur un billet (RG-PRM-02) : jamais au-delà du prix. */
@@ -60,7 +82,10 @@ export function unitDiscount(priceMinor: Minor, promo: PromoInput): Minor {
     case "FREE":
       return priceMinor;
     case "PERCENT":
-      return Math.min(priceMinor, applyBps(priceMinor, promo.percentOffBps ?? 0));
+      return Math.min(
+        priceMinor,
+        applyBps(priceMinor, promo.percentOffBps ?? 0),
+      );
     case "AMOUNT":
       return Math.min(priceMinor, promo.amountOffMinor ?? 0);
   }

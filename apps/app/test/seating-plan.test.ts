@@ -1,14 +1,30 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { cancelReservation, changeReservationSeats, reservationSeats, reserveOrder } from "@/server/checkout";
+import {
+  cancelReservation,
+  changeReservationSeats,
+  reservationSeats,
+  reserveOrder,
+} from "@/server/checkout";
 import type { OrgContext } from "@/server/context";
 import { getPlans } from "@/server/plans";
-import { applySeatingTemplate, publicSeatMap, setSeatChoice, setSeatingMode } from "@/server/seating";
+import {
+  applySeatingTemplate,
+  publicSeatMap,
+  setSeatChoice,
+  setSeatingMode,
+} from "@/server/seating";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 async function setup(pro = true) {
   const id = rid();
-  const user = await db.user.create({ data: { name: "Camille", email: `own.${id}@exemple.be`, emailVerified: true } });
+  const user = await db.user.create({
+    data: {
+      name: "Camille",
+      email: `own.${id}@exemple.be`,
+      emailVerified: true,
+    },
+  });
   const org = await db.organization.create({
     data: {
       name: `Théâtre ${id}`,
@@ -32,37 +48,87 @@ async function setup(pro = true) {
       status: "PUBLISHED",
       ticketTypes: {
         create: [
-          { name: "Carré or", priceMinor: 0, currency: "EUR", quantity: 100, sortOrder: 0 },
-          { name: "Catégorie 1", priceMinor: 0, currency: "EUR", quantity: 100, sortOrder: 1 },
-          { name: "Balcon", priceMinor: 0, currency: "EUR", quantity: 100, sortOrder: 2 },
+          {
+            name: "Carré or",
+            priceMinor: 0,
+            currency: "EUR",
+            quantity: 100,
+            sortOrder: 0,
+          },
+          {
+            name: "Catégorie 1",
+            priceMinor: 0,
+            currency: "EUR",
+            quantity: 100,
+            sortOrder: 1,
+          },
+          {
+            name: "Balcon",
+            priceMinor: 0,
+            currency: "EUR",
+            quantity: 100,
+            sortOrder: 2,
+          },
         ],
       },
     },
     include: { ticketTypes: { orderBy: { sortOrder: "asc" } } },
   });
   const plans = await getPlans();
-  const ctx = { organization: { id: org.id }, user: { id: user.id }, features: (pro ? plans.pro : plans.free).features } as unknown as OrgContext;
+  const ctx = {
+    organization: { id: org.id },
+    user: { id: user.id },
+    features: (pro ? plans.pro : plans.free).features,
+  } as unknown as OrgContext;
   return { id, event, ctx, types: event.ticketTypes };
 }
 
 describe("plan de salle par modèle (section 9.9)", () => {
   it("théâtre : blocs, places placées, catégories reliées ; meilleures places ; sièges isolés refusés ; modèle protégé par les ventes", async () => {
     const { event, ctx, types } = await setup();
-    expect(await applySeatingTemplate(ctx, event.id, "theatre")).toEqual({ blocks: 3, seats: 216 });
+    expect(await applySeatingTemplate(ctx, event.id, "theatre")).toEqual({
+      blocks: 3,
+      seats: 216,
+    });
     const map = await db.seatingMap.findUniqueOrThrow({
       where: { eventId: event.id },
       include: { blocks: true, categories: { orderBy: { sortOrder: "asc" } } },
     });
     expect(map).toMatchObject({ template: "theatre", focusX: 0, focusY: -70 });
-    expect(map.blocks.map((b) => b.kind).sort()).toEqual(["ROWS", "ROWS", "SHAPE"]);
-    expect(await db.seat.count({ where: { row: { seatingMapId: map.id }, x: null } })).toBe(0);
-    expect(await db.seat.count({ where: { row: { seatingMapId: map.id }, accessible: true } })).toBe(2);
-    const mapped = await db.ticketType.findMany({ where: { eventId: event.id }, orderBy: { sortOrder: "asc" }, select: { seatingCategoryId: true } });
-    expect(mapped.map((t) => t.seatingCategoryId)).toEqual(map.categories.map((c) => c.id));
+    expect(map.blocks.map((b) => b.kind).sort()).toEqual([
+      "ROWS",
+      "ROWS",
+      "SHAPE",
+    ]);
+    expect(
+      await db.seat.count({
+        where: { row: { seatingMapId: map.id }, x: null },
+      }),
+    ).toBe(0);
+    expect(
+      await db.seat.count({
+        where: { row: { seatingMapId: map.id }, accessible: true },
+      }),
+    ).toBe(2);
+    const mapped = await db.ticketType.findMany({
+      where: { eventId: event.id },
+      orderBy: { sortOrder: "asc" },
+      select: { seatingCategoryId: true },
+    });
+    expect(mapped.map((t) => t.seatingCategoryId)).toEqual(
+      map.categories.map((c) => c.id),
+    );
 
     await setSeatingMode(ctx, event.id, true);
-    const r1 = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }], locale: "fr" });
-    const held = await db.seat.findMany({ where: { holdOrderId: r1.orderId }, include: { row: true } });
+    const r1 = await reserveOrder({
+      eventId: event.id,
+      lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }],
+      locale: "fr",
+    });
+    const held = await db.seat.findMany({
+      where: { holdOrderId: r1.orderId },
+      include: { row: true },
+    });
     expect(held.map((s) => s.row.name)).toEqual(["A", "A"]); // premier rang
     const nums = held.map((s) => Number(s.label));
     expect(nums.every((n) => n % 2 === nums[0]! % 2)).toBe(true); // même côté de l'allée (impairs ou pairs)
@@ -70,37 +136,75 @@ describe("plan de salle par modèle (section 9.9)", () => {
 
     // RG-SEAT-01 : une place seule entre le choix et l'allée est refusée, tant qu'un autre choix l'évite
     await setSeatChoice(ctx, event.id, true);
-    const rowB = await db.seatingRow.findFirstOrThrow({ where: { seatingMapId: map.id, name: "B" }, include: { seats: true } });
-    const seat = (label: string) => rowB.seats.find((s) => s.label === label)!.id;
-    await expect(reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr", seatIds: [seat("3")] })).rejects.toThrow(
-      "SEAT_ORPHAN",
-    );
-    const r2 = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }], locale: "fr", seatIds: [seat("1")] });
+    const rowB = await db.seatingRow.findFirstOrThrow({
+      where: { seatingMapId: map.id, name: "B" },
+      include: { seats: true },
+    });
+    const seat = (label: string) =>
+      rowB.seats.find((s) => s.label === label)!.id;
+    await expect(
+      reserveOrder({
+        eventId: event.id,
+        lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }],
+        locale: "fr",
+        seatIds: [seat("3")],
+      }),
+    ).rejects.toThrow("SEAT_ORPHAN");
+    const r2 = await reserveOrder({
+      eventId: event.id,
+      lines: [{ ticketTypeId: types[0]!.id, quantity: 1 }],
+      locale: "fr",
+      seatIds: [seat("1")],
+    });
     expect(await db.seat.count({ where: { holdOrderId: r2.orderId } })).toBe(1);
 
     // RG-SEAT-02 : pas de nouveau modèle tant que des places sont retenues ou vendues
-    await expect(applySeatingTemplate(ctx, event.id, "hall")).rejects.toThrow("SEATING_HAS_SALES");
+    await expect(applySeatingTemplate(ctx, event.id, "hall")).rejects.toThrow(
+      "SEATING_HAS_SALES",
+    );
     await cancelReservation(r1.token);
     await cancelReservation(r2.token);
-    expect((await applySeatingTemplate(ctx, event.id, "hall")).seats).toBe(12 * 20);
+    expect((await applySeatingTemplate(ctx, event.id, "hall")).seats).toBe(
+      12 * 20,
+    );
   });
 
   it("stade de foot : 4 000 places en quatre tribunes ; offre gratuite refusée", async () => {
     const { event, ctx } = await setup();
-    expect(await applySeatingTemplate(ctx, event.id, "stadium")).toEqual({ blocks: 5, seats: 4000 });
+    expect(await applySeatingTemplate(ctx, event.id, "stadium")).toEqual({
+      blocks: 5,
+      seats: 4000,
+    });
     const free = await setup(false);
-    await expect(applySeatingTemplate(free.ctx, free.event.id, "theatre")).rejects.toThrow("PRO_REQUIRED");
+    await expect(
+      applySeatingTemplate(free.ctx, free.event.id, "theatre"),
+    ).rejects.toThrow("PRO_REQUIRED");
   });
 
   it("gradins et fosse : la fosse se vend sans place, les gradins avec leurs places", async () => {
     const { event, ctx, types } = await setup();
-    await applySeatingTemplate(ctx, event.id, "pit", { rows: 2, seatsFirst: 10, seatsLast: 10, categories: 2 });
+    await applySeatingTemplate(ctx, event.id, "pit", {
+      rows: 2,
+      seatsFirst: 10,
+      seatsLast: 10,
+      categories: 2,
+    });
     const pub = (await publicSeatMap(event.id))!;
     expect(pub.categories.map((c) => c.standing)).toEqual([true, false]);
-    expect(pub.blocks.map((b) => b.kind)).toEqual(["SHAPE", "STANDING", "ROWS"]);
+    expect(pub.blocks.map((b) => b.kind)).toEqual([
+      "SHAPE",
+      "STANDING",
+      "ROWS",
+    ]);
     await setSeatingMode(ctx, event.id, true);
-    const pit = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }], locale: "fr" });
-    expect(await db.seat.count({ where: { holdOrderId: pit.orderId } })).toBe(0);
+    const pit = await reserveOrder({
+      eventId: event.id,
+      lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }],
+      locale: "fr",
+    });
+    expect(await db.seat.count({ where: { holdOrderId: pit.orderId } })).toBe(
+      0,
+    );
     const stands = await reserveOrder({
       eventId: event.id,
       lines: [
@@ -109,31 +213,71 @@ describe("plan de salle par modèle (section 9.9)", () => {
       ],
       locale: "fr",
     });
-    expect(await db.seat.count({ where: { holdOrderId: stands.orderId, status: "HELD" } })).toBe(2);
+    expect(
+      await db.seat.count({
+        where: { holdOrderId: stands.orderId, status: "HELD" },
+      }),
+    ).toBe(2);
   });
 
   it("places changées pendant la réservation : échange réussi, refus sans rien perdre, choix désactivé", async () => {
     const { event, ctx, types } = await setup();
-    await applySeatingTemplate(ctx, event.id, "hall", { rows: 2, seatsFirst: 8, seatsLast: 8, centerAisle: false, categories: 1 });
+    await applySeatingTemplate(ctx, event.id, "hall", {
+      rows: 2,
+      seatsFirst: 8,
+      seatsLast: 8,
+      centerAisle: false,
+      categories: 1,
+    });
     await setSeatingMode(ctx, event.id, true);
     await setSeatChoice(ctx, event.id, true);
-    const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }], locale: "fr" });
+    const r = await reserveOrder({
+      eventId: event.id,
+      lines: [{ ticketTypeId: types[0]!.id, quantity: 2 }],
+      locale: "fr",
+    });
     const before = await reservationSeats(r.orderId);
     expect(before).toHaveLength(2);
     const seat = async (row: string, label: string) =>
-      (await db.seat.findFirstOrThrow({ where: { label, row: { name: row, seatingMap: { eventId: event.id } } } })).id;
+      (
+        await db.seat.findFirstOrThrow({
+          where: {
+            label,
+            row: { name: row, seatingMap: { eventId: event.id } },
+          },
+        })
+      ).id;
 
     // échange vers B7, B8 : les anciennes places sont libérées
-    const after = await changeReservationSeats(r.token, [await seat("B", "7"), await seat("B", "8")]);
+    const after = await changeReservationSeats(r.token, [
+      await seat("B", "7"),
+      await seat("B", "8"),
+    ]);
     expect(after.map((s) => `${s.row}${s.label}`)).toEqual(["B7", "B8"]);
-    expect(await db.seat.count({ where: { id: { in: before.map((s) => s.id) }, status: "AVAILABLE" } })).toBe(2);
+    expect(
+      await db.seat.count({
+        where: { id: { in: before.map((s) => s.id) }, status: "AVAILABLE" },
+      }),
+    ).toBe(2);
 
     // B2 et B4 laisseraient B3 seule (et B1 seule) : refusé, l'acheteur garde B7 et B8
-    await expect(changeReservationSeats(r.token, [await seat("B", "2"), await seat("B", "4")])).rejects.toThrow("SEAT_ORPHAN");
-    expect((await reservationSeats(r.orderId)).map((s) => `${s.row}${s.label}`)).toEqual(["B7", "B8"]);
+    await expect(
+      changeReservationSeats(r.token, [
+        await seat("B", "2"),
+        await seat("B", "4"),
+      ]),
+    ).rejects.toThrow("SEAT_ORPHAN");
+    expect(
+      (await reservationSeats(r.orderId)).map((s) => `${s.row}${s.label}`),
+    ).toEqual(["B7", "B8"]);
 
     // choix désactivé par l'organisateur : les places attribuées ne changent pas
     await setSeatChoice(ctx, event.id, false);
-    await expect(changeReservationSeats(r.token, [await seat("A", "1"), await seat("A", "2")])).rejects.toThrow("SEAT_CHOICE_DISABLED");
+    await expect(
+      changeReservationSeats(r.token, [
+        await seat("A", "1"),
+        await seat("A", "2"),
+      ]),
+    ).rejects.toThrow("SEAT_CHOICE_DISABLED");
   });
 });

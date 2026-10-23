@@ -4,10 +4,25 @@ import { db } from "@/lib/db";
 import { findOrgContext } from "@/server/context";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
-const owner = () => db.role.findUniqueOrThrow({ where: { systemKey: "OWNER" } });
+const owner = () =>
+  db.role.findUniqueOrThrow({ where: { systemKey: "OWNER" } });
 const admin = () => db.role.findFirstOrThrow({ where: { systemKey: "ADMIN" } });
-const user = () => db.user.create({ data: { name: "Camille", email: `u.${rid()}@exemple.be`, emailVerified: true } });
-async function org(opts: { plan?: "free" | "pro"; status?: "ACTIVE" | "SUSPENDED" | "DELETED"; deleted?: boolean; createdAt?: Date } = {}) {
+const user = () =>
+  db.user.create({
+    data: {
+      name: "Camille",
+      email: `u.${rid()}@exemple.be`,
+      emailVerified: true,
+    },
+  });
+async function org(
+  opts: {
+    plan?: "free" | "pro";
+    status?: "ACTIVE" | "SUSPENDED" | "DELETED";
+    deleted?: boolean;
+    createdAt?: Date;
+  } = {},
+) {
   const id = rid();
   const pro = opts.plan === "pro";
   return db.organization.create({
@@ -21,13 +36,30 @@ async function org(opts: { plan?: "free" | "pro"; status?: "ACTIVE" | "SUSPENDED
       deletedAt: opts.deleted ? new Date() : null,
       ...(opts.createdAt ? { createdAt: opts.createdAt } : {}),
       subscription: {
-        create: { planId: pro ? "pro" : "free", status: pro ? "ACTIVE" : "NONE", currency: "EUR", stripeSubscriptionId: pro ? `sub_${id}` : null },
+        create: {
+          planId: pro ? "pro" : "free",
+          status: pro ? "ACTIVE" : "NONE",
+          currency: "EUR",
+          stripeSubscriptionId: pro ? `sub_${id}` : null,
+        },
       },
     },
   });
 }
-const join = async (organizationId: string, userId: string, role: "OWNER" | "ADMIN", status: "ACTIVE" | "SUSPENDED" = "ACTIVE") =>
-  db.organizationMember.create({ data: { organizationId, userId, roleId: (role === "OWNER" ? await owner() : await admin()).id, status } });
+const join = async (
+  organizationId: string,
+  userId: string,
+  role: "OWNER" | "ADMIN",
+  status: "ACTIVE" | "SUSPENDED" = "ACTIVE",
+) =>
+  db.organizationMember.create({
+    data: {
+      organizationId,
+      userId,
+      roleId: (role === "OWNER" ? await owner() : await admin()).id,
+      status,
+    },
+  });
 
 describe("accès à une organisation (RG-ARC-07, RG-SUB-08)", () => {
   it("non-membre, membre suspendu, organisation supprimée : introuvable", async () => {
@@ -50,9 +82,17 @@ describe("accès à une organisation (RG-ARC-07, RG-SUB-08)", () => {
     const [own, adm] = [await user(), await user()];
     await join(o.id, own.id, "OWNER");
     await join(o.id, adm.id, "ADMIN");
-    expect(await findOrgContext(own.id, o.slug)).toMatchObject({ plan: "free", readOnly: false, membership: { systemRole: "OWNER" } });
+    expect(await findOrgContext(own.id, o.slug)).toMatchObject({
+      plan: "free",
+      readOnly: false,
+      membership: { systemRole: "OWNER" },
+    });
     expect(await findOrgContext(adm.id, o.slug)).toBeNull();
-    expect(await db.organizationMember.count({ where: { organizationId: o.id, userId: adm.id, status: "ACTIVE" } })).toBe(1);
+    expect(
+      await db.organizationMember.count({
+        where: { organizationId: o.id, userId: adm.id, status: "ACTIVE" },
+      }),
+    ).toBe(1);
   });
 
   it("en Pro, l'administrateur entre avec exactement les permissions de son rôle", async () => {
@@ -63,7 +103,11 @@ describe("accès à une organisation (RG-ARC-07, RG-SUB-08)", () => {
     expect(await findOrgContext(adm.id, o.slug)).toMatchObject({
       plan: "pro",
       readOnly: false,
-      membership: { systemRole: "ADMIN", permissions: role.permissions, roleName: role.name },
+      membership: {
+        systemRole: "ADMIN",
+        permissions: role.permissions,
+        roleName: role.name,
+      },
     });
   });
 
@@ -73,8 +117,18 @@ describe("accès à une organisation (RG-ARC-07, RG-SUB-08)", () => {
     const second = await org();
     await join(first.id, own.id, "OWNER");
     await join(second.id, own.id, "OWNER");
-    expect((await findOrgContext(own.id, first.slug))!.readOnly).toBe(isReadOnlyOrganization({ plan: "free", isOwnersFirstFreeOrganization: true }));
-    expect((await findOrgContext(own.id, second.slug))!.readOnly).toBe(isReadOnlyOrganization({ plan: "free", isOwnersFirstFreeOrganization: false }));
+    expect((await findOrgContext(own.id, first.slug))!.readOnly).toBe(
+      isReadOnlyOrganization({
+        plan: "free",
+        isOwnersFirstFreeOrganization: true,
+      }),
+    );
+    expect((await findOrgContext(own.id, second.slug))!.readOnly).toBe(
+      isReadOnlyOrganization({
+        plan: "free",
+        isOwnersFirstFreeOrganization: false,
+      }),
+    );
     expect((await findOrgContext(own.id, first.slug))!.readOnly).toBe(false);
   });
 
@@ -82,16 +136,30 @@ describe("accès à une organisation (RG-ARC-07, RG-SUB-08)", () => {
     const o = await org({ plan: "pro", status: "SUSPENDED" });
     const own = await user();
     await join(o.id, own.id, "OWNER");
-    expect(await findOrgContext(own.id, o.slug)).toMatchObject({ readOnly: true, suspended: true, supportView: false });
+    expect(await findOrgContext(own.id, o.slug)).toMatchObject({
+      readOnly: true,
+      suspended: true,
+      supportView: false,
+    });
   });
 
   it("consultation par le support : tout voir, rien modifier ; une adresse inconnue reste introuvable", async () => {
     const o = await org({ plan: "pro" });
     const agent = await user();
-    const ctx = (await findOrgContext(agent.id, o.slug, { supportView: true }))!;
-    expect(ctx).toMatchObject({ supportView: true, readOnly: true, membership: { systemRole: "OWNER", roleName: "Support Evoly" } });
+    const ctx = (await findOrgContext(agent.id, o.slug, {
+      supportView: true,
+    }))!;
+    expect(ctx).toMatchObject({
+      supportView: true,
+      readOnly: true,
+      membership: { systemRole: "OWNER", roleName: "Support Evoly" },
+    });
     expect(ctx.membership.permissions).toHaveLength(PERMISSIONS.length);
-    expect(await findOrgContext(agent.id, `inconnue-${rid()}`, { supportView: true })).toBeNull();
+    expect(
+      await findOrgContext(agent.id, `inconnue-${rid()}`, {
+        supportView: true,
+      }),
+    ).toBeNull();
   });
 
   it("compte Stripe : état transmis, exigences en attente listées ; sans compte, rien", async () => {

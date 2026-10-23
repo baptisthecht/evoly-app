@@ -1,13 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { acquisitionFunnel, offlineConversions } from "@/server/acquisitionReport";
+import {
+  acquisitionFunnel,
+  offlineConversions,
+} from "@/server/acquisitionReport";
 import { createOrganization } from "@/server/onboarding";
 
 const rid = () => Math.random().toString(36).slice(2, 8);
 async function org(acquisition: Record<string, string> | null) {
-  const u = await db.user.create({ data: { name: "Nora", email: `acq.${rid()}@exemple.be`, emailVerified: true } });
-  const o = await createOrganization(u.id, { name: `Club ${rid()}`, subdomain: `club-${rid()}`, country: "BE", type: "ASSOCIATION" } as never);
-  if (acquisition) await db.organization.update({ where: { id: o.id }, data: { acquisition } });
+  const u = await db.user.create({
+    data: {
+      name: "Nora",
+      email: `acq.${rid()}@exemple.be`,
+      emailVerified: true,
+    },
+  });
+  const o = await createOrganization(u.id, {
+    name: `Club ${rid()}`,
+    subdomain: `club-${rid()}`,
+    country: "BE",
+    type: "ASSOCIATION",
+  } as never);
+  if (acquisition)
+    await db.organization.update({
+      where: { id: o.id },
+      data: { acquisition },
+    });
   return o;
 }
 
@@ -17,7 +35,13 @@ describe("rapport d'acquisition de l'administration", () => {
     const since = new Date(Date.now() - 1000);
     const campaign = `lancement-${rid()}`;
     const gclid = `Cj0K-${rid()}`;
-    const visit = { source: "google", medium: "cpc", campaign, landing: "/start", firstAt: new Date().toISOString() };
+    const visit = {
+      source: "google",
+      medium: "cpc",
+      campaign,
+      landing: "/start",
+      firstAt: new Date().toISOString(),
+    };
     const a = await org({ ...visit, gclid });
     const b = await org(visit);
     const c = await org(null);
@@ -33,7 +57,14 @@ describe("rapport d'acquisition de l'administration", () => {
         status: "PUBLISHED",
       },
     });
-    const tt = await db.ticketType.create({ data: { eventId: e.id, name: "Normal", priceMinor: 1000, currency: "EUR" } });
+    const tt = await db.ticketType.create({
+      data: {
+        eventId: e.id,
+        name: "Normal",
+        priceMinor: 1000,
+        currency: "EUR",
+      },
+    });
     await db.order.create({
       data: {
         reference: `EVO-${rid()}`,
@@ -49,10 +80,15 @@ describe("rapport d'acquisition de l'administration", () => {
         paidAt: new Date(),
         feeSnapshot: {},
         accessTokenHash: rid(),
-        items: { create: [{ ticketTypeId: tt.id, quantity: 1, unitPriceMinor: 1000 }] },
+        items: {
+          create: [{ ticketTypeId: tt.id, quantity: 1, unitPriceMinor: 1000 }],
+        },
       },
     });
-    await db.subscription.update({ where: { organizationId: a.id }, data: { planId: "pro", status: "ACTIVE" } });
+    await db.subscription.update({
+      where: { organizationId: a.id },
+      data: { planId: "pro", status: "ACTIVE" },
+    });
 
     const { rows, detail } = await acquisitionFunnel(since);
     expect(rows.find((r) => r.campaign === campaign)).toEqual({
@@ -74,9 +110,18 @@ describe("rapport d'acquisition de l'administration", () => {
       pro: false,
       gclid: null,
     });
-    expect(mine.find((d) => d.id === a.id)).toMatchObject({ published: true, pro: true, gclid });
+    expect(mine.find((d) => d.id === a.id)).toMatchObject({
+      published: true,
+      pro: true,
+      gclid,
+    });
 
-    const conversions = (await offlineConversions(since)).filter((x) => x.gclid === gclid);
-    expect(conversions.map((x) => x.name)).toEqual(["Organisation créée", "Premier billet vendu"]);
+    const conversions = (await offlineConversions(since)).filter(
+      (x) => x.gclid === gclid,
+    );
+    expect(conversions.map((x) => x.name)).toEqual([
+      "Organisation créée",
+      "Premier billet vendu",
+    ]);
   });
 });

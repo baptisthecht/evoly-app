@@ -5,7 +5,10 @@ import { getTranslations } from "next-intl/server";
 import { env } from "@/lib/env";
 import { OMark } from "@/components/Brand";
 
-export const metadata: Metadata = { title: "Scanner", robots: { index: false, follow: false } };
+export const metadata: Metadata = {
+  title: "Scanner",
+  robots: { index: false, follow: false },
+};
 
 export default async function ScannerHome() {
   if ((await headers()).get("x-evoly-scanner") !== "1") notFound();
@@ -14,7 +17,9 @@ export default async function ScannerHome() {
     <main className="grid min-h-dvh place-items-center bg-[var(--evoly-charbon)] px-6 text-center text-[var(--evoly-creme)]">
       <div className="grid max-w-sm justify-items-center gap-4">
         <OMark className="size-16" />
-        <h1 className="font-display text-3xl tracking-[-0.04em]">{t("homeTitle")}</h1>
+        <h1 className="font-display text-3xl tracking-[-0.04em]">
+          {t("homeTitle")}
+        </h1>
         <p className="opacity-80">{t("homeBody")}</p>
         {/* US-SCN-06 : un membre de l'équipe se connecte à l'app, puis ouvre le scanner avec son lien personnel */}
         <a

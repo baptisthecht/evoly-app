@@ -20,7 +20,8 @@ const PLACEHOLDERS = new Set([
 const RESERVED = new Set(["example.com", "example.org", "example.net"]);
 const SYNTAX = /^[a-z0-9._%+'-]+@[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 
-export type AddressCheck = { ok: true } | { ok: false; reason: string; suggestion?: string };
+export type AddressCheck =
+  { ok: true } | { ok: false; reason: string; suggestion?: string };
 type Resolver = (domain: string) => Promise<unknown[]>;
 
 /**
@@ -30,13 +31,17 @@ type Resolver = (domain: string) => Promise<unknown[]>;
  */
 export async function checkAddress(
   email: string,
-  resolve: Resolver | null = process.env.VITEST || process.env.PROSPECTION_SKIP_MX ? null : resolveMx,
+  resolve: Resolver | null = process.env.VITEST ||
+  process.env.PROSPECTION_SKIP_MX
+    ? null
+    : resolveMx,
   cache = new Map<string, Promise<boolean | null>>(),
 ): Promise<AddressCheck> {
   const a = email.trim().toLowerCase();
   if (!SYNTAX.test(a)) return { ok: false, reason: "syntaxe incorrecte" };
   const domain = a.split("@")[1]!;
-  if (PLACEHOLDERS.has(a) || RESERVED.has(domain)) return { ok: false, reason: "adresse d'exemple" };
+  if (PLACEHOLDERS.has(a) || RESERVED.has(domain))
+    return { ok: false, reason: "adresse d'exemple" };
   const receives = (d: string) => {
     if (!resolve) return Promise.resolve(null);
     if (!cache.has(d))
@@ -44,7 +49,8 @@ export async function checkAddress(
         d,
         resolve(d).then(
           (mx) => mx.length > 0,
-          (err: { code?: string }) => (err?.code === "ENOTFOUND" || err?.code === "ENODATA" ? false : null),
+          (err: { code?: string }) =>
+            err?.code === "ENOTFOUND" || err?.code === "ENODATA" ? false : null,
         ),
       );
     return cache.get(d)!;
@@ -58,11 +64,14 @@ export async function checkAddress(
       return {
         ok: false,
         reason: "extension inconnue (mot collé au domaine)",
-        ...((await receives(fixed)) !== false ? { suggestion: `${a.split("@")[0]}@${fixed}` } : {}),
+        ...((await receives(fixed)) !== false
+          ? { suggestion: `${a.split("@")[0]}@${fixed}` }
+          : {}),
       };
     }
     return { ok: false, reason: "extension inconnue" };
   }
-  if ((await receives(domain)) === false) return { ok: false, reason: "domaine sans serveur de messagerie" };
+  if ((await receives(domain)) === false)
+    return { ok: false, reason: "domaine sans serveur de messagerie" };
   return { ok: true };
 }

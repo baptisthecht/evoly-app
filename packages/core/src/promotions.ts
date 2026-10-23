@@ -5,7 +5,8 @@
 
 export type PromotionAudience = "ALL_NEW" | "LINK";
 export type PromotionDurationUnit = "DAY" | "MONTH";
-export type PromotionStatus = "DISABLED" | "SCHEDULED" | "RUNNING" | "ENDED" | "EXHAUSTED";
+export type PromotionStatus =
+  "DISABLED" | "SCHEDULED" | "RUNNING" | "ENDED" | "EXHAUSTED";
 
 export interface PromotionRule {
   id: string;
@@ -40,20 +41,36 @@ export interface PromotionContext {
   ownerRedemptions: Record<string, number>;
 }
 
-export function promotionStatus(p: Pick<PromotionRule, "active" | "startsAt" | "endsAt" | "maxRedemptions" | "redeemedCount">, now: Date): PromotionStatus {
+export function promotionStatus(
+  p: Pick<
+    PromotionRule,
+    "active" | "startsAt" | "endsAt" | "maxRedemptions" | "redeemedCount"
+  >,
+  now: Date,
+): PromotionStatus {
   if (!p.active) return "DISABLED";
   if (p.startsAt && now.getTime() < p.startsAt.getTime()) return "SCHEDULED";
   if (p.endsAt && now.getTime() > p.endsAt.getTime()) return "ENDED";
-  if (p.maxRedemptions !== null && p.redeemedCount >= p.maxRedemptions) return "EXHAUSTED";
+  if (p.maxRedemptions !== null && p.redeemedCount >= p.maxRedemptions)
+    return "EXHAUSTED";
   return "RUNNING";
 }
 
-const matches = (list: string[], value: string | null) => list.length === 0 || (value !== null && list.some((x) => x.toLowerCase() === value.toLowerCase()));
+const matches = (list: string[], value: string | null) =>
+  list.length === 0 ||
+  (value !== null && list.some((x) => x.toLowerCase() === value.toLowerCase()));
 
 /** Toutes les conditions de l'offre sont remplies. */
-export function promotionApplies(p: PromotionRule, ctx: PromotionContext): boolean {
+export function promotionApplies(
+  p: PromotionRule,
+  ctx: PromotionContext,
+): boolean {
   if (promotionStatus(p, ctx.now) !== "RUNNING") return false;
-  if (p.audience === "LINK" && (ctx.offerCode ?? "").toLowerCase() !== p.code.toLowerCase()) return false;
+  if (
+    p.audience === "LINK" &&
+    (ctx.offerCode ?? "").toLowerCase() !== p.code.toLowerCase()
+  )
+    return false;
   if (!matches(p.countries, ctx.country)) return false;
   if (!matches(p.organizationTypes, ctx.organizationType)) return false;
   if (!matches(p.sources, ctx.source)) return false;
@@ -61,7 +78,10 @@ export function promotionApplies(p: PromotionRule, ctx: PromotionContext): boole
 }
 
 /** L'offre retenue : la plus prioritaire, puis celle du lien suivi, puis la plus récente (jamais au hasard). */
-export function pickPromotion<T extends PromotionRule>(promotions: T[], ctx: PromotionContext): T | null {
+export function pickPromotion<T extends PromotionRule>(
+  promotions: T[],
+  ctx: PromotionContext,
+): T | null {
   const ok = promotions.filter((p) => promotionApplies(p, ctx));
   ok.sort(
     (a, b) =>
@@ -74,9 +94,13 @@ export function pickPromotion<T extends PromotionRule>(promotions: T[], ctx: Pro
 }
 
 /** Fin du plan offert à une organisation créée à `now`. */
-export function promotionGrantEnd(p: Pick<PromotionRule, "durationValue" | "durationUnit">, now: Date): Date {
+export function promotionGrantEnd(
+  p: Pick<PromotionRule, "durationValue" | "durationUnit">,
+  now: Date,
+): Date {
   const end = new Date(now);
-  if (p.durationUnit === "MONTH") end.setUTCMonth(end.getUTCMonth() + p.durationValue);
+  if (p.durationUnit === "MONTH")
+    end.setUTCMonth(end.getUTCMonth() + p.durationValue);
   else end.setTime(end.getTime() + p.durationValue * 86_400_000);
   return end;
 }
@@ -91,7 +115,10 @@ export interface PromotionText {
 }
 
 /** Textes dans la langue du visiteur, sinon en français, puis en anglais ; aucun s'il n'y a pas de bandeau. */
-export function promotionText(messages: unknown, locale: string): PromotionText | null {
+export function promotionText(
+  messages: unknown,
+  locale: string,
+): PromotionText | null {
   if (!messages || typeof messages !== "object") return null;
   const all = messages as Record<string, Partial<PromotionText> | undefined>;
   for (const l of [locale.slice(0, 2), "fr", "en"]) {
@@ -100,7 +127,10 @@ export function promotionText(messages: unknown, locale: string): PromotionText 
       const banner = m.banner.trim().slice(0, 300);
       return {
         banner,
-        short: typeof m.short === "string" && m.short.trim() ? m.short.trim().slice(0, 120) : banner.slice(0, 120),
+        short:
+          typeof m.short === "string" && m.short.trim()
+            ? m.short.trim().slice(0, 120)
+            : banner.slice(0, 120),
         cta: typeof m.cta === "string" ? m.cta.trim().slice(0, 60) : "",
       };
     }
@@ -109,7 +139,11 @@ export function promotionText(messages: unknown, locale: string): PromotionText 
 }
 
 /** Code de campagne valable (lien ?offre=CODE) : 2 à 40 caractères, lettres, chiffres et tirets, en minuscules. */
-export function normalizePromotionCode(raw: string | null | undefined): string | null {
+export function normalizePromotionCode(
+  raw: string | null | undefined,
+): string | null {
   const v = (raw ?? "").trim().toLowerCase();
-  return /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(v) && v.length >= 2 ? v : null;
+  return /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(v) && v.length >= 2
+    ? v
+    : null;
 }

@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { pickSeats, seatLabels } from "../src";
 
-const row = (r: number, map: string) => [...map].map((c, i) => ({ id: `${r}-${i + 1}`, rowOrder: r, seatOrder: i + 1, available: c === "." }));
+const row = (r: number, map: string) =>
+  [...map].map((c, i) => ({
+    id: `${r}-${i + 1}`,
+    rowOrder: r,
+    seatOrder: i + 1,
+    available: c === ".",
+  }));
 
 describe("plan de salle : attribution des places (section 9.9)", () => {
   it("côte à côte dans le premier rang qui en a assez", () => {

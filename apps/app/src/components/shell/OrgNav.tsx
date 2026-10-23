@@ -4,7 +4,11 @@ import { requireOrgContext } from "@/server/context";
 import { NAV } from "./nav";
 import { SideNav, type NavIcon, type NavSection } from "./SideNav";
 
-const GROUPS: Array<{ group: "pilot" | "grow" | "org"; label: "groupPilot" | "groupGrow" | "groupOrg"; icon: NavIcon }> = [
+const GROUPS: Array<{
+  group: "pilot" | "grow" | "org";
+  label: "groupPilot" | "groupGrow" | "groupOrg";
+  icon: NavIcon;
+}> = [
   { group: "pilot", label: "groupPilot", icon: "pilot" },
   { group: "grow", label: "groupGrow", icon: "grow" },
   { group: "org", label: "groupOrg", icon: "org" },
@@ -13,9 +17,14 @@ const GROUPS: Array<{ group: "pilot" | "grow" | "org"; label: "groupPilot" | "gr
 /** Barre de l'organisation : Piloter, Développer, Organisation (arborescence validée le 18 octobre 2026). */
 export async function OrgNav({ orgSlug }: { orgSlug: string }) {
   const ctx = await requireOrgContext(orgSlug);
-  const [t, tp] = await Promise.all([getTranslations("nav"), getTranslations("plans")]);
+  const [t, tp] = await Promise.all([
+    getTranslations("nav"),
+    getTranslations("plans"),
+  ]);
   const base = `/o/${ctx.organization.slug}`;
-  const visible = NAV.filter((i) => i.anyOf.length === 0 || i.anyOf.some((p) => can(ctx.membership, p)));
+  const visible = NAV.filter(
+    (i) => i.anyOf.length === 0 || i.anyOf.some((p) => can(ctx.membership, p)),
+  );
   const sections: NavSection[] = GROUPS.map(({ group, label, icon }) => ({
     label: t(label),
     icon,
@@ -26,7 +35,10 @@ export async function OrgNav({ orgSlug }: { orgSlug: string }) {
         href: `${base}${i.href}`,
         exact: i.href === "",
         icon: i.icon,
-        pro: i.feature && !hasFeature(ctx.features, i.feature) ? tp("pro") : undefined,
+        pro:
+          i.feature && !hasFeature(ctx.features, i.feature)
+            ? tp("pro")
+            : undefined,
       })),
   })).filter((s) => s.items.length > 0);
   return <SideNav label={t("main")} sections={sections} />;

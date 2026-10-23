@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { GET } from "@/app/app-sw.js/route";
 
 // Exécute le service worker réellement servi à /app-sw.js dans un faux environnement, avec un réseau simulé.
-async function load(language: string, network: (url: string) => Promise<Response>) {
+async function load(
+  language: string,
+  network: (url: string) => Promise<Response>,
+) {
   const js = await GET().text();
   const handlers: Record<string, (e: unknown) => void> = {};
   const self = {
@@ -14,7 +17,11 @@ async function load(language: string, network: (url: string) => Promise<Response
     skipWaiting() {},
     clients: { claim: async () => {} },
   };
-  new Function("self", "fetch", "Response", js)(self, (r: { url: string }) => network(r.url), Response);
+  new Function("self", "fetch", "Response", js)(
+    self,
+    (r: { url: string }) => network(r.url),
+    Response,
+  );
   return {
     js,
     navigate: async (url: string, mode = "navigate", method = "GET") => {
@@ -47,15 +54,28 @@ describe("service worker de l'app installable", () => {
     }
   });
   it("avec réseau : la page du serveur, telle quelle", async () => {
-    const sw = await load("fr-BE", async () => new Response("tableau de bord", { status: 200 }));
-    expect(await (await sw.navigate("https://app.evoly.me/o/asso"))!.text()).toBe("tableau de bord");
+    const sw = await load(
+      "fr-BE",
+      async () => new Response("tableau de bord", { status: 200 }),
+    );
+    expect(
+      await (await sw.navigate("https://app.evoly.me/o/asso"))!.text(),
+    ).toBe("tableau de bord");
   });
   it("ne touche ni à l'API, ni aux autres sites, ni aux requêtes autres que des pages", async () => {
     const sw = await load("fr-BE", offline);
-    expect(await sw.navigate("https://app.evoly.me/api/health")).toBeUndefined();
-    expect(await sw.navigate("https://checkout.stripe.com/pay")).toBeUndefined();
-    expect(await sw.navigate("https://app.evoly.me/_next/static/app.js", "no-cors")).toBeUndefined();
-    expect(await sw.navigate("https://app.evoly.me/o/asso", "navigate", "POST")).toBeUndefined();
+    expect(
+      await sw.navigate("https://app.evoly.me/api/health"),
+    ).toBeUndefined();
+    expect(
+      await sw.navigate("https://checkout.stripe.com/pay"),
+    ).toBeUndefined();
+    expect(
+      await sw.navigate("https://app.evoly.me/_next/static/app.js", "no-cors"),
+    ).toBeUndefined();
+    expect(
+      await sw.navigate("https://app.evoly.me/o/asso", "navigate", "POST"),
+    ).toBeUndefined();
   });
   it("aucun cache : aucune page ni donnée ne reste sur l'appareil", async () => {
     const { js } = await load("fr-BE", offline);

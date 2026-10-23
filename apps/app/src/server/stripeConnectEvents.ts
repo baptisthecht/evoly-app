@@ -10,20 +10,35 @@ import { syncStripeRefund } from "@/server/refunds";
 import { upsertDispute } from "@/server/finances";
 
 /** Événements des comptes connectés des organisateurs (RG-PAY-07, section 12), rejouables par la relance des webhooks. */
-export async function handleConnectEvent(e: Stripe.Event): Promise<"PROCESSED" | "IGNORED"> {
+export async function handleConnectEvent(
+  e: Stripe.Event,
+): Promise<"PROCESSED" | "IGNORED"> {
   switch (e.type) {
     case "account.updated": {
       const account = e.data.object as Stripe.Account;
-      const known = await db.stripeAccount.findUnique({ where: { stripeAccountId: account.id }, select: { organizationId: true } });
+      const known = await db.stripeAccount.findUnique({
+        where: { stripeAccountId: account.id },
+        select: { organizationId: true },
+      });
       if (!known) return "IGNORED";
       await syncStripeAccount(account);
       return "PROCESSED";
     }
     case "account.application.deauthorized": {
       if (!e.account) return "IGNORED";
-      const known = await db.stripeAccount.findUnique({ where: { stripeAccountId: e.account }, select: { organizationId: true } });
+      const known = await db.stripeAccount.findUnique({
+        where: { stripeAccountId: e.account },
+        select: { organizationId: true },
+      });
       if (!known) return "IGNORED";
-      await db.stripeAccount.update({ where: { stripeAccountId: e.account }, data: { status: "DISABLED", chargesEnabled: false, payoutsEnabled: false } });
+      await db.stripeAccount.update({
+        where: { stripeAccountId: e.account },
+        data: {
+          status: "DISABLED",
+          chargesEnabled: false,
+          payoutsEnabled: false,
+        },
+      });
       await audit({
         action: "stripe.account_deauthorized",
         organizationId: known.organizationId,
@@ -36,7 +51,9 @@ export async function handleConnectEvent(e: Stripe.Event): Promise<"PROCESSED" |
     case "charge.updated": {
       // la transaction du paiement (frais Stripe) est créée : frais et net enregistrés sur la commande
       const ch = e.data.object as Stripe.Charge;
-      return ch.balance_transaction && (await stripeFeesForCharge(ch.id)) ? "PROCESSED" : "IGNORED";
+      return ch.balance_transaction && (await stripeFeesForCharge(ch.id))
+        ? "PROCESSED"
+        : "IGNORED";
     }
     case "payment_intent.succeeded": {
       // RG-BUY-07 : validation unique de la commande (le paiement peut arriver avant ou après le retour de l'acheteur)
@@ -47,7 +64,10 @@ export async function handleConnectEvent(e: Stripe.Event): Promise<"PROCESSED" |
         paymentIntentId: pi.id,
         amountMinor: pi.amount_received,
         currency: pi.currency,
-        chargeId: typeof pi.latest_charge === "string" ? pi.latest_charge : (pi.latest_charge?.id ?? null),
+        chargeId:
+          typeof pi.latest_charge === "string"
+            ? pi.latest_charge
+            : (pi.latest_charge?.id ?? null),
         paymentMethodType: pi.payment_method_types[0] ?? null,
       });
       return "PROCESSED";
@@ -57,7 +77,13 @@ export async function handleConnectEvent(e: Stripe.Event): Promise<"PROCESSED" |
     case "refund.failed": {
       // RG-REF-03 : état final du remboursement (réussi, échoué)
       const r = e.data.object as Stripe.Refund;
-      return (await syncStripeRefund(r.id, r.status ?? "pending", r.failure_reason)) ? "PROCESSED" : "IGNORED";
+      return (await syncStripeRefund(
+        r.id,
+        r.status ?? "pending",
+        r.failure_reason,
+      ))
+        ? "PROCESSED"
+        : "IGNORED";
     }
     case "charge.dispute.created":
     case "charge.dispute.updated":
@@ -84,7 +110,10 @@ export async function handleConnectEvent(e: Stripe.Event): Promise<"PROCESSED" |
       // section 12 : réservation libérée aussitôt (la tâche des réservations la remet en vente dans la minute)
       const orderId = (e.data.object as Stripe.PaymentIntent).metadata?.orderId;
       if (!orderId) return "IGNORED";
-      await db.order.updateMany({ where: { id: orderId, status: "PENDING" }, data: { holdExpiresAt: new Date() } });
+      await db.order.updateMany({
+        where: { id: orderId, status: "PENDING" },
+        data: { holdExpiresAt: new Date() },
+      });
       return "PROCESSED";
     }
     case "payout.paid":
@@ -93,7 +122,12 @@ export async function handleConnectEvent(e: Stripe.Event): Promise<"PROCESSED" |
     case "payout.failed": {
       // RG-PAY-04 et section 12 : virement échoué signalé au propriétaire et aux administrateurs, e-mail compris
       const p = e.data.object as Stripe.Payout;
-      const acct = e.account ? await db.stripeAccount.findUnique({ where: { stripeAccountId: e.account }, select: { organizationId: true } }) : null;
+      const acct = e.account
+        ? await db.stripeAccount.findUnique({
+            where: { stripeAccountId: e.account },
+            select: { organizationId: true },
+          })
+        : null;
       if (!acct) return "IGNORED";
       await notify(acct.organizationId, "PAYOUT_FAILED", {
         title: "Virement échoué",

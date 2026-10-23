@@ -14,7 +14,10 @@ export function LookupForm({ sub }: { sub: string }) {
   const [busy, setBusy] = useState(false);
   if (sent)
     return (
-      <p role="status" className="rounded-md bg-success-soft px-4 py-3 text-success">
+      <p
+        role="status"
+        className="rounded-md bg-success-soft px-4 py-3 text-success"
+      >
         {t("lookupSent")}
       </p>
     );
@@ -30,10 +33,28 @@ export function LookupForm({ sub }: { sub: string }) {
         setSent(true);
       }}
     >
-      <Field label={t("lookupEmail")} htmlFor="lookup-email" error={invalid ? t("lookupInvalid") : null}>
-        <Input id="lookup-email" type="email" inputMode="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Field
+        label={t("lookupEmail")}
+        htmlFor="lookup-email"
+        error={invalid ? t("lookupInvalid") : null}
+      >
+        <Input
+          id="lookup-email"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
       </Field>
-      <Button type="submit" size="lg" variant="dark" disabled={busy} className="w-full sm:w-auto sm:justify-self-start">
+      <Button
+        type="submit"
+        size="lg"
+        variant="dark"
+        disabled={busy}
+        className="w-full sm:w-auto sm:justify-self-start"
+      >
         {t("lookupSubmit")}
       </Button>
     </form>

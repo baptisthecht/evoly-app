@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { checkResalePrice, EUR_TERMS, estimateBankFee, resaleAmounts, resaleBlockers, resaleCutoff, type ResaleEligibilityInput } from "../src";
+import {
+  checkResalePrice,
+  EUR_TERMS,
+  estimateBankFee,
+  resaleAmounts,
+  resaleBlockers,
+  resaleCutoff,
+  type ResaleEligibilityInput,
+} from "../src";
 
 const base: ResaleEligibilityInput = {
   eventStatus: "PUBLISHED",
@@ -16,8 +24,12 @@ const base: ResaleEligibilityInput = {
 describe("éligibilité à la revente (RG-RSL-01 à 05)", () => {
   it("billet revendable", () => expect(resaleBlockers(base)).toEqual([]));
   it("fin de la revente 2 heures avant le début", () => {
-    expect(resaleCutoff(base.eventStartsAt, 120).toISOString()).toBe("2026-11-14T18:00:00.000Z");
-    expect(resaleBlockers({ ...base, now: new Date("2026-11-14T18:00:00Z") })).toEqual(["CUTOFF_PASSED"]);
+    expect(resaleCutoff(base.eventStartsAt, 120).toISOString()).toBe(
+      "2026-11-14T18:00:00.000Z",
+    );
+    expect(
+      resaleBlockers({ ...base, now: new Date("2026-11-14T18:00:00Z") }),
+    ).toEqual(["CUTOFF_PASSED"]);
   });
   it("tous les motifs de refus", () => {
     expect(
@@ -30,9 +42,19 @@ describe("éligibilité à la revente (RG-RSL-01 à 05)", () => {
         hasOpenListing: true,
         originalPaymentRefundable: false,
       }),
-    ).toEqual(["EVENT_RESALE_DISABLED", "TICKET_TYPE_RESALE_DISABLED", "EVENT_NOT_ON_SALE", "TICKET_NOT_VALID", "ALREADY_LISTED", "PAYMENT_NOT_REFUNDABLE"]);
+    ).toEqual([
+      "EVENT_RESALE_DISABLED",
+      "TICKET_TYPE_RESALE_DISABLED",
+      "EVENT_NOT_ON_SALE",
+      "TICKET_NOT_VALID",
+      "ALREADY_LISTED",
+      "PAYMENT_NOT_REFUNDABLE",
+    ]);
   });
-  it("ventes en pause : revente toujours possible", () => expect(resaleBlockers({ ...base, eventStatus: "SALES_PAUSED" })).toEqual([]));
+  it("ventes en pause : revente toujours possible", () =>
+    expect(resaleBlockers({ ...base, eventStatus: "SALES_PAUSED" })).toEqual(
+      [],
+    ));
 });
 
 describe("prix de revente (RG-RSL-02)", () => {
@@ -55,7 +77,12 @@ describe("montants d'une revente (RG-FEE-50 à 52, annexe C)", () => {
     });
   });
   it("revente à 0 € : simple transfert", () => {
-    expect(resaleAmounts(0, EUR_TERMS.free, 0)).toEqual({ buyerPaysMinor: 0, commissionMinor: 0, bankFeeMinor: 0, sellerRefundMinor: 0 });
+    expect(resaleAmounts(0, EUR_TERMS.free, 0)).toEqual({
+      buyerPaysMinor: 0,
+      commissionMinor: 0,
+      bankFeeMinor: 0,
+      sellerRefundMinor: 0,
+    });
   });
   it("jamais de montant négatif pour le vendeur", () => {
     expect(resaleAmounts(100, EUR_TERMS.free, 200).sellerRefundMinor).toBe(0);

@@ -21,7 +21,12 @@ export interface WalletTicket {
   endsAt: Date;
   when: string;
   place: string;
-  address: { line: string | null; postalCode: string | null; city: string | null; country: string | null };
+  address: {
+    line: string | null;
+    postalCode: string | null;
+    city: string | null;
+    country: string | null;
+  };
   organizationName: string;
   locale: Locale;
   background: string;
@@ -31,7 +36,10 @@ export interface WalletTicket {
 }
 
 /** US-POST-03 : données d'un billet valable, trouvé par le lien personnel de l'acheteur (jamais par son seul identifiant). */
-export async function walletTicket(token: string, ticketId: string): Promise<WalletTicket | null> {
+export async function walletTicket(
+  token: string,
+  ticketId: string,
+): Promise<WalletTicket | null> {
   const orderId = await findOrderIdByToken(token);
   if (!orderId) return null;
   const t = await walletTicketById(ticketId, orderId);
@@ -39,13 +47,23 @@ export async function walletTicket(token: string, ticketId: string): Promise<Wal
 }
 
 /** Côté serveur seulement (mise à jour des passes, RG-POST-04) : y compris un billet désactivé, signalé par valid. */
-export async function walletTicketById(ticketId: string, orderId?: string): Promise<(WalletTicket & { valid: boolean }) | null> {
+export async function walletTicketById(
+  ticketId: string,
+  orderId?: string,
+): Promise<(WalletTicket & { valid: boolean }) | null> {
   const t = await db.ticket.findFirst({
     where: { id: ticketId, ...(orderId ? { orderId } : {}) },
     include: {
       ticketType: { select: { name: true } },
       seat: { select: { label: true, row: { select: { name: true } } } },
-      order: { select: { reference: true, buyerLocale: true, organizationId: true, status: true } },
+      order: {
+        select: {
+          reference: true,
+          buyerLocale: true,
+          organizationId: true,
+          status: true,
+        },
+      },
       event: {
         select: {
           id: true,
@@ -71,7 +89,9 @@ export async function walletTicketById(ticketId: string, orderId?: string): Prom
     code: t.code,
     shortCode: t.shortCode,
     typeName: t.ticketType.name,
-    holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : null,
+    holder: t.holderFirstName
+      ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim()
+      : null,
     seat: t.seat ? `${t.seat.row.name} · ${t.seat.label}` : null,
     reference: t.order.reference,
     eventId: t.event.id,
@@ -80,17 +100,26 @@ export async function walletTicketById(ticketId: string, orderId?: string): Prom
     endsAt: effectiveEnd(t.event.startsAt, t.event.endsAt),
     when: formatDateTime(t.event.startsAt, t.event.timezone, locale, "long"),
     place: [t.event.locationName, t.event.city].filter(Boolean).join(", "),
-    address: { line: t.event.addressLine1, postalCode: t.event.postalCode, city: t.event.city, country: t.event.country },
+    address: {
+      line: t.event.addressLine1,
+      postalCode: t.event.postalCode,
+      city: t.event.city,
+      country: t.event.country,
+    },
     organizationName: brand.fromName,
     locale,
     background,
     foreground: inkOn(background),
-    valid: ["VALID", "CHECKED_IN"].includes(t.status) && ["PAID", "PARTIALLY_REFUNDED"].includes(t.order.status),
+    valid:
+      ["VALID", "CHECKED_IN"].includes(t.status) &&
+      ["PAID", "PARTIALLY_REFUNDED"].includes(t.order.status),
   };
 }
 
 /** RG-POST-04 : empreinte de ce qu'affiche le pass ; un passage à l'entrée ne la change pas. */
-export function walletFingerprint(t: WalletTicket & { valid: boolean }): string {
+export function walletFingerprint(
+  t: WalletTicket & { valid: boolean },
+): string {
   return createHash("sha256")
     .update(
       JSON.stringify([
@@ -111,4 +140,5 @@ export function walletFingerprint(t: WalletTicket & { valid: boolean }): string 
     .digest("hex");
 }
 
-export const rgb = (hex: string) => `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`;
+export const rgb = (hex: string) =>
+  `rgb(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)})`;

@@ -9,7 +9,10 @@ export function LinkForm() {
   const [sent, action, pending] = useActionState(requestLinkAction, false);
   if (sent)
     return (
-      <p className="rounded-md bg-success-soft px-4 py-3 text-sm font-semibold text-success" role="status">
+      <p
+        className="rounded-md bg-success-soft px-4 py-3 text-sm font-semibold text-success"
+        role="status"
+      >
         {t("sent")}
       </p>
     );
@@ -26,7 +29,11 @@ export function LinkForm() {
           className="h-12 rounded-xl bg-surface px-4 shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
         />
       </label>
-      <button type="submit" disabled={pending} className="h-12 rounded-full bg-surface-inverse font-semibold text-ink-inverse">
+      <button
+        type="submit"
+        disabled={pending}
+        className="h-12 rounded-full bg-surface-inverse font-semibold text-ink-inverse"
+      >
         {t("send")}
       </button>
     </form>

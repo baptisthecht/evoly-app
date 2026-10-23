@@ -18,7 +18,14 @@ type Entry = Awaited<ReturnType<Page["coverage"]["stopJSCoverage"]>>[number];
 const CONSENT = [
   {
     name: "evoly_consent",
-    value: encodeURIComponent(JSON.stringify({ v: 1, analytics: false, ads: false, at: "2026-10-21T00:00:00.000Z" })),
+    value: encodeURIComponent(
+      JSON.stringify({
+        v: 1,
+        analytics: false,
+        ads: false,
+        at: "2026-10-21T00:00:00.000Z",
+      }),
+    ),
     domain: "localhost",
     path: "/",
   },
@@ -57,13 +64,17 @@ export const test = dir
           const open = new Set<Page>();
           const collect = async (p: Page) => {
             if (!open.delete(p) || p.isClosed()) return;
-            entries.push(...(await p.coverage.stopJSCoverage().catch(() => [])));
+            entries.push(
+              ...(await p.coverage.stopJSCoverage().catch(() => [])),
+            );
           };
           const track = async (p: Page) => {
             if (open.has(p)) return;
             open.add(p);
             // attendu avant que le parcours navigue : sinon les scripts de la première page sont perdus
-            await p.coverage.startJSCoverage({ resetOnNavigation: false }).catch(() => undefined);
+            await p.coverage
+              .startJSCoverage({ resetOnNavigation: false })
+              .catch(() => undefined);
             const close = p.close.bind(p);
             p.close = async (options) => {
               await collect(p);
@@ -97,7 +108,10 @@ export const test = dir
           await Promise.all([...open].map(collect));
           mkdirSync(dir, { recursive: true });
           const own = entries.filter((e) => e.url.includes("/_next/static/"));
-          writeFileSync(`${dir}/${testInfo.testId}-${testInfo.repeatEachIndex}-${Date.now()}.json`, JSON.stringify(own));
+          writeFileSync(
+            `${dir}/${testInfo.testId}-${testInfo.repeatEachIndex}-${Date.now()}.json`,
+            JSON.stringify(own),
+          );
         },
         { auto: true },
       ],

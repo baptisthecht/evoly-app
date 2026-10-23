@@ -20,10 +20,21 @@ export async function getPlans(): Promise<Record<PlanId, PlanRecord>> {
     const row = rows.find((r) => r.id === id);
     const terms: Record<string, FeeTerms> = {};
     for (const t of row?.currencyTerms ?? [])
-      terms[t.currency] = { planId: id, currency: t.currency, fixedMinor: t.feeFixedMinor, rateBps: row!.feeRateBps, capMinor: t.feeCapMinor };
+      terms[t.currency] = {
+        planId: id,
+        currency: t.currency,
+        fixedMinor: t.feeFixedMinor,
+        rateBps: row!.feeRateBps,
+        capMinor: t.feeCapMinor,
+      };
     if (!terms.EUR) terms.EUR = EUR_TERMS[id];
     // Partenaire sans ligne en base : fonctionnalités de Pro plutôt qu'aucune
-    plans[id] = { id, features: (row?.features ?? (id === "partner" ? (plans.pro?.features ?? []) : [])) as PlanFeature[], terms };
+    plans[id] = {
+      id,
+      features: (row?.features ??
+        (id === "partner" ? (plans.pro?.features ?? []) : [])) as PlanFeature[],
+      terms,
+    };
   }
   cache = { at: Date.now(), plans };
   return plans;

@@ -35,7 +35,8 @@ export function ConsentBanner() {
     saveConsent(makeConsent(a, d));
     setOpen(false);
   };
-  const button = "min-h-11 rounded-full px-5 text-sm font-semibold ring-1 ring-line-strong bg-surface-raised text-ink";
+  const button =
+    "min-h-11 rounded-full px-5 text-sm font-semibold ring-1 ring-line-strong bg-surface-raised text-ink";
   return (
     <section
       role="dialog"
@@ -62,13 +63,23 @@ export function ConsentBanner() {
             </span>
           </label>
           <label className="flex items-start gap-2">
-            <input type="checkbox" checked={analytics} onChange={(e) => setAnalytics(e.target.checked)} className="mt-1" />
+            <input
+              type="checkbox"
+              checked={analytics}
+              onChange={(e) => setAnalytics(e.target.checked)}
+              className="mt-1"
+            />
             <span>
               <strong>{t("analytics")}</strong> · {t("analyticsHint")}
             </span>
           </label>
           <label className="flex items-start gap-2">
-            <input type="checkbox" checked={ads} onChange={(e) => setAds(e.target.checked)} className="mt-1" />
+            <input
+              type="checkbox"
+              checked={ads}
+              onChange={(e) => setAds(e.target.checked)}
+              className="mt-1"
+            />
             <span>
               <strong>{t("ads")}</strong> · {t("adsHint")}
             </span>
@@ -76,19 +87,35 @@ export function ConsentBanner() {
         </div>
       ) : null}
       <div className="flex flex-wrap gap-2">
-        <button type="button" className={button} onClick={() => choose(false, false)}>
+        <button
+          type="button"
+          className={button}
+          onClick={() => choose(false, false)}
+        >
           {t("refuse")}
         </button>
         {custom ? (
-          <button type="button" className={button} onClick={() => choose(analytics, ads)}>
+          <button
+            type="button"
+            className={button}
+            onClick={() => choose(analytics, ads)}
+          >
             {t("save")}
           </button>
         ) : (
-          <button type="button" className={button} onClick={() => setCustom(true)}>
+          <button
+            type="button"
+            className={button}
+            onClick={() => setCustom(true)}
+          >
             {t("customize")}
           </button>
         )}
-        <button type="button" className={button} onClick={() => choose(true, true)}>
+        <button
+          type="button"
+          className={button}
+          onClick={() => choose(true, true)}
+        >
           {t("accept")}
         </button>
       </div>

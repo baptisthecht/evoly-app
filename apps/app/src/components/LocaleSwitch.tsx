@@ -28,8 +28,18 @@ export async function LocaleSwitch({
         aria-label={LOCALE_NAMES[current]}
       >
         {current}
-        <svg viewBox="0 0 12 12" className="size-3 transition-transform group-open:rotate-180" aria-hidden="true">
-          <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <svg
+          viewBox="0 0 12 12"
+          className="size-3 transition-transform group-open:rotate-180"
+          aria-hidden="true"
+        >
+          <path
+            d="M2.5 4.5 6 8l3.5-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
         </svg>
       </summary>
       <form
@@ -49,7 +59,9 @@ export async function LocaleSwitch({
             aria-pressed={current === l}
             className={cn(
               "min-h-10 rounded-md px-3 text-left text-sm",
-              current === l ? "bg-surface-inverse font-semibold text-ink-inverse" : "hover:bg-surface-sunken",
+              current === l
+                ? "bg-surface-inverse font-semibold text-ink-inverse"
+                : "hover:bg-surface-sunken",
             )}
           >
             {LOCALE_NAMES[l]}

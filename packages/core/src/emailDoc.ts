@@ -15,17 +15,39 @@ export type EmailMark =
   | { type: "strike" }
   | { type: "link"; attrs: { href: string } }
   | { type: "textStyle"; attrs: { color: string } };
-export type EmailInline = { type: "text"; text: string; marks?: EmailMark[] } | { type: "hardBreak" } | { type: "mergeTag"; attrs: { name: EmailMergeTag } };
+export type EmailInline =
+  | { type: "text"; text: string; marks?: EmailMark[] }
+  | { type: "hardBreak" }
+  | { type: "mergeTag"; attrs: { name: EmailMergeTag } };
 export type EmailListItem = { type: "listItem"; content: EmailBlock[] };
 export type EmailBlock =
-  | { type: "paragraph"; attrs?: { textAlign?: EmailAlign }; content?: EmailInline[] }
-  | { type: "heading"; attrs: { level: 1 | 2 | 3; textAlign?: EmailAlign }; content?: EmailInline[] }
+  | {
+      type: "paragraph";
+      attrs?: { textAlign?: EmailAlign };
+      content?: EmailInline[];
+    }
+  | {
+      type: "heading";
+      attrs: { level: 1 | 2 | 3; textAlign?: EmailAlign };
+      content?: EmailInline[];
+    }
   | { type: "bulletList"; content: EmailListItem[] }
   | { type: "orderedList"; content: EmailListItem[] }
   | { type: "blockquote"; content: EmailBlock[] }
   | { type: "horizontalRule" }
-  | { type: "image"; attrs: { src: string; alt?: string; width?: number; align?: EmailAlign } }
-  | { type: "button"; attrs: { label: string; href: string; align?: EmailAlign; color?: string } }
+  | {
+      type: "image";
+      attrs: { src: string; alt?: string; width?: number; align?: EmailAlign };
+    }
+  | {
+      type: "button";
+      attrs: {
+        label: string;
+        href: string;
+        align?: EmailAlign;
+        color?: string;
+      };
+    }
   | { type: "eventCard"; attrs: { eventId: string } }
   | { type: "spacer"; attrs: { height: number } }
   | { type: "rawHtml"; attrs: { html: string } };
@@ -34,17 +56,27 @@ export type EmailDoc = { type: "doc"; content: EmailBlock[] };
 /** Nettoyage du HTML brut (bloc « HTML », réservé aux utilisateurs avancés) : fourni par le serveur (sanitize-html). */
 export type EmailHtmlSanitizer = (html: string) => string;
 
-export const EMAIL_DOC_LIMITS = { blocks: 300, depth: 4, textPerNode: 5_000, totalText: 60_000, rawHtml: 100_000 } as const;
+export const EMAIL_DOC_LIMITS = {
+  blocks: 300,
+  depth: 4,
+  textPerNode: 5_000,
+  totalText: 60_000,
+  rawHtml: 100_000,
+} as const;
 const ALIGNS = new Set<EmailAlign>(["left", "center", "right"]);
 const MERGE_TAGS = new Set<EmailMergeTag>(["prenom"]);
 
 // ---------- validation ----------
 
 /** Adresse sûre : https (http et mailto, tel pour les liens), sans espace ni caractère de contrôle. */
-export function safeEmailUrl(value: unknown, kind: "link" | "image" = "link"): string | null {
+export function safeEmailUrl(
+  value: unknown,
+  kind: "link" | "image" = "link",
+): string | null {
   if (typeof value !== "string") return null;
   const v = value.trim();
-  if (!v || v.length > 2_000 || /[\s\u0000-\u001f\u007f<>"']/.test(v)) return null;
+  if (!v || v.length > 2_000 || /[\s\u0000-\u001f\u007f<>"']/.test(v))
+    return null;
   if (kind === "link" && /^mailto:[^@\s]+@[^@\s]+$/i.test(v)) return v;
   if (kind === "link" && /^tel:\+?[0-9 ().-]{3,30}$/i.test(v)) return v;
   let url: URL;
@@ -54,25 +86,49 @@ export function safeEmailUrl(value: unknown, kind: "link" | "image" = "link"): s
     return null;
   }
   // images : https seulement, sauf servies par localhost (développement et tests de bout en bout)
-  const local = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname.endsWith(".localhost");
-  const allowed = kind === "image" ? (local ? ["https:", "http:"] : ["https:"]) : ["https:", "http:"];
+  const local =
+    url.hostname === "localhost" ||
+    url.hostname === "127.0.0.1" ||
+    url.hostname.endsWith(".localhost");
+  const allowed =
+    kind === "image"
+      ? local
+        ? ["https:", "http:"]
+        : ["https:"]
+      : ["https:", "http:"];
   if (!allowed.includes(url.protocol) || !url.hostname) return null;
   return url.toString();
 }
 
 /** Couleur sûre : #RGB ou #RRGGBB. */
 export function safeEmailColor(value: unknown): string | null {
-  return typeof value === "string" && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim()) ? value.trim().toLowerCase() : null;
+  return typeof value === "string" &&
+    /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim())
+    ? value.trim().toLowerCase()
+    : null;
 }
 
-const align = (v: unknown): EmailAlign | undefined => (typeof v === "string" && ALIGNS.has(v as EmailAlign) ? (v as EmailAlign) : undefined);
+const align = (v: unknown): EmailAlign | undefined =>
+  typeof v === "string" && ALIGNS.has(v as EmailAlign)
+    ? (v as EmailAlign)
+    : undefined;
 const cleanText = (v: unknown) =>
-  typeof v === "string" ? v.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").slice(0, EMAIL_DOC_LIMITS.textPerNode) : "";
-const record = (v: unknown): Record<string, unknown> => (v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
+  typeof v === "string"
+    ? v
+        .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+        .slice(0, EMAIL_DOC_LIMITS.textPerNode)
+    : "";
+const record = (v: unknown): Record<string, unknown> =>
+  v && typeof v === "object" && !Array.isArray(v)
+    ? (v as Record<string, unknown>)
+    : {};
 const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
 /** Valide et nettoie un document venu du navigateur. Ne lève jamais : ce qui est invalide est écarté. */
-export function validateEmailDoc(input: unknown, opts: { sanitizeHtml?: EmailHtmlSanitizer } = {}): EmailDoc {
+export function validateEmailDoc(
+  input: unknown,
+  opts: { sanitizeHtml?: EmailHtmlSanitizer } = {},
+): EmailDoc {
   let blocks = 0;
   let text = 0;
 
@@ -80,7 +136,13 @@ export function validateEmailDoc(input: unknown, opts: { sanitizeHtml?: EmailHtm
     const out: EmailMark[] = [];
     for (const m of list(raw)) {
       const r = record(m);
-      if (r.type === "bold" || r.type === "italic" || r.type === "underline" || r.type === "strike") out.push({ type: r.type });
+      if (
+        r.type === "bold" ||
+        r.type === "italic" ||
+        r.type === "underline" ||
+        r.type === "strike"
+      )
+        out.push({ type: r.type });
       else if (r.type === "link") {
         const href = safeEmailUrl(record(r.attrs).href);
         if (href) out.push({ type: "link", attrs: { href } });
@@ -101,10 +163,18 @@ export function validateEmailDoc(input: unknown, opts: { sanitizeHtml?: EmailHtm
         if (!t || text + t.length > EMAIL_DOC_LIMITS.totalText) continue;
         text += t.length;
         const m = marks(r.marks);
-        out.push(m ? { type: "text", text: t, marks: m } : { type: "text", text: t });
+        out.push(
+          m ? { type: "text", text: t, marks: m } : { type: "text", text: t },
+        );
       } else if (r.type === "hardBreak") out.push({ type: "hardBreak" });
-      else if (r.type === "mergeTag" && MERGE_TAGS.has(record(r.attrs).name as EmailMergeTag))
-        out.push({ type: "mergeTag", attrs: { name: record(r.attrs).name as EmailMergeTag } });
+      else if (
+        r.type === "mergeTag" &&
+        MERGE_TAGS.has(record(r.attrs).name as EmailMergeTag)
+      )
+        out.push({
+          type: "mergeTag",
+          attrs: { name: record(r.attrs).name as EmailMergeTag },
+        });
     }
     return out.length ? out : undefined;
   };
@@ -113,11 +183,15 @@ export function validateEmailDoc(input: unknown, opts: { sanitizeHtml?: EmailHtm
     list(raw)
       .map((n) => record(n))
       .filter((r) => r.type === "listItem")
-      .map((r) => ({ type: "listItem" as const, content: children(r.content, depth + 1) }))
+      .map((r) => ({
+        type: "listItem" as const,
+        content: children(r.content, depth + 1),
+      }))
       .filter((i) => i.content.length);
 
   const block = (raw: unknown, depth: number): EmailBlock | null => {
-    if (blocks >= EMAIL_DOC_LIMITS.blocks || depth > EMAIL_DOC_LIMITS.depth) return null;
+    if (blocks >= EMAIL_DOC_LIMITS.blocks || depth > EMAIL_DOC_LIMITS.depth)
+      return null;
     const r = record(raw);
     const a = record(r.attrs);
     blocks++;
@@ -125,13 +199,22 @@ export function validateEmailDoc(input: unknown, opts: { sanitizeHtml?: EmailHtm
       case "paragraph": {
         const content = inline(r.content);
         const textAlign = align(a.textAlign);
-        return { type: "paragraph", ...(textAlign ? { attrs: { textAlign } } : {}), ...(content ? { content } : {}) };
+        return {
+          type: "paragraph",
+          ...(textAlign ? { attrs: { textAlign } } : {}),
+          ...(content ? { content } : {}),
+        };
       }
       case "heading": {
-        const level = a.level === 1 || a.level === 2 || a.level === 3 ? a.level : 2;
+        const level =
+          a.level === 1 || a.level === 2 || a.level === 3 ? a.level : 2;
         const content = inline(r.content);
         const textAlign = align(a.textAlign);
-        return { type: "heading", attrs: { level, ...(textAlign ? { textAlign } : {}) }, ...(content ? { content } : {}) };
+        return {
+          type: "heading",
+          attrs: { level, ...(textAlign ? { textAlign } : {}) },
+          ...(content ? { content } : {}),
+        };
       }
       case "bulletList":
       case "orderedList": {
@@ -147,10 +230,21 @@ export function validateEmailDoc(input: unknown, opts: { sanitizeHtml?: EmailHtm
       case "image": {
         const src = safeEmailUrl(a.src, "image");
         if (!src) return null;
-        const width = typeof a.width === "number" && Number.isFinite(a.width) ? Math.min(100, Math.max(20, Math.round(a.width))) : undefined;
+        const width =
+          typeof a.width === "number" && Number.isFinite(a.width)
+            ? Math.min(100, Math.max(20, Math.round(a.width)))
+            : undefined;
         const alt = cleanText(a.alt).slice(0, 200);
         const al = align(a.align);
-        return { type: "image", attrs: { src, ...(alt ? { alt } : {}), ...(width ? { width } : {}), ...(al ? { align: al } : {}) } };
+        return {
+          type: "image",
+          attrs: {
+            src,
+            ...(alt ? { alt } : {}),
+            ...(width ? { width } : {}),
+            ...(al ? { align: al } : {}),
+          },
+        };
       }
       case "button": {
         const href = safeEmailUrl(a.href);
@@ -158,18 +252,34 @@ export function validateEmailDoc(input: unknown, opts: { sanitizeHtml?: EmailHtm
         if (!href || !label) return null;
         const color = safeEmailColor(a.color);
         const al = align(a.align);
-        return { type: "button", attrs: { label, href, ...(al ? { align: al } : {}), ...(color ? { color } : {}) } };
+        return {
+          type: "button",
+          attrs: {
+            label,
+            href,
+            ...(al ? { align: al } : {}),
+            ...(color ? { color } : {}),
+          },
+        };
       }
       case "eventCard":
-        return typeof a.eventId === "string" && /^[a-z0-9]{8,40}$/i.test(a.eventId) ? { type: "eventCard", attrs: { eventId: a.eventId } } : null;
+        return typeof a.eventId === "string" &&
+          /^[a-z0-9]{8,40}$/i.test(a.eventId)
+          ? { type: "eventCard", attrs: { eventId: a.eventId } }
+          : null;
       case "spacer": {
-        const height = typeof a.height === "number" && Number.isFinite(a.height) ? Math.min(96, Math.max(8, Math.round(a.height))) : 24;
+        const height =
+          typeof a.height === "number" && Number.isFinite(a.height)
+            ? Math.min(96, Math.max(8, Math.round(a.height)))
+            : 24;
         return { type: "spacer", attrs: { height } };
       }
       case "rawHtml": {
         // nettoyé ici (enregistrement) puis de nouveau au rendu : sans nettoyeur, le bloc est écarté
         if (!opts.sanitizeHtml || typeof a.html !== "string") return null;
-        const html = opts.sanitizeHtml(a.html.slice(0, EMAIL_DOC_LIMITS.rawHtml));
+        const html = opts.sanitizeHtml(
+          a.html.slice(0, EMAIL_DOC_LIMITS.rawHtml),
+        );
         return html.trim() ? { type: "rawHtml", attrs: { html } } : null;
       }
       default:
@@ -192,7 +302,11 @@ export function emailDocIsEmpty(doc: EmailDoc): boolean {
     switch (b.type) {
       case "paragraph":
       case "heading":
-        return (b.content ?? []).some((i) => i.type === "mergeTag" || (i.type === "text" && i.text.trim() !== ""));
+        return (b.content ?? []).some(
+          (i) =>
+            i.type === "mergeTag" ||
+            (i.type === "text" && i.text.trim() !== ""),
+        );
       case "bulletList":
       case "orderedList":
         return b.content.some((li) => li.content.some(visible));
@@ -215,7 +329,8 @@ export function emailDocEventIds(doc: EmailDoc): string[] {
     for (const b of blocks) {
       if (b.type === "eventCard") ids.add(b.attrs.eventId);
       else if (b.type === "blockquote") walk(b.content);
-      else if (b.type === "bulletList" || b.type === "orderedList") for (const li of b.content) walk(li.content);
+      else if (b.type === "bulletList" || b.type === "orderedList")
+        for (const li of b.content) walk(li.content);
     }
   };
   walk(doc.content);
@@ -238,19 +353,33 @@ export function blocksToEmailDoc(blocks: unknown): EmailDoc {
   const out: unknown[] = [];
   for (const raw of list(blocks)) {
     const b = record(raw);
-    if (b.type === "heading" && typeof b.text === "string") out.push({ type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: b.text }] });
-    else if (b.type === "text" && typeof b.text === "string") out.push(...paragraphs(b.text));
-    else if (b.type === "image") out.push({ type: "image", attrs: { src: b.url, alt: b.alt } });
-    else if (b.type === "button") out.push({ type: "button", attrs: { label: b.label, href: b.url } });
+    if (b.type === "heading" && typeof b.text === "string")
+      out.push({
+        type: "heading",
+        attrs: { level: 2 },
+        content: [{ type: "text", text: b.text }],
+      });
+    else if (b.type === "text" && typeof b.text === "string")
+      out.push(...paragraphs(b.text));
+    else if (b.type === "image")
+      out.push({ type: "image", attrs: { src: b.url, alt: b.alt } });
+    else if (b.type === "button")
+      out.push({ type: "button", attrs: { label: b.label, href: b.url } });
     else if (b.type === "divider") out.push({ type: "horizontalRule" });
-    else if (b.type === "event") out.push({ type: "eventCard", attrs: { eventId: b.eventId } });
+    else if (b.type === "event")
+      out.push({ type: "eventCard", attrs: { eventId: b.eventId } });
   }
   return validateEmailDoc({ type: "doc", content: out });
 }
 
 /** Contenu enregistré, quel que soit son format : document riche, ou anciens blocs (tableau). */
-export function toEmailDoc(content: unknown, opts: { sanitizeHtml?: EmailHtmlSanitizer } = {}): EmailDoc {
-  return Array.isArray(content) ? blocksToEmailDoc(content) : validateEmailDoc(content, opts);
+export function toEmailDoc(
+  content: unknown,
+  opts: { sanitizeHtml?: EmailHtmlSanitizer } = {},
+): EmailDoc {
+  return Array.isArray(content)
+    ? blocksToEmailDoc(content)
+    : validateEmailDoc(content, opts);
 }
 
 // ---------- rendu ----------
@@ -274,11 +403,17 @@ export interface EmailRenderOptions {
   sanitizeHtml?: EmailHtmlSanitizer;
 }
 
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const esc = (s: string) =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 const CHARBON = "#222222";
 const ROSE = "#FFB8E8";
 const CREME = "#FFF6F0";
-const DISPLAY_FONT = "font-family:'Archivo Black','Arial Black',Arial,sans-serif";
+const DISPLAY_FONT =
+  "font-family:'Archivo Black','Arial Black',Arial,sans-serif";
 const HEADING = {
   1: "font-size:28px;line-height:1.15;letter-spacing:-0.7px",
   2: "font-size:22px;line-height:1.2;letter-spacing:-0.5px",
@@ -290,12 +425,17 @@ const CONTENT_WIDTH = 456;
 export function inkFor(background: string): string {
   const hex = background.replace("#", "");
   const full = hex.length === 3 ? [...hex].map((c) => c + c).join("") : hex;
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  const [r, g, b] = [0, 2, 4]
+    .map((i) => parseInt(full.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
   return 0.2126 * r! + 0.7152 * g! + 0.0722 * b! > 0.4 ? CHARBON : "#FFFFFF";
 }
 
 /** Rend le corps de l'e-mail : lignes de tableau à placer dans la mise en page de l'e-mail, et version texte. */
-export function renderEmailDoc(doc: EmailDoc, o: EmailRenderOptions): { html: string; text: string } {
+export function renderEmailDoc(
+  doc: EmailDoc,
+  o: EmailRenderOptions,
+): { html: string; text: string } {
   const accent = o.accent ?? { background: ROSE, ink: CHARBON };
   const merge = (s: string) => applyMergeTags(s, { firstName: o.firstName });
 
@@ -311,10 +451,13 @@ export function renderEmailDoc(doc: EmailDoc, o: EmailRenderOptions): { html: st
           else if (m.type === "italic") h = `<em>${h}</em>`;
           else if (m.type === "underline") h = `<u>${h}</u>`;
           else if (m.type === "strike") h = `<s>${h}</s>`;
-          else if (m.type === "textStyle") h = `<span style="color:${m.attrs.color}">${h}</span>`;
+          else if (m.type === "textStyle")
+            h = `<span style="color:${m.attrs.color}">${h}</span>`;
           else if (m.type === "link") href = m.attrs.href;
         }
-        return href ? `<a href="${esc(href)}" style="color:${CHARBON};text-decoration:underline">${h}</a>` : h;
+        return href
+          ? `<a href="${esc(href)}" style="color:${CHARBON};text-decoration:underline">${h}</a>`
+          : h;
       })
       .join("");
 
@@ -325,7 +468,9 @@ export function renderEmailDoc(doc: EmailDoc, o: EmailRenderOptions): { html: st
         if (n.type === "mergeTag") return (o.firstName ?? "").trim();
         const link = n.marks?.find((m) => m.type === "link");
         const t = merge(n.text);
-        return link && link.type === "link" && link.attrs.href !== t ? `${t} (${link.attrs.href})` : t;
+        return link && link.type === "link" && link.attrs.href !== t
+          ? `${t} (${link.attrs.href})`
+          : t;
       })
       .join("");
 
@@ -341,7 +486,12 @@ export function renderEmailDoc(doc: EmailDoc, o: EmailRenderOptions): { html: st
       case "bulletList":
       case "orderedList": {
         const tag = b.type === "bulletList" ? "ul" : "ol";
-        const lis = b.content.map((li) => `<li style="margin:0 0 6px;font-size:15px;line-height:1.6">${li.content.map(inner).join("")}</li>`).join("");
+        const lis = b.content
+          .map(
+            (li) =>
+              `<li style="margin:0 0 6px;font-size:15px;line-height:1.6">${li.content.map(inner).join("")}</li>`,
+          )
+          .join("");
         return `<${tag} style="margin:0;padding:0 0 0 22px">${lis}</${tag}>`;
       }
       case "blockquote":
@@ -383,7 +533,14 @@ export function renderEmailDoc(doc: EmailDoc, o: EmailRenderOptions): { html: st
       case "bulletList":
       case "orderedList":
         return b.content.flatMap((li, i) =>
-          li.content.flatMap((c, j) => textOf(c, j === 0 ? `${prefix}${b.type === "bulletList" ? "-" : `${i + 1}.`} ` : `${prefix}   `)),
+          li.content.flatMap((c, j) =>
+            textOf(
+              c,
+              j === 0
+                ? `${prefix}${b.type === "bulletList" ? "-" : `${i + 1}.`} `
+                : `${prefix}   `,
+            ),
+          ),
         );
       case "blockquote":
         return b.content.flatMap((c) => textOf(c, `${prefix}> `));
@@ -393,7 +550,13 @@ export function renderEmailDoc(doc: EmailDoc, o: EmailRenderOptions): { html: st
         return [`${merge(b.attrs.label)} : ${b.attrs.href}`];
       case "eventCard": {
         const e = o.events?.get(b.attrs.eventId);
-        return e ? [e.title, `${e.when}${e.place ? ` · ${e.place}` : ""}`, `${o.labels.book} : ${e.url}`] : [];
+        return e
+          ? [
+              e.title,
+              `${e.when}${e.place ? ` · ${e.place}` : ""}`,
+              `${o.labels.book} : ${e.url}`,
+            ]
+          : [];
       }
       case "rawHtml": {
         const html = o.sanitizeHtml ? o.sanitizeHtml(b.attrs.html) : "";
@@ -415,13 +578,19 @@ export function renderEmailDoc(doc: EmailDoc, o: EmailRenderOptions): { html: st
 
   for (const b of doc.content) {
     if (b.type === "spacer") {
-      rows.push(`<tr><td style="height:${b.attrs.height}px;line-height:${b.attrs.height}px;font-size:0">&nbsp;</td></tr>`);
+      rows.push(
+        `<tr><td style="height:${b.attrs.height}px;line-height:${b.attrs.height}px;font-size:0">&nbsp;</td></tr>`,
+      );
       continue;
     }
     const html = inner(b);
     if (!html) continue;
-    const al = b.type === "image" || b.type === "button" ? (b.attrs.align ?? (b.type === "button" ? "left" : "center")) : "left";
-    const pad = b.type === "heading" ? "padding:8px 0 12px" : "padding:0 0 16px";
+    const al =
+      b.type === "image" || b.type === "button"
+        ? (b.attrs.align ?? (b.type === "button" ? "left" : "center"))
+        : "left";
+    const pad =
+      b.type === "heading" ? "padding:8px 0 12px" : "padding:0 0 16px";
     rows.push(`<tr><td align="${al}" style="${pad}">${html}</td></tr>`);
     const t = textOf(b);
     if (t.length) text.push(...t, "");

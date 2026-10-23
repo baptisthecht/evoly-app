@@ -15,7 +15,12 @@ const plain = (s: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
-export type ImportRow = { email: string; firstName: string; lastName: string; locale: string };
+export type ImportRow = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  locale: string;
+};
 
 /** CSV simple : séparateur détecté (point-virgule, virgule ou tabulation), guillemets gérés, en-tête reconnu en français et en anglais. */
 export function parseContactsCsv(text: string): ImportRow[] {
@@ -25,7 +30,9 @@ export function parseContactsCsv(text: string): ImportRow[] {
     .filter((l) => l.trim());
   if (lines.length === 0) return [];
   const first = lines[0]!;
-  const sep = ([";", ",", "\t"] as const).map((s) => [s, first.split(s).length] as const).sort((a, b) => b[1] - a[1])[0]![0];
+  const sep = ([";", ",", "\t"] as const)
+    .map((s) => [s, first.split(s).length] as const)
+    .sort((a, b) => b[1] - a[1])[0]![0];
   const split = (l: string) => {
     const out: string[] = [];
     let cur = "";
@@ -49,15 +56,36 @@ export function parseContactsCsv(text: string): ImportRow[] {
   };
   const header = split(first).map(plain);
   const find = (names: string[], skip: number[] = []) => {
-    const exact = header.findIndex((h, i) => !skip.includes(i) && names.includes(h));
-    return exact >= 0 ? exact : header.findIndex((h, i) => !skip.includes(i) && names.some((n) => h.includes(n)));
+    const exact = header.findIndex(
+      (h, i) => !skip.includes(i) && names.includes(h),
+    );
+    return exact >= 0
+      ? exact
+      : header.findIndex(
+          (h, i) => !skip.includes(i) && names.some((n) => h.includes(n)),
+        );
   };
-  const iEmail = find(["email", "e-mail", "courriel", "mail", "adresse e-mail"]);
+  const iEmail = find([
+    "email",
+    "e-mail",
+    "courriel",
+    "mail",
+    "adresse e-mail",
+  ]);
   const hasHeader = iEmail >= 0;
   const e = hasHeader ? iEmail : 0;
-  const f = hasHeader ? find(["prenom", "first name", "firstname", "first"], [e]) : 1;
-  const l = hasHeader ? find(["nom", "nom de famille", "last name", "lastname", "last", "name"], [e, f]) : 2;
-  const lang = hasHeader ? find(["langue", "language", "locale", "lang"], [e, f, l]) : -1;
+  const f = hasHeader
+    ? find(["prenom", "first name", "firstname", "first"], [e])
+    : 1;
+  const l = hasHeader
+    ? find(
+        ["nom", "nom de famille", "last name", "lastname", "last", "name"],
+        [e, f],
+      )
+    : 2;
+  const lang = hasHeader
+    ? find(["langue", "language", "locale", "lang"], [e, f, l])
+    : -1;
   return (hasHeader ? lines.slice(1) : lines).map((line) => {
     const c = split(line);
     return {
@@ -73,9 +101,16 @@ export function parseContactsCsv(text: string): ImportRow[] {
  * Import de contacts (P1), pour les e-mails marketing : l'organisateur certifie le consentement des contacts ;
  * un contact désinscrit n'est jamais réabonné par un import (RGPD) ; doublons et adresses invalides ignorés.
  */
-export async function importContacts(ctx: OrgContext, text: string, consentConfirmed: boolean, now = new Date()) {
-  if (!hasFeature(ctx.features, "EMAIL_MARKETING")) throw new CoreError("PRO_REQUIRED");
-  if (!can(ctx.membership, "MARKETING_MANAGE")) throw new CoreError("FORBIDDEN");
+export async function importContacts(
+  ctx: OrgContext,
+  text: string,
+  consentConfirmed: boolean,
+  now = new Date(),
+) {
+  if (!hasFeature(ctx.features, "EMAIL_MARKETING"))
+    throw new CoreError("PRO_REQUIRED");
+  if (!can(ctx.membership, "MARKETING_MANAGE"))
+    throw new CoreError("FORBIDDEN");
   if (!consentConfirmed) throw new CoreError("IMPORT_CONSENT_REQUIRED");
   if (text.length > MAX_CHARS) throw new CoreError("IMPORT_TOO_LARGE");
   const rows = parseContactsCsv(text);
@@ -95,7 +130,12 @@ export async function importContacts(ctx: OrgContext, text: string, consentConfi
   }
   const existing = await db.contact.findMany({
     where: { organizationId, email: { in: valid.map((r) => r.email) } },
-    select: { id: true, email: true, unsubscribedAt: true, marketingConsent: true },
+    select: {
+      id: true,
+      email: true,
+      unsubscribedAt: true,
+      marketingConsent: true,
+    },
   });
   const byEmail = new Map(existing.map((c) => [c.email, c]));
   const names = (r: ImportRow) => ({
@@ -127,11 +167,27 @@ export async function importContacts(ctx: OrgContext, text: string, consentConfi
     }
     await db.contact.update({
       where: { id: c.id },
-      data: { ...names(r), ...(c.marketingConsent ? {} : { marketingConsent: true, consentAt: now, consentSource: "IMPORT" as const }) },
+      data: {
+        ...names(r),
+        ...(c.marketingConsent
+          ? {}
+          : {
+              marketingConsent: true,
+              consentAt: now,
+              consentSource: "IMPORT" as const,
+            }),
+      },
     });
     updated++;
   }
   const result = { created: fresh.length, updated, unsubscribed, invalid };
-  await audit({ action: "contacts.import", organizationId, actorUserId: ctx.user.id, targetType: "Organization", targetId: organizationId, metadata: result });
+  await audit({
+    action: "contacts.import",
+    organizationId,
+    actorUserId: ctx.user.id,
+    targetType: "Organization",
+    targetId: organizationId,
+    metadata: result,
+  });
   return result;
 }

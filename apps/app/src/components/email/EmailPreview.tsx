@@ -9,7 +9,11 @@ import { previewDraftAction } from "@/app/o/[orgSlug]/marketing/campaigns/action
  * Aperçu en temps réel : rendu par le serveur, avec exactement le code de l'envoi (nettoyage du HTML compris),
  * à chaque modification, sans rien enregistrer. Affiché dans un cadre isolé où aucun script ne peut s'exécuter.
  */
-type PreviewResult = { ok: true; data: { html: string; subject: string; warnings: string[] } } | { ok: false } | null | undefined;
+type PreviewResult =
+  | { ok: true; data: { html: string; subject: string; warnings: string[] } }
+  | { ok: false }
+  | null
+  | undefined;
 
 export function EmailPreview({
   orgSlug,
@@ -26,7 +30,11 @@ export function EmailPreview({
   action?: (input: unknown) => Promise<PreviewResult>;
 }) {
   const t = useTranslations("emailEditor");
-  const [mail, setMail] = useState<{ html: string; subject: string; warnings: string[] } | null>(null);
+  const [mail, setMail] = useState<{
+    html: string;
+    subject: string;
+    warnings: string[];
+  } | null>(null);
   const [mode, setMode] = useState<"desktop" | "mobile">("desktop");
   const seq = useRef(0);
   const input = JSON.stringify({ subject, previewText, content });
@@ -34,7 +42,9 @@ export function EmailPreview({
     const n = ++seq.current;
     const h = setTimeout(async () => {
       const parsed = JSON.parse(input) as unknown;
-      const r = (await (action ? action(parsed) : previewDraftAction(orgSlug, parsed))) as PreviewResult;
+      const r = (await (action
+        ? action(parsed)
+        : previewDraftAction(orgSlug, parsed))) as PreviewResult;
       if (n === seq.current && r && r.ok) setMail(r.data);
     }, 300);
     return () => clearTimeout(h);
@@ -43,7 +53,11 @@ export function EmailPreview({
     <section className="grid content-start gap-3" aria-label={t("preview")}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold">{t("preview")}</h3>
-        <div role="group" aria-label={t("preview")} className="flex gap-1 rounded-full bg-surface-sunken p-1">
+        <div
+          role="group"
+          aria-label={t("preview")}
+          className="flex gap-1 rounded-full bg-surface-sunken p-1"
+        >
           {(["desktop", "mobile"] as const).map((m) => (
             <button
               key={m}
@@ -59,12 +73,18 @@ export function EmailPreview({
       </div>
       <div className="grid gap-0.5 rounded-lg bg-surface-raised p-3 ring-1 ring-line">
         <span className="text-xs text-ink-muted">{t("inbox")}</span>
-        <span className="truncate font-semibold">{mail?.subject || subject || t("noSubject")}</span>
-        {previewText && <span className="truncate text-sm text-ink-muted">{previewText}</span>}
+        <span className="truncate font-semibold">
+          {mail?.subject || subject || t("noSubject")}
+        </span>
+        {previewText && (
+          <span className="truncate text-sm text-ink-muted">{previewText}</span>
+        )}
       </div>
       {mail && mail.warnings.length > 0 && (
         <p role="status" className="rounded-md bg-surface-sunken p-3 text-sm">
-          {t("warnings")} {mail.warnings.map((w) => t(`warn_${w}` as "warn_SCRIPT")).join(", ")}.
+          {t("warnings")}{" "}
+          {mail.warnings.map((w) => t(`warn_${w}` as "warn_SCRIPT")).join(", ")}
+          .
         </p>
       )}
       <div className="overflow-x-auto rounded-lg bg-surface-sunken p-3">

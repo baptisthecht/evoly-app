@@ -4,27 +4,41 @@ import { describe, expect, it } from "vitest";
 import { PALETTE } from "@evoly/core";
 
 const ROOT = join(__dirname, "..", "..", "..");
-const tokens = readFileSync(join(ROOT, "packages/ui/src/styles/tokens.css"), "utf8");
+const tokens = readFileSync(
+  join(ROOT, "packages/ui/src/styles/tokens.css"),
+  "utf8",
+);
 const kebab = (k: string) => k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 
 /**
  * Exceptions justifiées : e-mails (les messageries imposent des couleurs en ligne), couleurs proposées pour le contenu
  * des e-mails dans l'éditeur, et images d'aperçu générées.
  */
-const ALLOWED = [/\/server\/email\//, /\/components\/email\//, /\/api\/og\//, /opengraph-image/];
+const ALLOWED = [
+  /\/server\/email\//,
+  /\/components\/email\//,
+  /\/api\/og\//,
+  /opengraph-image/,
+];
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => {
     const p = join(dir, f);
     if (f === "node_modules" || f === "generated") return [];
-    return statSync(p).isDirectory() ? files(p) : /\.(ts|tsx)$/.test(f) ? [p] : [];
+    return statSync(p).isDirectory()
+      ? files(p)
+      : /\.(ts|tsx)$/.test(f)
+        ? [p]
+        : [];
   });
 }
 
 describe("design system (RG-UI-02)", () => {
   it("la palette des contextes sans CSS est le miroir exact des jetons du design system", () => {
     for (const [key, value] of Object.entries(PALETTE)) {
-      const m = tokens.match(new RegExp(`--evoly-${kebab(key)}:\\s*(#[0-9a-fA-F]{6})`));
+      const m = tokens.match(
+        new RegExp(`--evoly-${kebab(key)}:\\s*(#[0-9a-fA-F]{6})`),
+      );
       expect(m?.[1]?.toLowerCase(), `jeton --evoly-${kebab(key)}`).toBe(value);
     }
   });

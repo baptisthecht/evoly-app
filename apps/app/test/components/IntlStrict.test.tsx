@@ -10,7 +10,9 @@ function Missing() {
 
 describe("garde des traductions", () => {
   it("un texte sans traduction fait échouer le test de l'écran", () => {
-    const quiet = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const quiet = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
     expect(() =>
       render(
         <Fr>

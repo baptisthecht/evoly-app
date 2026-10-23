@@ -10,7 +10,8 @@ const base =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98] select-none";
 
 const variants: Record<Variant, string> = {
-  primary: "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-ink)] hover:brightness-95", // rose sur les billetteries, charbon dans l'application
+  primary:
+    "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-ink)] hover:brightness-95", // rose sur les billetteries, charbon dans l'application
   dark: "bg-surface-inverse text-ink-inverse hover:opacity-90",
   secondary:
     "bg-surface-raised text-ink shadow-[inset_0_0_0_var(--control-border)_var(--line-strong)] hover:shadow-[inset_0_0_0_var(--control-border)_var(--ink)]",
@@ -24,7 +25,11 @@ const sizes: Record<Size, string> = {
   lg: "h-[var(--control-h-lg)] px-7 text-[length:var(--control-text-lg)]",
 };
 
-export function buttonClass(variant: Variant = "primary", size: Size = "md", extra?: string) {
+export function buttonClass(
+  variant: Variant = "primary",
+  size: Size = "md",
+  extra?: string,
+) {
   return cn(base, variants[variant], sizes[size], extra);
 }
 
@@ -34,7 +39,11 @@ export function Button({
   className,
   children,
   ...rest
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; children: ReactNode }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: Variant;
+  size?: Size;
+  children: ReactNode;
+}) {
   return (
     <button className={buttonClass(variant, size, className)} {...rest}>
       {children}

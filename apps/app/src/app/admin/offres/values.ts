@@ -4,7 +4,14 @@ import type { PromotionFormValues } from "./PromotionForm";
 /** Date affichée dans le formulaire, en heure de Bruxelles (« AAAA-MM-JJTHH:MM »). */
 export const brusselsInput = (d: Date | null) =>
   d
-    ? new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Brussels", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+    ? new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Europe/Brussels",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
         .format(d)
         .replace(" ", "T")
     : "";

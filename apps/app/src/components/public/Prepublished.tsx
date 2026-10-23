@@ -5,7 +5,10 @@ import { hasFeature, salesOpeningAt, PALETTE } from "@evoly/core";
 import { formatDateTime, toLocale } from "@evoly/i18n";
 import { env } from "@/lib/env";
 import { calendarTitle, googleCalendarUrl } from "@/server/calendar";
-import type { PublicEventData, PublicOrganization } from "@/server/publicEvents";
+import type {
+  PublicEventData,
+  PublicOrganization,
+} from "@/server/publicEvents";
 import { previewAllowed } from "@/server/publication";
 import { eventPublicUrl } from "@/server/urls";
 import { AlertForm } from "./AlertForm";
@@ -18,15 +21,33 @@ import { PublicEventPage, eventMetadata } from "./EventPage";
 
 async function countdownLabels() {
   const t = await getTranslations("public");
-  return { days: t("cdDays"), hours: t("cdHours"), minutes: t("cdMinutes"), seconds: t("cdSeconds") };
+  return {
+    days: t("cdDays"),
+    hours: t("cdHours"),
+    minutes: t("cdMinutes"),
+    seconds: t("cdSeconds"),
+  };
 }
 
 /** Avant la publication programmée (RG-PRG-01) : jamais indexé ; l'annonce ne révèle ni titre, ni description, ni affiche. */
-export async function prepublishedMetadata(org: PublicOrganization, data: PublicEventData, token: string | undefined): Promise<Metadata> {
-  if (previewAllowed(data.event, token)) return { ...(await eventMetadata(org, data)), robots: { index: false, follow: false } };
+export async function prepublishedMetadata(
+  org: PublicOrganization,
+  data: PublicEventData,
+  token: string | undefined,
+): Promise<Metadata> {
+  if (previewAllowed(data.event, token))
+    return {
+      ...(await eventMetadata(org, data)),
+      robots: { index: false, follow: false },
+    };
   const t = await getTranslations("public");
   const name = org.brand?.displayName ?? org.name;
-  return { title: { absolute: `${data.event.teaserText ?? t("teaserDefault")} · ${name}` }, robots: { index: false, follow: false } };
+  return {
+    title: {
+      absolute: `${data.event.teaserText ?? t("teaserDefault")} · ${name}`,
+    },
+    robots: { index: false, follow: false },
+  };
 }
 
 /** Aperçu par lien secret (page complète, sans achat), redirection si l'événement est invisible, sinon l'annonce floutée. */
@@ -65,17 +86,35 @@ export async function PrepublishedEvent({
           background: `radial-gradient(36% 44% at 28% 32%, ${PALETTE.rose} 0%, transparent 72%), radial-gradient(38% 46% at 72% 66%, ${PALETTE.teaserViolet} 0%, transparent 72%), radial-gradient(28% 36% at 62% 18%, ${PALETTE.creme} 0%, transparent 72%)`,
         }}
       />
-      <section className="grid max-w-2xl justify-items-center gap-6 text-center" aria-labelledby="teaser-title">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-muted">{name}</p>
-        <h1 id="teaser-title" className="font-display text-4xl leading-[1.05] tracking-[-0.03em] sm:text-6xl">
+      <section
+        className="grid max-w-2xl justify-items-center gap-6 text-center"
+        aria-labelledby="teaser-title"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-muted">
+          {name}
+        </p>
+        <h1
+          id="teaser-title"
+          className="font-display text-4xl leading-[1.05] tracking-[-0.03em] sm:text-6xl"
+        >
           {e.teaserText ?? t("teaserDefault")}
         </h1>
         <p className="text-ink-muted">{t("teaserOpens", { date: when })}</p>
-        <Countdown target={e.publishAt!.toISOString()} serverNow={new Date().toISOString()} labels={await countdownLabels()} />
+        <Countdown
+          target={e.publishAt!.toISOString()}
+          serverNow={new Date().toISOString()}
+          labels={await countdownLabels()}
+        />
         <OpeningExtras
           eventId={e.id}
           calendar={{
-            title: calendarTitle({ locale, prepublished: true, teaserText: e.teaserText, eventTitle: e.title, organizationName: name }),
+            title: calendarTitle({
+              locale,
+              prepublished: true,
+              teaserText: e.teaserText,
+              eventTitle: e.title,
+              organizationName: name,
+            }),
             start: salesOpeningAt(e) ?? e.publishAt!,
             url: eventPublicUrl(org, e),
           }}
@@ -89,7 +128,13 @@ export async function PrepublishedEvent({
 }
 
 /** « Prévenez-moi » et ajout à l'agenda (RG-PRG-04, RG-PRG-05), sous chaque décompte. */
-async function OpeningExtras({ eventId, calendar }: { eventId: string; calendar: { title: string; start: Date; url: string } }) {
+async function OpeningExtras({
+  eventId,
+  calendar,
+}: {
+  eventId: string;
+  calendar: { title: string; start: Date; url: string };
+}) {
   const t = await getTranslations("public");
   const locale = toLocale(await getLocale());
   const ics = `${env().NEXT_PUBLIC_APP_URL}/api/events/${eventId}/opening.ics?lang=${locale}`;
@@ -113,13 +158,24 @@ async function OpeningExtras({ eventId, calendar }: { eventId: string; calendar:
         <a href={ics} rel="nofollow" className="underline underline-offset-4">
           {t("calAdd")}
         </a>
-        <a href={googleCalendarUrl(calendar)} target="_blank" rel="noopener nofollow" className="underline underline-offset-4">
+        <a
+          href={googleCalendarUrl(calendar)}
+          target="_blank"
+          rel="noopener nofollow"
+          className="underline underline-offset-4"
+        >
           {t("calGoogle")}
         </a>
       </p>
       <PresaleForm
         eventId={eventId}
-        labels={{ ask: t("presaleAsk"), code: t("presaleCode"), submit: t("presaleSubmit"), invalid: t("presaleInvalid"), limited: t("alertLimited") }}
+        labels={{
+          ask: t("presaleAsk"),
+          code: t("presaleCode"),
+          submit: t("presaleSubmit"),
+          invalid: t("presaleInvalid"),
+          limited: t("alertLimited"),
+        }}
       />
     </div>
   );
@@ -145,11 +201,27 @@ export async function SalesCountdown({
   const locale = toLocale(await getLocale());
   return (
     <div className="grid gap-3 rounded-xl bg-surface p-4 ring-1 ring-line">
-      <p className="text-center text-sm font-medium">{t("salesOpenOn", { date: formatDateTime(opensAt, timeZone, locale) })}</p>
-      <Countdown target={opensAt.toISOString()} serverNow={now.toISOString()} labels={await countdownLabels()} />
+      <p className="text-center text-sm font-medium">
+        {t("salesOpenOn", { date: formatDateTime(opensAt, timeZone, locale) })}
+      </p>
+      <Countdown
+        target={opensAt.toISOString()}
+        serverNow={now.toISOString()}
+        labels={await countdownLabels()}
+      />
       <OpeningExtras
         eventId={eventId}
-        calendar={{ title: calendarTitle({ locale, prepublished: false, teaserText: null, eventTitle, organizationName: "" }), start: opensAt, url }}
+        calendar={{
+          title: calendarTitle({
+            locale,
+            prepublished: false,
+            teaserText: null,
+            eventTitle,
+            organizationName: "",
+          }),
+          start: opensAt,
+          url,
+        }}
       />
     </div>
   );
@@ -158,9 +230,17 @@ export async function SalesCountdown({
 type Query = { apercu?: string; prevente?: string; attente?: string };
 
 /** Chargement pour un visiteur : avec un code de prévente mémorisé et valable, la vente lui est ouverte (RG-PRV-02). */
-export async function loadEventForVisitor(org: PublicOrganization, where: { organizationId: string; slug: string } | { id: string }) {
+export async function loadEventForVisitor(
+  org: PublicOrganization,
+  where: { organizationId: string; slug: string } | { id: string },
+) {
   const data = await loadPublicEvent(where);
-  if (!data || (!data.prepublished && data.salesOpen) || !hasFeature(org.features, "PRESALE_CODES")) return data;
+  if (
+    !data ||
+    (!data.prepublished && data.salesOpen) ||
+    !hasFeature(org.features, "PRESALE_CODES")
+  )
+    return data;
   const code = await presaleCookie(data.event.id);
   if (!code) return data;
   const unlocked = await loadPublicEvent(where, { presaleCode: code });
@@ -168,14 +248,32 @@ export async function loadEventForVisitor(org: PublicOrganization, where: { orga
 }
 
 /** Métadonnées : jamais indexé en prévente ni avant la publication. */
-export async function eventRouteMetadata(org: PublicOrganization, data: PublicEventData, query: Query): Promise<Metadata> {
-  if (data.presale) return { ...(await eventMetadata(org, data)), robots: { index: false, follow: false } };
+export async function eventRouteMetadata(
+  org: PublicOrganization,
+  data: PublicEventData,
+  query: Query,
+): Promise<Metadata> {
+  if (data.presale)
+    return {
+      ...(await eventMetadata(org, data)),
+      robots: { index: false, follow: false },
+    };
   if (data.prepublished) return prepublishedMetadata(org, data, query.apercu);
   return eventMetadata(org, data);
 }
 
 /** Aiguillage d'une page d'événement : prévente, lien de prévente, pas encore publié, ou page normale. */
-export async function EventRouteView({ org, data, homeHref, query }: { org: PublicOrganization; data: PublicEventData; homeHref: string; query: Query }) {
+export async function EventRouteView({
+  org,
+  data,
+  homeHref,
+  query,
+}: {
+  org: PublicOrganization;
+  data: PublicEventData;
+  homeHref: string;
+  query: Query;
+}) {
   const t = await getTranslations("public");
   if (data.presale)
     return (
@@ -191,9 +289,28 @@ export async function EventRouteView({ org, data, homeHref, query }: { org: Publ
       <PresaleAutoUnlock
         eventId={data.event.id}
         code={query.prevente.slice(0, 60)}
-        labels={{ working: t("presaleUnlocking"), invalid: t("presaleInvalid"), back: t("presaleBack") }}
+        labels={{
+          working: t("presaleUnlocking"),
+          invalid: t("presaleInvalid"),
+          back: t("presaleBack"),
+        }}
       />
     );
-  if (data.prepublished) return <PrepublishedEvent org={org} data={data} homeHref={homeHref} token={query.apercu} />;
-  return <PublicEventPage org={org} data={data} homeHref={homeHref} waitlistToken={query.attente?.slice(0, 60)} />;
+  if (data.prepublished)
+    return (
+      <PrepublishedEvent
+        org={org}
+        data={data}
+        homeHref={homeHref}
+        token={query.apercu}
+      />
+    );
+  return (
+    <PublicEventPage
+      org={org}
+      data={data}
+      homeHref={homeHref}
+      waitlistToken={query.attente?.slice(0, 60)}
+    />
+  );
 }

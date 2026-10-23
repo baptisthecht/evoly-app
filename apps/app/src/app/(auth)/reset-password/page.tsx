@@ -8,7 +8,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("resetTitle") };
 }
 
-export default async function ResetPasswordPage({ searchParams }: { searchParams: Promise<{ token?: string; error?: string }> }) {
+export default async function ResetPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string; error?: string }>;
+}) {
   const t = await getTranslations("auth");
   const { token, error } = await searchParams;
   return (
@@ -20,10 +24,16 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
         <ResetForm token={token} />
       ) : (
         <div className="grid gap-5">
-          <p role="alert" className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">
+          <p
+            role="alert"
+            className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger"
+          >
             {t("resetLinkInvalid")}
           </p>
-          <Link href="/forgot-password" className="text-center text-sm font-semibold underline underline-offset-4">
+          <Link
+            href="/forgot-password"
+            className="text-center text-sm font-semibold underline underline-offset-4"
+          >
             {t("sendResetLink")}
           </Link>
         </div>

@@ -11,7 +11,12 @@ describe("cache des PDF limité en octets (RG-FILE-02)", () => {
     c.set("c", b(4));
     c.get("a"); // « a » relu : « b » devient le plus ancien
     c.set("d", b(4));
-    expect([c.get("a") !== undefined, c.get("b") !== undefined, c.get("c") !== undefined, c.get("d") !== undefined]).toEqual([true, false, true, true]);
+    expect([
+      c.get("a") !== undefined,
+      c.get("b") !== undefined,
+      c.get("c") !== undefined,
+      c.get("d") !== undefined,
+    ]).toEqual([true, false, true, true]);
   });
 
   it("les plus anciens sortent dès que la limite est dépassée", () => {

@@ -3,9 +3,15 @@ import { firstLink, lastEmail } from "./outbox";
 import { appUrl, organizer, siteUrl, sql } from "./helpers";
 
 // adresse IP propre à ce test : la recherche de billets est limitée par adresse, partagée sinon par toute la suite
-test.use({ extraHTTPHeaders: { "x-forwarded-for": `10.77.${Math.floor(Math.random() * 250)}.${1 + Math.floor(Math.random() * 250)}` } });
+test.use({
+  extraHTTPHeaders: {
+    "x-forwarded-for": `10.77.${Math.floor(Math.random() * 250)}.${1 + Math.floor(Math.random() * 250)}`,
+  },
+});
 
-test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PDF, retrouver mes billets", async ({ page }) => {
+test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PDF, retrouver mes billets", async ({
+  page,
+}) => {
   const { id, slug } = await organizer(page);
   // compte Stripe actif simulé : un tarif payant peut être publié
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
@@ -49,7 +55,9 @@ test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PD
   await box.getByRole("button", { name: "J’ai un code promo" }).click();
   await box.getByLabel("Code promo").fill("mauvais");
   await box.getByRole("button", { name: "Appliquer" }).click();
-  await expect(box.getByText("Ce code n’existe pas pour cet événement.")).toBeVisible();
+  await expect(
+    box.getByText("Ce code n’existe pas pour cet événement."),
+  ).toBeVisible();
   await box.getByLabel("Code promo").fill("invite");
   await box.getByRole("button", { name: "Appliquer" }).click();
   await expect(box.getByText("Code INVITE appliqué")).toBeVisible();
@@ -61,7 +69,9 @@ test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PD
   await box.getByLabel("Nom", { exact: true }).fill("Martin");
   await box.getByLabel("Adresse e-mail").fill(email);
   await box.getByRole("button", { name: "Confirmer ma réservation" }).click();
-  await expect(box.getByText("Indiquez le prénom et le nom de chaque titulaire.")).toBeVisible();
+  await expect(
+    box.getByText("Indiquez le prénom et le nom de chaque titulaire."),
+  ).toBeVisible();
   await box.getByRole("button", { name: "C’est moi" }).click();
   await box.getByRole("button", { name: "Confirmer ma réservation" }).click();
 
@@ -80,11 +90,16 @@ test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PD
   const pdf = await page.evaluate(async (url) => {
     const r = await fetch(url);
     const bytes = new Uint8Array(await r.arrayBuffer());
-    return { type: r.headers.get("content-type"), head: String.fromCharCode(...bytes.slice(0, 5)) };
+    return {
+      type: r.headers.get("content-type"),
+      head: String.fromCharCode(...bytes.slice(0, 5)),
+    };
   }, `${ticketsUrl}/billets.pdf`);
   expect(pdf).toEqual({ type: "application/pdf", head: "%PDF-" });
   const mail = await lastEmail(email, "order.confirmation");
-  expect(mail.attachments?.map((a) => a.filename.split(".").pop()).sort()).toEqual(["ics", "pdf"]);
+  expect(
+    mail.attachments?.map((a) => a.filename.split(".").pop()).sort(),
+  ).toEqual(["ics", "pdf"]);
 
   // US-POST-02 : retrouver ses billets par e-mail
   await page.goto(siteUrl(slug, `/gala-${id}`));
@@ -92,7 +107,9 @@ test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PD
   await page.getByLabel("Adresse e-mail").fill(email);
   await page.getByRole("button", { name: "Recevoir mes liens" }).click();
   await expect(page.getByText("C’est envoyé.", { exact: false })).toBeVisible();
-  expect(firstLink((await lastEmail(email, "order.lookup")).text)).toBe(ticketsUrl);
+  expect(firstLink((await lastEmail(email, "order.lookup")).text)).toBe(
+    ticketsUrl,
+  );
 
   // RG-PRM-03 : compteur d'utilisations
   await page.goto(`${eventUrl}/promo`);

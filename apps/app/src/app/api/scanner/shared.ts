@@ -4,7 +4,10 @@ import { hit } from "@/server/rateLimit";
 import { resolveScannerLink } from "@/server/scanner";
 import { safeError } from "@/lib/redact";
 
-const noStore = { "cache-control": "no-store", "referrer-policy": "no-referrer" };
+const noStore = {
+  "cache-control": "no-store",
+  "referrer-policy": "no-referrer",
+};
 
 export function json(body: unknown, status = 200): Response {
   return Response.json(body, { status, headers: noStore });
@@ -14,14 +17,21 @@ export function json(body: unknown, status = 200): Response {
 export async function linkOr410(token: string) {
   const resolved = await resolveScannerLink(token);
   if (!resolved) return { error: json({ error: "UNKNOWN_LINK" }, 404) };
-  if (resolved.state !== "OK") return { error: json({ error: resolved.state }, 410) };
+  if (resolved.state !== "OK")
+    return { error: json({ error: resolved.state }, 410) };
   return { link: resolved.link };
 }
 
 /** RG-SCN-08 : débit limité par lien et par appareil. */
-export async function rateLimited(linkId: string, deviceId: string | null | undefined, weight = 1): Promise<boolean> {
+export async function rateLimited(
+  linkId: string,
+  deviceId: string | null | undefined,
+  weight = 1,
+): Promise<boolean> {
   const perLink = await hit(`scan:link:${linkId}`, 60);
-  const perDevice = deviceId ? await hit(`scan:device:${linkId}:${deviceId.slice(0, 64)}`, 60) : 0;
+  const perDevice = deviceId
+    ? await hit(`scan:device:${linkId}:${deviceId.slice(0, 64)}`, 60)
+    : 0;
   return perLink > 1200 * weight || perDevice > 240 * weight;
 }
 

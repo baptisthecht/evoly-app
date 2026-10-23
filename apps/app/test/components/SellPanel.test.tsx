@@ -11,8 +11,13 @@ const sale = {
   options: [{ id: "o1", name: "Vestiaire", priceMinor: 200, left: 1 }],
 };
 let posts: Array<Record<string, unknown>> = [];
-let reply: (body: Record<string, unknown>) => Response = () => new Response("{}", { status: 500 });
-const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
+let reply: (body: Record<string, unknown>) => Response = () =>
+  new Response("{}", { status: 500 });
+const json = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 beforeEach(() => {
   posts = [];
   vi.stubGlobal(
@@ -34,8 +39,13 @@ const draw = () =>
       <SellPanel token="jeton" deviceId="appareil-1" sale={sale} />
     </Fr>,
   );
-const plus = async (user: ReturnType<typeof userEvent.setup>, name: string, n: number) => {
-  for (let i = 0; i < n; i++) await user.click(screen.getByRole("button", { name: `+ ${name}` }));
+const plus = async (
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+  n: number,
+) => {
+  for (let i = 0; i < n; i++)
+    await user.click(screen.getByRole("button", { name: `+ ${name}` }));
 };
 const cash = () => screen.getByRole("button", { name: /Encaisser/ });
 
@@ -48,7 +58,14 @@ describe("vente sur place (scanner)", () => {
     expect(cash().textContent).toMatch(/20/);
     await user.click(cash());
     await screen.findByText("Vente enregistrée : 2 billets, entrée validée.");
-    expect(posts).toEqual([expect.objectContaining({ action: "cash", lines: [{ ticketTypeId: "t1", quantity: 2 }], options: [], deviceId: "appareil-1" })]);
+    expect(posts).toEqual([
+      expect.objectContaining({
+        action: "cash",
+        lines: [{ ticketTypeId: "t1", quantity: 2 }],
+        options: [],
+        deviceId: "appareil-1",
+      }),
+    ]);
     await plus(user, "Entrée", 5); // il n'en reste que 3
     expect(cash().textContent).toMatch(/30/);
   });
@@ -63,13 +80,22 @@ describe("vente sur place (scanner)", () => {
     await screen.findByText(fr.scanner.sellPassCode);
     expect(screen.getByText("VX7K2")).toBeTruthy();
     expect(screen.getByText(fr.scanner.sellDoneOptions)).toBeTruthy();
-    expect(posts[0]).toMatchObject({ lines: [], options: [{ optionId: "o1", quantity: 1 }] });
+    expect(posts[0]).toMatchObject({
+      lines: [],
+      options: [{ optionId: "o1", quantity: 1 }],
+    });
   });
 
   it("panier vide : les deux encaissements sont désactivés, rien n'est envoyé", async () => {
     draw();
     expect((cash() as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: /Paiement par QR code/ }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (
+        screen.getByRole("button", {
+          name: /Paiement par QR code/,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
     await userEvent.setup().click(cash());
     expect(posts).toEqual([]);
   });
@@ -99,15 +125,29 @@ describe("vente sur place (scanner)", () => {
   it("paiement par QR code : le code s'affiche, puis la vente est confirmée quand le paiement arrive", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
-      reply = () => json({ orderId: "commande-1", qrSvg: "<svg></svg>", totalMinor: 2_000, status: "PENDING" });
+      reply = () =>
+        json({
+          orderId: "commande-1",
+          qrSvg: "<svg></svg>",
+          totalMinor: 2_000,
+          status: "PENDING",
+        });
       draw();
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       await plus(user, "Entrée", 2);
-      await user.click(screen.getByRole("button", { name: /Paiement par QR code/ }));
+      await user.click(
+        screen.getByRole("button", { name: /Paiement par QR code/ }),
+      );
       await screen.findByText(fr.scanner.sellQrWaiting);
-      expect(posts[0]).toMatchObject({ lines: [{ ticketTypeId: "t1", quantity: 2 }] });
+      expect(posts[0]).toMatchObject({
+        lines: [{ ticketTypeId: "t1", quantity: 2 }],
+      });
       await act(async () => void (await vi.advanceTimersByTimeAsync(2_600)));
-      await waitFor(() => expect(screen.getByText("Payé : 2 billets, entrée validée.")).toBeTruthy());
+      await waitFor(() =>
+        expect(
+          screen.getByText("Payé : 2 billets, entrée validée."),
+        ).toBeTruthy(),
+      );
     } finally {
       vi.useRealTimers();
     }

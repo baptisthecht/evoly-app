@@ -7,7 +7,11 @@ import { openConsent } from "./cookies";
 export function CookieSettingsButton({ className }: { className?: string }) {
   const t = useTranslations("consent");
   return (
-    <button type="button" onClick={openConsent} className={className ?? "text-xs text-ink-muted underline"}>
+    <button
+      type="button"
+      onClick={openConsent}
+      className={className ?? "text-xs text-ink-muted underline"}
+    >
       {t("manage")}
     </button>
   );

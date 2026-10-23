@@ -41,7 +41,9 @@ const PATHS = {
       <path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M21 20a6 6 0 0 0-4-5.6" />
     </>
   ),
-  ticket: <path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z" />,
+  ticket: (
+    <path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z" />
+  ),
   user: (
     <>
       <circle cx="12" cy="8" r="3.5" />
@@ -70,7 +72,13 @@ const PATHS = {
 } satisfies Record<string, ReactNode>;
 export type FieldIconName = keyof typeof PATHS;
 
-export function FieldIcon({ name, className }: { name: FieldIconName; className?: string }) {
+export function FieldIcon({
+  name,
+  className,
+}: {
+  name: FieldIconName;
+  className?: string;
+}) {
   return (
     <svg
       aria-hidden="true"
@@ -89,4 +97,5 @@ export function FieldIcon({ name, className }: { name: FieldIconName; className?
 
 /** Place de l'icône dans un champ de hauteur fixe (centrée) ou dans un texte long (en haut). */
 // au premier plan : le champ, positionné pour le calendrier des dates, se peindrait par-dessus ; transparente aux clics
-export const FIELD_ICON_CLASS = "pointer-events-none absolute left-3.5 z-10 size-4 text-ink-subtle";
+export const FIELD_ICON_CLASS =
+  "pointer-events-none absolute left-3.5 z-10 size-4 text-ink-subtle";

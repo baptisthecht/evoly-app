@@ -73,18 +73,24 @@ export function parsePrice(input: string, currency: string): number {
   return minor;
 }
 
-function resolveDates(e: Pick<EventEssentials, "startsAtLocal" | "endsAtLocal" | "timezone">) {
+function resolveDates(
+  e: Pick<EventEssentials, "startsAtLocal" | "endsAtLocal" | "timezone">,
+) {
   if (!isValidTimeZone(e.timezone)) throw new CoreError("INVALID_TIMEZONE");
   const startsAt = zonedLocalToUtc(e.startsAtLocal, e.timezone);
-  const endsAt = e.endsAtLocal ? zonedLocalToUtc(e.endsAtLocal, e.timezone) : null;
-  if (endsAt && endsAt.getTime() <= startsAt.getTime()) throw new CoreError("END_BEFORE_START");
+  const endsAt = e.endsAtLocal
+    ? zonedLocalToUtc(e.endsAtLocal, e.timezone)
+    : null;
+  if (endsAt && endsAt.getTime() <= startsAt.getTime())
+    throw new CoreError("END_BEFORE_START");
   return { startsAt, endsAt };
 }
 
 function resolveLocation(e: EventEssentials, defaultCountry: string) {
   const physical = e.locationType !== "ONLINE";
   const online = e.locationType !== "PHYSICAL";
-  if (physical && !e.locationName?.trim() && !e.addressLine1?.trim()) throw new CoreError("LOCATION_REQUIRED");
+  if (physical && !e.locationName?.trim() && !e.addressLine1?.trim())
+    throw new CoreError("LOCATION_REQUIRED");
   if (online) {
     // lien nettoyé avant le contrôle : un lien collé avec des espaces autour reste valable
     const url = e.onlineUrl?.trim();
@@ -102,15 +108,32 @@ function resolveLocation(e: EventEssentials, defaultCountry: string) {
   };
 }
 
-async function freeSlug(organizationId: string, title: string): Promise<string> {
+async function freeSlug(
+  organizationId: string,
+  title: string,
+): Promise<string> {
   const base = slugify(title) || "evenement";
-  const rows = await db.event.findMany({ where: { organizationId, slug: { startsWith: base } }, select: { slug: true } });
+  const rows = await db.event.findMany({
+    where: { organizationId, slug: { startsWith: base } },
+    select: { slug: true },
+  });
   // chemins réservés des pages publiques (billets de l'acheteur…)
-  return uniqueSlug(base, new Set([...rows.map((r) => r.slug), "billets", "commande", "revente", "api"]));
+  return uniqueSlug(
+    base,
+    new Set([
+      ...rows.map((r) => r.slug),
+      "billets",
+      "commande",
+      "revente",
+      "api",
+    ]),
+  );
 }
 
 function isUniqueViolation(err: unknown): boolean {
-  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
+  return (
+    err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002"
+  );
 }
 
 /** Création rapide (US-EVT-01) : l'essentiel, le lieu et un premier tarif. L'événement reste un brouillon. */
@@ -138,10 +161,23 @@ export async function partnerVenueFor(organizationId: string) {
   });
   const v = org?.referredByVenue;
   if (!v || !v.active || !v.addressLine1) return null;
-  return { id: v.id, name: v.hallName || v.organization.name, addressLine1: v.addressLine1, postalCode: v.postalCode, city: v.city, country: v.country };
+  return {
+    id: v.id,
+    name: v.hallName || v.organization.name,
+    addressLine1: v.addressLine1,
+    postalCode: v.postalCode,
+    city: v.city,
+    country: v.country,
+  };
 }
 
-const venueAddress = (v: { name: string; addressLine1: string; postalCode: string | null; city: string | null; country: string | null }) => ({
+const venueAddress = (v: {
+  name: string;
+  addressLine1: string;
+  postalCode: string | null;
+  city: string | null;
+  country: string | null;
+}) => ({
   locationName: v.name,
   addressLine1: v.addressLine1,
   postalCode: v.postalCode,
@@ -149,11 +185,21 @@ const venueAddress = (v: { name: string; addressLine1: string; postalCode: strin
   country: v.country,
 });
 
-export async function createEvent(ctx: OrgContext, e: EventEssentials, firstTicket: { name: string; price: string; quantity?: number | null }) {
+export async function createEvent(
+  ctx: OrgContext,
+  e: EventEssentials,
+  firstTicket: { name: string; price: string; quantity?: number | null },
+) {
   const o = ctx.organization;
   const { startsAt, endsAt } = resolveDates(e);
-  const venue = e.atVenue && e.locationType !== "ONLINE" ? await partnerVenueFor(o.id) : null; // section 9.32
-  const location = resolveLocation(venue ? { ...e, ...venueAddress(venue) } : e, o.country);
+  const venue =
+    e.atVenue && e.locationType !== "ONLINE"
+      ? await partnerVenueFor(o.id)
+      : null; // section 9.32
+  const location = resolveLocation(
+    venue ? { ...e, ...venueAddress(venue) } : e,
+    o.country,
+  );
   const priceMinor = parsePrice(firstTicket.price, o.currency);
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
@@ -172,10 +218,24 @@ export async function createEvent(ctx: OrgContext, e: EventEssentials, firstTick
           ...location,
           ...(venue ? { venuePartnerId: venue.id } : {}),
           createdById: ctx.user.id,
-          ticketTypes: { create: { name: firstTicket.name.trim(), priceMinor, currency: o.currency, quantity: firstTicket.quantity ?? null, sortOrder: 0 } },
+          ticketTypes: {
+            create: {
+              name: firstTicket.name.trim(),
+              priceMinor,
+              currency: o.currency,
+              quantity: firstTicket.quantity ?? null,
+              sortOrder: 0,
+            },
+          },
         },
       });
-      await audit({ action: "event.created", organizationId: o.id, actorUserId: ctx.user.id, targetType: "Event", targetId: event.id });
+      await audit({
+        action: "event.created",
+        organizationId: o.id,
+        actorUserId: ctx.user.id,
+        targetType: "Event",
+        targetId: event.id,
+      });
       return event;
     } catch (err) {
       if (!isUniqueViolation(err) || attempt === 4) throw err; // code public ou identifiant déjà pris : on réessaie
@@ -185,7 +245,13 @@ export async function createEvent(ctx: OrgContext, e: EventEssentials, firstTick
 }
 
 export async function findEvent(ctx: OrgContext, eventId: string) {
-  const event = await db.event.findFirst({ where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null } });
+  const event = await db.event.findFirst({
+    where: {
+      id: eventId,
+      organizationId: ctx.organization.id,
+      deletedAt: null,
+    },
+  });
   if (!event) throw new CoreError("NOT_FOUND");
   return event;
 }
@@ -195,25 +261,50 @@ function assertEditable(event: { status: string }) {
 }
 
 /** Réglages d'un événement (autosauvegarde, RG-EVT-01). Changement de date ou de lieu après publication : RG-EVT-05. */
-export async function updateEventSettings(ctx: OrgContext, eventId: string, input: EventSettingsInput) {
+export async function updateEventSettings(
+  ctx: OrgContext,
+  eventId: string,
+  input: EventSettingsInput,
+) {
   const event = await findEvent(ctx, eventId);
   assertEditable(event);
   const { startsAt, endsAt } = resolveDates(input);
   const partner = await partnerVenueFor(ctx.organization.id); // section 9.32
-  const venue = partner && input.atVenue && input.locationType !== "ONLINE" ? partner : null;
-  const location = resolveLocation(venue ? { ...input, ...venueAddress(venue) } : input, ctx.organization.country);
-  const toUtc = (v?: string | null) => (v ? zonedLocalToUtc(v, input.timezone) : null);
+  const venue =
+    partner && input.atVenue && input.locationType !== "ONLINE"
+      ? partner
+      : null;
+  const location = resolveLocation(
+    venue ? { ...input, ...venueAddress(venue) } : input,
+    ctx.organization.country,
+  );
+  const toUtc = (v?: string | null) =>
+    v ? zonedLocalToUtc(v, input.timezone) : null;
   const salesStartAt = toUtc(input.salesStartLocal);
   const salesEndAt = toUtc(input.salesEndLocal);
-  if (salesStartAt && salesEndAt && salesEndAt <= salesStartAt) throw new CoreError("SALES_END_BEFORE_START");
-  const refundDeadlineAt = input.refundPolicy === "UNTIL_DEADLINE" ? toUtc(input.refundDeadlineLocal) : null;
-  if (input.refundPolicy === "UNTIL_DEADLINE" && !refundDeadlineAt) throw new CoreError("REFUND_DEADLINE_REQUIRED");
+  if (salesStartAt && salesEndAt && salesEndAt <= salesStartAt)
+    throw new CoreError("SALES_END_BEFORE_START");
+  const refundDeadlineAt =
+    input.refundPolicy === "UNTIL_DEADLINE"
+      ? toUtc(input.refundDeadlineLocal)
+      : null;
+  if (input.refundPolicy === "UNTIL_DEADLINE" && !refundDeadlineAt)
+    throw new CoreError("REFUND_DEADLINE_REQUIRED");
   if (input.capacity != null) {
-    const totals = await db.ticketType.aggregate({ where: { eventId }, _sum: { quantitySold: true, quantityHeld: true, quantityAllocated: true } });
-    if (input.capacity < (totals._sum.quantitySold ?? 0) + (totals._sum.quantityHeld ?? 0) + (totals._sum.quantityAllocated ?? 0))
+    const totals = await db.ticketType.aggregate({
+      where: { eventId },
+      _sum: { quantitySold: true, quantityHeld: true, quantityAllocated: true },
+    });
+    if (
+      input.capacity <
+      (totals._sum.quantitySold ?? 0) +
+        (totals._sum.quantityHeld ?? 0) +
+        (totals._sum.quantityAllocated ?? 0)
+    )
       throw new CoreError("CAPACITY_BELOW_SOLD");
   }
-  const published = event.status === "PUBLISHED" || event.status === "SALES_PAUSED";
+  const published =
+    event.status === "PUBLISHED" || event.status === "SALES_PAUSED";
   const majorChange =
     published &&
     (event.startsAt.getTime() !== startsAt.getTime() ||
@@ -223,7 +314,9 @@ export async function updateEventSettings(ctx: OrgContext, eventId: string, inpu
       event.addressLine1 !== location.addressLine1 ||
       event.city !== location.city);
   // RG-EVT-10 : un autre membre a enregistré depuis l'affichage du formulaire → on enregistre quand même, et on prévient
-  const concurrent = !!input.version && event.updatedAt.getTime() > Date.parse(input.version) + 500;
+  const concurrent =
+    !!input.version &&
+    event.updatedAt.getTime() > Date.parse(input.version) + 500;
   const updated = await db.event.update({
     where: { id: event.id },
     data: {
@@ -245,8 +338,12 @@ export async function updateEventSettings(ctx: OrgContext, eventId: string, inpu
       salesEndAt,
       resaleEnabled: input.resaleEnabled,
       resaleCutoffMinutes: input.resaleCutoffMinutes,
-      ...(input.resaleWaitlistFirst !== undefined ? { resaleWaitlistFirst: input.resaleWaitlistFirst } : {}),
-      ...(input.resaleWaitlistMinutes !== undefined ? { resaleWaitlistMinutes: input.resaleWaitlistMinutes } : {}),
+      ...(input.resaleWaitlistFirst !== undefined
+        ? { resaleWaitlistFirst: input.resaleWaitlistFirst }
+        : {}),
+      ...(input.resaleWaitlistMinutes !== undefined
+        ? { resaleWaitlistMinutes: input.resaleWaitlistMinutes }
+        : {}),
       showResaleSection: input.showResaleSection,
       ...(majorChange ? { lastMajorChangeAt: new Date() } : {}),
     },
@@ -263,7 +360,10 @@ export async function updateEventSettings(ctx: OrgContext, eventId: string, inpu
       actorUserId: ctx.user.id,
       targetType: "Event",
       targetId: event.id,
-      metadata: { previousStartsAt: event.startsAt.toISOString(), startsAt: startsAt.toISOString() },
+      metadata: {
+        previousStartsAt: event.startsAt.toISOString(),
+        startsAt: startsAt.toISOString(),
+      },
     });
   }
   return Object.assign(updated, { concurrent });
@@ -276,7 +376,9 @@ async function blockersFor(ctx: OrgContext, eventId: string, startsAt: Date) {
   });
   return publicationBlockers({
     activeTicketTypes: active.length,
-    hasPaidTicketTypes: active.some((t) => t.priceMinor > 0 || t.priceTiers.some((p) => p.priceMinor > 0)),
+    hasPaidTicketTypes: active.some(
+      (t) => t.priceMinor > 0 || t.priceTiers.some((p) => p.priceMinor > 0),
+    ),
     stripeChargesEnabled: !!ctx.stripe?.chargesEnabled,
     startsAt,
     now: new Date(),
@@ -284,7 +386,10 @@ async function blockersFor(ctx: OrgContext, eventId: string, startsAt: Date) {
 }
 
 /** Conditions de publication, affichées dans la liste de contrôle de l'aperçu (RG-EVT-02). */
-export async function eventPublicationBlockers(ctx: OrgContext, eventId: string) {
+export async function eventPublicationBlockers(
+  ctx: OrgContext,
+  eventId: string,
+) {
   const event = await findEvent(ctx, eventId);
   return blockersFor(ctx, eventId, event.startsAt);
 }
@@ -294,9 +399,13 @@ export async function publishEvent(ctx: OrgContext, eventId: string) {
   assertTransition(EVENT_TRANSITIONS, event.status, "PUBLISHED", "événement");
   const blockers = await blockersFor(ctx, eventId, event.startsAt);
   if (blockers.length > 0) throw new CoreError(`PUBLISH_${blockers[0]}`);
-  await db.event.update({ where: { id: event.id }, data: { status: "PUBLISHED", publishedAt: event.publishedAt ?? new Date() } });
+  await db.event.update({
+    where: { id: event.id },
+    data: { status: "PUBLISHED", publishedAt: event.publishedAt ?? new Date() },
+  });
   await audit({
-    action: event.status === "DRAFT" ? "event.published" : "event.sales_resumed",
+    action:
+      event.status === "DRAFT" ? "event.published" : "event.sales_resumed",
     organizationId: ctx.organization.id,
     actorUserId: ctx.user.id,
     targetType: "Event",
@@ -306,16 +415,39 @@ export async function publishEvent(ctx: OrgContext, eventId: string) {
 
 export async function pauseSales(ctx: OrgContext, eventId: string) {
   const event = await findEvent(ctx, eventId);
-  assertTransition(EVENT_TRANSITIONS, event.status, "SALES_PAUSED", "événement");
-  await db.event.update({ where: { id: event.id }, data: { status: "SALES_PAUSED" } });
-  await audit({ action: "event.sales_paused", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Event", targetId: event.id });
+  assertTransition(
+    EVENT_TRANSITIONS,
+    event.status,
+    "SALES_PAUSED",
+    "événement",
+  );
+  await db.event.update({
+    where: { id: event.id },
+    data: { status: "SALES_PAUSED" },
+  });
+  await audit({
+    action: "event.sales_paused",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Event",
+    targetId: event.id,
+  });
 }
 
 /** RG-EVT-07 : copie en brouillon, sans commandes ni compteurs, dates à revoir. */
 export async function duplicateEvent(ctx: OrgContext, eventId: string) {
   const source = await db.event.findFirst({
-    where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null },
-    include: { ticketTypes: { include: { priceTiers: true }, orderBy: { sortOrder: "asc" } } },
+    where: {
+      id: eventId,
+      organizationId: ctx.organization.id,
+      deletedAt: null,
+    },
+    include: {
+      ticketTypes: {
+        include: { priceTiers: true },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
   });
   if (!source) throw new CoreError("NOT_FOUND");
   const title = `${source.title} (copie)`.slice(0, 120);
@@ -330,7 +462,8 @@ export async function duplicateEvent(ctx: OrgContext, eventId: string) {
           summary: source.summary,
           description: source.description ?? undefined,
           coverImageUrl: source.coverImageUrl,
-          visibility: source.visibility === "PRIVATE" ? "UNLISTED" : source.visibility,
+          visibility:
+            source.visibility === "PRIVATE" ? "UNLISTED" : source.visibility,
           locale: source.locale,
           currency: source.currency,
           timezone: source.timezone,
@@ -414,8 +547,10 @@ export async function duplicateEvent(ctx: OrgContext, eventId: string) {
 /** RG-EVT-08 : suppression d'un brouillon sans commande ; sinon, archivage. */
 export async function deleteDraft(ctx: OrgContext, eventId: string) {
   const event = await findEvent(ctx, eventId);
-  if (event.status !== "DRAFT") throw new CoreError("ONLY_DRAFTS_CAN_BE_DELETED");
-  if ((await db.order.count({ where: { eventId } })) > 0) throw new CoreError("EVENT_HAS_ORDERS");
+  if (event.status !== "DRAFT")
+    throw new CoreError("ONLY_DRAFTS_CAN_BE_DELETED");
+  if ((await db.order.count({ where: { eventId } })) > 0)
+    throw new CoreError("EVENT_HAS_ORDERS");
   await db.event.delete({ where: { id: event.id } });
   await audit({
     action: "event.deleted",
@@ -447,15 +582,26 @@ export async function listEvents(organizationId: string) {
   return events.map((e) => ({
     ...e,
     sold: e.ticketTypes.reduce((n, t) => n + t.quantitySold, 0),
-    total: e.capacity ?? (e.ticketTypes.every((t) => t.quantity != null) ? e.ticketTypes.reduce((n, t) => n + (t.quantity ?? 0), 0) : null),
+    total:
+      e.capacity ??
+      (e.ticketTypes.every((t) => t.quantity != null)
+        ? e.ticketTypes.reduce((n, t) => n + (t.quantity ?? 0), 0)
+        : null),
   }));
 }
 
 export async function getEventWithTickets(ctx: OrgContext, eventId: string) {
   const event = await db.event.findFirst({
-    where: { id: eventId, organizationId: ctx.organization.id, deletedAt: null },
+    where: {
+      id: eventId,
+      organizationId: ctx.organization.id,
+      deletedAt: null,
+    },
     include: {
-      ticketTypes: { include: { priceTiers: { orderBy: { sortOrder: "asc" } } }, orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }] },
+      ticketTypes: {
+        include: { priceTiers: { orderBy: { sortOrder: "asc" } } },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+      },
     },
   });
   if (!event) throw new CoreError("NOT_FOUND");
@@ -463,7 +609,11 @@ export async function getEventWithTickets(ctx: OrgContext, eventId: string) {
 }
 
 /** RG-PUB-06 : un événement privé a toujours un code ; seul son hachage est enregistré. */
-async function accessCodeData(eventId: string, currentHash: string | null, input: { visibility: string; accessCode?: string | null }) {
+async function accessCodeData(
+  eventId: string,
+  currentHash: string | null,
+  input: { visibility: string; accessCode?: string | null },
+) {
   if (input.visibility !== "PRIVATE") return { accessCodeHash: null };
   if (!input.accessCode?.trim()) {
     if (!currentHash) throw new CoreError("ACCESS_CODE_REQUIRED");

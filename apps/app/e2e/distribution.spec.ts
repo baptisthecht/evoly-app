@@ -3,9 +3,13 @@ import { organizer, publishedFreeEvent, sql } from "./helpers";
 
 // compatibilité avec les réseaux de billetterie, de bout en bout (docs/COMPATIBILITE_RESEAUX.md) : un réseau, son contingent,
 // l'import de ses billets en 1 clic, le scan d'un de ses codes-barres à la porte, et le bilan par canal
-test.beforeEach(({}, testInfo) => test.skip(testInfo.project.name !== "desktop", "un seul format suffit"));
+test.beforeEach(({}, testInfo) =>
+  test.skip(testInfo.project.name !== "desktop", "un seul format suffit"),
+);
 
-test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bilan par canal", async ({ page }) => {
+test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bilan par canal", async ({
+  page,
+}) => {
   test.setTimeout(120_000);
   const { slug, id } = await organizer(page);
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
@@ -17,21 +21,29 @@ test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bil
   // un réseau et son contingent
   await page.goto(`${eventUrl}/distribution`);
   await page.getByRole("button", { name: "Ajouter le réseau" }).click();
-  await expect(page.getByText("Ticketmaster", { exact: true }).first()).toBeVisible(); // dans la liste des réseaux et le formulaire du contingent
+  await expect(
+    page.getByText("Ticketmaster", { exact: true }).first(),
+  ).toBeVisible(); // dans la liste des réseaux et le formulaire du contingent
   const allocation = page.getByLabel("Ticketmaster", { exact: true });
   await allocation.fill("10");
   await page.getByRole("button", { name: "Enregistrer" }).first().click();
-  await expect(page.getByText("90 places encore en vente en ligne")).toBeVisible();
+  await expect(
+    page.getByText("90 places encore en vente en ligne"),
+  ).toBeVisible();
 
   // import du fichier du réseau, en 1 clic
   await page.getByRole("button", { name: "Importer des billets" }).click();
   await page.getByLabel("Fichier du réseau").setInputFiles({
     name: "ticketmaster.csv",
     mimeType: "text/csv",
-    buffer: Buffer.from(`Code-barres;Nom;Tarif\nTM-${id}-1;Léa Martin;Fosse\nTM-${id}-2;Tom Dubois;Fosse\n`),
+    buffer: Buffer.from(
+      `Code-barres;Nom;Tarif\nTM-${id}-1;Léa Martin;Fosse\nTM-${id}-2;Tom Dubois;Fosse\n`,
+    ),
   });
   await page.getByRole("button", { name: "Importer", exact: true }).click();
-  await expect(page.getByRole("status").filter({ hasText: "2 billets ajoutés" })).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "2 billets ajoutés" }),
+  ).toBeVisible();
 
   // à la porte : le code-barres du réseau passe au scanner, une seule fois
   // scanner ouvert depuis la page des entrées de l'événement (lien personnel de l'organisateur)
@@ -50,6 +62,8 @@ test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bil
 
   // bilan par canal : le réseau, ses billets et son entrée
   await page.goto(`${eventUrl}/distribution`);
-  const row = page.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "Ticketmaster" }) });
+  const row = page
+    .getByRole("row")
+    .filter({ has: page.getByRole("rowheader", { name: "Ticketmaster" }) });
   await expect(row.getByRole("cell")).toHaveText(["2", "1", ""]);
 });

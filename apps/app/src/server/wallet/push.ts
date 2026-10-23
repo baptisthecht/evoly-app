@@ -6,7 +6,10 @@ import type { AppleCredentials } from "./apple";
  * Notification Apple Wallet (RG-POST-04) : vide, avec le pass comme sujet ; le téléphone redemande alors le pass au service web.
  * Renvoie les jetons qu'Apple déclare périmés (410), à oublier.
  */
-export async function sendApplePushes(tokens: string[], creds: AppleCredentials): Promise<string[]> {
+export async function sendApplePushes(
+  tokens: string[],
+  creds: AppleCredentials,
+): Promise<string[]> {
   if (tokens.length === 0) return [];
   const client = connect("https://api.push.apple.com", {
     cert: creds.certPem,

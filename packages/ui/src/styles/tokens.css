@@ -68,10 +68,12 @@
   --focus-halo: var(--evoly-rose);
 
   /* Typographies */
-  --type-display: "Archivo Black", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --type-display:
+    "Archivo Black", "Arial Black", "Helvetica Neue", Arial, sans-serif;
   --type-label: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --type-script: "Yellowtail", "Brush Script MT", "Segoe Script", cursive;
-  --type-body: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --type-body:
+    "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --type-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
   /* Échelle typographique (titres en minuscules serrées : letter-spacing négatif) */
@@ -136,7 +138,9 @@
   --btn-primary-ink: var(--accent-ink);
   --field-h: 3rem;
   --field-text: 1rem;
-  --field-focus: inset 0 0 0 2px var(--ink), 0 0 0 4px color-mix(in srgb, var(--focus-halo) 70%, transparent);
+  --field-focus:
+    inset 0 0 0 2px var(--ink),
+    0 0 0 4px color-mix(in srgb, var(--focus-halo) 70%, transparent);
   --label-family: var(--type-label);
   --label-weight: 700;
   --label-size: 0.8rem;
@@ -229,8 +233,10 @@
   --r-xl: 16px;
   --r-panel: 16px;
   --elev-sm: 0 1px 2px rgba(34, 34, 34, 0.04);
-  --elev-md: 0 1px 2px rgba(34, 34, 34, 0.04), 0 8px 24px rgba(34, 34, 34, 0.05);
-  --elev-lg: 0 1px 2px rgba(34, 34, 34, 0.04), 0 16px 40px rgba(34, 34, 34, 0.07);
+  --elev-md:
+    0 1px 2px rgba(34, 34, 34, 0.04), 0 8px 24px rgba(34, 34, 34, 0.05);
+  --elev-lg:
+    0 1px 2px rgba(34, 34, 34, 0.04), 0 16px 40px rgba(34, 34, 34, 0.07);
   --type-display: var(--type-body);
   --type-label: var(--type-body);
   --tracking-display: -0.02em;

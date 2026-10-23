@@ -14,7 +14,10 @@ function Codes({ codes }: { codes: string[] }) {
     <div className="grid gap-2 rounded-md bg-warning-soft p-4" role="status">
       <p className="font-semibold">{t("codesTitle")}</p>
       <p className="text-sm">{t("codesBody")}</p>
-      <ul className="grid grid-cols-2 gap-1 font-mono text-sm" data-testid="recovery-codes">
+      <ul
+        className="grid grid-cols-2 gap-1 font-mono text-sm"
+        data-testid="recovery-codes"
+      >
         {codes.map((c) => (
           <li key={c}>{c}</li>
         ))}
@@ -31,14 +34,24 @@ export function EnableForm() {
     <form action={action} className="grid gap-3">
       <label className="grid gap-1.5 text-sm font-semibold">
         {t("code")}
-        <input name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} className={input} />
+        <input
+          name="code"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={8}
+          className={input}
+        />
       </label>
       {state?.error ? (
         <p role="alert" className="text-sm text-danger">
           {t(state.error)}
         </p>
       ) : null}
-      <button type="submit" disabled={pending} className={`${button} bg-surface-inverse text-ink-inverse`}>
+      <button
+        type="submit"
+        disabled={pending}
+        className={`${button} bg-surface-inverse text-ink-inverse`}
+      >
         {t("enable")}
       </button>
     </form>
@@ -47,33 +60,55 @@ export function EnableForm() {
 
 export function ManageForms({ staff }: { staff: boolean }) {
   const t = useTranslations("twoFactor");
-  const [regen, regenAction, regenPending] = useActionState(regenerateAction, null);
+  const [regen, regenAction, regenPending] = useActionState(
+    regenerateAction,
+    null,
+  );
   const [dis, disAction, disPending] = useActionState(disableAction, null);
   return (
     <div className="grid gap-6">
       {regen?.codes ? <Codes codes={regen.codes} /> : null}
       <form action={regenAction} className="grid gap-3">
         <p className="font-semibold">{t("regenerateTitle")}</p>
-        <input name="code" aria-label={t("code")} inputMode="numeric" maxLength={8} className={input} />
+        <input
+          name="code"
+          aria-label={t("code")}
+          inputMode="numeric"
+          maxLength={8}
+          className={input}
+        />
         {regen?.error ? (
           <p role="alert" className="text-sm text-danger">
             {t(regen.error)}
           </p>
         ) : null}
-        <button type="submit" disabled={regenPending} className={`${button} shadow-[inset_0_0_0_1.5px_var(--line-strong)]`}>
+        <button
+          type="submit"
+          disabled={regenPending}
+          className={`${button} shadow-[inset_0_0_0_1.5px_var(--line-strong)]`}
+        >
           {t("regenerate")}
         </button>
       </form>
       {!staff ? (
         <form action={disAction} className="grid gap-3">
           <p className="font-semibold">{t("disableTitle")}</p>
-          <input name="code" aria-label={t("codeOrRecovery")} maxLength={12} className={input} />
+          <input
+            name="code"
+            aria-label={t("codeOrRecovery")}
+            maxLength={12}
+            className={input}
+          />
           {dis?.error ? (
             <p role="alert" className="text-sm text-danger">
               {t(dis.error)}
             </p>
           ) : null}
-          <button type="submit" disabled={disPending} className={`${button} text-danger`}>
+          <button
+            type="submit"
+            disabled={disPending}
+            className={`${button} text-danger`}
+          >
             {t("disable")}
           </button>
         </form>
@@ -106,30 +141,48 @@ export function TwoFactorPanel({
       {state?.codes ? <Codes codes={state.codes} /> : null}
       {enabled ? (
         <>
-          <p className="rounded-md bg-success-soft px-4 py-3 text-sm font-semibold text-success">{status}</p>
+          <p className="rounded-md bg-success-soft px-4 py-3 text-sm font-semibold text-success">
+            {status}
+          </p>
           <ManageForms staff={staff} />
         </>
       ) : setup ? (
         <>
           <p className="text-ink-muted">{t("intro")}</p>
-          <div className="w-fit rounded-xl bg-blanc p-3" dangerouslySetInnerHTML={{ __html: setup.qr }} />
+          <div
+            className="w-fit rounded-xl bg-blanc p-3"
+            dangerouslySetInnerHTML={{ __html: setup.qr }}
+          />
           <p className="text-sm text-ink-muted">
             {t("manualKey")}{" "}
-            <code className="select-all break-all font-mono text-ink" data-testid="totp-secret">
+            <code
+              className="select-all break-all font-mono text-ink"
+              data-testid="totp-secret"
+            >
               {setup.secret}
             </code>
           </p>
           <form action={action} className="grid gap-3">
             <label className="grid gap-1.5 text-sm font-semibold">
               {t("code")}
-              <input name="code" inputMode="numeric" autoComplete="one-time-code" maxLength={8} className={input} />
+              <input
+                name="code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={8}
+                className={input}
+              />
             </label>
             {state?.error ? (
               <p role="alert" className="text-sm text-danger">
                 {t(state.error)}
               </p>
             ) : null}
-            <button type="submit" disabled={pending} className={`${button} bg-surface-inverse text-ink-inverse`}>
+            <button
+              type="submit"
+              disabled={pending}
+              className={`${button} bg-surface-inverse text-ink-inverse`}
+            >
               {t("enable")}
             </button>
           </form>

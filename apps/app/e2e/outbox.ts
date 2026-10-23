@@ -7,7 +7,11 @@ const DIR = process.env.EMAIL_OUTBOX_DIR ?? "/tmp/evoly-outbox";
 export async function lastEmail(
   to: string,
   template: string,
-): Promise<{ subject: string; text: string; attachments?: Array<{ filename: string; contentType: string; size: number }> }> {
+): Promise<{
+  subject: string;
+  text: string;
+  attachments?: Array<{ filename: string; contentType: string; size: number }>;
+}> {
   for (let i = 0; i < 50; i++) {
     const files = (() => {
       try {

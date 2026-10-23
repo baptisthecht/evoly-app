@@ -11,14 +11,21 @@ export async function POST(req: Request) {
   const body = await req.text();
   const ok = verifyResendSignature(
     secret,
-    { id: req.headers.get("svix-id"), timestamp: req.headers.get("svix-timestamp"), signature: req.headers.get("svix-signature") },
+    {
+      id: req.headers.get("svix-id"),
+      timestamp: req.headers.get("svix-timestamp"),
+      signature: req.headers.get("svix-signature"),
+    },
     body,
   );
   if (!ok) return new Response("Signature invalide", { status: 400 });
   try {
     return Response.json({ outcome: await applyResendEvent(JSON.parse(body)) });
   } catch (err) {
-    console.error("webhook Resend", err instanceof Error ? err.message : "erreur");
+    console.error(
+      "webhook Resend",
+      err instanceof Error ? err.message : "erreur",
+    );
     return new Response("Erreur", { status: 500 });
   }
 }

@@ -9,7 +9,13 @@ import { EventTabs } from "./EventTabs";
 import { ShareLink } from "./ShareLink";
 
 /** Bande blanche pleine largeur en haut d'un événement (maquette validée) : fil d'Ariane, titre, statut, date, lieu, boutons, onglets. */
-export async function EventHeader({ orgSlug, eventId }: { orgSlug: string; eventId: string }) {
+export async function EventHeader({
+  orgSlug,
+  eventId,
+}: {
+  orgSlug: string;
+  eventId: string;
+}) {
   const data = await eventHeaderData(orgSlug, eventId);
   if (!data) return null;
   const { ctx, event, base, tabs, hidden } = data;
@@ -22,7 +28,10 @@ export async function EventHeader({ orgSlug, eventId }: { orgSlug: string; event
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="grid min-w-0 gap-1">
             <p className="text-xs text-ink-muted">
-              <Link href={`/o/${ctx.organization.slug}/events`} className="hover:text-ink">
+              <Link
+                href={`/o/${ctx.organization.slug}/events`}
+                className="hover:text-ink"
+              >
                 {t("events")}
               </Link>{" "}
               / {event.title}
@@ -54,7 +63,10 @@ export async function EventHeader({ orgSlug, eventId }: { orgSlug: string; event
               </svg>
               {t("viewPage")}
             </Link>
-            <ShareLink url={eventPublicUrl(ctx.organization, event)} title={event.title} />
+            <ShareLink
+              url={eventPublicUrl(ctx.organization, event)}
+              title={event.title}
+            />
           </div>
         </div>
         <EventTabs tabs={tabs} hidden={hidden} />

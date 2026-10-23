@@ -6,12 +6,18 @@ import { requireUser } from "@/server/session";
 export default async function Index() {
   const session = await requireUser();
   const memberships = await db.organizationMember.findMany({
-    where: { userId: session.user.id, status: "ACTIVE", organization: { status: "ACTIVE", deletedAt: null } },
+    where: {
+      userId: session.user.id,
+      status: "ACTIVE",
+      organization: { status: "ACTIVE", deletedAt: null },
+    },
     select: { organizationId: true, organization: { select: { slug: true } } },
     orderBy: { joinedAt: "asc" },
   });
   if (memberships.length === 0) redirect("/onboarding");
-  const activeId = (session.session as { activeOrganizationId?: string | null }).activeOrganizationId;
-  const active = memberships.find((m) => m.organizationId === activeId) ?? memberships[0]!;
+  const activeId = (session.session as { activeOrganizationId?: string | null })
+    .activeOrganizationId;
+  const active =
+    memberships.find((m) => m.organizationId === activeId) ?? memberships[0]!;
   redirect(`/o/${active.organization.slug}`);
 }

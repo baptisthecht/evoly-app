@@ -5,7 +5,11 @@ import { SellPanel } from "@/components/scanner/SellPanel";
 import { Fr } from "./intl";
 
 const s = (fr as unknown as Record<string, Record<string, string>>).scanner!;
-const sale = { currency: "EUR", ticketTypes: [{ id: "t1", name: "Entrée", priceMinor: 1_000, remaining: 10 }], options: [] };
+const sale = {
+  currency: "EUR",
+  ticketTypes: [{ id: "t1", name: "Entrée", priceMinor: 1_000, remaining: 10 }],
+  options: [],
+};
 let orders: string[] = [];
 const pendingChecks = new Map<string, (r: Response) => void>();
 beforeEach(() => {
@@ -16,10 +20,20 @@ beforeEach(() => {
     "fetch",
     vi.fn(async (url: string, init?: RequestInit) => {
       if (init?.method === "POST")
-        return new Response(JSON.stringify({ orderId: orders.shift(), qrSvg: "<svg></svg>", totalMinor: 1_000, status: "PENDING" }), {
-          headers: { "content-type": "application/json" },
-        });
-      const order = new URL(String(url), "https://x").searchParams.get("order")!;
+        return new Response(
+          JSON.stringify({
+            orderId: orders.shift(),
+            qrSvg: "<svg></svg>",
+            totalMinor: 1_000,
+            status: "PENDING",
+          }),
+          {
+            headers: { "content-type": "application/json" },
+          },
+        );
+      const order = new URL(String(url), "https://x").searchParams.get(
+        "order",
+      )!;
       return new Promise<Response>((ok) => pendingChecks.set(order, ok)); // la vérification répondra plus tard
     }),
   );
@@ -28,7 +42,10 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
-const paid = () => new Response(JSON.stringify({ status: "PAID", tickets: 1 }), { headers: { "content-type": "application/json" } });
+const paid = () =>
+  new Response(JSON.stringify({ status: "PAID", tickets: 1 }), {
+    headers: { "content-type": "application/json" },
+  });
 
 describe("vente sur place par QR code : le statut d'une commande ne s'applique jamais à une autre", () => {
   it("vérification de la vente A arrivée après le début de la vente B : B reste en attente de paiement", async () => {
@@ -38,12 +55,25 @@ describe("vente sur place par QR code : le statut d'une commande ne s'applique j
       </Fr>,
     );
     fireEvent.click(screen.getByRole("button", { name: "+ Entrée" }));
-    await act(async () => void fireEvent.click(screen.getByRole("button", { name: /Paiement par QR code/ })));
+    await act(
+      async () =>
+        void fireEvent.click(
+          screen.getByRole("button", { name: /Paiement par QR code/ }),
+        ),
+    );
     await act(async () => void (await vi.advanceTimersByTimeAsync(2_600))); // vérification de A lancée, sans réponse encore
     expect(pendingChecks.has("commande-A")).toBe(true);
-    await act(async () => void fireEvent.click(screen.getByRole("button", { name: s.sellQrNew })));
+    await act(
+      async () =>
+        void fireEvent.click(screen.getByRole("button", { name: s.sellQrNew })),
+    );
     fireEvent.click(screen.getByRole("button", { name: "+ Entrée" }));
-    await act(async () => void fireEvent.click(screen.getByRole("button", { name: /Paiement par QR code/ })));
+    await act(
+      async () =>
+        void fireEvent.click(
+          screen.getByRole("button", { name: /Paiement par QR code/ }),
+        ),
+    );
     expect(screen.getByText(s.sellQrWaiting!)).toBeTruthy(); // vente B en attente
     await act(async () => pendingChecks.get("commande-A")!(paid())); // A payée… mais en retard
     await act(async () => void (await vi.advanceTimersByTimeAsync(10)));

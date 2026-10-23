@@ -1,6 +1,12 @@
 "use client";
 
-import { grossForNet, netForGross, parseMajorToMinor, roundedPriceOptions, type FeeTerms } from "@evoly/core";
+import {
+  grossForNet,
+  netForGross,
+  parseMajorToMinor,
+  roundedPriceOptions,
+  type FeeTerms,
+} from "@evoly/core";
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
@@ -46,7 +52,9 @@ export function PriceFields({
   const locale = useLocale() as Locale;
   const [netText, setNetText] = useState<string | null>(null); // null : déduit du prix
   const priceMinor = parseMajorToMinor(price);
-  const shownNet = netText ?? (priceMinor != null ? toInput(netForGross(priceMinor, terms), locale) : "");
+  const shownNet =
+    netText ??
+    (priceMinor != null ? toInput(netForGross(priceMinor, terms), locale) : "");
   const onNet = (value: string) => {
     setNetText(value);
     const net = parseMajorToMinor(value);
@@ -58,8 +66,26 @@ export function PriceFields({
   };
   const options = !locked && priceMinor ? roundedPriceOptions(priceMinor) : [];
   const f = (v: number) => formatMoney(v, terms.currency, locale);
-  const netInput = <Input id={`${id}-net`} inputMode="decimal" value={shownNet} onChange={(e) => onNet(e.target.value)} readOnly={locked} />;
-  const priceInput = <Input id={id} name={name} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} readOnly={locked} required />;
+  const netInput = (
+    <Input
+      id={`${id}-net`}
+      inputMode="decimal"
+      value={shownNet}
+      onChange={(e) => onNet(e.target.value)}
+      readOnly={locked}
+    />
+  );
+  const priceInput = (
+    <Input
+      id={id}
+      name={name}
+      inputMode="decimal"
+      value={price}
+      onChange={(e) => setPrice(e.target.value)}
+      readOnly={locked}
+      required
+    />
+  );
   return (
     <div className="grid gap-3">
       {compact ? (
@@ -75,7 +101,11 @@ export function PriceFields({
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label={t("youGet")} htmlFor={`${id}-net`} hint={t("youGetHint")}>
+          <Field
+            label={t("youGet")}
+            htmlFor={`${id}-net`}
+            hint={t("youGetHint")}
+          >
             {netInput}
           </Field>
           <Field label={label} htmlFor={id} hint={hint} error={error}>
@@ -93,7 +123,12 @@ export function PriceFields({
               onClick={() => setPrice(toInput(o, locale))}
               className="min-h-9 rounded-full px-3 font-semibold ring-1 ring-line-strong"
             >
-              {t("roundOption", { price: formatMoney(o, terms.currency, locale, { trimZeroCents: true }), net: f(netForGross(o, terms)) })}
+              {t("roundOption", {
+                price: formatMoney(o, terms.currency, locale, {
+                  trimZeroCents: true,
+                }),
+                net: f(netForGross(o, terms)),
+              })}
             </button>
           ))}
         </div>

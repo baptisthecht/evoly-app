@@ -1,14 +1,24 @@
 import { effectivePlan } from "@evoly/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const fake = vi.hoisted(() => ({ available: true, credits: [] as Array<{ customer: string; amount: number; currency: string }> }));
+const fake = vi.hoisted(() => ({
+  available: true,
+  credits: [] as Array<{ customer: string; amount: number; currency: string }>,
+}));
 vi.mock("@/lib/stripe", () => ({
   stripe: () =>
     fake.available
       ? {
           customers: {
-            createBalanceTransaction: async (customer: string, p: { amount: number; currency: string }) => (
-              fake.credits.push({ customer, amount: p.amount, currency: p.currency }),
+            createBalanceTransaction: async (
+              customer: string,
+              p: { amount: number; currency: string },
+            ) => (
+              fake.credits.push({
+                customer,
+                amount: p.amount,
+                currency: p.currency,
+              }),
               {}
             ),
           },
@@ -26,10 +36,21 @@ type Sub = {
   stripeSubscriptionId?: string | null;
   stripeCustomerId?: string | null;
 };
-async function setup(referrer: { sub?: Sub; status?: "ACTIVE" | "SUSPENDED" } = {}, referredName = "Les Amis du Jazz") {
+async function setup(
+  referrer: { sub?: Sub; status?: "ACTIVE" | "SUSPENDED" } = {},
+  referredName = "Les Amis du Jazz",
+) {
   const id = rid();
-  const owner = await db.user.create({ data: { name: "Camille", email: `parrain.${id}@exemple.be`, emailVerified: true } });
-  const role = await db.role.findUniqueOrThrow({ where: { systemKey: "OWNER" } });
+  const owner = await db.user.create({
+    data: {
+      name: "Camille",
+      email: `parrain.${id}@exemple.be`,
+      emailVerified: true,
+    },
+  });
+  const role = await db.role.findUniqueOrThrow({
+    where: { systemKey: "OWNER" },
+  });
   const parrain = await db.organization.create({
     data: {
       name: "Club parrain",
@@ -56,13 +77,29 @@ async function setup(referrer: { sub?: Sub; status?: "ACTIVE" | "SUSPENDED" } = 
     },
   });
   const filleul = await db.organization.create({
-    data: { name: referredName, slug: `filleul-${id}`, subdomain: `filleul-${id}`, country: "BE", currency: "EUR" },
+    data: {
+      name: referredName,
+      slug: `filleul-${id}`,
+      subdomain: `filleul-${id}`,
+      country: "BE",
+      currency: "EUR",
+    },
   });
-  await db.referral.create({ data: { code: `PAR${id}`.toUpperCase(), referrerOrgId: parrain.id, referredOrgId: filleul.id, status: "SIGNED_UP" } });
+  await db.referral.create({
+    data: {
+      code: `PAR${id}`.toUpperCase(),
+      referrerOrgId: parrain.id,
+      referredOrgId: filleul.id,
+      status: "SIGNED_UP",
+    },
+  });
   return { parrain, filleul, owner };
 }
-const sub = (orgId: string) => db.subscription.findUnique({ where: { organizationId: orgId } });
-const status = async (filleulId: string) => (await db.referral.findUniqueOrThrow({ where: { referredOrgId: filleulId } })).status;
+const sub = (orgId: string) =>
+  db.subscription.findUnique({ where: { organizationId: orgId } });
+const status = async (filleulId: string) =>
+  (await db.referral.findUniqueOrThrow({ where: { referredOrgId: filleulId } }))
+    .status;
 beforeEach(() => {
   fake.available = true;
   fake.credits = [];
@@ -80,7 +117,13 @@ describe("récompense du parrainage : un mois de Pro au parrain, une seule fois 
     });
     const before = await sub(s.parrain.id);
     expect(await qualifyReferral(s.filleul.id)).toBe(true);
-    expect(fake.credits).toEqual([{ customer: expect.stringMatching(/^cus_parrain_/), amount: -2900, currency: "eur" }]);
+    expect(fake.credits).toEqual([
+      {
+        customer: expect.stringMatching(/^cus_parrain_/),
+        amount: -2900,
+        currency: "eur",
+      },
+    ]);
     expect(await sub(s.parrain.id)).toMatchObject({
       status: before!.status,
       stripeSubscriptionId: before!.stripeSubscriptionId,
@@ -101,10 +144,16 @@ describe("récompense du parrainage : un mois de Pro au parrain, une seule fois 
 
   it("Pro offert en cours : les 30 jours s'ajoutent à la suite ; Pro sans limite : rien à ajouter", async () => {
     const end = new Date(Date.now() + 10 * day);
-    const s = await setup({ sub: { status: "CANCELED", currentPeriodEnd: end } });
+    const s = await setup({
+      sub: { status: "CANCELED", currentPeriodEnd: end },
+    });
     await qualifyReferral(s.filleul.id);
-    expect((await sub(s.parrain.id))!.currentPeriodEnd!.getTime()).toBe(end.getTime() + 30 * day);
-    const unlimited = await setup({ sub: { status: "ACTIVE", currentPeriodEnd: null } });
+    expect((await sub(s.parrain.id))!.currentPeriodEnd!.getTime()).toBe(
+      end.getTime() + 30 * day,
+    );
+    const unlimited = await setup({
+      sub: { status: "ACTIVE", currentPeriodEnd: null },
+    });
     await qualifyReferral(unlimited.filleul.id);
     expect((await sub(unlimited.parrain.id))!.currentPeriodEnd).toBeNull();
   });
@@ -128,7 +177,13 @@ describe("récompense du parrainage : un mois de Pro au parrain, une seule fois 
 
   it("Stripe indisponible pour un abonnement en cours : récompense reportée à la vente suivante, puis donnée une seule fois", async () => {
     fake.available = false;
-    const s = await setup({ sub: { status: "ACTIVE", stripeSubscriptionId: `sub_${rid()}`, stripeCustomerId: `cus_parrain_${rid()}` } });
+    const s = await setup({
+      sub: {
+        status: "ACTIVE",
+        stripeSubscriptionId: `sub_${rid()}`,
+        stripeCustomerId: `cus_parrain_${rid()}`,
+      },
+    });
     expect(await qualifyReferral(s.filleul.id)).toBe(false);
     expect(await status(s.filleul.id)).toBe("SIGNED_UP");
     fake.available = true;
@@ -150,7 +205,9 @@ describe("récompense du parrainage : un mois de Pro au parrain, une seule fois 
   it("e-mail au parrain : le nom de l'organisation parrainée ne peut pas injecter de HTML", async () => {
     const s = await setup({}, "<b>Club piégé</b>");
     await qualifyReferral(s.filleul.id);
-    const mail = await db.emailMessage.findFirstOrThrow({ where: { template: "referral.rewarded", toEmail: s.owner.email } });
+    const mail = await db.emailMessage.findFirstOrThrow({
+      where: { template: "referral.rewarded", toEmail: s.owner.email },
+    });
     expect(mail.toEmail).toBe(s.owner.email);
     const html = (mail as unknown as { html?: string | null }).html;
     if (html) expect(html).not.toContain("<b>Club piégé</b>");

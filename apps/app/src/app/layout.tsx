@@ -18,7 +18,11 @@ const BASE: Metadata = {
 /** Sur app.evoly.me seulement : application installable (manifeste, réglages iPhone). Jamais sur les billetteries. */
 export async function generateMetadata(): Promise<Metadata> {
   if (!(await isAppHost())) return BASE;
-  return { ...BASE, manifest: "/app.webmanifest", appleWebApp: { capable: true, title: "Evoly", statusBarStyle: "black" } };
+  return {
+    ...BASE,
+    manifest: "/app.webmanifest",
+    appleWebApp: { capable: true, title: "Evoly", statusBarStyle: "black" },
+  };
 }
 
 export const viewport: Viewport = {
@@ -31,8 +35,16 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const [locale, messages, appHost] = await Promise.all([getLocale(), getMessages(), isAppHost()]);
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [locale, messages, appHost] = await Promise.all([
+    getLocale(),
+    getMessages(),
+    isAppHost(),
+  ]);
   return (
     <html lang={locale} className={appHost ? "app-host" : undefined}>
       <body className="min-h-dvh">

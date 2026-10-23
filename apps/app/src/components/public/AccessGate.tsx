@@ -15,8 +15,14 @@ export function AccessGate({ eventId }: { eventId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   return (
-    <section className="mx-auto grid w-full max-w-md gap-4 px-5 py-16 text-center" aria-labelledby="access-title">
-      <h1 id="access-title" className="font-display text-3xl tracking-[-0.04em]">
+    <section
+      className="mx-auto grid w-full max-w-md gap-4 px-5 py-16 text-center"
+      aria-labelledby="access-title"
+    >
+      <h1
+        id="access-title"
+        className="font-display text-3xl tracking-[-0.04em]"
+      >
         {t("privateTitle")}
       </h1>
       <p className="text-ink-muted">{t("privateBody")}</p>
@@ -29,7 +35,12 @@ export function AccessGate({ eventId }: { eventId: string }) {
           const res = await unlockEventAction(eventId, code);
           setBusy(false);
           if (res.ok) router.refresh();
-          else setError(res.error === "RATE_LIMITED" ? t("privateTooMany") : t("privateWrong"));
+          else
+            setError(
+              res.error === "RATE_LIMITED"
+                ? t("privateTooMany")
+                : t("privateWrong"),
+            );
         }}
       >
         <Input
@@ -46,7 +57,11 @@ export function AccessGate({ eventId }: { eventId: string }) {
             {error}
           </p>
         ) : null}
-        <Button type="submit" size="lg" disabled={busy || code.trim().length < 4}>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={busy || code.trim().length < 4}
+        >
           {t("privateSubmit")}
         </Button>
       </form>

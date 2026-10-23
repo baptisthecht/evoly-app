@@ -7,17 +7,28 @@ import { getPublicOrganization } from "@/server/publicEvents";
 import { PayAtVenue } from "./PayAtVenue";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Paiement", robots: { index: false, follow: false }, referrer: "no-referrer" };
+export const metadata: Metadata = {
+  title: "Paiement",
+  robots: { index: false, follow: false },
+  referrer: "no-referrer",
+};
 
 /** Page de paiement d'une vente sur place, ouverte en scannant le QR code de l'équipe (section 9.27). */
-export default async function PayPage({ params }: { params: Promise<{ sub: string; token: string }> }) {
+export default async function PayPage({
+  params,
+}: {
+  params: Promise<{ sub: string; token: string }>;
+}) {
   const { sub, token } = await params;
   const org = await getPublicOrganization(sub);
   if (!org) notFound();
   const t = await getTranslations("public");
   const r = await reservationByToken(token.slice(0, 120));
   const event = r
-    ? await db.event.findFirst({ where: { orders: { some: { id: r.orderId } }, organizationId: org.id }, select: { title: true, requireBuyerPhone: true } })
+    ? await db.event.findFirst({
+        where: { orders: { some: { id: r.orderId } }, organizationId: org.id },
+        select: { title: true, requireBuyerPhone: true },
+      })
     : null;
   return (
     <main className="min-h-dvh bg-surface px-5 py-10 text-ink">
@@ -26,7 +37,9 @@ export default async function PayPage({ params }: { params: Promise<{ sub: strin
           <>
             <header className="grid gap-1">
               <p className="text-sm text-ink-muted">{t("payTitle")}</p>
-              <h1 className="font-display text-3xl tracking-[-0.03em]">{event.title}</h1>
+              <h1 className="font-display text-3xl tracking-[-0.03em]">
+                {event.title}
+              </h1>
             </header>
             <PayAtVenue
               reservation={{
@@ -46,7 +59,9 @@ export default async function PayPage({ params }: { params: Promise<{ sub: strin
               }}
               organizationName={org.brand?.displayName ?? org.name}
               requirePhone={event.requireBuyerPhone}
-              publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null}
+              publishableKey={
+                process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null
+              }
             />
           </>
         ) : (

@@ -14,47 +14,99 @@ export async function applyRetention(now = new Date()) {
   const sevenYears = new Date(now.getTime() - 7 * YEAR);
   const oneYear = new Date(now.getTime() - YEAR);
   const old = await db.order.findMany({
-    where: { createdAt: { lt: sevenYears }, NOT: { buyerEmail: { startsWith: "anonyme+" } } },
+    where: {
+      createdAt: { lt: sevenYears },
+      NOT: { buyerEmail: { startsWith: "anonyme+" } },
+    },
     select: { id: true },
     take: 5000,
   });
   const ids = old.map((o) => o.id);
   if (ids.length) {
     await db.$transaction([
-      db.order.updateMany({ where: { id: { in: ids } }, data: { buyerFirstName: "Anonyme", buyerLastName: "", buyerPhone: null, marketingOptIn: false } }),
+      db.order.updateMany({
+        where: { id: { in: ids } },
+        data: {
+          buyerFirstName: "Anonyme",
+          buyerLastName: "",
+          buyerPhone: null,
+          marketingOptIn: false,
+        },
+      }),
       db.$executeRaw`UPDATE "Order" SET "buyerEmail" = 'anonyme+' || id || '@evoly.invalid' WHERE id = ANY(${ids})`,
-      db.ticket.updateMany({ where: { orderId: { in: ids } }, data: { holderFirstName: null, holderLastName: null, holderEmail: null } }),
-      db.resaleListing.updateMany({ where: { sellerOrderId: { in: ids } }, data: { sellerEmail: "anonyme@evoly.invalid" } }),
+      db.ticket.updateMany({
+        where: { orderId: { in: ids } },
+        data: {
+          holderFirstName: null,
+          holderLastName: null,
+          holderEmail: null,
+        },
+      }),
+      db.resaleListing.updateMany({
+        where: { sellerOrderId: { in: ids } },
+        data: { sellerEmail: "anonyme@evoly.invalid" },
+      }),
     ]);
   }
   const emails = await db.emailMessage.updateMany({
-    where: { queuedAt: { lt: oneYear }, NOT: { toEmail: "anonyme@evoly.invalid" } },
+    where: {
+      queuedAt: { lt: oneYear },
+      NOT: { toEmail: "anonyme@evoly.invalid" },
+    },
     data: { toEmail: "anonyme@evoly.invalid", retryPayload: undefined },
   });
-  const audit = await db.auditLog.deleteMany({ where: { createdAt: { lt: oneYear } } });
+  const audit = await db.auditLog.deleteMany({
+    where: { createdAt: { lt: oneYear } },
+  });
   // liste d'attente supprimée le lendemain de la fin de l'événement, ou de son début sans fin renseignée (RG-ATT-05)
   const yesterday = new Date(now.getTime() - DAY);
   const waitlist = await db.waitlistEntry.deleteMany({
-    where: { event: { OR: [{ endsAt: { lt: yesterday } }, { endsAt: null, startsAt: { lt: yesterday } }] } },
+    where: {
+      event: {
+        OR: [
+          { endsAt: { lt: yesterday } },
+          { endsAt: null, startsAt: { lt: yesterday } },
+        ],
+      },
+    },
   });
   // ambassadeurs anonymisés 12 mois après l'événement (RG-AMB-07) : nom générique, sans e-mail, lien privé invalidé ;
   // les ventes déjà attribuées restent, pour des statistiques justes
   const amb = await db.ambassador.findMany({
-    where: { event: { OR: [{ endsAt: { lt: oneYear } }, { endsAt: null, startsAt: { lt: oneYear } }] }, NOT: { statsToken: { startsWith: "anonyme-" } } },
+    where: {
+      event: {
+        OR: [
+          { endsAt: { lt: oneYear } },
+          { endsAt: null, startsAt: { lt: oneYear } },
+        ],
+      },
+      NOT: { statsToken: { startsWith: "anonyme-" } },
+    },
     select: { id: true },
     take: 5000,
   });
   const ambIds = amb.map((a) => a.id);
   if (ambIds.length)
     await db.$transaction([
-      db.ambassador.updateMany({ where: { id: { in: ambIds } }, data: { name: "Ambassadeur", email: null, active: false } }),
+      db.ambassador.updateMany({
+        where: { id: { in: ambIds } },
+        data: { name: "Ambassadeur", email: null, active: false },
+      }),
       db.$executeRaw`UPDATE "Ambassador" SET "statsToken" = 'anonyme-' || id WHERE id = ANY(${ambIds})`,
     ]);
   // billets vendus par les réseaux : nom de l'acheteur anonymisé 30 jours après l'événement (docs/COMPATIBILITE_RESEAUX.md,
   // décision du 22 octobre 2026) ; le billet reste, pour le bilan par canal et les entrées
   const thirtyDays = new Date(now.getTime() - 30 * DAY);
   const external = await db.externalTicket.updateMany({
-    where: { anonymizedAt: null, event: { OR: [{ endsAt: { lt: thirtyDays } }, { endsAt: null, startsAt: { lt: thirtyDays } }] } },
+    where: {
+      anonymizedAt: null,
+      event: {
+        OR: [
+          { endsAt: { lt: thirtyDays } },
+          { endsAt: null, startsAt: { lt: thirtyDays } },
+        ],
+      },
+    },
     data: { holderName: null, anonymizedAt: now },
   });
   return {

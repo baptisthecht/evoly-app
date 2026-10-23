@@ -7,8 +7,16 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), "..");
-const { chromium } = createRequire(join(WEB, "../app/package.json"))("@playwright/test");
-const paths = Object.fromEntries([...readFileSync(join(WEB, "paths.py"), "utf8").matchAll(/^(\w+)\s*=\s*['"]([^'"]+)['"]/gm)].map((m) => [m[1], m[2]]));
+const { chromium } = createRequire(join(WEB, "../app/package.json"))(
+  "@playwright/test",
+);
+const paths = Object.fromEntries(
+  [
+    ...readFileSync(join(WEB, "paths.py"), "utf8").matchAll(
+      /^(\w+)\s*=\s*['"]([^'"]+)['"]/gm,
+    ),
+  ].map((m) => [m[1], m[2]]),
+);
 const src = JSON.parse(readFileSync(join(WEB, "i18n/source.json"), "utf8"));
 const hash = (fr) => Object.keys(src).find((h) => src[h] === fr);
 const PHRASE = ["votre prochain", "événement", "commence ici"].map(hash);
@@ -22,7 +30,10 @@ const LOGO = (cls) =>
   `<svg class="${cls}" viewBox="10 4 380 286" aria-hidden="true"><g fill="currentColor">${["LIVE", "E", "V", "OLOGO", "L", "Y"].map((k) => `<path d="${paths[k]}"/>`).join("")}</g></svg>`;
 const GRAIN = `url("data:image/svg+xml;utf8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>")}")`;
 
-const html = (lang, [l1, l2, script]) => `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
+const html = (
+  lang,
+  [l1, l2, script],
+) => `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Poppins:wght@500;600&family=Yellowtail&display=block">
 <style>
   :root { --charbon:#222222; --creme:#FFF6F0; --lilas:#F3D9F0; --rose:#FFB8E8; }
@@ -73,12 +84,17 @@ const html = (lang, [l1, l2, script]) => `<!doctype html><html lang="${lang}"><h
 </body></html>`;
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
+const page = await browser.newPage({
+  viewport: { width: 1200, height: 630 },
+  deviceScaleFactor: 1,
+});
 for (const lang of LANGS) {
   await page.setContent(html(lang, words(lang)), { waitUntil: "networkidle" });
   await page.waitForSelector("body[data-pret='1']");
   const out = join(WEB, "static", lang === "fr" ? "og.png" : `og-${lang}.png`);
   await page.screenshot({ path: out, type: "png" });
-  console.log(`${lang} : ${out.replace(WEB + "/", "")} · ${words(lang).join(" ")}`);
+  console.log(
+    `${lang} : ${out.replace(WEB + "/", "")} · ${words(lang).join(" ")}`,
+  );
 }
 await browser.close();

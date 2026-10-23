@@ -7,19 +7,44 @@ import { orderAccessToken } from "./checkout";
 import type { OrgContext } from "./context";
 import { sendOrderConfirmation } from "./orders";
 
-export type OrderFilter = "ALL" | "PAID" | "PARTIALLY_REFUNDED" | "REFUNDED" | "REFUND_REQUESTED" | "REFUND_FAILED";
+export type OrderFilter =
+  | "ALL"
+  | "PAID"
+  | "PARTIALLY_REFUNDED"
+  | "REFUNDED"
+  | "REFUND_REQUESTED"
+  | "REFUND_FAILED";
 
 /** US-ORD-01 : recherche par nom, e-mail, référence ou code de billet, filtres par statut et par événement. */
-export async function searchOrders(ctx: OrgContext, opts: { q?: string; eventId?: string; ticketTypeId?: string; filter?: OrderFilter; page?: number }) {
+export async function searchOrders(
+  ctx: OrgContext,
+  opts: {
+    q?: string;
+    eventId?: string;
+    ticketTypeId?: string;
+    filter?: OrderFilter;
+    page?: number;
+  },
+) {
   const q = opts.q?.trim() ?? "";
   const where: Prisma.OrderWhereInput = {
     organizationId: ctx.organization.id,
     status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED", "FAILED"] },
     ...(opts.eventId ? { eventId: opts.eventId } : {}),
-    ...(opts.ticketTypeId ? { items: { some: { ticketTypeId: opts.ticketTypeId } } } : {}),
-    ...(opts.filter === "PAID" || opts.filter === "PARTIALLY_REFUNDED" || opts.filter === "REFUNDED" ? { status: opts.filter } : {}),
-    ...(opts.filter === "REFUND_REQUESTED" ? { refunds: { some: { status: "REQUESTED" } } } : {}),
-    ...(opts.filter === "REFUND_FAILED" ? { refunds: { some: { status: "FAILED" } } } : {}),
+    ...(opts.ticketTypeId
+      ? { items: { some: { ticketTypeId: opts.ticketTypeId } } }
+      : {}),
+    ...(opts.filter === "PAID" ||
+    opts.filter === "PARTIALLY_REFUNDED" ||
+    opts.filter === "REFUNDED"
+      ? { status: opts.filter }
+      : {}),
+    ...(opts.filter === "REFUND_REQUESTED"
+      ? { refunds: { some: { status: "REQUESTED" } } }
+      : {}),
+    ...(opts.filter === "REFUND_FAILED"
+      ? { refunds: { some: { status: "FAILED" } } }
+      : {}),
     ...(q
       ? {
           OR: [
@@ -32,8 +57,18 @@ export async function searchOrders(ctx: OrgContext, opts: { q?: string; eventId?
               ? [
                   {
                     AND: [
-                      { buyerFirstName: { contains: q.split(" ")[0], mode: "insensitive" as const } },
-                      { buyerLastName: { contains: q.split(" ").slice(1).join(" "), mode: "insensitive" as const } },
+                      {
+                        buyerFirstName: {
+                          contains: q.split(" ")[0],
+                          mode: "insensitive" as const,
+                        },
+                      },
+                      {
+                        buyerLastName: {
+                          contains: q.split(" ").slice(1).join(" "),
+                          mode: "insensitive" as const,
+                        },
+                      },
                     ],
                   },
                 ]
@@ -52,11 +87,19 @@ export async function searchOrders(ctx: OrgContext, opts: { q?: string; eventId?
       include: {
         event: { select: { title: true } },
         _count: { select: { tickets: true } },
-        refunds: { where: { status: { in: ["REQUESTED", "FAILED"] } }, select: { status: true } },
+        refunds: {
+          where: { status: { in: ["REQUESTED", "FAILED"] } },
+          select: { status: true },
+        },
       },
     }),
     db.order.count({ where }),
-    db.refund.count({ where: { status: "REQUESTED", order: { organizationId: ctx.organization.id } } }),
+    db.refund.count({
+      where: {
+        status: "REQUESTED",
+        order: { organizationId: ctx.organization.id },
+      },
+    }),
   ]);
   return { rows, total, pendingRequests, pages: Math.ceil(total / 50) };
 }
@@ -68,24 +111,42 @@ export async function getOrderDetail(ctx: OrgContext, orderId: string) {
     include: {
       event: true,
       promoCode: { select: { code: true } },
-      items: { include: { ticketType: { select: { name: true } }, priceTier: { select: { name: true } } } },
-      options: { include: { option: { select: { name: true } } }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] }, // RG-OPT-07
+      items: {
+        include: {
+          ticketType: { select: { name: true } },
+          priceTier: { select: { name: true } },
+        },
+      },
+      options: {
+        include: { option: { select: { name: true } } },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      }, // RG-OPT-07
       tickets: {
         include: {
           ticketType: { select: { name: true } },
           seat: { select: { label: true, row: { select: { name: true } } } },
-          checkIns: { where: { result: "VALID" }, orderBy: { scannedAt: "asc" }, take: 1 },
+          checkIns: {
+            where: { result: "VALID" },
+            orderBy: { scannedAt: "asc" },
+            take: 1,
+          },
           refundItems: { select: { refund: { select: { status: true } } } },
         },
         orderBy: [{ ticketTypeId: "asc" }, { createdAt: "asc" }, { id: "asc" }],
       },
       refunds: {
-        include: { items: { include: { ticket: { select: { shortCode: true } } } }, handledBy: { select: { name: true } } },
+        include: {
+          items: { include: { ticket: { select: { shortCode: true } } } },
+          handledBy: { select: { name: true } },
+        },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       },
       soldListings: { orderBy: [{ createdAt: "desc" }, { id: "desc" }] },
       emailMessages: { orderBy: { queuedAt: "desc" }, take: 30 },
-      answers: { include: { question: { select: { label: true, sortOrder: true } } }, orderBy: { question: { sortOrder: "asc" } } },
+      answers: {
+        include: { question: { select: { label: true, sortOrder: true } } },
+        orderBy: { question: { sortOrder: "asc" } },
+      },
     },
   });
   if (!order) throw new CoreError("NOT_FOUND");
@@ -94,23 +155,46 @@ export async function getOrderDetail(ctx: OrgContext, orderId: string) {
 
 /** US-ORD-02 : renvoi des billets à l'acheteur. */
 export async function resendTickets(ctx: OrgContext, orderId: string) {
-  const order = await db.order.findFirst({ where: { id: orderId, organizationId: ctx.organization.id, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } });
+  const order = await db.order.findFirst({
+    where: {
+      id: orderId,
+      organizationId: ctx.organization.id,
+      status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
+    },
+  });
   if (!order) throw new CoreError("NOT_FOUND");
   await sendOrderConfirmation(order.id);
-  await audit({ action: "order.tickets_resent", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Order", targetId: order.id });
+  await audit({
+    action: "order.tickets_resent",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Order",
+    targetId: order.id,
+  });
 }
 
 /** RG-ORD-02 : nouvelle adresse, nouveau lien magique ; l'ancien lien est invalidé (version du jeton incrémentée). */
-export async function correctBuyerEmail(ctx: OrgContext, orderId: string, email: string) {
-  const order = await db.order.findFirst({ where: { id: orderId, organizationId: ctx.organization.id } });
+export async function correctBuyerEmail(
+  ctx: OrgContext,
+  orderId: string,
+  email: string,
+) {
+  const order = await db.order.findFirst({
+    where: { id: orderId, organizationId: ctx.organization.id },
+  });
   if (!order) throw new CoreError("NOT_FOUND");
   const next = email.trim().toLowerCase();
   // refusée avant tout changement : l'ancien lien de l'acheteur ne doit pas être invalidé pour une adresse inutilisable
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(next)) throw new CoreError("ORDER_EMAIL_INVALID");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(next))
+    throw new CoreError("ORDER_EMAIL_INVALID");
   const version = order.accessTokenVersion + 1;
   await db.order.update({
     where: { id: order.id },
-    data: { buyerEmail: next, accessTokenVersion: version, accessTokenHash: await sha256Hex(orderAccessToken(order.id, version)) },
+    data: {
+      buyerEmail: next,
+      accessTokenVersion: version,
+      accessTokenHash: await sha256Hex(orderAccessToken(order.id, version)),
+    },
   });
   await audit({
     action: "order.email_corrected",
@@ -121,16 +205,37 @@ export async function correctBuyerEmail(ctx: OrgContext, orderId: string, email:
     metadata: { from: order.buyerEmail, to: next },
   });
   // section 10 : order.email_changed, les billets envoyés à la nouvelle adresse (l'ancien lien ne fonctionne plus)
-  if (order.status === "PAID" || order.status === "PARTIALLY_REFUNDED") await sendOrderConfirmation(order.id, "order.email_changed");
+  if (order.status === "PAID" || order.status === "PARTIALLY_REFUNDED")
+    await sendOrderConfirmation(order.id, "order.email_changed");
 }
 
 /** US-ORD-02 : correction du nom d'un titulaire par l'organisateur. */
-export async function updateHolderByOrganizer(ctx: OrgContext, orderId: string, ticketId: string, holder: { firstName: string; lastName: string }) {
-  const ticket = await db.ticket.findFirst({ where: { id: ticketId, orderId, order: { organizationId: ctx.organization.id } } });
+export async function updateHolderByOrganizer(
+  ctx: OrgContext,
+  orderId: string,
+  ticketId: string,
+  holder: { firstName: string; lastName: string },
+) {
+  const ticket = await db.ticket.findFirst({
+    where: {
+      id: ticketId,
+      orderId,
+      order: { organizationId: ctx.organization.id },
+    },
+  });
   if (!ticket) throw new CoreError("NOT_FOUND");
   const firstName = holder.firstName.trim();
   const lastName = holder.lastName.trim();
   if (!firstName || !lastName) throw new CoreError("HOLDER_NAME_REQUIRED"); // un billet nominatif garde toujours un titulaire
-  await db.ticket.update({ where: { id: ticket.id }, data: { holderFirstName: firstName, holderLastName: lastName } });
-  await audit({ action: "ticket.holder_updated", organizationId: ctx.organization.id, actorUserId: ctx.user.id, targetType: "Ticket", targetId: ticket.id });
+  await db.ticket.update({
+    where: { id: ticket.id },
+    data: { holderFirstName: firstName, holderLastName: lastName },
+  });
+  await audit({
+    action: "ticket.holder_updated",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Ticket",
+    targetId: ticket.id,
+  });
 }

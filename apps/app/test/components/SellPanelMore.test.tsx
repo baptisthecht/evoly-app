@@ -11,8 +11,13 @@ const sale = {
   options: [{ id: "o1", name: "Vestiaire", priceMinor: 200, left: 1 }],
 };
 let posts: Array<Record<string, unknown>> = [];
-let reply: (body: Record<string, unknown>) => Response = () => new Response("{}", { status: 500 });
-const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
+let reply: (body: Record<string, unknown>) => Response = () =>
+  new Response("{}", { status: 500 });
+const json = (data: unknown, status = 200) =>
+  new Response(JSON.stringify(data), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 beforeEach(() => {
   posts = [];
   vi.stubGlobal(
@@ -34,14 +39,23 @@ const draw = () =>
       <SellPanel token="jeton" deviceId="appareil-1" sale={sale} />
     </Fr>,
   );
-const plus = async (user: ReturnType<typeof userEvent.setup>, name: string, n: number) => {
-  for (let i = 0; i < n; i++) await user.click(screen.getByRole("button", { name: `+ ${name}` }));
+const plus = async (
+  user: ReturnType<typeof userEvent.setup>,
+  name: string,
+  n: number,
+) => {
+  for (let i = 0; i < n; i++)
+    await user.click(screen.getByRole("button", { name: `+ ${name}` }));
 };
 const cash = () => screen.getByRole("button", { name: /Encaisser/ });
 
 describe("vente sur place : hors ligne, réseau coupé, retrait d'un billet, e-mail du client", () => {
   const s = (fr as unknown as Record<string, Record<string, string>>).scanner!;
-  const offline = (value: boolean) => Object.defineProperty(window.navigator, "onLine", { configurable: true, get: () => !value });
+  const offline = (value: boolean) =>
+    Object.defineProperty(window.navigator, "onLine", {
+      configurable: true,
+      get: () => !value,
+    });
   afterEach(() => offline(false));
 
   it("hors ligne : la vente est refusée avec le bon message, rien n'est envoyé", async () => {
@@ -71,10 +85,16 @@ describe("vente sur place : hors ligne, réseau coupé, retrait d'un billet, e-m
     draw();
     await plus(user, "Entrée", 2);
     await user.click(screen.getByRole("button", { name: "− Entrée" }));
-    await user.type(screen.getByRole("textbox", { name: s.sellEmail }), "  client@exemple.be ");
+    await user.type(
+      screen.getByRole("textbox", { name: s.sellEmail }),
+      "  client@exemple.be ",
+    );
     await user.click(cash());
     await waitFor(() => expect(posts).toHaveLength(1));
-    expect(posts[0]).toMatchObject({ action: "cash", email: "client@exemple.be" });
+    expect(posts[0]).toMatchObject({
+      action: "cash",
+      email: "client@exemple.be",
+    });
     expect(JSON.stringify(posts[0]!.lines)).toContain('"quantity":1');
   });
 });

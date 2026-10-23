@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import { QuickStartForm } from "@/app/start/QuickStartForm";
@@ -8,7 +14,8 @@ const actions = vi.hoisted(() => ({ quickStartAction: vi.fn() }));
 vi.mock("@/app/(auth)/actions", () => actions);
 const t = (fr as unknown as Record<string, Record<string, string>>).quickstart!;
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
-const change = (id: string, value: string) => fireEvent.change(document.getElementById(id)!, { target: { value } });
+const change = (id: string, value: string) =>
+  fireEvent.change(document.getElementById(id)!, { target: { value } });
 const madeleine = {
   id: "1",
   kind: "venue",
@@ -27,7 +34,10 @@ beforeEach(() => {
     vi.fn(async () => new Response(JSON.stringify({ places: [madeleine] }))),
   );
   actions.quickStartAction.mockReset();
-  actions.quickStartAction.mockResolvedValue({ ok: false, error: "EMAIL_TAKEN" });
+  actions.quickStartAction.mockResolvedValue({
+    ok: false,
+    error: "EMAIL_TAKEN",
+  });
 });
 afterEach(() => vi.unstubAllGlobals());
 const fillRequired = () => {
@@ -50,7 +60,9 @@ describe("création rapide (visiteurs des annonces)", () => {
     expect(document.getElementById("qs-email")).toBeNull();
     fillRequired();
     expect(screen.getByText(t.ready!)).toBeTruthy();
-    const preview = norm(screen.getAllByRole("region", { name: t.preview })[1]!.textContent!);
+    const preview = norm(
+      screen.getAllByRole("region", { name: t.preview })[1]!.textContent!,
+    );
     expect(preview).toContain("Soirée de rentrée");
     expect(preview).toContain("Salle des fêtes, Namur");
     expect(preview).toContain(t.free!);
@@ -72,7 +84,12 @@ describe("création rapide (visiteurs des annonces)", () => {
     change("qs-email", "nora@exemple.be");
     change("qs-password", "Motdepasse-2026!");
     fireEvent.click(screen.getByRole("checkbox"));
-    await act(async () => void fireEvent.submit(document.getElementById("qs-email")!.closest("form")!));
+    await act(
+      async () =>
+        void fireEvent.submit(
+          document.getElementById("qs-email")!.closest("form")!,
+        ),
+    );
     await waitFor(() => expect(actions.quickStartAction).toHaveBeenCalled());
     const data = actions.quickStartAction.mock.calls[0]!.at(-1) as FormData;
     expect([
@@ -84,10 +101,21 @@ describe("création rapide (visiteurs des annonces)", () => {
       data.get("orgName"),
       data.get("type"),
       data.get("terms"),
-    ]).toEqual(["Soirée de rentrée", "2027-02-20T20:00", "Namur", "", "", "Club Jeunesse", "COMPANY", "on"]);
+    ]).toEqual([
+      "Soirée de rentrée",
+      "2027-02-20T20:00",
+      "Namur",
+      "",
+      "",
+      "Club Jeunesse",
+      "COMPANY",
+      "on",
+    ]);
     expect(await screen.findByRole("link", { name: t.login })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: t.back }));
-    expect((document.getElementById("qs-title") as HTMLInputElement).value).toBe("Soirée de rentrée");
+    expect(
+      (document.getElementById("qs-title") as HTMLInputElement).value,
+    ).toBe("Soirée de rentrée");
   });
 
   it("offre en cours : annoncée à l'étape du compte ; aperçu en brouillon au nom de l'organisation", () => {
@@ -99,9 +127,13 @@ describe("création rapide (visiteurs des annonces)", () => {
     expect(screen.queryByRole("note")).toBeNull();
     fillRequired();
     fireEvent.click(screen.getByRole("button", { name: t.next }));
-    expect(screen.getByRole("note").textContent).toBe("3 mois de Pro offerts, sans carte bancaire.");
+    expect(screen.getByRole("note").textContent).toBe(
+      "3 mois de Pro offerts, sans carte bancaire.",
+    );
     change("qs-org", "Club Jeunesse");
-    const preview = norm(screen.getByRole("region", { name: t.preview }).textContent!);
+    const preview = norm(
+      screen.getByRole("region", { name: t.preview }).textContent!,
+    );
     expect(preview).toContain("club-jeunesse.evoly.me/soiree-de-rentree");
     expect(preview).toContain(t.draft!);
   });
@@ -116,22 +148,31 @@ describe("création rapide (visiteurs des annonces)", () => {
     change("qs-date", "2027-02-20");
     change("qs-time", "20:00");
     change("qs-place", "La Mad");
-    fireEvent.mouseDown(await screen.findByRole("option", { name: /La Madeleine/ }));
-    expect((document.getElementById("qs-city") as HTMLInputElement).value).toBe("Bruxelles");
+    fireEvent.mouseDown(
+      await screen.findByRole("option", { name: /La Madeleine/ }),
+    );
+    expect((document.getElementById("qs-city") as HTMLInputElement).value).toBe(
+      "Bruxelles",
+    );
     fireEvent.click(screen.getByRole("button", { name: t.next }));
     change("qs-org", "Club");
     change("qs-email", "nora@exemple.be");
     change("qs-password", "Motdepasse-2026!");
     fireEvent.click(screen.getByRole("checkbox"));
-    await act(async () => void fireEvent.submit(document.getElementById("qs-email")!.closest("form")!));
+    await act(
+      async () =>
+        void fireEvent.submit(
+          document.getElementById("qs-email")!.closest("form")!,
+        ),
+    );
     await waitFor(() => expect(actions.quickStartAction).toHaveBeenCalled());
     const data = actions.quickStartAction.mock.calls[0]!.at(-1) as FormData;
-    expect([data.get("locationName"), data.get("addressLine1"), data.get("postalCode"), data.get("city"), data.get("country")]).toEqual([
-      "La Madeleine",
-      "Rue Duquesnoy 14",
-      "1000",
-      "Bruxelles",
-      "BE",
-    ]);
+    expect([
+      data.get("locationName"),
+      data.get("addressLine1"),
+      data.get("postalCode"),
+      data.get("city"),
+      data.get("country"),
+    ]).toEqual(["La Madeleine", "Rue Duquesnoy 14", "1000", "Bruxelles", "BE"]);
   });
 });

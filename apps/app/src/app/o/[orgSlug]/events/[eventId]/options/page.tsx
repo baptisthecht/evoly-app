@@ -16,7 +16,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Options et consommations prépayées de l'événement (section 9.29, Pro). */
-export default async function OptionsPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function OptionsPage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
@@ -25,20 +29,33 @@ export default async function OptionsPage({ params }: { params: Promise<{ orgSlu
     return (
       <div className="grid gap-4">
         <p className="text-ink-muted">{t("intro")}</p>
-        <ProLocked orgSlug={orgSlug} feature="PREPAID_OPTIONS" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
+        <ProLocked
+          orgSlug={orgSlug}
+          feature="PREPAID_OPTIONS"
+          canUpgrade={can(ctx.membership, "BILLING_MANAGE")}
+        />
       </div>
     );
   }
   const options = await listOptions(ctx, eventId);
   const locale = (await getLocale()) as Locale;
-  const manage = can(ctx.membership, "TICKETS_MANAGE") && !ctx.readOnly && !["CANCELLED", "ENDED", "ARCHIVED"].includes(event.status);
+  const manage =
+    can(ctx.membership, "TICKETS_MANAGE") &&
+    !ctx.readOnly &&
+    !["CANCELLED", "ENDED", "ARCHIVED"].includes(event.status);
   const symbol =
-    new Intl.NumberFormat("fr-BE", { style: "currency", currency: event.currency }).formatToParts(0).find((p) => p.type === "currency")?.value ??
-    event.currency;
+    new Intl.NumberFormat("fr-BE", {
+      style: "currency",
+      currency: event.currency,
+    })
+      .formatToParts(0)
+      .find((p) => p.type === "currency")?.value ?? event.currency;
   return (
     <div className="grid gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
-      {options.length === 0 ? <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState> : null}
+      {options.length === 0 ? (
+        <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
+      ) : null}
       <ul className="grid gap-3">
         {options.map((o) => (
           <li key={o.id}>
@@ -47,14 +64,24 @@ export default async function OptionsPage({ params }: { params: Promise<{ orgSlu
                 <div className="grid min-w-0 gap-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-semibold">{o.name}</p>
-                    <Badge tone={o.active ? "success" : "neutral"}>{o.active ? t("active") : t("inactive")}</Badge>
+                    <Badge tone={o.active ? "success" : "neutral"}>
+                      {o.active ? t("active") : t("inactive")}
+                    </Badge>
                   </div>
                   <p className="text-sm text-ink-muted">
-                    {formatMoney(o.priceMinor, event.currency, locale, { trimZeroCents: true })} · {t("sold", { count: o.sold })}
-                    {o.stock != null ? ` ${t("stockOf", { stock: o.stock })}` : ` (${t("unlimited")})`} · {t("redeemed", { count: o.redeemed })} ·{" "}
+                    {formatMoney(o.priceMinor, event.currency, locale, {
+                      trimZeroCents: true,
+                    })}{" "}
+                    · {t("sold", { count: o.sold })}
+                    {o.stock != null
+                      ? ` ${t("stockOf", { stock: o.stock })}`
+                      : ` (${t("unlimited")})`}{" "}
+                    · {t("redeemed", { count: o.redeemed })} ·{" "}
                     {t("perOrder", { max: o.maxPerOrder })}
                   </p>
-                  {o.description ? <p className="text-sm">{o.description}</p> : null}
+                  {o.description ? (
+                    <p className="text-sm">{o.description}</p>
+                  ) : null}
                 </div>
                 {manage ? (
                   <OptionCommand
@@ -68,7 +95,9 @@ export default async function OptionsPage({ params }: { params: Promise<{ orgSlu
               </div>
               {manage ? (
                 <details>
-                  <summary className="cursor-pointer text-sm">{t("edit")}</summary>
+                  <summary className="cursor-pointer text-sm">
+                    {t("edit")}
+                  </summary>
                   <OptionForm
                     orgSlug={orgSlug}
                     eventId={eventId}
@@ -89,8 +118,16 @@ export default async function OptionsPage({ params }: { params: Promise<{ orgSlu
           </li>
         ))}
       </ul>
-      {manage ? <OptionsRefundPolicy orgSlug={orgSlug} eventId={eventId} allowed={event.optionsRefundAfterStart} /> : null}
-      {manage ? <OptionForm orgSlug={orgSlug} eventId={eventId} symbol={symbol} /> : null}
+      {manage ? (
+        <OptionsRefundPolicy
+          orgSlug={orgSlug}
+          eventId={eventId}
+          allowed={event.optionsRefundAfterStart}
+        />
+      ) : null}
+      {manage ? (
+        <OptionForm orgSlug={orgSlug} eventId={eventId} symbol={symbol} />
+      ) : null}
     </div>
   );
 }

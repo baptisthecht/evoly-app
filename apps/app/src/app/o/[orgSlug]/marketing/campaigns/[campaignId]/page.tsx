@@ -1,4 +1,11 @@
-import { blocksToEmailDoc, can, hasFeature, toEmailDoc, type CampaignBlock, type CampaignSegment } from "@evoly/core";
+import {
+  blocksToEmailDoc,
+  can,
+  hasFeature,
+  toEmailDoc,
+  type CampaignBlock,
+  type CampaignSegment,
+} from "@evoly/core";
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -29,35 +36,72 @@ export default async function CampaignPage({
   const { orgSlug, campaignId } = await params;
   const { template } = await searchParams;
   const ctx = await requireOrgContext(orgSlug);
-  if (!can(ctx.membership, "MARKETING_MANAGE") || !hasFeature(ctx.features, "EMAIL_MARKETING")) notFound();
+  if (
+    !can(ctx.membership, "MARKETING_MANAGE") ||
+    !hasFeature(ctx.features, "EMAIL_MARKETING")
+  )
+    notFound();
   const t = await getTranslations("campaigns");
   const tt = await getTranslations("campaignTemplates");
   const locale = (await getLocale()) as Locale;
   const [campaign, events, user, personal, ticketTypes] = await Promise.all([
-    campaignId === "new" ? null : db.emailCampaign.findFirst({ where: { id: campaignId, organizationId: ctx.organization.id } }),
+    campaignId === "new"
+      ? null
+      : db.emailCampaign.findFirst({
+          where: { id: campaignId, organizationId: ctx.organization.id },
+        }),
     db.event.findMany({
-      where: { organizationId: ctx.organization.id, deletedAt: null, status: { notIn: ["DRAFT", "ARCHIVED"] } },
+      where: {
+        organizationId: ctx.organization.id,
+        deletedAt: null,
+        status: { notIn: ["DRAFT", "ARCHIVED"] },
+      },
       select: { id: true, title: true, startsAt: true },
       orderBy: { startsAt: "desc" },
       take: 50,
     }),
-    db.user.findUniqueOrThrow({ where: { id: ctx.user.id }, select: { email: true } }),
+    db.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      select: { email: true },
+    }),
     listTemplates(ctx),
     db.ticketType.findMany({
-      where: { event: { organizationId: ctx.organization.id, deletedAt: null } },
+      where: {
+        event: { organizationId: ctx.organization.id, deletedAt: null },
+      },
       select: { id: true, name: true, eventId: true },
       orderBy: { sortOrder: "asc" },
     }),
   ]);
-  const chosen = template?.startsWith("personal:") ? personal.find((p) => p.id === template.slice(9)) : undefined;
+  const chosen = template?.startsWith("personal:")
+    ? personal.find((p) => p.id === template.slice(9))
+    : undefined;
   if (campaignId !== "new" && !campaign) notFound();
-  const upcoming = events.filter((e) => e.startsAt > new Date()).at(-1) ?? events[0];
-  const tpl = (TEMPLATES as readonly string[]).includes(template ?? "") ? (template as (typeof TEMPLATES)[number]) : "announce";
-  const eventBlock: CampaignBlock[] = upcoming ? [{ type: "event", eventId: upcoming.id }] : [];
+  const upcoming =
+    events.filter((e) => e.startsAt > new Date()).at(-1) ?? events[0];
+  const tpl = (TEMPLATES as readonly string[]).includes(template ?? "")
+    ? (template as (typeof TEMPLATES)[number])
+    : "announce";
+  const eventBlock: CampaignBlock[] = upcoming
+    ? [{ type: "event", eventId: upcoming.id }]
+    : [];
   const starters: Record<(typeof TEMPLATES)[number], CampaignBlock[]> = {
-    announce: [{ type: "heading", text: tt("announceHeading") }, { type: "text", text: tt("announceText") }, ...eventBlock],
-    lastSeats: [{ type: "heading", text: tt("lastSeatsHeading") }, { type: "text", text: tt("lastSeatsText") }, ...eventBlock],
-    thanks: [{ type: "heading", text: tt("thanksHeading") }, { type: "text", text: tt("thanksText") }, { type: "divider" }, ...eventBlock],
+    announce: [
+      { type: "heading", text: tt("announceHeading") },
+      { type: "text", text: tt("announceText") },
+      ...eventBlock,
+    ],
+    lastSeats: [
+      { type: "heading", text: tt("lastSeatsHeading") },
+      { type: "text", text: tt("lastSeatsText") },
+      ...eventBlock,
+    ],
+    thanks: [
+      { type: "heading", text: tt("thanksHeading") },
+      { type: "text", text: tt("thanksText") },
+      { type: "divider" },
+      ...eventBlock,
+    ],
     blank: [
       { type: "heading", text: tt("blankHeading") },
       { type: "text", text: tt("blankText") },
@@ -68,7 +112,9 @@ export default async function CampaignPage({
         name: campaign.name,
         subject: campaign.subject,
         previewText: campaign.previewText ?? "",
-        content: toEmailDoc(campaign.content, { sanitizeHtml: sanitizeEmailHtml }),
+        content: toEmailDoc(campaign.content, {
+          sanitizeHtml: sanitizeEmailHtml,
+        }),
         segment: campaign.segment as CampaignSegment,
       }
     : chosen
@@ -76,7 +122,9 @@ export default async function CampaignPage({
           name: chosen.name,
           subject: chosen.subject,
           previewText: chosen.previewText ?? "",
-          content: toEmailDoc(chosen.content, { sanitizeHtml: sanitizeEmailHtml }),
+          content: toEmailDoc(chosen.content, {
+            sanitizeHtml: sanitizeEmailHtml,
+          }),
           segment: { kind: "ALL_CONSENTING", locale: null } as CampaignSegment,
         }
       : {
@@ -86,18 +134,35 @@ export default async function CampaignPage({
           content: blocksToEmailDoc(starters[tpl]),
           segment: { kind: "ALL_CONSENTING", locale: null } as CampaignSegment,
         };
-  const locked = campaign && ["SENDING", "SENT", "CANCELLED", "FAILED"].includes(campaign.status);
-  const rate = (n: number) => (campaign?.deliveredCount ? `${Math.round((n / campaign.deliveredCount) * 100)} %` : "-");
+  const locked =
+    campaign &&
+    ["SENDING", "SENT", "CANCELLED", "FAILED"].includes(campaign.status);
+  const rate = (n: number) =>
+    campaign?.deliveredCount
+      ? `${Math.round((n / campaign.deliveredCount) * 100)} %`
+      : "-";
   return (
     <div className="grid gap-6">
       <header className="grid gap-2">
-        <Link href={`/o/${orgSlug}/marketing?tab=campaigns`} className="text-sm font-semibold text-ink-muted hover:text-ink">
+        <Link
+          href={`/o/${orgSlug}/marketing?tab=campaigns`}
+          className="text-sm font-semibold text-ink-muted hover:text-ink"
+        >
           ← {t("back")}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="page-title">{campaign?.name ?? t("newTitle")}</h1>
           {campaign ? (
-            <Badge tone={campaign.status === "SENT" ? "success" : campaign.status === "SCHEDULED" || campaign.status === "SENDING" ? "warning" : "neutral"}>
+            <Badge
+              tone={
+                campaign.status === "SENT"
+                  ? "success"
+                  : campaign.status === "SCHEDULED" ||
+                      campaign.status === "SENDING"
+                    ? "warning"
+                    : "neutral"
+              }
+            >
               {t(`status_${campaign.status}`)}
             </Badge>
           ) : null}
@@ -129,11 +194,21 @@ export default async function CampaignPage({
         <>
           <p className="text-ink-muted">
             {campaign.sentAt
-              ? t("sentOn", { date: formatDateTime(campaign.sentAt, ctx.organization.timezone, locale, "short") })
+              ? t("sentOn", {
+                  date: formatDateTime(
+                    campaign.sentAt,
+                    ctx.organization.timezone,
+                    locale,
+                    "short",
+                  ),
+                })
               : t(`status_${campaign.status}`)}{" "}
             · « {campaign.subject} »
           </p>
-          <section className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7" aria-label={t("stats")}>
+          <section
+            className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7"
+            aria-label={t("stats")}
+          >
             {(
               [
                 ["recipientsStat", campaign.recipientCount ?? 0, null],
@@ -146,7 +221,9 @@ export default async function CampaignPage({
               ] as const
             ).map(([k, n, r]) => (
               <Card key={k} className="grid gap-1">
-                <p className="font-label text-[0.75rem] font-bold text-ink-muted">{t(k)}</p>
+                <p className="font-label text-[0.75rem] font-bold text-ink-muted">
+                  {t(k)}
+                </p>
                 <p className="font-display text-2xl tabular-nums">{n}</p>
                 {r ? <p className="text-xs text-ink-muted">{r}</p> : null}
               </Card>

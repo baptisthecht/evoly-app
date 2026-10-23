@@ -8,7 +8,11 @@ import { EventReminders } from "../settings/EventReminders";
 import { eventEmailBlocks } from "@/server/eventEmailBlocks";
 import { EventEmailBlocks } from "../settings/EventEmailBlocks";
 import { EventMarketingEmails } from "../settings/EventMarketingEmails";
-import { eventMarketingAutomations, eventReminders, automationDoc } from "@/server/automations";
+import {
+  eventMarketingAutomations,
+  eventReminders,
+  automationDoc,
+} from "@/server/automations";
 import { hasFeature } from "@evoly/core";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,17 +20,33 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("emails") };
 }
 
-export default async function EventEmailsPage({ params }: { params: Promise<{ orgSlug: string; eventId: string }> }) {
+export default async function EventEmailsPage({
+  params,
+}: {
+  params: Promise<{ orgSlug: string; eventId: string }>;
+}) {
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const e = await getEventWithTickets(ctx, eventId);
-  const readOnly = !can(ctx.membership, "EVENTS_EDIT") || ctx.readOnly || ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
+  const readOnly =
+    !can(ctx.membership, "EVENTS_EDIT") ||
+    ctx.readOnly ||
+    ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status);
   const tn = await getTranslations("nav");
   const emailBlocks = await eventEmailBlocks(eventId);
   return (
     <div className="max-w-3xl">
-      {readOnly ? <p className="text-sm text-ink-muted">{tn("readOnlyPage")}</p> : null}
-      {!readOnly ? <EventEmailBlocks orgSlug={orgSlug} eventId={eventId} ticket={emailBlocks.ticket} reminder={emailBlocks.reminder} /> : null}
+      {readOnly ? (
+        <p className="text-sm text-ink-muted">{tn("readOnlyPage")}</p>
+      ) : null}
+      {!readOnly ? (
+        <EventEmailBlocks
+          orgSlug={orgSlug}
+          eventId={eventId}
+          ticket={emailBlocks.ticket}
+          reminder={emailBlocks.reminder}
+        />
+      ) : null}
       {!readOnly && can(ctx.membership, "MARKETING_MANAGE") ? (
         <EventReminders
           orgSlug={orgSlug}
@@ -48,16 +68,22 @@ export default async function EventEmailsPage({ params }: { params: Promise<{ or
           <EventMarketingEmails
             orgSlug={orgSlug}
             eventId={eventId}
-            automations={(await eventMarketingAutomations(eventId)).map((a) => ({
-              type: a.type as "POST_EVENT",
-              enabled: a.enabled,
-              subject: a.subject,
-              content: automationDoc(a.content, a.subject),
-              sent: !!a.lastRunAt,
-            }))}
+            automations={(await eventMarketingAutomations(eventId)).map(
+              (a) => ({
+                type: a.type as "POST_EVENT",
+                enabled: a.enabled,
+                subject: a.subject,
+                content: automationDoc(a.content, a.subject),
+                sent: !!a.lastRunAt,
+              }),
+            )}
           />
         ) : (
-          <ProLocked orgSlug={orgSlug} feature="EMAIL_MARKETING" canUpgrade={can(ctx.membership, "BILLING_MANAGE")} />
+          <ProLocked
+            orgSlug={orgSlug}
+            feature="EMAIL_MARKETING"
+            canUpgrade={can(ctx.membership, "BILLING_MANAGE")}
+          />
         )
       ) : null}
     </div>

@@ -4,7 +4,11 @@ import { LocaleSwitch } from "@/components/LocaleSwitch";
 import { requireUser } from "@/server/session";
 import { ThemePro } from "@/components/theme/ThemePro";
 
-export default async function OnboardingLayout({ children }: { children: ReactNode }) {
+export default async function OnboardingLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   await requireUser();
   return (
     <div className="min-h-dvh">

@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 // session, double authentification et cookies simulés : le back-office testé tel quel, sans navigateur
-const state: { session: unknown; twofa: boolean } = { session: null, twofa: false };
+const state: { session: unknown; twofa: boolean } = {
+  session: null,
+  twofa: false,
+};
 const jar = new Map<string, string>();
 vi.mock("@/server/session", () => ({ getSession: async () => state.session }));
 vi.mock("@/server/twoFactor", async (original) => ({
@@ -19,8 +22,16 @@ vi.mock("next/headers", () => ({
 
 const { db } = await import("@/lib/db");
 const { finalizeOrder, reserveOrder } = await import("@/server/checkout");
-const { currentStaff, platformDashboard, platformSearch, requireStaff, resendOrderEmail, startSupportView, stopSupportView, supportViewAllowed } =
-  await import("@/server/platform");
+const {
+  currentStaff,
+  platformDashboard,
+  platformSearch,
+  requireStaff,
+  resendOrderEmail,
+  startSupportView,
+  stopSupportView,
+  supportViewAllowed,
+} = await import("@/server/platform");
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 const login = (userId: string) => {
@@ -28,7 +39,15 @@ const login = (userId: string) => {
 };
 const org = (id: string) =>
   db.organization.create({
-    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    data: {
+      name: `Club ${id}`,
+      slug: `club-${id}`,
+      subdomain: `club-${id}`,
+      country: "BE",
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      locale: "fr",
+    },
   });
 
 describe("back-office : équipe Evoly (section 9.24)", () => {
@@ -37,17 +56,32 @@ describe("back-office : équipe Evoly (section 9.24)", () => {
     state.twofa = false;
     expect(await currentStaff()).toBeNull();
     await expect(requireStaff()).rejects.toThrow(); // introuvable
-    const client = await db.user.create({ data: { name: "Client", email: `c.${rid()}@exemple.be`, emailVerified: true } });
+    const client = await db.user.create({
+      data: {
+        name: "Client",
+        email: `c.${rid()}@exemple.be`,
+        emailVerified: true,
+      },
+    });
     login(client.id);
     expect(await currentStaff()).toBeNull();
     const support = await db.user.create({
-      data: { name: "Sam Support", email: `s.${rid()}@evoly.be`, emailVerified: true, platformRole: "SUPPORT", twoFactorEnabled: true },
+      data: {
+        name: "Sam Support",
+        email: `s.${rid()}@evoly.be`,
+        emailVerified: true,
+        platformRole: "SUPPORT",
+        twoFactorEnabled: true,
+      },
     });
     login(support.id);
     expect(await currentStaff()).toMatchObject({ verified: false });
     await expect(requireStaff()).rejects.toThrow(); // renvoyé vers la double authentification
     state.twofa = true;
-    expect(await currentStaff()).toMatchObject({ verified: true, user: { platformRole: "SUPPORT" } });
+    expect(await currentStaff()).toMatchObject({
+      verified: true,
+      user: { platformRole: "SUPPORT" },
+    });
     await expect(requireStaff("ADMIN")).rejects.toThrow(); // le support ne peut pas agir comme administrateur
   });
 
@@ -56,13 +90,26 @@ describe("back-office : équipe Evoly (section 9.24)", () => {
     const o = await org(id);
     const autre = await org(`${id}b`);
     const support = await db.user.create({
-      data: { name: "Sam Support", email: `s.${id}@evoly.be`, emailVerified: true, platformRole: "SUPPORT", twoFactorEnabled: true },
+      data: {
+        name: "Sam Support",
+        email: `s.${id}@evoly.be`,
+        emailVerified: true,
+        platformRole: "SUPPORT",
+        twoFactorEnabled: true,
+      },
     });
     login(support.id);
     state.twofa = true;
     const st = (await currentStaff())!;
     expect(await startSupportView(st, o.id)).toBe(o.slug);
-    expect(await db.auditLog.count({ where: { organizationId: o.id, action: "platform.support_view_started" } })).toBe(1);
+    expect(
+      await db.auditLog.count({
+        where: {
+          organizationId: o.id,
+          action: "platform.support_view_started",
+        },
+      }),
+    ).toBe(1);
     expect(await supportViewAllowed(o.slug)).toBe(true);
     expect(await supportViewAllowed(autre.slug)).toBe(false);
     for (const k of jar.keys()) jar.set(k, `${o.id}.${"0".repeat(64)}`);
@@ -85,25 +132,57 @@ describe("back-office : équipe Evoly (section 9.24)", () => {
         timezone: "Europe/Brussels",
         startsAt: new Date(Date.now() + 20 * 86_400_000),
         status: "PUBLISHED",
-        ticketTypes: { create: { name: "Entrée", priceMinor: 0, currency: "EUR", quantity: 10 } },
+        ticketTypes: {
+          create: {
+            name: "Entrée",
+            priceMinor: 0,
+            currency: "EUR",
+            quantity: 10,
+          },
+        },
       },
       include: { ticketTypes: true },
     });
-    const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }], locale: "fr" });
+    const r = await reserveOrder({
+      eventId: event.id,
+      lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 1 }],
+      locale: "fr",
+    });
     const email = `client.${id}@exemple.be`;
-    await db.order.update({ where: { id: r.orderId }, data: { buyerEmail: email, buyerFirstName: "Alex", buyerLastName: "Martin" } });
+    await db.order.update({
+      where: { id: r.orderId },
+      data: {
+        buyerEmail: email,
+        buyerFirstName: "Alex",
+        buyerLastName: "Martin",
+      },
+    });
     await finalizeOrder(r.orderId);
     const admin = await db.user.create({
-      data: { name: "Ada Admin", email: `a.${id}@evoly.be`, emailVerified: true, platformRole: "ADMIN", twoFactorEnabled: true },
+      data: {
+        name: "Ada Admin",
+        email: `a.${id}@evoly.be`,
+        emailVerified: true,
+        platformRole: "ADMIN",
+        twoFactorEnabled: true,
+      },
     });
     login(admin.id);
     state.twofa = true;
     const st = (await currentStaff())!;
     const avant = await db.emailMessage.count({ where: { toEmail: email } });
     await resendOrderEmail(st, r.orderId);
-    expect(await db.emailMessage.count({ where: { toEmail: email } })).toBeGreaterThan(avant);
-    expect(await db.auditLog.count({ where: { organizationId: o.id, action: "platform.order_email_resent" } })).toBe(1);
-    expect(JSON.stringify(await platformSearch(`club-${id}`))).toContain(o.slug);
+    expect(
+      await db.emailMessage.count({ where: { toEmail: email } }),
+    ).toBeGreaterThan(avant);
+    expect(
+      await db.auditLog.count({
+        where: { organizationId: o.id, action: "platform.order_email_resent" },
+      }),
+    ).toBe(1);
+    expect(JSON.stringify(await platformSearch(`club-${id}`))).toContain(
+      o.slug,
+    );
     expect(await platformDashboard()).toBeTruthy();
   });
 });

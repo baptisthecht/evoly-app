@@ -7,12 +7,17 @@ export type Minor = number;
 export type Bps = number;
 
 export function assertMinor(value: number, label = "montant"): void {
-  if (!Number.isSafeInteger(value)) throw new CoreError("INVALID_AMOUNT", `${label} doit être un entier en unités mineures`);
+  if (!Number.isSafeInteger(value))
+    throw new CoreError(
+      "INVALID_AMOUNT",
+      `${label} doit être un entier en unités mineures`,
+    );
 }
 
 export function assertNonNegative(value: number, label = "montant"): void {
   assertMinor(value, label);
-  if (value < 0) throw new CoreError("NEGATIVE_AMOUNT", `${label} ne peut pas être négatif`);
+  if (value < 0)
+    throw new CoreError("NEGATIVE_AMOUNT", `${label} ne peut pas être négatif`);
 }
 
 /**
@@ -32,7 +37,8 @@ export function sum(values: readonly Minor[]): Minor {
 
 export function normalizeCurrency(code: string): string {
   const c = code.trim().toUpperCase();
-  if (!/^[A-Z]{3}$/.test(c)) throw new CoreError("INVALID_CURRENCY", `devise invalide : ${code}`);
+  if (!/^[A-Z]{3}$/.test(c))
+    throw new CoreError("INVALID_CURRENCY", `devise invalide : ${code}`);
   return c;
 }
 
@@ -50,12 +56,21 @@ export function parseMajorToMinor(input: string, exponent = 2): Minor | null {
   if (!m) return null;
   const fraction = m[2] ?? "";
   if (fraction.length > exponent) return null;
-  return Number(m[1]) * 10 ** exponent + Number(fraction.padEnd(exponent, "0") || "0");
+  return (
+    Number(m[1]) * 10 ** exponent +
+    Number(fraction.padEnd(exponent, "0") || "0")
+  );
 }
 
 /** Unités mineures vers la valeur d'un champ de saisie : 2450 → « 24,50 », 2400 → « 24 ». */
-export function minorToInput(minor: Minor, exponent = 2, decimalSeparator = ","): string {
+export function minorToInput(
+  minor: Minor,
+  exponent = 2,
+  decimalSeparator = ",",
+): string {
   const major = Math.floor(minor / 10 ** exponent);
   const rest = minor % 10 ** exponent;
-  return rest === 0 ? String(major) : `${major}${decimalSeparator}${String(rest).padStart(exponent, "0")}`;
+  return rest === 0
+    ? String(major)
+    : `${major}${decimalSeparator}${String(rest).padStart(exponent, "0")}`;
 }

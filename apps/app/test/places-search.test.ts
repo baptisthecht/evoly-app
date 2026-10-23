@@ -46,21 +46,38 @@ describe("recherche de lieux", () => {
     const first = await searchPlaces(q, "nl-BE", fetchImpl as never);
     expect(first.length).toBeGreaterThan(0);
     const url = new URL(String((fetchImpl.mock.calls[0] as unknown[])[0]));
-    expect([url.host, url.searchParams.get("lang"), url.searchParams.get("apiKey")]).toEqual(["api.geoapify.com", "nl", "cle-de-test"]);
+    expect([
+      url.host,
+      url.searchParams.get("lang"),
+      url.searchParams.get("apiKey"),
+    ]).toEqual(["api.geoapify.com", "nl", "cle-de-test"]);
     await searchPlaces(q, "nl-BE", fetchImpl as never);
     expect(fetchImpl).toHaveBeenCalledTimes(1); // gardé en cache
     await searchPlaces(`Zénith ${rid()}`, "pl", fetchImpl as never);
-    expect(new URL(String((fetchImpl.mock.calls[1] as unknown[])[0])).searchParams.get("lang")).toBe("en");
+    expect(
+      new URL(
+        String((fetchImpl.mock.calls[1] as unknown[])[0]),
+      ).searchParams.get("lang"),
+    ).toBe("en");
   });
 
   it("Photon sans clé : langue non prise en charge en « default » ; réponse en erreur ou réseau coupé : liste vide", async () => {
-    const failing = vi.fn(async () => new Response("indisponible", { status: 503 }));
-    expect(await searchPlaces(`Grand-Place ${rid()}`, "nl", failing as never)).toEqual([]);
+    const failing = vi.fn(
+      async () => new Response("indisponible", { status: 503 }),
+    );
+    expect(
+      await searchPlaces(`Grand-Place ${rid()}`, "nl", failing as never),
+    ).toEqual([]);
     const url = new URL(String((failing.mock.calls[0] as unknown[])[0]));
-    expect([url.host, url.searchParams.get("lang")]).toEqual(["photon.komoot.io", "default"]);
+    expect([url.host, url.searchParams.get("lang")]).toEqual([
+      "photon.komoot.io",
+      "default",
+    ]);
     const offline = vi.fn(async () => {
       throw new TypeError("fetch failed");
     });
-    expect(await searchPlaces(`Atomium ${rid()}`, "fr", offline as never)).toEqual([]);
+    expect(
+      await searchPlaces(`Atomium ${rid()}`, "fr", offline as never),
+    ).toEqual([]);
   });
 });

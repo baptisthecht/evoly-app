@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { activeEventTab, type EventTab, type HiddenFeature } from "./eventTabs";
 
-const under = (path: string, href: string) => path === href || path.startsWith(`${href}/`);
+const under = (path: string, href: string) =>
+  path === href || path.startsWith(`${href}/`);
 
 function useActive(tabs: EventTab[], hidden: HiddenFeature[]) {
   const path = (usePathname() ?? "").replace(/\/$/, "");
@@ -15,13 +16,21 @@ function useActive(tabs: EventTab[], hidden: HiddenFeature[]) {
   return {
     path,
     active,
-    items: here ? [...tab.items, { label: here.label, href: here.href }] : tab.items,
+    items: here
+      ? [...tab.items, { label: here.label, href: here.href }]
+      : tab.items,
     toAdd: hidden.filter((h) => h.tab === active && h !== here),
   };
 }
 
 /** Rangée principale des onglets, dans la bande d'en-tête : le soulignement de l'onglet actif repose sur son filet. */
-export function EventTabs({ tabs, hidden }: { tabs: EventTab[]; hidden: HiddenFeature[] }) {
+export function EventTabs({
+  tabs,
+  hidden,
+}: {
+  tabs: EventTab[];
+  hidden: HiddenFeature[];
+}) {
   const t = useTranslations("nav");
   const { active } = useActive(tabs, hidden);
   return (
@@ -48,7 +57,13 @@ export function EventTabs({ tabs, hidden }: { tabs: EventTab[]; hidden: HiddenFe
 }
 
 /** Pages de la partie ouverte (seconde rangée, dans le contenu), avec les fonctionnalités à ajouter. */
-export function EventSubTabs({ tabs, hidden }: { tabs: EventTab[]; hidden: HiddenFeature[] }) {
+export function EventSubTabs({
+  tabs,
+  hidden,
+}: {
+  tabs: EventTab[];
+  hidden: HiddenFeature[];
+}) {
   const t = useTranslations("nav");
   const { path, items, toAdd } = useActive(tabs, hidden);
   if (items.length <= 1 && !toAdd.length) return null;
@@ -78,8 +93,13 @@ export function EventSubTabs({ tabs, hidden }: { tabs: EventTab[]; hidden: Hidde
           <ul className="absolute z-20 mt-1.5 grid w-72 gap-0.5 rounded-md bg-surface-raised p-1 shadow-md ring-1 ring-line">
             {toAdd.map((h) => (
               <li key={h.key}>
-                <Link href={h.href} className="grid rounded-sm px-2.5 py-2 hover:bg-surface">
-                  <span className="text-[0.8125rem] font-medium">{h.label}</span>
+                <Link
+                  href={h.href}
+                  className="grid rounded-sm px-2.5 py-2 hover:bg-surface"
+                >
+                  <span className="text-[0.8125rem] font-medium">
+                    {h.label}
+                  </span>
                   <span className="text-xs text-ink-muted">{h.hint}</span>
                 </Link>
               </li>

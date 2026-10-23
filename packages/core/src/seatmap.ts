@@ -55,7 +55,8 @@ export interface StandingParams {
   label: string;
   category: string;
 }
-export type ShapeType = "stage" | "screen" | "pitch" | "altar" | "bar" | "entrance" | "label";
+export type ShapeType =
+  "stage" | "screen" | "pitch" | "altar" | "bar" | "entrance" | "label";
 export interface ShapeParams {
   shape: ShapeType;
   width: number;
@@ -95,23 +96,35 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 // -- numérotations --
 
 /** Libellés des places d'un rang, de gauche à droite (vu depuis la salle, face à la scène). */
-export function seatNumbers(n: number, mode: SeatNumbering, start = 1): string[] {
+export function seatNumbers(
+  n: number,
+  mode: SeatNumbering,
+  start = 1,
+): string[] {
   const out = new Array<string>(n);
   if (mode === "ltr") for (let i = 0; i < n; i++) out[i] = String(start + i);
-  else if (mode === "rtl") for (let i = 0; i < n; i++) out[i] = String(start + n - 1 - i);
+  else if (mode === "rtl")
+    for (let i = 0; i < n; i++) out[i] = String(start + n - 1 - i);
   else {
     // depuis le centre vers les extrémités : impairs d'un côté, pairs de l'autre
     const oddSideCount = Math.ceil(n / 2);
     const left = mode === "odd-left" ? oddSideCount : n - oddSideCount;
-    for (let j = 0; j < left; j++) out[left - 1 - j] = String(mode === "odd-left" ? start + 2 * j : start + 1 + 2 * j);
-    for (let j = 0; j < n - left; j++) out[left + j] = String(mode === "odd-left" ? start + 1 + 2 * j : start + 2 * j);
+    for (let j = 0; j < left; j++)
+      out[left - 1 - j] = String(
+        mode === "odd-left" ? start + 2 * j : start + 1 + 2 * j,
+      );
+    for (let j = 0; j < n - left; j++)
+      out[left + j] = String(
+        mode === "odd-left" ? start + 1 + 2 * j : start + 2 * j,
+      );
   }
   return out;
 }
 
 /** Libellé du rang d'indice i (0 = premier rang) : lettres (A, B… Z, AA, AB…) en sautant celles demandées, ou chiffres. */
 export function rowLabel(i: number, labeling: RowLabeling): string {
-  if (labeling.style === "numbers") return String((Number.parseInt(labeling.start, 10) || 1) + i);
+  if (labeling.style === "numbers")
+    return String((Number.parseInt(labeling.start, 10) || 1) + i);
   const skip = new Set(labeling.skip.map((l) => l.toUpperCase()));
   const toLetters = (k: number) => {
     let s = "";
@@ -122,7 +135,11 @@ export function rowLabel(i: number, labeling: RowLabeling): string {
     } while (v >= 0);
     return s;
   };
-  const fromLetters = (s: string) => [...s.toUpperCase()].reduce((acc, c) => acc * 26 + (c.charCodeAt(0) - 64), 0) - 1;
+  const fromLetters = (s: string) =>
+    [...s.toUpperCase()].reduce(
+      (acc, c) => acc * 26 + (c.charCodeAt(0) - 64),
+      0,
+    ) - 1;
   let k = Math.max(0, fromLetters(labeling.start || "A"));
   let produced = -1;
   for (;;) {
@@ -135,17 +152,30 @@ export function rowLabel(i: number, labeling: RowLabeling): string {
 
 // -- géométrie --
 
-function place(block: BlockBase, lx: number, ly: number): { x: number; y: number } {
+function place(
+  block: BlockBase,
+  lx: number,
+  ly: number,
+): { x: number; y: number } {
   const t = (block.rotation * Math.PI) / 180;
-  return { x: r2(block.x + lx * Math.cos(t) - ly * Math.sin(t)), y: r2(block.y + lx * Math.sin(t) + ly * Math.cos(t)) };
+  return {
+    x: r2(block.x + lx * Math.cos(t) - ly * Math.sin(t)),
+    y: r2(block.y + lx * Math.sin(t) + ly * Math.cos(t)),
+  };
 }
 
 function rowsBlock(b: BlockBase, p: RowsParams): GenRow[] {
   const rows: GenRow[] = [];
   // arc : rayon du premier rang déduit de la courbure (1 → le premier rang couvre environ 120°)
-  const radius = p.curve > 0 ? (p.seatsFirst * p.seatGap) / (p.curve * (Math.PI / 1.5)) : 0;
+  const radius =
+    p.curve > 0 ? (p.seatsFirst * p.seatGap) / (p.curve * (Math.PI / 1.5)) : 0;
   for (let i = 0; i < p.rows; i++) {
-    const n = p.rows === 1 ? p.seatsFirst : Math.round(p.seatsFirst + ((p.seatsLast - p.seatsFirst) * i) / (p.rows - 1));
+    const n =
+      p.rows === 1
+        ? p.seatsFirst
+        : Math.round(
+            p.seatsFirst + ((p.seatsLast - p.seatsFirst) * i) / (p.rows - 1),
+          );
     const labels = seatNumbers(n, p.seatNumbering, p.seatStart);
     const accessibleEnds = p.accessible.find((a) => a.row === i)?.ends ?? 0;
     const split = Math.ceil(n / 2);
@@ -157,7 +187,8 @@ function rowsBlock(b: BlockBase, p: RowsParams): GenRow[] {
       let angle = 0;
       if (radius > 0) {
         const R = radius + i * p.rowGap;
-        const span = ((n - 1) * p.seatGap + (p.centerAisle ? p.aisleGap : 0)) / R;
+        const span =
+          ((n - 1) * p.seatGap + (p.centerAisle ? p.aisleGap : 0)) / R;
         const a = -span / 2 + (k * p.seatGap + aisle) / R;
         lx = R * Math.sin(a);
         ly = -radius + R * Math.cos(a);
@@ -168,9 +199,20 @@ function rowsBlock(b: BlockBase, p: RowsParams): GenRow[] {
         ly = i * p.rowGap;
       }
       const pos = place(b, lx, ly);
-      seats.push({ label: labels[k]!, x: pos.x, y: pos.y, angle: r2(angle + b.rotation), order: k, accessible: k < accessibleEnds || k >= n - accessibleEnds });
+      seats.push({
+        label: labels[k]!,
+        x: pos.x,
+        y: pos.y,
+        angle: r2(angle + b.rotation),
+        order: k,
+        accessible: k < accessibleEnds || k >= n - accessibleEnds,
+      });
     }
-    rows.push({ label: rowLabel(i, p.rowLabels), category: p.categories[Math.min(i, p.categories.length - 1)] ?? "", seats });
+    rows.push({
+      label: rowLabel(i, p.rowLabels),
+      category: p.categories[Math.min(i, p.categories.length - 1)] ?? "",
+      seats,
+    });
   }
   return rows;
 }
@@ -184,8 +226,19 @@ function roundTables(b: BlockBase, p: RoundTablesParams): GenRow[] {
     const cy = Math.floor(t / cols) * cell + radius;
     const seats = Array.from({ length: p.seats }, (_, k) => {
       const a = -Math.PI / 2 + (k * 2 * Math.PI) / p.seats; // première place en haut, sens horaire
-      const pos = place(b, cx + radius * Math.cos(a), cy + radius * Math.sin(a));
-      return { label: String(k + 1), x: pos.x, y: pos.y, angle: r2(((a + Math.PI / 2) * 180) / Math.PI + b.rotation), order: k, accessible: false };
+      const pos = place(
+        b,
+        cx + radius * Math.cos(a),
+        cy + radius * Math.sin(a),
+      );
+      return {
+        label: String(k + 1),
+        x: pos.x,
+        y: pos.y,
+        angle: r2(((a + Math.PI / 2) * 180) / Math.PI + b.rotation),
+        order: k,
+        accessible: false,
+      };
     });
     return { label: String(p.labelStart + t), category: p.category, seats };
   });
@@ -202,13 +255,32 @@ function rectTables(b: BlockBase, p: RectTablesParams): GenRow[] {
     const cx = (t % cols) * cellW - ((cols - 1) * cellW) / 2;
     const cy = Math.floor(t / cols) * cellH + height / 2 + gap;
     const local: Array<{ x: number; y: number; angle: number }> = [];
-    for (let k = 0; k < p.seatsPerSide; k++) local.push({ x: cx - width / 2 + gap / 2 + k * gap, y: cy - height / 2 - gap / 2, angle: 0 });
-    if (p.endSeats >= 1) local.push({ x: cx + width / 2 + gap / 2, y: cy, angle: 90 });
-    for (let k = p.seatsPerSide - 1; k >= 0; k--) local.push({ x: cx - width / 2 + gap / 2 + k * gap, y: cy + height / 2 + gap / 2, angle: 180 });
-    if (p.endSeats === 2) local.push({ x: cx - width / 2 - gap / 2, y: cy, angle: 270 });
+    for (let k = 0; k < p.seatsPerSide; k++)
+      local.push({
+        x: cx - width / 2 + gap / 2 + k * gap,
+        y: cy - height / 2 - gap / 2,
+        angle: 0,
+      });
+    if (p.endSeats >= 1)
+      local.push({ x: cx + width / 2 + gap / 2, y: cy, angle: 90 });
+    for (let k = p.seatsPerSide - 1; k >= 0; k--)
+      local.push({
+        x: cx - width / 2 + gap / 2 + k * gap,
+        y: cy + height / 2 + gap / 2,
+        angle: 180,
+      });
+    if (p.endSeats === 2)
+      local.push({ x: cx - width / 2 - gap / 2, y: cy, angle: 270 });
     const seats = local.map((s, k) => {
       const pos = place(b, s.x, s.y);
-      return { label: String(k + 1), x: pos.x, y: pos.y, angle: r2(s.angle + b.rotation), order: k, accessible: false };
+      return {
+        label: String(k + 1),
+        x: pos.x,
+        y: pos.y,
+        angle: r2(s.angle + b.rotation),
+        order: k,
+        accessible: false,
+      };
     });
     return { label: String(p.labelStart + t), category: p.category, seats };
   });
@@ -230,7 +302,18 @@ export function generateBlock(block: BlockSpec): GenRow[] {
 
 // -- modèles de salles --
 
-export const SEATING_TEMPLATES = ["theatre", "hall", "gala", "pit", "church", "cabaret", "conference", "arena", "stadium", "blank"] as const;
+export const SEATING_TEMPLATES = [
+  "theatre",
+  "hall",
+  "gala",
+  "pit",
+  "church",
+  "cabaret",
+  "conference",
+  "arena",
+  "stadium",
+  "blank",
+] as const;
 export type SeatingTemplate = (typeof SEATING_TEMPLATES)[number];
 export interface TemplateOptions {
   rows?: number;
@@ -259,9 +342,21 @@ const LETTERS: RowLabeling = { style: "letters", start: "A", skip: ["I", "O"] };
 
 function spread(rows: number, count: number): string[] {
   // découpe les rangs en `count` catégories de l'avant vers l'arrière
-  return Array.from({ length: rows }, (_, i) => CATEGORY_DEFAULTS[Math.min(count - 1, Math.floor((i * count) / rows))]!.key);
+  return Array.from(
+    { length: rows },
+    (_, i) =>
+      CATEGORY_DEFAULTS[Math.min(count - 1, Math.floor((i * count) / rows))]!
+        .key,
+  );
 }
-function rows(name: string, x: number, y: number, rotation: number, p: Partial<RowsParams> & Pick<RowsParams, "rows" | "seatsFirst" | "seatsLast">): BlockSpec {
+function rows(
+  name: string,
+  x: number,
+  y: number,
+  rotation: number,
+  p: Partial<RowsParams> &
+    Pick<RowsParams, "rows" | "seatsFirst" | "seatsLast">,
+): BlockSpec {
   return {
     kind: "ROWS",
     name,
@@ -283,7 +378,16 @@ function rows(name: string, x: number, y: number, rotation: number, p: Partial<R
     },
   };
 }
-const shape = (name: string, x: number, y: number, s: ShapeType, width: number, height: number, label: string, rotation = 0): BlockSpec => ({
+const shape = (
+  name: string,
+  x: number,
+  y: number,
+  s: ShapeType,
+  width: number,
+  height: number,
+  label: string,
+  rotation = 0,
+): BlockSpec => ({
   kind: "SHAPE",
   name,
   x,
@@ -293,12 +397,18 @@ const shape = (name: string, x: number, y: number, s: ShapeType, width: number, 
 });
 
 /** Plan de départ d'un modèle, à ajuster ensuite bloc par bloc. */
-export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = {}): TemplatePlan {
+export function seatingTemplate(
+  template: SeatingTemplate,
+  o: TemplateOptions = {},
+): TemplatePlan {
   const nCat = o.categories ?? 3;
   const categories = CATEGORY_DEFAULTS.slice(0, nCat);
   const numbering = o.numbering;
   const labels = o.rowLabels ?? LETTERS;
-  const common = (r: number) => ({ rowLabels: labels, categories: spread(r, nCat) });
+  const common = (r: number) => ({
+    rowLabels: labels,
+    categories: spread(r, nCat),
+  });
   switch (template) {
     case "theatre": {
       const r = o.rows ?? 8,
@@ -359,7 +469,14 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
             x: 0,
             y: 0,
             rotation: 0,
-            params: { tables: o.tables ?? 12, seats: o.seatsPerTable ?? 10, perRow: 4, tableGap: 36, labelStart: 1, category: "c1" },
+            params: {
+              tables: o.tables ?? 12,
+              seats: o.seatsPerTable ?? 10,
+              perRow: 4,
+              tableGap: 36,
+              labelStart: 1,
+              category: "c1",
+            },
           },
         ],
         categories: categories.slice(0, 1),
@@ -376,7 +493,13 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
             x: 0,
             y: 30,
             rotation: 0,
-            params: { width: 460, height: 170, capacity: 300, label: "FOSSE DEBOUT", category: "c1" },
+            params: {
+              width: 460,
+              height: 170,
+              capacity: 300,
+              label: "FOSSE DEBOUT",
+              category: "c1",
+            },
           },
           rows("Gradins", 0, 250, 0, {
             rows: r,
@@ -399,8 +522,20 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
       return {
         blocks: [
           shape("Chœur", 0, -90, "altar", 300, 70, "CHŒUR"),
-          rows("Bancs gauche", -half, 0, 0, { rows: r, seatsFirst: side, seatsLast: side, seatNumbering: numbering ?? "ltr", ...common(r) }),
-          rows("Bancs droite", half, 0, 0, { rows: r, seatsFirst: side, seatsLast: side, seatNumbering: numbering ?? "ltr", ...common(r) }),
+          rows("Bancs gauche", -half, 0, 0, {
+            rows: r,
+            seatsFirst: side,
+            seatsLast: side,
+            seatNumbering: numbering ?? "ltr",
+            ...common(r),
+          }),
+          rows("Bancs droite", half, 0, 0, {
+            rows: r,
+            seatsFirst: side,
+            seatsLast: side,
+            seatNumbering: numbering ?? "ltr",
+            ...common(r),
+          }),
         ],
         categories,
         focus: { x: 0, y: -90 },
@@ -416,7 +551,14 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
             x: 0,
             y: 0,
             rotation: 0,
-            params: { tables: o.tables ?? 16, seats: o.seatsPerTable ?? 4, perRow: 4, tableGap: 30, labelStart: 1, category: "c1" },
+            params: {
+              tables: o.tables ?? 16,
+              seats: o.seatsPerTable ?? 4,
+              perRow: 4,
+              tableGap: 30,
+              labelStart: 1,
+              category: "c1",
+            },
           },
           shape("Bar", 0, 520, "bar", 260, 44, "BAR"),
         ],
@@ -448,7 +590,13 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
         s = o.seatsFirst ?? 20;
       const d = 130;
       const side = (name: string, x: number, y: number, rot: number) =>
-        rows(name, x, y, rot, { rows: r, seatsFirst: s, seatsLast: o.seatsLast ?? s + 6, seatNumbering: numbering ?? "ltr", ...common(r) });
+        rows(name, x, y, rot, {
+          rows: r,
+          seatsFirst: s,
+          seatsLast: o.seatsLast ?? s + 6,
+          seatNumbering: numbering ?? "ltr",
+          ...common(r),
+        });
       return {
         blocks: [
           shape("Scène", 0, 0, "stage", 180, 180, "SCÈNE"),
@@ -465,7 +613,14 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
       const r = o.rows ?? 20,
         long = o.seatsFirst ?? 60,
         short = o.seatsLast ?? 40;
-      const stand = (name: string, x: number, y: number, rot: number, seats: number, cat: string) =>
+      const stand = (
+        name: string,
+        x: number,
+        y: number,
+        rot: number,
+        seats: number,
+        cat: string,
+      ) =>
         rows(name, x, y, rot, {
           rows: r,
           seatsFirst: seats,
@@ -489,7 +644,11 @@ export function seatingTemplate(template: SeatingTemplate, o: TemplateOptions = 
     }
     case "blank":
     default:
-      return { blocks: [shape("Scène", 0, -70, "stage", 380, 56, "SCÈNE")], categories: categories.slice(0, 1), focus: { x: 0, y: -70 } };
+      return {
+        blocks: [shape("Scène", 0, -70, "stage", 380, 56, "SCÈNE")],
+        categories: categories.slice(0, 1),
+        focus: { x: 0, y: -70 },
+      };
   }
 }
 
@@ -522,7 +681,11 @@ export function seatSegments(seats: readonly PlanSeat[]): PlanSeat[][] {
     const usual = gaps.length ? gaps[Math.floor(gaps.length / 2)]! : 0;
     let current: PlanSeat[] = [];
     row.forEach((s, i) => {
-      if (i > 0 && usual > 0 && Math.hypot(s.x - row[i - 1]!.x, s.y - row[i - 1]!.y) > usual * 1.6) {
+      if (
+        i > 0 &&
+        usual > 0 &&
+        Math.hypot(s.x - row[i - 1]!.x, s.y - row[i - 1]!.y) > usual * 1.6
+      ) {
         out.push(current);
         current = [];
       }
@@ -538,8 +701,10 @@ function freeRuns(seg: readonly PlanSeat[]) {
   const n = seg.length;
   const left = new Array<number>(n).fill(0);
   const right = new Array<number>(n).fill(0);
-  for (let i = 0; i < n; i++) left[i] = seg[i]!.available ? (i > 0 ? left[i - 1]! : 0) + 1 : 0;
-  for (let i = n - 1; i >= 0; i--) right[i] = seg[i]!.available ? (i < n - 1 ? right[i + 1]! : 0) + 1 : 0;
+  for (let i = 0; i < n; i++)
+    left[i] = seg[i]!.available ? (i > 0 ? left[i - 1]! : 0) + 1 : 0;
+  for (let i = n - 1; i >= 0; i--)
+    right[i] = seg[i]!.available ? (i < n - 1 ? right[i + 1]! : 0) + 1 : 0;
   return { left, right };
 }
 
@@ -549,22 +714,34 @@ function* windows(seats: readonly PlanSeat[], n: number) {
     const { left, right } = freeRuns(seg);
     for (let i = 0; i + n <= seg.length; i++) {
       if (right[i]! < n) continue;
-      const orphan = (i > 0 && left[i - 1] === 1) || (i + n < seg.length && right[i + n] === 1);
+      const orphan =
+        (i > 0 && left[i - 1] === 1) ||
+        (i + n < seg.length && right[i + n] === 1);
       yield { seats: seg.slice(i, i + n), orphan };
     }
   }
 }
 
 /** Une place libre se retrouve seule, coincée contre une place choisie (règle des sièges isolés). */
-export function createsOrphan(seats: readonly PlanSeat[], chosenIds: readonly string[]): boolean {
+export function createsOrphan(
+  seats: readonly PlanSeat[],
+  chosenIds: readonly string[],
+): boolean {
   const chosen = new Set(chosenIds);
-  const rows = new Set(seats.filter((s) => chosen.has(s.id)).map((s) => s.rowId));
+  const rows = new Set(
+    seats.filter((s) => chosen.has(s.id)).map((s) => s.rowId),
+  );
   for (const seg of seatSegments(seats.filter((s) => rows.has(s.rowId)))) {
     const free = seg.map((s) => s.available && !chosen.has(s.id));
     for (let i = 0; i < seg.length; i++) {
       if (!free[i]) continue;
-      if ((i > 0 && free[i - 1]) || (i < seg.length - 1 && free[i + 1])) continue; // pas isolée
-      if ((i > 0 && chosen.has(seg[i - 1]!.id)) || (i < seg.length - 1 && chosen.has(seg[i + 1]!.id))) return true;
+      if ((i > 0 && free[i - 1]) || (i < seg.length - 1 && free[i + 1]))
+        continue; // pas isolée
+      if (
+        (i > 0 && chosen.has(seg[i - 1]!.id)) ||
+        (i < seg.length - 1 && chosen.has(seg[i + 1]!.id))
+      )
+        return true;
     }
   }
   return false;
@@ -574,7 +751,11 @@ export function createsOrphan(seats: readonly PlanSeat[], chosenIds: readonly st
  * Meilleures places : n places côte à côte dans un même segment, les plus proches du point focal, sans créer de
  * siège isolé ; sinon côte à côte même avec un siège isolé ; sinon les n places libres les plus proches. null si pas assez.
  */
-export function bestSeats(seats: readonly PlanSeat[], n: number, focus: { x: number; y: number }): string[] | null {
+export function bestSeats(
+  seats: readonly PlanSeat[],
+  n: number,
+  focus: { x: number; y: number },
+): string[] | null {
   if (n <= 0) return [];
   const free = seats.filter((s) => s.available);
   if (free.length < n) return null;
@@ -584,8 +765,10 @@ export function bestSeats(seats: readonly PlanSeat[], n: number, focus: { x: num
   for (const w of windows(seats, n)) {
     const score = w.seats.reduce((sum, s) => sum + dist(s), 0) / n;
     if (!w.orphan) {
-      if (!best || score < best.score) best = { ids: w.seats.map((s) => s.id), score };
-    } else if (!bestWithOrphan || score < bestWithOrphan.score) bestWithOrphan = { ids: w.seats.map((s) => s.id), score };
+      if (!best || score < best.score)
+        best = { ids: w.seats.map((s) => s.id), score };
+    } else if (!bestWithOrphan || score < bestWithOrphan.score)
+      bestWithOrphan = { ids: w.seats.map((s) => s.id), score };
   }
   if (best) return best.ids;
   if (bestWithOrphan) return bestWithOrphan.ids;
@@ -596,7 +779,10 @@ export function bestSeats(seats: readonly PlanSeat[], n: number, focus: { x: num
 }
 
 /** Il existe n places côte à côte qui ne laissent aucun siège isolé (sinon, la règle ne peut pas être imposée). */
-export function hasOrphanFreeChoice(seats: readonly PlanSeat[], n: number): boolean {
+export function hasOrphanFreeChoice(
+  seats: readonly PlanSeat[],
+  n: number,
+): boolean {
   for (const w of windows(seats, n)) if (!w.orphan) return true;
   return false;
 }

@@ -1730,18 +1730,31 @@ Toutes les fonctions vivent dans `packages/core`. Montants en unités mineures (
 const round = (x: number) => Math.floor(x + 0.5);
 
 // RG-FEE-01 à 03
-function commission(priceMinor: number, terms: { fixed: number; rateBps: number; cap: number }): number {
+function commission(
+  priceMinor: number,
+  terms: { fixed: number; rateBps: number; cap: number },
+): number {
   if (priceMinor <= 0) return 0;
-  return Math.min(terms.cap, round(terms.fixed + (priceMinor * terms.rateBps) / 10_000));
+  return Math.min(
+    terms.cap,
+    round(terms.fixed + (priceMinor * terms.rateBps) / 10_000),
+  );
 }
 
 // RG-TKT-07 : prix effectif d'un tarif à un instant donné
-function effectivePrice(ticketType, tiers, now): { priceMinor: number; tierId: string | null } {
+function effectivePrice(
+  ticketType,
+  tiers,
+  now,
+): { priceMinor: number; tierId: string | null } {
   for (const t of [...tiers].sort((a, b) => a.sortOrder - b.sortOrder)) {
     const started = !t.startsAt || t.startsAt <= now;
     const notEnded = !t.endsAt || now < t.endsAt;
-    const hasStock = t.quantityLimit == null || t.quantitySold + t.quantityHeld < t.quantityLimit;
-    if (started && notEnded && hasStock) return { priceMinor: t.priceMinor, tierId: t.id };
+    const hasStock =
+      t.quantityLimit == null ||
+      t.quantitySold + t.quantityHeld < t.quantityLimit;
+    if (started && notEnded && hasStock)
+      return { priceMinor: t.priceMinor, tierId: t.id };
   }
   return { priceMinor: ticketType.priceMinor, tierId: null };
 }
@@ -1749,13 +1762,24 @@ function effectivePrice(ticketType, tiers, now): { priceMinor: number; tierId: s
 // RG-PRM-02 : remise par billet
 function discounted(priceMinor: number, promo): number {
   if (promo.discountType === "FREE") return 0;
-  if (promo.discountType === "PERCENT") return Math.max(0, priceMinor - round((priceMinor * promo.percentOffBps) / 10_000));
+  if (promo.discountType === "PERCENT")
+    return Math.max(
+      0,
+      priceMinor - round((priceMinor * promo.percentOffBps) / 10_000),
+    );
   return Math.max(0, priceMinor - promo.amountOffMinor);
 }
 
 // RG-FEE-51 : montant rendu au vendeur (frais supportés par le vendeur)
-function sellerRefund(resalePriceMinor: number, resaleCommissionMinor: number, resaleStripeFeeMinor: number): number {
-  return Math.max(0, resalePriceMinor - resaleCommissionMinor - resaleStripeFeeMinor);
+function sellerRefund(
+  resalePriceMinor: number,
+  resaleCommissionMinor: number,
+  resaleStripeFeeMinor: number,
+): number {
+  return Math.max(
+    0,
+    resalePriceMinor - resaleCommissionMinor - resaleStripeFeeMinor,
+  );
 }
 ```
 

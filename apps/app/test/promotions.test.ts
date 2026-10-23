@@ -18,46 +18,112 @@ async function offer(over: Record<string, unknown> = {}) {
     data: {
       code: `t-${rid()}`,
       name: "Test",
-      messages: { fr: { banner: "3 mois offerts", short: "Offert", cta: "En profiter" }, en: { banner: "3 months free", short: "Free", cta: "Get it" } },
+      messages: {
+        fr: { banner: "3 mois offerts", short: "Offert", cta: "En profiter" },
+        en: { banner: "3 months free", short: "Free", cta: "Get it" },
+      },
       ...over,
     } as never,
   });
 }
-const user = () => db.user.create({ data: { name: "Nora", email: `promo.${rid()}@exemple.be`, emailVerified: true } });
-const create = async (userId: string, over: { type?: string; country?: string } = {}, offerCode?: string | null, source?: string) =>
+const user = () =>
+  db.user.create({
+    data: {
+      name: "Nora",
+      email: `promo.${rid()}@exemple.be`,
+      emailVerified: true,
+    },
+  });
+const create = async (
+  userId: string,
+  over: { type?: string; country?: string } = {},
+  offerCode?: string | null,
+  source?: string,
+) =>
   createOrganization(
     userId,
-    { name: "Club", subdomain: `club-${rid()}`, country: over.country ?? "BE", type: over.type ?? "ASSOCIATION" } as never,
+    {
+      name: "Club",
+      subdomain: `club-${rid()}`,
+      country: over.country ?? "BE",
+      type: over.type ?? "ASSOCIATION",
+    } as never,
     source
-      ? ({ source, medium: "cpc", campaign: null, term: null, content: null, referrer: null, landing: "/", firstAt: new Date().toISOString() } as never)
+      ? ({
+          source,
+          medium: "cpc",
+          campaign: null,
+          term: null,
+          content: null,
+          referrer: null,
+          landing: "/",
+          firstAt: new Date().toISOString(),
+        } as never)
       : null,
     offerCode ?? null,
   );
-const planOf = async (organizationId: string) => db.subscription.findUniqueOrThrow({ where: { organizationId } });
+const planOf = async (organizationId: string) =>
+  db.subscription.findUniqueOrThrow({ where: { organizationId } });
 
 describe("offres attribuées à la création d'une organisation (docs/OFFRES.md)", () => {
   it("toute nouvelle organisation : Pro pour la durée de l'offre, une seule fois, puis Free tout seul", async () => {
     const p = await offer({ durationValue: 30, durationUnit: "DAY" });
     const org = await create((await user()).id);
     const sub = await planOf(org.id);
-    expect([sub.planId, sub.status, sub.stripeSubscriptionId]).toEqual(["pro", "ACTIVE", null]);
-    expect(Math.round((sub.currentPeriodEnd!.getTime() - Date.now()) / day)).toBe(30);
-    expect(await db.promotionRedemption.count({ where: { promotionId: p.id, organizationId: org.id } })).toBe(1);
-    expect((await db.promotion.findUniqueOrThrow({ where: { id: p.id } })).redeemedCount).toBe(1);
+    expect([sub.planId, sub.status, sub.stripeSubscriptionId]).toEqual([
+      "pro",
+      "ACTIVE",
+      null,
+    ]);
+    expect(
+      Math.round((sub.currentPeriodEnd!.getTime() - Date.now()) / day),
+    ).toBe(30);
+    expect(
+      await db.promotionRedemption.count({
+        where: { promotionId: p.id, organizationId: org.id },
+      }),
+    ).toBe(1);
+    expect(
+      (await db.promotion.findUniqueOrThrow({ where: { id: p.id } }))
+        .redeemedCount,
+    ).toBe(1);
   });
 
   it("offre de campagne : seulement avec son code", async () => {
     const p = await offer({ audience: "LINK" });
-    expect((await planOf((await create((await user()).id)).id)).planId).toBe("free");
-    expect((await planOf((await create((await user()).id, {}, p.code.toUpperCase())).id)).planId).toBe("pro");
+    expect((await planOf((await create((await user()).id)).id)).planId).toBe(
+      "free",
+    );
+    expect(
+      (
+        await planOf(
+          (await create((await user()).id, {}, p.code.toUpperCase())).id,
+        )
+      ).planId,
+    ).toBe("pro");
   });
 
   it("conditions de pays, de type d'organisation et de source de la visite", async () => {
-    await offer({ countries: ["BE"], organizationTypes: ["ASSOCIATION"], sources: ["google"] });
+    await offer({
+      countries: ["BE"],
+      organizationTypes: ["ASSOCIATION"],
+      sources: ["google"],
+    });
     const u = async () => (await user()).id;
-    expect((await planOf((await create(await u(), {}, null, "google")).id)).planId).toBe("pro");
-    expect((await planOf((await create(await u(), { type: "COMPANY" }, null, "google")).id)).planId).toBe("free");
-    expect((await planOf((await create(await u(), {}, null, "newsletter")).id)).planId).toBe("free");
+    expect(
+      (await planOf((await create(await u(), {}, null, "google")).id)).planId,
+    ).toBe("pro");
+    expect(
+      (
+        await planOf(
+          (await create(await u(), { type: "COMPANY" }, null, "google")).id,
+        )
+      ).planId,
+    ).toBe("free");
+    expect(
+      (await planOf((await create(await u(), {}, null, "newsletter")).id))
+        .planId,
+    ).toBe("free");
     expect((await planOf((await create(await u())).id)).planId).toBe("free"); // source inconnue
   });
 
@@ -67,7 +133,10 @@ describe("offres attribuées à la création d'une organisation (docs/OFFRES.md)
     const orgs = await Promise.all(users.map((u) => create(u.id)));
     const plans = await Promise.all(orgs.map((o) => planOf(o.id)));
     expect(plans.filter((s) => s.planId === "pro")).toHaveLength(2);
-    expect((await db.promotion.findUniqueOrThrow({ where: { id: p.id } })).redeemedCount).toBe(2);
+    expect(
+      (await db.promotion.findUniqueOrThrow({ where: { id: p.id } }))
+        .redeemedCount,
+    ).toBe(2);
   });
 
   it("limite par organisateur : la deuxième organisation du même organisateur n'en profite pas", async () => {
@@ -78,16 +147,41 @@ describe("offres attribuées à la création d'une organisation (docs/OFFRES.md)
   });
 
   it("priorité : la plus haute l'emporte", async () => {
-    await offer({ code: `basse-${rid()}`, priority: 0, durationValue: 1, durationUnit: "MONTH" });
-    const high = await db.promotion.create({ data: { code: `haute-${rid()}`, name: "Haute", priority: 10, durationValue: 6, durationUnit: "MONTH" } });
+    await offer({
+      code: `basse-${rid()}`,
+      priority: 0,
+      durationValue: 1,
+      durationUnit: "MONTH",
+    });
+    const high = await db.promotion.create({
+      data: {
+        code: `haute-${rid()}`,
+        name: "Haute",
+        priority: 10,
+        durationValue: 6,
+        durationUnit: "MONTH",
+      },
+    });
     const org = await create((await user()).id);
-    expect((await db.promotionRedemption.findUniqueOrThrow({ where: { organizationId: org.id } })).promotionId).toBe(high.id);
+    expect(
+      (
+        await db.promotionRedemption.findUniqueOrThrow({
+          where: { organizationId: org.id },
+        })
+      ).promotionId,
+    ).toBe(high.id);
   });
 
   it("suspendue, programmée ou terminée : jamais attribuée", async () => {
-    for (const over of [{ active: false }, { startsAt: new Date(Date.now() + day) }, { endsAt: new Date(Date.now() - day) }]) {
+    for (const over of [
+      { active: false },
+      { startsAt: new Date(Date.now() + day) },
+      { endsAt: new Date(Date.now() - day) },
+    ]) {
       await offer(over);
-      expect((await planOf((await create((await user()).id)).id)).planId).toBe("free");
+      expect((await planOf((await create((await user()).id)).id)).planId).toBe(
+        "free",
+      );
     }
   });
 });
@@ -97,10 +191,19 @@ describe("textes publics, statistiques et formulaire de l'administration", () =>
     const p = await offer();
     expect((await publicOffer("en"))!.banner).toBe("3 months free");
     expect((await publicOffer("nl"))!.banner).toBe("3 mois offerts"); // repli sur le français
-    const res = await GET(new Request(`https://app.evoly.me/api/public/offer?lang=en&offre=${p.code}`));
+    const res = await GET(
+      new Request(
+        `https://app.evoly.me/api/public/offer?lang=en&offre=${p.code}`,
+      ),
+    );
     expect(res.headers.get("access-control-allow-origin")).toBe("*");
-    expect(((await res.json()) as { offer: { code: string; cta: string } }).offer).toMatchObject({ code: p.code, cta: "Get it" });
-    await db.promotion.update({ where: { id: p.id }, data: { showOnSite: false } });
+    expect(
+      ((await res.json()) as { offer: { code: string; cta: string } }).offer,
+    ).toMatchObject({ code: p.code, cta: "Get it" });
+    await db.promotion.update({
+      where: { id: p.id },
+      data: { showOnSite: false },
+    });
     expect(await publicOffer("fr")).toBeNull();
   });
 
@@ -120,7 +223,14 @@ describe("textes publics, statistiques et formulaire de l'administration", () =>
       },
     });
     const row = (await promotionStats()).find((r) => r.id === p.id)!;
-    expect([row.status, row.redemptions, row.stillOffered, row.published, row.firstSale, row.paidPro]).toEqual([
+    expect([
+      row.status,
+      row.redemptions,
+      row.stillOffered,
+      row.published,
+      row.firstSale,
+      row.paidPro,
+    ]).toEqual([
       "DISABLED" === row.status ? "DISABLED" : "RUNNING",
       1,
       1,
@@ -165,7 +275,15 @@ describe("textes publics, statistiques et formulaire de l'administration", () =>
       maxRedemptions: null,
       startsAt: new Date("2027-08-31T22:00:00Z"),
     });
-    const bad = parsePromotionForm(form({ code: "x", endsAtLocal: "2027-08-01T00:00", countries: "Belgique", durationValue: "40", msg_fr_banner: "" }));
+    const bad = parsePromotionForm(
+      form({
+        code: "x",
+        endsAtLocal: "2027-08-01T00:00",
+        countries: "Belgique",
+        durationValue: "40",
+        msg_fr_banner: "",
+      }),
+    );
     expect(bad.ok ? {} : bad.fields).toMatchObject({
       code: "validation.code",
       endsAtLocal: "validation.endBeforeStart",

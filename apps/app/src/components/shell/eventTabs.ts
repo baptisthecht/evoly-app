@@ -31,8 +31,16 @@ export function buildEventTabs(input: {
   canPublish: boolean;
 }) {
   const { t, base } = input;
-  const item = (key: string, path: string): EventTabItem => ({ label: t(key), href: `${base}/${path}` });
-  const ticketing = [item("tickets", "tickets"), item("seating", "seating"), item("tables", "tables"), item("options", "options")];
+  const item = (key: string, path: string): EventTabItem => ({
+    label: t(key),
+    href: `${base}/${path}`,
+  });
+  const ticketing = [
+    item("tickets", "tickets"),
+    item("seating", "seating"),
+    item("tables", "tables"),
+    item("options", "options"),
+  ];
   const sales = [
     item("eventPage", "appearance"),
     ...(input.canPublish ? [item("launch", "launch")] : []),
@@ -43,21 +51,45 @@ export function buildEventTabs(input: {
   ];
   const tabs: EventTab[] = [
     { key: "overview", label: t("eventOverview"), href: base, items: [] },
-    { key: "ticketing", label: t("groupTicketing"), href: ticketing[0]!.href, items: ticketing },
+    {
+      key: "ticketing",
+      label: t("groupTicketing"),
+      href: ticketing[0]!.href,
+      items: ticketing,
+    },
     {
       key: "attendees",
       label: t("groupAttendees"),
       href: `${base}/orders`,
-      items: [item("orders", "orders"), item("resale", "resale"), item("emails", "emails")],
+      items: [
+        item("orders", "orders"),
+        item("resale", "resale"),
+        item("emails", "emails"),
+      ],
     },
-    { key: "sales", label: t("groupSales"), href: sales[0]!.href, items: sales },
+    {
+      key: "sales",
+      label: t("groupSales"),
+      href: sales[0]!.href,
+      items: sales,
+    },
     {
       key: "dayOf",
       label: t("groupDayOf"),
       href: `${base}/entries`,
-      items: [item("entries", "entries"), item("cash", "cash"), item("labels", "etiquettes"), item("offline", "offline")],
+      items: [
+        item("entries", "entries"),
+        item("cash", "cash"),
+        item("labels", "etiquettes"),
+        item("offline", "offline"),
+      ],
     },
-    { key: "settings", label: t("eventSettings"), href: `${base}/settings`, items: [] },
+    {
+      key: "settings",
+      label: t("eventSettings"),
+      href: `${base}/settings`,
+      items: [],
+    },
   ];
   // toutes les fonctionnalités affichées directement (plus de menu « Ajouter une fonctionnalité »)
   const hidden: HiddenFeature[] = [];
@@ -65,10 +97,21 @@ export function buildEventTabs(input: {
 }
 
 /** Partie active d'après l'adresse de la page ; une fonctionnalité pas encore ajoutée compte dans sa partie quand on est dessus. */
-export function activeEventTab(tabs: EventTab[], hidden: HiddenFeature[], pathname: string): EventTab["key"] {
+export function activeEventTab(
+  tabs: EventTab[],
+  hidden: HiddenFeature[],
+  pathname: string,
+): EventTab["key"] {
   const path = pathname.replace(/\/$/, "");
   const under = (href: string) => path === href || path.startsWith(`${href}/`);
-  for (const tab of tabs) if (tab.key !== "overview" && (tab.items.length ? tab.items.some((i) => under(i.href)) : under(tab.href))) return tab.key;
+  for (const tab of tabs)
+    if (
+      tab.key !== "overview" &&
+      (tab.items.length
+        ? tab.items.some((i) => under(i.href))
+        : under(tab.href))
+    )
+      return tab.key;
   const feature = hidden.find((h) => under(h.href));
   return feature ? feature.tab : "overview";
 }

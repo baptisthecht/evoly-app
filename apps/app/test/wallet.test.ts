@@ -43,7 +43,15 @@ const apple = {
 async function purchase() {
   const id = rid();
   const org = await db.organization.create({
-    data: { name: `Club ${id}`, slug: `club-${id}`, subdomain: `club-${id}`, country: "BE", currency: "EUR", timezone: "Europe/Brussels", locale: "fr" },
+    data: {
+      name: `Club ${id}`,
+      slug: `club-${id}`,
+      subdomain: `club-${id}`,
+      country: "BE",
+      currency: "EUR",
+      timezone: "Europe/Brussels",
+      locale: "fr",
+    },
   });
   const event = await db.event.create({
     data: {
@@ -57,13 +65,32 @@ async function purchase() {
       timezone: "Europe/Brussels",
       startsAt: new Date(Date.now() + 4 * 86_400_000),
       status: "PUBLISHED",
-      ticketTypes: { create: { name: "Entrée", priceMinor: 0, currency: "EUR", quantity: 20 } },
+      ticketTypes: {
+        create: {
+          name: "Entrée",
+          priceMinor: 0,
+          currency: "EUR",
+          quantity: 20,
+        },
+      },
     },
     include: { ticketTypes: true },
   });
-  const r = await reserveOrder({ eventId: event.id, lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 2 }], locale: "fr" });
-  await submitBuyer(r.token, { firstName: "Léa", lastName: "Martin", email: `lea.${id}@exemple.be`, marketingOptIn: false });
-  const tickets = await db.ticket.findMany({ where: { orderId: r.orderId }, orderBy: [{ createdAt: "asc" }, { id: "asc" }] });
+  const r = await reserveOrder({
+    eventId: event.id,
+    lines: [{ ticketTypeId: event.ticketTypes[0]!.id, quantity: 2 }],
+    locale: "fr",
+  });
+  await submitBuyer(r.token, {
+    firstName: "Léa",
+    lastName: "Martin",
+    email: `lea.${id}@exemple.be`,
+    marketingOptIn: false,
+  });
+  const tickets = await db.ticket.findMany({
+    where: { orderId: r.orderId },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  });
   return { token: r.token, tickets, event };
 }
 
@@ -72,9 +99,22 @@ describe("Apple Wallet et Google Wallet (US-POST-03)", () => {
     const p = await purchase();
     const t = (await walletTicket(p.token, p.tickets[0]!.id))!;
     const files = unzipSync(buildPkpass(t, apple));
-    expect(Object.keys(files).sort()).toEqual(["icon.png", "icon@2x.png", "icon@3x.png", "logo.png", "logo@2x.png", "manifest.json", "pass.json", "signature"]);
-    const manifest = JSON.parse(strFromU8(files["manifest.json"]!)) as Record<string, string>;
-    for (const [name, hash] of Object.entries(manifest)) expect(createHash("sha1").update(files[name]!).digest("hex")).toBe(hash);
+    expect(Object.keys(files).sort()).toEqual([
+      "icon.png",
+      "icon@2x.png",
+      "icon@3x.png",
+      "logo.png",
+      "logo@2x.png",
+      "manifest.json",
+      "pass.json",
+      "signature",
+    ]);
+    const manifest = JSON.parse(strFromU8(files["manifest.json"]!)) as Record<
+      string,
+      string
+    >;
+    for (const [name, hash] of Object.entries(manifest))
+      expect(createHash("sha1").update(files[name]!).digest("hex")).toBe(hash);
     const pass = JSON.parse(strFromU8(files["pass.json"]!));
     expect(pass).toMatchObject({
       formatVersion: 1,
@@ -120,28 +160,45 @@ describe("Apple Wallet et Google Wallet (US-POST-03)", () => {
 
   it("lien Google Wallet : jeton RS256 vérifiable, billet et QR code ; aucun pass pour un billet revendu ou un mauvais lien", async () => {
     const p = await purchase();
-    const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+    const { privateKey, publicKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+    });
     const t = (await walletTicket(p.token, p.tickets[1]!.id))!;
     const url = googleSaveUrl(
       t,
       {
         issuerId: "3388000000012345678",
         serviceAccountEmail: "wallet@evoly.iam.gserviceaccount.com",
-        privateKeyPem: privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+        privateKeyPem: privateKey
+          .export({ type: "pkcs8", format: "pem" })
+          .toString(),
       },
       "https://club.evoly.me",
     );
     expect(url.startsWith("https://pay.google.com/gp/v/save/")).toBe(true);
-    const [head, body, sig] = url.slice("https://pay.google.com/gp/v/save/".length).split(".");
-    expect(createVerify("RSA-SHA256").update(`${head}.${body}`).verify(publicKey, Buffer.from(sig!, "base64url"))).toBe(true);
+    const [head, body, sig] = url
+      .slice("https://pay.google.com/gp/v/save/".length)
+      .split(".");
+    expect(
+      createVerify("RSA-SHA256")
+        .update(`${head}.${body}`)
+        .verify(publicKey, Buffer.from(sig!, "base64url")),
+    ).toBe(true);
     const claims = JSON.parse(Buffer.from(body!, "base64url").toString());
-    expect(claims).toMatchObject({ aud: "google", typ: "savetowallet", iss: "wallet@evoly.iam.gserviceaccount.com" });
+    expect(claims).toMatchObject({
+      aud: "google",
+      typ: "savetowallet",
+      iss: "wallet@evoly.iam.gserviceaccount.com",
+    });
     expect(claims.payload.eventTicketObjects[0]).toMatchObject({
       id: `3388000000012345678.evoly_ticket_${p.tickets[1]!.id}`,
       state: "ACTIVE",
       barcode: { type: "QR_CODE", value: p.tickets[1]!.code },
     });
-    await db.ticket.update({ where: { id: p.tickets[1]!.id }, data: { status: "VOID", voidReason: "RESOLD" } });
+    await db.ticket.update({
+      where: { id: p.tickets[1]!.id },
+      data: { status: "VOID", voidReason: "RESOLD" },
+    });
     expect(await walletTicket(p.token, p.tickets[1]!.id)).toBeNull();
     expect(await walletTicket("jeton-inconnu", p.tickets[0]!.id)).toBeNull();
   });

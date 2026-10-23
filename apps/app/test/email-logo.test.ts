@@ -13,9 +13,21 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("logo des billets PDF (PNG ou JPEG seulement)", () => {
   it("logo stocké : PNG et JPEG lus, WebP refusé (non pris en charge par les PDF standard)", async () => {
-    const png = await putPublicFile(`orgs/test/logo-${rid()}.png`, await image("png"), "image/png");
-    const jpg = await putPublicFile(`orgs/test/logo-${rid()}.jpg`, await image("jpeg"), "image/jpeg");
-    const webp = await putPublicFile(`orgs/test/logo-${rid()}.webp`, await image("webp"), "image/webp");
+    const png = await putPublicFile(
+      `orgs/test/logo-${rid()}.png`,
+      await image("png"),
+      "image/png",
+    );
+    const jpg = await putPublicFile(
+      `orgs/test/logo-${rid()}.jpg`,
+      await image("jpeg"),
+      "image/jpeg",
+    );
+    const webp = await putPublicFile(
+      `orgs/test/logo-${rid()}.webp`,
+      await image("webp"),
+      "image/webp",
+    );
     expect((await logoBytes(png))?.type).toBe("image/png");
     expect((await logoBytes(jpg))?.type).toBe("image/jpeg");
     expect(await logoBytes(webp)).toBeNull();
@@ -27,7 +39,9 @@ describe("logo des billets PDF (PNG ou JPEG seulement)", () => {
       "fetch",
       vi.fn(async () => new Response(png, { status: 200 })),
     );
-    expect((await logoBytes("https://ailleurs.example/logo.png"))?.type).toBe("image/png");
+    expect((await logoBytes("https://ailleurs.example/logo.png"))?.type).toBe(
+      "image/png",
+    );
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("introuvable", { status: 404 })),
@@ -45,12 +59,19 @@ describe("logo des billets PDF (PNG ou JPEG seulement)", () => {
   });
 
   it("fichier local disparu : relu à son adresse publique, sinon rien", async () => {
-    const gone = await putPublicFile(`orgs/test/logo-${rid()}.png`, await image("png"), "image/png");
+    const gone = await putPublicFile(
+      `orgs/test/logo-${rid()}.png`,
+      await image("png"),
+      "image/png",
+    );
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("introuvable", { status: 404 })),
     );
-    const missing = gone.replace(/logo-[a-z0-9]+\.png$/, `logo-absent-${rid()}.png`);
+    const missing = gone.replace(
+      /logo-[a-z0-9]+\.png$/,
+      `logo-absent-${rid()}.png`,
+    );
     expect(await logoBytes(missing)).toBeNull();
   });
 });

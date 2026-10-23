@@ -12,7 +12,8 @@ export async function POST(req: Request) {
   const s = stripe();
   const secret = env().STRIPE_WEBHOOK_SECRET_PLATFORM;
   const signature = req.headers.get("stripe-signature");
-  if (!s || !secret || !signature) return new Response("Webhook non configuré", { status: 400 });
+  if (!s || !secret || !signature)
+    return new Response("Webhook non configuré", { status: 400 });
   let event: Stripe.Event;
   try {
     event = s.webhooks.constructEvent(await req.text(), signature, secret);

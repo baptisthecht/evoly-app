@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": { "noEmit": true },
-  "include": ["next-env.d.ts", "src", "test", "vitest.config.ts", "vitest.components.config.ts"]
+  "include": [
+    "next-env.d.ts",
+    "src",
+    "test",
+    "vitest.config.ts",
+    "vitest.components.config.ts"
+  ]
 }

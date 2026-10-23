@@ -13,7 +13,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("payments") };
 }
 
-export default async function PaymentsPage({ params, searchParams }: { params: Promise<{ orgSlug: string }>; searchParams: Promise<{ stripe?: string }> }) {
+export default async function PaymentsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ stripe?: string }>;
+}) {
   const { orgSlug } = await params;
   const { stripe: from } = await searchParams;
   let ctx = await requireOrgContext(orgSlug);
@@ -38,20 +44,46 @@ export default async function PaymentsPage({ params, searchParams }: { params: P
       ) : null}
       <Card className="grid gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">Stripe</h2>
-          <Badge tone={status === "ACTIVE" ? "success" : status === "NONE" ? "neutral" : status === "PENDING" ? "warning" : "danger"}>
+          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+            Stripe
+          </h2>
+          <Badge
+            tone={
+              status === "ACTIVE"
+                ? "success"
+                : status === "NONE"
+                  ? "neutral"
+                  : status === "PENDING"
+                    ? "warning"
+                    : "danger"
+            }
+          >
             {t(`stripeStatus_${status}`)}
           </Badge>
         </div>
         <p className="text-[0.95rem]">{t(`stripeExplain_${status}`)}</p>
         {ctx.stripe && ctx.stripe.requirementsDue.length > 0 ? (
-          <p className="text-sm text-ink-muted">{t("requirementsCount", { count: ctx.stripe.requirementsDue.length })}</p>
+          <p className="text-sm text-ink-muted">
+            {t("requirementsCount", {
+              count: ctx.stripe.requirementsDue.length,
+            })}
+          </p>
         ) : null}
         {manage && configured ? (
           <div className="flex flex-wrap gap-3">
-            {status !== "ACTIVE" ? <ConnectStripe orgSlug={ctx.organization.slug} label={t(status === "NONE" ? "connect" : "finishSetup")} /> : null}
+            {status !== "ACTIVE" ? (
+              <ConnectStripe
+                orgSlug={ctx.organization.slug}
+                label={t(status === "NONE" ? "connect" : "finishSetup")}
+              />
+            ) : null}
             {ctx.stripe ? (
-              <a href="https://dashboard.stripe.com" target="_blank" rel="noreferrer" className={buttonClass("secondary", "lg")}>
+              <a
+                href="https://dashboard.stripe.com"
+                target="_blank"
+                rel="noreferrer"
+                className={buttonClass("secondary", "lg")}
+              >
                 {t("openStripeDashboard")}
               </a>
             ) : null}
@@ -59,8 +91,18 @@ export default async function PaymentsPage({ params, searchParams }: { params: P
         ) : null}
       </Card>
       <Card className="grid gap-3">
-        <h2 className="font-display text-xl tracking-[var(--tracking-title)]">{t("feesTitle")}</h2>
-        <p className="text-[0.95rem] text-ink-muted">{t(ctx.plan === "partner" ? "feesBodyPartner" : ctx.plan === "pro" ? "feesBodyPro" : "feesBodyFree")}</p>
+        <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+          {t("feesTitle")}
+        </h2>
+        <p className="text-[0.95rem] text-ink-muted">
+          {t(
+            ctx.plan === "partner"
+              ? "feesBodyPartner"
+              : ctx.plan === "pro"
+                ? "feesBodyPro"
+                : "feesBodyFree",
+          )}
+        </p>
       </Card>
     </div>
   );
