@@ -8,6 +8,7 @@ import { requireOrgContext } from "@/server/context";
 import { DISTRIBUTOR_KINDS, eventDistribution } from "@/server/distributors";
 import { getEventWithTickets } from "@/server/events";
 import { AddDistributorForm, AllocationForm, ReleaseUnsoldButton } from "./DistributionForms";
+import { ImportPanel } from "./ImportPanel";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -62,6 +63,7 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
                 {canEdit && d.allocated > d.imported ? (
                   <ReleaseUnsoldButton orgSlug={orgSlug} eventId={eventId} distributorId={d.id} count={d.allocated - d.imported} />
                 ) : null}
+                {canEdit ? <ImportPanel orgSlug={orgSlug} eventId={eventId} distributorId={d.id} /> : null}
               </li>
             ))}
           </ul>
