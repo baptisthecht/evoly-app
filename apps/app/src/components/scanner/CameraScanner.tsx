@@ -10,6 +10,60 @@ interface Detector {
 type DetectorCtor = new (options: { formats: string[] }) => Detector;
 
 /** Viseur : détecteur natif du navigateur si disponible, sinon décodage jsQR sur une image réduite. */
+/** Formats lus : QR des billets Evoly ; codes linéaires et 2D des réseaux (Ticketmaster, Fnac, BilletReduc…). */
+export const SCAN_FORMATS = [
+  "qr_code",
+  "code_128",
+  "code_39",
+  "code_93",
+  "codabar",
+  "ean_13",
+  "ean_8",
+  "itf",
+  "upc_a",
+  "upc_e",
+  "pdf417",
+  "aztec",
+  "data_matrix",
+];
+
+let zxing: Promise<(image: ImageData) => string | null> | null = null;
+/** Lecteur ZXing (licence Apache 2.0), chargé une seule fois et seulement sans détecteur du navigateur. */
+function linearReader() {
+  zxing ??= import("@zxing/library").then((z) => {
+    const hints = new Map();
+    hints.set(z.DecodeHintType.POSSIBLE_FORMATS, [
+      z.BarcodeFormat.CODE_128,
+      z.BarcodeFormat.CODE_39,
+      z.BarcodeFormat.CODE_93,
+      z.BarcodeFormat.CODABAR,
+      z.BarcodeFormat.EAN_13,
+      z.BarcodeFormat.EAN_8,
+      z.BarcodeFormat.ITF,
+      z.BarcodeFormat.UPC_A,
+      z.BarcodeFormat.UPC_E,
+      z.BarcodeFormat.PDF_417,
+      z.BarcodeFormat.AZTEC,
+      z.BarcodeFormat.DATA_MATRIX,
+    ]);
+    hints.set(z.DecodeHintType.TRY_HARDER, true);
+    const reader = new z.MultiFormatReader();
+    reader.setHints(hints);
+    return (image: ImageData) => {
+      const lum = new Uint8ClampedArray(image.width * image.height);
+      for (let i = 0, j = 0; j < lum.length; i += 4, j++) lum[j] = (image.data[i]! * 299 + image.data[i + 1]! * 587 + image.data[i + 2]! * 114) / 1000;
+      try {
+        return reader.decodeWithState(new z.BinaryBitmap(new z.HybridBinarizer(new z.RGBLuminanceSource(lum, image.width, image.height)))).getText();
+      } catch {
+        return null;
+      } finally {
+        reader.reset();
+      }
+    };
+  });
+  return zxing;
+}
+
 export function CameraScanner({ onCode, paused }: { onCode: (code: string) => void; paused: boolean }) {
   const t = useTranslations("scanner");
   const video = useRef<HTMLVideoElement>(null);
@@ -35,8 +89,12 @@ export function CameraScanner({ onCode, paused }: { onCode: (code: string) => vo
       v.srcObject = stream.current;
       await v.play();
       setState("on");
-      const Native = (window as unknown as { BarcodeDetector?: DetectorCtor }).BarcodeDetector;
-      const detector = Native ? new Native({ formats: ["qr_code"] }) : null;
+      // billets Evoly (QR) et billets des réseaux (codes linéaires, PDF417…) : seulement les formats que l'appareil sait lire
+      const Native = (window as unknown as { BarcodeDetector?: DetectorCtor & { getSupportedFormats?: () => Promise<string[]> } }).BarcodeDetector;
+      const supported = Native ? ((await Native.getSupportedFormats?.().catch(() => ["qr_code"])) ?? ["qr_code"]) : [];
+      const formats = SCAN_FORMATS.filter((f) => supported.includes(f));
+      const detector = Native && formats.length ? new Native({ formats }) : null;
+      let frame = 0;
       const tick = async () => {
         if (!stream.current) return;
         if (!pausedRef.current && v.readyState >= 2) {
@@ -50,7 +108,10 @@ export function CameraScanner({ onCode, paused }: { onCode: (code: string) => vo
               c.height = Math.round(v.videoHeight * scale);
               const ctx = c.getContext("2d", { willReadFrequently: true })!;
               ctx.drawImage(v, 0, 0, c.width, c.height);
-              value = jsQR(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height, { inversionAttempts: "dontInvert" })?.data ?? null;
+              const image = ctx.getImageData(0, 0, c.width, c.height);
+              value = jsQR(image.data, c.width, c.height, { inversionAttempts: "dontInvert" })?.data ?? null;
+              // sans détecteur (iPhone) : codes-barres des réseaux lus par ZXing, chargé seulement ici, une image sur deux
+              if (!value && frame++ % 2 === 0) value = (await linearReader())(image);
             }
           } catch {
             value = null;

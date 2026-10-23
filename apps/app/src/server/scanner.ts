@@ -193,6 +193,22 @@ export async function scannerManifest(link: ResolvedLink) {
     orderBy: [{ createdAt: "asc" }, { id: "asc" }], // ordre stable sur le téléphone, même pour des billets créés ensemble
   });
   const salt = link.id;
+  // billets vendus par les réseaux (importés), dans la même liste : contrôle hors ligne et recherche par nom
+  // (docs/COMPATIBILITE_RESEAUX.md) ; une réservation de plusieurs places : un code de base, places suivantes « code#2 »…
+  const external = await db.externalTicket.findMany({
+    where: { eventId: link.eventId },
+    select: {
+      id: true,
+      code: true,
+      holderName: true,
+      seatLabel: true,
+      status: true,
+      checkedInAt: true,
+      ticketType: { select: { name: true } },
+      distributor: { select: { name: true } },
+    },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+  });
   // options de chaque commande, pour retirer au bar sans réseau (RG-OPT-05)
   const optionLines = await db.orderOption.findMany({
     where: { order: { eventId: link.eventId, status: { in: ["PAID", "PARTIALLY_REFUNDED"] } } },
@@ -233,19 +249,38 @@ export async function scannerManifest(link: ResolvedLink) {
       canSell: link.canSell,
       expiresAt: link.expiresAt.toISOString(),
     },
-    tickets: tickets.map((t) => ({
-      id: t.id,
-      codeHash: sha256(`${salt}:${t.code}`),
-      shortCode: t.shortCode,
-      holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : `${t.order.buyerFirstName} ${t.order.buyerLastName}`.trim(),
-      buyer: `${t.order.buyerFirstName} ${t.order.buyerLastName}`.trim(),
-      emailHash: sha256(`${salt}:${t.order.buyerEmail.toLowerCase()}`),
-      typeName: t.tableLabel ? `${t.ticketType.name} · ${t.tableLabel}` : t.ticketType.name,
-      status: t.status,
-      checkedInAt: t.checkedInAt?.toISOString() ?? null,
-      voidReason: t.voidReason,
-      orderId: t.orderId, // ses options, au bar sans réseau (RG-OPT-05)
-    })),
+    tickets: [
+      ...tickets.map((t) => ({
+        id: t.id,
+        codeHash: sha256(`${salt}:${t.code}`),
+        shortCode: t.shortCode,
+        holder: t.holderFirstName ? `${t.holderFirstName} ${t.holderLastName ?? ""}`.trim() : `${t.order.buyerFirstName} ${t.order.buyerLastName}`.trim(),
+        buyer: `${t.order.buyerFirstName} ${t.order.buyerLastName}`.trim(),
+        emailHash: sha256(`${salt}:${t.order.buyerEmail.toLowerCase()}`),
+        typeName: t.tableLabel ? `${t.ticketType.name} · ${t.tableLabel}` : t.ticketType.name,
+        status: t.status,
+        checkedInAt: t.checkedInAt?.toISOString() ?? null,
+        voidReason: t.voidReason,
+        orderId: t.orderId as string | null, // ses options, au bar sans réseau (RG-OPT-05)
+        groupHash: null as string | null,
+        network: null as string | null,
+      })),
+      ...external.map((x) => ({
+        id: `${EXTERNAL}${x.id}`,
+        codeHash: x.code ? sha256(`${salt}:${x.code}`) : "",
+        shortCode: "",
+        holder: x.holderName ?? x.distributor.name,
+        buyer: x.distributor.name,
+        emailHash: "",
+        typeName: [x.ticketType?.name, x.seatLabel].filter(Boolean).join(" · ") || x.distributor.name,
+        status: (x.status === "CANCELLED" ? "VOID" : x.checkedInAt ? "CHECKED_IN" : "VALID") as (typeof tickets)[number]["status"],
+        checkedInAt: x.checkedInAt?.toISOString() ?? null,
+        voidReason: null,
+        orderId: null as string | null,
+        groupHash: x.code ? sha256(`${salt}:${baseCode(x.code)}`) : null,
+        network: x.distributor.name, // réseau d'origine, affiché au scan
+      })),
+    ],
   };
 }
 
@@ -282,6 +317,7 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
     order: { select: { buyerFirstName: true, buyerLastName: true } },
     event: { select: { title: true } },
   } as const;
+  if (input.ticketId?.startsWith(EXTERNAL)) return checkInExternal(link, input.ticketId.slice(EXTERNAL.length), input, receivedAt);
   const ticket = input.code
     ? await db.ticket.findUnique({ where: { code: input.code.trim() }, include })
     : input.shortCode
@@ -289,6 +325,11 @@ export async function checkIn(link: ResolvedLink, input: ScanInput, receivedAt =
       : input.ticketId
         ? await db.ticket.findFirst({ where: { id: input.ticketId, eventId: link.eventId }, include })
         : null;
+  if (!ticket && (input.code || input.shortCode)) {
+    // code-barres d'un réseau, scanné ou tapé (douchette, saisie) : billet importé
+    const ext = await externalByCode(link.eventId, (input.code ?? input.shortCode)!);
+    if (ext) return checkInExternal(link, ext, input, receivedAt);
+  }
   const at = input.offline ? trustedScanTime(input.scannedAt ? new Date(input.scannedAt) : null, receivedAt) : receivedAt;
   const gate = await gateLabel(link);
   const logData = (result: ScanOutcome) => ({
@@ -375,8 +416,12 @@ export async function syncScans(link: ResolvedLink, scans: Array<ScanInput & { c
 
 /** RG-SCN-09 : présents, taux, répartition par tarif et par entrée, 20 derniers scans. */
 export async function attendanceStats(eventId: string) {
-  const [tickets, byGate, recent] = await Promise.all([
+  const [tickets, external, byGate, recent] = await Promise.all([
     db.ticket.findMany({ where: { eventId }, select: { status: true, ticketType: { select: { name: true } } } }),
+    db.externalTicket.findMany({
+      where: { eventId },
+      select: { status: true, checkedInAt: true, ticketType: { select: { name: true } }, distributor: { select: { name: true } } },
+    }),
     db.checkIn.groupBy({ by: ["gate"], where: { eventId, result: "VALID" }, _count: { _all: true } }),
     db.checkIn.findMany({
       where: { eventId },
@@ -391,11 +436,18 @@ export async function attendanceStats(eventId: string) {
             order: { select: { buyerFirstName: true, buyerLastName: true } },
           },
         },
+        externalTicket: { select: { holderName: true, ticketType: { select: { name: true } }, distributor: { select: { name: true } } } },
       },
     }),
   ]);
   return {
-    ...attendance(tickets.map((t) => ({ ticketTypeName: t.ticketType.name, status: t.status }))),
+    ...attendance([
+      ...tickets.map((t) => ({ ticketTypeName: t.ticketType.name, status: t.status })),
+      ...external.map((x) => ({
+        ticketTypeName: x.ticketType?.name ?? x.distributor.name,
+        status: (x.status === "CANCELLED" ? "VOID" : x.checkedInAt ? "CHECKED_IN" : "VALID") as (typeof tickets)[number]["status"],
+      })),
+    ]),
     byGate: byGate.map((g) => ({ gate: g.gate ?? "-", count: g._count._all })).sort((a, b) => b.count - a.count),
     recent: recent.map((c) => ({
       id: c.id,
@@ -407,8 +459,8 @@ export async function attendanceStats(eventId: string) {
         ? c.ticket.holderFirstName
           ? `${c.ticket.holderFirstName} ${c.ticket.holderLastName ?? ""}`.trim()
           : `${c.ticket.order.buyerFirstName} ${c.ticket.order.buyerLastName}`.trim()
-        : null,
-      typeName: c.ticket?.ticketType.name ?? null,
+        : (c.externalTicket?.holderName ?? c.externalTicket?.distributor.name ?? null),
+      typeName: c.ticket?.ticketType.name ?? c.externalTicket?.ticketType?.name ?? c.externalTicket?.distributor.name ?? null,
     })),
   };
 }
@@ -418,6 +470,7 @@ export async function attendanceStats(eventId: string) {
  * Le journal reste immuable : l'annulation y est ajoutée (REVERTED), le billet redevient valable.
  */
 export async function revertCheckIn(ctx: OrgContext, ticketId: string, note: string) {
+  if (ticketId.startsWith(EXTERNAL)) return revertExternalCheckIn(ctx, ticketId.slice(EXTERNAL.length), note);
   const ticket = await db.ticket.findFirst({
     where: { id: ticketId, event: { organizationId: ctx.organization.id } },
     select: { id: true, eventId: true, status: true },
@@ -446,6 +499,135 @@ export async function revertCheckIn(ctx: OrgContext, ticketId: string, note: str
     actorUserId: ctx.user.id,
     targetType: "Ticket",
     targetId: ticket.id,
+    metadata: { reason },
+  });
+}
+
+// ─── Billets vendus par les réseaux (docs/COMPATIBILITE_RESEAUX.md) ────────────────────────────────────────────────────
+
+/** Identifiant d'un billet importé dans la liste des appareils et les scans : distinct de celui d'un billet Evoly. */
+export const EXTERNAL = "x:";
+/** Code de base d'une réservation de plusieurs places (« code#2 » → « code »). */
+const baseCode = (code: string) => code.replace(/#\d+$/, "");
+
+/**
+ * Billet importé d'un code scanné ou tapé (majuscules indifférentes) ; pour une réservation de plusieurs places, la
+ * première place encore libre du même code de base, sinon la place elle-même (déjà utilisée ou annulée).
+ */
+async function externalByCode(eventId: string, raw: string) {
+  const code = raw.trim();
+  if (!code || code.length > 64) return null;
+  const variants = [...new Set([code, code.toUpperCase(), code.toLowerCase()])]; // casse indifférente
+  const exact = await db.externalTicket.findFirst({
+    where: { eventId, code: { in: variants } },
+    select: { id: true, status: true, checkedInAt: true, code: true },
+  });
+  if (!exact) return null;
+  if (exact.status === "VALID" && !exact.checkedInAt) return exact.id;
+  const next = await db.externalTicket.findFirst({
+    where: { eventId, status: "VALID", checkedInAt: null, code: { startsWith: `${baseCode(exact.code!)}#` } },
+    orderBy: { rank: "asc" },
+    select: { id: true },
+  });
+  return next?.id ?? exact.id;
+}
+
+/** Passage d'un billet importé : mêmes garanties qu'un billet Evoly (mise à jour conditionnelle, journal, hors ligne). */
+async function checkInExternal(link: ResolvedLink, externalId: string, input: ScanInput, receivedAt: Date): Promise<ScanResult> {
+  const checkOnly = !!input.verify || link.checkOnly;
+  const x = await db.externalTicket.findFirst({
+    where: { id: externalId, eventId: link.eventId },
+    include: { distributor: { select: { name: true } }, ticketType: { select: { name: true } } },
+  });
+  const at = input.offline ? trustedScanTime(input.scannedAt ? new Date(input.scannedAt) : null, receivedAt) : receivedAt;
+  const gate = await gateLabel(link);
+  const logData = (result: ScanOutcome) => ({
+    eventId: link.eventId,
+    externalTicketId: x?.id ?? null,
+    scannerLinkId: link.id,
+    userId: link.label.startsWith(PERSONAL) ? link.createdById : null,
+    result,
+    method: input.method,
+    gate,
+    deviceId: input.deviceId?.slice(0, 64) ?? null,
+    scannedAt: at,
+    offline: !!input.offline,
+  });
+  let result: ScanOutcome = !x ? "INVALID" : x.status === "CANCELLED" ? "VOID" : x.checkedInAt ? "ALREADY_USED" : "VALID";
+  let checkedInAt = x?.checkedInAt ?? null;
+  let logged = false;
+  if (x && result === "VALID" && !checkOnly) {
+    const won = await db.$transaction(async (tx) => {
+      const n =
+        await tx.$executeRaw`UPDATE "ExternalTicket" SET "checkedInAt" = ${at}, "updatedAt" = now() WHERE id = ${x.id} AND status = 'VALID' AND "checkedInAt" IS NULL`;
+      if (n === 1) await tx.checkIn.create({ data: logData("VALID") });
+      return n === 1;
+    });
+    if (won) {
+      checkedInAt = at;
+      logged = true;
+    } else {
+      const fresh = await db.externalTicket.findUniqueOrThrow({ where: { id: x.id }, select: { status: true, checkedInAt: true } });
+      result = fresh.status === "CANCELLED" ? "VOID" : "ALREADY_USED";
+      checkedInAt = fresh.checkedInAt;
+    }
+  } else if (x && result === "ALREADY_USED" && input.offline && !checkOnly && earliestWins(x.checkedInAt, at).winner) {
+    // un scan hors ligne plus ancien l'emporte, le billet prend son heure
+    const earlier = await db.$executeRaw`UPDATE "ExternalTicket" SET "checkedInAt" = ${at}, "updatedAt" = now() WHERE id = ${x.id} AND "checkedInAt" > ${at}`;
+    if (earlier === 1) {
+      result = "VALID";
+      checkedInAt = at;
+    }
+  }
+  if (!logged && !checkOnly) await db.checkIn.create({ data: logData(result) });
+  let firstScan: ScanResult["firstScan"] = null;
+  if (result === "ALREADY_USED" && x) {
+    const first = await db.checkIn.findFirst({
+      where: { externalTicketId: x.id, result: "VALID" },
+      orderBy: { scannedAt: "asc" },
+      select: { scannedAt: true, gate: true },
+    });
+    firstScan = { at: (first?.scannedAt ?? checkedInAt ?? at).toISOString(), gate: first?.gate ?? null };
+  }
+  return {
+    result,
+    ticket: x
+      ? {
+          id: `${EXTERNAL}${x.id}`,
+          holder: x.holderName ?? x.distributor.name,
+          typeName: [x.ticketType?.name, x.seatLabel, x.distributor.name].filter(Boolean).join(" · "),
+          status: result === "VALID" && !checkOnly ? "CHECKED_IN" : x.status === "CANCELLED" ? "VOID" : x.checkedInAt ? "CHECKED_IN" : "VALID",
+          checkedInAt: checkedInAt?.toISOString() ?? null,
+          voidReason: null,
+        }
+      : null,
+    firstScan,
+    otherEvent: null,
+    checkOnly,
+  };
+}
+
+async function revertExternalCheckIn(ctx: OrgContext, externalId: string, note: string) {
+  const x = await db.externalTicket.findFirst({
+    where: { id: externalId, event: { organizationId: ctx.organization.id } },
+    select: { id: true, eventId: true },
+  });
+  if (!x) throw new CoreError("NOT_FOUND");
+  const reason = note.trim().slice(0, 300);
+  if (reason.length < 3) throw new CoreError("CHECKIN_REVERT_REASON");
+  await db.$transaction(async (tx) => {
+    const done = await tx.externalTicket.updateMany({ where: { id: x.id, checkedInAt: { not: null } }, data: { checkedInAt: null } });
+    if (done.count === 0) throw new CoreError("CHECKIN_NOT_REVERTIBLE");
+    await tx.checkIn.create({
+      data: { eventId: x.eventId, externalTicketId: x.id, userId: ctx.user.id, result: "REVERTED", method: "MANUAL_CODE", scannedAt: new Date(), note: reason },
+    });
+  });
+  await audit({
+    action: "checkin.reverted",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "ExternalTicket",
+    targetId: x.id,
     metadata: { reason },
   });
 }

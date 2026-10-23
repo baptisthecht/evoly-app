@@ -18,7 +18,11 @@ interface LocalTicket {
   status: TicketStatus;
   checkedInAt: string | null;
   voidReason: string | null;
-  orderId?: string;
+  orderId?: string | null;
+  /** Réservation de plusieurs places d'un réseau : même empreinte pour le code de base de chaque place. */
+  groupHash?: string | null;
+  /** Réseau d'origine d'un billet importé (Ticketmaster, Fnac…). */
+  network?: string | null;
 }
 interface Manifest {
   serverTime: string;
@@ -358,6 +362,29 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       setBar((b) => (b ? { ...b, error: "FAILED" } : b));
     }
   };
+  // douchette (lecteur laser USB ou Bluetooth) : elle tape le code très vite puis Entrée ; captée hors des champs de saisie.
+  // Avant tout retour anticipé : le scan est appelé par une référence, mise à jour juste après sa définition.
+  const scanRef = useRef<((input: { code?: string; method: PendingScan["method"] }) => Promise<unknown>) | null>(null);
+  useEffect(() => {
+    let buffer = "";
+    let last = 0;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
+      const now = Date.now();
+      if (now - last > 80) buffer = ""; // frappe humaine : rien n'est retenu
+      last = now;
+      if (e.key === "Enter") {
+        if (buffer.length >= 4 && scanRef.current) {
+          e.preventDefault();
+          void scanRef.current({ code: buffer, method: "QR" });
+        }
+        buffer = "";
+      } else if (e.key.length === 1) buffer += e.key;
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const scan = async (input: { code?: string; shortCode?: string; ticketId?: string; method: PendingScan["method"] }) => {
     if (busy.current || !manifest) return;
     busy.current = true;
@@ -368,8 +395,20 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     if (input.code) {
       const h = await sha256(`${manifest.salt}:${input.code.trim()}`);
       local = manifest.tickets.find((tk) => tk.codeHash === h);
-    } else if (input.shortCode) local = manifest.tickets.find((tk) => tk.shortCode === shortOf(input.shortCode!));
+    } else if (input.shortCode) local = manifest.tickets.find((tk) => tk.shortCode !== "" && tk.shortCode === shortOf(input.shortCode!));
     else if (input.ticketId) local = manifest.tickets.find((tk) => tk.id === input.ticketId);
+    const raw = (input.code ?? input.shortCode)?.trim();
+    if (!local && raw) {
+      // code-barres d'un réseau tapé ou lu à la douchette : empreinte du code, casse indifférente
+      for (const v of new Set([raw, raw.toUpperCase(), raw.toLowerCase()])) {
+        const h = await sha256(`${manifest.salt}:${v}`);
+        local = manifest.tickets.find((tk) => tk.codeHash === h || (tk.groupHash != null && tk.groupHash === h && tk.status === "VALID")) ?? local;
+        if (local) break;
+      }
+    }
+    // réservation de plusieurs places : la place trouvée est entrée, la suivante du même code passe
+    if (local?.groupHash && local.status === "CHECKED_IN")
+      local = manifest.tickets.find((tk) => tk.groupHash === local!.groupHash && tk.status === "VALID") ?? local;
     try {
       if (!navigator.onLine) throw new Error("hors ligne");
       const res = await fetch(`/api/scanner/${token}/scan`, {
@@ -422,11 +461,12 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
           ? t("alreadyAt", { time: time(local.checkedInAt) })
           : kind === "VOID"
             ? voidLabel(local.voidReason, local.status)
-            : `${local.holder} · ${local.typeName}${kind === "CHECKED" ? ` · ${t("notValidated")}` : ""}`
+            : `${local.holder} · ${local.typeName}${local.network ? ` · ${local.network}` : ""}${kind === "CHECKED" ? ` · ${t("notValidated")}` : ""}`
         : t("unknownOffline");
       show({ kind, title: t(`result_${kind}`), detail, offline: true });
     }
   };
+  scanRef.current = scan;
 
   if (dead) {
     return (
@@ -456,7 +496,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
             !q ||
             fold(tk.holder).includes(q) ||
             fold(tk.buyer).includes(q) ||
-            tk.shortCode.startsWith(shortOf(query)) ||
+            (tk.shortCode !== "" && tk.shortCode.startsWith(shortOf(query))) ||
             (emailHash != null && tk.emailHash === emailHash),
         )
         .sort((a, b) => a.holder.localeCompare(b.holder, locale))
@@ -604,7 +644,7 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{tk.holder}</p>
                   <p className="truncate text-sm opacity-75">
-                    {tk.typeName} · <span className="font-mono">{tk.shortCode}</span>
+                    {tk.typeName} · {tk.shortCode ? <span className="font-mono">{tk.shortCode}</span> : tk.network}
                   </p>
                 </div>
                 {tk.status === "VALID" ? (
