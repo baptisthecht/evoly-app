@@ -96,7 +96,32 @@ Ensuite, séparément : déclaration SIBIL (fichier trimestriel puis API), Pass 
 billetterie), point de vente pour les offices de tourisme (sans valider l’entrée), temps réel avec la Fnac et Ticketmaster
 (accords nécessaires).
 
+## État au 22 octobre 2026
+
+Fait, testé et envoyé (offre Pro et Partenaire) :
+
+- règle unique des places en vente, appliquée partout (panier, billets offerts, confirmation, page publique, liste d’attente,
+  jauge, quantité et suppression d’un tarif, tables) ;
+- réseaux de l’organisation ; contingents par tarif sous le verrou de l’événement ; places numérotées confiées sur le plan
+  (panneau « Réseau de vente » de l’éditeur) ; rendre les invendus ; places confiées conservées à la modification d’un bloc ;
+- import en 1 clic (CSV, Excel .xlsx par un lecteur maison sur fflate) : colonnes reconnues ou demandées une fois puis
+  mémorisées par réseau, tarifs retrouvés, un billet par place, réimport sans doublon, fichier complet, lignes ignorées avec
+  leur vrai numéro, places du plan reliées, double vente signalée, dépassement de contingent signalé ;
+- scanner : billets importés dans la liste des appareils (hors connexion), codes des réseaux scannés ou tapés, places
+  suivantes d’une réservation, tous les formats que l’appareil sait lire, ZXing sur iPhone, douchettes, réseau affiché ;
+- codes créés à l’avance pour un réseau (BilletReduc), pris sur son contingent, export CSV pour impression ;
+- bilan par canal (Evoly en ligne, sur place, offerts, chaque réseau) et son export ; noms anonymisés 30 jours après ;
+- parcours complet de bout en bout (`e2e/distribution.spec.ts`).
+
+Pour plus tard :
+
+- déclaration SIBIL (fichier trimestriel, puis API du ministère de la Culture) ;
+- Pass Culture (API ouverte aux logiciels de billetterie, accès sur demande) ;
+- point de vente pour les offices de tourisme (vente sur leur quota sans valider l’entrée, montant à reverser) ;
+- codes créés à l’avance avec un plan de salle ;
+- import des listes en PDF ; temps réel avec la Fnac et Ticketmaster (accords nécessaires).
+
 ## Questions ouvertes
 
-Voir la conversation du 22 octobre 2026 : offre (Pro ou toutes), délai d’anonymisation, places numérotées, ordre des
-chantiers suivants.
+Tranchées le 22 octobre 2026 : offre Pro uniquement ; noms anonymisés 30 jours après l’événement ; places numérotées choisies
+sur le plan pour chaque réseau, reliées à l’import. Reste à décider : l’ordre des chantiers « pour plus tard ».
