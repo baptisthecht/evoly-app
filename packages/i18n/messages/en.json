@@ -1051,7 +1051,10 @@
     "IMPORT_FILE_EMPTY": "The file is empty.",
     "IMPORT_FILE_TOO_LARGE": "The file exceeds 5 MB or 20,000 lines.",
     "IMPORT_FILE_OLD_EXCEL": "Old Excel format (.xls): save the file as .xlsx or CSV.",
-    "IMPORT_FILE_UNREADABLE": "This file cannot be read: send a CSV or an Excel file (.xlsx)."
+    "IMPORT_FILE_UNREADABLE": "This file cannot be read: send a CSV or an Excel file (.xlsx).",
+    "PRECREATED_EXCEEDS_ALLOCATION": "Not enough free seats in this network’s allocation for these codes.",
+    "PRECREATED_COUNT_INVALID": "Enter a number of codes between 1 and 5,000.",
+    "PRECREATED_SEATED_UNSUPPORTED": "Pre-generated codes are not yet available with a seating map."
   },
   "validation": {
     "required": "This field is required.",
@@ -3162,6 +3165,14 @@
     "reason_LINE_NO_CODE": "no barcode and no booking number",
     "reason_CODE_TOO_LONG": "barcode too long",
     "reason_DUPLICATE_IN_FILE": "ticket already listed higher up in the file",
-    "reason_CODE_USED_BY_OTHER_NETWORK": "barcode already imported for another network"
+    "reason_CODE_USED_BY_OTHER_NETWORK": "barcode already imported for another network",
+    "codesTitle": "Pre-generated codes",
+    "codesHint": "For a network that prints your codes on its vouchers, such as BilletReduc: the codes come out of its allocation and are scanned like its tickets.",
+    "codesTarif": "Ticket type",
+    "codesTarifOption": "{name} ({free, plural, one {# seat free} other {# seats free}})",
+    "codesCount": "Number of codes",
+    "codesCreate": "Create the codes",
+    "codesCreated": "{count, plural, one {# code created.} other {# codes created.}}",
+    "codesDownload": "Download the codes ({count}, CSV)"
   }
 }

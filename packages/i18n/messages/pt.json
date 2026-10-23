@@ -1183,7 +1183,10 @@
     "IMPORT_FILE_EMPTY": "O ficheiro está vazio.",
     "IMPORT_FILE_TOO_LARGE": "O ficheiro excede 5 MB ou 20 000 linhas.",
     "IMPORT_FILE_OLD_EXCEL": "Formato Excel antigo (.xls): guarde o ficheiro em .xlsx ou CSV.",
-    "IMPORT_FILE_UNREADABLE": "Este ficheiro não é legível: envie um CSV ou um ficheiro Excel (.xlsx)."
+    "IMPORT_FILE_UNREADABLE": "Este ficheiro não é legível: envie um CSV ou um ficheiro Excel (.xlsx).",
+    "PRECREATED_EXCEEDS_ALLOCATION": "Não há lugares livres suficientes na atribuição desta rede para estes códigos.",
+    "PRECREATED_COUNT_INVALID": "Indique um número de códigos entre 1 e 5000.",
+    "PRECREATED_SEATED_UNSUPPORTED": "Os códigos criados antecipadamente ainda não estão disponíveis com uma planta da sala."
   },
   "eventSettings": {
     "unsaved": "Alterações em curso…",
@@ -3162,6 +3165,14 @@
     "reason_LINE_NO_CODE": "sem código de barras nem número de reserva",
     "reason_CODE_TOO_LONG": "código de barras demasiado longo",
     "reason_DUPLICATE_IN_FILE": "bilhete já presente mais acima no ficheiro",
-    "reason_CODE_USED_BY_OTHER_NETWORK": "código de barras já importado para outra rede"
+    "reason_CODE_USED_BY_OTHER_NETWORK": "código de barras já importado para outra rede",
+    "codesTitle": "Códigos criados antecipadamente",
+    "codesHint": "Para uma rede que imprime os seus códigos nos seus vales, como a BilletReduc: os códigos saem da atribuição da rede e são lidos como os seus bilhetes.",
+    "codesTarif": "Tarifa",
+    "codesTarifOption": "{name} ({free, plural, one {# lugar livre} other {# lugares livres}})",
+    "codesCount": "Número de códigos",
+    "codesCreate": "Criar os códigos",
+    "codesCreated": "{count, plural, one {# código criado.} other {# códigos criados.}}",
+    "codesDownload": "Descarregar os códigos ({count}, CSV)"
   }
 }

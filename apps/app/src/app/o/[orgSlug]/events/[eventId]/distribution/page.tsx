@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { DISTRIBUTOR_KINDS, eventDistribution } from "@/server/distributors";
 import { getEventWithTickets } from "@/server/events";
-import { AddDistributorForm, AllocationForm, ReleaseUnsoldButton } from "./DistributionForms";
+import { AddDistributorForm, AllocationForm, PrecreatedCodesForm, ReleaseUnsoldButton } from "./DistributionForms";
 import { ImportPanel } from "./ImportPanel";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -64,6 +64,20 @@ export default async function DistributionPage({ params }: { params: Promise<{ o
                   <ReleaseUnsoldButton orgSlug={orgSlug} eventId={eventId} distributorId={d.id} count={d.allocated - d.imported} />
                 ) : null}
                 {canEdit ? <ImportPanel orgSlug={orgSlug} eventId={eventId} distributorId={d.id} /> : null}
+                {canEdit && !data.seated
+                  ? (() => {
+                      // codes créés à l'avance : seulement sur les tarifs confiés à ce réseau, dans la limite des places libres
+                      const types = data.ticketTypes
+                        .map((tt) => {
+                          const a = tt.allocations.find((x) => x.distributorId === d.id);
+                          return a ? { id: tt.id, name: tt.name, free: a.quantity - a.imported } : null;
+                        })
+                        .filter((x): x is { id: string; name: string; free: number } => !!x && x.free > 0);
+                      return types.length || d.precreated ? (
+                        <PrecreatedCodesForm orgSlug={orgSlug} eventId={eventId} distributorId={d.id} ticketTypes={types} existing={d.precreated} />
+                      ) : null;
+                    })()
+                  : null}
               </li>
             ))}
           </ul>

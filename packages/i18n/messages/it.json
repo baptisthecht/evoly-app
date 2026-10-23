@@ -1183,7 +1183,10 @@
     "IMPORT_FILE_EMPTY": "Il file è vuoto.",
     "IMPORT_FILE_TOO_LARGE": "Il file supera 5 MB o 20.000 righe.",
     "IMPORT_FILE_OLD_EXCEL": "Vecchio formato Excel (.xls): salva il file in .xlsx o CSV.",
-    "IMPORT_FILE_UNREADABLE": "Questo file non è leggibile: invia un CSV o un file Excel (.xlsx)."
+    "IMPORT_FILE_UNREADABLE": "Questo file non è leggibile: invia un CSV o un file Excel (.xlsx).",
+    "PRECREATED_EXCEEDS_ALLOCATION": "Non ci sono abbastanza posti liberi nell’assegnazione di questa rete per questi codici.",
+    "PRECREATED_COUNT_INVALID": "Indica un numero di codici tra 1 e 5.000.",
+    "PRECREATED_SEATED_UNSUPPORTED": "I codici creati in anticipo non sono ancora disponibili con una piantina della sala."
   },
   "eventSettings": {
     "unsaved": "Modifiche in corso…",
@@ -3162,6 +3165,14 @@
     "reason_LINE_NO_CODE": "né codice a barre né numero di prenotazione",
     "reason_CODE_TOO_LONG": "codice a barre troppo lungo",
     "reason_DUPLICATE_IN_FILE": "biglietto già presente più in alto nel file",
-    "reason_CODE_USED_BY_OTHER_NETWORK": "codice a barre già importato per un’altra rete"
+    "reason_CODE_USED_BY_OTHER_NETWORK": "codice a barre già importato per un’altra rete",
+    "codesTitle": "Codici creati in anticipo",
+    "codesHint": "Per una rete che stampa i tuoi codici sui suoi voucher, come BilletReduc: i codici vengono presi dalla sua assegnazione e si scansionano come i suoi biglietti.",
+    "codesTarif": "Tariffa",
+    "codesTarifOption": "{name} ({free, plural, one {# posto libero} other {# posti liberi}})",
+    "codesCount": "Numero di codici",
+    "codesCreate": "Crea i codici",
+    "codesCreated": "{count, plural, one {# codice creato.} other {# codici creati.}}",
+    "codesDownload": "Scarica i codici ({count}, CSV)"
   }
 }

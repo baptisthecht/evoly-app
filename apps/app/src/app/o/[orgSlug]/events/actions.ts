@@ -9,7 +9,7 @@ import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, upd
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
 import { createOption, setOptionsRefundAfterStart, setOptionActive, updateOption } from "@/server/options";
 import { createAmbassador, removeAmbassadorPromo, setAmbassadorActive, setAmbassadorPromo } from "@/server/ambassadors";
-import { createDistributor, releaseUnsold, setAllocation, setDistributorSeats } from "@/server/distributors";
+import { createDistributor, createPrecreatedCodes, releaseUnsold, setAllocation, setDistributorSeats } from "@/server/distributors";
 import { addEmbedOrigin, removeEmbedOrigin } from "@/server/embed";
 import { saveTableSettings } from "@/server/tables";
 import { cancelListingByOrganizer } from "@/server/resale";
@@ -969,4 +969,21 @@ export async function seatingDistributorAction(orgSlug: string, eventId: string,
     revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
   }
   return r;
+}
+
+/** Codes créés à l'avance pour un réseau (BilletReduc…), pris sur son contingent. */
+export async function createPrecreatedCodesAction(orgSlug: string, eventId: string, _: ActionState, form: FormData): Promise<ActionState<{ created: number }>> {
+  const schema = z.object({
+    distributorId: z.string().trim().min(1).max(40),
+    ticketTypeId: z.string().trim().min(1).max(40),
+    count: z
+      .string()
+      .trim()
+      .regex(/^\d{1,5}$/, { message: "validation.number" }),
+  });
+  const result = await runOrgAction(orgSlug, formToObject(form), { schema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" }, (d, ctx) =>
+    createPrecreatedCodes(ctx, eventId, { distributorId: d.distributorId, ticketTypeId: d.ticketTypeId, count: Number(d.count) }),
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
+  return result;
 }

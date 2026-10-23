@@ -1183,7 +1183,10 @@
     "IMPORT_FILE_EMPTY": "Het bestand is leeg.",
     "IMPORT_FILE_TOO_LARGE": "Het bestand is groter dan 5 MB of 20.000 regels.",
     "IMPORT_FILE_OLD_EXCEL": "Oud Excel-formaat (.xls): sla het bestand op als .xlsx of CSV.",
-    "IMPORT_FILE_UNREADABLE": "Dit bestand is niet leesbaar: stuur een CSV- of Excel-bestand (.xlsx)."
+    "IMPORT_FILE_UNREADABLE": "Dit bestand is niet leesbaar: stuur een CSV- of Excel-bestand (.xlsx).",
+    "PRECREATED_EXCEEDS_ALLOCATION": "Niet genoeg vrije plaatsen in de toewijzing van dit netwerk voor deze codes.",
+    "PRECREATED_COUNT_INVALID": "Geef een aantal codes tussen 1 en 5.000 op.",
+    "PRECREATED_SEATED_UNSUPPORTED": "Vooraf aangemaakte codes zijn nog niet beschikbaar met een zaalplan."
   },
   "eventSettings": {
     "unsaved": "Wijzigingen bezig…",
@@ -3162,6 +3165,14 @@
     "reason_LINE_NO_CODE": "geen barcode en geen reservatienummer",
     "reason_CODE_TOO_LONG": "barcode te lang",
     "reason_DUPLICATE_IN_FILE": "ticket staat al hoger in het bestand",
-    "reason_CODE_USED_BY_OTHER_NETWORK": "barcode al geïmporteerd voor een ander netwerk"
+    "reason_CODE_USED_BY_OTHER_NETWORK": "barcode al geïmporteerd voor een ander netwerk",
+    "codesTitle": "Vooraf aangemaakte codes",
+    "codesHint": "Voor een netwerk dat je codes op zijn vouchers drukt, zoals BilletReduc: de codes komen uit zijn toewijzing en worden gescand zoals zijn tickets.",
+    "codesTarif": "Tarief",
+    "codesTarifOption": "{name} ({free, plural, one {# plaats vrij} other {# plaatsen vrij}})",
+    "codesCount": "Aantal codes",
+    "codesCreate": "Codes aanmaken",
+    "codesCreated": "{count, plural, one {# code aangemaakt.} other {# codes aangemaakt.}}",
+    "codesDownload": "Codes downloaden ({count}, CSV)"
   }
 }

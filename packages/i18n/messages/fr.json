@@ -1051,7 +1051,10 @@
     "IMPORT_FILE_EMPTY": "Le fichier est vide.",
     "IMPORT_FILE_TOO_LARGE": "Le fichier dépasse 5 Mo ou 20 000 lignes.",
     "IMPORT_FILE_OLD_EXCEL": "Ancien format Excel (.xls) : enregistrez le fichier en .xlsx ou en CSV.",
-    "IMPORT_FILE_UNREADABLE": "Ce fichier n’est pas lisible : envoyez un CSV ou un fichier Excel (.xlsx)."
+    "IMPORT_FILE_UNREADABLE": "Ce fichier n’est pas lisible : envoyez un CSV ou un fichier Excel (.xlsx).",
+    "PRECREATED_EXCEEDS_ALLOCATION": "Pas assez de places libres dans le contingent de ce réseau pour ces codes.",
+    "PRECREATED_COUNT_INVALID": "Indiquez un nombre de codes entre 1 et 5 000.",
+    "PRECREATED_SEATED_UNSUPPORTED": "Les codes créés à l’avance ne sont pas encore disponibles avec un plan de salle."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",
@@ -3162,6 +3165,14 @@
     "reason_LINE_NO_CODE": "ni code-barres ni numéro de réservation",
     "reason_CODE_TOO_LONG": "code-barres trop long",
     "reason_DUPLICATE_IN_FILE": "billet déjà présent plus haut dans le fichier",
-    "reason_CODE_USED_BY_OTHER_NETWORK": "code-barres déjà importé pour un autre réseau"
+    "reason_CODE_USED_BY_OTHER_NETWORK": "code-barres déjà importé pour un autre réseau",
+    "codesTitle": "Codes créés à l’avance",
+    "codesHint": "Pour un réseau qui imprime vos codes sur ses contremarques, comme BilletReduc : les codes sont pris sur son contingent et se scannent comme ses billets.",
+    "codesTarif": "Tarif",
+    "codesTarifOption": "{name} ({free, plural, one {# place libre} other {# places libres}})",
+    "codesCount": "Nombre de codes",
+    "codesCreate": "Créer les codes",
+    "codesCreated": "{count, plural, one {# code créé.} other {# codes créés.}}",
+    "codesDownload": "Télécharger les codes ({count}, CSV)"
   }
 }

@@ -1,6 +1,8 @@
 import "server-only";
+import { randomInt } from "node:crypto";
 import { CoreError, hasFeature } from "@evoly/core";
 import { Prisma } from "@evoly/db";
+import { csvSafe } from "@/lib/csv";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
 import { lockEvent } from "./checkout";
@@ -228,6 +230,7 @@ export async function eventDistribution(ctx: OrgContext, eventId: string) {
     where: { eventId, status: "VALID", checkedInAt: { not: null } },
     _count: { _all: true },
   });
+  const precreated = await db.externalTicket.groupBy({ by: ["distributorId"], where: { eventId, status: "VALID", precreated: true }, _count: { _all: true } });
   return {
     seated: event.seatingMode === "ASSIGNED",
     distributors: distributors.map((d) => ({
@@ -239,6 +242,7 @@ export async function eventDistribution(ctx: OrgContext, eventId: string) {
       imported: tickets.filter((t) => t.distributorId === d.id).reduce((n, t) => n + t._count._all, 0),
       revenueMinor: tickets.filter((t) => t.distributorId === d.id).reduce((n, t) => n + (t._sum.priceMinor ?? 0), 0),
       entered: entered.find((e) => e.distributorId === d.id)?._count._all ?? 0,
+      precreated: precreated.find((p) => p.distributorId === d.id)?._count._all ?? 0, // codes créés à l'avance pour ce réseau
     })),
     ticketTypes: ticketTypes.map((t) => ({
       ...t,
@@ -252,4 +256,55 @@ export async function eventDistribution(ctx: OrgContext, eventId: string) {
         })),
     })),
   };
+}
+
+// ─── Codes créés à l'avance pour un réseau (BilletReduc…) ───────────────────────────────────────────────────────────
+
+/** Caractères sans ambiguïté à la lecture ou à la saisie : ni 0 ni O, ni 1 ni I ni L, ni U. */
+const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
+const newCode = () => `EV${Array.from({ length: 10 }, () => CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]).join("")}`;
+const MAX_PRECREATED = 5_000;
+
+/**
+ * Lot de codes pour un réseau et un tarif, imprimés par le réseau sur ses contremarques puis scannés comme tout billet du
+ * réseau. Pris sur le contingent : jamais au-delà des places confiées encore libres. En placement libre seulement.
+ */
+export async function createPrecreatedCodes(ctx: OrgContext, eventId: string, input: { distributorId: string; ticketTypeId: string; count: number }) {
+  requireDistribution(ctx);
+  const event = await findEvent(ctx, eventId);
+  if (event.seatingMode === "ASSIGNED") throw new CoreError("PRECREATED_SEATED_UNSUPPORTED");
+  if (!Number.isInteger(input.count) || input.count < 1 || input.count > MAX_PRECREATED) throw new CoreError("PRECREATED_COUNT_INVALID");
+  const distributor = await findDistributor(ctx, input.distributorId);
+  const allocation = await db.distributorAllocation.findUnique({
+    where: { ticketTypeId_distributorId: { ticketTypeId: input.ticketTypeId, distributorId: distributor.id } },
+  });
+  if (!allocation || allocation.eventId !== eventId) throw new CoreError("PRECREATED_EXCEEDS_ALLOCATION");
+  const free = allocation.quantity - (await importedCount(db, eventId, distributor.id, input.ticketTypeId));
+  if (input.count > free) throw new CoreError("PRECREATED_EXCEEDS_ALLOCATION");
+  let created = 0;
+  for (let attempt = 0; created < input.count && attempt < 5; attempt++) {
+    const batch = new Set<string>();
+    while (batch.size < input.count - created) batch.add(newCode());
+    const r = await db.externalTicket.createMany({
+      data: [...batch].map((code) => ({ eventId, distributorId: distributor.id, ticketTypeId: input.ticketTypeId, code, precreated: true })),
+      skipDuplicates: true, // collision très improbable : le lot est complété au tour suivant
+    });
+    created += r.count;
+  }
+  await log(ctx, "distributor.codes_created", distributor.id, { eventId, ticketTypeId: input.ticketTypeId, count: created });
+  return { created };
+}
+
+/** Codes créés à l'avance d'un réseau, pour impression : CSV « code ; tarif », sans formule interprétable par un tableur. */
+export async function precreatedCodesCsv(ctx: OrgContext, eventId: string, distributorId: string) {
+  requireDistribution(ctx);
+  await findEvent(ctx, eventId);
+  const distributor = await findDistributor(ctx, distributorId);
+  const codes = await db.externalTicket.findMany({
+    where: { eventId, distributorId: distributor.id, precreated: true, status: "VALID" },
+    orderBy: [{ createdAt: "asc" }, { code: "asc" }],
+    select: { code: true, ticketType: { select: { name: true } } },
+  });
+  const safe = (v: string) => csvSafe(v).replace(/[;\r\n]/g, " "); // règle commune des CSV d'Evoly
+  return { name: distributor.name, csv: ["Code;Tarif", ...codes.map((c) => `${safe(c.code!)};${safe(c.ticketType?.name ?? "")}`)].join("\r\n") + "\r\n" };
 }

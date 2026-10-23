@@ -1183,7 +1183,10 @@
     "IMPORT_FILE_EMPTY": "Die Datei ist leer.",
     "IMPORT_FILE_TOO_LARGE": "Die Datei überschreitet 5 MB oder 20.000 Zeilen.",
     "IMPORT_FILE_OLD_EXCEL": "Altes Excel-Format (.xls): Speichern Sie die Datei als .xlsx oder CSV.",
-    "IMPORT_FILE_UNREADABLE": "Diese Datei ist nicht lesbar: Senden Sie eine CSV- oder Excel-Datei (.xlsx)."
+    "IMPORT_FILE_UNREADABLE": "Diese Datei ist nicht lesbar: Senden Sie eine CSV- oder Excel-Datei (.xlsx).",
+    "PRECREATED_EXCEEDS_ALLOCATION": "Nicht genug freie Plätze im Kontingent dieses Netzes für diese Codes.",
+    "PRECREATED_COUNT_INVALID": "Geben Sie eine Anzahl Codes zwischen 1 und 5.000 ein.",
+    "PRECREATED_SEATED_UNSUPPORTED": "Vorab erstellte Codes sind mit einem Saalplan noch nicht verfügbar."
   },
   "eventSettings": {
     "unsaved": "Änderungen laufen…",
@@ -3162,6 +3165,14 @@
     "reason_LINE_NO_CODE": "weder Barcode noch Buchungsnummer",
     "reason_CODE_TOO_LONG": "Barcode zu lang",
     "reason_DUPLICATE_IN_FILE": "Ticket steht bereits weiter oben in der Datei",
-    "reason_CODE_USED_BY_OTHER_NETWORK": "Barcode bereits für ein anderes Netz importiert"
+    "reason_CODE_USED_BY_OTHER_NETWORK": "Barcode bereits für ein anderes Netz importiert",
+    "codesTitle": "Vorab erstellte Codes",
+    "codesHint": "Für ein Netz, das Ihre Codes auf seine Gutscheine druckt, etwa BilletReduc: Die Codes stammen aus seinem Kontingent und werden wie seine Tickets gescannt.",
+    "codesTarif": "Ticketart",
+    "codesTarifOption": "{name} ({free, plural, one {# Platz frei} other {# Plätze frei}})",
+    "codesCount": "Anzahl Codes",
+    "codesCreate": "Codes erstellen",
+    "codesCreated": "{count, plural, one {# Code erstellt.} other {# Codes erstellt.}}",
+    "codesDownload": "Codes herunterladen ({count}, CSV)"
   }
 }

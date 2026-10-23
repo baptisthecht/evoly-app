@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useId } from "react";
 import { FormError, SubmitButton, useActionForm, useFieldError } from "@/components/forms";
 import { Field, Input, Select } from "@/components/ui/Field";
-import { createDistributorAction, releaseUnsoldAction, setAllocationAction } from "../../actions";
+import { createDistributorAction, createPrecreatedCodesAction, releaseUnsoldAction, setAllocationAction } from "../../actions";
 
 /** Ajout d'un réseau de l'organisation : le nom habituel du réseau est proposé, modifiable. */
 export function AddDistributorForm({ orgSlug, eventId, kinds }: { orgSlug: string; eventId: string; kinds: Array<{ value: string; label: string }> }) {
@@ -100,6 +100,59 @@ export function ReleaseUnsoldButton({ orgSlug, eventId, distributorId, count }: 
           {t("released", { count: state.data.released })}
         </p>
       ) : null}
+    </form>
+  );
+}
+
+/** Codes créés à l'avance pour un réseau (BilletReduc…) : pris sur son contingent, téléchargés en CSV pour impression. */
+export function PrecreatedCodesForm(props: {
+  orgSlug: string;
+  eventId: string;
+  distributorId: string;
+  ticketTypes: Array<{ id: string; name: string; free: number }>;
+  existing: number;
+}) {
+  const t = useTranslations("distribution");
+  const id = useId();
+  const { state, pending, formProps } = useActionForm(createPrecreatedCodesAction.bind(null, props.orgSlug, props.eventId), null);
+  const download = `/o/${props.orgSlug}/events/${props.eventId}/distribution/codes?distributor=${encodeURIComponent(props.distributorId)}`;
+  return (
+    <form {...formProps} className="grid w-full gap-3 rounded-md bg-surface p-4" noValidate>
+      <div className="grid gap-1">
+        <p className="font-semibold">{t("codesTitle")}</p>
+        <p className="text-sm text-ink-muted">{t("codesHint")}</p>
+      </div>
+      <input type="hidden" name="distributorId" value={props.distributorId} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label={t("codesTarif")} htmlFor={`${id}-tt`}>
+          <Select id={`${id}-tt`} name="ticketTypeId" defaultValue={props.ticketTypes[0]?.id}>
+            {props.ticketTypes.map((tt) => (
+              <option key={tt.id} value={tt.id}>
+                {t("codesTarifOption", { name: tt.name, free: tt.free })}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label={t("codesCount")} htmlFor={`${id}-n`}>
+          <Input id={`${id}-n`} name="count" inputMode="numeric" defaultValue="1" className="max-w-32" />
+        </Field>
+      </div>
+      <FormError state={state} />
+      {state?.ok ? (
+        <p role="status" className="text-sm text-ink-muted">
+          {t("codesCreated", { count: state.data.created })}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap items-center gap-3">
+        <SubmitButton pending={pending} variant="secondary">
+          {t("codesCreate")}
+        </SubmitButton>
+        {props.existing > 0 || state?.ok ? (
+          <a href={download} className="text-sm font-semibold underline underline-offset-4">
+            {t("codesDownload", { count: props.existing + (state?.ok ? state.data.created : 0) })}
+          </a>
+        ) : null}
+      </div>
     </form>
   );
 }
