@@ -1588,7 +1588,18 @@
     "error_PHOTO_PLAN_UNREADABLE": "Het plan kon op deze afbeelding niet gelezen worden. Probeer een scherpere foto, recht van voren genomen.",
     "error_UPLOAD_TYPE": "Formaat niet ondersteund: JPEG, PNG, WebP of pdf.",
     "error_UPLOAD_TOO_LARGE": "Bestand te groot (hoogstens 8 MB).",
-    "error_RATE_LIMITED": "Te veel analyses vandaag: probeer het morgen opnieuw."
+    "error_RATE_LIMITED": "Te veel analyses vandaag: probeer het morgen opnieuw.",
+    "networkTitle": "Verkoopnetwerk",
+    "soldBy": "Verkocht door",
+    "soldByEvoly": "Evoly (onlineverkoop)",
+    "networkChoose": "Netwerk",
+    "networkHint": "Plaatsen die aan een netwerk zijn toegewezen, worden uit de onlineverkoop gehaald.",
+    "networkSeatTaken": "Verkochte plaats: ze kan niet meer van netwerk veranderen.",
+    "networkAssignFree": "Vrije plaatsen toewijzen ({count})",
+    "networkRelease": "Plaatsen van dit netwerk vrijgeven ({count})",
+    "networkAssigned": "{count, plural, one {# plaats toegewezen aan het netwerk.} other {# plaatsen toegewezen aan het netwerk.}}",
+    "networkReleased": "{count, plural, one {# plaats terug in de onlineverkoop.} other {# plaatsen terug in de onlineverkoop.}}",
+    "networkNoneChanged": "Geen plaats gewijzigd: alleen vrije plaatsen kunnen worden toegewezen, en een verkochte plaats kan niet worden vrijgegeven."
   },
   "seating": {
     "title": "Zaalplan",

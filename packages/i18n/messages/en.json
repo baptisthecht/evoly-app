@@ -2542,7 +2542,18 @@
     "error_PHOTO_PLAN_UNREADABLE": "The plan couldn’t be read from this image. Try a sharper photo, taken straight on.",
     "error_UPLOAD_TYPE": "Unsupported format: JPEG, PNG, WebP or PDF.",
     "error_UPLOAD_TOO_LARGE": "File too large (8 MB max).",
-    "error_RATE_LIMITED": "Too many analyses today: try again tomorrow."
+    "error_RATE_LIMITED": "Too many analyses today: try again tomorrow.",
+    "networkTitle": "Ticket network",
+    "soldBy": "Sold by",
+    "soldByEvoly": "Evoly (online sale)",
+    "networkChoose": "Network",
+    "networkHint": "Seats allocated to a network are removed from online sale.",
+    "networkSeatTaken": "Sold seat: it can no longer change network.",
+    "networkAssignFree": "Allocate the free seats ({count})",
+    "networkRelease": "Release this network’s seats ({count})",
+    "networkAssigned": "{count, plural, one {# seat allocated to the network.} other {# seats allocated to the network.}}",
+    "networkReleased": "{count, plural, one {# seat released back to online sale.} other {# seats released back to online sale.}}",
+    "networkNoneChanged": "No seat changed: only free seats can be allocated, and a sold seat cannot be released."
   },
   "occupancy": {
     "title": "Occupancy plan",

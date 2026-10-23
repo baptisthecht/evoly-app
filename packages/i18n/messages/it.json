@@ -1588,7 +1588,18 @@
     "error_PHOTO_PLAN_UNREADABLE": "Non è stato possibile leggere la pianta in questa immagine. Prova una foto più nitida, scattata di fronte.",
     "error_UPLOAD_TYPE": "Formato non supportato: JPEG, PNG, WebP o PDF.",
     "error_UPLOAD_TOO_LARGE": "File troppo pesante (al massimo 8 MB).",
-    "error_RATE_LIMITED": "Troppe analisi oggi: riprova domani."
+    "error_RATE_LIMITED": "Troppe analisi oggi: riprova domani.",
+    "networkTitle": "Rete di vendita",
+    "soldBy": "Venduto da",
+    "soldByEvoly": "Evoly (vendita online)",
+    "networkChoose": "Rete",
+    "networkHint": "I posti assegnati a una rete vengono tolti dalla vendita online.",
+    "networkSeatTaken": "Posto venduto: non può più cambiare rete.",
+    "networkAssignFree": "Assegna i posti liberi ({count})",
+    "networkRelease": "Restituisci i posti di questa rete ({count})",
+    "networkAssigned": "{count, plural, one {# posto assegnato alla rete.} other {# posti assegnati alla rete.}}",
+    "networkReleased": "{count, plural, one {# posto rimesso in vendita online.} other {# posti rimessi in vendita online.}}",
+    "networkNoneChanged": "Nessun posto modificato: si assegnano solo posti liberi e un posto venduto non si restituisce."
   },
   "seating": {
     "title": "Mappa dei posti",

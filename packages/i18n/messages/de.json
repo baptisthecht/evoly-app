@@ -1588,7 +1588,18 @@
     "error_PHOTO_PLAN_UNREADABLE": "Der Plan konnte auf diesem Bild nicht gelesen werden. Versuchen Sie ein schärferes Foto, frontal aufgenommen.",
     "error_UPLOAD_TYPE": "Format nicht unterstützt: JPEG, PNG, WebP oder PDF.",
     "error_UPLOAD_TOO_LARGE": "Datei zu groß (höchstens 8 MB).",
-    "error_RATE_LIMITED": "Zu viele Analysen heute: Versuchen Sie es morgen erneut."
+    "error_RATE_LIMITED": "Zu viele Analysen heute: Versuchen Sie es morgen erneut.",
+    "networkTitle": "Vertriebsnetz",
+    "soldBy": "Verkauft von",
+    "soldByEvoly": "Evoly (Online-Verkauf)",
+    "networkChoose": "Netz",
+    "networkHint": "Plätze im Kontingent eines Netzes werden aus dem Online-Verkauf genommen.",
+    "networkSeatTaken": "Verkaufter Platz: Er kann das Netz nicht mehr wechseln.",
+    "networkAssignFree": "Freie Plätze zuweisen ({count})",
+    "networkRelease": "Plätze dieses Netzes freigeben ({count})",
+    "networkAssigned": "{count, plural, one {# Platz dem Netz zugewiesen.} other {# Plätze dem Netz zugewiesen.}}",
+    "networkReleased": "{count, plural, one {# Platz wieder im Online-Verkauf.} other {# Plätze wieder im Online-Verkauf.}}",
+    "networkNoneChanged": "Kein Platz geändert: Nur freie Plätze lassen sich zuweisen, und ein verkaufter Platz lässt sich nicht freigeben."
   },
   "seating": {
     "title": "Saalplan",

@@ -1588,7 +1588,18 @@
     "error_PHOTO_PLAN_UNREADABLE": "Não foi possível ler a planta nesta imagem. Experimente uma foto mais nítida, tirada de frente.",
     "error_UPLOAD_TYPE": "Formato não suportado: JPEG, PNG, WebP ou PDF.",
     "error_UPLOAD_TOO_LARGE": "Ficheiro demasiado pesado (no máximo 8 MB).",
-    "error_RATE_LIMITED": "Demasiadas análises hoje: tente de novo amanhã."
+    "error_RATE_LIMITED": "Demasiadas análises hoje: tente de novo amanhã.",
+    "networkTitle": "Rede de venda",
+    "soldBy": "Vendido por",
+    "soldByEvoly": "Evoly (venda online)",
+    "networkChoose": "Rede",
+    "networkHint": "Os lugares atribuídos a uma rede são retirados da venda online.",
+    "networkSeatTaken": "Lugar vendido: já não pode mudar de rede.",
+    "networkAssignFree": "Atribuir os lugares livres ({count})",
+    "networkRelease": "Devolver os lugares desta rede ({count})",
+    "networkAssigned": "{count, plural, one {# lugar atribuído à rede.} other {# lugares atribuídos à rede.}}",
+    "networkReleased": "{count, plural, one {# lugar devolvido à venda online.} other {# lugares devolvidos à venda online.}}",
+    "networkNoneChanged": "Nenhum lugar alterado: só se atribuem lugares livres, e um lugar vendido não se devolve."
   },
   "seating": {
     "title": "Planta da sala",

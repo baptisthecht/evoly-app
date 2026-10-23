@@ -9,7 +9,7 @@ import { createEvent, deleteDraft, duplicateEvent, pauseSales, publishEvent, upd
 import { createPromo, deletePromo, setPromoActive } from "@/server/promos";
 import { createOption, setOptionsRefundAfterStart, setOptionActive, updateOption } from "@/server/options";
 import { createAmbassador, removeAmbassadorPromo, setAmbassadorActive, setAmbassadorPromo } from "@/server/ambassadors";
-import { createDistributor, releaseUnsold, setAllocation } from "@/server/distributors";
+import { createDistributor, releaseUnsold, setAllocation, setDistributorSeats } from "@/server/distributors";
 import { addEmbedOrigin, removeEmbedOrigin } from "@/server/embed";
 import { saveTableSettings } from "@/server/tables";
 import { cancelListingByOrganizer } from "@/server/resale";
@@ -956,4 +956,17 @@ export async function releaseUnsoldAction(orgSlug: string, eventId: string, dist
   );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
   return result;
+}
+
+/** Places du plan confiées à un réseau, ou rendues à la vente en ligne (seules des places libres se confient). */
+export async function seatingDistributorAction(orgSlug: string, eventId: string, input: unknown): Promise<ActionState<{ changed: number }>> {
+  const schema = z.object({ distributorId: z.string().min(1).max(40), seatIds: z.array(z.string().min(1).max(40)).min(1).max(5000), assign: z.boolean() });
+  const r = await runOrgAction(orgSlug, input, { schema, permission: "EVENTS_EDIT", feature: "DISTRIBUTION" }, (d, ctx) =>
+    setDistributorSeats(ctx, eventId, { distributorId: d.distributorId, seatIds: d.seatIds, assign: d.assign }),
+  );
+  if (r?.ok) {
+    seatingDone(orgSlug, eventId);
+    revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
+  }
+  return r;
 }

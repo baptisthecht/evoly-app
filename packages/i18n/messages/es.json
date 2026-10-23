@@ -1588,7 +1588,18 @@
     "error_PHOTO_PLAN_UNREADABLE": "No se ha podido leer el plano en esta imagen. Prueba con una foto más nítida, tomada de frente.",
     "error_UPLOAD_TYPE": "Formato no compatible: JPEG, PNG, WebP o PDF.",
     "error_UPLOAD_TOO_LARGE": "Archivo demasiado pesado (8 MB como máximo).",
-    "error_RATE_LIMITED": "Demasiados análisis hoy: vuelve a intentarlo mañana."
+    "error_RATE_LIMITED": "Demasiados análisis hoy: vuelve a intentarlo mañana.",
+    "networkTitle": "Red de venta",
+    "soldBy": "Vendida por",
+    "soldByEvoly": "Evoly (venta en línea)",
+    "networkChoose": "Red",
+    "networkHint": "Las plazas asignadas a una red se retiran de la venta en línea.",
+    "networkSeatTaken": "Plaza vendida: ya no puede cambiar de red.",
+    "networkAssignFree": "Asignar las plazas libres ({count})",
+    "networkRelease": "Devolver las plazas de esta red ({count})",
+    "networkAssigned": "{count, plural, one {# plaza asignada a la red.} other {# plazas asignadas a la red.}}",
+    "networkReleased": "{count, plural, one {# plaza devuelta a la venta en línea.} other {# plazas devueltas a la venta en línea.}}",
+    "networkNoneChanged": "Ninguna plaza cambiada: solo se asignan plazas libres, y una plaza vendida no se devuelve."
   },
   "seating": {
     "title": "Plano de sala",

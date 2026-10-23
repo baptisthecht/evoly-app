@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState, useTransition, type PointerEvent 
 import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Field";
 import type { SeatSalesHeat, SeatingEditorState } from "@/server/seatingEditor";
+import { DistributorBlockPanel, DistributorSeatPanel } from "./DistributorSeats";
 import type { StoredPlan } from "@/server/seating";
 import type { SeatingLayoutItem } from "@/server/seatingLayouts";
 import { P, RowLabels, S, ShapeView, StandingView, Tables, blockBounds } from "@/components/seating/PlanParts";
@@ -106,6 +107,7 @@ export function SeatingEditor({
   heat,
   photoEnabled,
   readOnly,
+  networks = [],
 }: {
   orgSlug: string;
   eventId: string;
@@ -114,6 +116,8 @@ export function SeatingEditor({
   heat: SeatSalesHeat | null;
   photoEnabled: boolean;
   readOnly: boolean;
+  /** Réseaux de billetterie de l'organisation (Pro) : places du plan confiées à un réseau. */
+  networks?: Array<{ id: string; name: string }>;
 }) {
   const t = useTranslations("seatingEditor");
   const router = useRouter();
@@ -387,6 +391,17 @@ export function SeatingEditor({
               }}
             />
           ) : null}
+          {selectedSeat && !readOnly && networks.length ? (
+            <DistributorSeatPanel
+              key={`net-${selectedSeat.id}-${selectedSeat.distributorId ?? ""}`}
+              orgSlug={orgSlug}
+              eventId={eventId}
+              seat={selectedSeat}
+              networks={networks}
+              pending={pending}
+              run={run}
+            />
+          ) : null}
           {selectedBlock ? (
             <BlockPanel
               key={`${selectedBlock.id}-${JSON.stringify(selectedBlock.params)}-${selectedBlock.rotation}`}
@@ -403,6 +418,18 @@ export function SeatingEditor({
                 )
               }
               onView={(form) => run(() => seatingViewAction(orgSlug, eventId, selectedBlock.id, form))}
+            />
+          ) : null}
+          {selectedBlock && !readOnly && networks.length ? (
+            <DistributorBlockPanel
+              key={`net-${selectedBlock.id}`}
+              orgSlug={orgSlug}
+              eventId={eventId}
+              blockId={selectedBlock.id}
+              seats={state.seats}
+              networks={networks}
+              pending={pending}
+              run={run}
             />
           ) : null}
           <SeatFinder seats={state.seats} onFound={(id) => setSelection({ type: "seat", id })} />

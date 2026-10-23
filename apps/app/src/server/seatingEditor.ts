@@ -83,6 +83,7 @@ export async function seatingEditor(ctx: OrgContext, eventId: string) {
       accessible: s.accessible,
       note: s.note,
       categoryId: s.categoryId,
+      distributorId: s.distributorId, // place confiée à un réseau de billetterie
       holder: holderOf(s.ticket),
     })),
   );
@@ -167,11 +168,19 @@ export async function saveSeatingBlock(ctx: OrgContext, eventId: string, input: 
           }
         return existing.id;
       }
-      const kept = new Map<string, { status: "BLOCKED" | null; accessible: boolean; note: string | null }>();
+      const kept = new Map<string, { status: "BLOCKED" | null; accessible: boolean; note: string | null; distributorId: string | null }>();
       if (existing) {
         const seats = existing.rows.flatMap((r) => r.seats.map((s) => ({ ...s, row: r.name })));
         if (seats.some((s) => s.status === "SOLD" || s.status === "HELD")) throw new CoreError("SEATING_BLOCK_HAS_SALES");
-        for (const s of seats) kept.set(`${s.row}|${s.label}`, { status: s.status === "BLOCKED" ? "BLOCKED" : null, accessible: s.accessible, note: s.note });
+        // une place vendue par un réseau (billet importé) compte comme une vente : le bloc ne se recrée pas
+        if (await tx.externalTicket.count({ where: { seatId: { in: seats.map((s) => s.id) } } })) throw new CoreError("SEATING_BLOCK_HAS_SALES");
+        for (const s of seats)
+          kept.set(`${s.row}|${s.label}`, {
+            status: s.status === "BLOCKED" ? "BLOCKED" : null,
+            accessible: s.accessible,
+            note: s.note,
+            distributorId: s.distributorId,
+          });
         await tx.seatingRow.deleteMany({ where: { blockId: existing.id } });
       }
       const block = existing
@@ -209,6 +218,7 @@ export async function saveSeatingBlock(ctx: OrgContext, eventId: string, input: 
               accessible: k ? k.accessible : st.accessible,
               note: k?.note ?? null,
               status: k?.status ?? "AVAILABLE",
+              distributorId: k?.distributorId ?? null, // place toujours confiée au même réseau
             };
           }),
         });
@@ -255,7 +265,8 @@ export async function updateSeat(
   const map = await seatingMapFor(ctx, eventId);
   const seat = await db.seat.findFirst({ where: { id: seatId, row: { seatingMapId: map.id } } });
   if (!seat) throw new CoreError("NOT_FOUND");
-  const taken = seat.status === "SOLD" || seat.status === "HELD";
+  // vendue en ligne, en cours de paiement, ou vendue par un réseau (billet importé sur cette place)
+  const taken = seat.status === "SOLD" || seat.status === "HELD" || (await db.externalTicket.count({ where: { seatId: seat.id } })) > 0;
   const label = patch.label?.trim();
   if ((label !== undefined && label !== seat.label) || patch.blocked !== undefined) if (taken) throw new CoreError("SEAT_TAKEN");
   if (label !== undefined && (label.length < 1 || label.length > 12)) throw new CoreError("SEAT_LABEL_INVALID");
@@ -265,6 +276,7 @@ export async function updateSeat(
     data: {
       ...(label ? { label } : {}),
       ...(patch.blocked !== undefined ? { status: patch.blocked ? "BLOCKED" : "AVAILABLE" } : {}),
+      ...(patch.blocked === false ? { distributorId: null } : {}), // débloquée : revient à la vente en ligne, sans réseau
       ...(patch.accessible !== undefined ? { accessible: patch.accessible } : {}),
       ...(patch.note !== undefined ? { note: patch.note?.trim().slice(0, 80) || null } : {}),
     },

@@ -2542,7 +2542,18 @@
     "error_PHOTO_PLAN_UNREADABLE": "Le plan n’a pas pu être lu sur cette image. Essayez une photo plus nette, prise bien en face.",
     "error_UPLOAD_TYPE": "Format non pris en charge : JPEG, PNG, WebP ou PDF.",
     "error_UPLOAD_TOO_LARGE": "Fichier trop lourd (8 Mo au plus).",
-    "error_RATE_LIMITED": "Trop d’analyses aujourd’hui : réessayez demain."
+    "error_RATE_LIMITED": "Trop d’analyses aujourd’hui : réessayez demain.",
+    "networkTitle": "Réseau de vente",
+    "soldBy": "Vendue par",
+    "soldByEvoly": "Evoly (vente en ligne)",
+    "networkChoose": "Réseau",
+    "networkHint": "Les places confiées à un réseau sont retirées de la vente en ligne.",
+    "networkSeatTaken": "Place vendue : elle ne change plus de réseau.",
+    "networkAssignFree": "Confier les places libres ({count})",
+    "networkRelease": "Rendre les places de ce réseau ({count})",
+    "networkAssigned": "{count, plural, one {# place confiée au réseau.} other {# places confiées au réseau.}}",
+    "networkReleased": "{count, plural, one {# place rendue à la vente en ligne.} other {# places rendues à la vente en ligne.}}",
+    "networkNoneChanged": "Aucune place changée : seules les places libres se confient, et une place vendue ne se rend pas."
   },
   "occupancy": {
     "title": "Plan d’occupation",

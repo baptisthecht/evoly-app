@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ProLocked, SeatingPreview } from "@/components/ProLocked";
 import { requireOrgContext } from "@/server/context";
+import { listDistributors } from "@/server/distributors";
 import { seatSalesHeat, seatingEditor } from "@/server/seatingEditor";
 import { env } from "@/lib/env";
 import { listSeatingLayouts } from "@/server/seatingLayouts";
@@ -38,6 +39,7 @@ export default async function SeatingPage({ params }: { params: Promise<{ orgSlu
         layouts={layouts}
         heat={heat}
         photoEnabled={Boolean(env().ANTHROPIC_API_KEY)}
+        networks={hasFeature(ctx.features, "DISTRIBUTION") ? (await listDistributors(ctx)).map((d) => ({ id: d.id, name: d.name })) : []}
         readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly}
       />
     </div>
