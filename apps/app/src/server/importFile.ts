@@ -235,17 +235,23 @@ export function readXlsx(bytes: Uint8Array): string[][] {
 
 // ─── Reconnaissance des colonnes ────────────────────────────────────────────────────────────────────────────────────
 
-export type ImportField =
-  | "code"
-  | "reservation"
-  | "firstName"
-  | "lastName"
-  | "fullName"
-  | "tarif"
-  | "price"
-  | "seat"
-  | "row"
-  | "quantity";
+/** Champs d'un billet importé, dans l'ordre de l'écran de confirmation des colonnes. */
+export const IMPORT_FIELDS = [
+  "code",
+  "reservation",
+  "firstName",
+  "lastName",
+  "fullName",
+  "email",
+  "phone",
+  "tarif",
+  "price",
+  "row",
+  "seat",
+  "quantity",
+  "consent",
+] as const;
+export type ImportField = (typeof IMPORT_FIELDS)[number];
 export type ColumnMap = Partial<Record<ImportField, number>>;
 
 const plain = (s: string) =>
@@ -389,15 +395,83 @@ const SYNONYMS: Array<[ImportField, string[]]> = [
       "nombre",
     ],
   ],
+  [
+    "email",
+    [
+      "e mail",
+      "email",
+      "mail",
+      "adresse e mail",
+      "adresse email",
+      "adresse mail",
+      "courriel",
+      "email address",
+    ],
+  ],
+  [
+    "phone",
+    [
+      "telephone",
+      "tel",
+      "portable",
+      "mobile",
+      "numero de telephone",
+      "phone",
+      "phone number",
+      "gsm",
+    ],
+  ],
+  [
+    "consent",
+    [
+      "consentement",
+      "optin",
+      "opt in",
+      "accord marketing",
+      "newsletter",
+      "accepte les communications",
+      "communication organisateur",
+      "informations organisateur",
+      "marketing",
+      "consent",
+    ],
+  ],
 ];
 
 /** Une valeur qui ressemble à un code-barres : 6 à 40 caractères, chiffres compris, sans espace. */
 const looksLikeCode = (v: string) =>
-  /^[A-Za-z0-9*+\-]{6,40}$/.test(v) && /\d/.test(v);
+  /^(?=.*\d)[A-Za-z0-9]+(?:-[A-Za-z0-9]+)?$/.test(v) &&
+  v.length >= 6 &&
+  v.length <= 40;
+const hasLetters = (v: string) => /\p{L}/u.test(v);
 
 /**
- * Colonnes du fichier : depuis la ligne d'en-tête si elle est reconnue, sinon la colonne qui ressemble à des codes-barres.
- * « sure » : le fichier peut être importé sans rien demander (un code-barres, ou une réservation avec un nom).
+ * Ligne de titres : toutes ses cellules non vides contiennent des lettres, aucune
+ * ne ressemble à un code-barres, et la ligne suivante a une autre forme (des
+ * chiffres là où la première a du texte), ou un titre est reconnu.
+ */
+function looksLikeHeader(rows: string[][], recognized: number): boolean {
+  const first = rows[0] ?? [];
+  const cells = first.filter((c) => c.trim() !== "");
+  if (
+    cells.length === 0 ||
+    !cells.every(hasLetters) ||
+    cells.some(looksLikeCode)
+  )
+    return false;
+  if (recognized > 0 || rows.length < 2) return true;
+  const next = rows[1]!;
+  return first.some(
+    (c, i) =>
+      hasLetters(c) && (next[i] ?? "").trim() !== "" && !hasLetters(next[i]!),
+  );
+}
+
+/**
+ * Proposition de colonnes, toujours confirmée par l'organisateur : depuis la ligne
+ * de titres (titres reconnus), ou, sans ligne de titres, la colonne de
+ * codes-barres (presque tous valables et différents). Rien n'est jamais deviné
+ * d'une ligne de titres inconnue.
  */
 export function detectColumns(rows: string[][]): {
   header: boolean;
@@ -413,28 +487,23 @@ export function detectColumns(rows: string[][]): {
       if (map[field] === undefined && names.includes(h))
         return void (map[field] = i);
   });
-  const header = Object.keys(map).length > 0 && !first.some(looksLikeCode);
-  if (!header) {
-    // sans en-tête : la colonne qui, sur la plupart des lignes, ressemble à des codes-barres
-    const width = Math.max(...rows.slice(0, 50).map((r) => r.length));
-    let best = -1;
-    let bestShare = 0;
-    for (let i = 0; i < width; i++) {
-      const values = rows.slice(0, 50).map((r) => r[i] ?? "");
-      const share =
-        values.filter(looksLikeCode).length / Math.max(1, values.length);
-      if (share > bestShare) {
-        best = i;
-        bestShare = share;
-      }
-    }
-    const guessed: ColumnMap = bestShare >= 0.8 ? { code: best } : {};
-    return { header: false, map: guessed, sure: guessed.code !== undefined };
+  if (looksLikeHeader(rows, Object.keys(map).length)) {
+    const named = map.fullName !== undefined || map.lastName !== undefined;
+    return {
+      header: true,
+      map,
+      sure: map.code !== undefined || (map.reservation !== undefined && named),
+    };
   }
-  const named = map.fullName !== undefined || map.lastName !== undefined;
-  return {
-    header: true,
-    map,
-    sure: map.code !== undefined || (map.reservation !== undefined && named),
-  };
+  const sample = rows.slice(0, 50);
+  const width = Math.max(0, ...sample.map((r) => r.length));
+  for (let i = 0; i < width; i++) {
+    const values = sample.map((r) => (r[i] ?? "").trim());
+    const codes = values.filter(looksLikeCode);
+    const share = codes.length / Math.max(1, values.length);
+    const unique = new Set(codes).size / Math.max(1, codes.length);
+    if (share >= 0.9 && unique >= 0.95)
+      return { header: false, map: { code: i }, sure: true };
+  }
+  return { header: false, map: {}, sure: false };
 }

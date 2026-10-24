@@ -3,13 +3,25 @@ import { db } from "@/lib/db";
 import { findOrgContext } from "@/server/context";
 import { createDistributor, setAllocation } from "@/server/distributors";
 import { createEvent } from "@/server/events";
+import {
+  deleteImportBatch,
+  importExternalTickets,
+  listImportBatches,
+  MARKETING_ATTESTATION,
+  previewImport,
+} from "@/server/externalImport";
+import {
+  detectColumns,
+  IMPORT_FIELDS,
+  type ImportField,
+  readRows,
+} from "@/server/importFile";
 import { applySeatingTemplate, setSeatingMode } from "@/server/seating";
-import { importExternalTickets } from "@/server/externalImport";
 
-// import des billets d'un réseau en 1 clic (docs/COMPATIBILITE_RESEAUX.md)
+// import des billets d'un réseau (docs/COMPATIBILITE_RESEAUX.md) : colonnes toujours confirmées, vagues d'import
 const rid = () => Math.random().toString(36).slice(2, 10);
 const essentials = {
-  title: "Spectacle de printemps",
+  title: "Spectacle",
   startsAtLocal: "2027-04-17T20:00",
   endsAtLocal: "2027-04-17T23:00",
   timezone: "Europe/Paris",
@@ -71,25 +83,43 @@ async function setup(o: { pro?: boolean } = {}) {
     o.pro === false
       ? null
       : await createDistributor(ctx, { kind: "TICKETMASTER" });
-  return { ctx, eventId: event.id, tm, id };
+  return { ctx, eventId: event.id, tm, id, owner };
 }
 const csv = (text: string, name = "ticketmaster.csv") => ({
   name,
   bytes: new TextEncoder().encode(text),
 });
+/** Ce que fera l'écran : la proposition des colonnes, chaque champ restant marqué « absent de ce fichier ». */
+function confirmed(
+  text: string,
+  over: Partial<Record<ImportField, number | null>> = {},
+) {
+  const { rows } = readRows(new TextEncoder().encode(text), "f.csv");
+  const d = detectColumns(rows);
+  const mapping = Object.fromEntries(
+    IMPORT_FIELDS.map((f) => [f, d.map[f] ?? null]),
+  ) as Record<ImportField, number | null>;
+  return { mapping: { ...mapping, ...over }, header: d.header };
+}
 const tickets = (eventId: string) =>
   db.externalTicket.findMany({
     where: { eventId },
     orderBy: [{ code: "asc" }, { reservation: "asc" }, { rank: "asc" }],
   });
 
-describe("import des billets d'un réseau", () => {
+describe("import des billets d'un réseau : colonnes confirmées", () => {
   it("import, réimport identique sans changement, nom modifié mis à jour ; fichier complet : disparu annulé, déjà entré gardé", async () => {
     const { ctx, eventId, tm } = await setup();
     const file =
       "Code-barres;Nom;Tarif;Prix TTC\n4006381333931;Léa Martin;Plein tarif;25,00 €\n4006381333948;Tom Dubois;Plein tarif;25,00\n4006381333955;Inès Benali;Plein tarif;25\n";
     expect(
-      await importExternalTickets(ctx, eventId, tm!.id, csv(file)),
+      await importExternalTickets(
+        ctx,
+        eventId,
+        tm!.id,
+        csv(file),
+        confirmed(file),
+      ),
     ).toMatchObject({ created: 3, updated: 0, ignored: [] });
     const first = await tickets(eventId);
     expect(
@@ -99,16 +129,23 @@ describe("import des billets d'un réseau", () => {
       ["4006381333948", "Tom Dubois", 2500, "VALID"],
       ["4006381333955", "Inès Benali", 2500, "VALID"],
     ]);
-    expect(first.every((t) => t.ticketTypeId)).toBe(true);
-    expect(
-      await importExternalTickets(ctx, eventId, tm!.id, csv(file)),
-    ).toMatchObject({ created: 0, updated: 0, unchanged: 3 });
     expect(
       await importExternalTickets(
         ctx,
         eventId,
         tm!.id,
-        csv(file.replace("Tom Dubois", "Thomas Dubois")),
+        csv(file),
+        confirmed(file),
+      ),
+    ).toMatchObject({ created: 0, unchanged: 3 });
+    const renamed = file.replace("Tom Dubois", "Thomas Dubois");
+    expect(
+      await importExternalTickets(
+        ctx,
+        eventId,
+        tm!.id,
+        csv(renamed),
+        confirmed(renamed),
       ),
     ).toMatchObject({ updated: 1, unchanged: 2 });
     await db.externalTicket.update({
@@ -118,6 +155,7 @@ describe("import des billets d'un réseau", () => {
     const shorter = "Code-barres;Nom\n4006381333931;Léa Martin\n";
     expect(
       await importExternalTickets(ctx, eventId, tm!.id, csv(shorter), {
+        ...confirmed(shorter),
         fullFile: true,
       }),
     ).toMatchObject({ cancelled: 1, keptEntered: 1 });
@@ -128,16 +166,82 @@ describe("import des billets d'un réseau", () => {
     ]);
   });
 
-  it("réservations BilletReduc sans code-barres : un billet par place ; doublon et ligne vide ignorés avec leur ligne", async () => {
+  it("colonnes non confirmées, ou ni code ni réservation : refusé, rien n'est importé", async () => {
+    const { ctx, eventId, tm } = await setup();
+    const file =
+      "annee_numero_de_tirage;combinaison_gagnante\n25070;7-9-15-18-19+6\n";
+    await expect(
+      importExternalTickets(ctx, eventId, tm!.id, csv(file), {
+        mapping: {},
+        header: true,
+      }),
+    ).rejects.toMatchObject({ code: "IMPORT_MAPPING_INCOMPLETE" });
+    await expect(
+      importExternalTickets(ctx, eventId, tm!.id, csv(file), confirmed(file)),
+    ).rejects.toMatchObject({ code: "IMPORT_MAPPING_NO_KEY" });
+    await expect(
+      importExternalTickets(
+        ctx,
+        eventId,
+        tm!.id,
+        csv(file),
+        confirmed(file, { code: 9 }),
+      ),
+    ).rejects.toMatchObject({ code: "IMPORT_MAPPING_INVALID" });
+    expect(await db.externalTicket.count({ where: { eventId } })).toBe(0);
+    expect(await db.importBatch.count({ where: { eventId } })).toBe(0);
+  });
+
+  it("chaque import : une vague, avec ses colonnes et son compte rendu ; un réimport ne change pas la vague d'un billet", async () => {
+    const { ctx, eventId, tm, owner } = await setup();
+    const a = "Code-barres;Nom\nTM-1;Léa\n";
+    const b = "Code-barres;Nom\nTM-1;Léa Martin\nTM-2;Tom\n";
+    const first = await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv(a, "lundi.csv"),
+      confirmed(a),
+    );
+    const second = await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv(b, "mardi.csv"),
+      confirmed(b),
+    );
+    const batches = await db.importBatch.findMany({
+      where: { eventId },
+      orderBy: { createdAt: "asc" },
+    });
+    expect(
+      batches.map((x) => [
+        x.fileName,
+        x.createdById,
+        (x.report as { created: number }).created,
+      ]),
+    ).toEqual([
+      ["lundi.csv", owner.id, 1],
+      ["mardi.csv", owner.id, 1],
+    ]);
+    expect((batches[0]!.mapping as Record<string, unknown>).email).toBeNull(); // « absent de ce fichier », enregistré
+    const byCode = Object.fromEntries(
+      (await tickets(eventId)).map((t) => [t.code, t.importBatchId]),
+    );
+    expect(byCode).toEqual({ "TM-1": first.batchId, "TM-2": second.batchId });
+  });
+
+  it("e-mail, téléphone, consentement lus ; e-mail invalide écarté ; réservations BilletReduc : un billet par place", async () => {
     const { ctx, eventId, id } = await setup();
     const br = await createDistributor(ctx, { kind: "BILLETREDUC" });
     const file =
-      "N° réservation;Nom;Nb places\nBR-1;Durand;2\nBR-2;Lefèvre;1\nBR-1;Durand;2\n;;\n;Sans réservation;1\n";
+      "N° réservation;Nom;Nb places;E-mail;Téléphone;Opt-in\nBR-1;Durand;2;Lea.Durand@Exemple.fr;0612345678;oui\nBR-2;Lefèvre;1;pas-un-email;;non\nBR-1;Durand;2;;;\n;;;;;\n;Sans réservation;1;;;\n";
     const report = await importExternalTickets(
       ctx,
       eventId,
       br.id,
       csv(file, `billetreduc-${id}.csv`),
+      confirmed(file),
     );
     expect(report).toMatchObject({
       created: 3,
@@ -151,32 +255,58 @@ describe("import des billets d'un réseau", () => {
         t.reservation,
         t.rank,
         t.holderName,
+        t.holderEmail,
+        t.holderPhone,
+        t.marketingConsent,
       ]),
     ).toEqual([
-      ["BR-1", 1, "Durand"],
-      ["BR-1", 2, "Durand"],
-      ["BR-2", 1, "Lefèvre"],
+      ["BR-1", 1, "Durand", "lea.durand@exemple.fr", "0612345678", true],
+      ["BR-1", 2, "Durand", "lea.durand@exemple.fr", "0612345678", true],
+      ["BR-2", 1, "Lefèvre", null, null, false],
     ]);
   });
 
-  it("fichier ambigu : colonnes demandées une fois, puis retrouvées seules pour un fichier de même forme", async () => {
+  it("marketing : refusé sans consentement ; avec la colonne du fichier ; ou avec l'attestation sur l'honneur, enregistrée", async () => {
     const { ctx, eventId, tm } = await setup();
-    const file = "Ref;Client\nX-9001;Léa\n";
-    const first = await importExternalTickets(ctx, eventId, tm!.id, csv(file));
-    expect(first.needsMapping).toMatchObject({ headers: ["Ref", "Client"] });
-    expect(
-      await importExternalTickets(ctx, eventId, tm!.id, csv(file), {
-        mapping: { code: 0, fullName: 1 },
-        header: true,
+    const noConsent = "Code-barres;Nom;E-mail\nTM-1;Léa;lea@exemple.fr\n";
+    await expect(
+      importExternalTickets(ctx, eventId, tm!.id, csv(noConsent), {
+        ...confirmed(noConsent),
+        marketing: true,
       }),
-    ).toMatchObject({ created: 1 });
-    const again = await importExternalTickets(
+    ).rejects.toMatchObject({ code: "IMPORT_MARKETING_CONSENT_REQUIRED" });
+    const withColumn =
+      "Code-barres;Nom;E-mail;Opt-in\nTM-2;Tom;tom@exemple.fr;oui\n";
+    const col = await importExternalTickets(
       ctx,
       eventId,
       tm!.id,
-      csv("Ref;Client\nX-9002;Tom\n"),
+      csv(withColumn),
+      { ...confirmed(withColumn), marketing: true },
     );
-    expect([again.created, again.needsMapping]).toEqual([1, undefined]);
+    const attested = await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv(noConsent),
+      { ...confirmed(noConsent), marketing: true, attestation: true },
+    );
+    const [b1, b2] = await Promise.all([
+      db.importBatch.findUniqueOrThrow({ where: { id: col.batchId } }),
+      db.importBatch.findUniqueOrThrow({ where: { id: attested.batchId } }),
+    ]);
+    expect([
+      b1.marketing,
+      b1.consentSource,
+      b1.attestedAt,
+      b1.attestationText,
+    ]).toEqual([true, "COLUMN", null, null]);
+    expect([
+      b2.marketing,
+      b2.consentSource,
+      b2.attestedAt instanceof Date,
+      b2.attestationText,
+    ]).toEqual([true, "ATTESTATION", true, MARKETING_ATTESTATION]);
   });
 
   it("code déjà utilisé par un autre réseau : ignoré ; dépassement de contingent : signalé sans bloquer ; Pro exigé", async () => {
@@ -190,19 +320,24 @@ describe("import des billets d'un réseau", () => {
       ticketTypeId,
       quantity: 1,
     });
+    const one = "Code-barres\n9990001112223\n";
     await importExternalTickets(
       ctx,
       eventId,
       fnac.id,
-      csv("Code-barres\n9990001112223\n"),
+      csv(one),
+      confirmed(one),
     );
-    const report = await importExternalTickets(
-      ctx,
-      eventId,
-      tm!.id,
-      csv("Code-barres\n9990001112223\n4006381333931\n4006381333948\n"),
-    );
-    expect(report).toMatchObject({
+    const three = "Code-barres\n9990001112223\n4006381333931\n4006381333948\n";
+    expect(
+      await importExternalTickets(
+        ctx,
+        eventId,
+        tm!.id,
+        csv(three),
+        confirmed(three),
+      ),
+    ).toMatchObject({
       created: 2,
       ignored: [{ line: 2, reason: "CODE_USED_BY_OTHER_NETWORK" }],
       overAllocation: [
@@ -211,7 +346,13 @@ describe("import des billets d'un réseau", () => {
     });
     const free = await setup({ pro: false });
     await expect(
-      importExternalTickets(free.ctx, free.eventId, "x", csv("Code\n1\n")),
+      importExternalTickets(
+        free.ctx,
+        free.eventId,
+        "x",
+        csv(one),
+        confirmed(one),
+      ),
     ).rejects.toMatchObject({ code: "PRO_REQUIRED" });
   });
 
@@ -231,33 +372,123 @@ describe("import des billets d'un réseau", () => {
       include: { row: { select: { name: true } } },
     });
     const [a1, a2] = seats;
-    await db.seat.update({ where: { id: a2!.id }, data: { status: "SOLD" } }); // vendue en ligne sur Evoly
+    await db.seat.update({ where: { id: a2!.id }, data: { status: "SOLD" } });
     const file = `Code-barres;Rang;Place\nTM-1;${a1!.row.name};${a1!.label}\nTM-2;${a2!.row.name};${a2!.label}\nTM-3;Z;99\n`;
-    const report = await importExternalTickets(ctx, eventId, tm!.id, csv(file));
-    expect(report).toMatchObject({
+    expect(
+      await importExternalTickets(
+        ctx,
+        eventId,
+        tm!.id,
+        csv(file),
+        confirmed(file),
+      ),
+    ).toMatchObject({
       created: 3,
       seatsNotFound: 1,
       seatsSoldOnEvoly: [{ line: 3, seat: `${a2!.row.name} ${a2!.label}` }],
     });
-    const linked = await db.externalTicket.findFirstOrThrow({
-      where: { eventId, code: "TM-1" },
-    });
-    expect(linked.seatId).toBe(a1!.id);
+    expect(
+      (
+        await db.externalTicket.findFirstOrThrow({
+          where: { eventId, code: "TM-1" },
+        })
+      ).seatId,
+    ).toBe(a1!.id);
     expect(
       await db.seat.findUniqueOrThrow({
         where: { id: a1!.id },
         select: { status: true, distributorId: true },
       }),
-    ).toEqual({
-      status: "BLOCKED",
-      distributorId: tm!.id,
+    ).toEqual({ status: "BLOCKED", distributorId: tm!.id });
+  });
+});
+
+describe("aperçu, historique et suppression des vagues d'import", () => {
+  it("aperçu du fichier du Loto : titres reconnus, aucune colonne proposée, alertes ; rien n'est importé", async () => {
+    const { ctx, eventId, tm } = await setup();
+    const loto =
+      "annee_numero_de_tirage;jour_de_tirage;combinaison_gagnante_en_ordre_croissant\n25070;MERCREDI;7-9-15-18-19+6\n25069;LUNDI;5-12-25-34-38+10\n";
+    const p = await previewImport(ctx, eventId, tm!.id, csv(loto, "loto.csv"));
+    expect(p).toMatchObject({
+      header: true,
+      rowCount: 2,
+      proposal: {},
+      remembered: false,
+      warnings: ["NO_KEY", "NO_NAME", "UNKNOWN_HEADER"],
     });
+    expect(p.columns).toEqual([
+      "annee_numero_de_tirage",
+      "jour_de_tirage",
+      "combinaison_gagnante_en_ordre_croissant",
+    ]);
+    expect(await db.externalTicket.count({ where: { eventId } })).toBe(0);
+  });
+
+  it("fichier suivant de même forme : le choix mémorisé pour ce réseau est reproposé, champs absents compris", async () => {
+    const { ctx, eventId, tm } = await setup();
+    const a = "Ref;Client;Divers\nX-9001;Léa;abc\n";
+    await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv(a),
+      confirmed(a, { code: 0, fullName: 1 }),
+    );
+    const b = "Ref;Client;Divers\nX-9002;Tom;def\n";
+    const p = await previewImport(ctx, eventId, tm!.id, csv(b));
+    expect(p.remembered).toBe(true);
+    expect(p.proposal).toMatchObject({
+      code: 0,
+      fullName: 1,
+      email: null,
+      phone: null,
+      consent: null,
+    });
+    expect(p.warnings).toEqual([]);
+  });
+
+  it("suppression d'une vague : billets non entrés retirés, entré gardé, autre vague intacte ; pas deux fois ; historique", async () => {
+    const { ctx, eventId, tm } = await setup();
+    const a = "Code-barres;Nom\nA-1;Léa\nA-2;Tom\nA-3;Inès\n";
+    const b = "Code-barres;Nom\nB-1;Nina\n";
+    const first = await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv(a, "lundi.csv"),
+      confirmed(a),
+    );
+    await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv(b, "mardi.csv"),
+      confirmed(b),
+    );
+    await db.externalTicket.updateMany({
+      where: { eventId, code: "A-3" },
+      data: { checkedInAt: new Date() },
+    });
+    expect(await deleteImportBatch(ctx, eventId, first.batchId)).toEqual({
+      deleted: 2,
+      keptEntered: 1,
+    });
+    expect((await tickets(eventId)).map((t) => t.code)).toEqual(["A-3", "B-1"]);
+    await expect(
+      deleteImportBatch(ctx, eventId, first.batchId),
+    ).rejects.toMatchObject({ code: "IMPORT_ALREADY_DELETED" });
+    const history = await listImportBatches(ctx, eventId);
     expect(
-      (
-        await db.externalTicket.findFirstOrThrow({
-          where: { eventId, code: "TM-2" },
-        })
-      ).seatId,
-    ).toBeNull();
+      history.map((h) => [
+        h.fileName,
+        h.status,
+        h.deletedCount,
+        h.keptEntered,
+        h.distributor,
+      ]),
+    ).toEqual([
+      ["mardi.csv", "IMPORTED", null, null, "Ticketmaster"],
+      ["lundi.csv", "DELETED", 2, 1, "Ticketmaster"],
+    ]);
   });
 });

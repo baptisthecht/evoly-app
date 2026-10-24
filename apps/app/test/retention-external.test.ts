@@ -45,6 +45,8 @@ async function eventEnded(daysAgo: number) {
       distributorId: tm.id,
       code: `TM-${id}`,
       holderName: "Léa Martin",
+      holderEmail: "lea@exemple.fr",
+      holderPhone: "0612345678",
       seatLabel: "C 12",
       checkedInAt: new Date(ended.getTime() - 3600_000),
     },
@@ -60,6 +62,7 @@ describe("conservation : billets vendus par les réseaux", () => {
     const after = await db.externalTicket.findUniqueOrThrow({
       where: { id: old.id },
     });
+    expect([after.holderEmail, after.holderPhone]).toEqual([null, null]); // effacés comme le nom
     expect([
       after.holderName,
       after.anonymizedAt instanceof Date,

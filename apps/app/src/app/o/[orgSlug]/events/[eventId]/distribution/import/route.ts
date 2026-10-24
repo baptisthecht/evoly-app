@@ -2,41 +2,35 @@ import { can, CoreError, hasFeature } from "@evoly/core";
 import { revalidatePath } from "next/cache";
 import { orgContextFromSession } from "@/server/context";
 import { importExternalTickets } from "@/server/externalImport";
-import { MAX_IMPORT_BYTES, type ColumnMap } from "@/server/importFile";
+import {
+  IMPORT_FIELDS,
+  type ImportField,
+  MAX_IMPORT_BYTES,
+} from "@/server/importFile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const FIELDS = new Set([
-  "code",
-  "reservation",
-  "firstName",
-  "lastName",
-  "fullName",
-  "tarif",
-  "price",
-  "seat",
-  "row",
-  "quantity",
-]);
-
-/** Colonnes confirmées par l'organisateur : uniquement des champs connus et des numéros de colonne. */
-function mappingOf(raw: FormDataEntryValue | null): ColumnMap | undefined {
-  if (typeof raw !== "string" || !raw) return undefined;
+/**
+ * Colonnes confirmées par l'organisateur : pour chaque champ connu, un numéro de
+ * colonne ou null (« absent de ce fichier ») ; tout le reste est ignoré.
+ */
+function mappingOf(
+  raw: FormDataEntryValue | null,
+): Partial<Record<ImportField, number | null>> {
+  if (typeof raw !== "string" || !raw) return {};
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    const map: ColumnMap = {};
-    for (const [k, v] of Object.entries(parsed))
-      if (
-        FIELDS.has(k) &&
-        Number.isInteger(v) &&
-        (v as number) >= 0 &&
-        (v as number) < 200
-      )
-        map[k as keyof ColumnMap] = v as number;
+    const map: Partial<Record<ImportField, number | null>> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (!(IMPORT_FIELDS as readonly string[]).includes(k)) continue;
+      if (v === null) map[k as ImportField] = null;
+      else if (Number.isInteger(v) && (v as number) >= 0 && (v as number) < 200)
+        map[k as ImportField] = v as number;
+    }
     return map;
   } catch {
-    return undefined;
+    return {};
   }
 }
 
@@ -71,6 +65,8 @@ export async function POST(
       {
         mapping: mappingOf(form!.get("mapping")),
         header: form!.get("header") !== "0",
+        marketing: form!.get("marketing") === "1",
+        attestation: form!.get("attestation") === "1",
         fullFile: form!.get("fullFile") === "1",
       },
     );

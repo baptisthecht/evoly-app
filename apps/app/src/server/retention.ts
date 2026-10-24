@@ -107,7 +107,12 @@ export async function applyRetention(now = new Date()) {
         ],
       },
     },
-    data: { holderName: null, anonymizedAt: now },
+    data: {
+      holderName: null,
+      holderEmail: null,
+      holderPhone: null,
+      anonymizedAt: now,
+    },
   });
   return {
     orders: ids.length,

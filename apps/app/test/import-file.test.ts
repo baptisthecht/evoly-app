@@ -174,3 +174,62 @@ describe("reconnaissance des colonnes", () => {
     ).toBe(false);
   });
 });
+
+describe("fichiers sans rapport avec des billets (essai réel : résultats du Loto)", () => {
+  const loto = [
+    [
+      "annee_numero_de_tirage",
+      "jour_de_tirage",
+      "date_de_tirage",
+      "boule_1",
+      "numero_chance",
+      "combinaison_gagnante_en_ordre_croissant",
+      "codes_gagnants",
+    ],
+    [
+      "25070",
+      "MERCREDI",
+      "11/06/2025",
+      "9",
+      "6",
+      "7-9-15-18-19+6",
+      "O 4122 5280, C 9415 0507",
+    ],
+    [
+      "25069",
+      "LUNDI",
+      "09/06/2025",
+      "25",
+      "10",
+      "5-12-25-34-38+10",
+      "D 2061 8398, D 2239 7569",
+    ],
+    [
+      "25068",
+      "SAMEDI",
+      "07/06/2025",
+      "7",
+      "1",
+      "7-30-37-40-45+1",
+      "K 7124 8386, D 8310 2578",
+    ],
+  ];
+
+  it("titres inconnus : ligne de titres reconnue, aucune colonne devinée, jamais « sûr »", () => {
+    expect(detectColumns(loto)).toEqual({ header: true, map: {}, sure: false });
+  });
+
+  it("sans titres, des combinaisons « 7-9-15-18-19+6 » ne sont pas des codes-barres", () => {
+    expect(detectColumns(loto.slice(1)).map.code).not.toBe(5);
+    expect(detectColumns(loto.slice(1)).sure).toBe(false);
+  });
+
+  it("e-mail, téléphone et consentement reconnus par leurs titres", () => {
+    expect(
+      detectColumns([
+        ["Code-barres", "E-mail", "Téléphone", "Opt-in"],
+        ["4006381333931", "lea@exemple.fr", "0612345678", "oui"],
+      ]).map,
+    ).toEqual({ code: 0, email: 1, phone: 2, consent: 3 });
+  });
+});
