@@ -9,21 +9,24 @@ Contact pour vos données : hello@evoly.me.
 
 ## 2. Données, finalités et bases légales
 
-| Traitement                          | Données                                                                                      | Base légale                                 |
-| ----------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Compte organisateur                 | Nom, e-mail, mot de passe haché, organisation                                                | Exécution du contrat                        |
-| Connexion avec Google ou Apple      | Nom, adresse e-mail, photo de profil, identifiant du compte (voir la section 3)              | Exécution du contrat                        |
-| Commande et billets                 | Identité, e-mail, téléphone si demandé, réponses aux questions, paiement (traité par Stripe) | Exécution du contrat                        |
-| Contrôle des entrées                | Passages, horodatage, appareil                                                               | Exécution du contrat                        |
-| Billets vendus par un réseau        | Nom, numéro de réservation, place, code-barres, importés par l'organisateur                  | Exécution du contrat (Evoly sous-traitant)  |
-| E-mails de service (rappels)        | E-mail, commande                                                                             | Intérêt légitime, désinscription en un clic |
-| E-mails marketing de l'organisateur | E-mail, historique d'achat                                                                   | Consentement, case non cochée à l'achat     |
-| Facturation des commissions         | Organisation, montants                                                                       | Obligation légale                           |
-| Sécurité et prévention de la fraude | Adresse IP, tentatives de connexion                                                          | Intérêt légitime                            |
+| Traitement                          | Données                                                                                      | Base légale                                                       |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Compte organisateur                 | Nom, e-mail, mot de passe haché, organisation                                                | Exécution du contrat                                              |
+| Connexion avec Google ou Apple      | Nom, adresse e-mail, photo de profil, identifiant du compte (voir la section 3)              | Exécution du contrat                                              |
+| Commande et billets                 | Identité, e-mail, téléphone si demandé, réponses aux questions, paiement (traité par Stripe) | Exécution du contrat                                              |
+| Contrôle des entrées                | Passages, horodatage, appareil                                                               | Exécution du contrat                                              |
+| Billets vendus par un réseau        | Nom, e-mail, téléphone, réservation, place, code-barres, importés par l'organisateur         | Exécution du contrat (Evoly sous-traitant)                        |
+| Contacts venus d'un réseau          | Nom, e-mail, provenance du consentement (réseau, fichier, date)                              | Consentement (fichier du réseau ou attestation de l'organisateur) |
+| E-mails de service (rappels)        | E-mail, commande                                                                             | Intérêt légitime, désinscription en un clic                       |
+| E-mails marketing de l'organisateur | E-mail, historique d'achat                                                                   | Consentement, case non cochée à l'achat                           |
+| Facturation des commissions         | Organisation, montants                                                                       | Obligation légale                                                 |
+| Sécurité et prévention de la fraude | Adresse IP, tentatives de connexion                                                          | Intérêt légitime                                                  |
 
 ### Suivi des e-mails
 
 Les e-mails marketing des organisateurs (campagnes, e-mails automatiques) contiennent des liens de suivi et un pixel d'ouverture, qui permettent de mesurer les ouvertures et les clics de façon agrégée (nombre et taux par campagne). Les e-mails liés à un achat n'en contiennent pas. Chaque e-mail marketing permet de se désinscrire en un clic.
+
+Quand un organisateur importe les billets vendus par un réseau de billetterie (Ticketmaster, Fnac, BilletReduc…), Evoly traite pour son compte le nom, l'e-mail, le téléphone et la place de chaque acheteur, uniquement pour le contrôle des entrées et la liste des participants de l'événement. Ces personnes ne rejoignent les contacts marketing de l'organisateur que si elles ont accepté de recevoir ses communications : accord indiqué dans le fichier du réseau, ou attesté sur l'honneur par l'organisateur, qui en est responsable. Evoly garde la trace de cette provenance, n'ajoute jamais une personne qui s'est désinscrite, et chaque message permet de se désinscrire en un clic.
 
 ## 3. Connexion avec Google
 
@@ -64,7 +67,7 @@ L'utilisation et le transfert à toute autre application des informations reçue
 - Journaux d’envoi des e-mails : 12 mois, puis l’adresse du destinataire est anonymisée.
 - Données reçues de Google ou d'Apple : tant que le compte existe (voir la section 3).
 - Liste d'attente d'un événement : supprimée le lendemain de sa fin.
-- Billets vendus par un réseau et importés par l'organisateur : le nom de l'acheteur est anonymisé 30 jours après l'événement.
+- Billets vendus par un réseau et importés par l'organisateur : le nom, l'e-mail et le téléphone de l'acheteur sont anonymisés 30 jours après l'événement ; un acheteur qui a accepté de rejoindre les contacts marketing de l'organisateur reste dans ces contacts, jusqu'à sa désinscription.
 - Ambassadeurs d'un événement : anonymisés 12 mois après l'événement.
 
 À la fin de chaque durée, les données sont supprimées ou anonymisées.

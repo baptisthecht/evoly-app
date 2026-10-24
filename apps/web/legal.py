@@ -99,7 +99,7 @@ footer{{border-top:1px solid #e8dcd5;margin-top:48px;padding-top:18px;font-size:
 
 VERSION = "2026-09"
 # version propre à une page, quand elle change seule
-VERSIONS = {"privacy": "2026-10"}
+VERSIONS = {"privacy": "2026-10", "cgu": "2026-10"}
 
 
 def build(out_dir: pathlib.Path | None = None) -> list[pathlib.Path]:

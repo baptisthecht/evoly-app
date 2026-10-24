@@ -9,7 +9,7 @@ import { findPromotionFor, OFFER_COOKIE, redeemPromotion } from "./promotions";
 import type { Prisma } from "@evoly/db";
 
 /** Version des conditions d'utilisation et de l'accord de sous-traitance acceptée à la création (RG-LEG-05). */
-export const TERMS_VERSION = "2026-09";
+export const TERMS_VERSION = "2026-10"; // conditions d'utilisation : contacts importés (responsabilité de l'organisateur)
 
 export interface CreateOrganizationInput {
   name: string;

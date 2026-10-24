@@ -56,6 +56,8 @@ Evoly fournit un outil technique et met en œuvre les moyens raisonnables pour e
 
 Evoly est responsable du traitement des données des comptes des organisateurs. Pour les données des participants, l'Organisateur est responsable du traitement et Evoly agit comme sous-traitant, selon l'[accord de sous-traitance](/sous-traitance/). Voir aussi la [politique de confidentialité](/privacy/).
 
+Lorsque l'Organisateur importe dans Evoly des données de participants ou de contacts, notamment depuis un réseau de billetterie (Ticketmaster, Fnac, BilletReduc…), il garantit en avoir le droit. S'il ajoute ces personnes à ses contacts marketing, il garantit avoir recueilli leur consentement pour les communications qu'il leur adresse, que ce consentement figure dans le fichier importé ou qu'il l'atteste sur l'honneur dans Evoly, et il en assume seul la responsabilité. Evoly enregistre la provenance de ce consentement et n'ajoute jamais aux contacts une personne qui s'est désinscrite.
+
 ## 14. Durée, résiliation
 
 Les présentes conditions s'appliquent tant que l'organisation existe. Le propriétaire peut supprimer l'organisation depuis ses paramètres, sauf si un événement à venir a des participants ou qu'un abonnement Pro va se renouveler. Les commandes sont conservées, anonymisées, pendant la durée légale de conservation des pièces comptables.
