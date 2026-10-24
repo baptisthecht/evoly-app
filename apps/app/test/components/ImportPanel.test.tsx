@@ -8,15 +8,21 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
 import { ImportPanel } from "@/app/o/[orgSlug]/events/[eventId]/distribution/ImportPanel";
+import { IMPORT_FIELDS } from "@/lib/importFields";
 import { Fr } from "./intl";
 
-// import des billets d'un réseau en 1 clic (docs/COMPATIBILITE_RESEAUX.md)
+// import des billets d'un réseau : lecture, confirmation de chaque information, import (docs/COMPATIBILITE_RESEAUX.md)
 const nav = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => nav }));
 const t = (fr as unknown as Record<string, Record<string, string>>)
   .distribution!;
 const errors = (fr as unknown as Record<string, Record<string, string>>)
   .formErrors!;
+const label = (field: string) => t[`field_${field}`]!;
+const absentBox = (field: string) =>
+  screen.getByLabelText(t.mappingAbsentFor!.replace("{field}", label(field)));
+const columnSelect = (field: string) =>
+  screen.getByLabelText(t.mappingFieldColumn!.replace("{field}", label(field)));
 const report = (o: Record<string, unknown> = {}) => ({
   created: 0,
   updated: 0,
@@ -30,6 +36,20 @@ const report = (o: Record<string, unknown> = {}) => ({
   seatsSoldOnEvoly: [],
   ...o,
 });
+const preview = (o: Record<string, unknown> = {}) => ({
+  fileName: "ticketmaster.csv",
+  header: true,
+  rowCount: 1,
+  totalRows: 2,
+  raw: [
+    ["Code-barres", "Nom", "Divers"],
+    ["TM-1", "Léa", "x"],
+  ],
+  proposal: { code: 0, fullName: 1 },
+  remembered: false,
+  warnings: [],
+  ...o,
+});
 let replies: unknown[] = [];
 const sent: FormData[] = [];
 beforeEach(() => {
@@ -38,121 +58,115 @@ beforeEach(() => {
   nav.refresh.mockReset();
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (_url: string, init?: RequestInit) => {
-      sent.push(init!.body as FormData);
-      return new Response(JSON.stringify(replies.shift()));
-    }),
+    vi.fn(
+      async (_u: string, init?: RequestInit) => (
+        sent.push(init!.body as FormData),
+        new Response(JSON.stringify(replies.shift()))
+      ),
+    ),
   );
 });
-async function chooseFile(name = "ticketmaster.csv") {
+async function readFile() {
   render(
     <Fr>
       <ImportPanel orgSlug="club" eventId="e1" distributorId="tm" />
     </Fr>,
   );
   fireEvent.click(screen.getByRole("button", { name: t.importOpen }));
-  const file = new File(["Code-barres\n4006381333931\n"], name, {
-    type: "text/csv",
-  });
+  const file = new File(
+    ["Code-barres;Nom;Divers\nTM-1;Léa;x\n"],
+    "ticketmaster.csv",
+    { type: "text/csv" },
+  );
   fireEvent.change(screen.getByLabelText(t.importFile!), {
     target: { files: [file] },
   });
+  await act(
+    async () =>
+      void fireEvent.click(screen.getByRole("button", { name: t.readFile })),
+  );
   return file;
 }
 
-describe("import des billets d'un réseau", () => {
-  it("en 1 clic : fichier envoyé avec le réseau et l'option fichier complet ; compte rendu ; page rafraîchie", async () => {
-    replies = [
-      {
-        report: report({
-          created: 2,
-          ignored: [{ line: 4, reason: "LINE_NO_CODE" }],
-        }),
-      },
-    ];
-    const file = await chooseFile();
-    fireEvent.click(screen.getByLabelText(t.importFullFile!));
-    await act(
-      async () =>
-        void fireEvent.click(
-          screen.getByRole("button", { name: t.importSubmit }),
-        ),
+describe("import : chaque information confirmée avant d'importer", () => {
+  it("proposition reprise ; « Importer » inactif tant qu'une information n'est pas tranchée ; colonnes et absents envoyés", async () => {
+    replies = [{ preview: preview() }, { report: report({ created: 1 }) }];
+    const file = await readFile();
+    expect(sent[0]!.get("step")).toBe("preview");
+    const go = await screen.findByRole("button", { name: t.importSubmit });
+    expect((go as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("status").textContent).toBe(
+      `${IMPORT_FIELDS.length - 2} informations à confirmer avant d’importer.`,
     );
-    await waitFor(() => expect(nav.refresh).toHaveBeenCalled());
-    expect([
-      sent[0]!.get("file"),
-      sent[0]!.get("distributorId"),
-      sent[0]!.get("fullFile"),
-      sent[0]!.get("mapping"),
-    ]).toEqual([file, "tm", "1", null]);
-    expect(screen.getByRole("status").textContent).toContain(
-      "2 billets ajoutés",
-    );
-    expect(screen.getByText("1 ligne ignorée")).toBeTruthy();
-  });
-
-  it("colonnes demandées : le choix « code-barres » relance l'import avec ces colonnes et le même fichier", async () => {
-    replies = [
-      {
-        report: report({
-          needsMapping: {
-            headers: ["Ref", "Client"],
-            sample: [["X-9001", "Léa"]],
-            guess: {},
-          },
-        }),
-      },
-      { report: report({ created: 1 }) },
-    ];
-    const file = await chooseFile();
-    await act(
-      async () =>
-        void fireEvent.click(
-          screen.getByRole("button", { name: t.importSubmit }),
-        ),
-    );
-    const go = await screen.findByRole("button", { name: t.mappingSubmit });
-    expect((go as HTMLButtonElement).disabled).toBe(true); // ni code-barres ni réservation choisis
-    expect(screen.getByText("X-9001")).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("Contenu de la colonne Ref"), {
-      target: { value: "code" },
-    });
-    fireEvent.change(screen.getByLabelText("Contenu de la colonne Client"), {
-      target: { value: "fullName" },
-    });
+    expect((columnSelect("code") as HTMLSelectElement).value).toBe("0");
+    for (const f of IMPORT_FIELDS)
+      if (f !== "code" && f !== "fullName") fireEvent.click(absentBox(f));
+    expect((go as HTMLButtonElement).disabled).toBe(false);
     await act(async () => void fireEvent.click(go));
     await waitFor(() => expect(nav.refresh).toHaveBeenCalled());
-    expect([
-      sent[1]!.get("file"),
-      JSON.parse(String(sent[1]!.get("mapping"))),
-      sent[1]!.get("header"),
-    ]).toEqual([file, { code: 0, fullName: 1 }, "1"]);
+    const body = sent[1]!;
+    expect([body.get("file"), body.get("step"), body.get("header")]).toEqual([
+      file,
+      "import",
+      "1",
+    ]);
+    const mapping = JSON.parse(String(body.get("mapping")));
+    expect(mapping).toMatchObject({
+      code: 0,
+      fullName: 1,
+      email: null,
+      consent: null,
+    });
+    expect(Object.keys(mapping).sort()).toEqual([...IMPORT_FIELDS].sort());
+    expect(screen.getByText(t.importAnother!)).toBeTruthy();
   });
 
-  it("erreur de fichier expliquée ; double vente signalée en alerte", async () => {
+  it("choisir une colonne décoche « absent » ; sans code ni réservation, impossible d'importer", async () => {
+    replies = [{ preview: preview({ proposal: {} }) }];
+    await readFile();
+    await screen.findByRole("button", { name: t.importSubmit });
+    for (const f of IMPORT_FIELDS) fireEvent.click(absentBox(f));
+    expect(screen.getByRole("status").textContent).toBe(t.mappingNeedKey);
+    expect(
+      (
+        screen.getByRole("button", {
+          name: t.importSubmit,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    fireEvent.change(columnSelect("code"), { target: { value: "0" } });
+    expect((absentBox("code") as HTMLInputElement).checked).toBe(false);
+    expect(
+      (
+        screen.getByRole("button", {
+          name: t.importSubmit,
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(false);
+  });
+
+  it("alertes de la lecture affichées ; erreur de fichier expliquée", async () => {
     replies = [
-      { error: "IMPORT_FILE_OLD_EXCEL" },
       {
-        report: report({
-          created: 1,
-          seatsSoldOnEvoly: [{ line: 3, seat: "C 12" }],
+        preview: preview({
+          proposal: {},
+          warnings: ["NO_KEY", "NO_NAME", "UNKNOWN_HEADER"],
         }),
       },
     ];
-    await chooseFile("ancien.xls");
+    await readFile();
+    const alert = await screen.findByRole("alert");
+    for (const w of ["NO_KEY", "NO_NAME", "UNKNOWN_HEADER"])
+      expect(alert.textContent).toContain(t[`warn_${w}`]!);
+    fireEvent.click(screen.getByRole("button", { name: t.changeFile }));
+    replies = [{ error: "IMPORT_FILE_OLD_EXCEL" }];
+    fireEvent.change(screen.getByLabelText(t.importFile!), {
+      target: { files: [new File(["x"], "ancien.xls")] },
+    });
     await act(
       async () =>
-        void fireEvent.click(
-          screen.getByRole("button", { name: t.importSubmit }),
-        ),
+        void fireEvent.click(screen.getByRole("button", { name: t.readFile })),
     );
     expect(await screen.findByText(errors.IMPORT_FILE_OLD_EXCEL!)).toBeTruthy();
-    await act(
-      async () =>
-        void fireEvent.click(
-          screen.getByRole("button", { name: t.importSubmit }),
-        ),
-    );
-    expect((await screen.findByRole("alert")).textContent).toContain("C 12");
   });
 });

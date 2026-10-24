@@ -26,6 +26,7 @@ import {
   setAmbassadorActive,
   setAmbassadorPromo,
 } from "@/server/ambassadors";
+import { deleteImportBatch } from "@/server/externalImport";
 import {
   createDistributor,
   createPrecreatedCodes,
@@ -1699,6 +1700,27 @@ export async function createPrecreatedCodesAction(
         ticketTypeId: d.ticketTypeId,
         count: Number(d.count),
       }),
+  );
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
+  return result;
+}
+
+/** Supprime une vague d'import : billets pas encore entrés retirés, entrés gardés. */
+export async function deleteImportBatchAction(
+  orgSlug: string,
+  eventId: string,
+  batchId: string,
+  _: ActionState,
+): Promise<ActionState<{ deleted: number; keptEntered: number }>> {
+  const result = await runOrgAction(
+    orgSlug,
+    { batchId },
+    {
+      schema: z.object({ batchId: z.string().min(1).max(60) }),
+      permission: "EVENTS_EDIT",
+      feature: "DISTRIBUTION",
+    },
+    (d, ctx) => deleteImportBatch(ctx, eventId, d.batchId),
   );
   if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/distribution`);
   return result;

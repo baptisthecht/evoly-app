@@ -583,6 +583,9 @@ export async function previewImport(
     ),
     sample: rows.slice(header ? 1 : 0, (header ? 1 : 0) + 5),
     rowCount: rows.length - (header ? 1 : 0),
+    /** Premières lignes brutes : l'écran bascule la ligne de titres sans relire le fichier. */
+    raw: rows.slice(0, 6),
+    totalRows: rows.length,
     proposal,
     remembered: same,
     warnings,

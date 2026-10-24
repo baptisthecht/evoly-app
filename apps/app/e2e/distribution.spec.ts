@@ -40,6 +40,24 @@ test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bil
       `Code-barres;Nom;Tarif\nTM-${id}-1;Léa Martin;Fosse\nTM-${id}-2;Tom Dubois;Fosse\n`,
     ),
   });
+  // lecture du fichier, puis chaque information confirmée : colonne proposée, ou « absent de ce fichier »
+  await page.getByRole("button", { name: "Lire le fichier" }).click();
+  for (const field of [
+    "Numéro de réservation",
+    "Prénom",
+    "Nom complet",
+    "E-mail",
+    "Téléphone",
+    "Prix",
+    "Rang",
+    "Place",
+    "Nombre de places",
+    "Consentement marketing",
+  ])
+    await page.getByLabel(`${field} : absent de ce fichier`).check();
+  await expect(
+    page.getByRole("status").filter({ hasText: "2 lignes prêtes à importer." }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Importer", exact: true }).click();
   await expect(
     page.getByRole("status").filter({ hasText: "2 billets ajoutés" }),
@@ -66,4 +84,14 @@ test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bil
     .getByRole("row")
     .filter({ has: page.getByRole("rowheader", { name: "Ticketmaster" }) });
   await expect(row.getByRole("cell")).toHaveText(["2", "1", ""]);
+
+  // l'import se supprime : le billet déjà entré est gardé, l'autre retiré ; le bilan suit
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: "Supprimer cet import" }).click();
+  // la ligne de l'import passe à « supprimé », avec son bilan
+  await expect(
+    page.getByText(/Supprimé le .+ : 1 billet retiré, 1 gardé\./),
+  ).toBeVisible();
+  await page.reload();
+  await expect(row.getByRole("cell")).toHaveText(["1", "1", ""]);
 });

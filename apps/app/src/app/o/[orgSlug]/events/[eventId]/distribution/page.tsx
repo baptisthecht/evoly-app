@@ -12,12 +12,14 @@ import {
   eventDistribution,
 } from "@/server/distributors";
 import { getEventWithTickets } from "@/server/events";
+import { listImportBatches } from "@/server/externalImport";
 import {
   AddDistributorForm,
   AllocationForm,
   PrecreatedCodesForm,
   ReleaseUnsoldButton,
 } from "./DistributionForms";
+import { ImportHistory } from "./ImportHistory";
 import { ImportPanel } from "./ImportPanel";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -47,9 +49,10 @@ export default async function DistributionPage({
       </div>
     );
   }
-  const [data, report] = await Promise.all([
+  const [data, report, batches] = await Promise.all([
     eventDistribution(ctx, eventId),
     eventChannelReport(ctx, eventId),
+    listImportBatches(ctx, eventId),
   ]);
   const locale = (await getLocale()) as Locale;
   const canEdit = can(ctx.membership, "EVENTS_EDIT");
@@ -216,6 +219,40 @@ export default async function DistributionPage({
           />
         ) : null}
       </Card>
+
+      {batches.length ? (
+        <Card className="grid gap-4">
+          <h2 className="font-display text-xl">{t("historyTitle")}</h2>
+
+          <ImportHistory
+            orgSlug={orgSlug}
+
+            eventId={eventId}
+
+            batches={batches.map((b) => ({
+              id: b.id,
+
+              distributor: b.distributor,
+
+              fileName: b.fileName,
+
+              createdAt: b.createdAt.toISOString(),
+
+              createdBy: b.createdBy,
+
+              status: b.status,
+
+              created: b.report?.created ?? b.tickets,
+
+              deletedAt: b.deletedAt?.toISOString() ?? null,
+
+              deletedCount: b.deletedCount,
+
+              keptEntered: b.keptEntered,
+            }))}
+          />
+        </Card>
+      ) : null}
 
       {data.distributors.length === 0 ? null : data.seated ? (
         <Card className="grid gap-3">

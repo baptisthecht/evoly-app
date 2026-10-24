@@ -235,23 +235,9 @@ export function readXlsx(bytes: Uint8Array): string[][] {
 
 // ─── Reconnaissance des colonnes ────────────────────────────────────────────────────────────────────────────────────
 
-/** Champs d'un billet importé, dans l'ordre de l'écran de confirmation des colonnes. */
-export const IMPORT_FIELDS = [
-  "code",
-  "reservation",
-  "firstName",
-  "lastName",
-  "fullName",
-  "email",
-  "phone",
-  "tarif",
-  "price",
-  "row",
-  "seat",
-  "quantity",
-  "consent",
-] as const;
-export type ImportField = (typeof IMPORT_FIELDS)[number];
+import { IMPORT_FIELDS, type ImportField } from "@/lib/importFields";
+
+export { IMPORT_FIELDS, type ImportField };
 export type ColumnMap = Partial<Record<ImportField, number>>;
 
 const plain = (s: string) =>

@@ -1,7 +1,7 @@
 import { can, CoreError, hasFeature } from "@evoly/core";
 import { revalidatePath } from "next/cache";
 import { orgContextFromSession } from "@/server/context";
-import { importExternalTickets } from "@/server/externalImport";
+import { importExternalTickets, previewImport } from "@/server/externalImport";
 import {
   IMPORT_FIELDS,
   type ImportField,
@@ -57,11 +57,20 @@ export async function POST(
   if (file.size > MAX_IMPORT_BYTES)
     return Response.json({ error: "IMPORT_FILE_TOO_LARGE" }, { status: 413 });
   try {
+    const fileInput = {
+      name: file.name,
+      bytes: new Uint8Array(await file.arrayBuffer()),
+    };
+    // étape 1 : lecture du fichier et proposition de colonnes, sans rien importer
+    if (form!.get("step") === "preview")
+      return Response.json({
+        preview: await previewImport(ctx, eventId, distributorId, fileInput),
+      });
     const report = await importExternalTickets(
       ctx,
       eventId,
       distributorId,
-      { name: file.name, bytes: new Uint8Array(await file.arrayBuffer()) },
+      fileInput,
       {
         mapping: mappingOf(form!.get("mapping")),
         header: form!.get("header") !== "0",
