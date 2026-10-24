@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   FormError,
@@ -56,15 +55,6 @@ export function RegisterForm({ email }: { email?: string }) {
         />
       </Field>
       <SubmitButton pending={pending}>{t("register")}</SubmitButton>
-      <p className="text-center text-sm text-ink-muted">
-        {t("haveAccount")}{" "}
-        <Link
-          href="/login"
-          className="font-semibold text-ink underline underline-offset-4"
-        >
-          {t("login")}
-        </Link>
-      </p>
     </form>
   );
 }

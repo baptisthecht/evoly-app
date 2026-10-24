@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { AuthSwitch } from "../AuthSwitch";
 import { SocialButtons } from "../SocialButtons";
 import { SocialError } from "../SocialError";
 import { redirectIfSignedIn } from "../redirectIfSignedIn";
@@ -42,8 +43,9 @@ export default async function LoginPage({
         </p>
       ) : null}
       <SocialError error={(await searchParams).error} />
-      <SocialButtons next={next} />
       <LoginForm />
+      <SocialButtons next={next} />
+      <AuthSwitch to="register" />
     </div>
   );
 }

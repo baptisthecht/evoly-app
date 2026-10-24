@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { AuthSwitch } from "../AuthSwitch";
 import { SocialButtons } from "../SocialButtons";
 import { redirectIfSignedIn } from "../redirectIfSignedIn";
 import { RegisterForm } from "./RegisterForm";
@@ -47,8 +48,9 @@ export default async function RegisterPage({
               : t("registerIntro")}
         </p>
       </header>
-      <SocialButtons next={next} />
       <RegisterForm email={email?.slice(0, 200)} />
+      <SocialButtons next={next} />
+      <AuthSwitch to="login" />
     </div>
   );
 }

@@ -65,6 +65,11 @@
   --accent: var(--evoly-rose); /* action principale */
   --accent-ink: var(--evoly-charbon); /* texte sur l'accent */
   --focus-ring: var(--evoly-charbon);
+  /* Bouton « Continuer avec Google » : couleurs imposées par les consignes de marque de Google (thème clair) */
+  --google-fill: #ffffff;
+  --google-ink: #1f1f1f;
+  --google-stroke: #747775;
+  --google-hover: #f8f8f8;
   --focus-halo: var(--evoly-rose);
 
   /* Typographies */
@@ -165,6 +170,11 @@
     --ink-inverse: var(--evoly-charbon);
     --line: rgba(255, 246, 240, 0.14);
     --line-strong: rgba(255, 246, 240, 0.28);
+    /* Bouton « Continuer avec Google » : thème sombre des consignes de Google (le logo garde ses couleurs) */
+    --google-fill: #131314;
+    --google-ink: #e3e3e3;
+    --google-stroke: #8e918f;
+    --google-hover: #1f1f20;
     --focus-ring: var(--evoly-creme);
     --evoly-success: #5fdda6;
     --evoly-success-soft: #173a2a;
@@ -181,6 +191,12 @@
 }
 
 :root[data-theme="dark"] {
+  /* Bouton « Continuer avec Google » : thème sombre des consignes de Google (le logo garde ses couleurs) */
+  --google-fill: #131314;
+  --google-ink: #e3e3e3;
+  --google-stroke: #8e918f;
+  --google-hover: #1f1f20;
+
   --surface: #1c1c1c;
   --surface-raised: #262626;
   --surface-sunken: #2d2d2d;

@@ -55,15 +55,6 @@ export function LoginForm() {
         </Link>
       </div>
       <SubmitButton pending={pending}>{t("login")}</SubmitButton>
-      <p className="text-center text-sm text-ink-muted">
-        {t("noAccount")}{" "}
-        <Link
-          href="/register"
-          className="font-semibold text-ink underline underline-offset-4"
-        >
-          {t("register")}
-        </Link>
-      </p>
     </form>
   );
 }
