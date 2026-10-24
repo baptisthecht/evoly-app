@@ -49,6 +49,8 @@ export function ImportPanel({
   );
   const [header, setHeader] = useState(true);
   const [fullFile, setFullFile] = useState(false);
+  const [marketing, setMarketing] = useState(false);
+  const [attested, setAttested] = useState(false);
   const [report, setReport] = useState<ImportReport | null>(null);
 
   const post = async (fields: Record<string, string>) => {
@@ -97,6 +99,8 @@ export function ImportPanel({
       mapping: JSON.stringify(mapping),
       header: header ? "1" : "0",
       ...(fullFile ? { fullFile: "1" } : {}),
+      ...(marketing ? { marketing: "1" } : {}),
+      ...(marketing && attested ? { attestation: "1" } : {}),
     });
     if (json?.report) {
       setReport(json.report);
@@ -110,6 +114,8 @@ export function ImportPanel({
     setFile(null);
     setChoices({});
     setError(null);
+    setMarketing(false);
+    setAttested(false);
   };
 
   if (!open)
@@ -134,6 +140,10 @@ export function ImportPanel({
   const hasKey =
     typeof choices.code === "number" || typeof choices.reservation === "number";
   const rows = preview ? preview.totalRows - (header ? 1 : 0) : 0;
+  // marketing : e-mail indispensable ; consentement par la colonne, sinon attestation sur l'honneur
+  const hasEmail = typeof choices.email === "number";
+  const byColumn = typeof choices.consent === "number";
+  const marketingReady = !marketing || (hasEmail && (byColumn || attested));
 
   return (
     <div className="grid w-full gap-4 rounded-md bg-surface p-4">
@@ -301,6 +311,37 @@ export function ImportPanel({
             />
             <span>{t("importFullFile")}</span>
           </label>
+          <fieldset className="grid gap-2 rounded-md bg-surface-sunken p-3 text-sm">
+            <legend className="sr-only">{t("marketingTitle")}</legend>
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={marketing && hasEmail}
+                disabled={!hasEmail}
+                onChange={(e) => setMarketing(e.target.checked)}
+              />
+              <span>{t("marketingOption")}</span>
+            </label>
+            {!hasEmail ? (
+              <p className="text-ink-muted">{t("marketingNoEmail")}</p>
+            ) : null}
+            {marketing && hasEmail ? (
+              byColumn ? (
+                <p className="text-ink-muted">{t("marketingByColumn")}</p>
+              ) : (
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    className="mt-1"
+                    checked={attested}
+                    onChange={(e) => setAttested(e.target.checked)}
+                  />
+                  <span>{t("marketingAttestation")}</span>
+                </label>
+              )
+            ) : null}
+          </fieldset>
           <p role="status" className="text-sm text-ink-muted">
             {remaining > 0
               ? t("mappingRemaining", { count: remaining })
@@ -311,7 +352,7 @@ export function ImportPanel({
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
-              disabled={pending || remaining > 0 || !hasKey}
+              disabled={pending || remaining > 0 || !hasKey || !marketingReady}
               onClick={() => void importNow()}
             >
               {pending ? t("importPending") : t("importSubmit")}
@@ -337,6 +378,14 @@ function ImportSummary({ report }: { report: ImportReport }) {
           unchanged: report.unchanged,
         })}
       </p>
+      {report.contactsAdded != null ? (
+        <p>
+          {t("reportContacts", {
+            added: report.contactsAdded,
+            unsubscribed: report.contactsUnsubscribed ?? 0,
+          })}
+        </p>
+      ) : null}
       {report.cancelled || report.keptEntered ? (
         <p>
           {t("reportCancelled", {

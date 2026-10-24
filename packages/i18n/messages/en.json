@@ -3231,7 +3231,13 @@
     "historyDelete": "Delete this import",
     "historyDeleteConfirm": "Delete the tickets of this import? Those already admitted are kept.",
     "historyDeleted": "{deleted, plural, =0 {No ticket removed} one {# ticket removed} other {# tickets removed}}; {kept, plural, =0 {no admitted ticket kept} one {# admitted ticket kept} other {# admitted tickets kept}}.",
-    "historyDeletedOn": "Deleted on {date}: {deleted, plural, =0 {no ticket removed} one {# ticket removed} other {# tickets removed}}, {kept, plural, =0 {none kept} one {# kept} other {# kept}}."
+    "historyDeletedOn": "Deleted on {date}: {deleted, plural, =0 {no ticket removed} one {# ticket removed} other {# tickets removed}}, {kept, plural, =0 {none kept} one {# kept} other {# kept}}.",
+    "marketingTitle": "Marketing contacts",
+    "marketingOption": "Add the buyers who agree to my marketing contacts",
+    "marketingNoEmail": "Choose the email column to be able to add these buyers to your contacts.",
+    "marketingByColumn": "Only buyers whose “Marketing consent” column shows their agreement will be added.",
+    "marketingAttestation": "I declare on my honour that the people in this file have agreed to receive my organisation’s communications, and I take responsibility for this.",
+    "reportContacts": "{added, plural, =0 {No contact added} one {# contact added} other {# contacts added}} to your marketing contacts{unsubscribed, plural, =0 {.} one {; # unsubscribed person left out.} other {; # unsubscribed people left out.}}"
   },
   "legalLinks": {
     "label": "Legal information",

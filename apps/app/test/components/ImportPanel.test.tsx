@@ -169,4 +169,55 @@ describe("import : chaque information confirmée avant d'importer", () => {
     );
     expect(await screen.findByText(errors.IMPORT_FILE_OLD_EXCEL!)).toBeTruthy();
   });
+
+  it("marketing : inactif sans e-mail ; sans colonne de consentement, attestation obligatoire puis envoyée ; avec la colonne, expliqué", async () => {
+    replies = [
+      {
+        preview: preview({
+          raw: [
+            ["Code-barres", "Nom", "E-mail", "Opt-in"],
+            ["TM-1", "Léa", "lea@exemple.fr", "oui"],
+          ],
+          proposal: { code: 0, fullName: 1 },
+        }),
+      },
+      {
+        report: report({
+          created: 1,
+          contactsAdded: 1,
+          contactsUnsubscribed: 0,
+        }),
+      },
+    ];
+    await readFile();
+    await screen.findByRole("button", { name: t.importSubmit });
+    const option = screen.getByLabelText(
+      t.marketingOption!,
+    ) as HTMLInputElement;
+    expect(option.disabled).toBe(true); // pas encore de colonne d'e-mail
+    for (const f of IMPORT_FIELDS)
+      if (!["code", "fullName", "email", "consent"].includes(f))
+        fireEvent.click(absentBox(f));
+    fireEvent.change(columnSelect("email"), { target: { value: "2" } });
+    fireEvent.click(absentBox("consent"));
+    fireEvent.click(option);
+    const go = screen.getByRole("button", {
+      name: t.importSubmit,
+    }) as HTMLButtonElement;
+    expect(go.disabled).toBe(true); // attestation obligatoire sans colonne de consentement
+    fireEvent.click(screen.getByLabelText(t.marketingAttestation!));
+    expect(go.disabled).toBe(false);
+    fireEvent.change(columnSelect("consent"), { target: { value: "3" } });
+    expect(screen.getByText(t.marketingByColumn!)).toBeTruthy();
+    expect(screen.queryByLabelText(t.marketingAttestation!)).toBeNull();
+    await act(async () => void fireEvent.click(go));
+    await waitFor(() => expect(nav.refresh).toHaveBeenCalled());
+    expect([sent[1]!.get("marketing"), sent[1]!.get("attestation")]).toEqual([
+      "1",
+      "1",
+    ]);
+    expect(
+      screen.getByText("1 contact ajouté à vos contacts marketing."),
+    ).toBeTruthy();
+  });
 });

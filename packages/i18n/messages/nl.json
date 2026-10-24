@@ -3231,7 +3231,13 @@
     "historyDelete": "Deze import verwijderen",
     "historyDeleteConfirm": "De tickets van deze import verwijderen? Tickets die al binnen zijn, blijven behouden.",
     "historyDeleted": "{deleted, plural, =0 {Geen ticket verwijderd} one {# ticket verwijderd} other {# tickets verwijderd}}; {kept, plural, =0 {geen binnengekomen ticket behouden} one {# binnengekomen ticket behouden} other {# binnengekomen tickets behouden}}.",
-    "historyDeletedOn": "Verwijderd op {date}: {deleted, plural, =0 {geen ticket verwijderd} one {# ticket verwijderd} other {# tickets verwijderd}}, {kept, plural, =0 {geen behouden} one {# behouden} other {# behouden}}."
+    "historyDeletedOn": "Verwijderd op {date}: {deleted, plural, =0 {geen ticket verwijderd} one {# ticket verwijderd} other {# tickets verwijderd}}, {kept, plural, =0 {geen behouden} one {# behouden} other {# behouden}}.",
+    "marketingTitle": "Marketingcontacten",
+    "marketingOption": "Kopers die akkoord gaan toevoegen aan mijn marketingcontacten",
+    "marketingNoEmail": "Kies de e-mailkolom om deze kopers aan je contacten te kunnen toevoegen.",
+    "marketingByColumn": "Alleen kopers bij wie de kolom “Toestemming voor marketing” akkoord aangeeft, worden toegevoegd.",
+    "marketingAttestation": "Ik verklaar op erewoord dat de personen in dit bestand ermee hebben ingestemd de communicatie van mijn organisatie te ontvangen, en ik neem daarvoor de verantwoordelijkheid.",
+    "reportContacts": "{added, plural, =0 {Geen contact toegevoegd} one {# contact toegevoegd} other {# contacten toegevoegd}} aan je marketingcontacten{unsubscribed, plural, =0 {.} one {; # uitgeschreven persoon niet meegenomen.} other {; # uitgeschreven personen niet meegenomen.}}"
   },
   "legalLinks": {
     "label": "Juridische informatie",

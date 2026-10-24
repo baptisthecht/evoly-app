@@ -3231,7 +3231,13 @@
     "historyDelete": "Elimina questa importazione",
     "historyDeleteConfirm": "Eliminare i biglietti di questa importazione? Quelli già entrati vengono conservati.",
     "historyDeleted": "{deleted, plural, =0 {Nessun biglietto rimosso} one {# biglietto rimosso} other {# biglietti rimossi}}; {kept, plural, =0 {nessun biglietto già entrato conservato} one {# biglietto già entrato conservato} other {# biglietti già entrati conservati}}.",
-    "historyDeletedOn": "Eliminata il {date}: {deleted, plural, =0 {nessun biglietto rimosso} one {# biglietto rimosso} other {# biglietti rimossi}}, {kept, plural, =0 {nessuno conservato} one {# conservato} other {# conservati}}."
+    "historyDeletedOn": "Eliminata il {date}: {deleted, plural, =0 {nessun biglietto rimosso} one {# biglietto rimosso} other {# biglietti rimossi}}, {kept, plural, =0 {nessuno conservato} one {# conservato} other {# conservati}}.",
+    "marketingTitle": "Contatti marketing",
+    "marketingOption": "Aggiungi ai miei contatti marketing gli acquirenti che lo accettano",
+    "marketingNoEmail": "Scegli la colonna dell’e-mail per poter aggiungere questi acquirenti ai tuoi contatti.",
+    "marketingByColumn": "Verranno aggiunti solo gli acquirenti la cui colonna «Consenso marketing» indica il loro accordo.",
+    "marketingAttestation": "Dichiaro sul mio onore che le persone di questo file hanno accettato di ricevere le comunicazioni della mia organizzazione, e me ne assumo la responsabilità.",
+    "reportContacts": "{added, plural, =0 {Nessun contatto aggiunto} one {# contatto aggiunto} other {# contatti aggiunti}} ai tuoi contatti marketing{unsubscribed, plural, =0 {.} one {; # persona disiscritta esclusa.} other {; # persone disiscritte escluse.}}"
   },
   "legalLinks": {
     "label": "Informazioni legali",

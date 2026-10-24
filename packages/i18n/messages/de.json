@@ -3231,7 +3231,13 @@
     "historyDelete": "Diesen Import löschen",
     "historyDeleteConfirm": "Die Tickets dieses Imports löschen? Bereits eingelassene bleiben erhalten.",
     "historyDeleted": "{deleted, plural, =0 {Kein Ticket entfernt} one {# Ticket entfernt} other {# Tickets entfernt}}; {kept, plural, =0 {kein eingelassenes Ticket behalten} one {# eingelassenes Ticket behalten} other {# eingelassene Tickets behalten}}.",
-    "historyDeletedOn": "Gelöscht am {date}: {deleted, plural, =0 {kein Ticket entfernt} one {# Ticket entfernt} other {# Tickets entfernt}}, {kept, plural, =0 {keines behalten} one {# behalten} other {# behalten}}."
+    "historyDeletedOn": "Gelöscht am {date}: {deleted, plural, =0 {kein Ticket entfernt} one {# Ticket entfernt} other {# Tickets entfernt}}, {kept, plural, =0 {keines behalten} one {# behalten} other {# behalten}}.",
+    "marketingTitle": "Marketing-Kontakte",
+    "marketingOption": "Käufer, die zustimmen, zu meinen Marketing-Kontakten hinzufügen",
+    "marketingNoEmail": "Wählen Sie die E-Mail-Spalte, um diese Käufer zu Ihren Kontakten hinzuzufügen.",
+    "marketingByColumn": "Nur Käufer, deren Spalte „Marketing-Einwilligung“ ihre Zustimmung zeigt, werden hinzugefügt.",
+    "marketingAttestation": "Ich erkläre ehrenwörtlich, dass die Personen in dieser Datei zugestimmt haben, die Mitteilungen meiner Organisation zu erhalten, und übernehme dafür die Verantwortung.",
+    "reportContacts": "{added, plural, =0 {Kein Kontakt hinzugefügt} one {# Kontakt hinzugefügt} other {# Kontakte hinzugefügt}} zu Ihren Marketing-Kontakten{unsubscribed, plural, =0 {.} one {; # abgemeldete Person ausgelassen.} other {; # abgemeldete Personen ausgelassen.}}"
   },
   "legalLinks": {
     "label": "Rechtliche Hinweise",

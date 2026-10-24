@@ -3231,7 +3231,13 @@
     "historyDelete": "Supprimer cet import",
     "historyDeleteConfirm": "Supprimer les billets de cet import ? Ceux déjà entrés sont gardés.",
     "historyDeleted": "{deleted, plural, =0 {Aucun billet retiré} one {# billet retiré} other {# billets retirés}} ; {kept, plural, =0 {aucun billet déjà entré gardé} one {# billet déjà entré gardé} other {# billets déjà entrés gardés}}.",
-    "historyDeletedOn": "Supprimé le {date} : {deleted, plural, =0 {aucun billet retiré} one {# billet retiré} other {# billets retirés}}, {kept, plural, =0 {aucun gardé} one {# gardé} other {# gardés}}."
+    "historyDeletedOn": "Supprimé le {date} : {deleted, plural, =0 {aucun billet retiré} one {# billet retiré} other {# billets retirés}}, {kept, plural, =0 {aucun gardé} one {# gardé} other {# gardés}}.",
+    "marketingTitle": "Contacts marketing",
+    "marketingOption": "Ajouter les acheteurs qui l’acceptent à mes contacts marketing",
+    "marketingNoEmail": "Choisissez la colonne de l’e-mail pour pouvoir ajouter ces acheteurs à vos contacts.",
+    "marketingByColumn": "Seuls les acheteurs dont la colonne « Consentement marketing » indique leur accord seront ajoutés.",
+    "marketingAttestation": "J’atteste sur l’honneur que les personnes de ce fichier ont accepté de recevoir les communications de mon organisation, et j’en assume la responsabilité.",
+    "reportContacts": "{added, plural, =0 {Aucun contact ajouté} one {# contact ajouté} other {# contacts ajoutés}} à vos contacts marketing{unsubscribed, plural, =0 {.} one { ; # personne désinscrite laissée de côté.} other { ; # personnes désinscrites laissées de côté.}}"
   },
   "legalLinks": {
     "label": "Informations légales",

@@ -474,6 +474,7 @@ describe("aperçu, historique et suppression des vagues d'import", () => {
     expect(await deleteImportBatch(ctx, eventId, first.batchId)).toEqual({
       deleted: 2,
       keptEntered: 1,
+      contactsRemoved: 0, // import sans option marketing
     });
     expect((await tickets(eventId)).map((t) => t.code)).toEqual(["A-3", "B-1"]);
     await expect(
@@ -610,5 +611,119 @@ describe("export des participants : billets vendus par les réseaux", () => {
     expect(at("Prix payé")).toMatch(/^25[,.]00$/);
     expect(at("Entrée")).toBe("2027-04-17 21:05");
     expect(await ticketsCsv(ctx, { period: "ALL" })).not.toContain("TM-4242");
+  });
+});
+
+describe("marketing : acheteurs consentants ajoutés aux contacts de l'organisateur", () => {
+  it("colonne de consentement : oui avec e-mail ajouté ; non ou sans e-mail, non ; désinscrit jamais réinscrit ; consentement d'origine gardé", async () => {
+    const { ctx, eventId, tm } = await setup();
+    const org = ctx.organization.id;
+    await db.contact.createMany({
+      data: [
+        {
+          organizationId: org,
+          email: "parti@exemple.fr",
+          marketingConsent: false,
+          unsubscribedAt: new Date(),
+        },
+        {
+          organizationId: org,
+          email: "ancien@exemple.fr",
+          marketingConsent: false,
+        },
+        {
+          organizationId: org,
+          email: "fidele@exemple.fr",
+          marketingConsent: true,
+          consentSource: "CHECKOUT",
+          consentAt: new Date("2026-01-01"),
+        },
+      ],
+    });
+    const file =
+      "Code-barres;Nom;E-mail;Opt-in\nC-1;Léa Martin;lea@exemple.fr;oui\nC-2;Tom Dubois;tom@exemple.fr;non\nC-3;Sans Mail;;oui\nC-4;Parti;parti@exemple.fr;oui\nC-5;Ancien;ancien@exemple.fr;oui\nC-6;Fidèle;fidele@exemple.fr;oui\n";
+    const r = await importExternalTickets(
+      ctx,
+      eventId,
+      tm!.id,
+      csv(file, "fnac.csv"),
+      { ...confirmed(file), marketing: true },
+    );
+    expect([r.contactsAdded, r.contactsUnsubscribed]).toEqual([2, 1]);
+    const c = Object.fromEntries(
+      (await db.contact.findMany({ where: { organizationId: org } })).map(
+        (x) => [x.email, x],
+      ),
+    );
+    expect(Object.keys(c).sort()).toEqual([
+      "ancien@exemple.fr",
+      "fidele@exemple.fr",
+      "lea@exemple.fr",
+      "parti@exemple.fr",
+    ]);
+    expect([
+      c["lea@exemple.fr"]!.firstName,
+      c["lea@exemple.fr"]!.lastName,
+      c["lea@exemple.fr"]!.consentSource,
+      c["lea@exemple.fr"]!.consentBatchId,
+    ]).toEqual(["Léa", "Martin", "NETWORK", r.batchId]);
+    expect(c["lea@exemple.fr"]!.consentNote).toBe(
+      "Ticketmaster · fnac.csv · colonne de consentement",
+    );
+    expect([
+      c["parti@exemple.fr"]!.marketingConsent,
+      c["parti@exemple.fr"]!.unsubscribedAt instanceof Date,
+    ]).toEqual([false, true]);
+    expect([
+      c["ancien@exemple.fr"]!.marketingConsent,
+      c["ancien@exemple.fr"]!.consentSource,
+    ]).toEqual([true, "NETWORK"]);
+    expect([
+      c["fidele@exemple.fr"]!.consentSource,
+      c["fidele@exemple.fr"]!.consentBatchId,
+    ]).toEqual(["CHECKOUT", null]);
+  });
+
+  it("attestation, sans colonne de consentement : tout acheteur avec e-mail ; suppression de la vague : ses contacts créés retirés, les anciens gardés", async () => {
+    const { ctx, eventId, tm } = await setup();
+    const org = ctx.organization.id;
+    await db.contact.create({
+      data: {
+        organizationId: org,
+        email: "ancien@exemple.fr",
+        marketingConsent: false,
+      },
+    });
+    const file =
+      "Code-barres;Nom;E-mail\nA-1;Léa;lea@exemple.fr\nA-2;Tom;tom@exemple.fr\nA-3;Ancien;ancien@exemple.fr\nA-4;Sans Mail;\n";
+    const r = await importExternalTickets(ctx, eventId, tm!.id, csv(file), {
+      ...confirmed(file),
+      marketing: true,
+      attestation: true,
+    });
+    expect(r.contactsAdded).toBe(3);
+    const consented = await db.contact.findMany({
+      where: { organizationId: org, marketingConsent: true },
+      orderBy: { email: "asc" },
+    });
+    expect(
+      consented.map((x) => [
+        x.email,
+        x.consentNote?.endsWith("attestation sur l’honneur"),
+      ]),
+    ).toEqual([
+      ["ancien@exemple.fr", true],
+      ["lea@exemple.fr", true],
+      ["tom@exemple.fr", true],
+    ]);
+    expect(await deleteImportBatch(ctx, eventId, r.batchId)).toMatchObject({
+      deleted: 4,
+      contactsRemoved: 2,
+    });
+    expect(
+      (await db.contact.findMany({ where: { organizationId: org } })).map(
+        (x) => x.email,
+      ),
+    ).toEqual(["ancien@exemple.fr"]);
   });
 });

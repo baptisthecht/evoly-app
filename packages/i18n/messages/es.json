@@ -3231,7 +3231,13 @@
     "historyDelete": "Eliminar esta importación",
     "historyDeleteConfirm": "¿Eliminar las entradas de esta importación? Las que ya accedieron se conservan.",
     "historyDeleted": "{deleted, plural, =0 {Ninguna entrada retirada} one {# entrada retirada} other {# entradas retiradas}}; {kept, plural, =0 {ninguna entrada usada conservada} one {# entrada usada conservada} other {# entradas usadas conservadas}}.",
-    "historyDeletedOn": "Eliminada el {date}: {deleted, plural, =0 {ninguna entrada retirada} one {# entrada retirada} other {# entradas retiradas}}, {kept, plural, =0 {ninguna conservada} one {# conservada} other {# conservadas}}."
+    "historyDeletedOn": "Eliminada el {date}: {deleted, plural, =0 {ninguna entrada retirada} one {# entrada retirada} other {# entradas retiradas}}, {kept, plural, =0 {ninguna conservada} one {# conservada} other {# conservadas}}.",
+    "marketingTitle": "Contactos de marketing",
+    "marketingOption": "Añadir a mis contactos de marketing a los compradores que lo acepten",
+    "marketingNoEmail": "Elige la columna del correo electrónico para poder añadir estos compradores a tus contactos.",
+    "marketingByColumn": "Solo se añadirán los compradores cuya columna «Consentimiento de marketing» indique su acuerdo.",
+    "marketingAttestation": "Declaro bajo mi palabra de honor que las personas de este archivo han aceptado recibir las comunicaciones de mi organización, y asumo la responsabilidad.",
+    "reportContacts": "{added, plural, =0 {Ningún contacto añadido} one {# contacto añadido} other {# contactos añadidos}} a tus contactos de marketing{unsubscribed, plural, =0 {.} one {; # persona dada de baja excluida.} other {; # personas dadas de baja excluidas.}}"
   },
   "legalLinks": {
     "label": "Información legal",

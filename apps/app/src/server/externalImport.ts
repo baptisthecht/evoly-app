@@ -23,6 +23,9 @@ export type IgnoredReason =
   | "DUPLICATE_IN_FILE"
   | "CODE_USED_BY_OTHER_NETWORK";
 export interface ImportReport {
+  /** Option marketing : acheteurs ajoutés aux contacts, et désinscrits jamais réinscrits. */
+  contactsAdded?: number;
+  contactsUnsubscribed?: number;
   created: number;
   updated: number;
   unchanged: number;
@@ -521,6 +524,20 @@ export async function importExternalTickets(
       ignored: report.ignored.length,
     },
   });
+  if (opts.marketing && consentSource) {
+    const contacts = await addNetworkContacts(
+      ctx,
+      {
+        batchId: batch.id,
+        network: distributor.name,
+        fileName: file.name,
+        consentSource,
+      },
+      wanted,
+    );
+    report.contactsAdded = contacts.added;
+    report.contactsUnsubscribed = contacts.unsubscribed;
+  }
   await db.importBatch.update({
     where: { id: batch.id },
     data: { report: report as unknown as Prisma.InputJsonValue },
@@ -646,6 +663,15 @@ export async function deleteImportBatch(
     const removed = await tx.externalTicket.deleteMany({
       where: { importBatchId: batch.id, checkedInAt: null },
     });
+    // contacts créés par cet import, sans commande ni e-mail reçu : retirés avec lui
+    const contacts = await tx.contact.deleteMany({
+      where: {
+        consentBatchId: batch.id,
+        ordersCount: 0,
+        createdAt: { gte: batch.createdAt },
+        messages: { none: {} },
+      },
+    });
     await tx.importBatch.update({
       where: { id: batch.id },
       data: {
@@ -656,7 +682,11 @@ export async function deleteImportBatch(
         keptEntered: kept,
       },
     });
-    return { deleted: removed.count, keptEntered: kept };
+    return {
+      deleted: removed.count,
+      keptEntered: kept,
+      contactsRemoved: contacts.count,
+    };
   });
   await audit({
     action: "distributor.import_deleted",
@@ -731,4 +761,88 @@ export async function searchExternalTickets(
     }),
   ]);
   return { total, pages: Math.ceil(total / PARTICIPANTS_PAGE), rows };
+}
+
+/**
+ * Acheteurs ajoutés aux contacts marketing de l'organisateur : avec la colonne
+ * de consentement, ceux qui ont dit oui ; avec l'attestation sur l'honneur, tous,
+ * sauf ceux que le fichier dit avoir refusé. Jamais sans e-mail ; une personne
+ * désinscrite n'est jamais réinscrite ; un consentement déjà donné est gardé.
+ */
+async function addNetworkContacts(
+  ctx: OrgContext,
+  src: {
+    batchId: string;
+    network: string;
+    fileName: string;
+    consentSource: "COLUMN" | "ATTESTATION";
+  },
+  wanted: Array<{
+    holderEmail: string | null;
+    holderName: string | null;
+    marketingConsent: boolean | null;
+  }>,
+) {
+  const people = new Map<string, string | null>();
+  for (const w of wanted) {
+    if (!w.holderEmail) continue;
+    const ok =
+      src.consentSource === "COLUMN"
+        ? w.marketingConsent === true
+        : w.marketingConsent !== false;
+    if (ok && !people.has(w.holderEmail))
+      people.set(w.holderEmail, w.holderName);
+  }
+  if (people.size === 0) return { added: 0, unsubscribed: 0 };
+  const emails = [...people.keys()];
+  const existing = await db.contact.findMany({
+    where: { organizationId: ctx.organization.id, email: { in: emails } },
+    select: {
+      id: true,
+      email: true,
+      unsubscribedAt: true,
+      marketingConsent: true,
+    },
+  });
+  const known = new Set(existing.map((c) => c.email));
+  const note =
+    `${src.network} · ${src.fileName} · ${src.consentSource === "COLUMN" ? "colonne de consentement" : "attestation sur l’honneur"}`.slice(
+      0,
+      300,
+    );
+  const now = new Date();
+  const consent = {
+    marketingConsent: true,
+    consentAt: now,
+    consentSource: "NETWORK" as const,
+    consentBatchId: src.batchId,
+    consentNote: note,
+  };
+  const fresh = emails.filter((e) => !known.has(e));
+  if (fresh.length)
+    await db.contact.createMany({
+      data: fresh.map((email) => {
+        const [first, ...rest] = (people.get(email) ?? "").trim().split(/\s+/);
+        return {
+          organizationId: ctx.organization.id,
+          email,
+          firstName: first || null,
+          lastName: rest.join(" ") || null,
+          ...consent,
+        };
+      }),
+      skipDuplicates: true,
+    });
+  let unsubscribed = 0;
+  let consented = 0;
+  for (const c of existing) {
+    if (c.unsubscribedAt) {
+      unsubscribed++; // jamais réinscrit
+      continue;
+    }
+    if (c.marketingConsent) continue; // consentement d'origine gardé
+    await db.contact.update({ where: { id: c.id }, data: consent });
+    consented++;
+  }
+  return { added: fresh.length + consented, unsubscribed };
 }

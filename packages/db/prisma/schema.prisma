@@ -1543,6 +1543,7 @@ enum ConsentSource {
   IMPORT
   FORM
   MANUAL
+  NETWORK // acheteur d'un réseau de billetterie, importé avec son consentement (colonne du fichier ou attestation)
 }
 
 // Carnet de contacts d'une organisation, alimenté par les commandes
@@ -1567,6 +1568,10 @@ model Contact {
   organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   orders       Order[]
   messages     EmailMessage[]
+
+  consentBatchId String? // vague d'import d'un réseau qui a apporté le consentement
+  consentNote    String? // provenance lisible du consentement (réseau, fichier, colonne ou attestation), gardée après suppression de la vague
+  consentBatch   ImportBatch? @relation(fields: [consentBatchId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, email])
   @@index([organizationId, marketingConsent]) // destinataires des campagnes
@@ -2384,6 +2389,8 @@ model ImportBatch {
   createdBy   User?            @relation("ImportBatchCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   deletedBy   User?            @relation("ImportBatchDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
   tickets     ExternalTicket[]
+
+  contacts Contact[]
 
   @@index([eventId, distributorId, createdAt])
 }

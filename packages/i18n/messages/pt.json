@@ -3231,7 +3231,13 @@
     "historyDelete": "Eliminar esta importação",
     "historyDeleteConfirm": "Eliminar os bilhetes desta importação? Os que já entraram são mantidos.",
     "historyDeleted": "{deleted, plural, =0 {Nenhum bilhete retirado} one {# bilhete retirado} other {# bilhetes retirados}}; {kept, plural, =0 {nenhum bilhete já usado mantido} one {# bilhete já usado mantido} other {# bilhetes já usados mantidos}}.",
-    "historyDeletedOn": "Eliminada em {date}: {deleted, plural, =0 {nenhum bilhete retirado} one {# bilhete retirado} other {# bilhetes retirados}}, {kept, plural, =0 {nenhum mantido} one {# mantido} other {# mantidos}}."
+    "historyDeletedOn": "Eliminada em {date}: {deleted, plural, =0 {nenhum bilhete retirado} one {# bilhete retirado} other {# bilhetes retirados}}, {kept, plural, =0 {nenhum mantido} one {# mantido} other {# mantidos}}.",
+    "marketingTitle": "Contactos de marketing",
+    "marketingOption": "Adicionar aos meus contactos de marketing os compradores que o aceitem",
+    "marketingNoEmail": "Escolha a coluna do e-mail para poder adicionar estes compradores aos seus contactos.",
+    "marketingByColumn": "Só serão adicionados os compradores cuja coluna «Consentimento de marketing» indique o seu acordo.",
+    "marketingAttestation": "Declaro sob compromisso de honra que as pessoas deste ficheiro aceitaram receber as comunicações da minha organização, e assumo essa responsabilidade.",
+    "reportContacts": "{added, plural, =0 {Nenhum contacto adicionado} one {# contacto adicionado} other {# contactos adicionados}} aos seus contactos de marketing{unsubscribed, plural, =0 {.} one {; # pessoa que cancelou a subscrição deixada de fora.} other {; # pessoas que cancelaram a subscrição deixadas de fora.}}"
   },
   "legalLinks": {
     "label": "Informações legais",
