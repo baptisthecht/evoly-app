@@ -913,7 +913,28 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
                     )}
                   </p>
                 </div>
-                {tk.status === "VALID" ? (
+                {barMode && tk.status !== "VOID" ? (
+                  // bar et options : ouvrir les options, y compris d'une personne déjà entrée ;
+                  // un billet vendu par un réseau n'a jamais d'option
+                  tk.orderId ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTab("scan"); // les options s'affichent dans l'onglet du scanner
+                        // par le code court du billet : la recherche des options du bar ne lit que
+                        // le code ou le code court (en ligne comme hors connexion)
+                        void barLookup({ shortCode: tk.shortCode });
+                      }}
+                      className="shrink-0 rounded-full bg-[var(--evoly-rose)] px-4 py-2 text-sm font-semibold text-[var(--evoly-charbon)]"
+                    >
+                      {t("barOpen")}
+                    </button>
+                  ) : (
+                    <span className="shrink-0 text-sm opacity-80">
+                      {t("barNoOptions")}
+                    </span>
+                  )
+                ) : tk.status === "VALID" ? (
                   <button
                     type="button"
                     onClick={() => setConfirm(tk)}

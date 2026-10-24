@@ -658,7 +658,9 @@
     "barRefused": "{count, plural, one {# levantamento recusado ao religar: já levantado noutro lado ou reembolsado.} other {# levantamentos recusados ao religar: já levantados noutro lado ou reembolsados.}}",
     "sellOptions": "Opções sem bilhete",
     "sellPassCode": "Código de levantamento para o cliente",
-    "sellDoneOptions": "Venda registada."
+    "sellDoneOptions": "Venda registada.",
+    "barOpen": "Ver as opções",
+    "barNoOptions": "Sem opções"
   },
   "scannerAccess": {
     "title": "Ler os bilhetes",

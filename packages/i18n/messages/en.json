@@ -696,7 +696,9 @@
     "barRefused": "{count, plural, one {# redemption refused on reconnection: already redeemed elsewhere or refunded.} other {# redemptions refused on reconnection: already redeemed elsewhere or refunded.}}",
     "sellOptions": "Add-ons without a ticket",
     "sellPassCode": "Pickup code to give the customer",
-    "sellDoneOptions": "Sale recorded."
+    "sellDoneOptions": "Sale recorded.",
+    "barOpen": "See options",
+    "barNoOptions": "No options"
   },
   "plans": {
     "free": "Free",

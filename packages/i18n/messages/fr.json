@@ -696,7 +696,9 @@
     "barRefused": "{count, plural, one {# retrait refusé à la reconnexion : déjà retiré ailleurs ou remboursé.} other {# retraits refusés à la reconnexion : déjà retirés ailleurs ou remboursés.}}",
     "sellOptions": "Options sans billet",
     "sellPassCode": "Code de retrait à donner au client",
-    "sellDoneOptions": "Vente enregistrée."
+    "sellDoneOptions": "Vente enregistrée.",
+    "barOpen": "Voir les options",
+    "barNoOptions": "Sans option"
   },
   "plans": {
     "free": "Free",

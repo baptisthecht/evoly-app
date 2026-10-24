@@ -658,7 +658,9 @@
     "barRefused": "{count, plural, one {# afhaling geweigerd bij het opnieuw verbinden: al elders afgehaald of terugbetaald.} other {# afhalingen geweigerd bij het opnieuw verbinden: al elders afgehaald of terugbetaald.}}",
     "sellOptions": "Opties zonder ticket",
     "sellPassCode": "Afhaalcode voor de klant",
-    "sellDoneOptions": "Verkoop geregistreerd."
+    "sellDoneOptions": "Verkoop geregistreerd.",
+    "barOpen": "Opties bekijken",
+    "barNoOptions": "Geen opties"
   },
   "scannerAccess": {
     "title": "Tickets scannen",

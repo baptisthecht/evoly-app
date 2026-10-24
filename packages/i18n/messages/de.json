@@ -658,7 +658,9 @@
     "barRefused": "{count, plural, one {# Einlösung beim erneuten Verbinden abgelehnt: bereits anderswo eingelöst oder erstattet.} other {# Einlösungen beim erneuten Verbinden abgelehnt: bereits anderswo eingelöst oder erstattet.}}",
     "sellOptions": "Optionen ohne Ticket",
     "sellPassCode": "Abholcode für den Kunden",
-    "sellDoneOptions": "Verkauf erfasst."
+    "sellDoneOptions": "Verkauf erfasst.",
+    "barOpen": "Optionen ansehen",
+    "barNoOptions": "Keine Optionen"
   },
   "scannerAccess": {
     "title": "Tickets scannen",

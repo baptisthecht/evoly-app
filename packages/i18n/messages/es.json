@@ -658,7 +658,9 @@
     "barRefused": "{count, plural, one {# canje rechazado al reconectar: ya canjeado en otro lugar o reembolsado.} other {# canjes rechazados al reconectar: ya canjeados en otro lugar o reembolsados.}}",
     "sellOptions": "Opciones sin entrada",
     "sellPassCode": "Código de recogida para el cliente",
-    "sellDoneOptions": "Venta registrada."
+    "sellDoneOptions": "Venta registrada.",
+    "barOpen": "Ver las opciones",
+    "barNoOptions": "Sin opciones"
   },
   "scannerAccess": {
     "title": "Escanear las entradas",

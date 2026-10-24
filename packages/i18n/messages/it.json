@@ -658,7 +658,9 @@
     "barRefused": "{count, plural, one {# ritiro rifiutato alla riconnessione: già ritirato altrove o rimborsato.} other {# ritiri rifiutati alla riconnessione: già ritirati altrove o rimborsati.}}",
     "sellOptions": "Opzioni senza biglietto",
     "sellPassCode": "Codice di ritiro da dare al cliente",
-    "sellDoneOptions": "Vendita registrata."
+    "sellDoneOptions": "Vendita registrata.",
+    "barOpen": "Vedi le opzioni",
+    "barNoOptions": "Nessuna opzione"
   },
   "scannerAccess": {
     "title": "Scansiona i biglietti",
