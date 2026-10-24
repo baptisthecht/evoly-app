@@ -308,6 +308,8 @@ model Organization {
   seatingLayouts      SeatingLayout[]
   promotionRedemption PromotionRedemption? // offre commerciale dont elle a profité à sa création
   distributors        Distributor[]
+
+  @@index([referredByVenueId]) // organisateurs parrainés par un lieu
 }
 
 enum StripeAccountStatus {
@@ -646,6 +648,7 @@ model Event {
   @@unique([organizationId, slug])
   @@index([organizationId, status, startsAt])
   @@index([status, startsAt])
+  @@index([publishAt]) // publication programmée (tâche planifiée)
 }
 
 // Version traduite des textes d'un événement (P2)
@@ -1056,6 +1059,9 @@ model Order {
   @@index([paidAt])
   @@index([contactId])
   @@index([presaleCodeId, status])
+  @@index([ambassadorId]) // ventes de chaque ambassadeur
+  @@index([soldByLinkId]) // rapport de caisse de la vente sur place
+  @@index([venuePartnerId]) // commissions des lieux partenaires
 }
 
 model OrderItem {
