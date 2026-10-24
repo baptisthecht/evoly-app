@@ -66,18 +66,20 @@ model User {
   updatedAt            DateTime     @updatedAt
   deletedAt            DateTime?
 
-  accounts            Account[]
-  sessions            Session[]
-  memberships         OrganizationMember[]
-  invitationsSent     Invitation[]         @relation("InvitationSender")
-  eventsCreated       Event[]              @relation("EventCreator")
-  scannerLinksCreated ScannerLink[]
-  checkIns            CheckIn[]
-  refundsHandled      Refund[]             @relation("RefundHandler")
-  campaignsCreated    EmailCampaign[]
-  notifications       Notification[]
-  auditLogs           AuditLog[]
-  buyerOrders         Order[]              @relation("BuyerAccount")
+  accounts             Account[]
+  sessions             Session[]
+  memberships          OrganizationMember[]
+  invitationsSent      Invitation[]         @relation("InvitationSender")
+  eventsCreated        Event[]              @relation("EventCreator")
+  scannerLinksCreated  ScannerLink[]
+  checkIns             CheckIn[]
+  refundsHandled       Refund[]             @relation("RefundHandler")
+  campaignsCreated     EmailCampaign[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  buyerOrders          Order[]              @relation("BuyerAccount")
+  importBatchesCreated ImportBatch[]        @relation("ImportBatchCreatedBy")
+  importBatchesDeleted ImportBatch[]        @relation("ImportBatchDeletedBy")
 }
 
 model Session {
@@ -644,6 +646,8 @@ model Event {
 
   distributorAllocations DistributorAllocation[]
   externalTickets        ExternalTicket[]
+
+  importBatches ImportBatch[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, status, startsAt])
@@ -2286,6 +2290,8 @@ model Distributor {
   tickets      ExternalTicket[]
   seats        Seat[]
 
+  importBatches ImportBatch[]
+
   @@unique([organizationId, name])
 }
 
@@ -2333,7 +2339,51 @@ model ExternalTicket {
   seat        Seat?       @relation(fields: [seatId], references: [id], onDelete: SetNull)
   checkIns    CheckIn[]
 
+  importBatchId    String? // vague d'import qui a créé le billet (un réimport ne la change pas)
+  holderEmail      String? // anonymisé 30 jours après l'événement, comme le nom
+  holderPhone      String? // anonymisé 30 jours après l'événement, comme le nom
+  marketingConsent Boolean? // accord pour les communications de l'organisateur, d'après le fichier ; inconnu par défaut
+  importBatch      ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
   @@unique([eventId, code])
   @@unique([eventId, distributorId, reservation, rank])
+  @@index([importBatchId])
   @@index([eventId, distributorId])
+}
+
+enum ImportBatchStatus {
+  IMPORTED
+  DELETED
+}
+
+/// Vague d'import des billets d'un réseau : fichier, colonnes confirmées (chaque champ : une colonne ou « absent de ce
+/// fichier »), auteur et compte rendu ; supprimable, l'historique reste
+model ImportBatch {
+  id              String            @id @default(cuid())
+  eventId         String
+  distributorId   String
+  fileName        String
+  mapping         Json // champ → numéro de colonne, ou null quand l'information est absente du fichier
+  header          Boolean           @default(true)
+  fullFile        Boolean           @default(false)
+  report          Json? // compte rendu : billets ajoutés, mis à jour, inchangés, annulés, lignes ignorées
+  status          ImportBatchStatus @default(IMPORTED)
+  createdById     String?
+  deletedById     String?
+  deletedAt       DateTime?
+  deletedCount    Int? // billets retirés à la suppression
+  keptEntered     Int? // billets déjà entrés, gardés à la suppression
+  marketing       Boolean           @default(false) // acheteurs ajoutés aux contacts de l'organisateur (option de l'import)
+  consentSource   String? // « COLUMN » : colonne de consentement du fichier ; « ATTESTATION » : case sur l'honneur
+  attestedAt      DateTime? // attestation sur l'honneur de l'organisateur (createdById), à défaut de colonne
+  attestationText String? // texte exact de l'attestation acceptée
+  createdAt       DateTime          @default(now())
+
+  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  distributor Distributor      @relation(fields: [distributorId], references: [id], onDelete: Cascade)
+  createdBy   User?            @relation("ImportBatchCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  deletedBy   User?            @relation("ImportBatchDeletedBy", fields: [deletedById], references: [id], onDelete: SetNull)
+  tickets     ExternalTicket[]
+
+  @@index([eventId, distributorId, createdAt])
 }
