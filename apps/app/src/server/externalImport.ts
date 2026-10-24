@@ -672,3 +672,63 @@ export async function deleteImportBatch(
   });
   return result;
 }
+
+// ─── Participants : billets vendus par les réseaux ──────────────────────────────
+
+const PARTICIPANTS_PAGE = 50;
+
+/**
+ * Billets importés d'un événement, comme de vrais achats dans les participants :
+ * par réseau, recherche dans le nom, l'e-mail, le code-barres ou la réservation.
+ */
+export async function searchExternalTickets(
+  ctx: OrgContext,
+  opts: { eventId: string; distributorId?: string; q?: string; page?: number },
+) {
+  await findEvent(ctx, opts.eventId);
+  const q = opts.q?.trim().slice(0, 100);
+  const where = {
+    eventId: opts.eventId,
+    distributor: { organizationId: ctx.organization.id },
+    ...(opts.distributorId ? { distributorId: opts.distributorId } : {}),
+    ...(q
+      ? {
+          OR: [
+            { holderName: { contains: q, mode: "insensitive" as const } },
+            { holderEmail: { contains: q, mode: "insensitive" as const } },
+            { code: { contains: q, mode: "insensitive" as const } },
+            { reservation: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
+  };
+  const page = Math.max(0, opts.page ?? 0);
+  const [total, rows] = await Promise.all([
+    db.externalTicket.count({ where }),
+    db.externalTicket.findMany({
+      where,
+      orderBy: [
+        { holderName: { sort: "asc", nulls: "last" } },
+        { createdAt: "asc" },
+        { id: "asc" },
+      ],
+      skip: page * PARTICIPANTS_PAGE,
+      take: PARTICIPANTS_PAGE,
+      select: {
+        id: true,
+        code: true,
+        reservation: true,
+        rank: true,
+        holderName: true,
+        holderEmail: true,
+        holderPhone: true,
+        seatLabel: true,
+        status: true,
+        checkedInAt: true,
+        ticketType: { select: { name: true } },
+        distributor: { select: { name: true } },
+      },
+    }),
+  ]);
+  return { total, pages: Math.ceil(total / PARTICIPANTS_PAGE), rows };
+}

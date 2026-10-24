@@ -1614,7 +1614,18 @@
     "tab_payment": "Payment",
     "tab_options": "Options",
     "tab_emails": "Emails",
-    "tabsLabel": "Order sections"
+    "tabsLabel": "Order sections",
+    "channelFilter": "Channel",
+    "allChannels": "All channels",
+    "channelEvoly": "Evoly",
+    "networkTitle": "Tickets sold by networks",
+    "networkCount": "{count, plural, =0 {No ticket} one {# ticket} other {# tickets}}",
+    "networkEmpty": "No imported ticket for these criteria.",
+    "networkNoName": "{network} ticket · …{last}",
+    "networkCancelled": "Cancelled by the network",
+    "networkEntered": "Admitted on {time}",
+    "networkNotEntered": "Not admitted yet",
+    "networkPagination": "Pages of network tickets"
   },
   "finances": {
     "title": "Finances",

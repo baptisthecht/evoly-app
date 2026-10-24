@@ -3,8 +3,10 @@ import { db } from "@/lib/db";
 import { findOrgContext } from "@/server/context";
 import { createDistributor, setAllocation } from "@/server/distributors";
 import { createEvent } from "@/server/events";
+import { ticketsCsv } from "@/server/finances";
 import {
   deleteImportBatch,
+  searchExternalTickets,
   importExternalTickets,
   listImportBatches,
   MARKETING_ATTESTATION,
@@ -490,5 +492,123 @@ describe("aperçu, historique et suppression des vagues d'import", () => {
       ["mardi.csv", "IMPORTED", null, null, "Ticketmaster"],
       ["lundi.csv", "DELETED", 2, 1, "Ticketmaster"],
     ]);
+  });
+});
+
+describe("participants : billets vendus par les réseaux", () => {
+  it("par réseau ; recherche dans le nom, l'e-mail, le code et la réservation ; jamais un billet d'une autre organisation", async () => {
+    const { ctx, eventId, tm } = await setup();
+    const fnac = await createDistributor(ctx, { kind: "FRANCE_BILLET" });
+    await db.externalTicket.createMany({
+      data: [
+        {
+          eventId,
+          distributorId: tm!.id,
+          code: "TM-111",
+          holderName: "Léa Martin",
+          holderEmail: "lea@exemple.fr",
+        },
+        {
+          eventId,
+          distributorId: tm!.id,
+          code: "TM-222",
+          holderName: "Tom Dubois",
+        },
+        {
+          eventId,
+          distributorId: fnac.id,
+          reservation: "BR-77812",
+          holderName: "Inès Benali",
+        },
+      ],
+    });
+    const other = await setup();
+    await db.externalTicket.create({
+      data: {
+        eventId: other.eventId,
+        distributorId: other.tm!.id,
+        code: "TM-999",
+        holderName: "Léa Autre",
+      },
+    });
+    const names = async (o: { distributorId?: string; q?: string }) =>
+      (await searchExternalTickets(ctx, { eventId, ...o })).rows.map(
+        (r) => r.holderName,
+      );
+    expect(await names({})).toEqual([
+      "Inès Benali",
+      "Léa Martin",
+      "Tom Dubois",
+    ]);
+    expect(await names({ distributorId: fnac.id })).toEqual(["Inès Benali"]);
+    expect(await names({ q: "LEA@" })).toEqual(["Léa Martin"]);
+    expect(await names({ q: "tm-222" })).toEqual(["Tom Dubois"]);
+    expect(await names({ q: "77812" })).toEqual(["Inès Benali"]);
+    await expect(
+      searchExternalTickets(ctx, { eventId: other.eventId }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("par pages de 50", async () => {
+    const { ctx, eventId, tm } = await setup();
+    await db.externalTicket.createMany({
+      data: Array.from({ length: 51 }, (_, i) => ({
+        eventId,
+        distributorId: tm!.id,
+        code: `P-${String(i).padStart(3, "0")}`,
+        holderName: `Spectateur ${String(i).padStart(3, "0")}`,
+      })),
+    });
+    const first = await searchExternalTickets(ctx, { eventId });
+    const second = await searchExternalTickets(ctx, { eventId, page: 1 });
+    expect([
+      first.total,
+      first.pages,
+      first.rows.length,
+      second.rows.length,
+      second.rows[0]!.holderName,
+    ]).toEqual([51, 2, 50, 1, "Spectateur 050"]);
+  });
+});
+
+describe("export des participants : billets vendus par les réseaux", () => {
+  it("colonne « Canal » et billets importés dans l'export de l'événement ; jamais dans l'export financier d'une période", async () => {
+    const { ctx, eventId, tm } = await setup();
+    await db.externalTicket.create({
+      data: {
+        eventId,
+        distributorId: tm!.id,
+        code: "TM-4242",
+        reservation: "R-1",
+        holderName: "Léa Martin",
+        holderEmail: "lea@exemple.fr",
+        priceMinor: 2500,
+        checkedInAt: new Date("2027-04-17T19:05:00Z"),
+      },
+    });
+    const [head, ...rows] = (await ticketsCsv(ctx, { period: "ALL", eventId }))
+      .replace(/^\ufeff/, "")
+      .trim()
+      .split("\r\n");
+    const cols = head!.split(";");
+    expect(cols).toContain("Canal");
+    const line = rows.find((r) => r.includes("TM-4242"))!.split(";");
+    const at = (name: string) => line[cols.indexOf(name)];
+    expect([
+      at("Référence commande"),
+      at("Titulaire"),
+      at("E-mail du titulaire"),
+      at("Canal"),
+      at("Statut"),
+    ]).toEqual([
+      "R-1",
+      "Léa Martin",
+      "lea@exemple.fr",
+      "Ticketmaster",
+      "VALID",
+    ]);
+    expect(at("Prix payé")).toMatch(/^25[,.]00$/);
+    expect(at("Entrée")).toBe("2027-04-17 21:05");
+    expect(await ticketsCsv(ctx, { period: "ALL" })).not.toContain("TM-4242");
   });
 });

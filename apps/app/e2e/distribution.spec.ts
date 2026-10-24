@@ -63,6 +63,22 @@ test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bil
     page.getByRole("status").filter({ hasText: "2 billets ajoutés" }),
   ).toBeVisible();
 
+  // participants : les billets du réseau, comme de vrais achats, filtrables par canal
+
+  await page.goto(`${eventUrl}/orders`);
+
+  await page.getByLabel("Canal").selectOption({ label: "Ticketmaster" });
+
+  await page.getByRole("button", { name: "Rechercher" }).click();
+
+  const networkList = page.getByRole("region", {
+    name: "Billets vendus par les réseaux",
+  });
+
+  await expect(networkList.getByText("Léa Martin")).toBeVisible();
+
+  await expect(networkList.getByText("Tom Dubois")).toBeVisible();
+
   // à la porte : le code-barres du réseau passe au scanner, une seule fois
   // scanner ouvert depuis la page des entrées de l'événement (lien personnel de l'organisateur)
   await page.goto(`${eventUrl}/entries`);

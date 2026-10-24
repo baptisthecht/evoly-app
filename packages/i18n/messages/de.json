@@ -1399,7 +1399,18 @@
     "tab_payment": "Zahlung",
     "tab_options": "Optionen",
     "tab_emails": "E-Mails",
-    "tabsLabel": "Bereiche der Bestellung"
+    "tabsLabel": "Bereiche der Bestellung",
+    "channelFilter": "Kanal",
+    "allChannels": "Alle Kanäle",
+    "channelEvoly": "Evoly",
+    "networkTitle": "Von Netzen verkaufte Tickets",
+    "networkCount": "{count, plural, =0 {Kein Ticket} one {# Ticket} other {# Tickets}}",
+    "networkEmpty": "Kein importiertes Ticket für diese Kriterien.",
+    "networkNoName": "Ticket {network} · …{last}",
+    "networkCancelled": "Vom Netz storniert",
+    "networkEntered": "Eingelassen am {time}",
+    "networkNotEntered": "Noch nicht eingelassen",
+    "networkPagination": "Seiten der Netztickets"
   },
   "seatingEditor": {
     "title": "Saalplan",

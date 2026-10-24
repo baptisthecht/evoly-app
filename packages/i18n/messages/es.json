@@ -1399,7 +1399,18 @@
     "tab_payment": "Pago",
     "tab_options": "Opciones",
     "tab_emails": "Correos",
-    "tabsLabel": "Secciones del pedido"
+    "tabsLabel": "Secciones del pedido",
+    "channelFilter": "Canal",
+    "allChannels": "Todos los canales",
+    "channelEvoly": "Evoly",
+    "networkTitle": "Entradas vendidas por las redes",
+    "networkCount": "{count, plural, =0 {Ninguna entrada} one {# entrada} other {# entradas}}",
+    "networkEmpty": "Ninguna entrada importada para estos criterios.",
+    "networkNoName": "Entrada {network} · …{last}",
+    "networkCancelled": "Anulada por la red",
+    "networkEntered": "Accedió el {time}",
+    "networkNotEntered": "Todavía no ha accedido",
+    "networkPagination": "Páginas de las entradas de las redes"
   },
   "seatingEditor": {
     "title": "Plano de sala",

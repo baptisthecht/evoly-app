@@ -1399,7 +1399,18 @@
     "tab_payment": "Pagamento",
     "tab_options": "Opções",
     "tab_emails": "E-mails",
-    "tabsLabel": "Secções da encomenda"
+    "tabsLabel": "Secções da encomenda",
+    "channelFilter": "Canal",
+    "allChannels": "Todos os canais",
+    "channelEvoly": "Evoly",
+    "networkTitle": "Bilhetes vendidos pelas redes",
+    "networkCount": "{count, plural, =0 {Nenhum bilhete} one {# bilhete} other {# bilhetes}}",
+    "networkEmpty": "Nenhum bilhete importado para estes critérios.",
+    "networkNoName": "Bilhete {network} · …{last}",
+    "networkCancelled": "Anulado pela rede",
+    "networkEntered": "Entrou em {time}",
+    "networkNotEntered": "Ainda não entrou",
+    "networkPagination": "Páginas dos bilhetes das redes"
   },
   "seatingEditor": {
     "title": "Planta da sala",

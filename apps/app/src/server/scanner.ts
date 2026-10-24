@@ -281,6 +281,7 @@ export async function scannerManifest(link: ResolvedLink) {
     select: {
       id: true,
       code: true,
+      reservation: true,
       holderName: true,
       seatLabel: true,
       status: true,
@@ -392,7 +393,9 @@ export async function scannerManifest(link: ResolvedLink) {
         id: `${EXTERNAL}${x.id}`,
         codeHash: x.code ? sha256(`${salt}:${x.code}`) : "",
         shortCode: "",
-        holder: x.holderName ?? x.distributor.name,
+        holder:
+          x.holderName ??
+          `${x.distributor.name} · …${(x.code ?? x.reservation ?? "").slice(-4)}`, // sans nom : le réseau et la fin du code
         buyer: x.distributor.name,
         emailHash: "",
         typeName:
@@ -876,7 +879,9 @@ async function checkInExternal(
     ticket: x
       ? {
           id: `${EXTERNAL}${x.id}`,
-          holder: x.holderName ?? x.distributor.name,
+          holder:
+            x.holderName ??
+            `${x.distributor.name} · …${(x.code ?? x.reservation ?? "").slice(-4)}`, // sans nom : le réseau et la fin du code
           typeName: [x.ticketType?.name, x.seatLabel, x.distributor.name]
             .filter(Boolean)
             .join(" · "),

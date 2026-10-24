@@ -1399,7 +1399,18 @@
     "tab_payment": "Pagamento",
     "tab_options": "Opzioni",
     "tab_emails": "E-mail",
-    "tabsLabel": "Sezioni dell’ordine"
+    "tabsLabel": "Sezioni dell’ordine",
+    "channelFilter": "Canale",
+    "allChannels": "Tutti i canali",
+    "channelEvoly": "Evoly",
+    "networkTitle": "Biglietti venduti dalle reti",
+    "networkCount": "{count, plural, =0 {Nessun biglietto} one {# biglietto} other {# biglietti}}",
+    "networkEmpty": "Nessun biglietto importato per questi criteri.",
+    "networkNoName": "Biglietto {network} · …{last}",
+    "networkCancelled": "Annullato dalla rete",
+    "networkEntered": "Entrato il {time}",
+    "networkNotEntered": "Non ancora entrato",
+    "networkPagination": "Pagine dei biglietti delle reti"
   },
   "seatingEditor": {
     "title": "Mappa dei posti",

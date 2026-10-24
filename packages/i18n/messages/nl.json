@@ -1399,7 +1399,18 @@
     "tab_payment": "Betaling",
     "tab_options": "Opties",
     "tab_emails": "E-mails",
-    "tabsLabel": "Onderdelen van de bestelling"
+    "tabsLabel": "Onderdelen van de bestelling",
+    "channelFilter": "Kanaal",
+    "allChannels": "Alle kanalen",
+    "channelEvoly": "Evoly",
+    "networkTitle": "Tickets verkocht door netwerken",
+    "networkCount": "{count, plural, =0 {Geen ticket} one {# ticket} other {# tickets}}",
+    "networkEmpty": "Geen geïmporteerd ticket voor deze criteria.",
+    "networkNoName": "Ticket {network} · …{last}",
+    "networkCancelled": "Geannuleerd door het netwerk",
+    "networkEntered": "Binnen op {time}",
+    "networkNotEntered": "Nog niet binnen",
+    "networkPagination": "Pagina’s van de netwerktickets"
   },
   "seatingEditor": {
     "title": "Zaalplan",

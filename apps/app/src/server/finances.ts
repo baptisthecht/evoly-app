@@ -1223,6 +1223,7 @@ export async function ticketsCsv(
     "Devise",
     "Statut",
     "Entrée",
+    "Canal", // Evoly, ou le réseau qui a vendu le billet
     ...questions.map((q) => q.label),
   ];
   const lines = tickets.map((t) => [
@@ -1244,8 +1245,46 @@ export async function ticketsCsv(
           " ",
         )
       : "",
+    "Evoly",
     ...questions.map((q) => answerFor(q, t)),
   ]);
+  // export d'un événement (participants) : billets vendus par les réseaux, comme de vrais achats ;
+  // jamais dans l'export financier d'une période, leur argent ne passe pas par Evoly
+  if (opts.eventId) {
+    const external = await db.externalTicket.findMany({
+      where: {
+        eventId: opts.eventId,
+        distributor: { organizationId: ctx.organization.id },
+      },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      include: {
+        ticketType: { select: { name: true } },
+        distributor: { select: { name: true } },
+        event: { select: { title: true, currency: true } },
+      },
+    });
+    for (const x of external)
+      lines.push([
+        x.reservation ?? "",
+        x.code ?? "",
+        x.event.title,
+        x.ticketType?.name ?? "",
+        x.holderName ?? "",
+        x.holderEmail ?? "",
+        "",
+        x.priceMinor == null ? "" : amount(x.priceMinor),
+        x.event.currency,
+        x.status,
+        x.checkedInAt
+          ? utcToZonedLocal(x.checkedInAt, ctx.organization.timezone).replace(
+              "T",
+              " ",
+            )
+          : "",
+        x.distributor.name,
+        ...questions.map(() => ""),
+      ]);
+  }
   return (
     "\ufeff" +
     [head, ...lines].map((l) => l.map(csvCell).join(";")).join("\r\n") +

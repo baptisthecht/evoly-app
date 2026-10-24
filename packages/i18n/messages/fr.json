@@ -1614,7 +1614,18 @@
     "tab_payment": "Paiement",
     "tab_options": "Options",
     "tab_emails": "E-mails",
-    "tabsLabel": "Sections de la commande"
+    "tabsLabel": "Sections de la commande",
+    "channelFilter": "Canal",
+    "allChannels": "Tous les canaux",
+    "channelEvoly": "Evoly",
+    "networkTitle": "Billets vendus par les réseaux",
+    "networkCount": "{count, plural, =0 {Aucun billet} one {# billet} other {# billets}}",
+    "networkEmpty": "Aucun billet importé pour ces critères.",
+    "networkNoName": "Billet {network} · …{last}",
+    "networkCancelled": "Annulé par le réseau",
+    "networkEntered": "Entré le {time}",
+    "networkNotEntered": "Pas encore entré",
+    "networkPagination": "Pages des billets des réseaux"
   },
   "finances": {
     "title": "Finances",

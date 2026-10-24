@@ -213,4 +213,17 @@ describe("scanner : billets vendus par les réseaux", () => {
       }),
     ).toBe(1);
   });
+
+  it("billet sans nom : le réseau et la fin du code, au scanner comme dans la liste des appareils", async () => {
+    const { link, ext } = await setup();
+    const t = await ext("4006381339999", { holderName: null });
+    const m = await scannerManifest(link);
+    expect(m.tickets.find((x) => x.id === `x:${t.id}`)!.holder).toBe(
+      "Ticketmaster · …9999",
+    );
+    expect(
+      (await checkIn(link, { code: "4006381339999", method: "QR" })).ticket
+        ?.holder,
+    ).toBe("Ticketmaster · …9999");
+  });
 });
