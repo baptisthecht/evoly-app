@@ -52,9 +52,12 @@ body {
 :root:has(.theme-pro) .font-display[class*="text-display"] {
   font-size: 1.75rem;
 }
-/* thème pro : boutons et liens en pilule dessinés à la main, alignés sur les boutons du thème (interrupteurs exclus) */
+/* thème pro : boutons et liens en pilule dessinés à la main, alignés sur les boutons du thème (interrupteurs exclus ;
+   pastilles de la barre d'onglets du téléphone exclues : leur arrondi suit celui de la capsule) */
 :root:has(.theme-pro)
-  :is(a, button).rounded-full[class*="px-"]:not([role="switch"]) {
+  :is(a, button).rounded-full[class*="px-"]:not([role="switch"]):not(
+    [data-pill]
+  ) {
   border-radius: var(--control-radius);
   font-weight: var(--control-weight);
   font-size: var(--control-text-md);

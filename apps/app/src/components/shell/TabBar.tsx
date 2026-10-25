@@ -58,6 +58,8 @@ export function TabBar({
   };
   const current = activeTab(tabs, pathname);
   const moreOn = open || current === null;
+  // arrondis concentriques : capsule de 68 px (arrondi 34), pastille de 48 px à 10 px du bord (arrondi 24) ;
+  // data-pill la soustrait à l'arrondi des boutons du thème Pro (globals.css)
   const pill =
     "inline-flex min-h-12 items-center gap-2 rounded-full bg-surface px-3.5 font-display text-sm text-ink";
   const icon =
@@ -90,6 +92,7 @@ export function TabBar({
               key={tab.key}
               href={tab.href}
               aria-current="page"
+              data-pill=""
               className={pill}
             >
               <NavGlyph name={tab.icon} className="size-[1.375rem]" />
@@ -113,6 +116,7 @@ export function TabBar({
           aria-expanded={open}
           aria-controls={sheetId}
           aria-label={moreOn ? undefined : t("tabBarMore")}
+          data-pill=""
           className={moreOn ? pill : icon}
         >
           <NavGlyph name="more" className="size-[1.375rem]" />

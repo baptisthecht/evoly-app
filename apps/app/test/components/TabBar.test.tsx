@@ -61,6 +61,11 @@ describe("barre d'onglets du téléphone", () => {
       "Événements",
       "/o/club/events",
     ]);
+    // arrondi complet, même dans le thème Pro (qui redessine les autres pilules à l'arrondi de ses boutons)
+    expect([
+      current.hasAttribute("data-pill"),
+      current.className.includes("rounded-full"),
+    ]).toEqual([true, true]);
     expect(within(bar).getByRole("link", { name: "Accueil" }).textContent).toBe(
       "",
     );
