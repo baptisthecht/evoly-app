@@ -39,8 +39,9 @@ def transform_home(home):
     pc = re.findall(r'<li class="pro__card"><h3 class="h3 pro__t">(.*?)</h3><p>(.*?)</p>', seg, re.S)
     VIS = ['<span class="v4-tier"><span>Prévente</span><b>12 €</b></span><svg class="v4-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="v4-tier v4-tier--on"><span>Normal</span><b>15 €</b></span><svg class="v4-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="v4-tier"><span>Jour J</span><b>18 €</b></span>',
            '<span class="v4-sw" style="background:#1d4ed8"></span><span class="v4-sw" style="background:#ffb8e8"></span><span class="v4-sw" style="background:#222"></span><span class="v4-logo">Votre logo</span>',
-           '<span class="v4-seats">' + ''.join('<i class="on"></i>' if k in (12, 13, 14, 21, 22, 23) else '<i></i>' for k in range(36)) + '</span>']
-    HREF = ['/prix-dynamiques/', '/votre-marque/', '/plan-de-salle/']
+           '<span class="v4-seats">' + ''.join('<i class="on"></i>' if k in (12, 13, 14, 21, 22, 23) else '<i></i>' for k in range(36)) + '</span>',
+           '<span class="v4-gauge"><i style="width:52%;background:#222"></i><i style="width:20%;background:#ffb8e8"></i><i style="width:16%;background:#f3d9f0"></i><i style="width:8%;background:#fff6f0"></i></span>']
+    HREF = ['/prix-dynamiques/', '/votre-marque/', '/plan-de-salle/', '#billetteries']
     CARTES = ''.join(f'<li class="v4-reveal"><a class="v4-pc" href="{HREF[k]}"><span class="v4-pc__vis" aria-hidden="true">{VIS[k]}</span><h3 class="v4-pc__t">{t}</h3><p>{d}</p><span class="v4-pc__go" aria-hidden="true">{ARROW}</span></a></li>' for k, (t, d) in enumerate(pc))
     seg = head.replace('<section class="pro"', '<section class="pro v4-pro"', 1).replace('<h2', '<h2 data-eyebrow="Offre Pro"', 1) + '<div class="v4-pro__stage">' + draw("v4-pro__line", "0 0 1200 300", "M-10 230 C 160 300, 260 40, 470 110 S 760 290, 930 170 S 1120 30, 1210 70", 6) + f'<ul class="v4-pro__grid" role="list">{CARTES}</ul></div></section>'
     h = h[:a] + seg + h[b:]
