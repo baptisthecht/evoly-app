@@ -506,6 +506,32 @@ BODY = f'''
     </ul>
   </section>
 
+  <section class="hub" id="billetteries" aria-labelledby="hub-title">
+    <div class="hub__text">
+      <p class="hub__badge">Nouveau dans l’offre Pro</p>
+      <h2 class="h2" id="hub-title">vous vendez sur plusieurs billetteries&#160;? Evoly <span class="script">centralise</span> tout.</h2>
+      <p class="lede">Fnac, Ticketmaster, BilletReduc : tout au même endroit, de la jauge jusqu’à la porte.</p>
+      <ul class="hub__tags" role="list"><li>Une jauge</li><li>Une liste</li><li>Un scanner</li><li>Un bilan</li></ul>
+      <a class="btn" href="{REGISTER}" {EXT}>Centraliser mes billetteries</a>
+    </div>
+    <figure class="hub__card">
+      <figcaption class="hub__head"><span class="hub__event">Gala du 17 avril</span><span class="hub__tag">Exemple</span></figcaption>
+      <ul class="hub__chips" role="list">
+        <li><span class="hub__dot" style="background:var(--charbon)"></span>Evoly <b>412</b></li>
+        <li><span class="hub__dot" style="background:var(--rose)"></span>Fnac <b>120</b></li>
+        <li><span class="hub__dot" style="background:var(--lilas)"></span>Ticketmaster <b>86</b></li>
+        <li><span class="hub__dot" style="background:var(--bulle)"></span>BilletReduc <b>40</b></li>
+      </ul>
+      <div class="hub__gauge" role="img" aria-label="Une seule jauge : 700 places, 658 vendues sur quatre billetteries"><span style="width:58.9%;background:var(--charbon)"></span><span style="width:17.1%;background:var(--rose)"></span><span style="width:12.3%;background:var(--lilas)"></span><span style="width:5.7%;background:var(--bulle)"></span></div>
+      <p class="hub__label">Participants</p>
+      <ul class="hub__people" role="list">
+        <li><span class="hub__name">Léa Martin</span><span class="hub__tarif">Plein tarif, rang C</span><span class="hub__chan" style="background:var(--rose)">Fnac</span><span class="hub__time">Entrée 20:41</span></li>
+        <li><span class="hub__name">Tom Dubois</span><span class="hub__tarif">Plein tarif</span><span class="hub__chan" style="background:var(--blanc)">Evoly</span><span class="hub__time">Entrée 20:42</span></li>
+        <li><span class="hub__name">Inès Benali</span><span class="hub__tarif">Tarif réduit</span><span class="hub__chan" style="background:var(--lilas)">Ticketmaster</span><span class="hub__time">Entrée 20:42</span></li>
+      </ul>
+    </figure>
+  </section>
+
   <section class="field" id="terrain" aria-labelledby="field-title">
     <h2 class="h2" id="field-title">conçue pour le <span class="script">terrain</span>.</h2>
     <p class="lede">Les détails qui comptent le jour de l’événement, inclus dans toutes les offres, y compris l’offre gratuite.</p>
