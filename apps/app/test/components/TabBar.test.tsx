@@ -12,6 +12,19 @@ import {
 import { Fr } from "./intl";
 
 // barre d'onglets du téléphone (maquette validée : capsule flottante, variante D)
+// jsdom n'a pas PointerEvent : celui du navigateur hérite de MouseEvent (position, bouton)
+if (!("PointerEvent" in window))
+  Object.defineProperty(window, "PointerEvent", {
+    value: class extends MouseEvent {
+      pointerId: number;
+      pointerType: string;
+      constructor(type: string, init: PointerEventInit = {}) {
+        super(type, init);
+        this.pointerId = init.pointerId ?? 1;
+        this.pointerType = init.pointerType ?? "touch";
+      }
+    },
+  });
 const nav = vi.hoisted(() => ({ path: "/o/club" }));
 vi.mock("next/navigation", () => ({ usePathname: () => nav.path }));
 const tabs: TabBarTab[] = [
@@ -33,8 +46,13 @@ const more: TabBarSection[] = [
   {
     label: "Organisation",
     items: [
-      { label: "Paramètres", href: "/o/club/settings" },
-      { label: "Votre marque", href: "/o/club/brand", pro: "Pro" },
+      { label: "Paramètres", href: "/o/club/settings", icon: "gear" },
+      {
+        label: "Votre marque",
+        href: "/o/club/brand",
+        icon: "palette",
+        pro: "Pro",
+      },
     ],
   },
 ];
@@ -124,6 +142,54 @@ describe("barre d'onglets du téléphone", () => {
         .getByRole("link", { name: "Quitter l’événement Gala du 17 avril" })
         .getAttribute("href"),
     ).toBe("/o/club/events");
+  });
+});
+
+describe("feuille « Plus » : tuiles et poignée", () => {
+  it("tirée lentement : elle suit le doigt, revient sous le seuil, se ferme au-delà ; un geste rapide la ferme aussi", async () => {
+    nav.path = "/o/club";
+    render(view());
+    const user = userEvent.setup();
+    const clock = vi.spyOn(performance, "now");
+    const pull = (from: number, to: number, ms: number) => {
+      const grab = screen.getByRole("dialog").querySelector("[data-grab]")!;
+      clock.mockReturnValue(1000);
+      fireEvent.pointerDown(grab, { clientY: from, pointerId: 1, button: 0 });
+      clock.mockReturnValue(1000 + ms);
+      fireEvent.pointerMove(grab, { clientY: to, pointerId: 1 });
+      return () => fireEvent.pointerUp(grab, { clientY: to, pointerId: 1 });
+    };
+    await user.click(screen.getByRole("button", { name: "Plus" }));
+    const sheet = screen.getByRole("dialog", { name: "Autres pages" });
+    let release = pull(100, 140, 400);
+    expect(sheet.style.transform).toBe("translateY(40px)"); // la feuille suit le doigt
+    release();
+    expect(sheet.style.transform).toBe("translateY(0px)"); // petit tirage lent : elle revient
+    release = pull(100, 300, 400);
+    release();
+    expect(screen.queryByRole("dialog")).toBeNull(); // au-delà du seuil : fermée
+    await user.click(screen.getByRole("button", { name: "Plus" }));
+    release = pull(100, 160, 60);
+    release();
+    expect(screen.queryByRole("dialog")).toBeNull(); // geste rapide : fermée
+    clock.mockRestore();
+  });
+
+  it("des tuiles comme des applications : icône, nom, badge Pro ; la page affichée est marquée", async () => {
+    nav.path = "/o/club/brand";
+    render(view());
+    await userEvent.setup().click(screen.getByRole("button", { name: "Plus" }));
+    const sheet = screen.getByRole("dialog", { name: "Autres pages" });
+    const tiles = within(sheet).getAllByRole("listitem");
+    expect(tiles.map((t) => t.textContent)).toEqual([
+      "Paramètres",
+      "ProVotre marque",
+    ]);
+    const brand = within(sheet).getByRole("link", { name: /Votre marque/ });
+    expect([
+      brand.getAttribute("aria-current"),
+      brand.querySelector("svg") !== null,
+    ]).toEqual(["page", true]);
   });
 });
 

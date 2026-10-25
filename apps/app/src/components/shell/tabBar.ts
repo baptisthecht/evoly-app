@@ -15,6 +15,8 @@ export interface TabBarTab {
 export interface TabBarLink {
   label: string;
   href: string;
+  /** Icône de sa tuile, dans la feuille « Plus ». */
+  icon: NavIcon;
   pro?: string;
 }
 /** Feuille « Plus » : le reste de la navigation, par partie. */
@@ -36,6 +38,28 @@ export function activeTab(tabs: TabBarTab[], pathname: string): string | null {
 
 /** Organisation : Accueil, Événements, Commandes, Finances en onglets (selon les droits), le reste dans « Plus ». */
 export const ORG_TABS = ["home", "events", "orders", "finances"] as const;
+
+/** Icône de chaque page d'un événement, sur sa tuile de la feuille « Plus ». */
+const PAGE_ICON: Record<string, NavIcon> = {
+  tickets: "ticket",
+  seating: "chair",
+  tables: "table",
+  options: "layers",
+  eventPage: "palette",
+  launch: "rocket",
+  promo: "tag",
+  ambassadors: "star",
+  distribution: "share",
+  embed: "code",
+  orders: "receipt",
+  resale: "repeat",
+  emails: "mail",
+  entries: "door",
+  cash: "coins",
+  labels: "printer",
+  offline: "offline",
+};
+const pageIcon = (key?: string): NavIcon => (key && PAGE_ICON[key]) || "grid";
 
 /**
  * Événement : Aperçu, Billetterie, Participants, Jour J en onglets ; Vente et
@@ -59,8 +83,18 @@ export function eventTabBar(
       more.push({
         label: tab.label,
         items: tab.items.length
-          ? tab.items.map((i) => ({ label: i.label, href: i.href }))
-          : [{ label: tab.label, href: tab.href }],
+          ? tab.items.map((i) => ({
+              label: i.label,
+              href: i.href,
+              icon: pageIcon(i.key),
+            }))
+          : [
+              {
+                label: tab.label,
+                href: tab.href,
+                icon: tab.key === "settings" ? "gear" : "grid",
+              },
+            ],
       });
       continue;
     }
@@ -77,7 +111,11 @@ export function eventTabBar(
     if (rest.length)
       more.push({
         label: tab.label,
-        items: rest.map((i) => ({ label: i.label, href: i.href })),
+        items: rest.map((i) => ({
+          label: i.label,
+          href: i.href,
+          icon: pageIcon(i.key),
+        })),
       });
   }
   return { tabs: primary, more };

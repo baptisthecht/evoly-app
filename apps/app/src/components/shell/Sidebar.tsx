@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Logo } from "../Brand";
+import { useTranslations } from "next-intl";
 import { TabBarExtras } from "./TabBar";
 
 /**
@@ -28,6 +29,7 @@ export function Shell({
   tabBar?: ReactNode;
   children: ReactNode;
 }) {
+  const accountLabel = useTranslations("nav")("tabBarAccount");
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)]">
       <aside className="hidden border-r border-line bg-surface-raised px-3 py-4 text-ink lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:gap-2">
@@ -57,7 +59,19 @@ export function Shell({
         value={
           <>
             {orgSwitcher}
-            {account}
+            {/* le compte, replié : il s'ouvre d'un toucher (nom, langue, déconnexion, sécurité) */}
+            <details className="group rounded-[1rem] bg-surface-raised px-3 py-1 shadow-[inset_0_0_0_1px_var(--line)]">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-display text-sm [&::-webkit-details-marker]:hidden">
+                {accountLabel}
+                <span
+                  aria-hidden="true"
+                  className="transition-transform group-open:rotate-180"
+                >
+                  ⌄
+                </span>
+              </summary>
+              <div className="pb-2">{account}</div>
+            </details>
           </>
         }
       >

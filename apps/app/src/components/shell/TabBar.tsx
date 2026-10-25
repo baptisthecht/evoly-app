@@ -16,6 +16,16 @@ import { cn } from "../ui/cn";
 import { NavGlyph } from "./SideNav";
 import { activeTab, type TabBarSection, type TabBarTab } from "./tabBar";
 
+/** Durée de la glissade de la feuille « Plus » (ouverture et fermeture). */
+const SLIDE_MS = 260;
+/** Couleur des tuiles, une par partie de la feuille « Plus » (couleurs de la marque). */
+const TILE = [
+  "var(--evoly-rose)",
+  "var(--evoly-lilas)",
+  "var(--evoly-bulle)",
+  "var(--surface-raised)",
+];
+
 /** Sélecteur d'organisation et compte : en haut de la feuille « Plus » (fournis par la coquille). */
 export const TabBarExtras = createContext<ReactNode>(null);
 
@@ -38,23 +48,83 @@ export function TabBar({
   const t = useTranslations("nav");
   const pathname = usePathname() ?? "";
   const extras = useContext(TabBarExtras);
+  // feuille « Plus » : montée (open), glissée en place (shown), tirée vers le bas (dy, en pixels)
   const [open, setOpen] = useState(false);
+  const [shown, setShown] = useState(false);
+  const [dy, setDy] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const drag = useRef<{ y: number; t: number; dy: number } | null>(null);
   const sheetId = useId();
   const sheetRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => setOpen(false), [pathname]);
+  const still = () =>
+    typeof window === "undefined" ||
+    !window.matchMedia ||
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    setOpen(false);
+    setShown(false);
+    setDy(0);
+  }, [pathname]);
+  const show = () => {
+    setDy(0);
+    setOpen(true);
+    if (still()) setShown(true);
+    else
+      requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)));
+  };
+  const close = () => {
+    setShown(false);
+    setDragging(false);
+    drag.current = null;
+    moreRef.current?.focus();
+    if (still()) {
+      setOpen(false);
+      setDy(0);
+    } else
+      window.setTimeout(() => {
+        setOpen(false);
+        setDy(0);
+      }, SLIDE_MS);
+  };
   useEffect(() => {
     if (!open) return;
     sheetRef.current?.querySelector<HTMLElement>("a, button")?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") close();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
-  const close = () => {
-    setOpen(false);
-    moreRef.current?.focus();
+  // poignée : la feuille suit le doigt ; fermée au-delà de 120 px ou par un geste rapide, sinon elle revient
+  const grab = {
+    onPointerDown: (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (!Number.isFinite(e.clientY)) return;
+      drag.current = { y: e.clientY, t: performance.now(), dy: 0 };
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+      setDragging(true);
+    },
+    onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!drag.current || !Number.isFinite(e.clientY)) return;
+      drag.current.dy = Math.max(0, e.clientY - drag.current.y);
+      setDy(drag.current.dy);
+    },
+    onPointerUp: () => {
+      const d = drag.current;
+      drag.current = null;
+      setDragging(false);
+      if (!d) return;
+      const speed = d.dy / Math.max(1, performance.now() - d.t);
+      if (d.dy > 120 || (d.dy > 24 && speed > 0.6)) close();
+      else setDy(0);
+    },
+    onPointerCancel: () => {
+      drag.current = null;
+      setDragging(false);
+      setDy(0);
+    },
   };
   const current = activeTab(tabs, pathname);
   const moreOn = open || current === null;
@@ -112,7 +182,7 @@ export function TabBar({
         <button
           ref={moreRef}
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => (open ? close() : show())}
           aria-expanded={open}
           aria-controls={sheetId}
           aria-label={moreOn ? undefined : t("tabBarMore")}
@@ -131,6 +201,11 @@ export function TabBar({
             aria-label={t("tabBarClose")}
             onClick={close}
             className="absolute inset-0 bg-[rgba(34,34,34,0.45)]"
+            style={{
+              opacity: shown ? Math.max(0, 1 - dy / 400) : 0,
+              transition:
+                dragging || still() ? "none" : `opacity ${SLIDE_MS}ms ease-out`,
+            }}
           />
           <div
             id={sheetId}
@@ -138,50 +213,75 @@ export function TabBar({
             role="dialog"
             aria-modal="true"
             aria-label={t("tabBarMoreTitle")}
-            className="relative max-h-[85dvh] overflow-y-auto rounded-t-[1.75rem] bg-surface px-4 pt-3 text-ink"
+            className="relative max-h-[85dvh] overflow-y-auto rounded-t-[1.75rem] bg-surface px-4 text-ink"
             style={{
               paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)",
+              transform: shown ? `translateY(${dy}px)` : "translateY(100%)",
+              transition:
+                dragging || still()
+                  ? "none"
+                  : `transform ${SLIDE_MS}ms cubic-bezier(0.2, 0.8, 0.2, 1)`,
             }}
           >
-            <span
-              aria-hidden="true"
-              className="mx-auto mb-3 block h-1.5 w-10 rounded-full bg-[rgba(34,34,34,0.2)]"
-            />
-            {extras ? <div className="grid gap-2 pb-3">{extras}</div> : null}
-            {more.map((section) => (
-              <section key={section.label} className="grid pt-2">
-                <h2 className="px-1 pb-1 text-xs font-semibold text-ink-muted">
-                  {section.label}
-                </h2>
-                {section.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    aria-current={
-                      pathname.replace(/\/$/, "") === item.href
-                        ? "page"
-                        : undefined
-                    }
-                    className={cn(
-                      "flex min-h-[3.25rem] items-center justify-between gap-3 border-t border-line px-1 text-base",
-                      pathname.replace(/\/$/, "") === item.href &&
-                        "font-semibold",
-                    )}
-                  >
-                    <span>{item.label}</span>
-                    {item.pro ? (
-                      <span className="rounded-full bg-surface-accent px-2 py-0.5 text-xs font-semibold">
-                        {item.pro}
-                      </span>
-                    ) : null}
-                  </Link>
-                ))}
-              </section>
-            ))}
+            <div
+              data-grab=""
+              {...grab}
+              className="sticky top-0 z-10 -mx-4 cursor-grab touch-none bg-surface px-4 pt-3 pb-2 select-none active:cursor-grabbing"
+            >
+              <span
+                aria-hidden="true"
+                className="mx-auto block h-1.5 w-10 rounded-full bg-[rgba(34,34,34,0.25)]"
+              />
+              <p className="pt-3 text-center font-display text-base">
+                {t("tabBarMoreTitle")}
+              </p>
+            </div>
+            {extras ? <div className="grid gap-2 pb-2">{extras}</div> : null}
+            {/* une seule grille, comme un écran d'accueil : chaque partie garde sa couleur */}
+            <ul role="list" className="grid grid-cols-4 gap-x-2 gap-y-4 pt-4">
+              {more.flatMap((section, n) =>
+                section.items.map((item) => {
+                  const here = pathname.replace(/\/$/, "") === item.href;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        aria-current={here ? "page" : undefined}
+                        className="group flex flex-col items-center gap-1.5 text-center"
+                      >
+                        <span
+                          className={cn(
+                            "relative inline-flex size-[3.75rem] items-center justify-center rounded-[1.1rem] text-[var(--evoly-charbon)] shadow-[0_1px_0_rgba(34,34,34,0.08)] transition-transform group-active:scale-95",
+                            here &&
+                              "ring-2 ring-ink ring-offset-2 ring-offset-surface",
+                          )}
+                          style={{ background: TILE[n % TILE.length] }}
+                        >
+                          <NavGlyph name={item.icon} className="size-7" />
+                          {item.pro ? (
+                            <span className="absolute -top-1.5 -right-1.5 rounded-full bg-surface-inverse px-1.5 py-0.5 text-[0.625rem] font-semibold text-ink-inverse">
+                              {item.pro}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span
+                          className={cn(
+                            "line-clamp-2 text-xs leading-tight",
+                            here && "font-semibold",
+                          )}
+                        >
+                          {item.label}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                }),
+              )}
+            </ul>
             <button
               type="button"
               onClick={close}
-              className="mt-3 flex min-h-12 w-full items-center justify-center rounded-full bg-surface-inverse font-display text-sm text-ink-inverse"
+              className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-surface-inverse font-display text-sm text-ink-inverse"
             >
               {t("tabBarClose")}
             </button>

@@ -1,6 +1,8 @@
 /** Onglets d'un événement (maquette validée le 21 octobre 2026) : les six parties de l'événement, en haut de la page. */
 
 export interface EventTabItem {
+  /** Clé de la page (icône de la barre d'onglets du téléphone). */
+  key?: string;
   label: string;
   href: string;
 }
@@ -32,6 +34,7 @@ export function buildEventTabs(input: {
 }) {
   const { t, base } = input;
   const item = (key: string, path: string): EventTabItem => ({
+    key,
     label: t(key),
     href: `${base}/${path}`,
   });

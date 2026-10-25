@@ -28,7 +28,18 @@ export type NavIcon =
   | "gear"
   | "more"
   | "door"
-  | "close";
+  | "close"
+  | "tag"
+  | "code"
+  | "mail"
+  | "rocket"
+  | "chair"
+  | "table"
+  | "layers"
+  | "share"
+  | "printer"
+  | "offline"
+  | "star";
 export interface NavItem {
   label: string;
   href: string;
@@ -169,6 +180,59 @@ const ICONS: Record<NavIcon, ReactNode> = {
     </>
   ),
   close: <path d="M6 6l12 12M18 6 6 18" />,
+  // pages de la feuille « Plus » (tuiles comme des applications)
+  tag: (
+    <>
+      <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" />
+      <path d="M7.5 7.5h.01" strokeWidth={3} />
+    </>
+  ),
+  code: <path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" />,
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </>
+  ),
+  rocket: (
+    <>
+      <path d="M12 15l-3-3c1.5-4.5 4.5-8 10-9-1 5.5-4.5 8.5-9 10z" />
+      <path d="M9 12H5l2-4h4M12 15v4l4-2v-4M5.5 18.5C4 17 4 15 4 15s2 0 3.5 1.5" />
+    </>
+  ),
+  chair: (
+    <>
+      <path d="M6 10V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5" />
+      <path d="M4 10h16v4H4zM6 14v6M18 14v6" />
+    </>
+  ),
+  table: (
+    <>
+      <ellipse cx="12" cy="8" rx="9" ry="3" />
+      <path d="M12 11v9M8 20h8" />
+    </>
+  ),
+  layers: <path d="m12 3 9 5-9 5-9-5 9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5" />,
+  share: (
+    <>
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="6" r="2.5" />
+      <circle cx="18" cy="18" r="2.5" />
+      <path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6" />
+    </>
+  ),
+  printer: (
+    <>
+      <path d="M7 9V3h10v6M7 17H4v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6h-3" />
+      <path d="M7 14h10v7H7z" />
+    </>
+  ),
+  offline: (
+    <path d="M3 3l18 18M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5-2.7M14 10.3A10 10 0 0 1 19 13M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5a15 15 0 0 1 11.3 3.8M12 20h.01" />
+  ),
+  star: (
+    <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z" />
+  ),
 };
 
 export function NavGlyph({

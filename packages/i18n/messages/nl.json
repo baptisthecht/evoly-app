@@ -812,7 +812,8 @@
     "tabBarLeave": "Het evenement {name} verlaten",
     "tabBarOverview": "Overzicht",
     "tabBarOrg": "Navigatie van de organisatie",
-    "tabBarEvent": "Navigatie van het evenement"
+    "tabBarEvent": "Navigatie van het evenement",
+    "tabBarAccount": "Mijn account"
   },
   "dashboard": {
     "greeting": "hallo {name},",

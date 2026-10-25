@@ -812,7 +812,8 @@
     "tabBarLeave": "Salir del evento {name}",
     "tabBarOverview": "Resumen",
     "tabBarOrg": "Navegación de la organización",
-    "tabBarEvent": "Navegación del evento"
+    "tabBarEvent": "Navegación del evento",
+    "tabBarAccount": "Mi cuenta"
   },
   "dashboard": {
     "greeting": "hola, {name},",

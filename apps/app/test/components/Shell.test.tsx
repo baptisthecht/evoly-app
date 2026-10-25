@@ -29,7 +29,9 @@ const view = () => (
           more={[
             {
               label: "Organisation",
-              items: [{ label: "Paramètres", href: "/o/club/settings" }],
+              items: [
+                { label: "Paramètres", href: "/o/club/settings", icon: "gear" },
+              ],
             },
           ]}
         />

@@ -90,7 +90,8 @@
     "tabBarLeave": "Leave the event {name}",
     "tabBarOverview": "Overview",
     "tabBarOrg": "Organisation navigation",
-    "tabBarEvent": "Event navigation"
+    "tabBarEvent": "Event navigation",
+    "tabBarAccount": "My account"
   },
   "auth": {
     "loginTitle": "Log in",

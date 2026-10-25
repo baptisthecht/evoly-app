@@ -39,6 +39,7 @@ export async function OrgTabBar({ orgSlug }: { orgSlug: string }) {
         .map((i) => ({
           label: t(i.key),
           href: `${base}${i.href}`,
+          icon: i.icon,
           pro:
             i.feature && !hasFeature(ctx.features, i.feature)
               ? tp("pro")
