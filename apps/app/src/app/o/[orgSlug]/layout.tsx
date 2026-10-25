@@ -15,11 +15,13 @@ import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 export default async function OrgLayout({
   children,
   sidebar,
+  tabbar,
   header,
   params,
 }: {
   children: ReactNode;
   sidebar: ReactNode;
+  tabbar: ReactNode;
   header: ReactNode;
   params: Promise<{ orgSlug: string }>;
 }) {
@@ -102,6 +104,7 @@ export default async function OrgLayout({
         />
       }
       header={header}
+      tabBar={tabbar}
       account={
         <>
           <AccountMenu name={ctx.user.name} email={ctx.user.email} />

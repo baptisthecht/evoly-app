@@ -805,7 +805,14 @@
     "planFree": "Free-abonnement",
     "planPro": "Pro-abonnement",
     "planProUntil": "Gratis Pro tot {date}",
-    "distribution": "Verkoopnetwerken"
+    "distribution": "Verkoopnetwerken",
+    "tabBarMore": "Meer",
+    "tabBarMoreTitle": "Andere pagina’s",
+    "tabBarClose": "Sluiten",
+    "tabBarLeave": "Het evenement {name} verlaten",
+    "tabBarOverview": "Overzicht",
+    "tabBarOrg": "Navigatie van de organisatie",
+    "tabBarEvent": "Navigatie van het evenement"
   },
   "dashboard": {
     "greeting": "hallo {name},",

@@ -83,7 +83,14 @@
     "planFree": "Offre Free",
     "planPro": "Offre Pro",
     "planProUntil": "Pro offert jusqu’au {date}",
-    "distribution": "Réseaux de vente"
+    "distribution": "Réseaux de vente",
+    "tabBarMore": "Plus",
+    "tabBarMoreTitle": "Autres pages",
+    "tabBarClose": "Fermer",
+    "tabBarLeave": "Quitter l’événement {name}",
+    "tabBarOverview": "Aperçu",
+    "tabBarOrg": "Navigation de l’organisation",
+    "tabBarEvent": "Navigation de l’événement"
   },
   "auth": {
     "loginTitle": "Connexion",

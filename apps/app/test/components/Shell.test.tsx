@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { Shell } from "@/components/shell/Sidebar";
+import { TabBar } from "@/components/shell/TabBar";
 import { Fr } from "./intl";
 
 const nav = vi.hoisted(() => ({ path: "/o/club" }));
@@ -13,6 +14,26 @@ const view = () => (
       orgSwitcher={<p>organisation</p>}
       account={<p>compte</p>}
       bell={<a href="/notifications">cloche</a>}
+      tabBar={
+        <TabBar
+          label="Navigation de l’organisation"
+          tabs={[
+            {
+              key: "home",
+              label: "Accueil",
+              href: "/o/club",
+              icon: "home",
+              exact: true,
+            },
+          ]}
+          more={[
+            {
+              label: "Organisation",
+              items: [{ label: "Paramètres", href: "/o/club/settings" }],
+            },
+          ]}
+        />
+      }
     >
       <p>contenu de la page</p>
     </Shell>
@@ -20,30 +41,16 @@ const view = () => (
 );
 
 describe("coquille de l'espace organisateur", () => {
-  it("téléphone : le menu s'ouvre et se referme, avec son état annoncé", async () => {
+  it("téléphone : plus de bouton « Menu » ; la barre d'onglets, avec l'organisation et le compte dans « Plus »", async () => {
     render(view());
-    const user = userEvent.setup();
-    const button = screen.getByRole("button", { name: "Menu" });
-    expect(button.getAttribute("aria-expanded")).toBe("false");
-    expect(document.getElementById("mobile-nav")).toBeNull();
-    await user.click(button);
-    expect(document.getElementById("mobile-nav")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Menu" })).toBeNull();
     expect(
-      screen
-        .getByRole("button", { name: "Fermer" })
-        .getAttribute("aria-expanded"),
-    ).toBe("true");
-    await user.click(screen.getByRole("button", { name: "Fermer" }));
-    expect(document.getElementById("mobile-nav")).toBeNull();
+      screen.getByRole("navigation", { name: "Navigation de l’organisation" }),
+    ).toBeTruthy();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Plus" }));
+    const sheet = screen.getByRole("dialog", { name: "Autres pages" });
+    expect(within(sheet).getByText("organisation")).toBeTruthy();
+    expect(within(sheet).getByText("compte")).toBeTruthy();
     expect(screen.getByText("contenu de la page")).toBeTruthy();
-  });
-
-  it("le menu se referme tout seul quand on change de page", async () => {
-    const r = render(view());
-    await userEvent.setup().click(screen.getByRole("button", { name: "Menu" }));
-    expect(document.getElementById("mobile-nav")).not.toBeNull();
-    nav.path = "/o/club/events";
-    r.rerender(view());
-    expect(document.getElementById("mobile-nav")).toBeNull();
   });
 });

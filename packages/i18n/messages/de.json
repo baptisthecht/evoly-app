@@ -805,7 +805,14 @@
     "planFree": "Free-Tarif",
     "planPro": "Pro-Tarif",
     "planProUntil": "Pro geschenkt bis {date}",
-    "distribution": "Vertriebsnetze"
+    "distribution": "Vertriebsnetze",
+    "tabBarMore": "Mehr",
+    "tabBarMoreTitle": "Weitere Seiten",
+    "tabBarClose": "Schließen",
+    "tabBarLeave": "Die Veranstaltung {name} verlassen",
+    "tabBarOverview": "Überblick",
+    "tabBarOrg": "Navigation der Organisation",
+    "tabBarEvent": "Navigation der Veranstaltung"
   },
   "dashboard": {
     "greeting": "hallo {name},",

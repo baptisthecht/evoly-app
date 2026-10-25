@@ -103,21 +103,29 @@ test("mot de passe oublié : même réponse, lien à usage unique", async ({
   await expect(page.getByText("n’est plus valable")).toBeVisible();
 });
 
-test("menu du tableau de bord sur téléphone", async ({ page, isMobile }) => {
+test("barre d'onglets du tableau de bord sur téléphone", async ({
+  page,
+  isMobile,
+}) => {
   test.skip(!isMobile, "vérification propre au téléphone");
   const id = run();
   const slug = `mobile-${id}`;
   await signUpAndVerify(page, `orga${id}@exemple.be`, "Motdepasse-2026!");
   await createOrganization(page, `Mobile ${id}`, slug);
   await page.goto(`/o/${slug}`);
-  await page.getByRole("button", { name: "Menu" }).click();
+  // barre d'onglets du téléphone : les onglets, puis « Plus » pour le reste
   await expect(
-    page.locator("#mobile-nav").getByRole("link", { name: "Événements" }),
+    page
+      .getByRole("navigation", { name: "Navigation de l’organisation" })
+      .getByRole("link", { name: "Événements" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Plus" }).click();
   await page
-    .locator("#mobile-nav")
+    .getByRole("dialog", { name: "Autres pages" })
     .getByRole("link", { name: "Paramètres" })
     .click();
   await page.waitForURL(`/o/${slug}/settings`);
-  await expect(page.locator("#mobile-nav")).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Autres pages" })).toHaveCount(
+    0,
+  );
 });

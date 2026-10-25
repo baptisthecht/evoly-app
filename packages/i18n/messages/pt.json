@@ -805,7 +805,14 @@
     "planFree": "Plano Free",
     "planPro": "Plano Pro",
     "planProUntil": "Pro grátis até {date}",
-    "distribution": "Redes de venda"
+    "distribution": "Redes de venda",
+    "tabBarMore": "Mais",
+    "tabBarMoreTitle": "Outras páginas",
+    "tabBarClose": "Fechar",
+    "tabBarLeave": "Sair do evento {name}",
+    "tabBarOverview": "Resumo",
+    "tabBarOrg": "Navegação da organização",
+    "tabBarEvent": "Navegação do evento"
   },
   "dashboard": {
     "greeting": "olá {name},",

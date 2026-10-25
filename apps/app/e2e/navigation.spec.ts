@@ -93,22 +93,28 @@ test("événement : la barre de l'organisation reste, six parties en onglets, to
   ).toHaveCount(0);
 });
 
-test("téléphone : la navigation de l'organisation est dans le menu ; dans un événement, ses parties en onglets en haut", async ({
+test("téléphone : la barre d'onglets de l'organisation ; dans un événement, la sienne et ses parties en haut", async ({
   page,
 }, testInfo) => {
   test.skip(
     testInfo.project.name !== "mobile",
-    "le menu remplace la barre latérale sur téléphone",
+    "la barre d'onglets remplace la barre latérale sur téléphone",
   );
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Soirée ${id}`, 10);
   await page.goto(appUrl(`/o/${slug}`));
-  await page.getByRole("button", { name: "Menu" }).click();
+  // barre d'onglets du téléphone : les onglets de l'organisation, puis ceux de l'événement
   await expect(
     page
-      .getByRole("navigation", { name: "Navigation principale" })
+      .getByRole("navigation", { name: "Navigation de l’organisation" })
       .getByRole("link", { name: "Finances" }),
   ).toBeVisible();
+  await page.goto(eventUrl);
+  await page
+    .getByRole("navigation", { name: "Navigation de l’événement" })
+    .getByRole("link", { name: "Participants" })
+    .click();
+  await expect(page).toHaveURL(/\/orders$/);
   await page.goto(eventUrl);
   const tabs = page.getByRole("navigation", {
     name: "Sections de l’événement",

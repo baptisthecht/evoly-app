@@ -83,7 +83,14 @@
     "planFree": "Free plan",
     "planPro": "Pro plan",
     "planProUntil": "Free Pro until {date}",
-    "distribution": "Ticket networks"
+    "distribution": "Ticket networks",
+    "tabBarMore": "More",
+    "tabBarMoreTitle": "Other pages",
+    "tabBarClose": "Close",
+    "tabBarLeave": "Leave the event {name}",
+    "tabBarOverview": "Overview",
+    "tabBarOrg": "Organisation navigation",
+    "tabBarEvent": "Event navigation"
   },
   "auth": {
     "loginTitle": "Log in",

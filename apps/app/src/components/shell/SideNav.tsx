@@ -25,7 +25,10 @@ export type NavIcon =
   | "send"
   | "palette"
   | "card"
-  | "gear";
+  | "gear"
+  | "more"
+  | "door"
+  | "close";
 export interface NavItem {
   label: string;
   href: string;
@@ -157,6 +160,15 @@ const ICONS: Record<NavIcon, ReactNode> = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  // barre d'onglets du téléphone : « Plus », Jour J (la porte, pas le scanner), quitter un événement
+  more: <path d="M5 12h.01M12 12h.01M19 12h.01" strokeWidth={3} />,
+  door: (
+    <>
+      <path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M3 21h18" />
+      <path d="M14 12h.01" strokeWidth={3} />
+    </>
+  ),
+  close: <path d="M6 6l12 12M18 6 6 18" />,
 };
 
 export function NavGlyph({

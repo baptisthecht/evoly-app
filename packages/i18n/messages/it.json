@@ -805,7 +805,14 @@
     "planFree": "Piano Free",
     "planPro": "Piano Pro",
     "planProUntil": "Pro in regalo fino al {date}",
-    "distribution": "Reti di vendita"
+    "distribution": "Reti di vendita",
+    "tabBarMore": "Altro",
+    "tabBarMoreTitle": "Altre pagine",
+    "tabBarClose": "Chiudi",
+    "tabBarLeave": "Esci dall’evento {name}",
+    "tabBarOverview": "Panoramica",
+    "tabBarOrg": "Navigazione dell’organizzazione",
+    "tabBarEvent": "Navigazione dell’evento"
   },
   "dashboard": {
     "greeting": "ciao {name},",
