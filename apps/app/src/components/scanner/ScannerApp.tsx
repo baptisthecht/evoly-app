@@ -3,6 +3,11 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CameraScanner } from "./CameraScanner";
+import {
+  createFieldReader,
+  createKeyReader,
+  type ReaderRead,
+} from "./readerCapture";
 import { SellPanel } from "./SellPanel";
 import { AlertIcon, CheckIcon, CrossIcon } from "@/components/ui/icons";
 
@@ -543,8 +548,9 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
     | null
   >(null);
   useEffect(() => {
-    let buffer = "";
-    let last = 0;
+    const reader = createKeyReader(
+      (read) => void scanRef.current?.({ code: read.code, method: "QR" }),
+    );
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
       if (
@@ -555,20 +561,59 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
           el.isContentEditable)
       )
         return;
-      const now = Date.now();
-      if (now - last > 80) buffer = ""; // frappe humaine : rien n'est retenu
-      last = now;
-      if (e.key === "Enter") {
-        if (buffer.length >= 4 && scanRef.current) {
-          e.preventDefault();
-          void scanRef.current({ code: buffer, method: "QR" });
-        }
-        buffer = "";
-      } else if (e.key.length === 1) buffer += e.key;
+      if (reader.key(e.key)) e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      reader.dispose();
+    };
   }, []);
+  // mode lecteur (Zebra, Honeywell, douchette) : caméra éteinte, champ de lecture invisible toujours prêt
+  const [reader, setReader] = useState(false);
+  const [readerTest, setReaderTest] = useState(false);
+  const [lastRead, setLastRead] = useState<ReaderRead | null>(null);
+  const readerField = useRef<HTMLInputElement>(null);
+  const fieldReader = useRef<ReturnType<typeof createFieldReader> | null>(null);
+  const readerTestRef = useRef(false);
+  readerTestRef.current = readerTest;
+  const readerOn = useRef(false);
+  readerOn.current = reader;
+  useEffect(() => {
+    try {
+      setReader(localStorage.getItem("evoly-scan:reader") === "1");
+    } catch {
+      /* stockage indisponible : caméra */
+    }
+  }, []);
+  const setReaderMode = (on: boolean) => {
+    setReader(on);
+    setReaderTest(false);
+    setLastRead(null);
+    try {
+      localStorage.setItem("evoly-scan:reader", on ? "1" : "0");
+    } catch {
+      /* choix non mémorisé */
+    }
+  };
+  useEffect(() => {
+    if (!reader) return;
+    const r = createFieldReader(
+      (read) => {
+        if (readerTestRef.current) setLastRead(read);
+        else void scanRef.current?.({ code: read.code, method: "QR" });
+      },
+      () => {
+        if (readerField.current) readerField.current.value = "";
+      },
+    );
+    fieldReader.current = r;
+    readerField.current?.focus();
+    return () => {
+      r.dispose();
+      fieldReader.current = null;
+    };
+  }, [reader]);
   const scan = async (input: {
     code?: string;
     shortCode?: string;
@@ -849,10 +894,104 @@ export function ScannerApp({ token, gone }: { token: string; gone?: Dead }) {
       ) : null}
       {tab === "sell" ? null : tab === "scan" ? (
         <section className="grid gap-4 px-4 pt-2">
-          <CameraScanner
-            paused={!!feedback}
-            onCode={(value) => scan({ code: value, method: "QR" })}
-          />
+          <div
+            role="group"
+            aria-label={t("readerSwitch")}
+            className="flex gap-1 self-start rounded-full bg-[var(--evoly-creme)]/10 p-1 text-sm font-semibold"
+          >
+            <button
+              type="button"
+              aria-pressed={!reader}
+              onClick={() => setReaderMode(false)}
+              className={`rounded-full px-3 py-1.5 ${reader ? "" : "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]"}`}
+            >
+              {t("readerCamera")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={reader}
+              onClick={() => setReaderMode(true)}
+              className={`rounded-full px-3 py-1.5 ${reader ? "bg-[var(--evoly-creme)] text-[var(--evoly-charbon)]" : ""}`}
+            >
+              {t("readerMode")}
+            </button>
+          </div>
+          {reader ? (
+            <div className="grid gap-3 rounded-[1.75rem] bg-[var(--evoly-creme)]/10 p-5">
+              <p className="font-display text-xl">
+                {readerTest ? t("readerTestHint") : t("readerReady")}
+              </p>
+              <input
+                ref={readerField}
+                data-reader=""
+                aria-label={t("readerField")}
+                inputMode="none"
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                className="sr-only"
+                onInput={(e) =>
+                  fieldReader.current?.input(
+                    (e.target as HTMLInputElement).value,
+                  )
+                }
+                onKeyDown={(e) => {
+                  if (fieldReader.current?.key(e.key)) e.preventDefault();
+                }}
+                onBlur={() =>
+                  window.setTimeout(() => {
+                    const a = document.activeElement;
+                    if (readerOn.current && (!a || a === document.body))
+                      readerField.current?.focus();
+                  }, 300)
+                }
+              />
+              {readerTest && lastRead ? (
+                <p
+                  role="status"
+                  className="grid gap-1 rounded-2xl bg-[var(--evoly-creme)] p-3 text-[var(--evoly-charbon)]"
+                >
+                  <span className="font-mono text-lg break-all">
+                    {t("readerTestResult", { code: lastRead.code })}
+                  </span>
+                  <span className="text-sm">
+                    {t("readerTestHow", {
+                      how: t(`readerHow_${lastRead.how}`),
+                      end: t(`readerEnd_${lastRead.end}`),
+                      ms: lastRead.ms,
+                    })}
+                  </span>
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  setReaderTest((v) => !v);
+                  setLastRead(null);
+                  readerField.current?.focus();
+                }}
+                className="justify-self-start rounded-full bg-[var(--evoly-rose)] px-4 py-2 text-sm font-semibold text-[var(--evoly-charbon)]"
+              >
+                {readerTest ? t("readerTestEnd") : t("readerTest")}
+              </button>
+              <details className="text-sm">
+                <summary className="cursor-pointer font-semibold">
+                  {t("readerGuide")}
+                </summary>
+                <ul className="mt-2 grid list-disc gap-1.5 pl-5 opacity-90">
+                  <li>{t("readerGuideZebra")}</li>
+                  <li>{t("readerGuideHoneywell")}</li>
+                  <li>{t("readerGuideOther")}</li>
+                  <li>{t("readerGuideTest")}</li>
+                </ul>
+              </details>
+            </div>
+          ) : (
+            <CameraScanner
+              paused={!!feedback}
+              onCode={(value) => scan({ code: value, method: "QR" })}
+            />
+          )}
           <form
             className="grid grid-cols-[minmax(0,1fr)_auto] gap-2"
             onSubmit={(e) => {
