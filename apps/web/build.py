@@ -498,22 +498,21 @@ BODY = f'''
 
   <section class="pro" id="pro" aria-labelledby="pro-title">
     <h2 class="h2" id="pro-title">allez plus loin avec <span class="script">Pro</span>.</h2>
-    <p class="lede">Quatre outils de l’offre Pro, à essayer gratuitement pendant 14 jours.</p>
+    <p class="lede">Trois outils de l’offre Pro, à essayer gratuitement pendant 14 jours.</p>
     <ul class="pro__grid" role="list">
       <li class="pro__card"><h3 class="h3 pro__t">Prix dynamiques</h3><p>Prévente, tarif normal, puis tarif du jour J : le prix de vos billets évolue automatiquement selon la date d’achat ou le nombre de places vendues.</p></li>
       <li class="pro__card"><h3 class="h3 pro__t">Votre marque, partout.</h3><p>Une billetterie à vos couleurs et des e-mails envoyés automatiquement : vos participants gardent le lien avec vous et reviennent à vos prochains événements.</p></li>
       <li class="pro__card"><h3 class="h3 pro__t">Plan de salle</h3><p>Théâtre, gala ou stade : dessinez votre salle en quelques minutes. Les meilleures places disponibles sont attribuées automatiquement, et vos participants peuvent choisir les leurs sur le plan.</p><a class="btn btn--pink pro__cta" href="/plan-de-salle/">Découvrir le plan de salle</a></li>
-      <li class="pro__card"><h3 class="h3 pro__t">Vos autres billetteries</h3><p>Fnac, Ticketmaster, BilletReduc : confiez-leur des places, importez leurs billets et faites entrer tout le monde avec le même scanner.</p></li>
     </ul>
   </section>
 
   <section class="hub" id="billetteries" aria-labelledby="hub-title">
     <div class="hub__text">
-      <p class="hub__badge">Nouveau dans l’offre Pro</p>
+      <p class="hub__badge">Inclus dans l’offre Pro</p>
       <h2 class="h2" id="hub-title">vous vendez sur plusieurs billetteries&#160;? Evoly <span class="script">centralise</span> tout.</h2>
       <p class="lede">Fnac, Ticketmaster, BilletReduc : tout au même endroit, de la jauge jusqu’à la porte.</p>
       <ul class="hub__tags" role="list"><li>Une jauge</li><li>Une liste</li><li>Un scanner</li><li>Un bilan</li></ul>
-      <a class="btn" href="{REGISTER}" {EXT}>Centraliser mes billetteries</a>
+      <a class="btn btn--auto" href="{REGISTER}" {EXT}>Centraliser mes billetteries</a>
     </div>
     <figure class="hub__card">
       <figcaption class="hub__head"><span class="hub__event">Gala du 17 avril</span><span class="hub__tag">Exemple</span></figcaption>
