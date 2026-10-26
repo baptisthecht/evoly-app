@@ -1092,7 +1092,9 @@
     "IMPORT_MAPPING_NO_KEY": "Choisissez la colonne du code-barres ou celle du numéro de réservation.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "Pour ajouter ces acheteurs à vos contacts, choisissez la colonne de consentement ou cochez l’attestation.",
     "IMPORT_ALREADY_DELETED": "Cet import a déjà été supprimé.",
-    "FEATURED_EVENT_INVALID": "Choisissez un événement public à venir."
+    "FEATURED_EVENT_INVALID": "Choisissez un événement public à venir.",
+    "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe n’a pas encore terminé l’activation d’Evoly : réessayez dans quelques heures.",
+    "STRIPE_UNAVAILABLE": "Stripe n’a pas pu ouvrir la connexion pour le moment : réessayez dans quelques minutes."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",

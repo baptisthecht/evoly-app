@@ -117,7 +117,7 @@ export function RepliesImport({ labels }: { labels: Record<string, string> }) {
                     <td className="p-2 tabular-nums">{r.line}</td>
                     <td className="p-2">
                       <span className="font-semibold">
-                        {r.organisation ?? "—"}
+                        {r.organisation ?? "Prospect inconnu"}
                       </span>
                       <br />
                       <span className="text-ink-muted">{r.email}</span>

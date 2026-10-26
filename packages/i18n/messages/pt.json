@@ -1243,7 +1243,9 @@
     "IMPORT_MAPPING_NO_KEY": "Escolha a coluna do código de barras ou a do número de reserva.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "Para adicionar estes compradores aos seus contactos, escolha a coluna de consentimento ou marque a declaração.",
     "IMPORT_ALREADY_DELETED": "Esta importação já foi eliminada.",
-    "FEATURED_EVENT_INVALID": "Escolha um evento público próximo."
+    "FEATURED_EVENT_INVALID": "Escolha um evento público próximo.",
+    "STRIPE_PLATFORM_NOT_ACTIVATED": "A Stripe ainda não concluiu a ativação da Evoly: tente novamente daqui a algumas horas.",
+    "STRIPE_UNAVAILABLE": "A Stripe não conseguiu abrir a ligação de momento: tente novamente daqui a alguns minutos."
   },
   "eventSettings": {
     "unsaved": "Alterações em curso…",

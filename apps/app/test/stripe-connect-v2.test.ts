@@ -7,16 +7,16 @@ const calls: { create: unknown[]; linkV2: unknown[]; linkV1: unknown[] } = {
   linkV1: [],
 };
 let failV2Link = false;
+let failCreate: unknown = null;
 const fake = {
   v2: {
     core: {
       accounts: {
-        create: vi.fn(
-          async (p: unknown) => (
-            calls.create.push(p),
-            { id: `acct_v2_${RUN}_${calls.create.length}` }
-          ),
-        ),
+        create: vi.fn(async (p: unknown) => {
+          if (failCreate) throw failCreate;
+          calls.create.push(p);
+          return { id: `acct_v2_${RUN}_${calls.create.length}` };
+        }),
       },
       accountLinks: {
         create: vi.fn(async (p: unknown) => {
@@ -131,5 +131,84 @@ describe("inscription Stripe des organisateurs avec Accounts v2", () => {
       account: `acct_v2_${RUN}_1`,
       type: "account_onboarding",
     });
+  });
+});
+
+describe("inscription Stripe : refus de Stripe expliqués", () => {
+  const ctxOf = async () => {
+    const id = Math.random().toString(36).slice(2, 10);
+    const org = await db.organization.create({
+      data: {
+        name: `Cabaret ${id}`,
+        slug: `cab-${id}`,
+        subdomain: `cab-${id}`,
+        country: "BE",
+        currency: "EUR",
+        timezone: "Europe/Brussels",
+        locale: "fr",
+      },
+    });
+    const user = await db.user.create({
+      data: {
+        name: "Camille",
+        email: `own.${id}@exemple.be`,
+        emailVerified: true,
+      },
+    });
+    return {
+      org,
+      ctx: {
+        organization: {
+          id: org.id,
+          slug: org.slug,
+          name: org.name,
+          country: "BE",
+          currency: "EUR",
+          locale: "fr",
+          contactEmail: null,
+        },
+        user: { id: user.id, email: user.email },
+      } as unknown as Ctx,
+    };
+  };
+
+  it("plateforme pas encore activée par Stripe : message dédié, rien d'enregistré ; autre refus : message général", async () => {
+    const { org, ctx } = await ctxOf();
+    const error = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    failCreate = {
+      type: "StripeInvalidRequestError",
+      code: "account_create_activation_required",
+      requestId: "req_test",
+      message: "Activate your account",
+    };
+    await expect(stripeOnboardingUrl(ctx)).rejects.toMatchObject({
+      code: "STRIPE_PLATFORM_NOT_ACTIVATED",
+    });
+    expect(
+      await db.stripeAccount.count({ where: { organizationId: org.id } }),
+    ).toBe(0);
+    expect(error.mock.calls[0]![1]).toMatchObject({
+      code: "account_create_activation_required",
+      requestId: "req_test",
+    });
+    failCreate = {
+      type: "StripeAPIError",
+      code: undefined,
+      message: "An unknown error occurred",
+    };
+    await expect(stripeOnboardingUrl(ctx)).rejects.toMatchObject({
+      code: "STRIPE_UNAVAILABLE",
+    });
+    failCreate = null;
+    error.mockRestore();
+  });
+
+  it("erreur qui ne vient pas de Stripe : jamais masquée", async () => {
+    const { ctx } = await ctxOf();
+    failCreate = new TypeError("panne inattendue");
+    await expect(stripeOnboardingUrl(ctx)).rejects.toThrow("panne inattendue");
+    failCreate = null;
   });
 });

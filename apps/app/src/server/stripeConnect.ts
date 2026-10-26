@@ -54,6 +54,40 @@ async function syncStripeAccountRecord(account: Stripe.Account): Promise<void> {
  * Démarre ou reprend l'onboarding Stripe de l'organisation (RG-PAY-01) :
  * compte où Stripe facture ses frais à l'organisateur, tableau de bord Stripe complet (créé avec Accounts v2).
  */
+/**
+ * Refus de Stripe à l'inscription d'un organisateur : un message clair plutôt
+ * qu'une page d'erreur ; le détail (code, requête) reste dans le journal.
+ * Une erreur qui ne vient pas de Stripe reste une vraie erreur.
+ */
+function stripeFailure(err: unknown): never {
+  const e = err as {
+    type?: unknown;
+    code?: unknown;
+    requestId?: unknown;
+    message?: unknown;
+  } | null;
+  if (
+    e &&
+    typeof e === "object" &&
+    typeof e.type === "string" &&
+    e.type.startsWith("Stripe")
+  ) {
+    console.error("inscription Stripe refusée", {
+      type: e.type,
+      code: e.code,
+      requestId: e.requestId,
+      message:
+        typeof e.message === "string" ? e.message.slice(0, 300) : undefined,
+    });
+    throw new CoreError(
+      e.code === "account_create_activation_required"
+        ? "STRIPE_PLATFORM_NOT_ACTIVATED"
+        : "STRIPE_UNAVAILABLE",
+    );
+  }
+  throw err;
+}
+
 export async function stripeOnboardingUrl(ctx: OrgContext): Promise<string> {
   const s = stripe();
   if (!s) throw new CoreError("STRIPE_NOT_CONFIGURED");
@@ -66,29 +100,31 @@ export async function stripeOnboardingUrl(ctx: OrgContext): Promise<string> {
     // Mêmes choix qu'avant : tableau de bord Stripe complet, frais facturés et pertes assumées par Stripe.
     // C'est le même compte logique qu'en v1 : statut (accounts.retrieve), paiements, remboursements et
     // webhooks v1 (account.updated, envoyé aussi pour les comptes v2) restent inchangés.
-    const account = await s.v2.core.accounts.create({
-      contact_email: ctx.organization.contactEmail ?? ctx.user.email,
-      display_name: ctx.organization.name,
-      dashboard: "full",
-      identity: { country: ctx.organization.country.toLowerCase() },
-      defaults: {
-        currency: ctx.organization.currency.toLowerCase(),
-        locales: [baseLocale(ctx.organization.locale)],
-        responsibilities: {
-          fees_collector: "stripe",
-          losses_collector: "stripe",
-        },
-      },
-      configuration: {
-        merchant: {
-          capabilities: {
-            card_payments: { requested: true },
-            bancontact_payments: { requested: true },
+    const account = await s.v2.core.accounts
+      .create({
+        contact_email: ctx.organization.contactEmail ?? ctx.user.email,
+        display_name: ctx.organization.name,
+        dashboard: "full",
+        identity: { country: ctx.organization.country.toLowerCase() },
+        defaults: {
+          currency: ctx.organization.currency.toLowerCase(),
+          locales: [baseLocale(ctx.organization.locale)],
+          responsibilities: {
+            fees_collector: "stripe",
+            losses_collector: "stripe",
           },
         },
-      },
-      metadata: { organizationId: ctx.organization.id },
-    });
+        configuration: {
+          merchant: {
+            capabilities: {
+              card_payments: { requested: true },
+              bancontact_payments: { requested: true },
+            },
+          },
+        },
+        metadata: { organizationId: ctx.organization.id },
+      })
+      .catch(stripeFailure);
     accountId = account.id;
     await db.stripeAccount.create({
       data: {
@@ -128,12 +164,14 @@ export async function stripeOnboardingUrl(ctx: OrgContext): Promise<string> {
       "lien d'inscription v2 indisponible, repli v1",
       err instanceof Error ? err.message.slice(0, 200) : "",
     );
-    const link = await s.accountLinks.create({
-      account: accountId,
-      refresh_url: `${base}?stripe=refresh`,
-      return_url: `${base}?stripe=return`,
-      type: "account_onboarding",
-    });
+    const link = await s.accountLinks
+      .create({
+        account: accountId,
+        refresh_url: `${base}?stripe=refresh`,
+        return_url: `${base}?stripe=return`,
+        type: "account_onboarding",
+      })
+      .catch(stripeFailure);
     return link.url;
   }
 }

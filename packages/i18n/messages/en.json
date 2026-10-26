@@ -1092,7 +1092,9 @@
     "IMPORT_MAPPING_NO_KEY": "Choose the barcode column or the booking number column.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "To add these buyers to your contacts, choose the consent column or tick the declaration.",
     "IMPORT_ALREADY_DELETED": "This import has already been deleted.",
-    "FEATURED_EVENT_INVALID": "Choose an upcoming public event."
+    "FEATURED_EVENT_INVALID": "Choose an upcoming public event.",
+    "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe has not finished activating Evoly yet: please try again in a few hours.",
+    "STRIPE_UNAVAILABLE": "Stripe could not open the connection right now: please try again in a few minutes."
   },
   "validation": {
     "required": "This field is required.",

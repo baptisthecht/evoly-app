@@ -1243,7 +1243,9 @@
     "IMPORT_MAPPING_NO_KEY": "Kies de kolom van de barcode of die van het reservatienummer.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "Kies de toestemmingskolom of vink de verklaring aan om deze kopers aan je contacten toe te voegen.",
     "IMPORT_ALREADY_DELETED": "Deze import is al verwijderd.",
-    "FEATURED_EVENT_INVALID": "Kies een komend openbaar evenement."
+    "FEATURED_EVENT_INVALID": "Kies een komend openbaar evenement.",
+    "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe heeft de activering van Evoly nog niet afgerond: probeer het over een paar uur opnieuw.",
+    "STRIPE_UNAVAILABLE": "Stripe kon de verbinding nu niet openen: probeer het over een paar minuten opnieuw."
   },
   "eventSettings": {
     "unsaved": "Wijzigingen bezig…",
