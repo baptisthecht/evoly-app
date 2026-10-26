@@ -27,6 +27,9 @@ const VISIBLE_STATUSES = [
 const ORG_SELECT = {
   id: true,
   name: true,
+  description: true,
+  featuredMode: true,
+  featuredEventId: true,
   slug: true,
   subdomain: true,
   locale: true,
@@ -318,7 +321,58 @@ async function loadPublicEventUncached(
     prepublished: isPrepublished(event, now),
     soldOut:
       ticketTypes.length > 0 && ticketTypes.every((t) => t.remaining <= 0),
+    /** Places restant dans la jauge de l'événement (null : pas de jauge globale). */
+    stockLeft:
+      event.capacity == null
+        ? null
+        : Math.max(
+            0,
+            event.capacity -
+              eventStock.soldTotal -
+              eventStock.heldTotal -
+              eventStock.allocatedTotal,
+          ),
   };
+}
+
+/** Au-delà : des places en quantité illimitée, jamais annoncées comme « restantes ». */
+const UNLIMITED = 1_000_000;
+
+/**
+ * Vitrine de l'organisateur : prix « dès » et places restantes de chaque
+ * événement, d'après la règle de sa page (loadPublicEvent), jamais une autre ;
+ * limité aux premiers événements pour rester rapide.
+ */
+export async function publicEventCards(events: { id: string }[], limit = 12) {
+  const cards = new Map<
+    string,
+    {
+      fromPriceMinor: number | null;
+      remaining: number | null;
+      soldOut: boolean;
+      currency: string;
+    }
+  >();
+  for (const e of events.slice(0, limit)) {
+    const data = await loadPublicEvent({ id: e.id });
+    if (!data) continue;
+    const open = data.ticketTypes.filter((t) => t.remaining > 0);
+    const prices = (open.length ? open : data.ticketTypes).map(
+      (t) => t.priceMinor,
+    );
+    const sum = data.ticketTypes.reduce(
+      (n, t) => n + Math.max(0, Math.min(t.remaining, UNLIMITED)),
+      0,
+    );
+    const left = data.stockLeft == null ? sum : Math.min(sum, data.stockLeft);
+    cards.set(e.id, {
+      fromPriceMinor: prices.length ? Math.min(...prices) : null,
+      remaining: left >= UNLIMITED ? null : left,
+      soldOut: data.soldOut,
+      currency: data.event.currency,
+    });
+  }
+  return cards;
 }
 
 export type PublicEventData = NonNullable<
@@ -364,4 +418,29 @@ export async function listPublicEvents(organizationId: string) {
       .filter((e) => e.startsAt < now || e.status === "ENDED")
       .reverse(),
   };
+}
+
+/**
+ * Vitrine : événement mis en avant d'après le réglage de l'organisation. Aucun :
+ * tout est dans « À l'affiche » ; le prochain : la première date ; un choisi :
+ * lui s'il est encore à venir et public, sinon le prochain (fallback : à signaler).
+ */
+export function featuredOf<E extends { id: string }>(
+  mode: "NONE" | "NEXT" | "CHOSEN",
+  chosenId: string | null,
+  upcoming: E[],
+): { featured: E | null; rest: E[]; fallback: boolean } {
+  if (mode === "NONE")
+    return { featured: null, rest: upcoming, fallback: false };
+  if (mode === "CHOSEN") {
+    const chosen = upcoming.find((e) => e.id === chosenId);
+    if (chosen)
+      return {
+        featured: chosen,
+        rest: upcoming.filter((e) => e !== chosen),
+        fallback: false,
+      };
+  }
+  const [first, ...rest] = upcoming;
+  return { featured: first ?? null, rest, fallback: mode === "CHOSEN" };
 }

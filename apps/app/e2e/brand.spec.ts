@@ -81,7 +81,9 @@ test("marque, sous-domaine d'événement, changement d'adresse et domaine person
     `update "CustomDomain" set status = 'ACTIVE', "verifiedAt" = now() where domain = 'billetterie-${id}.test'`,
   );
   await page.goto(`http://billetterie-${id}.test:3001/`);
-  await expect(page.getByText(`Soirée ${id}`)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: `Soirée ${id}` }),
+  ).toBeVisible(); // titre de la carte (l'affiche dessinée le répète en décor)
   await page.goto(`http://billetterie-${id}.test:3001/soiree-${id}`);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     "href",

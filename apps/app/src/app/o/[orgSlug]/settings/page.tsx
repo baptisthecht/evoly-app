@@ -9,7 +9,9 @@ import { db } from "@/lib/db";
 import { LAUNCH_COUNTRIES } from "@/lib/countries";
 import { canonicalOrgUrl } from "@/server/canonical";
 import { requireOrgContext } from "@/server/context";
+import { featuredSettings } from "@/server/orgPage";
 import { deletionBlockers, hasSales } from "@/server/organization";
+import { FeaturedForm } from "./FeaturedForm";
 import { DeleteOrganization, OrganizationSettingsForm } from "./SettingsClient";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,6 +44,7 @@ export default async function SettingsPage({
       features: ctx.features,
     }),
   ]);
+  const featured = await featuredSettings(ctx);
   const owner = canOwnerOnly(ctx.membership, "ORGANIZATION_DELETE");
   const blockers = owner ? await deletionBlockers(org.id) : [];
   const stripeTone =
@@ -81,6 +84,27 @@ export default async function SettingsPage({
             vatNumber: org.vatNumber ?? "",
             vatRegistered: org.vatRegistered,
           }}
+        />
+      </Card>
+      <Card className="grid gap-4">
+        <div className="grid gap-1">
+          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+            {ts("featuredTitle")}
+          </h2>
+          <p className="text-sm text-ink-muted">{ts("featuredHint")}</p>
+        </div>
+        <FeaturedForm
+          orgSlug={orgSlug}
+          readOnly={!can(ctx.membership, "ORG_SETTINGS_EDIT") || ctx.readOnly}
+          mode={featured.mode}
+          eventId={featured.eventId}
+          fallback={featured.fallback}
+          events={featured.events.map((e) => ({
+            id: e.id,
+            title: e.title,
+            startsAt: e.startsAt.toISOString(),
+            timezone: e.timezone,
+          }))}
         />
       </Card>
       <Link href={`/o/${orgSlug}/brand`} className="block rounded-lg">

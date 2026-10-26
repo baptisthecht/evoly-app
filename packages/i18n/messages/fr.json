@@ -1091,7 +1091,8 @@
     "IMPORT_MAPPING_INVALID": "Une colonne choisie n’existe pas dans ce fichier.",
     "IMPORT_MAPPING_NO_KEY": "Choisissez la colonne du code-barres ou celle du numéro de réservation.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "Pour ajouter ces acheteurs à vos contacts, choisissez la colonne de consentement ou cochez l’attestation.",
-    "IMPORT_ALREADY_DELETED": "Cet import a déjà été supprimé."
+    "IMPORT_ALREADY_DELETED": "Cet import a déjà été supprimé.",
+    "FEATURED_EVENT_INVALID": "Choisissez un événement public à venir."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",
@@ -1348,7 +1349,26 @@
     "optionMore": "{name}, un de plus",
     "optionLess": "{name}, un de moins",
     "website": "Site web",
-    "socials": "Réseaux sociaux"
+    "socials": "Réseaux sociaux",
+    "orgBook": "Réserver",
+    "orgSee": "Voir l’événement",
+    "orgTonight": "Ce soir, {time}",
+    "orgToday": "Aujourd’hui, {time}",
+    "orgTomorrow": "Demain, {time}",
+    "orgInDays": "{count, plural, one {Dans # jour} other {Dans # jours}}",
+    "orgFree": "Gratuit",
+    "orgFrom": "Dès {price}",
+    "orgSoldOut": "Complet",
+    "orgFewLeft": "{count, plural, one {Plus qu’une place} other {Plus que # places}}",
+    "orgOnStage": "À l’affiche",
+    "orgPastTitle": "Vous y étiez ?",
+    "orgUpcomingCount": "{count, plural, =0 {Aucune date à venir} one {# date à venir} other {# dates à venir}}",
+    "orgSocial_website": "Site web",
+    "orgSocial_instagram": "Instagram",
+    "orgSocial_facebook": "Facebook",
+    "orgSocial_tiktok": "TikTok",
+    "orgSocial_linkedin": "LinkedIn",
+    "orgSocial_youtube": "YouTube"
   },
   "promo": {
     "new": "Nouveau code",
@@ -1962,7 +1982,20 @@
     "deleteUnderstand": "Je comprends que la suppression est définitive et que les données des participants seront effacées.",
     "deleteConfirmLabel": "Pour confirmer, saisissez le nom de l’organisation : {name}",
     "deleteSubmit": "Supprimer définitivement",
-    "deleteMismatch": "Le nom ne correspond pas."
+    "deleteMismatch": "Le nom ne correspond pas.",
+    "featuredTitle": "Page de l’organisation",
+    "featuredHint": "L’événement mis en avant en tête de votre page publique.",
+    "featured_NEXT": "Le prochain événement, automatiquement",
+    "featured_NEXT_hint": "Toujours votre prochaine date, sans rien à faire.",
+    "featured_CHOSEN": "Un événement choisi",
+    "featured_CHOSEN_hint": "Mettez en avant l’événement de votre choix, parmi vos événements publics à venir.",
+    "featured_NONE": "Aucun",
+    "featured_NONE_hint": "Votre page commence directement par la liste « À l’affiche ».",
+    "featuredEvent": "Événement mis en avant",
+    "featuredNoEvents": "Aucun événement public à venir pour l’instant.",
+    "featuredFallback": "L’événement choisi n’est plus à venir ou public : votre page affiche votre prochain événement.",
+    "featuredSave": "Enregistrer la mise en avant",
+    "featuredSaved": "Enregistré."
   },
   "unsubscribe": {
     "invalid": "Ce lien de désinscription n’est pas valide.",

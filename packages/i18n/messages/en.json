@@ -1091,7 +1091,8 @@
     "IMPORT_MAPPING_INVALID": "A chosen column does not exist in this file.",
     "IMPORT_MAPPING_NO_KEY": "Choose the barcode column or the booking number column.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "To add these buyers to your contacts, choose the consent column or tick the declaration.",
-    "IMPORT_ALREADY_DELETED": "This import has already been deleted."
+    "IMPORT_ALREADY_DELETED": "This import has already been deleted.",
+    "FEATURED_EVENT_INVALID": "Choose an upcoming public event."
   },
   "validation": {
     "required": "This field is required.",
@@ -1348,7 +1349,26 @@
     "optionMore": "{name}, one more",
     "optionLess": "{name}, one less",
     "website": "Website",
-    "socials": "Social networks"
+    "socials": "Social networks",
+    "orgBook": "Book",
+    "orgSee": "See the event",
+    "orgTonight": "Tonight, {time}",
+    "orgToday": "Today, {time}",
+    "orgTomorrow": "Tomorrow, {time}",
+    "orgInDays": "{count, plural, one {In # day} other {In # days}}",
+    "orgFree": "Free",
+    "orgFrom": "From {price}",
+    "orgSoldOut": "Sold out",
+    "orgFewLeft": "{count, plural, one {Only one seat left} other {Only # seats left}}",
+    "orgOnStage": "Coming up",
+    "orgPastTitle": "Were you there?",
+    "orgUpcomingCount": "{count, plural, =0 {No upcoming date} one {# upcoming date} other {# upcoming dates}}",
+    "orgSocial_website": "Website",
+    "orgSocial_instagram": "Instagram",
+    "orgSocial_facebook": "Facebook",
+    "orgSocial_tiktok": "TikTok",
+    "orgSocial_linkedin": "LinkedIn",
+    "orgSocial_youtube": "YouTube"
   },
   "promo": {
     "new": "New code",
@@ -1962,7 +1982,20 @@
     "deleteUnderstand": "I understand that deletion is permanent and that attendees’ data will be erased.",
     "deleteConfirmLabel": "To confirm, type the organisation name: {name}",
     "deleteSubmit": "Delete permanently",
-    "deleteMismatch": "The name doesn’t match."
+    "deleteMismatch": "The name doesn’t match.",
+    "featuredTitle": "Organisation page",
+    "featuredHint": "The event featured at the top of your public page.",
+    "featured_NEXT": "The next event, automatically",
+    "featured_NEXT_hint": "Always your next date, with nothing to do.",
+    "featured_CHOSEN": "A chosen event",
+    "featured_CHOSEN_hint": "Feature the event of your choice among your upcoming public events.",
+    "featured_NONE": "None",
+    "featured_NONE_hint": "Your page starts straight with the “Coming up” list.",
+    "featuredEvent": "Featured event",
+    "featuredNoEvents": "No upcoming public event for now.",
+    "featuredFallback": "The chosen event is no longer upcoming or public: your page shows your next event.",
+    "featuredSave": "Save the featured event",
+    "featuredSaved": "Saved."
   },
   "unsubscribe": {
     "invalid": "This unsubscribe link isn’t valid.",

@@ -142,7 +142,26 @@
     "optionMore": "{name}, één meer",
     "optionLess": "{name}, één minder",
     "website": "Website",
-    "socials": "Sociale netwerken"
+    "socials": "Sociale netwerken",
+    "orgBook": "Reserveren",
+    "orgSee": "Het evenement bekijken",
+    "orgTonight": "Vanavond, {time}",
+    "orgToday": "Vandaag, {time}",
+    "orgTomorrow": "Morgen, {time}",
+    "orgInDays": "{count, plural, one {Over # dag} other {Over # dagen}}",
+    "orgFree": "Gratis",
+    "orgFrom": "Vanaf {price}",
+    "orgSoldOut": "Uitverkocht",
+    "orgFewLeft": "{count, plural, one {Nog maar één plaats} other {Nog maar # plaatsen}}",
+    "orgOnStage": "Op het programma",
+    "orgPastTitle": "Was je erbij?",
+    "orgUpcomingCount": "{count, plural, =0 {Geen komende datum} one {# komende datum} other {# komende data}}",
+    "orgSocial_website": "Website",
+    "orgSocial_instagram": "Instagram",
+    "orgSocial_facebook": "Facebook",
+    "orgSocial_tiktok": "TikTok",
+    "orgSocial_linkedin": "LinkedIn",
+    "orgSocial_youtube": "YouTube"
   },
   "checkout": {
     "tickets": "Tickets",
@@ -1223,7 +1242,8 @@
     "IMPORT_MAPPING_INVALID": "Een gekozen kolom bestaat niet in dit bestand.",
     "IMPORT_MAPPING_NO_KEY": "Kies de kolom van de barcode of die van het reservatienummer.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "Kies de toestemmingskolom of vink de verklaring aan om deze kopers aan je contacten toe te voegen.",
-    "IMPORT_ALREADY_DELETED": "Deze import is al verwijderd."
+    "IMPORT_ALREADY_DELETED": "Deze import is al verwijderd.",
+    "FEATURED_EVENT_INVALID": "Kies een komend openbaar evenement."
   },
   "eventSettings": {
     "unsaved": "Wijzigingen bezig…",
@@ -2063,7 +2083,20 @@
     "deleteUnderstand": "Ik begrijp dat de verwijdering definitief is en dat de gegevens van de bezoekers gewist worden.",
     "deleteConfirmLabel": "Typ ter bevestiging de naam van de organisatie: {name}",
     "deleteSubmit": "Definitief verwijderen",
-    "deleteMismatch": "De naam komt niet overeen."
+    "deleteMismatch": "De naam komt niet overeen.",
+    "featuredTitle": "Pagina van de organisatie",
+    "featuredHint": "Het evenement dat bovenaan je openbare pagina staat.",
+    "featured_NEXT": "Het volgende evenement, automatisch",
+    "featured_NEXT_hint": "Altijd je volgende datum, zonder iets te doen.",
+    "featured_CHOSEN": "Een gekozen evenement",
+    "featured_CHOSEN_hint": "Zet het evenement van je keuze in de kijker, uit je komende openbare evenementen.",
+    "featured_NONE": "Geen",
+    "featured_NONE_hint": "Je pagina begint meteen met de lijst “Op het programma”.",
+    "featuredEvent": "Uitgelicht evenement",
+    "featuredNoEvents": "Nog geen komend openbaar evenement.",
+    "featuredFallback": "Het gekozen evenement is niet meer komend of openbaar: je pagina toont je volgende evenement.",
+    "featuredSave": "Uitgelicht evenement opslaan",
+    "featuredSaved": "Opgeslagen."
   },
   "team": {
     "title": "Leden en rollen",

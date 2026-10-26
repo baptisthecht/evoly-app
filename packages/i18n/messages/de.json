@@ -142,7 +142,26 @@
     "optionMore": "{name}, eins mehr",
     "optionLess": "{name}, eins weniger",
     "website": "Website",
-    "socials": "Soziale Netzwerke"
+    "socials": "Soziale Netzwerke",
+    "orgBook": "Buchen",
+    "orgSee": "Zur Veranstaltung",
+    "orgTonight": "Heute Abend, {time}",
+    "orgToday": "Heute, {time}",
+    "orgTomorrow": "Morgen, {time}",
+    "orgInDays": "{count, plural, one {In # Tag} other {In # Tagen}}",
+    "orgFree": "Kostenlos",
+    "orgFrom": "Ab {price}",
+    "orgSoldOut": "Ausverkauft",
+    "orgFewLeft": "{count, plural, one {Nur noch ein Platz} other {Nur noch # Plätze}}",
+    "orgOnStage": "Demnächst",
+    "orgPastTitle": "Waren Sie dabei?",
+    "orgUpcomingCount": "{count, plural, =0 {Kein kommender Termin} one {# kommender Termin} other {# kommende Termine}}",
+    "orgSocial_website": "Website",
+    "orgSocial_instagram": "Instagram",
+    "orgSocial_facebook": "Facebook",
+    "orgSocial_tiktok": "TikTok",
+    "orgSocial_linkedin": "LinkedIn",
+    "orgSocial_youtube": "YouTube"
   },
   "checkout": {
     "tickets": "Tickets",
@@ -1223,7 +1242,8 @@
     "IMPORT_MAPPING_INVALID": "Eine gewählte Spalte gibt es in dieser Datei nicht.",
     "IMPORT_MAPPING_NO_KEY": "Wählen Sie die Spalte des Barcodes oder der Buchungsnummer.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "Um diese Käufer zu Ihren Kontakten hinzuzufügen, wählen Sie die Einwilligungsspalte oder kreuzen Sie die Erklärung an.",
-    "IMPORT_ALREADY_DELETED": "Dieser Import wurde bereits gelöscht."
+    "IMPORT_ALREADY_DELETED": "Dieser Import wurde bereits gelöscht.",
+    "FEATURED_EVENT_INVALID": "Wählen Sie eine kommende öffentliche Veranstaltung."
   },
   "eventSettings": {
     "unsaved": "Änderungen laufen…",
@@ -2063,7 +2083,20 @@
     "deleteUnderstand": "Ich verstehe, dass das Löschen endgültig ist und die Daten der Gäste gelöscht werden.",
     "deleteConfirmLabel": "Geben Sie zur Bestätigung den Namen der Organisation ein: {name}",
     "deleteSubmit": "Endgültig löschen",
-    "deleteMismatch": "Der Name stimmt nicht überein."
+    "deleteMismatch": "Der Name stimmt nicht überein.",
+    "featuredTitle": "Seite der Organisation",
+    "featuredHint": "Die Veranstaltung, die oben auf Ihrer öffentlichen Seite hervorgehoben wird.",
+    "featured_NEXT": "Die nächste Veranstaltung, automatisch",
+    "featured_NEXT_hint": "Immer Ihr nächster Termin, ganz ohne Aufwand.",
+    "featured_CHOSEN": "Eine ausgewählte Veranstaltung",
+    "featured_CHOSEN_hint": "Heben Sie eine Veranstaltung Ihrer Wahl unter Ihren kommenden öffentlichen Veranstaltungen hervor.",
+    "featured_NONE": "Keine",
+    "featured_NONE_hint": "Ihre Seite beginnt direkt mit der Liste „Demnächst“.",
+    "featuredEvent": "Hervorgehobene Veranstaltung",
+    "featuredNoEvents": "Derzeit keine kommende öffentliche Veranstaltung.",
+    "featuredFallback": "Die ausgewählte Veranstaltung ist nicht mehr kommend oder öffentlich: Ihre Seite zeigt Ihre nächste Veranstaltung.",
+    "featuredSave": "Hervorhebung speichern",
+    "featuredSaved": "Gespeichert."
   },
   "team": {
     "title": "Mitglieder und Rollen",

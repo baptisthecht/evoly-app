@@ -311,6 +311,10 @@ model Organization {
   promotionRedemption PromotionRedemption? // offre commerciale dont elle a profité à sa création
   distributors        Distributor[]
 
+  featuredMode    FeaturedMode @default(NEXT) // vitrine : événement mis en avant (aucun, le prochain, un choisi)
+  featuredEventId String? // événement choisi ; la vitrine reprend le prochain s'il n'est plus à venir ou public
+  featuredEvent   Event?       @relation("OrgFeaturedEvent", fields: [featuredEventId], references: [id], onDelete: SetNull)
+
   @@index([referredByVenueId]) // organisateurs parrainés par un lieu
 }
 
@@ -648,6 +652,8 @@ model Event {
   externalTickets        ExternalTicket[]
 
   importBatches ImportBatch[]
+
+  featuredBy Organization[] @relation("OrgFeaturedEvent")
 
   @@unique([organizationId, slug])
   @@index([organizationId, status, startsAt])
@@ -2393,4 +2399,11 @@ model ImportBatch {
   contacts Contact[]
 
   @@index([eventId, distributorId, createdAt])
+}
+
+/// Vitrine de l'organisateur : événement mis en avant en tête de page
+enum FeaturedMode {
+  NONE
+  NEXT
+  CHOSEN
 }

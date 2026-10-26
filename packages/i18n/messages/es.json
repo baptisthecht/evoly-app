@@ -142,7 +142,26 @@
     "optionMore": "{name}, uno más",
     "optionLess": "{name}, uno menos",
     "website": "Sitio web",
-    "socials": "Redes sociales"
+    "socials": "Redes sociales",
+    "orgBook": "Reservar",
+    "orgSee": "Ver el evento",
+    "orgTonight": "Esta noche, {time}",
+    "orgToday": "Hoy, {time}",
+    "orgTomorrow": "Mañana, {time}",
+    "orgInDays": "{count, plural, one {Dentro de # día} other {Dentro de # días}}",
+    "orgFree": "Gratis",
+    "orgFrom": "Desde {price}",
+    "orgSoldOut": "Agotado",
+    "orgFewLeft": "{count, plural, one {Solo queda una plaza} other {Solo quedan # plazas}}",
+    "orgOnStage": "En cartel",
+    "orgPastTitle": "¿Estuviste?",
+    "orgUpcomingCount": "{count, plural, =0 {Ninguna fecha próxima} one {# fecha próxima} other {# fechas próximas}}",
+    "orgSocial_website": "Sitio web",
+    "orgSocial_instagram": "Instagram",
+    "orgSocial_facebook": "Facebook",
+    "orgSocial_tiktok": "TikTok",
+    "orgSocial_linkedin": "LinkedIn",
+    "orgSocial_youtube": "YouTube"
   },
   "checkout": {
     "tickets": "Entradas",
@@ -1223,7 +1242,8 @@
     "IMPORT_MAPPING_INVALID": "Una columna elegida no existe en este archivo.",
     "IMPORT_MAPPING_NO_KEY": "Elige la columna del código de barras o la del número de reserva.",
     "IMPORT_MARKETING_CONSENT_REQUIRED": "Para añadir estos compradores a tus contactos, elige la columna de consentimiento o marca la declaración.",
-    "IMPORT_ALREADY_DELETED": "Esta importación ya se ha eliminado."
+    "IMPORT_ALREADY_DELETED": "Esta importación ya se ha eliminado.",
+    "FEATURED_EVENT_INVALID": "Elige un evento público próximo."
   },
   "eventSettings": {
     "unsaved": "Cambios en curso…",
@@ -2063,7 +2083,20 @@
     "deleteUnderstand": "Entiendo que la eliminación es definitiva y que se borrarán los datos de los asistentes.",
     "deleteConfirmLabel": "Para confirmar, escribe el nombre de la organización: {name}",
     "deleteSubmit": "Eliminar definitivamente",
-    "deleteMismatch": "El nombre no coincide."
+    "deleteMismatch": "El nombre no coincide.",
+    "featuredTitle": "Página de la organización",
+    "featuredHint": "El evento destacado en la parte superior de tu página pública.",
+    "featured_NEXT": "El próximo evento, automáticamente",
+    "featured_NEXT_hint": "Siempre tu próxima fecha, sin hacer nada.",
+    "featured_CHOSEN": "Un evento elegido",
+    "featured_CHOSEN_hint": "Destaca el evento que elijas entre tus próximos eventos públicos.",
+    "featured_NONE": "Ninguno",
+    "featured_NONE_hint": "Tu página empieza directamente con la lista «En cartel».",
+    "featuredEvent": "Evento destacado",
+    "featuredNoEvents": "Todavía no hay ningún evento público próximo.",
+    "featuredFallback": "El evento elegido ya no es próximo o público: tu página muestra tu próximo evento.",
+    "featuredSave": "Guardar el destacado",
+    "featuredSaved": "Guardado."
   },
   "team": {
     "title": "Miembros y roles",

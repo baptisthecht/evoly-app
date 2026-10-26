@@ -54,7 +54,7 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
 
   // RG-PUB-07 : la page de l'organisation liste l'événement
   await page.goto(siteUrl(slug));
-  await expect(page.getByText(title)).toBeVisible();
+  await expect(page.getByRole("heading", { name: title })).toBeVisible(); // titre de la carte (l'affiche dessinée le répète en décor)
 
   // RG-EVT-09 : lien court vers l'adresse canonique
   const code = sql(

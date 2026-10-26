@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
+import { saveFeatured } from "@/server/orgPage";
 import {
   deleteOrganization,
   updateOrganizationSettings,
@@ -86,5 +87,27 @@ export async function deleteOrganizationAction(
     },
   );
   if (r?.ok) redirect("/");
+  return r;
+}
+
+/** Vitrine : événement mis en avant (aucun, le prochain, ou un événement public à venir choisi). */
+export async function saveFeaturedAction(
+  orgSlug: string,
+  _: ActionState,
+  formData: FormData,
+): Promise<ActionState<{ mode: string; eventId: string | null }>> {
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(formData),
+    {
+      schema: z.object({
+        mode: z.enum(["NONE", "NEXT", "CHOSEN"]),
+        eventId: z.string().max(40).optional(),
+      }),
+      permission: "ORG_SETTINGS_EDIT",
+    },
+    (d, ctx) => saveFeatured(ctx, d),
+  );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/settings`);
   return r;
 }
