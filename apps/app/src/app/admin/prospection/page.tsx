@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireStaff } from "@/server/platform";
+import { PROSPECT_STATUTS } from "@/server/prospection";
 import {
   lotEmails,
   pipelineStats,
@@ -13,6 +14,7 @@ import {
   sendNowAction,
   withdrawAction,
 } from "./actions";
+import { RepliesImport } from "./RepliesImport";
 import { UploadForm } from "./UploadForm";
 
 export const dynamic = "force-dynamic";
@@ -132,6 +134,9 @@ export default async function ProspectionPage({
               .
             </p>
           )}
+        </section>
+        <section className={card} aria-label="Importer les réponses">
+          <RepliesImport labels={Object.fromEntries(PROSPECT_STATUTS)} />
         </section>
         <section className={card} aria-label="Importer un lot">
           <UploadForm />

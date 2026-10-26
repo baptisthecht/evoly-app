@@ -4,6 +4,7 @@ import { CoreError } from "@evoly/core";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/server/platform";
+import { applyReplies, planReplies } from "@/server/prospectReplies";
 import {
   cleanPendingAddresses,
   deleteMailbox,
@@ -247,4 +248,88 @@ export async function setMailboxLimitAction(id: string, form: FormData) {
     boites("Limite non enregistrée : choisis un nombre entre 1 et 500.");
   }
   boites(await redistribuer("Limite enregistrée."));
+}
+
+// ---------------------------------------------------------------- réponses des prospects
+
+export type RepliesState =
+  | {
+      ok: true;
+      step: "preview";
+      fileName: string;
+      plan: Awaited<ReturnType<typeof planReplies>>;
+    }
+  | {
+      ok: true;
+      step: "applied";
+      fileName: string;
+      counts: Awaited<ReturnType<typeof applyReplies>>["counts"];
+    }
+  | { ok: false; error: string }
+  | null;
+
+const REPLY_ERRORS: Record<string, string> = {
+  REPLIES_FILE_TOO_LARGE: "Fichier trop volumineux : 2 Mo au maximum.",
+  REPLIES_NO_EMAIL_COLUMN:
+    "Il manque la colonne de l'adresse e-mail (« email » ou « adresse »).",
+  IMPORT_FILE_OLD_EXCEL:
+    "Ancien format Excel (.xls) : enregistre le fichier en .xlsx ou en .csv.",
+};
+async function repliesFile(form: FormData) {
+  const f = form.get("fichier");
+  if (!(f instanceof File) || f.size === 0) return null;
+  return { name: f.name, bytes: new Uint8Array(await f.arrayBuffer()) };
+}
+const replyError = (err: unknown): RepliesState => ({
+  ok: false,
+  error:
+    err instanceof CoreError
+      ? (REPLY_ERRORS[err.code] ?? err.code)
+      : "Lecture du fichier impossible.",
+});
+
+/** Réponses des prospects, étape 1 : aperçu ligne par ligne, rien n'est enregistré. */
+export async function previewRepliesAction(
+  _prev: RepliesState,
+  form: FormData,
+): Promise<RepliesState> {
+  await requireStaff("ADMIN");
+  const file = await repliesFile(form);
+  if (!file)
+    return {
+      ok: false,
+      error: "Choisis le fichier des réponses (CSV ou Excel).",
+    };
+  try {
+    return {
+      ok: true,
+      step: "preview",
+      fileName: file.name,
+      plan: await planReplies(file),
+    };
+  } catch (err) {
+    return replyError(err);
+  }
+}
+
+/** Réponses des prospects, étape 2 : application (le fichier est relu, l'aperçu n'est jamais pris tel quel). */
+export async function applyRepliesAction(
+  _prev: RepliesState,
+  form: FormData,
+): Promise<RepliesState> {
+  await requireStaff("ADMIN");
+  const file = await repliesFile(form);
+  if (!file)
+    return {
+      ok: false,
+      error: "Choisis le fichier des réponses (CSV ou Excel).",
+    };
+  try {
+    const { counts } = await applyReplies(file);
+    revalidatePath("/admin/prospection");
+    revalidatePath("/admin/prospection/prospects");
+    return { ok: true, step: "applied", fileName: file.name, counts };
+  } catch (err) {
+    return replyError(err);
+  }
 }
