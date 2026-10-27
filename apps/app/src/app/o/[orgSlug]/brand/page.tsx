@@ -9,6 +9,8 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { canonicalOrgUrl } from "@/server/canonical";
 import { requireOrgContext } from "@/server/context";
+import { featuredSettings } from "@/server/orgPage";
+import { FeaturedForm } from "../settings/FeaturedForm";
 import { listCustomDomains, MAX_CUSTOM_DOMAINS } from "@/server/domains";
 import { AddDomain, BrandForm, DomainRow, SubdomainForm } from "./BrandClient";
 
@@ -26,7 +28,9 @@ export default async function BrandPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { orgSlug } = await params;
-  const tab = (await searchParams).tab === "domains" ? "domains" : "brand";
+  const asked = (await searchParams).tab;
+  const tab =
+    asked === "domains" ? "domains" : asked === "page" ? "page" : "brand";
   const ctx = await requireOrgContext(orgSlug);
   const canBrand = can(ctx.membership, "BRAND_EDIT");
   const canDomains = can(ctx.membership, "DOMAINS_MANAGE");
@@ -54,6 +58,8 @@ export default async function BrandPage({
     }),
   ]);
   const t = await getTranslations("brand");
+  const ts = await getTranslations("orgSettings");
+  const featured = await featuredSettings(ctx);
   const pro = {
     brand: hasFeature(ctx.features, "BRANDING"),
     domains: hasFeature(ctx.features, "CUSTOM_DOMAINS"),
@@ -73,7 +79,7 @@ export default async function BrandPage({
   return (
     <div className="grid gap-6">
       {/* onglet « Domaines » : adresse de la billetterie et domaines personnalisés (seul onglet sans la marque) */}
-      {canAddress && (tab === "domains" || !canBrand) ? (
+      {canAddress && (tab === "domains" || (tab === "brand" && !canBrand)) ? (
         <Card className="grid gap-3">
           <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
             {t("addressTitle")}
@@ -97,6 +103,29 @@ export default async function BrandPage({
         </Card>
       ) : null}
 
+      {canAddress && tab === "page" ? (
+        <Card className="grid gap-4">
+          <div className="grid gap-1">
+            <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+              {ts("featuredTitle")}
+            </h2>
+            <p className="text-sm text-ink-muted">{ts("featuredHint")}</p>
+          </div>
+          <FeaturedForm
+            orgSlug={orgSlug}
+            readOnly={!can(ctx.membership, "ORG_SETTINGS_EDIT") || ctx.readOnly}
+            mode={featured.mode}
+            eventId={featured.eventId}
+            fallback={featured.fallback}
+            events={featured.events.map((e) => ({
+              id: e.id,
+              title: e.title,
+              startsAt: e.startsAt.toISOString(),
+              timezone: e.timezone,
+            }))}
+          />
+        </Card>
+      ) : null}
       {canBrand && tab === "brand" ? (
         <Card className="grid gap-4">
           <div className="grid gap-1">
@@ -156,7 +185,7 @@ export default async function BrandPage({
         </Card>
       ) : null}
 
-      {canDomains && (tab === "domains" || !canBrand) ? (
+      {canDomains && (tab === "domains" || (tab === "brand" && !canBrand)) ? (
         <section className="grid gap-3" aria-labelledby="domains-title">
           <h2
             id="domains-title"

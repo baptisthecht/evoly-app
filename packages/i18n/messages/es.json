@@ -1831,7 +1831,8 @@
     "switchError": "No se pudo hacer el cambio. Inténtalo de nuevo o usa «Gestionar mi suscripción».",
     "feature_PREPAID_OPTIONS": "Extras y consumiciones prepagadas",
     "feature_EMBED_WIDGET": "Venta de entradas en tu propia web",
-    "feature_AMBASSADORS": "Embajadores y clasificación de ventas"
+    "feature_AMBASSADORS": "Embajadores y clasificación de ventas",
+    "compareOpen": "Comparar los planes"
   },
   "brand": {
     "sloganStart": "tu próximo",
@@ -2137,7 +2138,8 @@
     "featuredNoEvents": "Todavía no hay ningún evento público próximo.",
     "featuredFallback": "El evento elegido ya no es próximo o público: tu página muestra tu próximo evento.",
     "featuredSave": "Guardar el destacado",
-    "featuredSaved": "Guardado."
+    "featuredSaved": "Guardado.",
+    "deleteOwnerOnly": "Solo la persona propietaria de la organización puede eliminarla."
   },
   "team": {
     "title": "Miembros y roles",
@@ -3221,7 +3223,14 @@
     "tab_payments": "Pagos",
     "tab_notifications": "Notificaciones",
     "tab_preferences": "Preferencias",
-    "tabs": "Secciones de la página"
+    "tabs": "Secciones de la página",
+    "tab_automations": "Automatizaciones",
+    "tab_orgPage": "Página de la organización",
+    "tab_address": "Dirección y dominios",
+    "tab_offer": "Plan",
+    "tab_referral": "Recomendación",
+    "tab_venue": "Lugar asociado",
+    "tab_advanced": "Avanzado"
   },
   "distribution": {
     "intro": "¿También vendes por Ticketmaster, Fnac, BilletReduc o una oficina de turismo? Asígnales plazas: se retiran de la venta en Evoly para no vender nunca dos veces la misma plaza.",

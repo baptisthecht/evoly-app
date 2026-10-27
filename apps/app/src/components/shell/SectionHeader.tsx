@@ -44,8 +44,19 @@ export async function SectionHeader({
     case "orders":
     case "resale":
     case "finances":
-    case "billing":
       return <PageHeader title={nav(section)} />;
+    case "billing":
+      return (
+        <PageHeader
+          title={nav("billing")}
+          tabsLabel={s("tabs")}
+          tabs={tabs([
+            [s("tab_offer"), `${base}/billing`],
+            [s("tab_referral"), `${base}/billing?tab=referral`],
+            [s("tab_venue"), `${base}/billing?tab=venue`],
+          ])}
+        />
+      );
     case "marketing": {
       const tc = await getTranslations("campaigns");
       const canNew =
@@ -62,6 +73,7 @@ export async function SectionHeader({
               `${base}/marketing?tab=campaigns`,
               `${base}/marketing/campaigns`,
             ],
+            [s("tab_automations"), `${base}/marketing?tab=automations`],
           ])}
           actions={
             canNew ? (
@@ -80,7 +92,8 @@ export async function SectionHeader({
           tabsLabel={s("tabs")}
           tabs={tabs([
             [s("tab_brand"), `${base}/brand`],
-            [s("tab_domains"), `${base}/brand?tab=domains`],
+            [s("tab_orgPage"), `${base}/brand?tab=page`],
+            [s("tab_address"), `${base}/brand?tab=domains`],
           ])}
         />
       );
@@ -103,6 +116,7 @@ export async function SectionHeader({
           tabs={tabs([
             [s("tab_general"), `${base}/settings`],
             [s("tab_payments"), `${base}/settings/payments`],
+            [s("tab_advanced"), `${base}/settings?tab=advanced`],
           ])}
         />
       );

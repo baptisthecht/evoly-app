@@ -51,7 +51,12 @@ export default async function MarketingPage({
   const t = await getTranslations("marketing");
   const locale = (await getLocale()) as Locale;
   const pro = hasFeature(ctx.features, "EMAIL_MARKETING");
-  const tab = sp.tab === "campaigns" ? "campaigns" : "contacts";
+  const tab =
+    sp.tab === "campaigns"
+      ? "campaigns"
+      : sp.tab === "automations"
+        ? "automations"
+        : "contacts";
   const suspended =
     (
       await db.organization.findUniqueOrThrow({
@@ -76,6 +81,27 @@ export default async function MarketingPage({
           take: 50,
         })
       : [];
+  // rappels automatiques : leur propre onglet
+  if (tab === "automations")
+    return (
+      <div className="grid gap-6">
+        {banner}
+        <Card className="grid gap-2 bg-surface-accent">
+          <p className="font-semibold">{t("remindersTitle")}</p>
+          <p className="text-sm">
+            {pro ? t("remindersPro") : t("remindersFree")}
+          </p>
+          {!pro ? (
+            <Link
+              href={`/o/${orgSlug}/billing`}
+              className={buttonClass("dark", "sm", "justify-self-start")}
+            >
+              {t("upgrade")}
+            </Link>
+          ) : null}
+        </Card>
+      </div>
+    );
   if (tab === "campaigns")
     return (
       <div className="grid gap-6">
@@ -193,20 +219,6 @@ export default async function MarketingPage({
           }}
         />
       ) : null}
-      <Card className="grid gap-2 bg-surface-accent">
-        <p className="font-semibold">{t("remindersTitle")}</p>
-        <p className="text-sm">
-          {pro ? t("remindersPro") : t("remindersFree")}
-        </p>
-        {!pro ? (
-          <Link
-            href={`/o/${orgSlug}/billing`}
-            className={buttonClass("dark", "sm", "justify-self-start")}
-          >
-            {t("upgrade")}
-          </Link>
-        ) : null}
-      </Card>
       <form
         className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]"
         role="search"

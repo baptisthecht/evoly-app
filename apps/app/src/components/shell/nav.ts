@@ -73,8 +73,7 @@ export const NAV: readonly NavItem[] = [
   {
     key: "brand",
     href: "/brand",
-    anyOf: ["BRAND_EDIT", "DOMAINS_MANAGE"],
-    feature: "BRANDING",
+    anyOf: ["BRAND_EDIT", "DOMAINS_MANAGE", "ORG_SETTINGS_EDIT"], // page de l'organisation et adresse : toutes les offres
     group: "org",
     icon: "palette",
   },

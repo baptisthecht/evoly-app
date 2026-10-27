@@ -9,9 +9,7 @@ import { db } from "@/lib/db";
 import { LAUNCH_COUNTRIES } from "@/lib/countries";
 import { canonicalOrgUrl } from "@/server/canonical";
 import { requireOrgContext } from "@/server/context";
-import { featuredSettings } from "@/server/orgPage";
 import { deletionBlockers, hasSales } from "@/server/organization";
-import { FeaturedForm } from "./FeaturedForm";
 import { DeleteOrganization, OrganizationSettingsForm } from "./SettingsClient";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,10 +20,13 @@ export async function generateMetadata(): Promise<Metadata> {
 /** Section 9.3 : page Paramètres, paiements, suppression de l'organisation. */
 export default async function SettingsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const { orgSlug } = await params;
+  const tab = (await searchParams).tab === "advanced" ? "advanced" : "general";
   const ctx = await requireOrgContext(orgSlug);
   const t = await getTranslations("settings");
   const ts = await getTranslations("orgSettings");
@@ -44,7 +45,6 @@ export default async function SettingsPage({
       features: ctx.features,
     }),
   ]);
-  const featured = await featuredSettings(ctx);
   const owner = canOwnerOnly(ctx.membership, "ORGANIZATION_DELETE");
   const blockers = owner ? await deletionBlockers(org.id) : [];
   const stripeTone =
@@ -53,6 +53,27 @@ export default async function SettingsPage({
       : ctx.stripe
         ? "warning"
         : "neutral";
+  // Avancé : supprimer l'organisation (le propriétaire seulement)
+  if (tab === "advanced")
+    return (
+      <div className="grid gap-6">
+        {owner ? (
+          <Card className="grid gap-3 ring-1 ring-danger/40">
+            <h2 className="font-display text-xl tracking-[var(--tracking-title)] text-danger">
+              {ts("deleteTitle")}
+            </h2>
+            <p className="-mt-1 text-sm text-ink-muted">{ts("deleteIntro")}</p>
+            <DeleteOrganization
+              orgSlug={orgSlug}
+              name={org.name}
+              blockers={blockers}
+            />
+          </Card>
+        ) : (
+          <p className="text-sm text-ink-muted">{ts("deleteOwnerOnly")}</p>
+        )}
+      </div>
+    );
   return (
     <div className="grid gap-6">
       <Card className="grid gap-4">
@@ -86,27 +107,6 @@ export default async function SettingsPage({
           }}
         />
       </Card>
-      <Card className="grid gap-4">
-        <div className="grid gap-1">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-            {ts("featuredTitle")}
-          </h2>
-          <p className="text-sm text-ink-muted">{ts("featuredHint")}</p>
-        </div>
-        <FeaturedForm
-          orgSlug={orgSlug}
-          readOnly={!can(ctx.membership, "ORG_SETTINGS_EDIT") || ctx.readOnly}
-          mode={featured.mode}
-          eventId={featured.eventId}
-          fallback={featured.fallback}
-          events={featured.events.map((e) => ({
-            id: e.id,
-            title: e.title,
-            startsAt: e.startsAt.toISOString(),
-            timezone: e.timezone,
-          }))}
-        />
-      </Card>
       <Link href={`/o/${orgSlug}/brand`} className="block rounded-lg">
         <Card className="flex flex-wrap items-center justify-between gap-3 transition-shadow hover:shadow-md">
           <div className="grid min-w-0 gap-1">
@@ -138,19 +138,6 @@ export default async function SettingsPage({
           </Badge>
         </Card>
       </Link>
-      {owner ? (
-        <Card className="grid gap-3 ring-1 ring-danger/40">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)] text-danger">
-            {ts("deleteTitle")}
-          </h2>
-          <p className="-mt-1 text-sm text-ink-muted">{ts("deleteIntro")}</p>
-          <DeleteOrganization
-            orgSlug={orgSlug}
-            name={org.name}
-            blockers={blockers}
-          />
-        </Card>
-      ) : null}
     </div>
   );
 }

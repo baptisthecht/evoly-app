@@ -1831,7 +1831,8 @@
     "switchError": "Non è stato possibile effettuare il cambio. Riprova o usa «Gestisci l’abbonamento».",
     "feature_PREPAID_OPTIONS": "Extra e consumazioni prepagate",
     "feature_EMBED_WIDGET": "Biglietteria integrata nel tuo sito",
-    "feature_AMBASSADORS": "Ambasciatori e classifica delle vendite"
+    "feature_AMBASSADORS": "Ambasciatori e classifica delle vendite",
+    "compareOpen": "Confronta i piani"
   },
   "brand": {
     "sloganStart": "il tuo prossimo",
@@ -2137,7 +2138,8 @@
     "featuredNoEvents": "Nessun evento pubblico in arrivo per ora.",
     "featuredFallback": "L’evento scelto non è più in arrivo o pubblico: la tua pagina mostra il tuo prossimo evento.",
     "featuredSave": "Salva l’evento in evidenza",
-    "featuredSaved": "Salvato."
+    "featuredSaved": "Salvato.",
+    "deleteOwnerOnly": "Solo il proprietario dell’organizzazione può eliminarla."
   },
   "team": {
     "title": "Membri e ruoli",
@@ -3221,7 +3223,14 @@
     "tab_payments": "Pagamenti",
     "tab_notifications": "Notifiche",
     "tab_preferences": "Preferenze",
-    "tabs": "Sezioni della pagina"
+    "tabs": "Sezioni della pagina",
+    "tab_automations": "Automazioni",
+    "tab_orgPage": "Pagina dell’organizzazione",
+    "tab_address": "Indirizzo e domini",
+    "tab_offer": "Piano",
+    "tab_referral": "Presentazione",
+    "tab_venue": "Luogo partner",
+    "tab_advanced": "Avanzate"
   },
   "distribution": {
     "intro": "Vendi anche tramite Ticketmaster, Fnac, BilletReduc o un ufficio turistico? Assegna loro dei posti: vengono tolti dalla vendita su Evoly, così lo stesso posto non viene mai venduto due volte.",

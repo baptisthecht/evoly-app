@@ -1831,7 +1831,8 @@
     "switchError": "Não foi possível fazer a alteração. Tente novamente ou use «Gerir a subscrição».",
     "feature_PREPAID_OPTIONS": "Extras e consumos pré-pagos",
     "feature_EMBED_WIDGET": "Bilheteira integrada no seu site",
-    "feature_AMBASSADORS": "Embaixadores e classificação de vendas"
+    "feature_AMBASSADORS": "Embaixadores e classificação de vendas",
+    "compareOpen": "Comparar os planos"
   },
   "brand": {
     "sloganStart": "a sua próxima",
@@ -2137,7 +2138,8 @@
     "featuredNoEvents": "Ainda não há nenhum evento público próximo.",
     "featuredFallback": "O evento escolhido já não é próximo ou público: a sua página mostra o seu próximo evento.",
     "featuredSave": "Guardar o destaque",
-    "featuredSaved": "Guardado."
+    "featuredSaved": "Guardado.",
+    "deleteOwnerOnly": "Só o proprietário da organização a pode eliminar."
   },
   "team": {
     "title": "Membros e funções",
@@ -3221,7 +3223,14 @@
     "tab_payments": "Pagamentos",
     "tab_notifications": "Notificações",
     "tab_preferences": "Preferências",
-    "tabs": "Secções da página"
+    "tabs": "Secções da página",
+    "tab_automations": "Automatizações",
+    "tab_orgPage": "Página da organização",
+    "tab_address": "Endereço e domínios",
+    "tab_offer": "Plano",
+    "tab_referral": "Recomendação",
+    "tab_venue": "Local parceiro",
+    "tab_advanced": "Avançado"
   },
   "distribution": {
     "intro": "Também vende pela Ticketmaster, Fnac, BilletReduc ou um posto de turismo? Atribua-lhes lugares: são retirados da venda na Evoly, para nunca vender o mesmo lugar duas vezes.",

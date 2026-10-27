@@ -1858,7 +1858,8 @@
     "switchError": "Le changement n’a pas pu être fait. Réessayez ou passez par « Gérer mon abonnement ».",
     "feature_PREPAID_OPTIONS": "Options et consommations prépayées",
     "feature_EMBED_WIDGET": "Billetterie intégrable à votre site",
-    "feature_AMBASSADORS": "Ambassadeurs et classement des ventes"
+    "feature_AMBASSADORS": "Ambassadeurs et classement des ventes",
+    "compareOpen": "Comparer les offres"
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Modifier les paramètres de l’organisation",
@@ -2034,7 +2035,8 @@
     "featuredNoEvents": "Aucun événement public à venir pour l’instant.",
     "featuredFallback": "L’événement choisi n’est plus à venir ou public : votre page affiche votre prochain événement.",
     "featuredSave": "Enregistrer la mise en avant",
-    "featuredSaved": "Enregistré."
+    "featuredSaved": "Enregistré.",
+    "deleteOwnerOnly": "Seul le propriétaire de l’organisation peut la supprimer."
   },
   "unsubscribe": {
     "invalid": "Ce lien de désinscription n’est pas valide.",
@@ -3221,7 +3223,14 @@
     "tab_payments": "Paiements",
     "tab_notifications": "Notifications",
     "tab_preferences": "Préférences",
-    "tabs": "Sections de la page"
+    "tabs": "Sections de la page",
+    "tab_automations": "Automatisations",
+    "tab_orgPage": "Page de l’organisation",
+    "tab_address": "Adresse et domaines",
+    "tab_offer": "Offre",
+    "tab_referral": "Parrainage",
+    "tab_venue": "Lieu partenaire",
+    "tab_advanced": "Avancé"
   },
   "distribution": {
     "intro": "Vous vendez aussi par Ticketmaster, la Fnac, BilletReduc ou un office de tourisme ? Confiez-leur des places : elles sont retirées de la vente sur Evoly, pour ne jamais vendre deux fois la même place.",

@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Badge, Card } from "@/components/ui/Card";
 import { billingState } from "@/server/billing";
 import { requireOrgContext } from "@/server/context";
+import { CompareOffers } from "./CompareOffers";
 import { referralLink } from "@/server/referrals";
 import { ReferralCard } from "./ReferralCard";
 import { VenueCard } from "./VenueCard";
@@ -37,10 +38,12 @@ export default async function BillingPage({
   searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
-  searchParams: Promise<{ checkout?: string }>;
+  searchParams: Promise<{ checkout?: string; tab?: string }>;
 }) {
   const { orgSlug } = await params;
-  const { checkout } = await searchParams;
+  const { checkout, tab } = await searchParams;
+  const view =
+    tab === "referral" ? "referral" : tab === "venue" ? "venue" : "offer";
   const ctx = await requireOrgContext(orgSlug);
   const [state, plans] = await Promise.all([billingState(ctx), getPlans()]);
   const t = await getTranslations("billing");
@@ -102,161 +105,171 @@ export default async function BillingPage({
         </p>
       ) : null}
 
-      <Card className="grid gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h2 className="font-display text-3xl tracking-[-0.04em]">
-            {isPartner ? t("planPartner") : isPro ? "Pro" : "Free"}
-          </h2>
-          {isPartner ? (
-            <Badge tone="success">{t("badge_PARTNER")}</Badge>
-          ) : null}
-          {isPartner ? null : (
-            <Badge
-              tone={
-                status === "FREE"
-                  ? "neutral"
-                  : status === "PAST_DUE" || status === "UNPAID"
-                    ? "danger"
-                    : status === "ENDING"
-                      ? "warning"
-                      : "success"
-              }
-            >
-              {t(`badge_${status}`)}
-            </Badge>
-          )}
-        </div>
-        <p>
-          {isPartner
-            ? `${t("partnerBody")}${sub?.currentPeriodEnd ? ` ${t("partnerUntil", { date: formatDate(sub.currentPeriodEnd, tz, locale) })}` : ""}`
-            : statusLine}
-        </p>
-        {isPartner ? null : manage ? (
-          isPro && sub?.stripeCustomerId ? (
-            <div className="grid gap-4">
-              <ManageSubscription orgSlug={orgSlug} />
-              {sub.status === "TRIALING" || sub.status === "ACTIVE" ? (
-                <SwitchInterval
-                  orgSlug={orgSlug}
-                  target={sub.interval === "YEAR" ? "MONTH" : "YEAR"}
-                  label={
-                    sub.interval === "YEAR"
-                      ? t("switchToMonth", { price: money(state.prices.MONTH) })
-                      : t("switchToYear", { price: money(state.prices.YEAR) })
-                  }
-                  done={t("switchDone")}
-                  error={t("switchError")}
-                />
+      {view === "offer" ? (
+        <>
+          <Card className="grid gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="font-display text-3xl tracking-[-0.04em]">
+                {isPartner ? t("planPartner") : isPro ? "Pro" : "Free"}
+              </h2>
+              {isPartner ? (
+                <Badge tone="success">{t("badge_PARTNER")}</Badge>
               ) : null}
-              <div className="rounded-md bg-surface-sunken p-4 text-sm">
-                <p className="font-semibold">{t("downgradeTitle")}</p>
-                <ul className="mt-2 grid list-disc gap-1 pl-5">
-                  {(["fee", "brand", "tiers", "members", "orgs"] as const).map(
-                    (k) => (
-                      <li key={k}>
-                        {t(`downgrade_${k}`, { cap: money(state.caps.free) })}
-                      </li>
-                    ),
-                  )}
-                </ul>
-                <p className="mt-2 text-ink-muted">{t("downgradeKept")}</p>
-              </div>
+              {isPartner ? null : (
+                <Badge
+                  tone={
+                    status === "FREE"
+                      ? "neutral"
+                      : status === "PAST_DUE" || status === "UNPAID"
+                        ? "danger"
+                        : status === "ENDING"
+                          ? "warning"
+                          : "success"
+                  }
+                >
+                  {t(`badge_${status}`)}
+                </Badge>
+              )}
             </div>
-          ) : (
-            <PlanPicker
-              orgSlug={orgSlug}
-              prices={state.prices}
-              currency={state.currency}
-              trial={state.trialEligible}
-            />
-          )
-        ) : (
-          <p className="text-sm text-ink-muted">{t("ownerOnly")}</p>
-        )}
-      </Card>
-
-      <Card className="grid gap-3">
-        <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-          {t("compareTitle")}
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm [&_td]:px-1 [&_th]:pr-2">
-            <thead>
-              <tr className="text-left text-ink-muted">
-                <th scope="col" className="pb-2 font-label text-xs font-bold">
-                  <span className="sr-only">{t("feature")}</span>
-                </th>
-                <th
-                  scope="col"
-                  className="pb-2 text-center font-label text-xs font-bold"
-                >
-                  Free
-                </th>
-                <th
-                  scope="col"
-                  className="pb-2 text-center font-label text-xs font-bold"
-                >
-                  Pro
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-t border-line">
-                <th scope="row" className="py-2 text-left font-normal">
-                  {t("row_price")}
-                </th>
-                <td className="py-2 text-center">{money(0)}</td>
-                <td className="py-2 text-center">
-                  {t("proPrice", {
-                    month: money(state.prices.MONTH),
-                    year: money(state.prices.YEAR),
-                  })}
-                </td>
-              </tr>
-              <tr className="border-t border-line">
-                <th scope="row" className="py-2 text-left font-normal">
-                  {t("row_fee")}
-                </th>
-                <td className="py-2 text-center">
-                  {t("feeCap", { cap: money(state.caps.free) })}
-                </td>
-                <td className="py-2 text-center font-semibold">
-                  {t("feeCap", { cap: money(state.caps.pro) })}
-                </td>
-              </tr>
-              {COMPARED.map((f) => (
-                <tr key={f} className="border-t border-line">
-                  <th scope="row" className="py-2 text-left font-normal">
-                    {t(`feature_${f}`)}
-                  </th>
-                  {(["free", "pro"] as const).map((p) => (
-                    <td
-                      key={p}
-                      className="py-2 text-center"
-                      aria-label={
-                        plans[p].features.includes(f)
-                          ? t("included")
-                          : t("notIncluded")
+            <p>
+              {isPartner
+                ? `${t("partnerBody")}${sub?.currentPeriodEnd ? ` ${t("partnerUntil", { date: formatDate(sub.currentPeriodEnd, tz, locale) })}` : ""}`
+                : statusLine}
+            </p>
+            {isPartner ? null : manage ? (
+              isPro && sub?.stripeCustomerId ? (
+                <div className="grid gap-4">
+                  <ManageSubscription orgSlug={orgSlug} />
+                  {sub.status === "TRIALING" || sub.status === "ACTIVE" ? (
+                    <SwitchInterval
+                      orgSlug={orgSlug}
+                      target={sub.interval === "YEAR" ? "MONTH" : "YEAR"}
+                      label={
+                        sub.interval === "YEAR"
+                          ? t("switchToMonth", {
+                              price: money(state.prices.MONTH),
+                            })
+                          : t("switchToYear", {
+                              price: money(state.prices.YEAR),
+                            })
                       }
-                    >
-                      {plans[p].features.includes(f) ? (
-                        <CheckIcon className="mx-auto text-success" />
-                      ) : (
-                        <span aria-hidden="true">-</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="text-xs text-ink-muted">{t("pricesTtc")}</p>
-      </Card>
-      {can(ctx.membership, "BILLING_MANAGE") ? (
+                      done={t("switchDone")}
+                      error={t("switchError")}
+                    />
+                  ) : null}
+                  <div className="rounded-md bg-surface-sunken p-4 text-sm">
+                    <p className="font-semibold">{t("downgradeTitle")}</p>
+                    <ul className="mt-2 grid list-disc gap-1 pl-5">
+                      {(
+                        ["fee", "brand", "tiers", "members", "orgs"] as const
+                      ).map((k) => (
+                        <li key={k}>
+                          {t(`downgrade_${k}`, { cap: money(state.caps.free) })}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-ink-muted">{t("downgradeKept")}</p>
+                  </div>
+                </div>
+              ) : (
+                <PlanPicker
+                  orgSlug={orgSlug}
+                  prices={state.prices}
+                  currency={state.currency}
+                  trial={state.trialEligible}
+                />
+              )
+            ) : (
+              <p className="text-sm text-ink-muted">{t("ownerOnly")}</p>
+            )}
+          </Card>
+
+          <CompareOffers label={t("compareOpen")} title={t("compareTitle")}>
+            <Card className="grid gap-3">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm [&_td]:px-1 [&_th]:pr-2">
+                  <thead>
+                    <tr className="text-left text-ink-muted">
+                      <th
+                        scope="col"
+                        className="pb-2 font-label text-xs font-bold"
+                      >
+                        <span className="sr-only">{t("feature")}</span>
+                      </th>
+                      <th
+                        scope="col"
+                        className="pb-2 text-center font-label text-xs font-bold"
+                      >
+                        Free
+                      </th>
+                      <th
+                        scope="col"
+                        className="pb-2 text-center font-label text-xs font-bold"
+                      >
+                        Pro
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-line">
+                      <th scope="row" className="py-2 text-left font-normal">
+                        {t("row_price")}
+                      </th>
+                      <td className="py-2 text-center">{money(0)}</td>
+                      <td className="py-2 text-center">
+                        {t("proPrice", {
+                          month: money(state.prices.MONTH),
+                          year: money(state.prices.YEAR),
+                        })}
+                      </td>
+                    </tr>
+                    <tr className="border-t border-line">
+                      <th scope="row" className="py-2 text-left font-normal">
+                        {t("row_fee")}
+                      </th>
+                      <td className="py-2 text-center">
+                        {t("feeCap", { cap: money(state.caps.free) })}
+                      </td>
+                      <td className="py-2 text-center font-semibold">
+                        {t("feeCap", { cap: money(state.caps.pro) })}
+                      </td>
+                    </tr>
+                    {COMPARED.map((f) => (
+                      <tr key={f} className="border-t border-line">
+                        <th scope="row" className="py-2 text-left font-normal">
+                          {t(`feature_${f}`)}
+                        </th>
+                        {(["free", "pro"] as const).map((p) => (
+                          <td
+                            key={p}
+                            className="py-2 text-center"
+                            aria-label={
+                              plans[p].features.includes(f)
+                                ? t("included")
+                                : t("notIncluded")
+                            }
+                          >
+                            {plans[p].features.includes(f) ? (
+                              <CheckIcon className="mx-auto text-success" />
+                            ) : (
+                              <span aria-hidden="true">-</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-ink-muted">{t("pricesTtc")}</p>
+            </Card>
+          </CompareOffers>
+        </>
+      ) : null}
+      {view === "referral" && can(ctx.membership, "BILLING_MANAGE") ? (
         <ReferralCard {...await referralLink(ctx.organization.id)} />
       ) : null}
-      {can(ctx.membership, "BILLING_MANAGE") ? (
+      {view === "venue" && can(ctx.membership, "BILLING_MANAGE") ? (
         <VenueCard
           orgSlug={orgSlug}
           currency={ctx.organization.currency}
@@ -264,7 +277,7 @@ export default async function BillingPage({
           manage={manage}
         />
       ) : null}
-      {referredBy ? (
+      {view === "venue" && referredBy ? (
         <Card className="grid gap-2">
           <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
             {tv("referredTitle")}

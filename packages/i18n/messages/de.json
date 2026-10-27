@@ -1831,7 +1831,8 @@
     "switchError": "Die Änderung war nicht möglich. Bitte erneut versuchen oder „Abo verwalten“ nutzen.",
     "feature_PREPAID_OPTIONS": "Vorausbezahlte Extras und Getränke",
     "feature_EMBED_WIDGET": "Ticketverkauf auf Ihrer eigenen Website",
-    "feature_AMBASSADORS": "Botschafter und Verkaufsrangliste"
+    "feature_AMBASSADORS": "Botschafter und Verkaufsrangliste",
+    "compareOpen": "Tarife vergleichen"
   },
   "brand": {
     "sloganStart": "deine nächste",
@@ -2137,7 +2138,8 @@
     "featuredNoEvents": "Derzeit keine kommende öffentliche Veranstaltung.",
     "featuredFallback": "Die ausgewählte Veranstaltung ist nicht mehr kommend oder öffentlich: Ihre Seite zeigt Ihre nächste Veranstaltung.",
     "featuredSave": "Hervorhebung speichern",
-    "featuredSaved": "Gespeichert."
+    "featuredSaved": "Gespeichert.",
+    "deleteOwnerOnly": "Nur die Inhaberin oder der Inhaber der Organisation kann sie löschen."
   },
   "team": {
     "title": "Mitglieder und Rollen",
@@ -3221,7 +3223,14 @@
     "tab_payments": "Zahlungen",
     "tab_notifications": "Benachrichtigungen",
     "tab_preferences": "Einstellungen",
-    "tabs": "Bereiche der Seite"
+    "tabs": "Bereiche der Seite",
+    "tab_automations": "Automatisierungen",
+    "tab_orgPage": "Seite der Organisation",
+    "tab_address": "Adresse und Domains",
+    "tab_offer": "Tarif",
+    "tab_referral": "Empfehlung",
+    "tab_venue": "Partnerort",
+    "tab_advanced": "Erweitert"
   },
   "distribution": {
     "intro": "Verkaufen Sie auch über Ticketmaster, Fnac, BilletReduc oder ein Tourismusbüro? Geben Sie ihnen Kontingente: Diese Plätze werden aus dem Verkauf auf Evoly genommen, damit kein Platz doppelt verkauft wird.",

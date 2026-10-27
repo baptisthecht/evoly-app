@@ -1831,7 +1831,8 @@
     "switchError": "De wijziging lukte niet. Probeer opnieuw of gebruik ‘Abonnement beheren’.",
     "feature_PREPAID_OPTIONS": "Opties en vooraf betaalde consumpties",
     "feature_EMBED_WIDGET": "Ticketverkoop op je eigen website",
-    "feature_AMBASSADORS": "Ambassadeurs en verkoopklassement"
+    "feature_AMBASSADORS": "Ambassadeurs en verkoopklassement",
+    "compareOpen": "Abonnementen vergelijken"
   },
   "brand": {
     "sloganStart": "je volgende",
@@ -2137,7 +2138,8 @@
     "featuredNoEvents": "Nog geen komend openbaar evenement.",
     "featuredFallback": "Het gekozen evenement is niet meer komend of openbaar: je pagina toont je volgende evenement.",
     "featuredSave": "Uitgelicht evenement opslaan",
-    "featuredSaved": "Opgeslagen."
+    "featuredSaved": "Opgeslagen.",
+    "deleteOwnerOnly": "Alleen de eigenaar van de organisatie kan ze verwijderen."
   },
   "team": {
     "title": "Leden en rollen",
@@ -3221,7 +3223,14 @@
     "tab_payments": "Betalingen",
     "tab_notifications": "Meldingen",
     "tab_preferences": "Voorkeuren",
-    "tabs": "Onderdelen van de pagina"
+    "tabs": "Onderdelen van de pagina",
+    "tab_automations": "Automatiseringen",
+    "tab_orgPage": "Pagina van de organisatie",
+    "tab_address": "Adres en domeinen",
+    "tab_offer": "Abonnement",
+    "tab_referral": "Doorverwijzing",
+    "tab_venue": "Partnerlocatie",
+    "tab_advanced": "Geavanceerd"
   },
   "distribution": {
     "intro": "Verkoop je ook via Ticketmaster, Fnac, BilletReduc of een toeristische dienst? Vertrouw hen plaatsen toe: die worden uit de verkoop op Evoly gehaald, zodat dezelfde plaats nooit twee keer wordt verkocht.",

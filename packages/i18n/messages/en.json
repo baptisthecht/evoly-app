@@ -1858,7 +1858,8 @@
     "switchError": "The change couldn’t be made. Try again or use “Manage my subscription”.",
     "feature_PREPAID_OPTIONS": "Prepaid add-ons and drinks",
     "feature_EMBED_WIDGET": "Ticketing embedded on your website",
-    "feature_AMBASSADORS": "Ambassadors and sales leaderboard"
+    "feature_AMBASSADORS": "Ambassadors and sales leaderboard",
+    "compareOpen": "Compare plans"
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Edit organisation settings",
@@ -2034,7 +2035,8 @@
     "featuredNoEvents": "No upcoming public event for now.",
     "featuredFallback": "The chosen event is no longer upcoming or public: your page shows your next event.",
     "featuredSave": "Save the featured event",
-    "featuredSaved": "Saved."
+    "featuredSaved": "Saved.",
+    "deleteOwnerOnly": "Only the organisation owner can delete it."
   },
   "unsubscribe": {
     "invalid": "This unsubscribe link isn’t valid.",
@@ -3221,7 +3223,14 @@
     "tab_payments": "Payments",
     "tab_notifications": "Notifications",
     "tab_preferences": "Preferences",
-    "tabs": "Page sections"
+    "tabs": "Page sections",
+    "tab_automations": "Automations",
+    "tab_orgPage": "Organisation page",
+    "tab_address": "Address and domains",
+    "tab_offer": "Plan",
+    "tab_referral": "Referral",
+    "tab_venue": "Partner venue",
+    "tab_advanced": "Advanced"
   },
   "distribution": {
     "intro": "Do you also sell through Ticketmaster, Fnac, BilletReduc or a tourist office? Allocate seats to them: they are removed from sale on Evoly, so the same seat is never sold twice.",
