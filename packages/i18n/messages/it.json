@@ -2065,7 +2065,8 @@
     "optionRedeemed": "Ritirate",
     "optionAmount": "Importo",
     "optionFee": "Commissione",
-    "optionTotal": "Totale"
+    "optionTotal": "Totale",
+    "byEventCaption": "Incassi per evento"
   },
   "settings": {
     "title": "Impostazioni",

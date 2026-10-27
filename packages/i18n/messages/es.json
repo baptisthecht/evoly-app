@@ -2065,7 +2065,8 @@
     "optionRedeemed": "Canjeadas",
     "optionAmount": "Importe",
     "optionFee": "Comisión",
-    "optionTotal": "Total"
+    "optionTotal": "Total",
+    "byEventCaption": "Ingresos por evento"
   },
   "settings": {
     "title": "Ajustes",

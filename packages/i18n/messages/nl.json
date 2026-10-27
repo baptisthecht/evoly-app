@@ -2065,7 +2065,8 @@
     "optionRedeemed": "Afgehaald",
     "optionAmount": "Bedrag",
     "optionFee": "Commissie",
-    "optionTotal": "Totaal"
+    "optionTotal": "Totaal",
+    "byEventCaption": "Inkomsten per evenement"
   },
   "settings": {
     "title": "Instellingen",

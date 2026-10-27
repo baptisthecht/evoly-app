@@ -9,6 +9,7 @@ import { Badge, Card, EmptyState } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Field";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
+import { FinanceByEventTable } from "./FinanceTables";
 import {
   financeOverview,
   statementMonths,
@@ -199,65 +200,24 @@ export default async function FinancesPage({
             </a>
           </div>
         </div>
-        {overview.byEvent.length === 0 ? (
-          <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[40rem] text-sm">
-              <thead>
-                <tr className="text-left text-ink-muted">
-                  {[
-                    "colEvent",
-                    "colTickets",
-                    "colGross",
-                    "colRefunded",
-                    "colCommission",
-                    "colBankFees",
-                    "colNet",
-                  ].map((h, i) => (
-                    <th
-                      key={h}
-                      scope="col"
-                      className={`pb-2 font-label text-xs font-bold ${i > 0 ? "text-right" : ""}`}
-                    >
-                      {t(h)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {overview.byEvent.map((r) => (
-                  <tr key={r.eventId} className="border-t border-line">
-                    <th
-                      scope="row"
-                      className="py-2 pr-3 text-left font-semibold"
-                    >
-                      {r.title}
-                    </th>
-                    <td className="py-2 text-right tabular-nums">
-                      {r.tickets}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">
-                      {money(r.grossMinor)}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">
-                      {r.refundedMinor ? `−${money(r.refundedMinor)}` : "-"}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">
-                      {r.commissionMinor ? `−${money(r.commissionMinor)}` : "-"}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">
-                      {r.bankFeeMinor ? `−${money(r.bankFeeMinor)}` : "-"}
-                    </td>
-                    <td className="py-2 text-right font-semibold tabular-nums">
-                      {money(r.netMinor)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <FinanceByEventTable
+          rows={overview.byEvent.map((r) => ({
+            id: r.eventId,
+            title: r.title,
+            tickets: r.tickets,
+            gross: money(r.grossMinor),
+            grossMinor: r.grossMinor,
+            refunded: r.refundedMinor ? money(r.refundedMinor) : null,
+            refundedMinor: r.refundedMinor,
+            commission: r.commissionMinor ? money(r.commissionMinor) : null,
+            commissionMinor: r.commissionMinor,
+            bankFees: r.bankFeeMinor ? money(r.bankFeeMinor) : null,
+            bankFeeMinor: r.bankFeeMinor,
+            net: money(r.netMinor),
+            netMinor: r.netMinor,
+            href: `/o/${orgSlug}/events/${r.eventId}`,
+          }))}
+        />
       </Card>
 
       {overview.options.rows.length ? (

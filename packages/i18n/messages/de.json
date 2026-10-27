@@ -2065,7 +2065,8 @@
     "optionRedeemed": "Eingelöst",
     "optionAmount": "Betrag",
     "optionFee": "Provision",
-    "optionTotal": "Gesamt"
+    "optionTotal": "Gesamt",
+    "byEventCaption": "Einnahmen pro Veranstaltung"
   },
   "settings": {
     "title": "Einstellungen",

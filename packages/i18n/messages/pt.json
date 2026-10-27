@@ -2065,7 +2065,8 @@
     "optionRedeemed": "Levantadas",
     "optionAmount": "Montante",
     "optionFee": "Comissão",
-    "optionTotal": "Total"
+    "optionTotal": "Total",
+    "byEventCaption": "Receitas por evento"
   },
   "settings": {
     "title": "Definições",
