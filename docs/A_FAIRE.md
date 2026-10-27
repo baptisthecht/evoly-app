@@ -29,10 +29,9 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
   destination « comptes connectés », et « Paiements activés » dans Evoly.
 - Compléter le profil Stripe (Paramètres, Entreprise) : description de l'activité (vide), un seul e-mail de support
   (`contact@` dans Stripe, `hello@` sur le site), adresse de support.
-- Ne jamais tester en mode réel avec sa propre carte : les conditions de Stripe l'interdisent, et ses contrôles de risque
-  repèrent ces paiements remboursés (paiements par carte suspendus le 28 octobre 2026 après un achat de test de 1 €,
-  solde de -0,30 € de frais conservés). Les essais se font en mode test ; en mode réel, surveiller les premières vraies
-  ventes et les livraisons des deux webhooks (réponse 200).
+- Ne jamais tester en mode réel avec sa propre carte : les conditions de Stripe l'interdisent. Un achat de test remboursé
+  laisse aussi un solde négatif (-0,30 € de frais conservés le 28 octobre 2026). Les essais se font en mode test ; en mode
+  réel, surveiller les premières vraies ventes et les livraisons des deux webhooks (réponse 200).
 - Régler un solde minimum dans les virements, pour couvrir les remboursements d'abonnements Pro sans solde négatif.
 - Plus tard : remplacer la clé secrète à accès complet par une clé restreinte aux opérations qu'Evoly appelle (liste établie le 26 octobre 2026), après un essai complet.
 
