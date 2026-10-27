@@ -1557,7 +1557,10 @@
     "tablePrice": "Prix",
     "tableStatus": "Statut",
     "tableListed": "Mise en vente",
-    "byEventShortcut": "Réglages de revente par événement"
+    "byEventShortcut": "Réglages de revente par événement",
+    "tableSeller": "Vendeur",
+    "tableActions": "Actions",
+    "tableCaptionEvent": "Annonces de revente"
   },
   "ordersAdmin": {
     "title": "Commandes",

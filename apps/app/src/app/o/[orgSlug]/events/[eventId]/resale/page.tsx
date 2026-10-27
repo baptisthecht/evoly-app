@@ -8,7 +8,7 @@ import { Badge, Card, EmptyState } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { findEvent } from "@/server/events";
 import { listingsForOrganizer } from "@/server/resale";
-import { CancelListing } from "./CancelListing";
+import { EventResaleTable } from "./EventResaleTable";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -81,59 +81,32 @@ export default async function ResaleAdminPage({
           {t("changeSettings")}
         </Link>
       </p>
-      {listings.length === 0 ? (
-        <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
-      ) : null}
-      <ul className="grid gap-3">
-        {listings.map((l) => (
-          <li key={l.id}>
-            <Card className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-              <div className="grid min-w-0 gap-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold">{l.ticket.ticketType.name}</p>
-                  <Badge tone={TONES[l.status]}>
-                    {t(`status_${l.status}`)}
-                  </Badge>
-                  <span className="font-mono text-xs text-ink-muted">
-                    {l.ticket.shortCode}
-                  </span>
-                </div>
-                <p className="text-sm">
-                  {l.priceMinor === 0 ? t("transfer") : money(l.priceMinor)} ·{" "}
-                  {t("faceValue", { value: money(l.faceValueMinor) })} ·{" "}
-                  {l.sellerEmail}
-                </p>
-                <p className="text-sm text-ink-muted">
-                  {t("listedOn", {
-                    date: formatDateTime(
-                      l.createdAt,
-                      event.timezone,
-                      locale,
-                      "short",
-                    ),
-                  })}
-                  {l.soldAt
-                    ? ` · ${t("soldOn", { date: formatDateTime(l.soldAt, event.timezone, locale, "short") })}`
-                    : ""}
-                  {l.sellerRefundMinor != null && l.sellerRefundMinor > 0
-                    ? ` · ${t("refunded", { amount: money(l.sellerRefundMinor) })}`
-                    : ""}
-                </p>
-                {l.status === "FAILED" ? (
-                  <p className="text-sm text-danger">{t("failedHint")}</p>
-                ) : null}
-              </div>
-              {manage && l.status === "ACTIVE" ? (
-                <CancelListing
-                  orgSlug={orgSlug}
-                  eventId={eventId}
-                  listingId={l.id}
-                />
-              ) : null}
-            </Card>
-          </li>
-        ))}
-      </ul>
+      <EventResaleTable
+        orgSlug={orgSlug}
+        eventId={eventId}
+        rows={listings.map((l) => ({
+          id: l.id,
+          code: l.ticket.shortCode,
+          type: l.ticket.ticketType.name,
+          seller: l.sellerEmail,
+          price: l.priceMinor === 0 ? null : money(l.priceMinor),
+          priceMinor: l.priceMinor,
+          face: money(l.faceValueMinor),
+          status: l.status,
+          statusLabel: t(`status_${l.status}`),
+          tone: TONES[l.status],
+          listed: formatDateTime(l.createdAt, event.timezone, locale, "short"),
+          listedAt: l.createdAt.getTime(),
+          sold: l.soldAt
+            ? formatDateTime(l.soldAt, event.timezone, locale, "short")
+            : null,
+          refund:
+            l.sellerRefundMinor != null && l.sellerRefundMinor > 0
+              ? money(l.sellerRefundMinor)
+              : null,
+          cancellable: manage && l.status === "ACTIVE",
+        }))}
+      />
     </div>
   );
 }

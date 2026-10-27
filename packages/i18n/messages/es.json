@@ -2608,7 +2608,10 @@
     "tablePrice": "Precio",
     "tableStatus": "Estado",
     "tableListed": "Puesta a la venta",
-    "byEventShortcut": "Ajustes de reventa por evento"
+    "byEventShortcut": "Ajustes de reventa por evento",
+    "tableSeller": "Vendedor",
+    "tableActions": "Acciones",
+    "tableCaptionEvent": "Anuncios de reventa"
   },
   "questions": {
     "title": "Preguntas en la compra",

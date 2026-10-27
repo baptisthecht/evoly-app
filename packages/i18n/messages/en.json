@@ -1557,7 +1557,10 @@
     "tablePrice": "Price",
     "tableStatus": "Status",
     "tableListed": "Listed",
-    "byEventShortcut": "Resale settings by event"
+    "byEventShortcut": "Resale settings by event",
+    "tableSeller": "Seller",
+    "tableActions": "Actions",
+    "tableCaptionEvent": "Resale listings"
   },
   "ordersAdmin": {
     "title": "Orders",

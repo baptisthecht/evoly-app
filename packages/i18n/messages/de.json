@@ -2608,7 +2608,10 @@
     "tablePrice": "Preis",
     "tableStatus": "Status",
     "tableListed": "Eingestellt",
-    "byEventShortcut": "Weiterverkauf pro Veranstaltung"
+    "byEventShortcut": "Weiterverkauf pro Veranstaltung",
+    "tableSeller": "Verkäufer",
+    "tableActions": "Aktionen",
+    "tableCaptionEvent": "Weiterverkaufsangebote"
   },
   "questions": {
     "title": "Fragen beim Kauf",

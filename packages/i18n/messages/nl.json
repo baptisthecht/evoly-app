@@ -2608,7 +2608,10 @@
     "tablePrice": "Prijs",
     "tableStatus": "Status",
     "tableListed": "Te koop gezet",
-    "byEventShortcut": "Doorverkoopinstellingen per evenement"
+    "byEventShortcut": "Doorverkoopinstellingen per evenement",
+    "tableSeller": "Verkoper",
+    "tableActions": "Acties",
+    "tableCaptionEvent": "Doorverkoopaanbiedingen"
   },
   "questions": {
     "title": "Vragen bij de aankoop",
