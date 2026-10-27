@@ -1445,7 +1445,15 @@
     "activate": "Réactiver",
     "delete": "Supprimer",
     "raisesLimitTo": "Relever la limite à",
-    "raisesLimitToHint": "Pour les groupes : relève les limites par commande et par personne à ce nombre de billets, jamais en dessous."
+    "raisesLimitToHint": "Pour les groupes : relève les limites par commande et par personne à ce nombre de billets, jamais en dessous.",
+    "tableValue": "Réduction",
+    "tableScope": "Tarifs",
+    "tableUses": "Utilisations",
+    "tableUntil": "Fin",
+    "tableStatus": "Statut",
+    "tableActions": "Actions",
+    "tableCaption": "Codes promo",
+    "noEnd": "Sans fin"
   },
   "entries": {
     "result_VALID": "Entrée validée",
@@ -1962,7 +1970,18 @@
     "saveRole": "Enregistrer le rôle",
     "cancel": "Annuler",
     "confirmDeleteRole": "Supprimer le rôle {name} ?",
-    "deleteRole": "Supprimer le rôle"
+    "deleteRole": "Supprimer le rôle",
+    "tableMember": "Membre",
+    "tableRole": "Rôle",
+    "tableJoined": "Arrivée",
+    "tableStatus": "Statut",
+    "tableActions": "Actions",
+    "tableCaption": "Membres de l’équipe",
+    "activeMember": "Actif",
+    "matrixTitle": "Droits de chaque rôle",
+    "matrixPermission": "Droit",
+    "matrixYes": "Oui",
+    "matrixNo": "Non"
   },
   "invitation": {
     "notFound": "Cette invitation n’existe pas.",

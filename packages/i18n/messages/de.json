@@ -2190,7 +2190,18 @@
     "saveRole": "Rolle speichern",
     "cancel": "Abbrechen",
     "confirmDeleteRole": "Rolle {name} löschen?",
-    "deleteRole": "Rolle löschen"
+    "deleteRole": "Rolle löschen",
+    "tableMember": "Mitglied",
+    "tableRole": "Rolle",
+    "tableJoined": "Beigetreten",
+    "tableStatus": "Status",
+    "tableActions": "Aktionen",
+    "tableCaption": "Teammitglieder",
+    "activeMember": "Aktiv",
+    "matrixTitle": "Rechte jeder Rolle",
+    "matrixPermission": "Recht",
+    "matrixYes": "Ja",
+    "matrixNo": "Nein"
   },
   "twoFactor": {
     "accountLink": "Kontosicherheit",
@@ -2650,7 +2661,15 @@
     "activate": "Reaktivieren",
     "delete": "Löschen",
     "raisesLimitTo": "Limit anheben auf",
-    "raisesLimitToHint": "Für Gruppen: hebt die Limits pro Bestellung und pro Person auf diese Ticketzahl an, nie darunter."
+    "raisesLimitToHint": "Für Gruppen: hebt die Limits pro Bestellung und pro Person auf diese Ticketzahl an, nie darunter.",
+    "tableValue": "Rabatt",
+    "tableScope": "Tarife",
+    "tableUses": "Nutzungen",
+    "tableUntil": "Ende",
+    "tableStatus": "Status",
+    "tableActions": "Aktionen",
+    "tableCaption": "Aktionscodes",
+    "noEnd": "Ohne Ende"
   },
   "tiers": {
     "title": "Dynamische Preise",

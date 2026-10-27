@@ -14,6 +14,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { cn } from "@/components/ui/cn";
 import { requireOrgContext } from "@/server/context";
+import { InviteDialog, MembersTable } from "./MembersTable";
 import { teamOverview } from "@/server/team";
 import {
   InvitationActions,
@@ -81,75 +82,37 @@ export default async function MembersPage({
       {active === "members" ? (
         <>
           {manageMembers && team ? (
-            <Card className="grid gap-3">
-              <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-                {t("inviteTitle")}
-              </h2>
-              <InviteForm orgSlug={orgSlug} roles={assignable} />
-            </Card>
+            <InviteDialog orgSlug={orgSlug} roles={assignable} />
           ) : null}
-          <Card className="grid gap-2">
-            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-              {t("membersTitle", { count: members.length })}
-            </h2>
-            <ul className="grid gap-2">
-              {members.map((m) => {
-                const isSelf = m.userId === ctx.user.id;
-                const isOwnerRow = m.role.systemKey === "OWNER";
-                const suspended = !team && !isOwnerRow;
-                return (
-                  <li
-                    key={m.id}
-                    className="grid gap-2 border-t border-line pt-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
-                  >
-                    <div className="min-w-0">
-                      <p className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold">{m.user.name}</span>
-                        {isSelf ? <Badge>{t("you")}</Badge> : null}
-                        {suspended ? (
-                          <Badge tone="warning">{t("suspended")}</Badge>
-                        ) : null}
-                      </p>
-                      <p className="truncate text-sm text-ink-muted">
-                        {m.user.email} ·{" "}
-                        {t("joined", {
-                          date: formatDate(
-                            m.joinedAt,
-                            ctx.organization.timezone,
-                            locale,
-                          ),
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {manageMembers &&
-                      !isOwnerRow &&
-                      !isSelf &&
-                      roles.find((r) => r.id === m.role.id)?.assignable ? (
-                        <>
-                          <MemberRole
-                            orgSlug={orgSlug}
-                            memberId={m.id}
-                            roleId={m.role.id}
-                            roles={assignable}
-                          />
-                          <RemoveMember
-                            orgSlug={orgSlug}
-                            memberId={m.id}
-                            name={m.user.name}
-                          />
-                        </>
-                      ) : (
-                        <Badge tone={isOwnerRow ? "dark" : "neutral"}>
-                          {label(m.role)}
-                        </Badge>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </Card>
+          <MembersTable
+            orgSlug={orgSlug}
+            roles={assignable}
+            rows={members.map((m) => {
+              const isSelf = m.userId === ctx.user.id;
+              const isOwnerRow = m.role.systemKey === "OWNER";
+              return {
+                id: m.id,
+                name: m.user.name,
+                email: m.user.email,
+                joined: formatDate(
+                  m.joinedAt,
+                  ctx.organization.timezone,
+                  locale,
+                ),
+                joinedAt: m.joinedAt.getTime(),
+                self: isSelf,
+                owner: isOwnerRow,
+                suspended: !team && !isOwnerRow,
+                roleId: m.role.id,
+                roleLabel: label(m.role),
+                editable:
+                  manageMembers &&
+                  !isOwnerRow &&
+                  !isSelf &&
+                  !!roles.find((r) => r.id === m.role.id)?.assignable,
+              };
+            })}
+          />
           {invitations.length > 0 ? (
             <Card className="grid gap-2">
               <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
@@ -209,29 +172,90 @@ export default async function MembersPage({
         </>
       ) : (
         <>
-          <section className="grid gap-3" aria-labelledby="system-roles">
+          {/* matrice des droits : les droits en lignes, les rôles en colonnes */}
+          <section className="grid gap-3" aria-labelledby="roles-matrix">
             <h2
-              id="system-roles"
+              id="roles-matrix"
               className="font-display text-lg tracking-[var(--tracking-title)]"
             >
-              {t("systemRoles")}
+              {t("matrixTitle")}
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {roles
-                .filter((r) => r.systemKey)
-                .map((r) => (
-                  <Card key={r.id} className="grid gap-1">
-                    <p className="font-semibold">{label(r)}</p>
-                    <p className="text-sm text-ink-muted">
-                      {tr(`${r.systemKey}.description`)}
-                    </p>
-                    <p className="text-xs text-ink-muted">
-                      {t("permissionsCount", {
-                        count: (r.permissions as Permission[]).length,
+            <div className="max-h-[70dvh] overflow-auto rounded-[var(--r-panel)] bg-surface-raised ring-1 ring-line">
+              <table className="w-full border-collapse text-sm">
+                <caption className="sr-only">{t("matrixTitle")}</caption>
+                <thead className="sticky top-0 z-[2] bg-surface-raised">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="sticky left-0 z-[3] bg-surface-raised px-4 py-3 text-left text-xs font-semibold text-ink-muted"
+                    >
+                      {t("matrixPermission")}
+                    </th>
+                    {roles.map((r) => (
+                      <th
+                        key={r.id}
+                        scope="col"
+                        className="px-3 py-3 text-center text-xs font-semibold whitespace-nowrap"
+                      >
+                        {label(r)}
+                        <span className="block font-normal text-ink-muted tabular-nums">
+                          {t("permissionsCount", {
+                            count: (r.permissions as Permission[]).length,
+                          })}
+                        </span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {PERMISSIONS.map((p) => (
+                    <tr
+                      key={p}
+                      className="border-t border-line hover:bg-surface-sunken/60"
+                    >
+                      <th
+                        scope="row"
+                        className="sticky left-0 z-[1] bg-surface-raised px-4 py-2.5 text-left font-normal"
+                      >
+                        {tp(p)}
+                      </th>
+                      {roles.map((r) => {
+                        const on = (r.permissions as Permission[]).includes(p);
+                        return (
+                          <td key={r.id} className="px-3 py-2.5 text-center">
+                            {on ? (
+                              <span
+                                className="inline-flex size-6 items-center justify-center rounded-full bg-success-soft text-success"
+                                aria-label={t("matrixYes")}
+                              >
+                                <svg
+                                  aria-hidden="true"
+                                  viewBox="0 0 24 24"
+                                  className="size-3.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth={3}
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="m5 12 5 5 9-10" />
+                                </svg>
+                              </span>
+                            ) : (
+                              <span
+                                className="text-ink-subtle"
+                                aria-label={t("matrixNo")}
+                              >
+                                ·
+                              </span>
+                            )}
+                          </td>
+                        );
                       })}
-                    </p>
-                  </Card>
-                ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </section>
           <section className="grid gap-3" aria-labelledby="custom-roles">

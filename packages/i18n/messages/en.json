@@ -1445,7 +1445,15 @@
     "activate": "Enable",
     "delete": "Delete",
     "raisesLimitTo": "Raise the limit to",
-    "raisesLimitToHint": "For groups: raises the per-order and per-person limits to this number of tickets, never below."
+    "raisesLimitToHint": "For groups: raises the per-order and per-person limits to this number of tickets, never below.",
+    "tableValue": "Discount",
+    "tableScope": "Ticket types",
+    "tableUses": "Uses",
+    "tableUntil": "Ends",
+    "tableStatus": "Status",
+    "tableActions": "Actions",
+    "tableCaption": "Promo codes",
+    "noEnd": "No end"
   },
   "entries": {
     "result_VALID": "Entry accepted",
@@ -1962,7 +1970,18 @@
     "saveRole": "Save the role",
     "cancel": "Cancel",
     "confirmDeleteRole": "Delete the role {name}?",
-    "deleteRole": "Delete the role"
+    "deleteRole": "Delete the role",
+    "tableMember": "Member",
+    "tableRole": "Role",
+    "tableJoined": "Joined",
+    "tableStatus": "Status",
+    "tableActions": "Actions",
+    "tableCaption": "Team members",
+    "activeMember": "Active",
+    "matrixTitle": "What each role can do",
+    "matrixPermission": "Permission",
+    "matrixYes": "Yes",
+    "matrixNo": "No"
   },
   "invitation": {
     "notFound": "This invitation doesn’t exist.",

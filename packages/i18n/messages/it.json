@@ -2190,7 +2190,18 @@
     "saveRole": "Salva il ruolo",
     "cancel": "Annulla",
     "confirmDeleteRole": "Eliminare il ruolo {name}?",
-    "deleteRole": "Elimina il ruolo"
+    "deleteRole": "Elimina il ruolo",
+    "tableMember": "Membro",
+    "tableRole": "Ruolo",
+    "tableJoined": "Dal",
+    "tableStatus": "Stato",
+    "tableActions": "Azioni",
+    "tableCaption": "Membri del team",
+    "activeMember": "Attivo",
+    "matrixTitle": "Permessi di ogni ruolo",
+    "matrixPermission": "Permesso",
+    "matrixYes": "Sì",
+    "matrixNo": "No"
   },
   "twoFactor": {
     "accountLink": "Sicurezza dell’account",
@@ -2650,7 +2661,15 @@
     "activate": "Riattiva",
     "delete": "Elimina",
     "raisesLimitTo": "Alza il limite a",
-    "raisesLimitToHint": "Per i gruppi: alza i limiti per ordine e a persona a questo numero di biglietti, mai al di sotto."
+    "raisesLimitToHint": "Per i gruppi: alza i limiti per ordine e a persona a questo numero di biglietti, mai al di sotto.",
+    "tableValue": "Sconto",
+    "tableScope": "Tariffe",
+    "tableUses": "Utilizzi",
+    "tableUntil": "Fine",
+    "tableStatus": "Stato",
+    "tableActions": "Azioni",
+    "tableCaption": "Codici promozionali",
+    "noEnd": "Senza fine"
   },
   "tiers": {
     "title": "Prezzi dinamici",

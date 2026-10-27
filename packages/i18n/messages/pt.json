@@ -2190,7 +2190,18 @@
     "saveRole": "Guardar a função",
     "cancel": "Cancelar",
     "confirmDeleteRole": "Eliminar a função {name}?",
-    "deleteRole": "Eliminar a função"
+    "deleteRole": "Eliminar a função",
+    "tableMember": "Membro",
+    "tableRole": "Função",
+    "tableJoined": "Desde",
+    "tableStatus": "Estado",
+    "tableActions": "Ações",
+    "tableCaption": "Membros da equipa",
+    "activeMember": "Ativo",
+    "matrixTitle": "Permissões de cada função",
+    "matrixPermission": "Permissão",
+    "matrixYes": "Sim",
+    "matrixNo": "Não"
   },
   "twoFactor": {
     "accountLink": "Segurança da conta",
@@ -2650,7 +2661,15 @@
     "activate": "Reativar",
     "delete": "Eliminar",
     "raisesLimitTo": "Subir o limite para",
-    "raisesLimitToHint": "Para grupos: sobe os limites por encomenda e por pessoa para este número de bilhetes, nunca abaixo."
+    "raisesLimitToHint": "Para grupos: sobe os limites por encomenda e por pessoa para este número de bilhetes, nunca abaixo.",
+    "tableValue": "Desconto",
+    "tableScope": "Tarifas",
+    "tableUses": "Utilizações",
+    "tableUntil": "Fim",
+    "tableStatus": "Estado",
+    "tableActions": "Ações",
+    "tableCaption": "Códigos promocionais",
+    "noEnd": "Sem fim"
   },
   "tiers": {
     "title": "Preços dinâmicos",

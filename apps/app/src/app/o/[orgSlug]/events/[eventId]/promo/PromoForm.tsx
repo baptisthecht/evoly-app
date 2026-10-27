@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useState } from "react";
+import { Dialog } from "@/components/ui/Dialog";
 import {
   FormError,
   SubmitButton,
@@ -35,8 +36,9 @@ export function PromoForm({
   useEffect(() => {
     if (state?.ok) setOpen(false);
   }, [state]);
-  if (!open)
-    return (
+  // création d'un code : dans une fenêtre (centrée sur ordinateur, feuille sur téléphone)
+  return (
+    <>
       <Button
         type="button"
         variant="secondary"
@@ -46,173 +48,180 @@ export function PromoForm({
       >
         + {t("new")}
       </Button>
-    );
-  return (
-    <Card className="grid gap-5">
-      <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-        {t("new")}
-      </h2>
-      <form {...formProps} className="grid gap-5" noValidate>
-        <FormError state={state} />
-        <div className="grid gap-5 sm:grid-cols-3">
-          <Field
-            label={t("code")}
-            htmlFor="promo-code"
-            hint={t("codeHint")}
-            error={error("code")}
-          >
-            <Input
-              id="promo-code"
-              name="code"
-              maxLength={32}
-              autoCapitalize="characters"
-              className="uppercase"
-            />
-          </Field>
-          <Field label={t("type")} htmlFor="promo-type">
-            <Select
-              id="promo-type"
-              name="discountType"
-              value={type}
-              onChange={(e) => setType(e.target.value as typeof type)}
-            >
-              <option value="PERCENT">{t("type_PERCENT")}</option>
-              <option value="AMOUNT">{t("type_AMOUNT")}</option>
-              <option value="FREE">{t("type_FREE")}</option>
-            </Select>
-          </Field>
-          {type === "PERCENT" ? (
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title={t("new")}
+        size="lg"
+      >
+        <form {...formProps} className="grid gap-5" noValidate>
+          <FormError state={state} />
+          <div className="grid gap-5 sm:grid-cols-3">
             <Field
-              label={`${t("percent")} (%)`}
-              htmlFor="promo-percent"
-              error={error("percent")}
+              label={t("code")}
+              htmlFor="promo-code"
+              hint={t("codeHint")}
+              error={error("code")}
             >
               <Input
-                id="promo-percent"
-                name="percent"
-                inputMode="decimal"
-                required
+                id="promo-code"
+                name="code"
+                maxLength={32}
+                autoCapitalize="characters"
+                className="uppercase"
               />
             </Field>
-          ) : type === "AMOUNT" ? (
-            <Field
-              label={`${t("amount")} (${currencySymbol})`}
-              htmlFor="promo-amount"
-              hint={t("amountHint")}
-              error={error("amount")}
-            >
-              <Input
-                id="promo-amount"
-                name="amount"
-                inputMode="decimal"
-                required
-              />
+            <Field label={t("type")} htmlFor="promo-type">
+              <Select
+                id="promo-type"
+                name="discountType"
+                value={type}
+                onChange={(e) => setType(e.target.value as typeof type)}
+              >
+                <option value="PERCENT">{t("type_PERCENT")}</option>
+                <option value="AMOUNT">{t("type_AMOUNT")}</option>
+                <option value="FREE">{t("type_FREE")}</option>
+              </Select>
             </Field>
-          ) : (
-            <p className="self-end pb-3 text-sm text-ink-muted">
-              {t("freeHint")}
+            {type === "PERCENT" ? (
+              <Field
+                label={`${t("percent")} (%)`}
+                htmlFor="promo-percent"
+                error={error("percent")}
+              >
+                <Input
+                  id="promo-percent"
+                  name="percent"
+                  inputMode="decimal"
+                  required
+                />
+              </Field>
+            ) : type === "AMOUNT" ? (
+              <Field
+                label={`${t("amount")} (${currencySymbol})`}
+                htmlFor="promo-amount"
+                hint={t("amountHint")}
+                error={error("amount")}
+              >
+                <Input
+                  id="promo-amount"
+                  name="amount"
+                  inputMode="decimal"
+                  required
+                />
+              </Field>
+            ) : (
+              <p className="self-end pb-3 text-sm text-ink-muted">
+                {t("freeHint")}
+              </p>
+            )}
+          </div>
+          <fieldset className="grid gap-2">
+            <legend className="mb-1 font-label text-[0.8rem] font-bold">
+              {t("ticketTypes")}
+            </legend>
+            <p className="-mt-1 text-sm text-ink-muted">
+              {t("ticketTypesHint")}
             </p>
-          )}
-        </div>
-        <fieldset className="grid gap-2">
-          <legend className="mb-1 font-label text-[0.8rem] font-bold">
-            {t("ticketTypes")}
-          </legend>
-          <p className="-mt-1 text-sm text-ink-muted">{t("ticketTypesHint")}</p>
-          {ticketTypes.map((tt) => (
-            <label key={tt.id} className="flex items-center gap-3 text-sm">
+            {ticketTypes.map((tt) => (
+              <label key={tt.id} className="flex items-center gap-3 text-sm">
+                <input
+                  type="checkbox"
+                  name="ticketTypeIds"
+                  value={tt.id}
+                  className="size-5 accent-[var(--ink)]"
+                />
+                {tt.name}
+                {tt.codeOnly ? (
+                  <span className="text-ink-muted">· {t("codeOnly")}</span>
+                ) : null}
+              </label>
+            ))}
+          </fieldset>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field
+              label={t("maxUses")}
+              htmlFor="promo-max"
+              hint={t("unlimited")}
+              error={error("maxUses")}
+            >
+              <Input
+                id="promo-max"
+                name="maxUses"
+                type="number"
+                min={1}
+                inputMode="numeric"
+              />
+            </Field>
+            <Field
+              label={t("maxUsesPerEmail")}
+              htmlFor="promo-max-email"
+              hint={t("unlimited")}
+              error={error("maxUsesPerEmail")}
+            >
+              <Input
+                id="promo-max-email"
+                name="maxUsesPerEmail"
+                type="number"
+                min={1}
+                inputMode="numeric"
+              />
+            </Field>
+            <Field
+              label={t("raisesLimitTo")}
+              htmlFor="promo-raises"
+              hint={t("raisesLimitToHint")}
+              error={error("raisesLimitTo")}
+            >
+              <Input
+                id="promo-raises"
+                name="raisesLimitTo"
+                type="number"
+                min={1}
+                max={500}
+              />
+            </Field>
+            <Field label={t("startsAt")} htmlFor="promo-start">
+              <Input
+                id="promo-start"
+                name="startsAtLocal"
+                type="datetime-local"
+              />
+            </Field>
+            <Field label={t("expiresAt")} htmlFor="promo-end">
+              <Input
+                id="promo-end"
+                name="expiresAtLocal"
+                type="datetime-local"
+              />
+            </Field>
+          </div>
+          {ticketTypes.some((tt) => tt.codeOnly) ? (
+            <label className="flex items-center gap-3 text-sm">
               <input
                 type="checkbox"
-                name="ticketTypeIds"
-                value={tt.id}
+                name="unlocksHidden"
                 className="size-5 accent-[var(--ink)]"
               />
-              {tt.name}
-              {tt.codeOnly ? (
-                <span className="text-ink-muted">· {t("codeOnly")}</span>
-              ) : null}
+              {t("unlocksHidden")}
             </label>
-          ))}
-        </fieldset>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field
-            label={t("maxUses")}
-            htmlFor="promo-max"
-            hint={t("unlimited")}
-            error={error("maxUses")}
-          >
-            <Input
-              id="promo-max"
-              name="maxUses"
-              type="number"
-              min={1}
-              inputMode="numeric"
-            />
-          </Field>
-          <Field
-            label={t("maxUsesPerEmail")}
-            htmlFor="promo-max-email"
-            hint={t("unlimited")}
-            error={error("maxUsesPerEmail")}
-          >
-            <Input
-              id="promo-max-email"
-              name="maxUsesPerEmail"
-              type="number"
-              min={1}
-              inputMode="numeric"
-            />
-          </Field>
-          <Field
-            label={t("raisesLimitTo")}
-            htmlFor="promo-raises"
-            hint={t("raisesLimitToHint")}
-            error={error("raisesLimitTo")}
-          >
-            <Input
-              id="promo-raises"
-              name="raisesLimitTo"
-              type="number"
-              min={1}
-              max={500}
-            />
-          </Field>
-          <Field label={t("startsAt")} htmlFor="promo-start">
-            <Input
-              id="promo-start"
-              name="startsAtLocal"
-              type="datetime-local"
-            />
-          </Field>
-          <Field label={t("expiresAt")} htmlFor="promo-end">
-            <Input id="promo-end" name="expiresAtLocal" type="datetime-local" />
-          </Field>
-        </div>
-        {ticketTypes.some((tt) => tt.codeOnly) ? (
-          <label className="flex items-center gap-3 text-sm">
-            <input
-              type="checkbox"
-              name="unlocksHidden"
-              className="size-5 accent-[var(--ink)]"
-            />
-            {t("unlocksHidden")}
-          </label>
-        ) : null}
-        <div className="flex flex-wrap gap-3">
-          <SubmitButton pending={pending} className="w-full sm:w-auto">
-            {t("create")}
-          </SubmitButton>
-          <Button
-            type="button"
-            variant="ghost"
-            size="lg"
-            onClick={() => setOpen(false)}
-          >
-            {t("cancel")}
-          </Button>
-        </div>
-      </form>
-    </Card>
+          ) : null}
+          <div className="flex flex-wrap gap-3">
+            <SubmitButton pending={pending} className="w-full sm:w-auto">
+              {t("create")}
+            </SubmitButton>
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              onClick={() => setOpen(false)}
+            >
+              {t("cancel")}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+    </>
   );
 }
 

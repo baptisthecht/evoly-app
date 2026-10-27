@@ -2190,7 +2190,18 @@
     "saveRole": "Rol opslaan",
     "cancel": "Annuleren",
     "confirmDeleteRole": "Rol {name} verwijderen?",
-    "deleteRole": "Rol verwijderen"
+    "deleteRole": "Rol verwijderen",
+    "tableMember": "Lid",
+    "tableRole": "Rol",
+    "tableJoined": "Lid sinds",
+    "tableStatus": "Status",
+    "tableActions": "Acties",
+    "tableCaption": "Teamleden",
+    "activeMember": "Actief",
+    "matrixTitle": "Rechten per rol",
+    "matrixPermission": "Recht",
+    "matrixYes": "Ja",
+    "matrixNo": "Nee"
   },
   "twoFactor": {
     "accountLink": "Accountbeveiliging",
@@ -2650,7 +2661,15 @@
     "activate": "Opnieuw activeren",
     "delete": "Verwijderen",
     "raisesLimitTo": "Limiet verhogen tot",
-    "raisesLimitToHint": "Voor groepen: verhoogt de limieten per bestelling en per persoon tot dit aantal tickets, nooit lager."
+    "raisesLimitToHint": "Voor groepen: verhoogt de limieten per bestelling en per persoon tot dit aantal tickets, nooit lager.",
+    "tableValue": "Korting",
+    "tableScope": "Tarieven",
+    "tableUses": "Gebruik",
+    "tableUntil": "Einde",
+    "tableStatus": "Status",
+    "tableActions": "Acties",
+    "tableCaption": "Promocodes",
+    "noEnd": "Zonder einde"
   },
   "tiers": {
     "title": "Dynamische prijzen",
