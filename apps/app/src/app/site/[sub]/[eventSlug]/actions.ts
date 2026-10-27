@@ -260,6 +260,8 @@ export interface PromoPreview {
   percentOffBps: number | null;
   amountOffMinor: number | null;
   ticketTypeIds: string[];
+  /** Limite relevée par le code (groupes) : par commande et par acheteur. */
+  raisesLimitTo: number | null;
   unlocked: Array<
     Omit<PublicTicketType, "next"> & {
       next: { priceMinor: number; startsAt: string } | null;
@@ -309,6 +311,7 @@ export async function previewPromoAction(
       percentOffBps: row.percentOffBps,
       amountOffMinor: row.amountOffMinor,
       ticketTypeIds: row.ticketTypeIds,
+      raisesLimitTo: row.raisesLimitTo ?? null,
       unlocked: unlocked.map((t) => ({
         ...t,
         next: t.next

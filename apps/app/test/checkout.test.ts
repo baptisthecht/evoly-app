@@ -298,6 +298,7 @@ const promo = (
     maxUsesPerEmail: number;
     unlocksHidden: boolean;
     ticketTypeIds: string[];
+    raisesLimitTo: number;
   }>,
 ) =>
   db.promoCode.create({
@@ -311,6 +312,7 @@ const promo = (
       maxUsesPerEmail: data.maxUsesPerEmail ?? null,
       unlocksHidden: data.unlocksHidden ?? false,
       ticketTypeIds: data.ticketTypeIds ?? [],
+      raisesLimitTo: data.raisesLimitTo ?? null,
     },
   });
 
@@ -502,5 +504,45 @@ describe("billets nominatifs et PDF (RG-QST-01, RG-QST-02, section 9.12)", () =>
     const bytes = await ticketsPdfFor(order, "fr");
     expect(Buffer.from(bytes.slice(0, 5)).toString()).toBe("%PDF-");
     expect((await PDFDocument.load(bytes)).getPageCount()).toBe(2);
+  });
+});
+
+describe("limites d'achat : code de groupe à la réservation", () => {
+  it("20 billets refusés sans code, acceptés avec le code de groupe, 31 toujours refusés", async () => {
+    const { event, types } = await setupWith([
+      { priceMinor: 1000, quantity: 100 },
+    ]);
+    const lines = (q: number) => [{ ticketTypeId: types[0]!.id, quantity: q }];
+    await expect(
+      reserveOrder({ eventId: event.id, lines: lines(20), locale: "fr" }),
+    ).rejects.toThrow();
+    await promo(event.id, {
+      code: "GROUPE",
+      discountType: "PERCENT",
+      percentOffBps: 1000,
+      raisesLimitTo: 30,
+    });
+    const r = await reserveOrder({
+      eventId: event.id,
+      lines: lines(20),
+      locale: "fr",
+      promoCode: "groupe",
+    });
+    expect(
+      (
+        await db.order.findUniqueOrThrow({
+          where: { id: r.orderId },
+          include: { items: true },
+        })
+      ).items[0]!.quantity,
+    ).toBe(20);
+    await expect(
+      reserveOrder({
+        eventId: event.id,
+        lines: lines(31),
+        locale: "fr",
+        promoCode: "groupe",
+      }),
+    ).rejects.toThrow();
   });
 });

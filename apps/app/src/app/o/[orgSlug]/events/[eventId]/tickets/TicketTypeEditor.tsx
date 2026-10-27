@@ -27,6 +27,7 @@ export interface TicketTypeRow {
   quantitySold: number;
   minPerOrder: number;
   maxPerOrder: number;
+  maxPerBuyer?: number | null;
   salesStartLocal: string;
   salesEndLocal: string;
   visibility: "VISIBLE" | "HIDDEN" | "CODE_ONLY";
@@ -185,6 +186,21 @@ export function TicketTypeForm({
                 min={1}
                 max={50}
                 defaultValue={row?.maxPerOrder ?? 10}
+              />
+            </Field>
+            <Field
+              label={t("maxPerBuyer")}
+              htmlFor={`mpb-${row?.id ?? "new"}`}
+              hint={t("maxPerBuyerHint")}
+              error={error("maxPerBuyer")}
+            >
+              <Input
+                id={`mpb-${row?.id ?? "new"}`}
+                name="maxPerBuyer"
+                type="number"
+                min={1}
+                max={1000}
+                defaultValue={row?.maxPerBuyer ?? ""}
               />
             </Field>
             <Field label={t("salesStart")} htmlFor={`ss-${row?.id ?? "new"}`}>

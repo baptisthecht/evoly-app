@@ -162,3 +162,37 @@ describe("réglages d'un événement : enregistrement automatique (RG-EVT-01, RG
     expect(actions.saveEventSettingsAction).not.toHaveBeenCalled();
   });
 });
+
+describe("limites d'achat : la phrase d'exemple suit la saisie", () => {
+  it("commande, personne, tarifs et prévente", () => {
+    render(
+      <Fr>
+        <SettingsForm
+          orgSlug="club"
+          eventId="e1"
+          values={values({ maxTicketsPerOrder: 6 })}
+          readOnly={false}
+          typeLimits={[
+            { name: "Fosse", maxPerBuyer: 2 },
+            { name: "Balcon", maxPerBuyer: null },
+          ]}
+        />
+      </Fr>,
+    );
+    const sentence = () =>
+      screen.getByText((c) => c.startsWith("Chaque commande contient"))
+        .textContent;
+    expect(sentence()).toBe(
+      "Chaque commande contient 6 billets au maximum. Par personne : 2 en Fosse.",
+    );
+    fireEvent.change(screen.getByLabelText(t.maxTicketsPerBuyer!), {
+      target: { value: "4" },
+    });
+    fireEvent.change(screen.getByLabelText(t.presaleMaxTicketsPerBuyer!), {
+      target: { value: "2" },
+    });
+    expect(sentence()).toBe(
+      "Chaque commande contient 6 billets au maximum. Chaque personne pourra acheter 4 billets au maximum, dont 2 en Fosse. Pendant la prévente : 2 billets par personne.",
+    );
+  });
+});

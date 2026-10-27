@@ -183,6 +183,12 @@ const settingsSchema = z.object({
       z.coerce.number().int().min(1).max(200).nullable(),
     )
     .optional(),
+  presaleMaxTicketsPerBuyer: z
+    .preprocess(
+      (v) => (v === "" || v == null ? null : v),
+      z.coerce.number().int().min(1).max(200).nullable(),
+    )
+    .optional(),
   version: z.string().max(40).optional(),
   visibility: z.enum(["PUBLIC", "UNLISTED", "PRIVATE"]),
   accessCode: z
@@ -214,6 +220,12 @@ const ticketSchema = z.object({
   quantity: optionalInt(1, 1_000_000),
   minPerOrder: int(1, 50),
   maxPerOrder: int(1, 50),
+  maxPerBuyer: z
+    .preprocess(
+      (v) => (v === "" || v == null ? null : v),
+      z.coerce.number().int().min(1).max(1000).nullable(),
+    )
+    .optional(),
   salesStartLocal: optionalLocalDate,
   salesEndLocal: optionalLocalDate,
   visibility: z.enum(["VISIBLE", "HIDDEN", "CODE_ONLY"]),
@@ -415,6 +427,7 @@ const promoSchema = z.object({
   ),
   maxUses: optionalInt(1, 1_000_000),
   maxUsesPerEmail: optionalInt(1, 1000),
+  raisesLimitTo: optionalInt(1, 500),
   startsAtLocal: optionalLocalDate,
   expiresAtLocal: optionalLocalDate,
   unlocksHidden: checkbox,

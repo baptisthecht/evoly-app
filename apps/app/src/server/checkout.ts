@@ -384,10 +384,22 @@ export async function reserveOrder(
           ),
           salesStartAt: presale ? null : salesOpeningAt(event), // RG-PRG-02 : pas d'achat avant la publication programmée
           salesEndAt: event.salesEndAt,
-          maxTicketsPerOrder: event.maxTicketsPerOrder,
+          // un code promo qui relève la limite (groupes) relève aussi la limite par commande, jamais ne l'abaisse
+          maxTicketsPerOrder: Math.max(
+            event.maxTicketsPerOrder,
+            promo?.raisesLimitTo ?? 0,
+          ),
           startsAt: event.startsAt,
         },
-        presale ? types.map((t) => ({ ...t, salesStartAt: null })) : types,
+        types.map((t) => ({
+          ...t,
+          ...(presale ? { salesStartAt: null } : {}),
+          ...(promo?.raisesLimitTo &&
+          (promo.ticketTypeIds.length === 0 ||
+            promo.ticketTypeIds.includes(t.id))
+            ? { maxPerOrder: Math.max(t.maxPerOrder, promo.raisesLimitTo) }
+            : {}),
+        })),
         input.lines,
         now,
         { unlocksHidden: !!promo?.unlocksHidden },

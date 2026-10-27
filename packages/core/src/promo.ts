@@ -17,6 +17,8 @@ export interface PromoInput {
   expiresAt?: Date | null;
   isActive: boolean;
   unlocksHidden?: boolean;
+  /** Limite relevée par le code (groupes) : par commande et par acheteur, jamais abaissée. */
+  raisesLimitTo?: number | null;
 }
 
 export type PromoError =

@@ -177,13 +177,23 @@ export function TicketPicker({
     v === 0
       ? t("free")
       : formatMoney(v, currency, locale, { trimZeroCents: true });
-  const set = (tt: PickerTicket, next: number) => {
-    const others = count - (qty[tt.id] ?? 0);
-    const cap = Math.min(
-      tt.maxPerOrder,
-      Number.isFinite(tt.remaining) ? tt.remaining : tt.maxPerOrder,
-      maxPerOrder - others,
+  // plafond d'un tarif : sa limite et celle de la commande (relevées par un code de groupe), le stock restant
+  const raised = promo?.raisesLimitTo ?? null;
+  const covers = (tt: PickerTicket) =>
+    !!promo &&
+    (promo.ticketTypeIds.length === 0 || promo.ticketTypeIds.includes(tt.id));
+  const capOf = (tt: PickerTicket) => {
+    const ttMax =
+      raised && covers(tt) ? Math.max(tt.maxPerOrder, raised) : tt.maxPerOrder;
+    const orderMax = raised ? Math.max(maxPerOrder, raised) : maxPerOrder;
+    return Math.min(
+      ttMax,
+      Number.isFinite(tt.remaining) ? tt.remaining : ttMax,
+      orderMax - (count - (qty[tt.id] ?? 0)),
     );
+  };
+  const set = (tt: PickerTicket, next: number) => {
+    const cap = capOf(tt);
     let v = Math.max(0, Math.min(next, cap));
     if (v > 0 && v < tt.minPerOrder)
       v = next > (qty[tt.id] ?? 0) ? Math.min(tt.minPerOrder, cap) : 0;
@@ -413,6 +423,7 @@ export function TicketPicker({
                     size="sm"
                     className="size-10 px-0 text-lg"
                     onClick={() => set(tt, n + 1)}
+                    disabled={n >= capOf(tt)}
                     aria-label={t("more", { name: tt.name })}
                   >
                     +

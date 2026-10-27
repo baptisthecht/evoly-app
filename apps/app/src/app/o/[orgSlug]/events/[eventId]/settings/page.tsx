@@ -30,6 +30,10 @@ export default async function EventSettingsPage({
         orgSlug={orgSlug}
         venue={await partnerVenueFor(ctx.organization.id)}
         eventId={eventId}
+        typeLimits={e.ticketTypes.map((tt) => ({
+          name: tt.name,
+          maxPerBuyer: tt.maxPerBuyer ?? null,
+        }))}
         readOnly={readOnly}
         values={{
           title: e.title,
@@ -48,6 +52,7 @@ export default async function EventSettingsPage({
           capacity: e.capacity != null ? String(e.capacity) : "",
           maxTicketsPerOrder: e.maxTicketsPerOrder,
           maxTicketsPerBuyer: e.maxTicketsPerBuyer,
+          presaleMaxTicketsPerBuyer: e.presaleMaxTicketsPerBuyer,
           version: e.updatedAt.toISOString(),
           visibility: e.visibility as "PUBLIC",
           hasAccessCode: !!e.accessCodeHash,

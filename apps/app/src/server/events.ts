@@ -42,6 +42,7 @@ export interface EventSettingsInput extends EventEssentials {
   capacity?: number | null;
   maxTicketsPerOrder: number;
   maxTicketsPerBuyer?: number | null;
+  presaleMaxTicketsPerBuyer?: number | null;
   /** version affichée par le formulaire (date de dernière modification), pour détecter une modification simultanée */
   version?: string | null;
   visibility: "PUBLIC" | "UNLISTED" | "PRIVATE";
@@ -330,6 +331,7 @@ export async function updateEventSettings(
       capacity: input.capacity ?? null,
       maxTicketsPerOrder: input.maxTicketsPerOrder,
       maxTicketsPerBuyer: input.maxTicketsPerBuyer ?? null,
+      presaleMaxTicketsPerBuyer: input.presaleMaxTicketsPerBuyer ?? null,
       visibility: input.visibility,
       ...(await accessCodeData(event.id, event.accessCodeHash, input)),
       refundPolicy: input.refundPolicy,
@@ -485,6 +487,7 @@ export async function duplicateEvent(ctx: OrgContext, eventId: string) {
           capacity: source.capacity,
           maxTicketsPerOrder: source.maxTicketsPerOrder,
           maxTicketsPerBuyer: source.maxTicketsPerBuyer,
+          presaleMaxTicketsPerBuyer: source.presaleMaxTicketsPerBuyer,
           checkoutHoldMinutes: source.checkoutHoldMinutes,
           requireBuyerPhone: source.requireBuyerPhone,
           allowHolderChange: source.allowHolderChange,
@@ -508,6 +511,7 @@ export async function duplicateEvent(ctx: OrgContext, eventId: string) {
               quantity: t.quantity,
               minPerOrder: t.minPerOrder,
               maxPerOrder: t.maxPerOrder,
+              maxPerBuyer: t.maxPerBuyer,
               status: t.status === "SOLD_OUT" ? "ACTIVE" : t.status,
               visibility: t.visibility,
               sortOrder: t.sortOrder,

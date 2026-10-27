@@ -22,6 +22,8 @@ export interface TicketTypeInput {
   quantity?: number | null;
   minPerOrder: number;
   maxPerOrder: number;
+  /** Limite par acheteur pour ce tarif, toutes commandes confondues (vide : aucune). */
+  maxPerBuyer?: number | null;
   salesStartLocal?: string | null;
   salesEndLocal?: string | null;
   visibility: "VISIBLE" | "HIDDEN" | "CODE_ONLY";
@@ -119,6 +121,7 @@ export async function createTicketType(
       quantity: input.quantity ?? null,
       minPerOrder: input.minPerOrder,
       maxPerOrder: input.maxPerOrder,
+      maxPerBuyer: input.maxPerBuyer ?? null,
       ...window(input, event.timezone),
       visibility: input.visibility,
       isNominative: input.isNominative,
@@ -162,6 +165,7 @@ export async function updateTicketType(
       quantity: input.quantity ?? null,
       minPerOrder: input.minPerOrder,
       maxPerOrder: input.maxPerOrder,
+      maxPerBuyer: input.maxPerBuyer ?? null,
       ...window(input, event.timezone),
       visibility: input.visibility,
       isNominative: input.isNominative,

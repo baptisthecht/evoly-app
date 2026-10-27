@@ -1046,7 +1046,9 @@
     "roundOption": "{price} · je ontvangt {net}",
     "waitlistTitle": "Wachtlijst",
     "waitlistLine": "{name}: {people, plural, one {# persoon} other {# personen}}, {places, plural, one {# gevraagde plaats} other {# gevraagde plaatsen}}",
-    "waitlistExport": "Lijst exporteren (CSV)"
+    "waitlistExport": "Lijst exporteren (CSV)",
+    "maxPerBuyer": "Per persoon",
+    "maxPerBuyerHint": "Alle bestellingen samen. Leeg: geen limiet voor dit tarief."
   },
   "plans": {
     "free": "Free",
@@ -1285,7 +1287,18 @@
     "concurrentEdit": "Een ander lid heeft dit evenement gewijzigd terwijl jij het bewerkte: jouw wijzigingen zijn over de zijne heen opgeslagen. Laad de pagina opnieuw om de laatste versie te zien.",
     "resaleWaitlistFirst": "Doorverkochte plaatsen eerst aanbieden aan de wachtlijst",
     "resaleWaitlistMinutes": "Tijd voorbehouden aan de wachtlijst (minuten)",
-    "resaleWaitlistHint": "Tijdens deze periode staat de plaats niet in de sectie Doorverkoop van de pagina: wie op de wachtlijst staat voor dat tarief, krijgt de link per e-mail. De link van de verkoper werkt meteen."
+    "resaleWaitlistHint": "Tijdens deze periode staat de plaats niet in de sectie Doorverkoop van de pagina: wie op de wachtlijst staat voor dat tarief, krijgt de link per e-mail. De link van de verkoper werkt meteen.",
+    "limitsTitle": "Aankooplimieten",
+    "limitsHint": "Ze gelden voor online bestellingen: je verkoop ter plaatse en je uitnodigingen hebben geen limiet.",
+    "presaleMaxTicketsPerBuyer": "Per persoon tijdens de voorverkoop",
+    "presaleMaxTicketsPerBuyerHint": "Bestellingen met een voorverkoopcode. Leeg: de limiet per persoon geldt.",
+    "limitsPreviewOrder": "{count, plural, one {Elke bestelling bevat maximaal # ticket.} other {Elke bestelling bevat maximaal # tickets.}}",
+    "limitsPreviewBuyer": "{count, plural, one {Elke persoon kan maximaal # ticket kopen} other {Elke persoon kan maximaal # tickets kopen}}",
+    "limitsPreviewTypes": ", waarvan {list}",
+    "limitsPreviewType": "{count} voor {name}",
+    "limitsPreviewTypesOnly": "Per persoon: {list}.",
+    "limitsPreviewNoBuyer": "Geen limiet per persoon: alleen de limiet per bestelling geldt.",
+    "limitsPreviewPresale": "{count, plural, one {Tijdens de voorverkoop: # ticket per persoon.} other {Tijdens de voorverkoop: # tickets per persoon.}}"
   },
   "ordersAdmin": {
     "title": "Bestellingen",
@@ -2609,7 +2622,9 @@
     "until": "tot {date}",
     "deactivate": "Deactiveren",
     "activate": "Opnieuw activeren",
-    "delete": "Verwijderen"
+    "delete": "Verwijderen",
+    "raisesLimitTo": "Limiet verhogen tot",
+    "raisesLimitToHint": "Voor groepen: verhoogt de limieten per bestelling en per persoon tot dit aantal tickets, nooit lager."
   },
   "tiers": {
     "title": "Dynamische prijzen",

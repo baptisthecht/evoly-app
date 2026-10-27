@@ -163,6 +163,20 @@ export function PromoForm({
               inputMode="numeric"
             />
           </Field>
+          <Field
+            label={t("raisesLimitTo")}
+            htmlFor="promo-raises"
+            hint={t("raisesLimitToHint")}
+            error={error("raisesLimitTo")}
+          >
+            <Input
+              id="promo-raises"
+              name="raisesLimitTo"
+              type="number"
+              min={1}
+              max={500}
+            />
+          </Field>
           <Field label={t("startsAt")} htmlFor="promo-start">
             <Input
               id="promo-start"

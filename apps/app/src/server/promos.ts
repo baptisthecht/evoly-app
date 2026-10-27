@@ -21,6 +21,8 @@ export interface PromoFormInput {
   ticketTypeIds: string[];
   maxUses?: number | null;
   maxUsesPerEmail?: number | null;
+  /** Relève les limites par commande et par acheteur à ce nombre de billets (groupes). */
+  raisesLimitTo?: number | null;
   startsAtLocal?: string | null;
   expiresAtLocal?: string | null;
   unlocksHidden: boolean;
@@ -79,6 +81,7 @@ export async function createPromo(
         ticketTypeIds: input.ticketTypeIds,
         maxUses: input.maxUses ?? null,
         maxUsesPerEmail: input.maxUsesPerEmail ?? null,
+        raisesLimitTo: input.raisesLimitTo ?? null,
         startsAt,
         expiresAt,
         unlocksHidden: input.unlocksHidden,

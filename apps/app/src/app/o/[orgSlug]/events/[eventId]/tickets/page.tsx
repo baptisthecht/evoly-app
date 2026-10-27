@@ -43,6 +43,7 @@ export default async function TicketsPage({
     quantitySold: tt.quantitySold,
     minPerOrder: tt.minPerOrder,
     maxPerOrder: tt.maxPerOrder,
+    maxPerBuyer: tt.maxPerBuyer ?? null,
     salesStartLocal: local(tt.salesStartAt),
     salesEndLocal: local(tt.salesEndAt),
     visibility: tt.visibility,

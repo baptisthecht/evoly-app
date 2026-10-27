@@ -1046,7 +1046,9 @@
     "roundOption": "{price} · Sie erhalten {net}",
     "waitlistTitle": "Warteliste",
     "waitlistLine": "{name}: {people, plural, one {# Person} other {# Personen}}, {places, plural, one {# gewünschter Platz} other {# gewünschte Plätze}}",
-    "waitlistExport": "Liste exportieren (CSV)"
+    "waitlistExport": "Liste exportieren (CSV)",
+    "maxPerBuyer": "Pro Person",
+    "maxPerBuyerHint": "Über alle Bestellungen hinweg. Leer: kein Limit für diesen Tarif."
   },
   "plans": {
     "free": "Free",
@@ -1285,7 +1287,18 @@
     "concurrentEdit": "Ein anderes Mitglied hat diese Veranstaltung geändert, während Sie sie bearbeitet haben: Ihre Änderungen haben seine überschrieben. Laden Sie die Seite neu, um die neueste Version zu sehen.",
     "resaleWaitlistFirst": "Weiterverkaufte Plätze zuerst der Warteliste anbieten",
     "resaleWaitlistMinutes": "Der Warteliste vorbehaltene Zeit (Minuten)",
-    "resaleWaitlistHint": "In dieser Zeit erscheint der Platz nicht im Bereich Weiterverkauf der Seite: Wer für diesen Tarif auf der Warteliste steht, erhält den Link per E-Mail. Der Link des Verkäufers funktioniert sofort."
+    "resaleWaitlistHint": "In dieser Zeit erscheint der Platz nicht im Bereich Weiterverkauf der Seite: Wer für diesen Tarif auf der Warteliste steht, erhält den Link per E-Mail. Der Link des Verkäufers funktioniert sofort.",
+    "limitsTitle": "Kauflimits",
+    "limitsHint": "Sie gelten für Online-Bestellungen: Ihre Verkäufe vor Ort und Ihre Einladungen haben kein Limit.",
+    "presaleMaxTicketsPerBuyer": "Pro Person im Vorverkauf",
+    "presaleMaxTicketsPerBuyerHint": "Bestellungen mit einem Vorverkaufscode. Leer: Das Limit pro Person gilt.",
+    "limitsPreviewOrder": "{count, plural, one {Jede Bestellung enthält höchstens # Ticket.} other {Jede Bestellung enthält höchstens # Tickets.}}",
+    "limitsPreviewBuyer": "{count, plural, one {Jede Person kann höchstens # Ticket kaufen} other {Jede Person kann höchstens # Tickets kaufen}}",
+    "limitsPreviewTypes": ", davon {list}",
+    "limitsPreviewType": "{count} für {name}",
+    "limitsPreviewTypesOnly": "Pro Person: {list}.",
+    "limitsPreviewNoBuyer": "Kein Limit pro Person: Es gilt nur das Limit pro Bestellung.",
+    "limitsPreviewPresale": "{count, plural, one {Im Vorverkauf: # Ticket pro Person.} other {Im Vorverkauf: # Tickets pro Person.}}"
   },
   "ordersAdmin": {
     "title": "Bestellungen",
@@ -2609,7 +2622,9 @@
     "until": "bis {date}",
     "deactivate": "Deaktivieren",
     "activate": "Reaktivieren",
-    "delete": "Löschen"
+    "delete": "Löschen",
+    "raisesLimitTo": "Limit anheben auf",
+    "raisesLimitToHint": "Für Gruppen: hebt die Limits pro Bestellung und pro Person auf diese Ticketzahl an, nie darunter."
   },
   "tiers": {
     "title": "Dynamische Preise",

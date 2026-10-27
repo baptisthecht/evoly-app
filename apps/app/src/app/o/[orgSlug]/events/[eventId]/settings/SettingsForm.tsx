@@ -21,6 +21,7 @@ export interface SettingsValues extends EventFieldValues {
   capacity: string;
   maxTicketsPerOrder: number;
   maxTicketsPerBuyer?: number | null;
+  presaleMaxTicketsPerBuyer?: number | null;
   version?: string;
   visibility: "PUBLIC" | "UNLISTED" | "PRIVATE";
   hasAccessCode?: boolean;
@@ -42,14 +43,46 @@ export function SettingsForm({
   values,
   readOnly,
   venue,
+  typeLimits = [],
 }: {
   orgSlug: string;
   eventId: string;
   values: SettingsValues;
   venue?: PartnerVenueOption | null;
   readOnly: boolean;
+  /** Limites par personne des tarifs, pour la phrase d'exemple des limites d'achat. */
+  typeLimits?: { name: string; maxPerBuyer: number | null }[];
 }) {
   const t = useTranslations("eventSettings");
+  // limites d'achat : phrase d'exemple qui suit la saisie (commande, personne, tarifs, prévente)
+  const [lim, setLim] = useState({
+    order: String(values.maxTicketsPerOrder),
+    buyer: values.maxTicketsPerBuyer ? String(values.maxTicketsPerBuyer) : "",
+    presale: values.presaleMaxTicketsPerBuyer
+      ? String(values.presaleMaxTicketsPerBuyer)
+      : "",
+  });
+  const num = (v: string) =>
+    /^\d+$/.test(v.trim()) && Number(v) > 0 ? Number(v) : null;
+  const perType = typeLimits
+    .filter((x) => x.maxPerBuyer)
+    .map((x) => t("limitsPreviewType", { count: x.maxPerBuyer!, name: x.name }))
+    .join(", ");
+  const buyerLimit = num(lim.buyer);
+  const presaleLimit = num(lim.presale);
+  const limitsPreview = [
+    t("limitsPreviewOrder", {
+      count: num(lim.order) ?? values.maxTicketsPerOrder,
+    }),
+    buyerLimit
+      ? `${t("limitsPreviewBuyer", { count: buyerLimit })}${perType ? t("limitsPreviewTypes", { list: perType }) : ""}.`
+      : perType
+        ? t("limitsPreviewTypesOnly", { list: perType })
+        : t("limitsPreviewNoBuyer"),
+    presaleLimit ? t("limitsPreviewPresale", { count: presaleLimit }) : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
   const tc = useTranslations("common");
   const [state, action, pending] = useActionState(
     saveEventSettingsAction.bind(null, orgSlug, eventId),
@@ -169,37 +202,6 @@ export function SettingsForm({
               </Select>
             </Field>
             <Field
-              label={t("maxTicketsPerOrder")}
-              htmlFor="maxTicketsPerOrder"
-              error={error("maxTicketsPerOrder")}
-            >
-              <Input
-                icon="ticket"
-                id="maxTicketsPerOrder"
-                name="maxTicketsPerOrder"
-                type="number"
-                min={1}
-                max={50}
-                defaultValue={values.maxTicketsPerOrder}
-              />
-            </Field>
-            <Field
-              label={t("maxTicketsPerBuyer")}
-              htmlFor="maxTicketsPerBuyer"
-              hint={t("maxTicketsPerBuyerHint")}
-              error={error("maxTicketsPerBuyer")}
-            >
-              <Input
-                icon="user"
-                id="maxTicketsPerBuyer"
-                name="maxTicketsPerBuyer"
-                type="number"
-                min={1}
-                max={200}
-                defaultValue={values.maxTicketsPerBuyer ?? ""}
-              />
-            </Field>
-            <Field
               label={t("salesStart")}
               htmlFor="salesStartLocal"
               hint={t("salesStartHint")}
@@ -250,6 +252,77 @@ export function SettingsForm({
           ) : null}
         </fieldset>
 
+        <fieldset className="grid gap-5">
+          <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+            {t("limitsTitle")}
+          </legend>
+          <p className="-mt-3 text-sm text-ink-muted">{t("limitsHint")}</p>
+          <div className="grid gap-5 sm:grid-cols-3">
+            <Field
+              label={t("maxTicketsPerOrder")}
+              htmlFor="maxTicketsPerOrder"
+              error={error("maxTicketsPerOrder")}
+            >
+              <Input
+                icon="ticket"
+                id="maxTicketsPerOrder"
+                name="maxTicketsPerOrder"
+                type="number"
+                min={1}
+                max={50}
+                defaultValue={values.maxTicketsPerOrder}
+                onChange={(e) =>
+                  setLim((l) => ({ ...l, order: e.target.value }))
+                }
+              />
+            </Field>
+            <Field
+              label={t("maxTicketsPerBuyer")}
+              htmlFor="maxTicketsPerBuyer"
+              hint={t("maxTicketsPerBuyerHint")}
+              error={error("maxTicketsPerBuyer")}
+            >
+              <Input
+                icon="user"
+                id="maxTicketsPerBuyer"
+                name="maxTicketsPerBuyer"
+                type="number"
+                min={1}
+                max={200}
+                defaultValue={values.maxTicketsPerBuyer ?? ""}
+                onChange={(e) =>
+                  setLim((l) => ({ ...l, buyer: e.target.value }))
+                }
+              />
+            </Field>
+            <Field
+              label={t("presaleMaxTicketsPerBuyer")}
+              htmlFor="presaleMaxTicketsPerBuyer"
+              hint={t("presaleMaxTicketsPerBuyerHint")}
+              error={error("presaleMaxTicketsPerBuyer")}
+            >
+              <Input
+                icon="user"
+                id="presaleMaxTicketsPerBuyer"
+                name="presaleMaxTicketsPerBuyer"
+                type="number"
+                min={1}
+                max={200}
+                defaultValue={values.presaleMaxTicketsPerBuyer ?? ""}
+                onChange={(e) =>
+                  setLim((l) => ({ ...l, presale: e.target.value }))
+                }
+              />
+            </Field>
+          </div>
+          <p
+            role="status"
+            aria-live="polite"
+            className="rounded-lg bg-surface-sunken p-3 text-sm"
+          >
+            {limitsPreview}
+          </p>
+        </fieldset>
         <fieldset className="grid gap-5">
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
             {t("sectionRefunds")}

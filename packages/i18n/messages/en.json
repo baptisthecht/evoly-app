@@ -340,7 +340,9 @@
     "roundOption": "{price} · you receive {net}",
     "waitlistTitle": "Waiting list",
     "waitlistLine": "{name}: {people, plural, one {# person} other {# people}}, {places, plural, one {# place wanted} other {# places wanted}}",
-    "waitlistExport": "Export the list (CSV)"
+    "waitlistExport": "Export the list (CSV)",
+    "maxPerBuyer": "Per person",
+    "maxPerBuyerHint": "Across all orders. Empty: no limit for this ticket type."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -1234,7 +1236,18 @@
     "concurrentEdit": "Another member edited this event while you were editing it: your changes were saved over theirs. Reload the page to see the latest version.",
     "resaleWaitlistFirst": "Offer resale places to the waiting list first",
     "resaleWaitlistMinutes": "Time reserved for the waiting list (minutes)",
-    "resaleWaitlistHint": "During this time, the place does not appear in the page’s Resale section: people waiting for that ticket get the link by email. The seller’s own link works as soon as the place is listed."
+    "resaleWaitlistHint": "During this time, the place does not appear in the page’s Resale section: people waiting for that ticket get the link by email. The seller’s own link works as soon as the place is listed.",
+    "limitsTitle": "Purchase limits",
+    "limitsHint": "They apply to online orders: your on-site sales and invitations have no limit.",
+    "presaleMaxTicketsPerBuyer": "Per person during the presale",
+    "presaleMaxTicketsPerBuyerHint": "Orders placed with a presale code. Empty: the per-person limit applies.",
+    "limitsPreviewOrder": "{count, plural, one {Each order holds # ticket at most.} other {Each order holds # tickets at most.}}",
+    "limitsPreviewBuyer": "{count, plural, one {Each person can buy # ticket at most} other {Each person can buy # tickets at most}}",
+    "limitsPreviewTypes": ", including {list}",
+    "limitsPreviewType": "{count} for {name}",
+    "limitsPreviewTypesOnly": "Per person: {list}.",
+    "limitsPreviewNoBuyer": "No per-person limit: only the per-order limit applies.",
+    "limitsPreviewPresale": "{count, plural, one {During the presale: # ticket per person.} other {During the presale: # tickets per person.}}"
   },
   "public": {
     "previewBanner": "Preview: this is the page your buyers will see. Purchases aren’t possible from the preview.",
@@ -1410,7 +1423,9 @@
     "until": "until {date}",
     "deactivate": "Disable",
     "activate": "Enable",
-    "delete": "Delete"
+    "delete": "Delete",
+    "raisesLimitTo": "Raise the limit to",
+    "raisesLimitToHint": "For groups: raises the per-order and per-person limits to this number of tickets, never below."
   },
   "entries": {
     "result_VALID": "Entry accepted",

@@ -334,3 +334,47 @@ describe("choix des billets (US-PUB-02)", () => {
     expect(actions.reserveAction.mock.calls[0]![7]).toBe("offre-1");
   });
 });
+
+describe("limites d'achat : le « + » grisé à la bonne limite", () => {
+  it("grisé au plafond du tarif, puis à celui de la commande ; réactivé quand on retire un billet", () => {
+    draw({ tickets: [tk("A", { maxPerOrder: 2 }), tk("B")], maxPerOrder: 3 });
+    const plus = (name: string) => more(name) as HTMLButtonElement;
+    click(more("Tarif A"), 2);
+    expect(plus("Tarif A").disabled).toBe(true);
+    click(more("Tarif B"));
+    expect([plus("Tarif B").disabled, count("Tarif B")]).toEqual([true, "1"]); // 3 billets au total
+    fireEvent.click(less("Tarif A"));
+    expect(plus("Tarif B").disabled).toBe(false);
+  });
+
+  it("code de groupe : limites relevées jusqu'à 30 billets, pas au-delà", async () => {
+    draw({ tickets: [tk("A", { maxPerOrder: 2 })], maxPerOrder: 2 });
+    actions.previewPromoAction.mockResolvedValue({
+      ok: true,
+      data: {
+        code: "GROUPE",
+        discountType: "PERCENT",
+        percentOffBps: 1000,
+        amountOffMinor: null,
+        ticketTypeIds: [],
+        raisesLimitTo: 30,
+        unlocked: [],
+      },
+    });
+    fireEvent.click(screen.getByRole("button", { name: c.promoToggle }));
+    fireEvent.change(screen.getByLabelText(c.promoLabel!), {
+      target: { value: "GROUPE" },
+    });
+    await act(
+      async () =>
+        void fireEvent.click(
+          screen.getByRole("button", { name: c.promoApply }),
+        ),
+    );
+    click(more("Tarif A"), 31);
+    expect([
+      count("Tarif A"),
+      (more("Tarif A") as HTMLButtonElement).disabled,
+    ]).toEqual(["30", true]);
+  });
+});
