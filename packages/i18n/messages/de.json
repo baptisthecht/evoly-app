@@ -1076,7 +1076,19 @@
     "maxPerBuyer": "Pro Person",
     "maxPerBuyerHint": "Über alle Bestellungen hinweg. Leer: kein Limit für diesen Tarif.",
     "waitlistEmptyTitle": "Niemand wartet auf einen Platz",
-    "waitlistEmptyBody": "Ist ein Tarif ausverkauft, erscheinen hier die Personen auf der Warteliste."
+    "waitlistEmptyBody": "Ist ein Tarif ausverkauft, erscheinen hier die Personen auf der Warteliste.",
+    "tableTicketType": "Tarif",
+    "tablePrice": "Preis",
+    "tableSold": "Verkauft",
+    "tableWindow": "Verkauf",
+    "tableStatus": "Status",
+    "tableActions": "Aktionen",
+    "tableCaption": "Tarife",
+    "tableSoldOut": "Ausverkauft",
+    "tableTiers": "{count, plural, one {# Stufe} other {# Stufen}}",
+    "tableFrom": "Ab {date}",
+    "tableUntil": "Bis {date}",
+    "tableAlways": "Immer"
   },
   "plans": {
     "free": "Free",

@@ -355,7 +355,19 @@
     "maxPerBuyer": "Per person",
     "maxPerBuyerHint": "Across all orders. Empty: no limit for this ticket type.",
     "waitlistEmptyTitle": "Nobody is waiting for a seat",
-    "waitlistEmptyBody": "When a ticket type sells out, people who join the waitlist appear here."
+    "waitlistEmptyBody": "When a ticket type sells out, people who join the waitlist appear here.",
+    "tableTicketType": "Ticket type",
+    "tablePrice": "Price",
+    "tableSold": "Sold",
+    "tableWindow": "On sale",
+    "tableStatus": "Status",
+    "tableActions": "Actions",
+    "tableCaption": "Ticket types",
+    "tableSoldOut": "Sold out",
+    "tableTiers": "{count, plural, one {# tier} other {# tiers}}",
+    "tableFrom": "From {date}",
+    "tableUntil": "Until {date}",
+    "tableAlways": "Always"
   },
   "checkout": {
     "tickets": "Tickets",

@@ -41,6 +41,10 @@ export interface TicketTypeRow {
 
 const checkboxClass = "size-5 accent-[var(--ink)]";
 
+export function TicketTypeCommand(props: Parameters<typeof Command>[0]) {
+  return <Command {...props} />;
+}
+
 function Command({
   orgSlug,
   eventId,
@@ -364,66 +368,100 @@ export function TicketTypeCard({
       </div>
       {editing ? (
         <div className="grid gap-5 border-t border-line pt-5">
-          <TicketTypeForm
+          <TicketTypeEditPanel
             orgSlug={orgSlug}
             eventId={eventId}
             row={row}
             terms={terms}
+            tiersEnabled={tiersEnabled}
+            tiersLocked={tiersLocked}
             onDone={() => setEditing(false)}
           />
-          <TiersEditor
-            orgSlug={orgSlug}
-            eventId={eventId}
-            ticketTypeId={row.id}
-            initial={row.tiers}
-            enabled={tiersEnabled}
-            locked={tiersLocked}
-            terms={terms}
-          />
-          <div className="flex flex-wrap gap-2 border-t border-line pt-4">
-            {row.status === "ACTIVE" ? (
-              <Command
-                orgSlug={orgSlug}
-                eventId={eventId}
-                id={row.id}
-                command="pause"
-                label={t("pause")}
-                variant="secondary"
-              />
-            ) : null}
-            {row.status === "PAUSED" || row.status === "ARCHIVED" ? (
-              <Command
-                orgSlug={orgSlug}
-                eventId={eventId}
-                id={row.id}
-                command="activate"
-                label={t("activate")}
-                variant="secondary"
-              />
-            ) : null}
-            {row.quantitySold > 0 && row.status !== "ARCHIVED" ? (
-              <Command
-                orgSlug={orgSlug}
-                eventId={eventId}
-                id={row.id}
-                command="archive"
-                label={t("archive")}
-                variant="secondary"
-              />
-            ) : null}
-            {row.quantitySold === 0 ? (
-              <Command
-                orgSlug={orgSlug}
-                eventId={eventId}
-                id={row.id}
-                command="delete"
-                label={t("delete")}
-                variant="secondary"
-              />
-            ) : null}
-          </div>
         </div>
       ) : null}
     </Card>
+  );
+}
+
+/** L'édition complète d'un tarif : le formulaire, les paliers de prix, puis pause, remise en vente, archivage, suppression. */
+export function TicketTypeEditPanel({
+  orgSlug,
+  eventId,
+  row,
+  terms,
+  tiersEnabled,
+  tiersLocked,
+  onDone,
+}: {
+  orgSlug: string;
+  eventId: string;
+  row: TicketTypeRow;
+  terms: FeeTerms;
+  tiersEnabled: boolean;
+  tiersLocked: boolean;
+  onDone: () => void;
+}) {
+  const t = useTranslations("tickets");
+  return (
+    <div className="grid gap-5">
+      <TicketTypeForm
+        orgSlug={orgSlug}
+        eventId={eventId}
+        row={row}
+        terms={terms}
+        onDone={onDone}
+      />
+      <TiersEditor
+        orgSlug={orgSlug}
+        eventId={eventId}
+        ticketTypeId={row.id}
+        initial={row.tiers}
+        enabled={tiersEnabled}
+        locked={tiersLocked}
+        terms={terms}
+      />
+      <div className="flex flex-wrap gap-2 border-t border-line pt-4">
+        {row.status === "ACTIVE" ? (
+          <Command
+            orgSlug={orgSlug}
+            eventId={eventId}
+            id={row.id}
+            command="pause"
+            label={t("pause")}
+            variant="secondary"
+          />
+        ) : null}
+        {row.status === "PAUSED" || row.status === "ARCHIVED" ? (
+          <Command
+            orgSlug={orgSlug}
+            eventId={eventId}
+            id={row.id}
+            command="activate"
+            label={t("activate")}
+            variant="secondary"
+          />
+        ) : null}
+        {row.quantitySold > 0 && row.status !== "ARCHIVED" ? (
+          <Command
+            orgSlug={orgSlug}
+            eventId={eventId}
+            id={row.id}
+            command="archive"
+            label={t("archive")}
+            variant="secondary"
+          />
+        ) : null}
+        {row.quantitySold === 0 ? (
+          <Command
+            orgSlug={orgSlug}
+            eventId={eventId}
+            id={row.id}
+            command="delete"
+            label={t("delete")}
+            variant="secondary"
+          />
+        ) : null}
+      </div>
+    </div>
   );
 }

@@ -4,7 +4,7 @@ import type { FeeTerms } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Dialog } from "@/components/ui/Dialog";
 import { TicketTypeForm } from "./TicketTypeEditor";
 
 export function NewTicketType({
@@ -18,30 +18,32 @@ export function NewTicketType({
 }) {
   const t = useTranslations("tickets");
   const [open, setOpen] = useState(false);
-  if (!open)
-    return (
+  // nouveau tarif : dans une fenêtre
+  return (
+    <>
       <Button
         type="button"
-        variant="secondary"
-        size="lg"
+        variant="dark"
+        size="md"
         onClick={() => setOpen(true)}
         className="justify-self-start"
       >
         + {t("addTicketType")}
       </Button>
-    );
-  return (
-    <Card className="grid gap-4">
-      <h3 className="font-display text-lg tracking-[var(--tracking-title)]">
-        {t("newTicketType")}
-      </h3>
-      <TicketTypeForm
-        orgSlug={orgSlug}
-        eventId={eventId}
-        row={null}
-        terms={terms}
-        onDone={() => setOpen(false)}
-      />
-    </Card>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title={t("newTicketType")}
+        size="lg"
+      >
+        <TicketTypeForm
+          orgSlug={orgSlug}
+          eventId={eventId}
+          row={null}
+          terms={terms}
+          onDone={() => setOpen(false)}
+        />
+      </Dialog>
+    </>
   );
 }

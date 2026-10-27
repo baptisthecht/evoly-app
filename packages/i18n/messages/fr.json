@@ -355,7 +355,19 @@
     "maxPerBuyer": "Par personne",
     "maxPerBuyerHint": "Toutes commandes confondues. Vide : aucune limite pour ce tarif.",
     "waitlistEmptyTitle": "Personne n’attend de place",
-    "waitlistEmptyBody": "Quand un tarif est complet, les personnes qui s’inscrivent sur la liste d’attente apparaissent ici."
+    "waitlistEmptyBody": "Quand un tarif est complet, les personnes qui s’inscrivent sur la liste d’attente apparaissent ici.",
+    "tableTicketType": "Tarif",
+    "tablePrice": "Prix",
+    "tableSold": "Vendus",
+    "tableWindow": "Vente",
+    "tableStatus": "Statut",
+    "tableActions": "Actions",
+    "tableCaption": "Tarifs",
+    "tableSoldOut": "Complet",
+    "tableTiers": "{count, plural, one {# palier} other {# paliers}}",
+    "tableFrom": "Dès le {date}",
+    "tableUntil": "Jusqu’au {date}",
+    "tableAlways": "Toujours"
   },
   "checkout": {
     "tickets": "Billets",

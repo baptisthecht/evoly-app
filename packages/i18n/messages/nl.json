@@ -1076,7 +1076,19 @@
     "maxPerBuyer": "Per persoon",
     "maxPerBuyerHint": "Alle bestellingen samen. Leeg: geen limiet voor dit tarief.",
     "waitlistEmptyTitle": "Niemand wacht op een plaats",
-    "waitlistEmptyBody": "Als een tarief uitverkocht is, verschijnen hier de mensen die zich op de wachtlijst zetten."
+    "waitlistEmptyBody": "Als een tarief uitverkocht is, verschijnen hier de mensen die zich op de wachtlijst zetten.",
+    "tableTicketType": "Tarief",
+    "tablePrice": "Prijs",
+    "tableSold": "Verkocht",
+    "tableWindow": "Verkoop",
+    "tableStatus": "Status",
+    "tableActions": "Acties",
+    "tableCaption": "Tarieven",
+    "tableSoldOut": "Uitverkocht",
+    "tableTiers": "{count, plural, one {# trap} other {# trappen}}",
+    "tableFrom": "Vanaf {date}",
+    "tableUntil": "Tot {date}",
+    "tableAlways": "Altijd"
   },
   "plans": {
     "free": "Free",

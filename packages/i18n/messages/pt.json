@@ -1076,7 +1076,19 @@
     "maxPerBuyer": "Por pessoa",
     "maxPerBuyerHint": "Todas as encomendas juntas. Vazio: sem limite para esta tarifa.",
     "waitlistEmptyTitle": "Ninguém espera um lugar",
-    "waitlistEmptyBody": "Quando uma tarifa esgota, as pessoas que entram na lista de espera aparecem aqui."
+    "waitlistEmptyBody": "Quando uma tarifa esgota, as pessoas que entram na lista de espera aparecem aqui.",
+    "tableTicketType": "Tarifa",
+    "tablePrice": "Preço",
+    "tableSold": "Vendidos",
+    "tableWindow": "Venda",
+    "tableStatus": "Estado",
+    "tableActions": "Ações",
+    "tableCaption": "Tarifas",
+    "tableSoldOut": "Esgotado",
+    "tableTiers": "{count, plural, one {# patamar} other {# patamares}}",
+    "tableFrom": "A partir de {date}",
+    "tableUntil": "Até {date}",
+    "tableAlways": "Sempre"
   },
   "plans": {
     "free": "Free",

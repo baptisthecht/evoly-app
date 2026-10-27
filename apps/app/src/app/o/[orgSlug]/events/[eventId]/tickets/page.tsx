@@ -2,12 +2,12 @@ import { can, hasFeature, minorToInput, utcToZonedLocal } from "@evoly/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { EmptyState } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { getPlans } from "@/server/plans";
 import { NewTicketType } from "./NewTicketType";
-import { TicketTypeCard, type TicketTypeRow } from "./TicketTypeEditor";
+import { type TicketTypeRow } from "./TicketTypeEditor";
+import { TicketTypesTable } from "./TicketTypesTable";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -65,26 +65,19 @@ export default async function TicketsPage({
   return (
     <div className="grid gap-4">
       <p className="text-ink-muted">{t("pageIntro")}</p>
-      {rows.length === 0 ? (
-        <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
-      ) : null}
-      {rows.map((row, i) => (
-        <TicketTypeCard
-          key={row.id}
-          orgSlug={orgSlug}
-          eventId={eventId}
-          row={row}
-          terms={terms}
-          currency={event.currency}
-          index={i}
-          count={rows.length}
-          tiersEnabled={tiersEnabled && manage}
-          tiersLocked={!manage}
-        />
-      ))}
       {manage ? (
         <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} />
       ) : null}
+      <TicketTypesTable
+        rows={rows}
+        orgSlug={orgSlug}
+        eventId={eventId}
+        terms={terms}
+        currency={event.currency}
+        tiersEnabled={tiersEnabled && manage}
+        tiersLocked={!manage}
+        manage={manage}
+      />
     </div>
   );
 }
