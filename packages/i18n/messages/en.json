@@ -47,7 +47,7 @@
     "groupGrow": "Grow",
     "groupOrg": "Organisation",
     "groupTicketing": "Ticketing",
-    "groupSales": "Sales and promotion",
+    "groupSales": "Sales",
     "groupDayOf": "Event day",
     "groupAttendees": "Attendees",
     "tickets": "Ticket types",
@@ -64,8 +64,8 @@
     "eventNav": "Event navigation",
     "backToEvents": "All events",
     "viewPage": "View page",
-    "eventPage": "Event page",
-    "launch": "Going live",
+    "eventPage": "Ticketing style",
+    "launch": "Publication",
     "emails": "Emails",
     "readOnlyPage": "This page is read-only for this event.",
     "cash": "Cash desk and on-site sales",
@@ -91,7 +91,17 @@
     "tabBarOverview": "Overview",
     "tabBarOrg": "Organisation navigation",
     "tabBarEvent": "Event navigation",
-    "tabBarAccount": "My account"
+    "tabBarAccount": "My account",
+    "complimentary": "Complimentary tickets",
+    "questions": "Questions",
+    "waitlist": "Waitlist",
+    "images": "Images",
+    "diffusion": "Distribution",
+    "groupAppearance": "Appearance",
+    "settingsGeneral": "General",
+    "settingsVenue": "Venue",
+    "settingsSales": "Sales",
+    "settingsAdvanced": "Advanced"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -278,7 +288,8 @@
     "tabEmbed": "Embed",
     "tabTables": "Tables",
     "atVenue": "This event takes place at {name} (partner venue)",
-    "atVenueInfo": "The venue only sees the total number of tickets and its share, never your buyers."
+    "atVenueInfo": "The venue only sees the total number of tickets and its share, never your buyers.",
+    "advancedIntro": "Duplicate this event, delete a draft or cancel the event."
   },
   "tickets": {
     "addTicketType": "Add a ticket type",
@@ -342,7 +353,9 @@
     "waitlistLine": "{name}: {people, plural, one {# person} other {# people}}, {places, plural, one {# place wanted} other {# places wanted}}",
     "waitlistExport": "Export the list (CSV)",
     "maxPerBuyer": "Per person",
-    "maxPerBuyerHint": "Across all orders. Empty: no limit for this ticket type."
+    "maxPerBuyerHint": "Across all orders. Empty: no limit for this ticket type.",
+    "waitlistEmptyTitle": "Nobody is waiting for a seat",
+    "waitlistEmptyBody": "When a ticket type sells out, people who join the waitlist appear here."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -2451,6 +2464,10 @@
     "DISTRIBUTION": {
       "title": "Ticket networks",
       "body": "Manage your Ticketmaster, Fnac, BilletReduc or tourist office sales with Evoly: seats allocated to each network, their tickets imported in 1 click, and every entry checked with a single app."
+    },
+    "BRANDING": {
+      "title": "Your ticketing style",
+      "body": "Your colours, fonts and logo on this event's ticketing and in its emails."
     }
   },
   "seatingEditor": {

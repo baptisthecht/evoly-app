@@ -136,7 +136,7 @@ test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page priv
   await expect(page.getByText(/^6 billets · /)).toBeVisible();
 
   // billetterie intégrable (section 9.26) : cadre autorisé seulement sur le site déclaré
-  await page.goto(`${eventUrl}/embed`);
+  await page.goto(`${eventUrl}/diffusion`);
   await page.getByLabel("Ajouter un site").fill("monclub.be");
   await page.getByRole("button", { name: "Ajouter", exact: true }).click();
   await expect(page.getByText("https://monclub.be")).toBeVisible();

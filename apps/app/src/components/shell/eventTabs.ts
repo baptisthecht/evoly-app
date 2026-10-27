@@ -7,7 +7,14 @@ export interface EventTabItem {
   href: string;
 }
 export interface EventTab {
-  key: "overview" | "ticketing" | "attendees" | "sales" | "dayOf" | "settings";
+  key:
+    | "overview"
+    | "ticketing"
+    | "attendees"
+    | "appearance"
+    | "sales"
+    | "dayOf"
+    | "settings";
   label: string;
   href: string;
   /** Pages de la partie, affichées dans la seconde rangée (vide : partie d'une seule page). */
@@ -38,19 +45,22 @@ export function buildEventTabs(input: {
     label: t(key),
     href: `${base}/${path}`,
   });
+  // arborescence décidée le 28 octobre 2026 (docs/ARBORESCENCE.md)
   const ticketing = [
     item("tickets", "tickets"),
-    item("seating", "seating"),
-    item("tables", "tables"),
+    item("complimentary", "tickets/complimentary"),
+    item("questions", "tickets/questions"),
     item("options", "options"),
+    item("tables", "tables"),
+    item("seating", "seating"),
   ];
   const sales = [
-    item("eventPage", "appearance"),
     ...(input.canPublish ? [item("launch", "launch")] : []),
+    item("diffusion", "diffusion"),
     item("promo", "promo"),
     item("ambassadors", "ambassadors"),
     item("distribution", "distribution"), // réseaux de billetterie et contingents
-    item("embed", "embed"),
+    item("waitlist", "waitlist"),
   ];
   const tabs: EventTab[] = [
     { key: "overview", label: t("eventOverview"), href: base, items: [] },
@@ -64,9 +74,15 @@ export function buildEventTabs(input: {
       key: "attendees",
       label: t("groupAttendees"),
       href: `${base}/orders`,
+      items: [item("orders", "orders"), item("resale", "resale")],
+    },
+    {
+      key: "appearance",
+      label: t("groupAppearance"),
+      href: `${base}/appearance`,
       items: [
-        item("orders", "orders"),
-        item("resale", "resale"),
+        item("eventPage", "appearance"),
+        item("images", "appearance/images"),
         item("emails", "emails"),
       ],
     },
@@ -91,7 +107,12 @@ export function buildEventTabs(input: {
       key: "settings",
       label: t("eventSettings"),
       href: `${base}/settings`,
-      items: [],
+      items: [
+        item("settingsGeneral", "settings"),
+        item("settingsVenue", "settings/venue"),
+        item("settingsSales", "settings/sales"),
+        item("settingsAdvanced", "settings/advanced"),
+      ],
     },
   ];
   // toutes les fonctionnalités affichées directement (plus de menu « Ajouter une fonctionnalité »)

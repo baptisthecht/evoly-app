@@ -15,6 +15,10 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 
 Arborescence, règles d'interface et ordre de mise en œuvre décidés le 28 octobre 2026 : voir `docs/ARBORESCENCE.md`.
 
+- Fait : le socle (tableau, fenêtre, onglets en boutons, pastille) et l'arborescence de l'événement.
+- À venir : l'arborescence de l'organisation, puis les tableaux page par page, puis l'accueil vivant.
+- L'archivage d'un événement n'existe pas encore : à créer pour Réglages, Avancé.
+
 ## Limites d'achat, lot 4 : compte acheteur obligatoire
 
 Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteur, par tarif et en prévente, code promo de groupe, adresse normalisée, empreinte de la carte).

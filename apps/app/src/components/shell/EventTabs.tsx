@@ -1,5 +1,6 @@
 "use client";
 
+import { ButtonTabs } from "@/components/ui/ButtonTabs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -69,22 +70,10 @@ export function EventSubTabs({
   if (items.length <= 1 && !toAdd.length) return null;
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <nav aria-label={t("sectionPages")} className="flex flex-wrap gap-1.5">
-        {items.map((i) => (
-          <Link
-            key={i.href}
-            href={i.href}
-            aria-current={under(path, i.href) ? "page" : undefined}
-            className={
-              under(path, i.href)
-                ? "inline-flex h-9 items-center rounded-md bg-surface-raised px-3 text-[0.8125rem] font-medium shadow-sm ring-1 ring-line"
-                : "inline-flex h-9 items-center rounded-md px-3 text-[0.8125rem] text-ink-muted hover:bg-surface-raised hover:text-ink"
-            }
-          >
-            {i.label}
-          </Link>
-        ))}
-      </nav>
+      <ButtonTabs
+        label={t("sectionPages")}
+        items={items.map((i) => ({ href: i.href, label: i.label }))}
+      />
       {toAdd.length ? (
         <details className="relative">
           <summary className="inline-flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-md border border-dashed border-line-strong px-3 text-[0.8125rem] text-ink-muted hover:text-ink">

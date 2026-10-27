@@ -9,6 +9,7 @@ import { requireOrgContext } from "@/server/context";
 import { listEmbedOrigins } from "@/server/embed";
 import { getEventWithTickets } from "@/server/events";
 import { eventPublicUrl } from "@/server/urls";
+import { EventAppearance } from "../settings/EventAppearance";
 import { AddOriginForm, RemoveOrigin } from "./EmbedForms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /** Billetterie intégrable au site de l'organisateur (section 9.26, Pro) : sites autorisés et codes à copier. */
-export default async function EmbedPage({
+export default async function DiffusionPage({
   params,
 }: {
   params: Promise<{ orgSlug: string; eventId: string }>;
@@ -26,9 +27,27 @@ export default async function EmbedPage({
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
   const t = await getTranslations("embed");
+  // le lien et le sous-domaine de l'événement, pour tous ; l'intégration sur votre site, en Pro
+  const editable =
+    can(ctx.membership, "EVENTS_EDIT") &&
+    !ctx.readOnly &&
+    !["CANCELLED", "ENDED", "ARCHIVED"].includes(event.status);
+  const link = editable ? (
+    <EventAppearance
+      orgSlug={orgSlug}
+      eventId={eventId}
+      part="subdomain"
+      cover={event.coverImageUrl}
+      subdomain={event.subdomain}
+      baseDomain={env().NEXT_PUBLIC_BASE_DOMAIN}
+      canSubdomain={hasFeature(ctx.features, "EVENT_SUBDOMAINS")}
+      protocol={new URL(env().NEXT_PUBLIC_APP_URL).protocol}
+    />
+  ) : null;
   if (!hasFeature(ctx.features, "EMBED_WIDGET")) {
     return (
       <div className="grid gap-4">
+        {link}
         <p className="text-ink-muted">{t("intro")}</p>
         <ProLocked
           orgSlug={orgSlug}
@@ -53,6 +72,7 @@ export default async function EmbedPage({
   const module = `${script}\n<div data-evoly-module="${event.id}"></div>`;
   return (
     <div className="grid gap-4">
+      {link}
       <p className="text-ink-muted">{t("intro")}</p>
       <Card className="grid gap-3">
         <h2 className="font-display text-xl">{t("sitesTitle")}</h2>

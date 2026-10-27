@@ -142,7 +142,7 @@ test("annulation d'un événement : double confirmation, page publique, acheteur
   );
   const tickets = page.url();
 
-  await page.goto(eventUrl);
+  await page.goto(`${eventUrl}/settings/advanced`); // annuler l'événement : Réglages, Avancé
   await page
     .getByRole("button", { name: "Annuler l’événement", exact: true })
     .click();

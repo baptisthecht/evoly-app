@@ -54,7 +54,7 @@ test("protection anti-robots (Pro) : activée, et toujours active après le rech
   page,
 }) => {
   const eventUrl = await proDraft(page);
-  await page.goto(`${eventUrl}/launch`);
+  await page.goto(`${eventUrl}/settings/sales`); // protection anti-robot : Réglages, Vente
   const bot = page.getByRole("checkbox", { name: /robots/i });
   await bot.check();
   await expect(bot).toBeChecked();
@@ -78,7 +78,7 @@ test("intégration sur un site : un site est déclaré, listé, puis retiré", a
   page,
 }) => {
   const eventUrl = await proDraft(page);
-  await page.goto(`${eventUrl}/embed`);
+  await page.goto(`${eventUrl}/diffusion`);
   await page.locator("#embed-origin").fill("monclub.be");
   await page.getByRole("button", { name: emb.add, exact: true }).click();
   await expect(page.getByText("monclub.be").first()).toBeVisible();

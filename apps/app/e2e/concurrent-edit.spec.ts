@@ -8,8 +8,8 @@ test("deux onglets modifient le même événement : la dernière sauvegarde l'em
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Salon ${id}`, 20);
   const other = await context.newPage();
-  await page.goto(`${eventUrl}/settings`);
-  await other.goto(`${eventUrl}/settings`);
+  await page.goto(`${eventUrl}/settings/sales`);
+  await other.goto(`${eventUrl}/settings/sales`);
   await page.getByLabel("Billets par commande (maximum)").fill("7");
   await expect(
     page.getByText("Enregistré", { exact: false }).first(),

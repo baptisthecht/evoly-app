@@ -17,7 +17,7 @@ const build = (
 afterEach(() => vi.unstubAllGlobals());
 
 describe("onglets d'un événement : construction", () => {
-  it("six parties ; toutes les fonctionnalités affichées directement ; « Mise en ligne » seulement avec le droit de publier", () => {
+  it("sept parties (arborescence du 28 octobre 2026) ; toutes les fonctionnalités affichées directement ; « Publication » seulement avec le droit de publier", () => {
     const { tabs, hidden } = build(
       { seating: false, options: false, ambassadors: false },
       false,
@@ -26,36 +26,50 @@ describe("onglets d'un événement : construction", () => {
       n.eventOverview,
       n.groupTicketing,
       n.groupAttendees,
+      n.groupAppearance,
       n.groupSales,
       n.groupDayOf,
       n.eventSettings,
     ]);
     expect(tabs[1]!.items.map((i) => i.label)).toEqual([
       n.tickets,
-      n.seating,
-      n.tables,
+      n.complimentary,
+      n.questions,
       n.options,
+      n.tables,
+      n.seating,
     ]);
     expect(tabs[3]!.items.map((i) => i.label)).toEqual([
       n.eventPage,
+      n.images,
+      n.emails,
+    ]);
+    expect(tabs[4]!.items.map((i) => i.label)).toEqual([
+      n.diffusion,
       n.promo,
       n.ambassadors,
       n.distribution,
-      n.embed,
+      n.waitlist,
+    ]);
+    expect(tabs[6]!.items.map((i) => i.label)).toEqual([
+      n.settingsGeneral,
+      n.settingsVenue,
+      n.settingsSales,
+      n.settingsAdvanced,
     ]);
     expect(hidden).toEqual([]);
     expect(
       build(
         { seating: true, options: true, ambassadors: true },
         true,
-      ).tabs[3]!.items.map((i) => i.label),
+      ).tabs[4]!.items.map((i) => i.label),
     ).toEqual([
-      n.eventPage,
       n.launch,
+      n.diffusion,
       n.promo,
       n.ambassadors,
       n.distribution, // réseaux de vente (Ticketmaster, Fnac, BilletReduc…)
-      n.embed,
+      n.waitlist,
     ]);
   });
 
@@ -99,9 +113,11 @@ describe("onglets d'un événement : affichage", () => {
         .map((l) => [l.textContent, l.getAttribute("aria-current")]),
     ).toEqual([
       [n.tickets, null],
-      [n.seating, null],
-      [n.tables, "page"],
+      [n.complimentary, null],
+      [n.questions, null],
       [n.options, null],
+      [n.tables, "page"],
+      [n.seating, null],
     ]);
     expect(screen.queryByText(new RegExp(n.addFeature!))).toBeNull();
   });

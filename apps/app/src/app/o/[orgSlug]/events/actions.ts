@@ -1487,7 +1487,7 @@ export async function addEmbedOriginAction(
       return null;
     },
   );
-  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/embed`);
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/diffusion`);
   return result;
 }
 
@@ -1506,7 +1506,7 @@ export async function removeEmbedOriginAction(
       return null;
     },
   );
-  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/embed`);
+  if (result?.ok) revalidatePath(`${eventPath(orgSlug, eventId)}/diffusion`);
   return result;
 }
 

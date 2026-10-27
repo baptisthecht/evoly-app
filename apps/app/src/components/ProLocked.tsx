@@ -10,7 +10,8 @@ export type LockedFeature =
   | "PREPAID_OPTIONS"
   | "EMBED_WIDGET"
   | "AMBASSADORS"
-  | "DISTRIBUTION";
+  | "DISTRIBUTION"
+  | "BRANDING";
 
 /**
  * Fonction Pro montrée en offre gratuite : nom, bénéfice, aperçu grisé et non interactif, et accès à l'abonnement

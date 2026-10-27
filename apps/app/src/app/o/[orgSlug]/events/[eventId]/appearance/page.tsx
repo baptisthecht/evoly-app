@@ -3,11 +3,10 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
-import { EventAppearance } from "../settings/EventAppearance";
+import { ProLocked } from "@/components/ProLocked";
 import { EventThemeForm } from "./EventThemeForm";
 import { db } from "@/lib/db";
 import { hasFeature } from "@evoly/core";
-import { env } from "@/lib/env";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -32,15 +31,11 @@ export default async function EventAppearancePage({
       {readOnly ? (
         <p className="text-sm text-ink-muted">{tn("readOnlyPage")}</p>
       ) : null}
-      {!readOnly ? (
-        <EventAppearance
+      {!hasFeature(ctx.features, "BRANDING") ? (
+        <ProLocked
           orgSlug={orgSlug}
-          eventId={eventId}
-          cover={e.coverImageUrl}
-          subdomain={e.subdomain}
-          baseDomain={env().NEXT_PUBLIC_BASE_DOMAIN}
-          canSubdomain={hasFeature(ctx.features, "EVENT_SUBDOMAINS")}
-          protocol={new URL(env().NEXT_PUBLIC_APP_URL).protocol}
+          feature="BRANDING"
+          canUpgrade={can(ctx.membership, "BILLING_MANAGE")}
         />
       ) : null}
       {!readOnly && hasFeature(ctx.features, "BRANDING") ? (

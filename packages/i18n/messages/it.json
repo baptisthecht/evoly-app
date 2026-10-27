@@ -815,7 +815,7 @@
     "groupGrow": "Crescere",
     "groupOrg": "Organizzazione",
     "groupTicketing": "Biglietteria",
-    "groupSales": "Vendita e promozione",
+    "groupSales": "Vendita",
     "groupDayOf": "Giorno dell’evento",
     "groupAttendees": "Partecipanti",
     "tickets": "Tariffe",
@@ -832,7 +832,7 @@
     "eventNav": "Navigazione dell’evento",
     "backToEvents": "Tutti gli eventi",
     "viewPage": "Vedi la pagina",
-    "eventPage": "Pagina dell’evento",
+    "eventPage": "Stile della biglietteria",
     "launch": "Pubblicazione",
     "emails": "E-mail",
     "readOnlyPage": "Questa pagina è in sola lettura per questo evento.",
@@ -859,7 +859,17 @@
     "tabBarOverview": "Panoramica",
     "tabBarOrg": "Navigazione dell’organizzazione",
     "tabBarEvent": "Navigazione dell’evento",
-    "tabBarAccount": "Il mio account"
+    "tabBarAccount": "Il mio account",
+    "complimentary": "Biglietti omaggio",
+    "questions": "Domande",
+    "waitlist": "Lista d’attesa",
+    "images": "Immagini",
+    "diffusion": "Diffusione",
+    "groupAppearance": "Aspetto",
+    "settingsGeneral": "Generale",
+    "settingsVenue": "Luogo",
+    "settingsSales": "Vendita",
+    "settingsAdvanced": "Avanzate"
   },
   "dashboard": {
     "greeting": "ciao {name},",
@@ -991,7 +1001,8 @@
     "tabEmbed": "Integra",
     "tabTables": "Tavoli",
     "atVenue": "Questo evento si svolge presso {name} (locale partner)",
-    "atVenueInfo": "Il locale vede solo il numero totale di biglietti e la sua quota, mai i tuoi acquirenti."
+    "atVenueInfo": "Il locale vede solo il numero totale di biglietti e la sua quota, mai i tuoi acquirenti.",
+    "advancedIntro": "Duplicare questo evento, eliminare una bozza o annullare l’evento."
   },
   "tickets": {
     "addTicketType": "Aggiungi una tariffa",
@@ -1055,7 +1066,9 @@
     "waitlistLine": "{name}: {people, plural, one {# persona} other {# persone}}, {places, plural, one {# posto richiesto} other {# posti richiesti}}",
     "waitlistExport": "Esporta l'elenco (CSV)",
     "maxPerBuyer": "A persona",
-    "maxPerBuyerHint": "Tutti gli ordini insieme. Vuoto: nessun limite per questa tariffa."
+    "maxPerBuyerHint": "Tutti gli ordini insieme. Vuoto: nessun limite per questa tariffa.",
+    "waitlistEmptyTitle": "Nessuno aspetta un posto",
+    "waitlistEmptyBody": "Quando una tariffa è esaurita, qui compaiono le persone che si iscrivono alla lista d’attesa."
   },
   "plans": {
     "free": "Free",
@@ -1096,6 +1109,10 @@
     "DISTRIBUTION": {
       "title": "Reti di vendita",
       "body": "Gestisci con Evoly le vendite tramite Ticketmaster, Fnac, BilletReduc o un ufficio turistico: posti assegnati a ogni rete, importazione dei loro biglietti in 1 clic e controllo di tutti gli ingressi con un’unica app."
+    },
+    "BRANDING": {
+      "title": "Lo stile della tua biglietteria",
+      "body": "I tuoi colori, caratteri e logo sulla biglietteria di questo evento e nelle sue email."
     }
   },
   "upsell": {

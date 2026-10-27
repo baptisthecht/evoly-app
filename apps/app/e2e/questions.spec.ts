@@ -6,7 +6,7 @@ test("questions à l'achat : création, réponses exigées, réponses dans la co
 }) => {
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Dîner ${id}`, 30);
-  await page.goto(`${eventUrl}/tickets`);
+  await page.goto(`${eventUrl}/tickets/questions`);
   await page.getByRole("button", { name: "+ Ajouter une question" }).click();
   await page
     .getByLabel("Question", { exact: true })
@@ -59,7 +59,7 @@ test("événement privé : code d'accès avant affichage et avant réservation (
 }) => {
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Gala ${id}`, 30);
-  await page.goto(`${eventUrl}/settings`);
+  await page.goto(`${eventUrl}/settings/sales`); // code d'accès : Réglages, Vente
   await page.getByLabel("Visibilité").selectOption("PRIVATE");
   await page.getByLabel("Code d’accès").fill("gala 2026");
   await expect

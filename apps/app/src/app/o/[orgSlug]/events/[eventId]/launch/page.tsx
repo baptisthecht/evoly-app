@@ -12,7 +12,6 @@ import { eventPublicUrl } from "@/server/urls";
 import { waitingAlerts } from "@/server/alerts";
 import { presaleOverview } from "@/server/presale";
 import { EventPresale } from "../settings/EventPresale";
-import { BotProtection } from "../settings/BotProtection";
 import { hasFeature } from "@evoly/core";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -65,19 +64,6 @@ export default async function EventLaunchPage({
             ctx.readOnly ||
             ["CANCELLED", "ENDED", "ARCHIVED"].includes(e.status)
           }
-        />
-      ) : null}
-      {canPublish ? (
-        <BotProtection
-          orgSlug={orgSlug}
-          eventId={eventId}
-          enabled={e.botProtection}
-          readOnly={ctx.readOnly}
-          labels={{
-            title: tp("botTitle"),
-            hint: tp("botHint"),
-            saved: tp("botSaved"),
-          }}
         />
       ) : null}
       {canPublish && presale ? (

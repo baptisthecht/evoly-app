@@ -815,7 +815,7 @@
     "groupGrow": "Groeien",
     "groupOrg": "Organisatie",
     "groupTicketing": "Ticketverkoop",
-    "groupSales": "Verkoop en promotie",
+    "groupSales": "Verkoop",
     "groupDayOf": "Op de dag zelf",
     "groupAttendees": "Bezoekers",
     "tickets": "Tarieven",
@@ -832,8 +832,8 @@
     "eventNav": "Navigatie van het evenement",
     "backToEvents": "Alle evenementen",
     "viewPage": "Pagina bekijken",
-    "eventPage": "Evenementpagina",
-    "launch": "Online zetten",
+    "eventPage": "Stijl van de ticketverkoop",
+    "launch": "Publicatie",
     "emails": "E-mails",
     "readOnlyPage": "Deze pagina is alleen-lezen voor dit evenement.",
     "cash": "Kassa en verkoop ter plaatse",
@@ -859,7 +859,17 @@
     "tabBarOverview": "Overzicht",
     "tabBarOrg": "Navigatie van de organisatie",
     "tabBarEvent": "Navigatie van het evenement",
-    "tabBarAccount": "Mijn account"
+    "tabBarAccount": "Mijn account",
+    "complimentary": "Gratis tickets",
+    "questions": "Vragen",
+    "waitlist": "Wachtlijst",
+    "images": "Afbeeldingen",
+    "diffusion": "Verspreiding",
+    "groupAppearance": "Uiterlijk",
+    "settingsGeneral": "Algemeen",
+    "settingsVenue": "Locatie",
+    "settingsSales": "Verkoop",
+    "settingsAdvanced": "Geavanceerd"
   },
   "dashboard": {
     "greeting": "hallo {name},",
@@ -991,7 +1001,8 @@
     "tabEmbed": "Integreren",
     "tabTables": "Tafels",
     "atVenue": "Dit evenement vindt plaats in {name} (partnerlocatie)",
-    "atVenueInfo": "De locatie ziet alleen het totale aantal tickets en haar deel, nooit je kopers."
+    "atVenueInfo": "De locatie ziet alleen het totale aantal tickets en haar deel, nooit je kopers.",
+    "advancedIntro": "Dit evenement dupliceren, een concept verwijderen of het evenement annuleren."
   },
   "tickets": {
     "addTicketType": "Tarief toevoegen",
@@ -1055,7 +1066,9 @@
     "waitlistLine": "{name}: {people, plural, one {# persoon} other {# personen}}, {places, plural, one {# gevraagde plaats} other {# gevraagde plaatsen}}",
     "waitlistExport": "Lijst exporteren (CSV)",
     "maxPerBuyer": "Per persoon",
-    "maxPerBuyerHint": "Alle bestellingen samen. Leeg: geen limiet voor dit tarief."
+    "maxPerBuyerHint": "Alle bestellingen samen. Leeg: geen limiet voor dit tarief.",
+    "waitlistEmptyTitle": "Niemand wacht op een plaats",
+    "waitlistEmptyBody": "Als een tarief uitverkocht is, verschijnen hier de mensen die zich op de wachtlijst zetten."
   },
   "plans": {
     "free": "Free",
@@ -1096,6 +1109,10 @@
     "DISTRIBUTION": {
       "title": "Verkoopnetwerken",
       "body": "Beheer met Evoly je verkoop via Ticketmaster, Fnac, BilletReduc of een toeristische dienst: plaatsen per netwerk, hun tickets in 1 klik geïmporteerd en alle toegang gecontroleerd met één app."
+    },
+    "BRANDING": {
+      "title": "De stijl van je ticketverkoop",
+      "body": "Je kleuren, lettertypes en logo op de ticketverkoop van dit evenement en in de e-mails."
     }
   },
   "upsell": {

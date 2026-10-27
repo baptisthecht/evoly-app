@@ -28,6 +28,7 @@ export default defineConfig({
         "src/components/shell/EventHeader.tsx",
         "src/components/shell/OrgTabBar.tsx", // barre d'onglets du téléphone : parcours complets sur téléphone
         "src/components/shell/EventTabBar.tsx",
+        "src/app/o/[orgSlug]/events/[eventId]/settings/EventSettingsSection.tsx", // réglages en parties : parcours complets
         "src/app/(auth)/SocialButtons.tsx",
         "src/app/o/[orgSlug]/StripeBanner.tsx",
         "src/app/onboarding/Steps.tsx",

@@ -196,3 +196,53 @@ describe("limites d'achat : la phrase d'exemple suit la saisie", () => {
     );
   });
 });
+
+describe("réglages en parties : chaque partie montre ses champs, les autres restent dans le formulaire", () => {
+  const part = (section: "general" | "venue" | "sales") =>
+    render(
+      <Fr>
+        <SettingsForm
+          orgSlug="club"
+          eventId="e1"
+          values={values()}
+          readOnly={false}
+          section={section}
+        />
+      </Fr>,
+    );
+  const shown = (el: HTMLElement) => !el.closest("[hidden]");
+
+  it("Général : l'essentiel ; Lieu : le lieu ; Vente : la vente ; les champs masqués sont toujours envoyés", () => {
+    const { unmount } = part("general");
+    expect(shown(screen.getByLabelText(t.maxTicketsPerOrder!))).toBe(false);
+    const form = screen.getByLabelText(t.maxTicketsPerOrder!).closest("form")!;
+    expect(new FormData(form).get("maxTicketsPerOrder")).toBe(
+      String(values().maxTicketsPerOrder),
+    ); // masqué mais envoyé
+    unmount();
+    part("sales");
+    expect(shown(screen.getByLabelText(t.maxTicketsPerOrder!))).toBe(true);
+    const title = document.querySelector<HTMLInputElement>(
+      'input[name="title"]',
+    )!;
+    expect([shown(title), title.closest("form") !== null]).toEqual([
+      false,
+      true,
+    ]);
+  });
+
+  it("Lieu : le lieu seul", () => {
+    part("venue");
+    const title = document.querySelector<HTMLInputElement>(
+      'input[name="title"]',
+    )!;
+    const city = document.querySelector<HTMLInputElement>(
+      'input[name="city"], input[name="locationName"]',
+    )!;
+    expect([
+      shown(title),
+      shown(city),
+      shown(screen.getByLabelText(t.maxTicketsPerOrder!)),
+    ]).toEqual([false, true, false]);
+  });
+});

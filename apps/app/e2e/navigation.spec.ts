@@ -34,7 +34,7 @@ test("barre latérale (maquette validée) : page active sur fond gris, autres pa
   await expect(finances).toHaveCSS("background-color", grey);
 });
 
-test("événement : la barre de l'organisation reste, six parties en onglets, toutes les pages de la partie ouverte, retour", async ({
+test("événement : la barre de l'organisation reste, sept parties en onglets, toutes les pages de la partie ouverte, retour", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -56,7 +56,8 @@ test("événement : la barre de l'organisation reste, six parties en onglets, to
     "Vue d’ensemble",
     "Billetterie",
     "Participants",
-    "Vente et promotion",
+    "Apparence",
+    "Vente",
     "Jour J",
     "Réglages",
   ]);
@@ -77,9 +78,11 @@ test("événement : la barre de l'organisation reste, six parties en onglets, to
   // toutes les fonctionnalités affichées directement, sans menu à déplier
   await expect(pages.getByRole("link")).toHaveText([
     "Tarifs",
-    "Plan de salle",
-    "Tables",
+    "Billets offerts",
+    "Questions",
     "Options",
+    "Tables",
+    "Plan de salle",
   ]);
   await pages.getByRole("link", { name: "Options", exact: true }).click();
   await expect(page).toHaveURL(/\/options$/);

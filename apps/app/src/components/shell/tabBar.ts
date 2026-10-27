@@ -42,6 +42,15 @@ export const ORG_TABS = ["home", "events", "orders", "finances"] as const;
 /** Icône de chaque page d'un événement, sur sa tuile de la feuille « Plus ». */
 const PAGE_ICON: Record<string, NavIcon> = {
   tickets: "ticket",
+  complimentary: "star",
+  questions: "layers",
+  images: "palette",
+  diffusion: "share",
+  waitlist: "users",
+  settingsGeneral: "gear",
+  settingsVenue: "door",
+  settingsSales: "coins",
+  settingsAdvanced: "gear",
   seating: "chair",
   tables: "table",
   options: "layers",
@@ -50,7 +59,6 @@ const PAGE_ICON: Record<string, NavIcon> = {
   promo: "tag",
   ambassadors: "star",
   distribution: "share",
-  embed: "code",
   orders: "receipt",
   resale: "repeat",
   emails: "mail",

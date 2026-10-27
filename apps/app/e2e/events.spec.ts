@@ -118,11 +118,12 @@ test("réglages en sauvegarde automatique, duplication et suppression d'un broui
   await page.reload();
   await expect(page.getByLabel("Titre")).toHaveValue(`Atelier renommé ${id}`);
 
-  await page.goto(eventPath);
+  await page.goto(`${eventPath}/settings/advanced`); // dupliquer, supprimer, annuler : Réglages, Avancé
   await page.getByRole("button", { name: "Dupliquer" }).click();
   await expect(
     page.getByRole("heading", { name: `Atelier renommé ${id} (copie)` }),
   ).toBeVisible();
+  await page.goto(`${page.url().replace(/\/$/, "")}/settings/advanced`);
 
   page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Supprimer le brouillon" }).click();

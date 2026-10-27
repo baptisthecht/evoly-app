@@ -44,6 +44,7 @@ export function SettingsForm({
   readOnly,
   venue,
   typeLimits = [],
+  section,
 }: {
   orgSlug: string;
   eventId: string;
@@ -52,6 +53,8 @@ export function SettingsForm({
   readOnly: boolean;
   /** Limites par personne des tarifs, pour la phrase d'exemple des limites d'achat. */
   typeLimits?: { name: string; maxPerBuyer: number | null }[];
+  /** Partie des réglages montrée (Général, Lieu, Vente) ; les autres champs restent chargés, masqués, pour être enregistrés. */
+  section?: "general" | "venue" | "sales";
 }) {
   const t = useTranslations("eventSettings");
   // limites d'achat : phrase d'exemple qui suit la saisie (commande, personne, tarifs, prévente)
@@ -163,9 +166,20 @@ export function SettingsForm({
       </div>
       <FormError state={state} />
       <fieldset disabled={readOnly} className="grid gap-10">
-        <EventFields values={values} error={error} venue={venue} />
+        <EventFields
+          values={values}
+          error={error}
+          venue={venue}
+          show={{
+            essentials: !section || section === "general",
+            location: !section || section === "venue",
+          }}
+        />
 
-        <fieldset className="grid gap-5">
+        <fieldset
+          className="grid gap-5"
+          hidden={!!section && section !== "sales"}
+        >
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
             {t("sectionSales")}
           </legend>
@@ -252,7 +266,10 @@ export function SettingsForm({
           ) : null}
         </fieldset>
 
-        <fieldset className="grid gap-5">
+        <fieldset
+          className="grid gap-5"
+          hidden={!!section && section !== "sales"}
+        >
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
             {t("limitsTitle")}
           </legend>
@@ -323,7 +340,10 @@ export function SettingsForm({
             {limitsPreview}
           </p>
         </fieldset>
-        <fieldset className="grid gap-5">
+        <fieldset
+          className="grid gap-5"
+          hidden={!!section && section !== "sales"}
+        >
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
             {t("sectionRefunds")}
           </legend>
@@ -372,7 +392,10 @@ export function SettingsForm({
           </div>
         </fieldset>
 
-        <fieldset className="grid gap-5">
+        <fieldset
+          className="grid gap-5"
+          hidden={!!section && section !== "sales"}
+        >
           <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
             {t("sectionResale")}
           </legend>

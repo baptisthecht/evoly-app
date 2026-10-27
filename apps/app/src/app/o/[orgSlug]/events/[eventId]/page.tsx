@@ -12,7 +12,6 @@ import { eventPublicationBlockers, getEventWithTickets } from "@/server/events";
 import { eventShortUrl } from "@/server/urls";
 import { canonicalEventUrl } from "@/server/canonical";
 import { EventCommand } from "./EventCommands";
-import { CancelEvent } from "./CancelEvent";
 import { AutoRefresh } from "@/components/public/AutoRefresh";
 import { db } from "@/lib/db";
 import { CheckIcon } from "@/components/ui/icons";
@@ -324,37 +323,6 @@ export default async function EventOverview({
             >
               {t("exportParticipants")}
             </a>
-          ) : null}
-          {can(ctx.membership, "EVENTS_CREATE") && !ctx.readOnly ? (
-            <EventCommand
-              orgSlug={orgSlug}
-              eventId={eventId}
-              command="duplicate"
-              variant="secondary"
-            />
-          ) : null}
-          {can(ctx.membership, "EVENTS_DELETE") && event.status === "DRAFT" ? (
-            <EventCommand
-              orgSlug={orgSlug}
-              eventId={eventId}
-              command="delete"
-              variant="ghost"
-              confirm={t("confirmDelete")}
-            />
-          ) : null}
-          {can(ctx.membership, "EVENTS_CANCEL") && !ctx.readOnly && isLive ? (
-            <CancelEvent
-              orgSlug={orgSlug}
-              eventId={eventId}
-              title={event.title}
-              paidOrders={await db.order.count({
-                where: {
-                  eventId,
-                  totalMinor: { gt: 0 },
-                  status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
-                },
-              })}
-            />
           ) : null}
           {event.status === "CANCELLED" ? (
             <p className="rounded-md bg-danger-soft px-4 py-3 text-sm text-danger">

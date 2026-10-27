@@ -4,14 +4,10 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
-import { listQuestions } from "@/server/questions";
-import { QuestionsManager } from "./QuestionsManager";
-import { ComplimentaryForm } from "./ComplimentaryForm";
 import { getEventWithTickets } from "@/server/events";
 import { getPlans } from "@/server/plans";
 import { NewTicketType } from "./NewTicketType";
 import { TicketTypeCard, type TicketTypeRow } from "./TicketTypeEditor";
-import { waitlistCounts } from "@/server/waitlist";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -27,7 +23,6 @@ export default async function TicketsPage({
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
   const t = await getTranslations("tickets");
-  const waitlist = await waitlistCounts(eventId); // section 9.30
   const plans = await getPlans();
   const terms =
     plans[ctx.plan].terms[event.currency] ?? plans[ctx.plan].terms.EUR!;
@@ -90,66 +85,6 @@ export default async function TicketsPage({
       {manage ? (
         <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} />
       ) : null}
-      {waitlist.length ? (
-        <section
-          className="grid gap-1 rounded-lg bg-surface-sunken p-4 text-sm"
-          aria-label={t("waitlistTitle")}
-        >
-          <h2 className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
-            {t("waitlistTitle")}
-            <a
-              href={`/o/${orgSlug}/events/${eventId}/waitlist.csv`}
-              className="text-sm font-normal underline underline-offset-4"
-            >
-              {t("waitlistExport")}
-            </a>
-          </h2>
-          {waitlist.map((w) => (
-            <p key={w.ticketTypeId}>
-              {t("waitlistLine", {
-                name:
-                  event.ticketTypes.find((tt) => tt.id === w.ticketTypeId)
-                    ?.name ?? "",
-                people: w._count._all,
-                places: w._sum.quantity ?? 0,
-              })}
-            </p>
-          ))}
-        </section>
-      ) : null}
-      {can(ctx.membership, "ORDERS_MANAGE") &&
-      !ctx.readOnly &&
-      event.ticketTypes.length > 0 ? (
-        <ComplimentaryForm
-          orgSlug={orgSlug}
-          eventId={eventId}
-          ticketTypes={event.ticketTypes.map((tt) => ({
-            id: tt.id,
-            name: tt.name,
-          }))}
-        />
-      ) : null}
-      <QuestionsManager
-        orgSlug={orgSlug}
-        eventId={eventId}
-        readOnly={!can(ctx.membership, "TICKETS_MANAGE") || ctx.readOnly}
-        ticketTypes={event.ticketTypes.map((tt) => ({
-          id: tt.id,
-          name: tt.name,
-        }))}
-        questions={(await listQuestions(ctx, eventId)).map((q) => ({
-          id: q.id,
-          label: q.label,
-          helpText: q.helpText,
-          type: q.type,
-          options: (q.options as string[] | null) ?? null,
-          required: q.required,
-          scope: q.scope,
-          ticketTypeIds: q.ticketTypeIds,
-          archived: !!q.archivedAt,
-          answers: q._count.answers,
-        }))}
-      />
     </div>
   );
 }

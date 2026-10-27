@@ -53,10 +53,13 @@ export function EventFields({
   values,
   error,
   venue,
+  show = { essentials: true, location: true },
 }: {
   values: EventFieldValues;
   error: (name: string) => string | null;
   venue?: PartnerVenueOption | null;
+  /** Sections montrées (réglages en parties) : les autres restent dans le formulaire, masquées, pour être enregistrées. */
+  show?: { essentials: boolean; location: boolean };
 }) {
   const t = useTranslations("events");
   const [locationType, setLocationType] = useState(values.locationType);
@@ -67,7 +70,7 @@ export function EventFields({
     : [values.timezone, ...TIMEZONES];
   return (
     <>
-      <fieldset className="grid gap-5">
+      <fieldset className="grid gap-5" hidden={!show.essentials}>
         <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
           {t("sectionEssentials")}
         </legend>
@@ -157,7 +160,7 @@ export function EventFields({
         </Field>
       </fieldset>
 
-      <fieldset className="grid gap-5">
+      <fieldset className="grid gap-5" hidden={!show.location}>
         <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
           {t("sectionLocation")}
         </legend>
