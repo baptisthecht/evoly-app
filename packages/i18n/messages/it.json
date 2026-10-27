@@ -1245,7 +1245,9 @@
     "IMPORT_ALREADY_DELETED": "Questa importazione è già stata eliminata.",
     "FEATURED_EVENT_INVALID": "Scegli un evento pubblico in arrivo.",
     "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe non ha ancora completato l’attivazione di Evoly: riprova tra qualche ora.",
-    "STRIPE_UNAVAILABLE": "Stripe non è riuscito ad aprire la connessione per ora: riprova tra qualche minuto."
+    "STRIPE_UNAVAILABLE": "Stripe non è riuscito ad aprire la connessione per ora: riprova tra qualche minuto.",
+    "BUYER_TYPE_LIMIT_REACHED": "Hai raggiunto il numero massimo di biglietti a persona per questa tariffa.",
+    "PRESALE_BUYER_LIMIT_REACHED": "Hai raggiunto il numero massimo di biglietti a persona durante la prevendita."
   },
   "eventSettings": {
     "unsaved": "Modifiche in corso…",

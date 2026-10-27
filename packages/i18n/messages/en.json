@@ -1094,7 +1094,9 @@
     "IMPORT_ALREADY_DELETED": "This import has already been deleted.",
     "FEATURED_EVENT_INVALID": "Choose an upcoming public event.",
     "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe has not finished activating Evoly yet: please try again in a few hours.",
-    "STRIPE_UNAVAILABLE": "Stripe could not open the connection right now: please try again in a few minutes."
+    "STRIPE_UNAVAILABLE": "Stripe could not open the connection right now: please try again in a few minutes.",
+    "BUYER_TYPE_LIMIT_REACHED": "You have reached the maximum number of tickets per person for this ticket type.",
+    "PRESALE_BUYER_LIMIT_REACHED": "You have reached the maximum number of tickets per person during the presale."
   },
   "validation": {
     "required": "This field is required.",

@@ -1094,7 +1094,9 @@
     "IMPORT_ALREADY_DELETED": "Cet import a déjà été supprimé.",
     "FEATURED_EVENT_INVALID": "Choisissez un événement public à venir.",
     "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe n’a pas encore terminé l’activation d’Evoly : réessayez dans quelques heures.",
-    "STRIPE_UNAVAILABLE": "Stripe n’a pas pu ouvrir la connexion pour le moment : réessayez dans quelques minutes."
+    "STRIPE_UNAVAILABLE": "Stripe n’a pas pu ouvrir la connexion pour le moment : réessayez dans quelques minutes.",
+    "BUYER_TYPE_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pour ce tarif.",
+    "PRESALE_BUYER_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pendant la prévente."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",

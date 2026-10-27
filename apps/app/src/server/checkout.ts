@@ -34,7 +34,8 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { getPlans } from "./plans";
-import { salesOpeningAt } from "@evoly/core";
+import { buyerEmailKey, salesOpeningAt } from "@evoly/core";
+import { checkBuyerLimits } from "./buyerLimits";
 import { presaleCodeFor } from "./presale";
 import { hasFeature, ticketCommission } from "@evoly/core";
 import { latePaymentRefundEmail } from "./email/templates";
@@ -809,7 +810,7 @@ export async function submitBuyer(
     const uses = await db.order.count({
       where: {
         promoCodeId: order.promoCode.id,
-        buyerEmail: email,
+        buyerEmailKey: buyerEmailKey(email) ?? email, // adresse normalisée : une variante ne repart pas de zéro
         status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
       },
     });
@@ -837,30 +838,20 @@ export async function submitBuyer(
       throw new CoreError("HOLDER_EMAIL_REQUIRED");
     await db.orderItem.update({ where: { id: item.id }, data: { holders } });
   }
-  // RG-BUY-09 : limite facultative de billets par adresse (commandes payées de l'événement + cette commande)
-  if (order.source === "ONLINE") {
-    const limit = (
-      await db.event.findUniqueOrThrow({
-        where: { id: order.eventId },
-        select: { maxTicketsPerBuyer: true },
-      })
-    ).maxTicketsPerBuyer;
-    if (limit) {
-      const already = await db.ticket.count({
-        where: {
-          eventId: order.eventId,
-          status: { in: ["VALID", "CHECKED_IN"] },
-          order: {
-            buyerEmail: email,
-            status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
-            id: { not: order.id },
-          },
-        },
-      });
-      if (already + order.items.reduce((n, i) => n + i.quantity, 0) > limit)
-        throw new CoreError("BUYER_LIMIT_REACHED");
-    }
-  }
+  // RG-BUY-09 : limites par acheteur (adresse normalisée) : événement, tarif, prévente ; code promo qui les relève
+  const emailKey = buyerEmailKey(email);
+  if (order.source === "ONLINE" && emailKey)
+    await checkBuyerLimits({
+      orderId: order.id,
+      eventId: order.eventId,
+      key: emailKey,
+      items: order.items.map((i) => ({
+        ticketTypeId: i.ticketTypeId,
+        quantity: i.quantity,
+      })),
+      promoCodeId: order.promoCodeId,
+      presaleCodeId: order.presaleCodeId,
+    });
   if (order.source !== "RESALE")
     await saveAnswers(
       order.id,
@@ -871,6 +862,7 @@ export async function submitBuyer(
   await db.order.update({
     where: { id: orderId },
     data: {
+      buyerEmailKey: emailKey,
       buyerFirstName: buyer.firstName,
       buyerLastName: buyer.lastName,
       buyerEmail: email,

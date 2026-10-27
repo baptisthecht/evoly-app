@@ -1245,7 +1245,9 @@
     "IMPORT_ALREADY_DELETED": "Deze import is al verwijderd.",
     "FEATURED_EVENT_INVALID": "Kies een komend openbaar evenement.",
     "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe heeft de activering van Evoly nog niet afgerond: probeer het over een paar uur opnieuw.",
-    "STRIPE_UNAVAILABLE": "Stripe kon de verbinding nu niet openen: probeer het over een paar minuten opnieuw."
+    "STRIPE_UNAVAILABLE": "Stripe kon de verbinding nu niet openen: probeer het over een paar minuten opnieuw.",
+    "BUYER_TYPE_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon voor dit tarief bereikt.",
+    "PRESALE_BUYER_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon tijdens de voorverkoop bereikt."
   },
   "eventSettings": {
     "unsaved": "Wijzigingen bezig…",

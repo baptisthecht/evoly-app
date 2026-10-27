@@ -545,87 +545,88 @@ enum RefundPolicy {
 }
 
 model Event {
-  ambassadors             Ambassador[]
-  resaleWaitlistFirst     Boolean         @default(false) // section 9.30 : places en revente d'abord proposées aux inscrits de la liste d'attente
-  resaleWaitlistMinutes   Int             @default(60) // délai réservé aux inscrits, avant la section Revente publique
-  waitlist                WaitlistEntry[]
-  options                 EventOption[]
-  id                      String          @id @default(cuid())
-  organizationId          String
-  venuePartnerId          String? // lieu partenaire où a lieu l'événement (RG-LIEU-02)
-  venuePartner            VenuePartner?   @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
-  slug                    String // unique par organisation
-  publicCode              String          @unique // court et global : evoly.me/e/7KQ2XM
-  title                   String
-  summary                 String?
-  description             Json? // contenu riche (blocs)
-  coverImageUrl           String?
-  status                  EventStatus     @default(DRAFT)
-  optionsRefundAfterStart Boolean         @default(false) // options remboursables après le début (RG-OPT-07)
-  visibility              EventVisibility @default(PUBLIC)
-  accessCodeHash          String? // événements PRIVATE
-  locale                  String          @default("fr")
-  currency                String          @db.Char(3)
-  timezone                String
-  startsAt                DateTime
-  endsAt                  DateTime?
-  doorsOpenAt             DateTime?
-  locationType            LocationType    @default(PHYSICAL)
-  venueId                 String?
-  locationName            String?
-  addressLine1            String?
-  addressLine2            String?
-  postalCode              String?
-  city                    String?
-  region                  String?
-  country                 String?         @db.Char(2)
-  latitude                Float?
-  longitude               Float?
-  onlineUrl               String? // révélé seulement après achat
-  capacity                Int? // jauge globale, tous tarifs confondus
-  seatingMode             SeatingMode     @default(GENERAL_ADMISSION)
-  allowSeatChoice         Boolean         @default(true)
-  maxTicketsPerOrder      Int             @default(10)
-  maxTicketsPerBuyer      Int? // limite par adresse e-mail (P1)
-  checkoutHoldMinutes     Int             @default(10)
-  requireBuyerPhone       Boolean         @default(false)
-  allowHolderChange       Boolean         @default(true) // modification des titulaires par l'acheteur
-  botProtection           Boolean         @default(false) // protection anti-robots (P1)
-  showNextPriceTier       Boolean         @default(true) // annonce du prochain palier (P1)
-  salesStartAt            DateTime?
-  salesEndAt              DateTime?
-  resaleEnabled           Boolean         @default(true)
-  resaleCutoffMinutes     Int             @default(120) // fin de la revente avant le début
-  showResaleSection       Boolean         @default(true)
-  refundPolicy            RefundPolicy    @default(ON_REQUEST)
-  refundDeadlineAt        DateTime?
-  confirmationMessage     String?
-  faq                     Json? // [{ question, answer }], 10 au maximum
-  primaryColor            String? // Pro : surcharge des couleurs de la marque
-  accentColor             String?
+  ambassadors               Ambassador[]
+  resaleWaitlistFirst       Boolean         @default(false) // section 9.30 : places en revente d'abord proposées aux inscrits de la liste d'attente
+  resaleWaitlistMinutes     Int             @default(60) // délai réservé aux inscrits, avant la section Revente publique
+  waitlist                  WaitlistEntry[]
+  options                   EventOption[]
+  id                        String          @id @default(cuid())
+  organizationId            String
+  venuePartnerId            String? // lieu partenaire où a lieu l'événement (RG-LIEU-02)
+  venuePartner              VenuePartner?   @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
+  slug                      String // unique par organisation
+  publicCode                String          @unique // court et global : evoly.me/e/7KQ2XM
+  title                     String
+  summary                   String?
+  description               Json? // contenu riche (blocs)
+  coverImageUrl             String?
+  status                    EventStatus     @default(DRAFT)
+  optionsRefundAfterStart   Boolean         @default(false) // options remboursables après le début (RG-OPT-07)
+  visibility                EventVisibility @default(PUBLIC)
+  accessCodeHash            String? // événements PRIVATE
+  locale                    String          @default("fr")
+  currency                  String          @db.Char(3)
+  timezone                  String
+  startsAt                  DateTime
+  endsAt                    DateTime?
+  doorsOpenAt               DateTime?
+  locationType              LocationType    @default(PHYSICAL)
+  venueId                   String?
+  locationName              String?
+  addressLine1              String?
+  addressLine2              String?
+  postalCode                String?
+  city                      String?
+  region                    String?
+  country                   String?         @db.Char(2)
+  latitude                  Float?
+  longitude                 Float?
+  onlineUrl                 String? // révélé seulement après achat
+  capacity                  Int? // jauge globale, tous tarifs confondus
+  seatingMode               SeatingMode     @default(GENERAL_ADMISSION)
+  allowSeatChoice           Boolean         @default(true)
+  maxTicketsPerOrder        Int             @default(10)
+  maxTicketsPerBuyer        Int? // limite par adresse e-mail (P1)
+  presaleMaxTicketsPerBuyer Int? // limite par acheteur pendant la prévente (commandes passées avec un code de prévente)
+  checkoutHoldMinutes       Int             @default(10)
+  requireBuyerPhone         Boolean         @default(false)
+  allowHolderChange         Boolean         @default(true) // modification des titulaires par l'acheteur
+  botProtection             Boolean         @default(false) // protection anti-robots (P1)
+  showNextPriceTier         Boolean         @default(true) // annonce du prochain palier (P1)
+  salesStartAt              DateTime?
+  salesEndAt                DateTime?
+  resaleEnabled             Boolean         @default(true)
+  resaleCutoffMinutes       Int             @default(120) // fin de la revente avant le début
+  showResaleSection         Boolean         @default(true)
+  refundPolicy              RefundPolicy    @default(ON_REQUEST)
+  refundDeadlineAt          DateTime?
+  confirmationMessage       String?
+  faq                       Json? // [{ question, answer }], 10 au maximum
+  primaryColor              String? // Pro : surcharge des couleurs de la marque
+  accentColor               String?
   // style propre à l'événement (Pro) : chaque réglage remplace celui de la marque, vide = celui de la marque
-  backgroundColor         String?
-  radius                  String?
-  headingFont             String?
-  bodyFont                String?
-  buttonLabel             String?
-  subdomain               String?         @unique // Pro : nuit-electrique.evoly.me
-  publishedAt             DateTime?
-  publishAt               DateTime? // publication programmée : avant cette date, invisible ou annonce, et aucun achat
-  prePublishMode          PrePublishMode  @default(HIDDEN)
-  teaserText              String? // texte de l'annonce (« Événement à venir » par défaut)
-  previewToken            String?         @unique // lien d'aperçu secret, avant la publication
-  publishNotifiedAt       DateTime? // e-mail « événement publié » envoyé à l'organisation
-  alerts                  EventAlert[]
-  presaleStartsAt         DateTime? // prévente privée : début facultatif ; elle s'arrête à l'ouverture publique des ventes
-  presaleCodes            PresaleCode[]
-  lastMajorChangeAt       DateTime? // date, heure ou lieu modifiés après publication (RG-EVT-05)
-  cancelledAt             DateTime?
-  cancellationReason      String?
-  createdById             String?
-  createdAt               DateTime        @default(now())
-  updatedAt               DateTime        @updatedAt
-  deletedAt               DateTime?
+  backgroundColor           String?
+  radius                    String?
+  headingFont               String?
+  bodyFont                  String?
+  buttonLabel               String?
+  subdomain                 String?         @unique // Pro : nuit-electrique.evoly.me
+  publishedAt               DateTime?
+  publishAt                 DateTime? // publication programmée : avant cette date, invisible ou annonce, et aucun achat
+  prePublishMode            PrePublishMode  @default(HIDDEN)
+  teaserText                String? // texte de l'annonce (« Événement à venir » par défaut)
+  previewToken              String?         @unique // lien d'aperçu secret, avant la publication
+  publishNotifiedAt         DateTime? // e-mail « événement publié » envoyé à l'organisation
+  alerts                    EventAlert[]
+  presaleStartsAt           DateTime? // prévente privée : début facultatif ; elle s'arrête à l'ouverture publique des ventes
+  presaleCodes              PresaleCode[]
+  lastMajorChangeAt         DateTime? // date, heure ou lieu modifiés après publication (RG-EVT-05)
+  cancelledAt               DateTime?
+  cancellationReason        String?
+  createdById               String?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  deletedAt                 DateTime?
 
   organization         Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   venue                Venue?             @relation(fields: [venueId], references: [id], onDelete: SetNull)
@@ -711,6 +712,7 @@ model TicketType {
   quantityHeld       Int              @default(0) // paniers en cours de paiement
   minPerOrder        Int              @default(1)
   maxPerOrder        Int              @default(10)
+  maxPerBuyer        Int? // limite par acheteur pour ce tarif, toutes commandes confondues (adresse normalisée)
   salesStartAt       DateTime?
   salesEndAt         DateTime?
   status             TicketTypeStatus @default(ACTIVE)
@@ -845,6 +847,7 @@ model PromoCode {
   ticketTypeIds   String[] // vide = tous les tarifs
   maxUses         Int?
   maxUsesPerEmail Int?
+  raisesLimitTo   Int? // relève les limites par commande et par acheteur à ce nombre de billets (groupes)
   usedCount       Int          @default(0)
   startsAt        DateTime?
   expiresAt       DateTime?
@@ -1014,6 +1017,7 @@ model Order {
   source                OrderSource    @default(ONLINE)
   status                OrderStatus    @default(PENDING)
   buyerEmail            String
+  buyerEmailKey         String? // adresse normalisée (casse, points et suffixes « + » des messageries courantes) : limites par acheteur
   buyerFirstName        String
   buyerLastName         String
   buyerPhone            String?
@@ -1061,6 +1065,7 @@ model Order {
   emailMessages EmailMessage[]
   disputes      Dispute[]
 
+  @@index([eventId, buyerEmailKey])
   @@index([eventId, status])
   @@index([organizationId, createdAt])
   @@index([buyerEmail])

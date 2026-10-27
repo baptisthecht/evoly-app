@@ -1,3 +1,4 @@
+import { buyerEmailKey } from "@evoly/core";
 import "server-only";
 import { CoreError } from "@evoly/core";
 import QRCode from "qrcode";
@@ -89,6 +90,7 @@ export async function sellCash(
         soldByLinkId: link.id,
         soldByDeviceId: input.deviceId ?? null,
         applicationFeeMinor: 0,
+        buyerEmailKey: buyerEmailKey(email),
         buyerEmail: email ?? "", // e-mail et nom facultatifs sur place (RG-POS-05) : vides s'ils ne sont pas donnés, aucun envoi
         buyerFirstName: input.firstName?.trim() || "",
         buyerLastName: input.lastName?.trim() || "",

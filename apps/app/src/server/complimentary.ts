@@ -1,3 +1,4 @@
+import { buyerEmailKey } from "@evoly/core";
 import "server-only";
 import {
   CoreError,
@@ -78,6 +79,7 @@ export async function sendComplimentaryTickets(
             source: "COMPLIMENTARY",
             status: "PENDING",
             buyerEmail: r.email,
+            buyerEmailKey: buyerEmailKey(r.email),
             // sans nom fourni : la partie de l'adresse avant le @, pour saluer le destinataire
             buyerFirstName:
               r.firstName ??
