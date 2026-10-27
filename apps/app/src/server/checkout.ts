@@ -1591,3 +1591,92 @@ export async function changeReservationSeats(
   }, TX_OPTIONS);
   return reservationSeats(orderId);
 }
+
+/** Refus de la banque : un message clair dans la langue de l'acheteur (le message de Stripe, côté serveur, est en anglais). */
+function cardFailure(err: unknown): CoreError {
+  const e = err as {
+    type?: unknown;
+    code?: unknown;
+    decline_code?: unknown;
+  } | null;
+  if (!e || typeof e.type !== "string" || !e.type.startsWith("Stripe"))
+    throw err;
+  const why = String(e.decline_code ?? e.code ?? "");
+  if (/insufficient_funds/.test(why))
+    return new CoreError("CARD_INSUFFICIENT_FUNDS");
+  if (/expired_card/.test(why)) return new CoreError("CARD_EXPIRED");
+  if (/incorrect_cvc|invalid_cvc/.test(why))
+    return new CoreError("CARD_INCORRECT_CVC");
+  if (e.type === "StripeCardError") return new CoreError("CARD_DECLINED");
+  return new CoreError("STRIPE_UNAVAILABLE");
+}
+
+/**
+ * Paiement confirmé par le serveur, à partir du jeton de confirmation créé par le
+ * navigateur (rien n'est encore débité) : l'empreinte de la carte est lue d'abord,
+ * pour les limites par acheteur (une même carte, même avec d'autres adresses),
+ * puis le paiement est confirmé. Validation bancaire (3D Secure, Bancontact) :
+ * présentée ensuite par le navigateur. L'empreinte n'est jamais un numéro de carte.
+ */
+export async function confirmOrderPayment(
+  token: string,
+  confirmationTokenId: string,
+  returnUrl: string,
+): Promise<{ kind: "DONE" } | { kind: "ACTION"; clientSecret: string }> {
+  if (!/^ctoken_[A-Za-z0-9]{8,120}$/.test(confirmationTokenId))
+    throw new CoreError("PAYMENT_INVALID");
+  const orderId = await findOrderIdByToken(token);
+  if (!orderId) throw new CoreError("ORDER_NOT_FOUND");
+  const order = await db.order.findUniqueOrThrow({
+    where: { id: orderId },
+    include: { items: true },
+  });
+  if (order.status !== "PENDING" || !order.stripePaymentIntentId)
+    throw new CoreError("PAYMENT_INVALID");
+  const account = await db.stripeAccount.findUnique({
+    where: { organizationId: order.organizationId },
+    select: { stripeAccountId: true },
+  });
+  const s = stripe();
+  if (!s || !account) throw new CoreError("STRIPE_NOT_CONFIGURED");
+  const options = { stripeAccount: account.stripeAccountId };
+  const ct = await s.confirmationTokens
+    .retrieve(confirmationTokenId, {}, options)
+    .catch((e: unknown) => {
+      throw cardFailure(e);
+    });
+  const fingerprint = ct.payment_method_preview?.card?.fingerprint ?? null;
+  if (fingerprint) {
+    await db.order.update({
+      where: { id: order.id },
+      data: { cardFingerprint: fingerprint },
+    });
+    if (order.source === "ONLINE")
+      await checkBuyerLimits({
+        orderId: order.id,
+        eventId: order.eventId,
+        key: fingerprint,
+        by: "card",
+        items: order.items.map((i) => ({
+          ticketTypeId: i.ticketTypeId,
+          quantity: i.quantity,
+        })),
+        promoCodeId: order.promoCodeId,
+        presaleCodeId: order.presaleCodeId,
+      });
+  }
+  const intent = await s.paymentIntents
+    .confirm(
+      order.stripePaymentIntentId,
+      { confirmation_token: confirmationTokenId, return_url: returnUrl },
+      options,
+    )
+    .catch((e: unknown) => {
+      throw cardFailure(e);
+    });
+  if (intent.status === "requires_action" && intent.client_secret)
+    return { kind: "ACTION", clientSecret: intent.client_secret };
+  if (intent.status === "succeeded" || intent.status === "processing")
+    return { kind: "DONE" };
+  throw new CoreError("CARD_DECLINED");
+}

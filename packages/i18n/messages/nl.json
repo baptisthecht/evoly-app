@@ -271,7 +271,14 @@
     "error_OPTION_UNAVAILABLE": "Deze optie is niet meer beschikbaar.",
     "error_OPTION_MAX_EXCEEDED": "Je overschrijdt het maximum voor deze optie.",
     "error_OPTION_SOLD_OUT": "Deze optie is uitverkocht.",
-    "error_OPTION_QUANTITY_INVALID": "Ongeldige hoeveelheid voor deze optie."
+    "error_OPTION_QUANTITY_INVALID": "Ongeldige hoeveelheid voor deze optie.",
+    "error_BUYER_TYPE_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon voor dit tarief bereikt.",
+    "error_PRESALE_BUYER_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon tijdens de voorverkoop bereikt.",
+    "error_CARD_DECLINED": "Je kaart is geweigerd. Probeer een andere kaart of betaalmethode.",
+    "error_CARD_INSUFFICIENT_FUNDS": "Het saldo van je kaart is onvoldoende. Probeer een andere kaart.",
+    "error_CARD_EXPIRED": "Je kaart is verlopen. Probeer een andere kaart.",
+    "error_CARD_INCORRECT_CVC": "De beveiligingscode van je kaart is onjuist. Controleer hem en probeer opnieuw.",
+    "error_PAYMENT_INVALID": "Deze betaling kan niet meer worden bevestigd. Begin je reservering opnieuw."
   },
   "seatPicker": {
     "title": "Kies je plaatsen",

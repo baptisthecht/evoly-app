@@ -1,11 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
-import { finalizeOrder, reserveOrder, submitBuyer } from "@/server/checkout";
+import {
+  confirmOrderPayment,
+  finalizeOrder,
+  reserveOrder,
+  submitBuyer,
+} from "@/server/checkout";
 
 // commandes payantes : montant minimum, paiement indisponible, création du paiement Stripe, confirmation
 const fake = vi.hoisted(() => ({
   available: true,
   created: [] as Array<Record<string, unknown>>,
+  // jeton de confirmation : empreinte de la carte saisie (aucune pour Bancontact)
+  fingerprint: null as string | null,
+  confirmed: [] as Array<Record<string, unknown>>,
+  confirmResult: { status: "succeeded" } as Record<string, unknown>,
+  confirmError: null as unknown,
 }));
 vi.mock("@/lib/stripe", () => ({
   stripe: () =>
@@ -29,6 +39,23 @@ vi.mock("@/lib/stripe", () => ({
               id,
               client_secret: `cs_${id}`,
               status: "requires_payment_method",
+            }),
+            confirm: async (
+              id: string,
+              p: Record<string, unknown>,
+              o: Record<string, unknown>,
+            ) => {
+              if (fake.confirmError) throw fake.confirmError;
+              fake.confirmed.push({ id, ...p, account: o?.stripeAccount });
+              return { id, client_secret: `cs_${id}`, ...fake.confirmResult };
+            },
+          },
+          confirmationTokens: {
+            retrieve: async (id: string) => ({
+              id,
+              payment_method_preview: fake.fingerprint
+                ? { type: "card", card: { fingerprint: fake.fingerprint } }
+                : { type: "bancontact" },
             }),
           },
         }
@@ -113,6 +140,10 @@ async function setup(o: {
 beforeEach(() => {
   fake.available = true;
   fake.created = [];
+  fake.fingerprint = null;
+  fake.confirmed = [];
+  fake.confirmResult = { status: "succeeded" };
+  fake.confirmError = null;
 });
 
 describe("commandes payantes", () => {
@@ -195,5 +226,93 @@ describe("commandes payantes", () => {
       }),
     ).toBe("ALREADY_PAID");
     expect(await db.ticket.count({ where: { orderId: order.id } })).toBe(2);
+  });
+});
+
+describe("paiement confirmé par le serveur : empreinte de la carte lue avant tout débit", () => {
+  const pay = async (
+    eventId: string,
+    ticketTypeId: string,
+    email: string,
+    quantity = 1,
+  ) => {
+    const r = await reserveOrder({
+      eventId,
+      lines: [{ ticketTypeId, quantity }],
+      locale: "fr",
+    });
+    await submitBuyer(r.token, buyer(email));
+    return r.token;
+  };
+  const ret = "https://club.evoly.me/mes-billets";
+
+  it("même carte, autres adresses : limite par personne atteinte, refus avant tout débit ; l'empreinte est gardée", async () => {
+    const { event, ticketTypeId, account } = await setup({
+      priceMinor: 1500,
+      stripe: true,
+    });
+    await db.event.update({
+      where: { id: event.id },
+      data: { maxTicketsPerBuyer: 2 },
+    });
+    fake.fingerprint = "fp_carte_lea";
+    const first = await pay(event.id, ticketTypeId, "lea@exemple.be", 2);
+    expect(await confirmOrderPayment(first, "ctoken_premier1", ret)).toEqual({
+      kind: "DONE",
+    });
+    expect(fake.confirmed[0]).toMatchObject({
+      confirmation_token: "ctoken_premier1",
+      return_url: ret,
+      account,
+    });
+    const second = await pay(
+      event.id,
+      ticketTypeId,
+      "autre.adresse@exemple.be",
+      1,
+    );
+    await expect(
+      confirmOrderPayment(second, "ctoken_second22", ret),
+    ).rejects.toMatchObject({ code: "BUYER_LIMIT_REACHED" });
+    expect(fake.confirmed).toHaveLength(1); // rien n'a été débité
+    const kept = await db.order.findMany({
+      where: { eventId: event.id },
+      select: { cardFingerprint: true },
+    });
+    expect(kept.map((o) => o.cardFingerprint)).toEqual([
+      "fp_carte_lea",
+      "fp_carte_lea",
+    ]);
+  });
+
+  it("validation bancaire demandée : le navigateur la présente ; refus de la banque : message clair ; Bancontact : sans empreinte", async () => {
+    const { event, ticketTypeId } = await setup({
+      priceMinor: 1500,
+      stripe: true,
+    });
+    fake.fingerprint = "fp_carte_tom";
+    fake.confirmResult = { status: "requires_action" };
+    const t1 = await pay(event.id, ticketTypeId, "tom@exemple.be");
+    const r1 = await confirmOrderPayment(t1, "ctoken_securise1", ret);
+    expect(r1).toMatchObject({ kind: "ACTION" });
+    fake.confirmError = {
+      type: "StripeCardError",
+      code: "card_declined",
+      decline_code: "insufficient_funds",
+    };
+    const t2 = await pay(event.id, ticketTypeId, "nora@exemple.be");
+    await expect(
+      confirmOrderPayment(t2, "ctoken_refuse12", ret),
+    ).rejects.toMatchObject({ code: "CARD_INSUFFICIENT_FUNDS" });
+    fake.confirmError = null;
+    fake.fingerprint = null;
+    fake.confirmResult = { status: "succeeded" };
+    const t3 = await pay(event.id, ticketTypeId, "ines@exemple.be");
+    expect(await confirmOrderPayment(t3, "ctoken_bancont1", ret)).toEqual({
+      kind: "DONE",
+    });
+    await expect(
+      confirmOrderPayment(t3, "pas-un-jeton", ret),
+    ).rejects.toMatchObject({ code: "PAYMENT_INVALID" });
   });
 });

@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { CoreError, normalizePromoCode, validatePromo } from "@evoly/core";
 import { friendSeats } from "@/server/seating";
 import { db } from "@/lib/db";
@@ -10,6 +11,7 @@ import {
   PromoRejected,
   cancelReservation,
   reserveOrder,
+  confirmOrderPayment,
   submitBuyer,
   updateTicketHolder,
   type PublicQuestion,
@@ -245,6 +247,43 @@ export async function submitBuyerAction(
     return { ok: false, error: "RATE_LIMITED" };
   try {
     return { ok: true, data: await submitBuyer(token, parsed.data) };
+  } catch (err) {
+    return failure(err);
+  }
+}
+
+/**
+ * Paiement par carte confirmé par le serveur (jeton de confirmation de Stripe) :
+ * limites par carte vérifiées avant tout débit. Retour après la banque : le site
+ * visité, construit ici (jamais reçu tel quel du navigateur), et le chemin des billets.
+ */
+export async function confirmPaymentAction(
+  token: string,
+  confirmationTokenId: string,
+  path: string,
+): Promise<
+  Result<{ kind: "DONE" } | { kind: "ACTION"; clientSecret: string }>
+> {
+  if ((await hit(`checkout:confirm:${token.slice(0, 16)}`, 600)) > 15)
+    return { ok: false, error: "RATE_LIMITED" };
+  if (!/^\/[A-Za-z0-9/_\-.?=&%]*$/.test(path) || path.startsWith("//"))
+    return { ok: false, error: "PAYMENT_INVALID" };
+  const h = await headers();
+  const host = (h.get("x-forwarded-host") ?? h.get("host") ?? "")
+    .split(",")[0]!
+    .trim();
+  if (!/^[a-z0-9.-]+(:\d+)?$/i.test(host))
+    return { ok: false, error: "PAYMENT_INVALID" };
+  const proto = h.get("x-forwarded-proto") === "http" ? "http" : "https";
+  try {
+    return {
+      ok: true,
+      data: await confirmOrderPayment(
+        token,
+        confirmationTokenId,
+        `${proto}://${host}${path}`,
+      ),
+    };
   } catch (err) {
     return failure(err);
   }

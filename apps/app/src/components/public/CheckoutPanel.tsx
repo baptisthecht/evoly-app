@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import {
   cancelReservationAction,
   changeSeatsAction,
+  confirmPaymentAction,
   submitBuyerAction,
   type ReservationView,
 } from "@/app/site/[sub]/[eventSlug]/actions";
@@ -248,10 +249,11 @@ export function CheckoutPanel({
       return setBusy(false);
     }
     if (res.data.kind === "PAID") return done();
-    const { error } = await stripe.confirmPayment({
+    // jeton de confirmation : rien n'est débité ; le serveur lit l'empreinte de la carte (limites par
+    // acheteur), puis confirme le paiement ; validation bancaire (3D Secure, Bancontact) présentée ensuite
+    const created = await stripe.createConfirmationToken({
       elements,
-      clientSecret: res.data.clientSecret,
-      confirmParams: {
+      params: {
         return_url: `${window.location.origin}${ticketsHref}`,
         payment_method_data: {
           billing_details: {
@@ -260,12 +262,29 @@ export function CheckoutPanel({
           },
         },
       },
-      redirect: "if_required",
     });
-    if (error) {
+    if (created.error || !created.confirmationToken) {
       // RG-BUY-06 : message clair, réservation et formulaire conservés
-      setMessage(error.message ?? t("error_UNKNOWN"));
+      setMessage(created.error?.message ?? t("error_UNKNOWN"));
       return setBusy(false);
+    }
+    const confirmed = await confirmPaymentAction(
+      reservation.token,
+      created.confirmationToken.id,
+      ticketsHref,
+    );
+    if (!confirmed.ok) {
+      setMessage(explain(confirmed.error));
+      return setBusy(false);
+    }
+    if (confirmed.data.kind === "ACTION") {
+      const { error } = await stripe.handleNextAction({
+        clientSecret: confirmed.data.clientSecret,
+      });
+      if (error) {
+        setMessage(error.message ?? t("error_UNKNOWN"));
+        return setBusy(false);
+      }
     }
     done();
   };

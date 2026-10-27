@@ -1018,6 +1018,7 @@ model Order {
   status                OrderStatus    @default(PENDING)
   buyerEmail            String
   buyerEmailKey         String? // adresse normalisée (casse, points et suffixes « + » des messageries courantes) : limites par acheteur
+  cardFingerprint       String? // empreinte de la carte (Stripe), lue avant le paiement : limites par acheteur même avec plusieurs adresses ; jamais un numéro de carte
   buyerFirstName        String
   buyerLastName         String
   buyerPhone            String?
@@ -1066,6 +1067,7 @@ model Order {
   disputes      Dispute[]
 
   @@index([eventId, buyerEmailKey])
+  @@index([eventId, cardFingerprint])
   @@index([eventId, status])
   @@index([organizationId, createdAt])
   @@index([buyerEmail])

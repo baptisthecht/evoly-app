@@ -271,7 +271,14 @@
     "error_OPTION_UNAVAILABLE": "Este extra ya no está disponible.",
     "error_OPTION_MAX_EXCEEDED": "Superas el máximo permitido para este extra.",
     "error_OPTION_SOLD_OUT": "Este extra está agotado.",
-    "error_OPTION_QUANTITY_INVALID": "Cantidad de extra no válida."
+    "error_OPTION_QUANTITY_INVALID": "Cantidad de extra no válida.",
+    "error_BUYER_TYPE_LIMIT_REACHED": "Has alcanzado el número máximo de entradas por persona para esta tarifa.",
+    "error_PRESALE_BUYER_LIMIT_REACHED": "Has alcanzado el número máximo de entradas por persona durante la preventa.",
+    "error_CARD_DECLINED": "Tu tarjeta ha sido rechazada. Prueba con otra tarjeta u otro método de pago.",
+    "error_CARD_INSUFFICIENT_FUNDS": "El saldo de tu tarjeta es insuficiente. Prueba con otra tarjeta.",
+    "error_CARD_EXPIRED": "Tu tarjeta ha caducado. Prueba con otra tarjeta.",
+    "error_CARD_INCORRECT_CVC": "El código de seguridad de tu tarjeta es incorrecto. Revísalo y vuelve a intentarlo.",
+    "error_PAYMENT_INVALID": "Este pago ya no se puede confirmar. Vuelve a empezar tu reserva."
   },
   "seatPicker": {
     "title": "Elige tus plazas",

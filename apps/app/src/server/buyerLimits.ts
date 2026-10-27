@@ -17,6 +17,8 @@ export async function checkBuyerLimits(input: {
   items: { ticketTypeId: string; quantity: number }[];
   promoCodeId: string | null;
   presaleCodeId: string | null;
+  /** Clé de l'acheteur : son adresse normalisée (par défaut), ou l'empreinte de sa carte. */
+  by?: "email" | "card";
   now?: Date;
 }) {
   const now = input.now ?? new Date();
@@ -60,7 +62,9 @@ export async function checkBuyerLimits(input: {
   const taken = async (presaleOnly: boolean) => {
     const mine = {
       eventId: input.eventId,
-      buyerEmailKey: input.key,
+      ...(input.by === "card"
+        ? { cardFingerprint: input.key }
+        : { buyerEmailKey: input.key }),
       id: { not: input.orderId },
       ...(presaleOnly ? { presaleCodeId: { not: null } } : {}),
     };

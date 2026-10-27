@@ -452,7 +452,14 @@
     "error_OPTION_UNAVAILABLE": "This add-on is no longer available.",
     "error_OPTION_MAX_EXCEEDED": "You are over the maximum allowed for this add-on.",
     "error_OPTION_SOLD_OUT": "This add-on is sold out.",
-    "error_OPTION_QUANTITY_INVALID": "Invalid add-on quantity."
+    "error_OPTION_QUANTITY_INVALID": "Invalid add-on quantity.",
+    "error_BUYER_TYPE_LIMIT_REACHED": "You have reached the maximum number of tickets per person for this ticket type.",
+    "error_PRESALE_BUYER_LIMIT_REACHED": "You have reached the maximum number of tickets per person during the presale.",
+    "error_CARD_DECLINED": "Your card was declined. Try another card or another payment method.",
+    "error_CARD_INSUFFICIENT_FUNDS": "Your card has insufficient funds. Try another card.",
+    "error_CARD_EXPIRED": "Your card has expired. Try another card.",
+    "error_CARD_INCORRECT_CVC": "Your card's security code is incorrect. Check it and try again.",
+    "error_PAYMENT_INVALID": "This payment can no longer be confirmed. Please start your booking again."
   },
   "orders": {
     "confirmationTitle": "You’re in!",

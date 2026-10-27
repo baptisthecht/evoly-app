@@ -452,7 +452,14 @@
     "error_OPTION_UNAVAILABLE": "Cette option n'est plus disponible.",
     "error_OPTION_MAX_EXCEEDED": "Vous dépassez le maximum autorisé pour cette option.",
     "error_OPTION_SOLD_OUT": "Cette option est épuisée.",
-    "error_OPTION_QUANTITY_INVALID": "Quantité d'option invalide."
+    "error_OPTION_QUANTITY_INVALID": "Quantité d'option invalide.",
+    "error_BUYER_TYPE_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pour ce tarif.",
+    "error_PRESALE_BUYER_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pendant la prévente.",
+    "error_CARD_DECLINED": "Votre carte a été refusée. Essayez une autre carte ou un autre moyen de paiement.",
+    "error_CARD_INSUFFICIENT_FUNDS": "Le solde de votre carte est insuffisant. Essayez une autre carte.",
+    "error_CARD_EXPIRED": "Votre carte a expiré. Essayez une autre carte.",
+    "error_CARD_INCORRECT_CVC": "Le cryptogramme de votre carte est incorrect. Vérifiez-le et réessayez.",
+    "error_PAYMENT_INVALID": "Ce paiement ne peut plus être confirmé. Recommencez votre réservation."
   },
   "orders": {
     "confirmationTitle": "C’est réservé !",

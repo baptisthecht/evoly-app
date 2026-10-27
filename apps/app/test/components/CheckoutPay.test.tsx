@@ -14,6 +14,7 @@ import { Fr } from "./intl";
 
 const actions = vi.hoisted(() => ({
   submitBuyerAction: vi.fn(),
+  confirmPaymentAction: vi.fn(),
   cancelReservationAction: vi.fn(),
   changeSeatsAction: vi.fn(),
 }));
@@ -24,7 +25,7 @@ vi.mock("@/components/public/embedEvents", () => ({
 }));
 const stripe = vi.hoisted(() => ({
   elements: { submit: vi.fn() },
-  client: { confirmPayment: vi.fn() },
+  client: { createConfirmationToken: vi.fn(), handleNextAction: vi.fn() },
 }));
 vi.mock("@/components/public/StripePayment", () => ({
   StripePayment: ({ children }: { children: React.ReactNode }) => (
@@ -85,11 +86,19 @@ beforeEach(() => {
     completed,
     assign,
     stripe.elements.submit,
-    stripe.client.confirmPayment,
+    stripe.client.createConfirmationToken,
+    stripe.client.handleNextAction,
   ])
     f.mockReset();
   stripe.elements.submit.mockResolvedValue({});
-  stripe.client.confirmPayment.mockResolvedValue({});
+  stripe.client.createConfirmationToken.mockResolvedValue({
+    confirmationToken: { id: "ctoken_abc" },
+  });
+  stripe.client.handleNextAction.mockResolvedValue({});
+  actions.confirmPaymentAction.mockResolvedValue({
+    ok: true,
+    data: { kind: "DONE" },
+  });
   actions.submitBuyerAction.mockResolvedValue({
     ok: true,
     data: { kind: "PAY", clientSecret: "pi_secret_123" },
@@ -148,24 +157,28 @@ describe("paiement par carte (RG-BUY-04 à 06)", () => {
       "jeton",
       expect.objectContaining({ email: "lea@exemple.be" }),
     );
-    const args = stripe.client.confirmPayment.mock.calls[0]![0] as {
-      clientSecret: string;
-      redirect: string;
-      confirmParams: {
+    const args = stripe.client.createConfirmationToken.mock.calls[0]![0] as {
+      params: {
+        return_url: string;
         payment_method_data: {
           billing_details: { name: string; email: string };
         };
       };
     };
     expect([
-      args.clientSecret,
-      args.redirect,
-      args.confirmParams.payment_method_data.billing_details,
+      args.params.return_url,
+      args.params.payment_method_data.billing_details,
     ]).toEqual([
-      "pi_secret_123",
-      "if_required",
+      "https://club.evoly.me/billets/jeton",
       { name: "Léa Martin", email: "lea@exemple.be" },
     ]);
+    // le serveur lit l'empreinte de la carte, puis confirme : rien n'est confirmé depuis le navigateur
+    expect(actions.confirmPaymentAction).toHaveBeenCalledWith(
+      "jeton",
+      "ctoken_abc",
+      "/billets/jeton",
+    );
+    expect(stripe.client.handleNextAction).not.toHaveBeenCalled();
     expect(completed).toHaveBeenCalledWith(1, 2_500, "EUR");
   });
 
@@ -191,7 +204,7 @@ describe("paiement par carte (RG-BUY-04 à 06)", () => {
     await fill();
     await pay();
     expect(await screen.findByText(c.error_UNKNOWN!)).toBeTruthy();
-    expect(stripe.client.confirmPayment).not.toHaveBeenCalled();
+    expect(stripe.client.createConfirmationToken).not.toHaveBeenCalled();
     expect(assign).not.toHaveBeenCalled();
   });
 
@@ -204,17 +217,18 @@ describe("paiement par carte (RG-BUY-04 à 06)", () => {
     await fill();
     await pay();
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/billets/jeton"));
-    expect(stripe.client.confirmPayment).not.toHaveBeenCalled();
+    expect(stripe.client.createConfirmationToken).not.toHaveBeenCalled();
   });
 
   it("paiement refusé par Stripe : le motif s'affiche, l'acheteur reste sur le panier", async () => {
-    stripe.client.confirmPayment.mockResolvedValue({
-      error: { message: "Votre carte a été refusée." },
+    actions.confirmPaymentAction.mockResolvedValue({
+      ok: false,
+      error: "CARD_DECLINED",
     });
     draw();
     await fill();
     await pay();
-    expect(await screen.findByText("Votre carte a été refusée.")).toBeTruthy();
+    expect(await screen.findByText(c.error_CARD_DECLINED!)).toBeTruthy();
     expect(assign).not.toHaveBeenCalled();
     expect((payButton() as HTMLButtonElement).disabled).toBe(false); // l'acheteur peut réessayer
   });
@@ -224,5 +238,31 @@ describe("paiement par carte (RG-BUY-04 à 06)", () => {
     await pay();
     expect(stripe.elements.submit).not.toHaveBeenCalled();
     expect(actions.submitBuyerAction).not.toHaveBeenCalled();
+  });
+
+  it("validation bancaire demandée (3D Secure) : présentée, puis les billets", async () => {
+    actions.confirmPaymentAction.mockResolvedValue({
+      ok: true,
+      data: { kind: "ACTION", clientSecret: "pi_secret_3ds" },
+    });
+    draw();
+    await fill();
+    await pay();
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/billets/jeton"));
+    expect(stripe.client.handleNextAction).toHaveBeenCalledWith({
+      clientSecret: "pi_secret_3ds",
+    });
+  });
+
+  it("carte mal saisie : signalée avant d'appeler le serveur", async () => {
+    stripe.client.createConfirmationToken.mockResolvedValue({
+      error: { message: "Numéro de carte incomplet." },
+    });
+    draw();
+    await fill();
+    await pay();
+    expect(await screen.findByText("Numéro de carte incomplet.")).toBeTruthy();
+    expect(actions.confirmPaymentAction).not.toHaveBeenCalled();
+    expect((payButton() as HTMLButtonElement).disabled).toBe(false);
   });
 });
