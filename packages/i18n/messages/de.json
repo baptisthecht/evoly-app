@@ -2649,7 +2649,12 @@
     "archived": "Frage archiviert: Ihre Antworten bleiben einsehbar.",
     "deleted": "Frage gelöscht.",
     "add": "Frage hinzufügen",
-    "archivedCount": "{count, plural, one {# archivierte Frage} other {# archivierte Fragen}}"
+    "archivedCount": "{count, plural, one {# archivierte Frage} other {# archivierte Fragen}}",
+    "tableQuestion": "Frage",
+    "tableType": "Typ",
+    "tableAnswers": "Antworten",
+    "tableActions": "Aktionen",
+    "emptyTitle": "Keine Fragen"
   },
   "promo": {
     "new": "Neuer Code",
@@ -2945,7 +2950,16 @@
     "refundPolicySave": "Einstellung speichern",
     "refundPolicySaved": "Einstellung gespeichert.",
     "standalone": "Ohne Ticket erhältlich",
-    "standaloneHint": "Eine Garderobe zum Beispiel: Die Option ist einzeln erhältlich, online und vor Ort, und der Käufer erhält einen QR-Code zum Abholen."
+    "standaloneHint": "Eine Garderobe zum Beispiel: Die Option ist einzeln erhältlich, online und vor Ort, und der Käufer erhält einen QR-Code zum Abholen.",
+    "tableOption": "Option",
+    "tablePrice": "Preis",
+    "tableSold": "Verkauft",
+    "tableRedeemed": "Abgeholt",
+    "tablePerOrder": "Pro Bestellung",
+    "tableStatus": "Status",
+    "tableActions": "Aktionen",
+    "tableCaption": "Optionen",
+    "settings": "Einstellungen"
   },
   "ambassadors": {
     "intro": "Geben Sie jedem Teammitglied oder Promoter einen eigenen Verkaufslink und sehen Sie, wer am meisten verkauft.",

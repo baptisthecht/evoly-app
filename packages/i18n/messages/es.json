@@ -2649,7 +2649,12 @@
     "archived": "Pregunta archivada: sus respuestas se pueden seguir consultando.",
     "deleted": "Pregunta eliminada.",
     "add": "Añadir una pregunta",
-    "archivedCount": "{count, plural, one {# pregunta archivada} other {# preguntas archivadas}}"
+    "archivedCount": "{count, plural, one {# pregunta archivada} other {# preguntas archivadas}}",
+    "tableQuestion": "Pregunta",
+    "tableType": "Tipo",
+    "tableAnswers": "Respuestas",
+    "tableActions": "Acciones",
+    "emptyTitle": "Ninguna pregunta"
   },
   "promo": {
     "new": "Nuevo código",
@@ -2945,7 +2950,16 @@
     "refundPolicySave": "Guardar el ajuste",
     "refundPolicySaved": "Ajuste guardado.",
     "standalone": "Se vende sin entrada",
-    "standaloneHint": "Un guardarropa, por ejemplo: la opción se compra sola, en línea y en el lugar, y el comprador recibe un código QR de recogida."
+    "standaloneHint": "Un guardarropa, por ejemplo: la opción se compra sola, en línea y en el lugar, y el comprador recibe un código QR de recogida.",
+    "tableOption": "Opción",
+    "tablePrice": "Precio",
+    "tableSold": "Vendidas",
+    "tableRedeemed": "Recogidas",
+    "tablePerOrder": "Por pedido",
+    "tableStatus": "Estado",
+    "tableActions": "Acciones",
+    "tableCaption": "Opciones",
+    "settings": "Ajustes"
   },
   "ambassadors": {
     "intro": "Da a cada miembro de tu equipo o promotor su propio enlace de venta y mira quién vende más.",

@@ -17,7 +17,7 @@ import {
   updateOptionAction,
 } from "../../actions";
 
-type Initial = {
+export type Initial = {
   id: string;
   name: string;
   description: string;
@@ -33,11 +33,14 @@ export function OptionForm({
   eventId,
   symbol,
   option,
+  bare = false,
 }: {
   orgSlug: string;
   eventId: string;
   symbol: string;
   option?: Initial;
+  /** Dans une fenêtre : le formulaire seul (la fenêtre a son cadre et son titre). */
+  bare?: boolean;
 }) {
   const t = useTranslations("options");
   const action = option
@@ -137,6 +140,7 @@ export function OptionForm({
       </div>
     </form>
   );
+  if (bare) return form;
   if (option) return <div className="mt-3">{form}</div>;
   return (
     <Card className="grid gap-4">

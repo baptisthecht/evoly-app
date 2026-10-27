@@ -2649,7 +2649,12 @@
     "archived": "Pergunta arquivada: as respostas continuam consultáveis.",
     "deleted": "Pergunta eliminada.",
     "add": "Adicionar uma pergunta",
-    "archivedCount": "{count, plural, one {# pergunta arquivada} other {# perguntas arquivadas}}"
+    "archivedCount": "{count, plural, one {# pergunta arquivada} other {# perguntas arquivadas}}",
+    "tableQuestion": "Pergunta",
+    "tableType": "Tipo",
+    "tableAnswers": "Respostas",
+    "tableActions": "Ações",
+    "emptyTitle": "Nenhuma pergunta"
   },
   "promo": {
     "new": "Novo código",
@@ -2945,7 +2950,16 @@
     "refundPolicySave": "Guardar a definição",
     "refundPolicySaved": "Definição guardada.",
     "standalone": "Vendável sem bilhete",
-    "standaloneHint": "Um bengaleiro, por exemplo: a opção compra-se sozinha, online e no local, e o comprador recebe um código QR de levantamento."
+    "standaloneHint": "Um bengaleiro, por exemplo: a opção compra-se sozinha, online e no local, e o comprador recebe um código QR de levantamento.",
+    "tableOption": "Opção",
+    "tablePrice": "Preço",
+    "tableSold": "Vendidas",
+    "tableRedeemed": "Levantadas",
+    "tablePerOrder": "Por encomenda",
+    "tableStatus": "Estado",
+    "tableActions": "Ações",
+    "tableCaption": "Opções",
+    "settings": "Definições"
   },
   "ambassadors": {
     "intro": "Dê a cada membro da equipa ou promotor a sua própria ligação de venda e veja quem vende mais.",

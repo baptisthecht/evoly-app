@@ -2649,7 +2649,12 @@
     "archived": "Vraag gearchiveerd: de antwoorden blijven raadpleegbaar.",
     "deleted": "Vraag verwijderd.",
     "add": "Vraag toevoegen",
-    "archivedCount": "{count, plural, one {# gearchiveerde vraag} other {# gearchiveerde vragen}}"
+    "archivedCount": "{count, plural, one {# gearchiveerde vraag} other {# gearchiveerde vragen}}",
+    "tableQuestion": "Vraag",
+    "tableType": "Type",
+    "tableAnswers": "Antwoorden",
+    "tableActions": "Acties",
+    "emptyTitle": "Geen vragen"
   },
   "promo": {
     "new": "Nieuwe code",
@@ -2945,7 +2950,16 @@
     "refundPolicySave": "Instelling opslaan",
     "refundPolicySaved": "Instelling opgeslagen.",
     "standalone": "Verkrijgbaar zonder ticket",
-    "standaloneHint": "Een vestiaire bijvoorbeeld: de optie is apart te koop, online en ter plaatse, en de koper krijgt een QR-code om af te halen."
+    "standaloneHint": "Een vestiaire bijvoorbeeld: de optie is apart te koop, online en ter plaatse, en de koper krijgt een QR-code om af te halen.",
+    "tableOption": "Optie",
+    "tablePrice": "Prijs",
+    "tableSold": "Verkocht",
+    "tableRedeemed": "Opgehaald",
+    "tablePerOrder": "Per bestelling",
+    "tableStatus": "Status",
+    "tableActions": "Acties",
+    "tableCaption": "Opties",
+    "settings": "Instellingen"
   },
   "ambassadors": {
     "intro": "Geef elk teamlid of elke promotor een eigen verkooplink en zie wie het meest verkoopt.",

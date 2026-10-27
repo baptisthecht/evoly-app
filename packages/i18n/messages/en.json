@@ -2299,7 +2299,12 @@
     "archived": "Question archived: its answers stay available.",
     "deleted": "Question deleted.",
     "add": "Add a question",
-    "archivedCount": "{count, plural, one {# archived question} other {# archived questions}}"
+    "archivedCount": "{count, plural, one {# archived question} other {# archived questions}}",
+    "tableQuestion": "Question",
+    "tableType": "Type",
+    "tableAnswers": "Answers",
+    "tableActions": "Actions",
+    "emptyTitle": "No questions"
   },
   "notifications": {
     "title": "Notifications",
@@ -2945,7 +2950,16 @@
     "refundPolicySave": "Save the setting",
     "refundPolicySaved": "Setting saved.",
     "standalone": "Sold without a ticket",
-    "standaloneHint": "A cloakroom, for example: the add-on can be bought on its own, online and on site, and the buyer receives a pickup QR code."
+    "standaloneHint": "A cloakroom, for example: the add-on can be bought on its own, online and on site, and the buyer receives a pickup QR code.",
+    "tableOption": "Option",
+    "tablePrice": "Price",
+    "tableSold": "Sold",
+    "tableRedeemed": "Collected",
+    "tablePerOrder": "Per order",
+    "tableStatus": "Status",
+    "tableActions": "Actions",
+    "tableCaption": "Options",
+    "settings": "Settings"
   },
   "ambassadors": {
     "intro": "Give each team member or promoter their own sales link, and see who sells the most.",

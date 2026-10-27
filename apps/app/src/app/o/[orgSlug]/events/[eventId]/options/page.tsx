@@ -7,8 +7,7 @@ import { Badge, Card, EmptyState } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { listOptions } from "@/server/options";
-import { OptionCommand, OptionForm } from "./OptionForm";
-import { OptionsRefundPolicy } from "./OptionsRefundPolicy";
+import { OptionsTable } from "./OptionsTable";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("events");
@@ -53,81 +52,36 @@ export default async function OptionsPage({
   return (
     <div className="grid gap-4">
       <p className="text-ink-muted">{t("intro")}</p>
-      {options.length === 0 ? (
-        <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
-      ) : null}
-      <ul className="grid gap-3">
-        {options.map((o) => (
-          <li key={o.id}>
-            <Card className="grid gap-3">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="grid min-w-0 gap-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold">{o.name}</p>
-                    <Badge tone={o.active ? "success" : "neutral"}>
-                      {o.active ? t("active") : t("inactive")}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-ink-muted">
-                    {formatMoney(o.priceMinor, event.currency, locale, {
-                      trimZeroCents: true,
-                    })}{" "}
-                    · {t("sold", { count: o.sold })}
-                    {o.stock != null
-                      ? ` ${t("stockOf", { stock: o.stock })}`
-                      : ` (${t("unlimited")})`}{" "}
-                    · {t("redeemed", { count: o.redeemed })} ·{" "}
-                    {t("perOrder", { max: o.maxPerOrder })}
-                  </p>
-                  {o.description ? (
-                    <p className="text-sm">{o.description}</p>
-                  ) : null}
-                </div>
-                {manage ? (
-                  <OptionCommand
-                    orgSlug={orgSlug}
-                    eventId={eventId}
-                    optionId={o.id}
-                    command={o.active ? "deactivate" : "activate"}
-                    label={o.active ? t("deactivate") : t("activate")}
-                  />
-                ) : null}
-              </div>
-              {manage ? (
-                <details>
-                  <summary className="cursor-pointer text-sm">
-                    {t("edit")}
-                  </summary>
-                  <OptionForm
-                    orgSlug={orgSlug}
-                    eventId={eventId}
-                    symbol={symbol}
-                    option={{
-                      id: o.id,
-                      name: o.name,
-                      description: o.description ?? "",
-                      price: (o.priceMinor / 100).toFixed(2),
-                      stock: o.stock?.toString() ?? "",
-                      maxPerOrder: String(o.maxPerOrder),
-                      standalone: o.standalone,
-                    }}
-                  />
-                </details>
-              ) : null}
-            </Card>
-          </li>
-        ))}
-      </ul>
-      {manage ? (
-        <OptionsRefundPolicy
-          orgSlug={orgSlug}
-          eventId={eventId}
-          allowed={event.optionsRefundAfterStart}
-        />
-      ) : null}
-      {manage ? (
-        <OptionForm orgSlug={orgSlug} eventId={eventId} symbol={symbol} />
-      ) : null}
+      <OptionsTable
+        orgSlug={orgSlug}
+        eventId={eventId}
+        manage={manage}
+        symbol={symbol}
+        refundAfterStart={event.optionsRefundAfterStart}
+        rows={options.map((o) => ({
+          id: o.id,
+          name: o.name,
+          description: o.description ?? "",
+          price: formatMoney(o.priceMinor, event.currency, locale, {
+            trimZeroCents: true,
+          }),
+          priceMinor: o.priceMinor,
+          sold: o.sold,
+          stock: o.stock ?? null,
+          redeemed: o.redeemed,
+          maxPerOrder: o.maxPerOrder,
+          active: o.active,
+          initial: {
+            id: o.id,
+            name: o.name,
+            description: o.description ?? "",
+            price: (o.priceMinor / 100).toFixed(2),
+            stock: o.stock?.toString() ?? "",
+            maxPerOrder: String(o.maxPerOrder),
+            standalone: o.standalone,
+          },
+        }))}
+      />
     </div>
   );
 }

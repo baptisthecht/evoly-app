@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
+import { DataTable, type TableColumn } from "@/components/ui/DataTable";
+import { Dialog } from "@/components/ui/Dialog";
 import {
   FormError,
   SubmitButton,
@@ -213,124 +215,143 @@ export function QuestionsManager({
         );
     });
   const active = questions.filter((q) => !q.archived);
+  const current =
+    editing && editing !== "new"
+      ? (active.find((q) => q.id === editing) ?? null)
+      : null;
+  const columns: TableColumn<Question>[] = [
+    {
+      key: "label",
+      header: t("tableQuestion"),
+      mobile: "title",
+      cell: (q) => (
+        <span className="grid min-w-0">
+          <span className="font-semibold">{q.label}</span>
+          {q.helpText ? (
+            <span className="truncate text-sm text-ink-muted">
+              {q.helpText}
+            </span>
+          ) : null}
+        </span>
+      ),
+    },
+    {
+      key: "type",
+      header: t("tableType"),
+      mobile: "badge",
+      cell: (q) => (
+        <span className="flex flex-wrap gap-1.5">
+          <Badge tone="info">{t(`type_${q.type}`)}</Badge>
+          <Badge tone={q.scope === "TICKET" ? "lilas" : "neutral"}>
+            {t(`scope_${q.scope}`)}
+          </Badge>
+          {q.required ? (
+            <Badge tone="warning">{t("requiredBadge")}</Badge>
+          ) : null}
+        </span>
+      ),
+    },
+    {
+      key: "answers",
+      header: t("tableAnswers"),
+      align: "right",
+      width: "7rem",
+    },
+  ];
+  if (!readOnly)
+    columns.push({
+      key: "actions",
+      header: <span className="sr-only">{t("tableActions")}</span>,
+      align: "right",
+      cell: (q) => {
+        const i = active.indexOf(q);
+        return (
+          <span className="inline-flex flex-wrap justify-end gap-1">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={pending || i === 0}
+              onClick={() => command(q.id, "up")}
+              aria-label={t("up")}
+            >
+              ↑
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={pending || i === active.length - 1}
+              onClick={() => command(q.id, "down")}
+              aria-label={t("down")}
+            >
+              ↓
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setEditing(q.id)}
+            >
+              {t("edit")}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={pending}
+              onClick={() =>
+                window.confirm(
+                  q.answers ? t("confirmArchive") : t("confirmDelete"),
+                )
+                  ? command(q.id, "remove")
+                  : undefined
+              }
+            >
+              {q.answers ? t("archive") : t("delete")}
+            </Button>
+          </span>
+        );
+      },
+    });
   return (
-    <Card className="mt-10 grid gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-          {t("title")}
-        </h2>
-        {questions.some((q) => q.answers > 0) ? (
-          <a
-            href={`/o/${orgSlug}/events/${eventId}/questions/export`}
-            className="text-sm font-semibold underline underline-offset-4"
-          >
-            {t("export")}
-          </a>
-        ) : null}
+    <div className="grid gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="max-w-2xl text-sm text-ink-muted">{t("intro")}</p>
+        <span className="flex flex-wrap items-center gap-3">
+          {questions.some((q) => q.answers > 0) ? (
+            <a
+              href={`/o/${orgSlug}/events/${eventId}/questions/export`}
+              className="text-sm font-semibold underline underline-offset-4"
+            >
+              {t("export")}
+            </a>
+          ) : null}
+          {!readOnly ? (
+            <Button
+              type="button"
+              variant="dark"
+              size="md"
+              onClick={() => setEditing("new")}
+            >
+              + {t("add")}
+            </Button>
+          ) : null}
+        </span>
       </div>
-      <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
       {message ? (
         <p className="text-sm text-success" role="status">
           {message}
         </p>
       ) : null}
-      <ul className="grid gap-2">
-        {active.map((q, i) => (
-          <li key={q.id} className="grid gap-2 border-t border-line pt-2">
-            {editing === q.id ? (
-              <QuestionForm
-                orgSlug={orgSlug}
-                eventId={eventId}
-                q={q}
-                ticketTypes={ticketTypes}
-                onDone={() => setEditing(null)}
-              />
-            ) : (
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold">{q.label}</span>
-                  <Badge>{t(`type_${q.type}`)}</Badge>
-                  <Badge>{t(`scope_${q.scope}`)}</Badge>
-                  {q.required ? (
-                    <Badge tone="warning">{t("requiredBadge")}</Badge>
-                  ) : null}
-                  <span className="text-xs text-ink-muted">
-                    {t("answers", { count: q.answers })}
-                  </span>
-                </p>
-                {!readOnly ? (
-                  <span className="flex gap-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      disabled={pending || i === 0}
-                      onClick={() => command(q.id, "up")}
-                      aria-label={t("up")}
-                    >
-                      ↑
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      disabled={pending || i === active.length - 1}
-                      onClick={() => command(q.id, "down")}
-                      aria-label={t("down")}
-                    >
-                      ↓
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setEditing(q.id)}
-                    >
-                      {t("edit")}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      disabled={pending}
-                      onClick={() =>
-                        window.confirm(
-                          q.answers ? t("confirmArchive") : t("confirmDelete"),
-                        )
-                          ? command(q.id, "remove")
-                          : undefined
-                      }
-                    >
-                      {q.answers ? t("archive") : t("delete")}
-                    </Button>
-                  </span>
-                ) : null}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-      {!readOnly ? (
-        editing === "new" ? (
-          <QuestionForm
-            orgSlug={orgSlug}
-            eventId={eventId}
-            q={null}
-            ticketTypes={ticketTypes}
-            onDone={() => setEditing(null)}
-          />
-        ) : (
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="justify-self-start"
-            onClick={() => setEditing("new")}
-          >
-            + {t("add")}
-          </Button>
-        )
-      ) : null}
+      {/* l'ordre des questions est celui du formulaire d'achat : pas de tri */}
+      <DataTable
+        rows={active}
+        columns={columns}
+        getRowId={(q) => q.id}
+        caption={t("title")}
+        emptyState={{ title: t("emptyTitle"), description: t("intro") }}
+      />
       {questions.some((q) => q.archived) ? (
         <p className="text-xs text-ink-muted">
           {t("archivedCount", {
@@ -338,6 +359,22 @@ export function QuestionsManager({
           })}
         </p>
       ) : null}
-    </Card>
+      <Dialog
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title={current ? t("edit") : t("add")}
+        size="lg"
+      >
+        {editing !== null ? (
+          <QuestionForm
+            orgSlug={orgSlug}
+            eventId={eventId}
+            q={current}
+            ticketTypes={ticketTypes}
+            onDone={() => setEditing(null)}
+          />
+        ) : null}
+      </Dialog>
+    </div>
   );
 }

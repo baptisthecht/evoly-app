@@ -2299,7 +2299,12 @@
     "archived": "Question archivée : ses réponses restent consultables.",
     "deleted": "Question supprimée.",
     "add": "Ajouter une question",
-    "archivedCount": "{count, plural, one {# question archivée} other {# questions archivées}}"
+    "archivedCount": "{count, plural, one {# question archivée} other {# questions archivées}}",
+    "tableQuestion": "Question",
+    "tableType": "Type",
+    "tableAnswers": "Réponses",
+    "tableActions": "Actions",
+    "emptyTitle": "Aucune question"
   },
   "notifications": {
     "title": "Notifications",
@@ -2945,7 +2950,16 @@
     "refundPolicySave": "Enregistrer le réglage",
     "refundPolicySaved": "Réglage enregistré.",
     "standalone": "Vendable sans billet",
-    "standaloneHint": "Un vestiaire, par exemple : l'option s'achète seule, en ligne et sur place, et l'acheteur reçoit un QR code de retrait."
+    "standaloneHint": "Un vestiaire, par exemple : l'option s'achète seule, en ligne et sur place, et l'acheteur reçoit un QR code de retrait.",
+    "tableOption": "Option",
+    "tablePrice": "Prix",
+    "tableSold": "Vendues",
+    "tableRedeemed": "Retirées",
+    "tablePerOrder": "Par commande",
+    "tableStatus": "Statut",
+    "tableActions": "Actions",
+    "tableCaption": "Options",
+    "settings": "Réglages"
   },
   "ambassadors": {
     "intro": "Donnez à chaque membre de votre équipe ou à chaque promoteur son propre lien de vente, et suivez qui vend le plus.",
