@@ -18,6 +18,7 @@ test("paramètres de l'organisation, puis suppression avec double confirmation (
   );
 
   // RG-ORG-06 : double confirmation
+  await page.goto(page.url().split("?")[0] + "?tab=advanced"); // supprimer l'organisation : Paramètres, Avancé
   await page
     .getByLabel("Je comprends que la suppression est définitive", {
       exact: false,

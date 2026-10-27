@@ -11,9 +11,8 @@ test("revente : vue d'ensemble de l'organisation, avec lien vers chaque événem
     page.getByRole("heading", { level: 1, name: "Revente" }),
   ).toBeVisible();
   await expect(page.getByText("Cette section arrive bientôt")).toHaveCount(0);
-  await expect(
-    page.getByRole("heading", { name: "Par événement" }),
-  ).toBeVisible();
+  // réglages de revente par événement : un repli discret, en bas de page
+  await page.getByText("Réglages de revente par événement").click();
   const row = page.getByRole("listitem").filter({ hasText: `Festival ${id}` });
   await expect(row.getByText("Revente activée")).toBeVisible();
   await row.getByRole("link", { name: "Gérer" }).click();

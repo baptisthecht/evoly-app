@@ -15,6 +15,7 @@ test("équipe : invitation, inscription de l'invité, adhésion automatique, rô
 
   // US-ORG-02 : invitation avec un rôle
   await page.goto(appUrl(`/o/${slug}/members`));
+  await page.getByRole("button", { name: "+ Inviter un membre" }).click(); // l'invitation : dans une fenêtre
   await page.getByLabel("Adresse e-mail").fill(email);
   await page
     .getByLabel("Rôle", { exact: true })

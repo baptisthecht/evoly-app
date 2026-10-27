@@ -232,12 +232,32 @@ export function DataTable<T>({
     </div>
   );
 
+  // une seule construction : sur ordinateur un tableau ; sur téléphone, les styles font de chaque ligne une carte
+  // (titre, sous-titre, pastilles, détails avec leur intitulé) ; les rôles explicites gardent la structure partout
+  const MOBILE = {
+    title: "order-1 basis-full text-[0.95rem] font-semibold",
+    subtitle: "order-2 basis-full text-sm text-ink-muted",
+    badge: "order-3",
+    meta: "order-4 basis-[calc(50%-0.375rem)] text-xs before:block before:text-ink-muted before:content-[attr(data-label)]",
+    hidden: "hidden",
+  } as const;
+  const cellClass = (c: TableColumn<T>) =>
+    cn(
+      MOBILE[c === titleCol ? "title" : (c.mobile ?? "meta")],
+      "min-w-0 md:table-cell md:basis-auto md:px-4 md:py-2 md:align-middle md:text-sm md:font-normal md:text-ink md:before:content-none",
+      ALIGN[c.align ?? "left"],
+      c.align === "right" && "tabular-nums",
+      c === titleCol && "md:font-normal",
+    );
   return (
     <div className="grid gap-3">
       {bar}
-      {/* ordinateur : le tableau */}
-      <div className="hidden overflow-x-auto rounded-[var(--r-panel)] bg-surface-raised ring-1 ring-line md:block">
-        <table className="w-full border-collapse text-sm">
+      <div className="md:overflow-x-auto md:rounded-[var(--r-panel)] md:bg-surface-raised md:ring-1 md:ring-line">
+        <table
+          role="table"
+          aria-label={caption}
+          className="block w-full border-collapse text-sm md:table"
+        >
           <caption className="sr-only">{caption}</caption>
           <colgroup>
             {selectable ? <col style={{ width: "3.25rem" }} /> : null}
@@ -248,10 +268,13 @@ export function DataTable<T>({
               />
             ))}
           </colgroup>
-          <thead className="sticky top-0 z-[1] bg-surface-raised">
-            <tr className="h-11">
+          <thead
+            role="rowgroup"
+            className="sr-only md:not-sr-only md:sticky md:top-0 md:z-[1] md:table-header-group md:bg-surface-raised"
+          >
+            <tr role="row" className="md:h-11">
               {selectable ? (
-                <th scope="col" className="pl-5">
+                <th role="columnheader" scope="col" className="md:pl-5">
                   <input
                     type="checkbox"
                     aria-label={t("selectAll")}
@@ -269,6 +292,7 @@ export function DataTable<T>({
                 return (
                   <th
                     key={c.key}
+                    role="columnheader"
                     scope="col"
                     aria-sort={
                       on
@@ -317,17 +341,24 @@ export function DataTable<T>({
               })}
             </tr>
           </thead>
-          <tbody>
+          <tbody role="rowgroup" className="grid gap-2 md:table-row-group">
             {loading && sorted.length === 0
               ? Array.from({ length: 4 }, (_, i) => (
                   <tr
                     key={`fantome-${i}`}
+                    role="row"
                     aria-hidden="true"
-                    className="h-14 border-t border-line"
+                    className="block h-20 rounded-[var(--r-panel)] bg-surface-sunken md:table-row md:h-14 md:rounded-none md:border-t md:border-line md:bg-transparent"
                   >
-                    {selectable ? <td /> : null}
+                    {selectable ? (
+                      <td role="cell" className="hidden md:table-cell" />
+                    ) : null}
                     {columns.map((c) => (
-                      <td key={c.key} className="px-4">
+                      <td
+                        key={c.key}
+                        role="cell"
+                        className="hidden px-4 md:table-cell"
+                      >
                         <span
                           className={cn(
                             "block h-3 animate-pulse rounded-full bg-surface-sunken motion-reduce:animate-none",
@@ -340,8 +371,15 @@ export function DataTable<T>({
                 ))
               : null}
             {empty ? (
-              <tr className="border-t border-line">
-                <td colSpan={columns.length + (selectable ? 1 : 0)}>
+              <tr
+                role="row"
+                className="block rounded-[var(--r-panel)] bg-surface-raised ring-1 ring-line md:table-row md:rounded-none md:border-t md:border-line md:ring-0"
+              >
+                <td
+                  role="cell"
+                  colSpan={columns.length + (selectable ? 1 : 0)}
+                  className="block md:table-cell"
+                >
                   {emptyBlock}
                 </td>
               </tr>
@@ -353,34 +391,39 @@ export function DataTable<T>({
               return (
                 <tr
                   key={id}
+                  role="row"
                   data-selected={on || undefined}
                   onClick={(e) => open(e, href)}
                   style={enter(i)}
                   className={cn(
-                    "group h-14 border-t border-line transition-colors hover:bg-surface-sunken/60 data-[selected]:bg-[color-mix(in_oklab,var(--accent)_16%,transparent)]",
+                    "group relative flex flex-wrap items-start gap-x-3 gap-y-1.5 rounded-[var(--r-panel)] bg-surface-raised p-4 ring-1 ring-line data-[selected]:ring-2 data-[selected]:ring-[var(--accent)]",
+                    "md:table-row md:h-14 md:rounded-none md:border-t md:border-line md:bg-transparent md:p-0 md:ring-0 md:transition-colors md:hover:bg-surface-sunken/60 md:data-[selected]:bg-[color-mix(in_oklab,var(--accent)_16%,transparent)] md:data-[selected]:ring-0",
                     href && "cursor-pointer",
                   )}
                 >
                   {selectable ? (
-                    <td className="relative pl-5">
+                    <td
+                      role="cell"
+                      className="relative order-0 md:table-cell md:pl-5 md:align-middle"
+                    >
                       <Rail />
                       <input
                         type="checkbox"
                         aria-label={t("selectRow", { row: i + 1 })}
                         checked={on}
                         onChange={() => toggle(id)}
-                        className="size-4 cursor-pointer accent-[var(--evoly-charbon)]"
+                        className="size-5 cursor-pointer accent-[var(--evoly-charbon)] md:size-4"
                       />
                     </td>
                   ) : null}
                   {columns.map((c, n) => (
                     <td
                       key={c.key}
-                      className={cn(
-                        "relative px-4 py-2",
-                        ALIGN[c.align ?? "left"],
-                        c.align === "right" && "tabular-nums",
-                      )}
+                      role="cell"
+                      data-label={
+                        typeof c.header === "string" ? c.header : undefined
+                      }
+                      className={cn("relative", cellClass(c))}
                     >
                       {!selectable && n === 0 ? <Rail /> : null}
                       {href && c.key === titleCol.key ? (
@@ -401,110 +444,6 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
-      {/* téléphone : des cartes */}
-      <ul role="list" aria-label={caption} className="grid gap-2 md:hidden">
-        {loading && sorted.length === 0
-          ? Array.from({ length: 3 }, (_, i) => (
-              <li
-                key={`fantome-${i}`}
-                aria-hidden="true"
-                className="h-20 animate-pulse rounded-[var(--r-panel)] bg-surface-sunken motion-reduce:animate-none"
-              />
-            ))
-          : null}
-        {empty ? (
-          <li className="rounded-[var(--r-panel)] bg-surface-raised ring-1 ring-line">
-            {emptyBlock}
-          </li>
-        ) : null}
-        {sorted.map((row, i) => {
-          const id = ids[i]!;
-          const href = rowHref?.(row);
-          const on = chosen.includes(id);
-          const sub = columns.filter((c) => c.mobile === "subtitle");
-          const badges = columns.filter((c) => c.mobile === "badge");
-          const meta = columns.filter(
-            (c) => c !== titleCol && (c.mobile ?? "meta") === "meta",
-          );
-          const body = (
-            <>
-              <span className="grid min-w-0 flex-1 gap-1">
-                <span className="truncate font-semibold">
-                  {value(row, titleCol)}
-                </span>
-                {sub.map((c) => (
-                  <span key={c.key} className="truncate text-sm text-ink-muted">
-                    {value(row, c)}
-                  </span>
-                ))}
-                {badges.length ? (
-                  <span className="flex flex-wrap gap-1.5 pt-0.5">
-                    {badges.map((c) => (
-                      <span key={c.key}>{value(row, c)}</span>
-                    ))}
-                  </span>
-                ) : null}
-                {meta.length ? (
-                  <span className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1 text-xs">
-                    {meta.map((c) => (
-                      <span key={c.key} className="min-w-0">
-                        <span className="block text-ink-muted">{c.header}</span>
-                        <span className="block truncate tabular-nums">
-                          {value(row, c)}
-                        </span>
-                      </span>
-                    ))}
-                  </span>
-                ) : null}
-              </span>
-              {href ? (
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="size-4 shrink-0 self-center text-ink-subtle"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="m9 6 6 6-6 6" />
-                </svg>
-              ) : null}
-            </>
-          );
-          return (
-            <li
-              key={id}
-              data-selected={on || undefined}
-              style={enter(i)}
-              className="relative flex items-start gap-3 rounded-[var(--r-panel)] bg-surface-raised p-4 ring-1 ring-line data-[selected]:ring-2 data-[selected]:ring-[var(--accent)]"
-            >
-              {selectable ? (
-                <input
-                  type="checkbox"
-                  aria-label={t("selectRow", { row: i + 1 })}
-                  checked={on}
-                  onChange={() => toggle(id)}
-                  className="mt-1 size-5 shrink-0 accent-[var(--evoly-charbon)]"
-                />
-              ) : null}
-              {href ? (
-                <Link
-                  href={href}
-                  className="flex min-w-0 flex-1 items-start gap-3"
-                >
-                  {body}
-                </Link>
-              ) : (
-                <span className="flex min-w-0 flex-1 items-start gap-3">
-                  {body}
-                </span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
       {footer}
     </div>
   );
@@ -515,7 +454,7 @@ function Rail() {
   return (
     <span
       aria-hidden="true"
-      className="absolute inset-y-2 left-0 w-[3px] origin-center scale-y-0 rounded-full bg-[var(--accent)] transition-transform duration-200 group-hover:scale-y-100 group-data-[selected]:scale-y-100 motion-reduce:transition-none"
+      className="absolute inset-y-2 left-0 hidden w-[3px] md:block origin-center scale-y-0 rounded-full bg-[var(--accent)] transition-transform duration-200 group-hover:scale-y-100 group-data-[selected]:scale-y-100 motion-reduce:transition-none"
     />
   );
 }

@@ -17,6 +17,7 @@ test("vestiaire acheté seul : option vendable sans billet, panier sans billet, 
 
   // un vestiaire vendable sans billet, un jeton qui exige un billet (gratuits, pour un achat sans paiement)
   await page.goto(`${eventUrl}/options`);
+  await page.getByRole("button", { name: "+ Nouvelle option" }).click(); // l'ajout : dans une fenêtre
   await page.getByLabel("Nom").fill("Vestiaire");
   await page.getByLabel("Prix").fill("0");
   await page.getByLabel("Vendable sans billet").check();

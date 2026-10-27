@@ -197,6 +197,16 @@ export default async function OrdersPage({
         </button>
       </form>
       {/* un seul tableau : commandes Evoly et billets des réseaux, filtrés par le canal ; les deux pages avancent ensemble */}
+      {showOrders ? (
+        <p className="text-sm text-ink-muted">
+          {t("count", { count: result.total })}
+        </p>
+      ) : null}
+      {showNetworks && external ? (
+        <p className="text-sm text-ink-muted">
+          {t("networkCount", { count: external.total })}
+        </p>
+      ) : null}
       <OrdersTable
         caption={t("tableCaption")}
         rows={[

@@ -162,18 +162,17 @@ describe("tableau Evoly", () => {
     ).toBe(4);
   });
 
-  it("téléphone : chaque ligne devient une carte, avec son titre, ses pastilles et ses détails", () => {
+  it("une seule construction : chaque texte une fois ; sur téléphone, les détails portent leur intitulé", () => {
     render(<Orders />);
-    const cards = within(
-      screen.getByRole("list", { name: "Commandes" }),
-    ).getAllByRole("listitem");
-    expect(cards).toHaveLength(3);
-    expect(within(cards[0]!).getByRole("link").getAttribute("href")).toBe(
-      "/o/club/orders/o1",
-    );
-    expect(cards[0]!.textContent).toContain("Léa Martin");
-    expect(cards[0]!.textContent).toContain("Payée");
-    expect(cards[0]!.textContent).toContain("Total45.00 €");
+    expect(screen.getAllByText("Léa Martin")).toHaveLength(1);
+    const total = within(table())
+      .getAllByRole("row")[1]!
+      .querySelector('td[data-label="Total"]')!;
+    expect(total.textContent).toBe("45.00 €");
+    expect(
+      within(table()).getAllByRole("row")[1]!.querySelector("td.order-1")!
+        .textContent,
+    ).toBe("Léa Martin");
   });
 });
 

@@ -6,7 +6,7 @@ test("lieu partenaire : le lieu active le programme et renseigne sa salle ; l'or
   browser,
 }) => {
   const { slug } = await organizer(page);
-  await page.goto(appUrl(`/o/${slug}/billing`));
+  await page.goto(appUrl(`/o/${slug}/billing?tab=venue`));
   await page.getByRole("button", { name: "Devenir lieu partenaire" }).click();
   await expect(
     page.getByRole("button", { name: "J'accepte l'autofacturation" }),
