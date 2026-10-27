@@ -23,13 +23,16 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
 
 ## Stripe en mode réel
 
-- Attendre la fin de la vérification d'identité du représentant chez Stripe (avant le 9 novembre 2026, sinon les virements sont suspendus), puis réessayer « Connecter mon compte Stripe ».
+- Fait le 28 octobre 2026 : compte de la plateforme activé (cartes, Bancontact, Link, transferts actifs ; Cartes Bancaires
+  en cours d'activation par Stripe), « Connecter mon compte Stripe » fonctionne. Diagnostic : `ops/stripe-status.sh`.
+- Après l'inscription Stripe d'un organisateur : vérifier la livraison de `account.updated` (réponse 200) sur la
+  destination « comptes connectés », et « Paiements activés » dans Evoly.
+- Compléter le profil Stripe (Paramètres, Entreprise) : description de l'activité (vide), un seul e-mail de support
+  (`contact@` dans Stripe, `hello@` sur le site), adresse de support.
 - Ne jamais tester en mode réel avec sa propre carte : les conditions de Stripe l'interdisent, et ses contrôles de risque
   repèrent ces paiements remboursés (paiements par carte suspendus le 28 octobre 2026 après un achat de test de 1 €,
   solde de -0,30 € de frais conservés). Les essais se font en mode test ; en mode réel, surveiller les premières vraies
   ventes et les livraisons des deux webhooks (réponse 200).
-- Obtenir de Stripe la levée de la suspension des paiements par carte (support, en décrivant l'activité et l'achat de
-  test), puis réessayer « Connecter mon compte Stripe ».
 - Régler un solde minimum dans les virements, pour couvrir les remboursements d'abonnements Pro sans solde négatif.
 - Plus tard : remplacer la clé secrète à accès complet par une clé restreinte aux opérations qu'Evoly appelle (liste établie le 26 octobre 2026), après un essai complet.
 
