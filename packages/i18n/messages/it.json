@@ -587,15 +587,7 @@
     "optionsTitle": "I tuoi extra",
     "optionsHint": "Da riscattare al bar con una semplice scansione del biglietto.",
     "optionsLeft": "Ne restano {left} su {quantity} da riscattare",
-    "optionsPass": "Il tuo codice QR di ritiro: mostralo al bar o al guardaroba.",
-    "tableBuyer": "Acquirente",
-    "tableEvent": "Evento",
-    "tableChannel": "Canale",
-    "tableStatus": "Stato",
-    "tableTickets": "Biglietti",
-    "tableTotal": "Totale",
-    "tableDate": "Data",
-    "tableCaption": "Ordini e biglietti"
+    "optionsPass": "Il tuo codice QR di ritiro: mostralo al bar o al guardaroba."
   },
   "scanner": {
     "valid": "Biglietto valido",
@@ -1536,7 +1528,15 @@
     "networkCancelled": "Annullato dalla rete",
     "networkEntered": "Entrato il {time}",
     "networkNotEntered": "Non ancora entrato",
-    "networkPagination": "Pagine dei biglietti delle reti"
+    "networkPagination": "Pagine dei biglietti delle reti",
+    "tableBuyer": "Acquirente",
+    "tableEvent": "Evento",
+    "tableChannel": "Canale",
+    "tableStatus": "Stato",
+    "tableTickets": "Biglietti",
+    "tableTotal": "Totale",
+    "tableDate": "Data",
+    "tableCaption": "Ordini e biglietti"
   },
   "seatingEditor": {
     "title": "Mappa dei posti",

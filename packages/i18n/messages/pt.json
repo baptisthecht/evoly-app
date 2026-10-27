@@ -587,15 +587,7 @@
     "optionsTitle": "Os seus extras",
     "optionsHint": "A levantar no bar com uma simples leitura do seu bilhete.",
     "optionsLeft": "Restam {left} de {quantity} por levantar",
-    "optionsPass": "O seu código QR de levantamento: mostre-o no bar ou no bengaleiro.",
-    "tableBuyer": "Comprador",
-    "tableEvent": "Evento",
-    "tableChannel": "Canal",
-    "tableStatus": "Estado",
-    "tableTickets": "Bilhetes",
-    "tableTotal": "Total",
-    "tableDate": "Data",
-    "tableCaption": "Encomendas e bilhetes"
+    "optionsPass": "O seu código QR de levantamento: mostre-o no bar ou no bengaleiro."
   },
   "scanner": {
     "valid": "Bilhete válido",
@@ -1536,7 +1528,15 @@
     "networkCancelled": "Anulado pela rede",
     "networkEntered": "Entrou em {time}",
     "networkNotEntered": "Ainda não entrou",
-    "networkPagination": "Páginas dos bilhetes das redes"
+    "networkPagination": "Páginas dos bilhetes das redes",
+    "tableBuyer": "Comprador",
+    "tableEvent": "Evento",
+    "tableChannel": "Canal",
+    "tableStatus": "Estado",
+    "tableTickets": "Bilhetes",
+    "tableTotal": "Total",
+    "tableDate": "Data",
+    "tableCaption": "Encomendas e bilhetes"
   },
   "seatingEditor": {
     "title": "Planta da sala",

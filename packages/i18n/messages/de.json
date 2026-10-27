@@ -587,15 +587,7 @@
     "optionsTitle": "Ihre Extras",
     "optionsHint": "An der Bar mit einem einfachen Scan Ihres Tickets einzulösen.",
     "optionsLeft": "Noch {left} von {quantity} einzulösen",
-    "optionsPass": "Ihr Abhol-QR-Code: Zeigen Sie ihn an der Bar oder Garderobe.",
-    "tableBuyer": "Käufer",
-    "tableEvent": "Veranstaltung",
-    "tableChannel": "Kanal",
-    "tableStatus": "Status",
-    "tableTickets": "Tickets",
-    "tableTotal": "Summe",
-    "tableDate": "Datum",
-    "tableCaption": "Bestellungen und Tickets"
+    "optionsPass": "Ihr Abhol-QR-Code: Zeigen Sie ihn an der Bar oder Garderobe."
   },
   "scanner": {
     "valid": "Gültiges Ticket",
@@ -1536,7 +1528,15 @@
     "networkCancelled": "Vom Netz storniert",
     "networkEntered": "Eingelassen am {time}",
     "networkNotEntered": "Noch nicht eingelassen",
-    "networkPagination": "Seiten der Netztickets"
+    "networkPagination": "Seiten der Netztickets",
+    "tableBuyer": "Käufer",
+    "tableEvent": "Veranstaltung",
+    "tableChannel": "Kanal",
+    "tableStatus": "Status",
+    "tableTickets": "Tickets",
+    "tableTotal": "Summe",
+    "tableDate": "Datum",
+    "tableCaption": "Bestellungen und Tickets"
   },
   "seatingEditor": {
     "title": "Saalplan",

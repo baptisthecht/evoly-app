@@ -587,15 +587,7 @@
     "optionsTitle": "Tus extras",
     "optionsHint": "Se canjean en la barra con un simple escaneo de tu entrada.",
     "optionsLeft": "Quedan {left} de {quantity} por canjear",
-    "optionsPass": "Tu código QR de recogida: muéstralo en la barra o el guardarropa.",
-    "tableBuyer": "Comprador",
-    "tableEvent": "Evento",
-    "tableChannel": "Canal",
-    "tableStatus": "Estado",
-    "tableTickets": "Entradas",
-    "tableTotal": "Total",
-    "tableDate": "Fecha",
-    "tableCaption": "Pedidos y entradas"
+    "optionsPass": "Tu código QR de recogida: muéstralo en la barra o el guardarropa."
   },
   "scanner": {
     "valid": "Entrada válida",
@@ -1536,7 +1528,15 @@
     "networkCancelled": "Anulada por la red",
     "networkEntered": "Accedió el {time}",
     "networkNotEntered": "Todavía no ha accedido",
-    "networkPagination": "Páginas de las entradas de las redes"
+    "networkPagination": "Páginas de las entradas de las redes",
+    "tableBuyer": "Comprador",
+    "tableEvent": "Evento",
+    "tableChannel": "Canal",
+    "tableStatus": "Estado",
+    "tableTickets": "Entradas",
+    "tableTotal": "Total",
+    "tableDate": "Fecha",
+    "tableCaption": "Pedidos y entradas"
   },
   "seatingEditor": {
     "title": "Plano de sala",

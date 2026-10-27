@@ -583,15 +583,7 @@
     "optionsTitle": "Your add-ons",
     "optionsHint": "Redeem them at the bar with a simple scan of your ticket.",
     "optionsLeft": "{left} of {quantity} left to redeem",
-    "optionsPass": "Your pickup QR code: show it at the bar or cloakroom.",
-    "tableBuyer": "Buyer",
-    "tableEvent": "Event",
-    "tableChannel": "Channel",
-    "tableStatus": "Status",
-    "tableTickets": "Tickets",
-    "tableTotal": "Total",
-    "tableDate": "Date",
-    "tableCaption": "Orders and tickets"
+    "optionsPass": "Your pickup QR code: show it at the bar or cloakroom."
   },
   "resale": {
     "sell": "Resell my ticket",
@@ -1766,7 +1758,15 @@
     "networkCancelled": "Cancelled by the network",
     "networkEntered": "Admitted on {time}",
     "networkNotEntered": "Not admitted yet",
-    "networkPagination": "Pages of network tickets"
+    "networkPagination": "Pages of network tickets",
+    "tableBuyer": "Buyer",
+    "tableEvent": "Event",
+    "tableChannel": "Channel",
+    "tableStatus": "Status",
+    "tableTickets": "Tickets",
+    "tableTotal": "Total",
+    "tableDate": "Date",
+    "tableCaption": "Orders and tickets"
   },
   "finances": {
     "title": "Finances",

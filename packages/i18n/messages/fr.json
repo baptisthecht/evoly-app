@@ -583,15 +583,7 @@
     "optionsTitle": "Vos options",
     "optionsHint": "À retirer au bar, sur un simple scan de votre billet.",
     "optionsLeft": "{left} sur {quantity} à retirer",
-    "optionsPass": "Votre QR code de retrait : présentez-le au bar ou au vestiaire.",
-    "tableBuyer": "Acheteur",
-    "tableEvent": "Événement",
-    "tableChannel": "Canal",
-    "tableStatus": "Statut",
-    "tableTickets": "Billets",
-    "tableTotal": "Total",
-    "tableDate": "Date",
-    "tableCaption": "Commandes et billets"
+    "optionsPass": "Votre QR code de retrait : présentez-le au bar ou au vestiaire."
   },
   "resale": {
     "sell": "Revendre ma place",
@@ -1766,7 +1758,15 @@
     "networkCancelled": "Annulé par le réseau",
     "networkEntered": "Entré le {time}",
     "networkNotEntered": "Pas encore entré",
-    "networkPagination": "Pages des billets des réseaux"
+    "networkPagination": "Pages des billets des réseaux",
+    "tableBuyer": "Acheteur",
+    "tableEvent": "Événement",
+    "tableChannel": "Canal",
+    "tableStatus": "Statut",
+    "tableTickets": "Billets",
+    "tableTotal": "Total",
+    "tableDate": "Date",
+    "tableCaption": "Commandes et billets"
   },
   "finances": {
     "title": "Finances",

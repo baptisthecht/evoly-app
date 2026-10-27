@@ -37,7 +37,7 @@ export function OrdersTable({
   footer?: ReactNode;
   caption: string;
 }) {
-  const t = useTranslations("orders");
+  const t = useTranslations("ordersAdmin");
   const columns: TableColumn<OrderRow>[] = [
     {
       key: "name",

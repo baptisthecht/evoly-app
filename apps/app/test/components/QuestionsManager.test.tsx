@@ -1,4 +1,5 @@
 import {
+  within,
   act,
   fireEvent,
   render,
@@ -54,10 +55,15 @@ const draw = (questions: Q[], readOnly = false) =>
   );
 
 describe("questions posées à l'acheteur, côté organisateur (US-QST-01)", () => {
+  // le tableau construit aussi les cartes du téléphone : les actions se cherchent dans le tableau
   it("question avec réponses : archivée pour garder les réponses ; sans réponse : supprimée ; confirmation annulée : rien", async () => {
     draw([q("a", { answers: 4 }), q("b")]);
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    fireEvent.click(screen.getByRole("button", { name: t.archive }));
+    fireEvent.click(
+      within(screen.getByRole("table")).getByRole("button", {
+        name: t.archive,
+      }),
+    );
     expect(confirm).toHaveBeenLastCalledWith(t.confirmArchive);
     expect(actions.questionCommandAction).not.toHaveBeenCalled();
     confirm.mockReturnValue(true);
@@ -67,7 +73,11 @@ describe("questions posées à l'acheteur, côté organisateur (US-QST-01)", () 
     });
     await act(
       async () =>
-        void fireEvent.click(screen.getByRole("button", { name: t.archive })),
+        void fireEvent.click(
+          within(screen.getByRole("table")).getByRole("button", {
+            name: t.archive,
+          }),
+        ),
     );
     expect(actions.questionCommandAction).toHaveBeenLastCalledWith(
       "club",
@@ -82,7 +92,11 @@ describe("questions posées à l'acheteur, côté organisateur (US-QST-01)", () 
     });
     await act(
       async () =>
-        void fireEvent.click(screen.getByRole("button", { name: t.delete })),
+        void fireEvent.click(
+          within(screen.getByRole("table")).getByRole("button", {
+            name: t.delete,
+          }),
+        ),
     );
     expect(confirm).toHaveBeenLastCalledWith(t.confirmDelete);
     expect(await screen.findByText(text(t.deleted!))).toBeTruthy();

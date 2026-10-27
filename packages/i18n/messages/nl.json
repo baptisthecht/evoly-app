@@ -587,15 +587,7 @@
     "optionsTitle": "Je opties",
     "optionsHint": "In te wisselen aan de bar met een simpele scan van je ticket.",
     "optionsLeft": "Nog {left} van {quantity} in te wisselen",
-    "optionsPass": "Je afhaal-QR-code: toon hem aan de bar of de vestiaire.",
-    "tableBuyer": "Koper",
-    "tableEvent": "Evenement",
-    "tableChannel": "Kanaal",
-    "tableStatus": "Status",
-    "tableTickets": "Tickets",
-    "tableTotal": "Totaal",
-    "tableDate": "Datum",
-    "tableCaption": "Bestellingen en tickets"
+    "optionsPass": "Je afhaal-QR-code: toon hem aan de bar of de vestiaire."
   },
   "scanner": {
     "valid": "Geldig ticket",
@@ -1536,7 +1528,15 @@
     "networkCancelled": "Geannuleerd door het netwerk",
     "networkEntered": "Binnen op {time}",
     "networkNotEntered": "Nog niet binnen",
-    "networkPagination": "Pagina’s van de netwerktickets"
+    "networkPagination": "Pagina’s van de netwerktickets",
+    "tableBuyer": "Koper",
+    "tableEvent": "Evenement",
+    "tableChannel": "Kanaal",
+    "tableStatus": "Status",
+    "tableTickets": "Tickets",
+    "tableTotal": "Totaal",
+    "tableDate": "Datum",
+    "tableCaption": "Bestellingen en tickets"
   },
   "seatingEditor": {
     "title": "Zaalplan",
