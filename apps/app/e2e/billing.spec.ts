@@ -11,9 +11,14 @@ test("abonnement : Free, essai en cours, impayé (section 9.21)", async ({
   ).toBeVisible();
   await expect(page.getByText("295,80 €").first()).toBeVisible();
   await expect(page.getByText("−15 %")).toBeVisible();
+  // la comparaison des offres est dans une fenêtre
+  await page.getByRole("button", { name: "Comparer les offres" }).click();
+  const compare = page.getByRole("dialog", { name: "Free et Pro" });
   await expect(
-    page.getByText(/plafonnée à 1(,00)?\u00a0?€/).first(),
+    compare.getByText(/plafonnée à 1(,00)?\u00a0?€/).first(),
   ).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(compare).toHaveCount(0);
   await page.getByRole("button", { name: "Essayer Pro 14 jours" }).click();
   await expect(
     page.getByText("Le paiement de l’abonnement n’est pas encore disponible.", {

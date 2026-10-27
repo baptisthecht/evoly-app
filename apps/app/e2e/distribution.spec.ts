@@ -71,9 +71,10 @@ test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bil
 
   await page.getByRole("button", { name: "Rechercher" }).click();
 
-  const networkList = page.getByRole("region", {
-    name: "Billets vendus par les réseaux",
-  });
+  // commandes et billets des réseaux : un seul tableau (des cartes sur téléphone)
+  const networkList = page
+    .getByRole("table", { name: "Commandes et billets" })
+    .or(page.getByRole("list", { name: "Commandes et billets" }));
 
   await expect(networkList.getByText("Léa Martin")).toBeVisible();
 

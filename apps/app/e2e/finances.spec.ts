@@ -46,7 +46,7 @@ test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({
   await expect(cards).toContainText("1,02");
   await expect(cards).toContainText("46,01");
   await expect(
-    page.getByRole("rowheader", { name: `Bal ${id}` }),
+    page.getByRole("link", { name: new RegExp(`Bal ${id}`) }),
   ).toBeVisible();
 
   const csv = await page.request.get(

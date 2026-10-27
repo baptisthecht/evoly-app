@@ -70,6 +70,7 @@ test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page priv
 
   // option et consommation prépayée (section 9.29)
   await page.goto(`${eventUrl}/options`);
+  await page.getByRole("button", { name: "+ Nouvelle option" }).click(); // l'ajout : dans une fenêtre
   await page.getByLabel("Nom").fill("Jeton boisson");
   await page.getByLabel("Prix").fill("3");
   await page.getByRole("button", { name: "Ajouter l'option" }).click();

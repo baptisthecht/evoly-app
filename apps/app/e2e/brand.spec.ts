@@ -42,7 +42,7 @@ test("marque, sous-domaine d'événement, changement d'adresse et domaine person
   ).toBe("rgb(27, 77, 140)");
 
   // US-BRD-05 : sous-domaine dédié à l'événement
-  await page.goto(`${eventUrl}/appearance`);
+  await page.goto(`${eventUrl}/diffusion`); // le sous-domaine de l'événement : Vente, Diffusion
   await page.getByLabel("Sous-domaine de l’événement").fill(`soir-${id}`);
   await expect(page.getByText("Cette adresse est disponible.")).toBeVisible();
   await page
