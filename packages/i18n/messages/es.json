@@ -2602,7 +2602,13 @@
     "off": "Reventa desactivada",
     "eventCounts": "{open, plural, =0 {ningún anuncio a la venta} one {# anuncio a la venta} other {# anuncios a la venta}} · {sold, plural, =0 {ninguna vendida} one {# vendida} other {# vendidas}}",
     "manage": "Gestionar",
-    "recent": "Últimos anuncios"
+    "recent": "Últimos anuncios",
+    "tableTicket": "Entrada",
+    "tableEvent": "Evento",
+    "tablePrice": "Precio",
+    "tableStatus": "Estado",
+    "tableListed": "Puesta a la venta",
+    "byEventShortcut": "Ajustes de reventa por evento"
   },
   "questions": {
     "title": "Preguntas en la compra",
@@ -2725,7 +2731,18 @@
     "sent": "{count, plural, =0 {No se ha enviado ninguna entrada.} one {Entradas enviadas a # invitado.} other {Entradas enviadas a # invitados.}}",
     "failed": "envío fallido",
     "invalidLine": "Línea {line} ignorada: {value}",
-    "tooMany": "Solo se han procesado los 200 primeros invitados."
+    "tooMany": "Solo se han procesado los 200 primeros invitados.",
+    "tableGuest": "Invitado",
+    "tableTypes": "Entradas regaladas",
+    "tableTickets": "Entradas",
+    "tableEntered": "Entradas validadas",
+    "tableSent": "Enviado el",
+    "tableCaption": "Entradas regaladas",
+    "allIn": "Todos dentro",
+    "someIn": "{count} de {total} dentro",
+    "notYet": "Aún no ha entrado",
+    "emptyTitle": "Ninguna entrada regalada",
+    "emptyBody": "Regala entradas a tus invitados, socios o voluntarios: las reciben por correo, sin pagar."
   },
   "referral": {
     "title": "Programa de recomendación",

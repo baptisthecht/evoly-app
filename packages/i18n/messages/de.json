@@ -2602,7 +2602,13 @@
     "off": "Weiterverkauf deaktiviert",
     "eventCounts": "{open, plural, =0 {kein Angebot im Verkauf} one {# Angebot im Verkauf} other {# Angebote im Verkauf}} · {sold, plural, =0 {keines verkauft} one {# verkauft} other {# verkauft}}",
     "manage": "Verwalten",
-    "recent": "Neueste Angebote"
+    "recent": "Neueste Angebote",
+    "tableTicket": "Ticket",
+    "tableEvent": "Veranstaltung",
+    "tablePrice": "Preis",
+    "tableStatus": "Status",
+    "tableListed": "Eingestellt",
+    "byEventShortcut": "Weiterverkauf pro Veranstaltung"
   },
   "questions": {
     "title": "Fragen beim Kauf",
@@ -2725,7 +2731,18 @@
     "sent": "{count, plural, =0 {Kein Ticket gesendet.} one {Tickets an # Gast gesendet.} other {Tickets an # Gäste gesendet.}}",
     "failed": "Versand fehlgeschlagen",
     "invalidLine": "Zeile {line} übersprungen: {value}",
-    "tooMany": "Nur die ersten 200 Gäste wurden verarbeitet."
+    "tooMany": "Nur die ersten 200 Gäste wurden verarbeitet.",
+    "tableGuest": "Gast",
+    "tableTypes": "Verschenkte Tickets",
+    "tableTickets": "Tickets",
+    "tableEntered": "Eingelassen",
+    "tableSent": "Gesendet am",
+    "tableCaption": "Freitickets",
+    "allIn": "Alle eingelassen",
+    "someIn": "{count} von {total} eingelassen",
+    "notYet": "Noch nicht eingelassen",
+    "emptyTitle": "Keine Freitickets",
+    "emptyBody": "Schenken Sie Tickets an Gäste, Partner oder Helfer: Sie erhalten sie per E-Mail, ohne Zahlung."
   },
   "referral": {
     "title": "Empfehlungsprogramm",

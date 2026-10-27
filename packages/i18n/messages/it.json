@@ -2602,7 +2602,13 @@
     "off": "Rivendita disattivata",
     "eventCounts": "{open, plural, =0 {nessun annuncio in vendita} one {# annuncio in vendita} other {# annunci in vendita}} · {sold, plural, =0 {nessuno venduto} one {# venduto} other {# venduti}}",
     "manage": "Gestisci",
-    "recent": "Ultimi annunci"
+    "recent": "Ultimi annunci",
+    "tableTicket": "Biglietto",
+    "tableEvent": "Evento",
+    "tablePrice": "Prezzo",
+    "tableStatus": "Stato",
+    "tableListed": "Messo in vendita",
+    "byEventShortcut": "Impostazioni di rivendita per evento"
   },
   "questions": {
     "title": "Domande all’acquisto",
@@ -2725,7 +2731,18 @@
     "sent": "{count, plural, =0 {Nessun biglietto inviato.} one {Biglietti inviati a # invitato.} other {Biglietti inviati a # invitati.}}",
     "failed": "invio non riuscito",
     "invalidLine": "Riga {line} ignorata: {value}",
-    "tooMany": "Sono stati elaborati solo i primi 200 invitati."
+    "tooMany": "Sono stati elaborati solo i primi 200 invitati.",
+    "tableGuest": "Ospite",
+    "tableTypes": "Biglietti omaggio",
+    "tableTickets": "Biglietti",
+    "tableEntered": "Ingressi",
+    "tableSent": "Inviato il",
+    "tableCaption": "Biglietti omaggio",
+    "allIn": "Tutti entrati",
+    "someIn": "{count} su {total} entrati",
+    "notYet": "Non ancora entrato",
+    "emptyTitle": "Nessun biglietto omaggio",
+    "emptyBody": "Regala biglietti a ospiti, partner o volontari: li ricevono via email, senza pagare."
   },
   "referral": {
     "title": "Programma presenta un amico",

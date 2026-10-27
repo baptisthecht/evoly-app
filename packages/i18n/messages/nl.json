@@ -2602,7 +2602,13 @@
     "off": "Doorverkoop uitgeschakeld",
     "eventCounts": "{open, plural, =0 {geen aanbod te koop} one {# aanbod te koop} other {# aanbiedingen te koop}} · {sold, plural, =0 {geen verkocht} one {# verkocht} other {# verkocht}}",
     "manage": "Beheren",
-    "recent": "Laatste aanbiedingen"
+    "recent": "Laatste aanbiedingen",
+    "tableTicket": "Ticket",
+    "tableEvent": "Evenement",
+    "tablePrice": "Prijs",
+    "tableStatus": "Status",
+    "tableListed": "Te koop gezet",
+    "byEventShortcut": "Doorverkoopinstellingen per evenement"
   },
   "questions": {
     "title": "Vragen bij de aankoop",
@@ -2725,7 +2731,18 @@
     "sent": "{count, plural, =0 {Geen ticket verstuurd.} one {Tickets verstuurd naar # genodigde.} other {Tickets verstuurd naar # genodigden.}}",
     "failed": "verzending mislukt",
     "invalidLine": "Regel {line} overgeslagen: {value}",
-    "tooMany": "Alleen de eerste 200 genodigden zijn verwerkt."
+    "tooMany": "Alleen de eerste 200 genodigden zijn verwerkt.",
+    "tableGuest": "Gast",
+    "tableTypes": "Gratis tickets",
+    "tableTickets": "Tickets",
+    "tableEntered": "Binnen",
+    "tableSent": "Verstuurd op",
+    "tableCaption": "Gratis tickets",
+    "allIn": "Iedereen binnen",
+    "someIn": "{count} van {total} binnen",
+    "notYet": "Nog niet binnen",
+    "emptyTitle": "Geen gratis tickets",
+    "emptyBody": "Geef tickets aan je gasten, partners of vrijwilligers: ze ontvangen ze per e-mail, zonder te betalen."
   },
   "referral": {
     "title": "Doorverwijzing",

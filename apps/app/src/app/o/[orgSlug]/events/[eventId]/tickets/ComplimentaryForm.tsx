@@ -11,10 +11,13 @@ export function ComplimentaryForm({
   orgSlug,
   eventId,
   ticketTypes,
+  inDialog = false,
 }: {
   orgSlug: string;
   eventId: string;
   ticketTypes: Array<{ id: string; name: string }>;
+  /** Dans une fenêtre : sans cadre ni titre (la fenêtre a les siens). */
+  inDialog?: boolean;
 }) {
   const t = useTranslations("complimentary");
   const tf = useTranslations("formErrors");
@@ -24,11 +27,14 @@ export function ComplimentaryForm({
   );
   const data = state?.ok ? state.data : null;
   const sent = data?.results.filter((r) => r.ok).length ?? 0;
+  const Wrap = inDialog ? "div" : Card;
   return (
-    <Card className="mt-10 grid gap-3">
-      <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-        {t("title")}
-      </h2>
+    <Wrap className={inDialog ? "grid gap-3" : "mt-10 grid gap-3"}>
+      {inDialog ? null : (
+        <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+          {t("title")}
+        </h2>
+      )}
       <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
       <form {...formProps} className="grid gap-4" noValidate>
         <FormError state={state} />
@@ -101,6 +107,6 @@ export function ComplimentaryForm({
           {data.tooMany ? <p className="text-warning">{t("tooMany")}</p> : null}
         </div>
       ) : null}
-    </Card>
+    </Wrap>
   );
 }

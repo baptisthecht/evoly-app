@@ -7,6 +7,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Badge, Card, EmptyState } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { organizationResaleOverview } from "@/server/resale";
+import { ResaleTable } from "./ResaleTable";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -63,19 +64,51 @@ export default async function OrganizationResalePage({
         ))}
       </Card>
 
-      <section className="grid gap-3" aria-labelledby="resale-events">
+      <section className="grid gap-3" aria-labelledby="resale-recent">
         <h2
-          id="resale-events"
+          id="resale-recent"
           className="font-display text-xl tracking-[var(--tracking-title)]"
         >
-          {t("byEvent")}
+          {t("recent")}
         </h2>
+        <ResaleTable
+          rows={recent.map((l) => ({
+            id: l.id,
+            code: l.ticket.shortCode,
+            type: l.ticket.ticketType.name,
+            event: l.event.title,
+            price: l.priceMinor === 0 ? null : money(l.priceMinor),
+            priceMinor: l.priceMinor,
+            status: l.status,
+            statusLabel: t(`status_${l.status}`),
+            tone: TONES[l.status],
+            listed: formatDateTime(
+              l.createdAt,
+              l.event.timezone,
+              locale,
+              "short",
+            ),
+            listedAt: l.createdAt.getTime(),
+            href: `/o/${orgSlug}/events/${l.event.id}/resale`,
+          }))}
+        />
+      </section>
+
+      {/* réglages de revente par événement : un raccourci discret, replié */}
+      <details className="group rounded-[var(--r-panel)] bg-surface-raised px-4 py-3 ring-1 ring-line">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+          {t("byEventShortcut")}
+          <span
+            aria-hidden="true"
+            className="text-ink-muted transition-transform group-open:rotate-180"
+          >
+            ⌄
+          </span>
+        </summary>
         {events.length === 0 ? (
-          <EmptyState title={t("noEventsTitle")}>
-            {t("noEventsBody")}
-          </EmptyState>
+          <p className="pt-3 text-sm text-ink-muted">{t("noEventsBody")}</p>
         ) : null}
-        <ul className="grid gap-2">
+        <ul className="grid gap-2 pt-3">
           {events.map((e) => (
             <li key={e.id}>
               <Card className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
@@ -101,55 +134,7 @@ export default async function OrganizationResalePage({
             </li>
           ))}
         </ul>
-      </section>
-
-      <section className="grid gap-3" aria-labelledby="resale-recent">
-        <h2
-          id="resale-recent"
-          className="font-display text-xl tracking-[var(--tracking-title)]"
-        >
-          {t("recent")}
-        </h2>
-        {recent.length === 0 ? (
-          <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
-        ) : null}
-        <ul className="grid gap-2">
-          {recent.map((l) => (
-            <li key={l.id}>
-              <Link
-                href={`/o/${orgSlug}/events/${l.event.id}/resale`}
-                className="block"
-              >
-                <Card className="grid gap-1 transition-shadow hover:shadow-md">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold">{l.event.title}</p>
-                    <Badge tone={TONES[l.status]}>
-                      {t(`status_${l.status}`)}
-                    </Badge>
-                    <span className="font-mono text-xs text-ink-muted">
-                      {l.ticket.shortCode}
-                    </span>
-                  </div>
-                  <p className="text-sm">
-                    {l.ticket.ticketType.name} ·{" "}
-                    {l.priceMinor === 0 ? t("transfer") : money(l.priceMinor)}
-                  </p>
-                  <p className="text-sm text-ink-muted">
-                    {t("listedOn", {
-                      date: formatDateTime(
-                        l.createdAt,
-                        l.event.timezone,
-                        locale,
-                        "short",
-                      ),
-                    })}
-                  </p>
-                </Card>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      </details>
     </div>
   );
 }

@@ -1551,7 +1551,13 @@
     "off": "Revente désactivée",
     "eventCounts": "{open, plural, =0 {aucune annonce en vente} one {# annonce en vente} other {# annonces en vente}} · {sold, plural, =0 {aucune vendue} one {# vendue} other {# vendues}}",
     "manage": "Gérer",
-    "recent": "Dernières annonces"
+    "recent": "Dernières annonces",
+    "tableTicket": "Billet",
+    "tableEvent": "Événement",
+    "tablePrice": "Prix",
+    "tableStatus": "Statut",
+    "tableListed": "Mise en vente",
+    "byEventShortcut": "Réglages de revente par événement"
   },
   "ordersAdmin": {
     "title": "Commandes",
@@ -2374,7 +2380,18 @@
     "sent": "{count, plural, =0 {Aucun billet envoyé.} one {Billets envoyés à # invité.} other {Billets envoyés à # invités.}}",
     "failed": "échec de l’envoi",
     "invalidLine": "Ligne {line} ignorée : {value}",
-    "tooMany": "Seuls les 200 premiers invités ont été traités."
+    "tooMany": "Seuls les 200 premiers invités ont été traités.",
+    "tableGuest": "Invité",
+    "tableTypes": "Billets offerts",
+    "tableTickets": "Billets",
+    "tableEntered": "Entrées",
+    "tableSent": "Envoyé le",
+    "tableCaption": "Billets offerts",
+    "allIn": "Tous entrés",
+    "someIn": "{count} sur {total} entrés",
+    "notYet": "Pas encore entré",
+    "emptyTitle": "Aucun billet offert",
+    "emptyBody": "Offrez des billets à vos invités, partenaires ou bénévoles : ils les reçoivent par e-mail, sans paiement."
   },
   "referral": {
     "title": "Parrainage",

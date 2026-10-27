@@ -2602,7 +2602,13 @@
     "off": "Revenda desativada",
     "eventCounts": "{open, plural, =0 {nenhum anúncio à venda} one {# anúncio à venda} other {# anúncios à venda}} · {sold, plural, =0 {nenhum vendido} one {# vendido} other {# vendidos}}",
     "manage": "Gerir",
-    "recent": "Últimos anúncios"
+    "recent": "Últimos anúncios",
+    "tableTicket": "Bilhete",
+    "tableEvent": "Evento",
+    "tablePrice": "Preço",
+    "tableStatus": "Estado",
+    "tableListed": "Posto à venda",
+    "byEventShortcut": "Definições de revenda por evento"
   },
   "questions": {
     "title": "Perguntas na compra",
@@ -2725,7 +2731,18 @@
     "sent": "{count, plural, =0 {Nenhum bilhete enviado.} one {Bilhetes enviados a # convidado.} other {Bilhetes enviados a # convidados.}}",
     "failed": "envio falhado",
     "invalidLine": "Linha {line} ignorada: {value}",
-    "tooMany": "Só foram tratados os 200 primeiros convidados."
+    "tooMany": "Só foram tratados os 200 primeiros convidados.",
+    "tableGuest": "Convidado",
+    "tableTypes": "Bilhetes oferecidos",
+    "tableTickets": "Bilhetes",
+    "tableEntered": "Entradas",
+    "tableSent": "Enviado em",
+    "tableCaption": "Bilhetes oferecidos",
+    "allIn": "Todos entraram",
+    "someIn": "{count} de {total} entraram",
+    "notYet": "Ainda não entrou",
+    "emptyTitle": "Nenhum bilhete oferecido",
+    "emptyBody": "Ofereça bilhetes aos seus convidados, parceiros ou voluntários: recebem-nos por e-mail, sem pagar."
   },
   "referral": {
     "title": "Programa de recomendação",

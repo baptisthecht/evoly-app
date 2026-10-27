@@ -1551,7 +1551,13 @@
     "off": "Resale off",
     "eventCounts": "{open, plural, =0 {no listing on sale} one {# listing on sale} other {# listings on sale}} · {sold, plural, =0 {none sold} one {# sold} other {# sold}}",
     "manage": "Manage",
-    "recent": "Latest listings"
+    "recent": "Latest listings",
+    "tableTicket": "Ticket",
+    "tableEvent": "Event",
+    "tablePrice": "Price",
+    "tableStatus": "Status",
+    "tableListed": "Listed",
+    "byEventShortcut": "Resale settings by event"
   },
   "ordersAdmin": {
     "title": "Orders",
@@ -2374,7 +2380,18 @@
     "sent": "{count, plural, =0 {No tickets sent.} one {Tickets sent to # guest.} other {Tickets sent to # guests.}}",
     "failed": "sending failed",
     "invalidLine": "Line {line} ignored: {value}",
-    "tooMany": "Only the first 200 guests were processed."
+    "tooMany": "Only the first 200 guests were processed.",
+    "tableGuest": "Guest",
+    "tableTypes": "Tickets given",
+    "tableTickets": "Tickets",
+    "tableEntered": "Entries",
+    "tableSent": "Sent on",
+    "tableCaption": "Complimentary tickets",
+    "allIn": "All in",
+    "someIn": "{count} of {total} in",
+    "notYet": "Not in yet",
+    "emptyTitle": "No complimentary tickets",
+    "emptyBody": "Give tickets to your guests, partners or volunteers: they receive them by email, with no payment."
   },
   "referral": {
     "title": "Referral",
