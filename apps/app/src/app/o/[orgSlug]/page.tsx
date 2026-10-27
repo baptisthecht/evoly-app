@@ -6,6 +6,14 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Card, EmptyState } from "@/components/ui/Card";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
+import { homeOverview } from "@/server/home";
+import {
+  FillWidget,
+  LiveOrdersWidget,
+  NextEventWidget,
+  RevenueWidget,
+  TodoWidget,
+} from "./HomeWidgets";
 import { StripeBanner } from "./StripeBanner";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -59,6 +67,8 @@ export default async function OrgHome({
     (s.applicationFeeMinor ?? 0) -
     (s.paymentFeeMinor ?? 0);
   const showMoney = can(ctx.membership, "FINANCE_VIEW");
+  const home = await homeOverview(ctx);
+  const base = `/o/${ctx.organization.slug}`;
   const firstName = ctx.user.name.split(" ")[0] ?? ctx.user.name;
 
   const kpis = [
@@ -100,6 +110,40 @@ export default async function OrgHome({
           </Card>
         ))}
       </section>
+
+      {/* accueil vivant : prochain événement, dernières commandes, recette, remplissage, à faire */}
+      {events > 0 ? (
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="grid content-start gap-4">
+            <NextEventWidget next={home.next} base={base} locale={locale} />
+            {showMoney ? (
+              <RevenueWidget
+                revenue={home.revenue}
+                currency={ctx.organization.currency}
+                locale={locale}
+              />
+            ) : null}
+          </div>
+          <div className="grid content-start gap-4">
+            {can(ctx.membership, "ORDERS_VIEW") ? (
+              <LiveOrdersWidget
+                recent={home.recent}
+                base={base}
+                locale={locale}
+                money={showMoney}
+              />
+            ) : null}
+            <TodoWidget
+              todo={home.todo}
+              base={base}
+              canPay={can(ctx.membership, "PAYMENTS_MANAGE")}
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <FillWidget fill={home.fill} base={base} locale={locale} />
+          </div>
+        </section>
+      ) : null}
 
       {events === 0 ? (
         <EmptyState
