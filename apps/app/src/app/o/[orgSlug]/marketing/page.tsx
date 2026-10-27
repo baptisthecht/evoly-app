@@ -11,6 +11,7 @@ import { searchContacts, type ContactFilter } from "@/server/contacts";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
 import { ImportContacts } from "./ImportContacts";
+import { CampaignsTable, ContactsTable, ImportDialog } from "./MarketingTables";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -116,73 +117,30 @@ export default async function MarketingPage({
               {t("upgrade")}
             </Link>
           </Card>
-        ) : campaigns.length === 0 ? (
-          <EmptyState title={tc("emptyTitle")}>{tc("emptyBody")}</EmptyState>
         ) : (
-          <ul className="grid gap-2">
-            {campaigns.map((c) => (
-              <li key={c.id}>
-                <Link
-                  href={`/o/${orgSlug}/marketing/campaigns/${c.id}`}
-                  className="block rounded-lg"
-                >
-                  <Card className="grid gap-2 transition-shadow hover:shadow-md sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                    <div className="grid min-w-0 gap-1">
-                      <p className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold">{c.name}</span>
-                        <Badge
-                          tone={
-                            c.status === "SENT"
-                              ? "success"
-                              : c.status === "SCHEDULED" ||
-                                  c.status === "SENDING"
-                                ? "warning"
-                                : "neutral"
-                          }
-                        >
-                          {tc(`status_${c.status}`)}
-                        </Badge>
-                      </p>
-                      <p className="truncate text-sm text-ink-muted">
-                        « {c.subject} »
-                      </p>
-                    </div>
-                    <p className="text-sm text-ink-muted sm:text-right">
-                      {c.status === "SENT" || c.status === "SENDING"
-                        ? tc("listStats", {
-                            recipients: c.recipientCount ?? 0,
-                            opens: c.deliveredCount
-                              ? Math.round(
-                                  (c.openCount / c.deliveredCount) * 100,
-                                )
-                              : 0,
-                            clicks: c.deliveredCount
-                              ? Math.round(
-                                  (c.clickCount / c.deliveredCount) * 100,
-                                )
-                              : 0,
-                          })
-                        : c.scheduledAt
-                          ? tc("scheduledFor", {
-                              date: formatDate(
-                                c.scheduledAt,
-                                ctx.organization.timezone,
-                                locale,
-                              ),
-                            })
-                          : tc("draftSince", {
-                              date: formatDate(
-                                c.updatedAt,
-                                ctx.organization.timezone,
-                                locale,
-                              ),
-                            })}
-                    </p>
-                  </Card>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <CampaignsTable
+            rows={campaigns.map((c) => {
+              const sent = c.status === "SENT" || c.status === "SENDING";
+              const rate = (n: number) =>
+                c.deliveredCount ? Math.round((n / c.deliveredCount) * 100) : 0;
+              const at = sent
+                ? (c.sentAt ?? c.updatedAt)
+                : (c.scheduledAt ?? c.updatedAt);
+              return {
+                id: c.id,
+                name: c.name,
+                subject: c.subject,
+                status: c.status,
+                statusLabel: tc(`status_${c.status}`),
+                recipients: sent ? (c.recipientCount ?? 0) : null,
+                opens: sent ? rate(c.openCount) : null,
+                clicks: sent ? rate(c.clickCount) : null,
+                when: formatDate(at, ctx.organization.timezone, locale),
+                whenAt: at.getTime(),
+                href: `/o/${orgSlug}/marketing/campaigns/${c.id}`,
+              };
+            })}
+          />
         )}
       </div>
     );
@@ -202,22 +160,24 @@ export default async function MarketingPage({
         ))}
       </section>
       {can(ctx.membership, "MARKETING_MANAGE") ? (
-        <ImportContacts
-          orgSlug={orgSlug}
-          labels={{
-            title: t("importTitle"),
-            intro: t("importIntro"),
-            file: t("importFile"),
-            consent: t("importConsent"),
-            submit: t("importSubmit"),
-            doneTemplate: t.raw("importDone") as string,
-            errors: {
-              IMPORT_CONSENT_REQUIRED: t("importConsentRequired"),
-              IMPORT_TOO_LARGE: t("importTooLarge"),
-            },
-            fallbackError: t("importError"),
-          }}
-        />
+        <ImportDialog label={t("importTitle")}>
+          <ImportContacts
+            orgSlug={orgSlug}
+            labels={{
+              title: t("importTitle"),
+              intro: t("importIntro"),
+              file: t("importFile"),
+              consent: t("importConsent"),
+              submit: t("importSubmit"),
+              doneTemplate: t.raw("importDone") as string,
+              errors: {
+                IMPORT_CONSENT_REQUIRED: t("importConsentRequired"),
+                IMPORT_TOO_LARGE: t("importTooLarge"),
+              },
+              fallbackError: t("importError"),
+            }}
+          />
+        </ImportDialog>
       ) : null}
       <form
         className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]"
@@ -240,67 +200,45 @@ export default async function MarketingPage({
           {t("search")}
         </button>
       </form>
-      {result.rows.length === 0 ? (
-        <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
-      ) : (
-        <ul className="grid gap-2">
-          {result.rows.map((c) => (
-            <li key={c.id}>
-              <Card className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                <div className="grid min-w-0 gap-1">
-                  <p className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold">
-                      {[c.firstName, c.lastName].filter(Boolean).join(" ") ||
-                        c.email}
-                    </span>
-                    {c.unsubscribedAt ? (
-                      <Badge tone="neutral">
-                        {t("unsubscribed", {
-                          date: formatDate(
-                            c.unsubscribedAt,
-                            ctx.organization.timezone,
-                            locale,
-                          ),
-                        })}
-                      </Badge>
-                    ) : c.marketingConsent ? (
-                      <Badge tone="success">
-                        {t("consent", {
-                          date: c.consentAt
-                            ? formatDate(
-                                c.consentAt,
-                                ctx.organization.timezone,
-                                locale,
-                              )
-                            : "-",
-                        })}
-                      </Badge>
-                    ) : (
-                      <Badge>{t("noConsent")}</Badge>
-                    )}
-                  </p>
-                  <p className="truncate text-sm text-ink-muted">{c.email}</p>
-                </div>
-                <p className="text-sm text-ink-muted sm:text-right">
-                  {t("history", {
-                    orders: c.ordersCount,
-                    tickets: c.ticketsCount,
-                  })}{" "}
-                  ·{" "}
-                  {formatMoney(
-                    c.totalSpentMinor,
-                    ctx.organization.currency,
-                    locale,
-                  )}
-                  {c.lastOrderAt
-                    ? ` · ${formatDate(c.lastOrderAt, ctx.organization.timezone, locale)}`
-                    : ""}
-                </p>
-              </Card>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ContactsTable
+        rows={result.rows.map((c) => ({
+          id: c.id,
+          name: [c.firstName, c.lastName].filter(Boolean).join(" ") || c.email,
+          email: c.email,
+          consent: c.unsubscribedAt
+            ? "unsubscribed"
+            : c.marketingConsent
+              ? "yes"
+              : "no",
+          consentLabel: c.unsubscribedAt
+            ? t("unsubscribed", {
+                date: formatDate(
+                  c.unsubscribedAt,
+                  ctx.organization.timezone,
+                  locale,
+                ),
+              })
+            : c.marketingConsent
+              ? t("consent", {
+                  date: c.consentAt
+                    ? formatDate(c.consentAt, ctx.organization.timezone, locale)
+                    : "-",
+                })
+              : t("noConsent"),
+          orders: c.ordersCount,
+          tickets: c.ticketsCount,
+          spent: formatMoney(
+            c.totalSpentMinor,
+            ctx.organization.currency,
+            locale,
+          ),
+          spentMinor: c.totalSpentMinor,
+          last: c.lastOrderAt
+            ? formatDate(c.lastOrderAt, ctx.organization.timezone, locale)
+            : null,
+          lastAt: c.lastOrderAt ? c.lastOrderAt.getTime() : 0,
+        }))}
+      />
     </div>
   );
 }

@@ -587,7 +587,15 @@
     "optionsTitle": "Je opties",
     "optionsHint": "In te wisselen aan de bar met een simpele scan van je ticket.",
     "optionsLeft": "Nog {left} van {quantity} in te wisselen",
-    "optionsPass": "Je afhaal-QR-code: toon hem aan de bar of de vestiaire."
+    "optionsPass": "Je afhaal-QR-code: toon hem aan de bar of de vestiaire.",
+    "tableBuyer": "Koper",
+    "tableEvent": "Evenement",
+    "tableChannel": "Kanaal",
+    "tableStatus": "Status",
+    "tableTickets": "Tickets",
+    "tableTotal": "Totaal",
+    "tableDate": "Datum",
+    "tableCaption": "Bestellingen en tickets"
   },
   "scanner": {
     "valid": "Geldig ticket",
@@ -2374,7 +2382,14 @@
     "saveAsTemplate": "Opslaan als sjabloon",
     "templateSaved": "Sjabloon opgeslagen: het verschijnt bij de sjablonen van volgende campagnes.",
     "ticketTypes": "Tarieven",
-    "ticketTypesHint": "Geen tarief aangevinkt: alle tarieven."
+    "ticketTypesHint": "Geen tarief aangevinkt: alle tarieven.",
+    "tableCampaign": "Campagne",
+    "tableStatus": "Status",
+    "tableRecipients": "Ontvangers",
+    "tableOpens": "Geopend",
+    "tableClicks": "Klikken",
+    "tableDate": "Datum",
+    "tableCaption": "Campagnes"
   },
   "marketing": {
     "title": "Contacten en e-mails",
@@ -2411,7 +2426,14 @@
     "importDone": "Import voltooid: {created} toegevoegd, {updated} bijgewerkt, {unsubscribed} uitgeschreven ongewijzigd, {invalid} ongeldige adressen overgeslagen.",
     "importConsentRequired": "Vink het vakje aan dat de toestemming van deze contacten bevestigt.",
     "importTooLarge": "Bestand te groot: hoogstens 10.000 contacten per import.",
-    "importError": "Het importeren lukte niet. Controleer het bestand en probeer opnieuw."
+    "importError": "Het importeren lukte niet. Controleer het bestand en probeer opnieuw.",
+    "tableContact": "Contact",
+    "tableConsent": "Toestemming",
+    "tableOrders": "Bestellingen",
+    "tableTickets": "Tickets",
+    "tableSpent": "Uitgaven",
+    "tableLast": "Laatste bestelling",
+    "tableCaption": "Contacten"
   },
   "campaignTemplates": {
     "announceName": "Aankondiging van een evenement",

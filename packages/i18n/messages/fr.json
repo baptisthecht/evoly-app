@@ -571,7 +571,15 @@
     "optionsTitle": "Vos options",
     "optionsHint": "À retirer au bar, sur un simple scan de votre billet.",
     "optionsLeft": "{left} sur {quantity} à retirer",
-    "optionsPass": "Votre QR code de retrait : présentez-le au bar ou au vestiaire."
+    "optionsPass": "Votre QR code de retrait : présentez-le au bar ou au vestiaire.",
+    "tableBuyer": "Acheteur",
+    "tableEvent": "Événement",
+    "tableChannel": "Canal",
+    "tableStatus": "Statut",
+    "tableTickets": "Billets",
+    "tableTotal": "Total",
+    "tableDate": "Date",
+    "tableCaption": "Commandes et billets"
   },
   "resale": {
     "sell": "Revendre ma place",
@@ -2103,7 +2111,14 @@
     "importDone": "Import terminé : {created} ajoutés, {updated} mis à jour, {unsubscribed} désinscrits laissés tels quels, {invalid} adresses invalides ignorées.",
     "importConsentRequired": "Cochez la case qui certifie le consentement de ces contacts.",
     "importTooLarge": "Fichier trop volumineux : 10 000 contacts au maximum par import.",
-    "importError": "L’import n’a pas pu être fait. Vérifiez le fichier et réessayez."
+    "importError": "L’import n’a pas pu être fait. Vérifiez le fichier et réessayez.",
+    "tableContact": "Contact",
+    "tableConsent": "Consentement",
+    "tableOrders": "Commandes",
+    "tableTickets": "Billets",
+    "tableSpent": "Dépenses",
+    "tableLast": "Dernière commande",
+    "tableCaption": "Contacts"
   },
   "reminders": {
     "title": "Rappels aux participants",
@@ -2197,7 +2212,14 @@
     "saveAsTemplate": "Enregistrer comme modèle",
     "templateSaved": "Modèle enregistré : il apparaît parmi les modèles des prochaines campagnes.",
     "ticketTypes": "Tarifs",
-    "ticketTypesHint": "Sans tarif coché : tous les tarifs."
+    "ticketTypesHint": "Sans tarif coché : tous les tarifs.",
+    "tableCampaign": "Campagne",
+    "tableStatus": "Statut",
+    "tableRecipients": "Destinataires",
+    "tableOpens": "Ouvertures",
+    "tableClicks": "Clics",
+    "tableDate": "Date",
+    "tableCaption": "Campagnes"
   },
   "campaignTemplates": {
     "announceName": "Annonce d’un événement",

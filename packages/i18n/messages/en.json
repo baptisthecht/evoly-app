@@ -571,7 +571,15 @@
     "optionsTitle": "Your add-ons",
     "optionsHint": "Redeem them at the bar with a simple scan of your ticket.",
     "optionsLeft": "{left} of {quantity} left to redeem",
-    "optionsPass": "Your pickup QR code: show it at the bar or cloakroom."
+    "optionsPass": "Your pickup QR code: show it at the bar or cloakroom.",
+    "tableBuyer": "Buyer",
+    "tableEvent": "Event",
+    "tableChannel": "Channel",
+    "tableStatus": "Status",
+    "tableTickets": "Tickets",
+    "tableTotal": "Total",
+    "tableDate": "Date",
+    "tableCaption": "Orders and tickets"
   },
   "resale": {
     "sell": "Resell my ticket",
@@ -2103,7 +2111,14 @@
     "importDone": "Import complete: {created} added, {updated} updated, {unsubscribed} unsubscribed left as they were, {invalid} invalid addresses skipped.",
     "importConsentRequired": "Tick the box certifying these contacts’ consent.",
     "importTooLarge": "File too large: up to 10,000 contacts per import.",
-    "importError": "The import couldn’t be done. Check the file and try again."
+    "importError": "The import couldn’t be done. Check the file and try again.",
+    "tableContact": "Contact",
+    "tableConsent": "Consent",
+    "tableOrders": "Orders",
+    "tableTickets": "Tickets",
+    "tableSpent": "Spent",
+    "tableLast": "Last order",
+    "tableCaption": "Contacts"
   },
   "reminders": {
     "title": "Attendee reminders",
@@ -2197,7 +2212,14 @@
     "saveAsTemplate": "Save as template",
     "templateSaved": "Template saved: it shows among the templates of your next campaigns.",
     "ticketTypes": "Ticket types",
-    "ticketTypesHint": "None ticked: all ticket types."
+    "ticketTypesHint": "None ticked: all ticket types.",
+    "tableCampaign": "Campaign",
+    "tableStatus": "Status",
+    "tableRecipients": "Recipients",
+    "tableOpens": "Opens",
+    "tableClicks": "Clicks",
+    "tableDate": "Date",
+    "tableCaption": "Campaigns"
   },
   "campaignTemplates": {
     "announceName": "Event announcement",

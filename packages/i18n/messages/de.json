@@ -587,7 +587,15 @@
     "optionsTitle": "Ihre Extras",
     "optionsHint": "An der Bar mit einem einfachen Scan Ihres Tickets einzulösen.",
     "optionsLeft": "Noch {left} von {quantity} einzulösen",
-    "optionsPass": "Ihr Abhol-QR-Code: Zeigen Sie ihn an der Bar oder Garderobe."
+    "optionsPass": "Ihr Abhol-QR-Code: Zeigen Sie ihn an der Bar oder Garderobe.",
+    "tableBuyer": "Käufer",
+    "tableEvent": "Veranstaltung",
+    "tableChannel": "Kanal",
+    "tableStatus": "Status",
+    "tableTickets": "Tickets",
+    "tableTotal": "Summe",
+    "tableDate": "Datum",
+    "tableCaption": "Bestellungen und Tickets"
   },
   "scanner": {
     "valid": "Gültiges Ticket",
@@ -2374,7 +2382,14 @@
     "saveAsTemplate": "Als Vorlage speichern",
     "templateSaved": "Vorlage gespeichert: Sie erscheint bei den Vorlagen der nächsten Kampagnen.",
     "ticketTypes": "Tarife",
-    "ticketTypesHint": "Ohne ausgewählten Tarif: alle Tarife."
+    "ticketTypesHint": "Ohne ausgewählten Tarif: alle Tarife.",
+    "tableCampaign": "Kampagne",
+    "tableStatus": "Status",
+    "tableRecipients": "Empfänger",
+    "tableOpens": "Öffnungen",
+    "tableClicks": "Klicks",
+    "tableDate": "Datum",
+    "tableCaption": "Kampagnen"
   },
   "marketing": {
     "title": "Kontakte und E-Mails",
@@ -2411,7 +2426,14 @@
     "importDone": "Import abgeschlossen: {created} hinzugefügt, {updated} aktualisiert, {unsubscribed} Abgemeldete unverändert, {invalid} ungültige Adressen übersprungen.",
     "importConsentRequired": "Kreuzen Sie das Feld an, das die Einwilligung dieser Kontakte bestätigt.",
     "importTooLarge": "Datei zu groß: höchstens 10.000 Kontakte pro Import.",
-    "importError": "Der Import war nicht möglich. Prüfen Sie die Datei und versuchen Sie es erneut."
+    "importError": "Der Import war nicht möglich. Prüfen Sie die Datei und versuchen Sie es erneut.",
+    "tableContact": "Kontakt",
+    "tableConsent": "Einwilligung",
+    "tableOrders": "Bestellungen",
+    "tableTickets": "Tickets",
+    "tableSpent": "Ausgaben",
+    "tableLast": "Letzte Bestellung",
+    "tableCaption": "Kontakte"
   },
   "campaignTemplates": {
     "announceName": "Ankündigung einer Veranstaltung",

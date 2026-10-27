@@ -587,7 +587,15 @@
     "optionsTitle": "I tuoi extra",
     "optionsHint": "Da riscattare al bar con una semplice scansione del biglietto.",
     "optionsLeft": "Ne restano {left} su {quantity} da riscattare",
-    "optionsPass": "Il tuo codice QR di ritiro: mostralo al bar o al guardaroba."
+    "optionsPass": "Il tuo codice QR di ritiro: mostralo al bar o al guardaroba.",
+    "tableBuyer": "Acquirente",
+    "tableEvent": "Evento",
+    "tableChannel": "Canale",
+    "tableStatus": "Stato",
+    "tableTickets": "Biglietti",
+    "tableTotal": "Totale",
+    "tableDate": "Data",
+    "tableCaption": "Ordini e biglietti"
   },
   "scanner": {
     "valid": "Biglietto valido",
@@ -2374,7 +2382,14 @@
     "saveAsTemplate": "Salva come modello",
     "templateSaved": "Modello salvato: compare tra i modelli delle prossime campagne.",
     "ticketTypes": "Tariffe",
-    "ticketTypesHint": "Senza tariffe selezionate: tutte le tariffe."
+    "ticketTypesHint": "Senza tariffe selezionate: tutte le tariffe.",
+    "tableCampaign": "Campagna",
+    "tableStatus": "Stato",
+    "tableRecipients": "Destinatari",
+    "tableOpens": "Aperture",
+    "tableClicks": "Clic",
+    "tableDate": "Data",
+    "tableCaption": "Campagne"
   },
   "marketing": {
     "title": "Contatti ed e-mail",
@@ -2411,7 +2426,14 @@
     "importDone": "Importazione completata: {created} aggiunti, {updated} aggiornati, {unsubscribed} disiscritti lasciati invariati, {invalid} indirizzi non validi ignorati.",
     "importConsentRequired": "Spunta la casella che certifica il consenso di questi contatti.",
     "importTooLarge": "File troppo grande: al massimo 10.000 contatti per importazione.",
-    "importError": "Non è stato possibile importare. Controlla il file e riprova."
+    "importError": "Non è stato possibile importare. Controlla il file e riprova.",
+    "tableContact": "Contatto",
+    "tableConsent": "Consenso",
+    "tableOrders": "Ordini",
+    "tableTickets": "Biglietti",
+    "tableSpent": "Spesa",
+    "tableLast": "Ultimo ordine",
+    "tableCaption": "Contatti"
   },
   "campaignTemplates": {
     "announceName": "Annuncio di un evento",

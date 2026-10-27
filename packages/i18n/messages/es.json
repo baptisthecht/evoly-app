@@ -587,7 +587,15 @@
     "optionsTitle": "Tus extras",
     "optionsHint": "Se canjean en la barra con un simple escaneo de tu entrada.",
     "optionsLeft": "Quedan {left} de {quantity} por canjear",
-    "optionsPass": "Tu código QR de recogida: muéstralo en la barra o el guardarropa."
+    "optionsPass": "Tu código QR de recogida: muéstralo en la barra o el guardarropa.",
+    "tableBuyer": "Comprador",
+    "tableEvent": "Evento",
+    "tableChannel": "Canal",
+    "tableStatus": "Estado",
+    "tableTickets": "Entradas",
+    "tableTotal": "Total",
+    "tableDate": "Fecha",
+    "tableCaption": "Pedidos y entradas"
   },
   "scanner": {
     "valid": "Entrada válida",
@@ -2374,7 +2382,14 @@
     "saveAsTemplate": "Guardar como plantilla",
     "templateSaved": "Plantilla guardada: aparece entre las plantillas de las próximas campañas.",
     "ticketTypes": "Tarifas",
-    "ticketTypesHint": "Sin ninguna tarifa marcada: todas las tarifas."
+    "ticketTypesHint": "Sin ninguna tarifa marcada: todas las tarifas.",
+    "tableCampaign": "Campaña",
+    "tableStatus": "Estado",
+    "tableRecipients": "Destinatarios",
+    "tableOpens": "Aperturas",
+    "tableClicks": "Clics",
+    "tableDate": "Fecha",
+    "tableCaption": "Campañas"
   },
   "marketing": {
     "title": "Contactos y e-mails",
@@ -2411,7 +2426,14 @@
     "importDone": "Importación terminada: {created} añadidos, {updated} actualizados, {unsubscribed} dados de baja sin cambios, {invalid} direcciones no válidas ignoradas.",
     "importConsentRequired": "Marca la casilla que certifica el consentimiento de estos contactos.",
     "importTooLarge": "Archivo demasiado grande: 10 000 contactos como máximo por importación.",
-    "importError": "No se pudo realizar la importación. Revisa el archivo e inténtalo de nuevo."
+    "importError": "No se pudo realizar la importación. Revisa el archivo e inténtalo de nuevo.",
+    "tableContact": "Contacto",
+    "tableConsent": "Consentimiento",
+    "tableOrders": "Pedidos",
+    "tableTickets": "Entradas",
+    "tableSpent": "Gasto",
+    "tableLast": "Último pedido",
+    "tableCaption": "Contactos"
   },
   "campaignTemplates": {
     "announceName": "Anuncio de un evento",
