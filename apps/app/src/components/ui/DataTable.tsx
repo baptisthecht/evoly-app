@@ -85,7 +85,7 @@ export function DataTable<T>({
   footer?: ReactNode;
 }) {
   const t = useTranslations("table");
-  const router = useRouter();
+  const router = useSafeRouter();
   const [sort, setSort] = useState<TableSort>(defaultSort);
   const [ownSelection, setOwnSelection] = useState<string[]>([]);
   const chosen = selected ?? ownSelection;
@@ -150,7 +150,8 @@ export function DataTable<T>({
   const titleCol = columns.find((c) => c.mobile === "title") ?? columns[0]!;
   const open = (e: MouseEvent, href: string | null | undefined) => {
     if (!href || (e.target as HTMLElement).closest(INTERACTIVE)) return;
-    router.push(href);
+    if (router) router.push(href);
+    else window.location.assign(href);
   };
   const enter = (i: number) =>
     intro
@@ -517,4 +518,13 @@ function Rail() {
       className="absolute inset-y-2 left-0 w-[3px] origin-center scale-y-0 rounded-full bg-[var(--accent)] transition-transform duration-200 group-hover:scale-y-100 group-data-[selected]:scale-y-100 motion-reduce:transition-none"
     />
   );
+}
+
+/** Le routeur de Next.js, s'il y en a un (hors de l'application, comme dans un test isolé : navigation classique). */
+function useSafeRouter() {
+  try {
+    return useRouter();
+  } catch {
+    return null;
+  }
 }
