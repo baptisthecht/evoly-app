@@ -20,11 +20,30 @@ export function Card({
   );
 }
 
+export type BadgeTone =
+  | "neutral"
+  | "accent"
+  | "success"
+  | "warning"
+  | "danger"
+  | "dark"
+  | "info"
+  | "lilas";
+
+/**
+ * Pastille de statut. Un point de couleur (dot) la rend plus vivante ; « live » le fait pulser,
+ * pour un état en cours (vente ouverte, entrées en direct), jamais si le système demande moins
+ * d'animations.
+ */
 export function Badge({
   tone = "neutral",
+  dot = false,
+  live = false,
   children,
 }: {
-  tone?: "neutral" | "accent" | "success" | "warning" | "danger" | "dark";
+  tone?: BadgeTone;
+  dot?: boolean;
+  live?: boolean;
   children: ReactNode;
 }) {
   const tones = {
@@ -34,14 +53,24 @@ export function Badge({
     warning: "bg-warning-soft text-warning",
     danger: "bg-danger-soft text-danger",
     dark: "bg-surface-inverse text-ink-inverse",
+    info: "bg-info-soft text-info",
+    lilas: "bg-[var(--evoly-lilas)] text-[var(--evoly-charbon)]",
   } as const;
   return (
     <span
       className={cn(
-        "inline-flex h-6 items-center rounded-full px-2.5 font-[family-name:var(--label-family)] text-[0.72rem] [font-weight:var(--label-weight)]",
+        "inline-flex h-6 items-center gap-1.5 rounded-full px-2.5 font-[family-name:var(--label-family)] text-[0.72rem] whitespace-nowrap [font-weight:var(--label-weight)]",
         tones[tone],
       )}
     >
+      {dot || live ? (
+        <span aria-hidden="true" className="relative inline-flex size-1.5">
+          {live ? (
+            <span className="absolute inset-0 animate-ping rounded-full bg-current opacity-60 motion-reduce:animate-none" />
+          ) : null}
+          <span className="relative size-1.5 rounded-full bg-current" />
+        </span>
+      ) : null}
       {children}
     </span>
   );

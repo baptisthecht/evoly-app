@@ -3330,5 +3330,17 @@
     "label": "Legal information",
     "privacy": "Privacy policy",
     "terms": "Terms of use"
+  },
+  "table": {
+    "selection": "Selection",
+    "selected": "{count, plural, one {# selected} other {# selected}}",
+    "clearSelection": "Clear selection",
+    "search": "Search",
+    "empty": "Nothing yet",
+    "selectAll": "Select all",
+    "selectRow": "Select row {row}"
+  },
+  "dialog": {
+    "close": "Close"
   }
 }

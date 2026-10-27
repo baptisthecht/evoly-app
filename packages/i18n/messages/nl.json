@@ -3330,5 +3330,17 @@
     "label": "Juridische informatie",
     "privacy": "Privacybeleid",
     "terms": "Gebruiksvoorwaarden"
+  },
+  "table": {
+    "selection": "Selectie",
+    "selected": "{count, plural, one {# geselecteerd} other {# geselecteerd}}",
+    "clearSelection": "Selectie wissen",
+    "search": "Zoeken",
+    "empty": "Nog niets",
+    "selectAll": "Alles selecteren",
+    "selectRow": "Rij {row} selecteren"
+  },
+  "dialog": {
+    "close": "Sluiten"
   }
 }

@@ -292,3 +292,20 @@ body {
     text-align: right;
   }
 }
+
+/* Tableau Evoly : un seul fondu, au premier affichage des lignes ; aucun si le système demande moins d'animations */
+@keyframes evoly-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="evoly-row-in"] {
+    animation: none !important;
+  }
+}
