@@ -18,6 +18,8 @@ a = json.loads(os.environ["ACCOUNT"]); b = json.loads(os.environ["BALANCE"] or "
 caps = a.get("capabilities") or {}
 print("compte :", a.get("id"), "| pays :", a.get("country"), "| paiements autorisés :", a.get("charges_enabled"), "| virements :", a.get("payouts_enabled"))
 print("capacités :", ", ".join(f"{k} = {v}" for k, v in sorted(caps.items()) if k in ("card_payments", "transfers", "bancontact_payments", "link_payments")) or "aucune")
+off = sorted(k for k, v in caps.items() if v != "active")
+print("capacités inactives ou en attente :", ", ".join(f"{k} = {caps[k]}" for k in off) or "aucune")
 for label, r in (("exigences actuelles", a.get("requirements") or {}), ("exigences à venir", a.get("future_requirements") or {})):
     print(f"--- {label}")
     print("  motif de désactivation :", r.get("disabled_reason"))
