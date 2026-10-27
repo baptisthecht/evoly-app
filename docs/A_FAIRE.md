@@ -11,6 +11,10 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
   de l'annonce (remplacer les titres classés « Faible ») ; le 31 mars 2027, fin de l'offre de lancement : retirer le
   titre « 3 mois de Pro offerts ».
 
+## Refonte du tableau de bord
+
+Arborescence, règles d'interface et ordre de mise en œuvre décidés le 28 octobre 2026 : voir `docs/ARBORESCENCE.md`.
+
 ## Limites d'achat, lot 4 : compte acheteur obligatoire
 
 Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteur, par tarif et en prévente, code promo de groupe, adresse normalisée, empreinte de la carte).
