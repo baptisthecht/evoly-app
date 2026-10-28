@@ -28,9 +28,15 @@ describe("protection anti-robots (RG-BUY-10)", () => {
   it("preuve juste acceptée une seule fois ; mauvaise réponse, autre événement, défi expiré ou affaibli refusés", async () => {
     const proof = solve(createChallenge("evt-a"));
     expect(await verifyProof("evt-b", proof)).toBe(false); // signé pour un autre événement
-    expect(
-      await verifyProof("evt-a", { ...proof, nonce: proof.nonce + 1 }),
-    ).toBe(false);
+    // mauvaise réponse : un nombre dont l'empreinte n'a vraiment pas assez de bits nuls (le suivant peut, rarement, être juste lui aussi)
+    let wrong = proof.nonce + 1;
+    while (
+      leadingZeroBits(
+        createHash("sha256").update(`${proof.salt}${wrong}`).digest(),
+      ) >= proof.difficulty
+    )
+      wrong++;
+    expect(await verifyProof("evt-a", { ...proof, nonce: wrong })).toBe(false);
     expect(await verifyProof("evt-a", proof)).toBe(true);
     expect(await verifyProof("evt-a", proof)).toBe(false); // déjà utilisée
     const expired = solve(createChallenge("evt-a", Date.now() - 11 * 60_000));
