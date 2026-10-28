@@ -34,7 +34,7 @@ test("lieu partenaire : le lieu active le programme et renseigne sa salle ; l'or
       `select "referredByVenueId" from "Organization" where slug = '${o2.slug}'`,
     ),
   ).toBe(sql(venue));
-  await orga.goto(appUrl(`/o/${o2.slug}/billing`));
+  await orga.goto(appUrl(`/o/${o2.slug}/billing?tab=venue`));
   await expect(orga.getByText(/Vous êtes rattaché à Le Hangar/)).toBeVisible();
   // à la création d'un événement, la salle est proposée d'office ; décochée, l'adresse réapparaît
   await orga.goto(appUrl(`/o/${o2.slug}/events/new`));

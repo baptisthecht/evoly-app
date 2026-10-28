@@ -54,7 +54,7 @@ test("équipe : invitation, inscription de l'invité, adhésion automatique, rô
 
   // changement de rôle, puis retrait : l'accès disparaît aussitôt
   await page.reload();
-  const row = page.getByRole("listitem").filter({ hasText: email });
+  const row = page.getByRole("row").filter({ hasText: email });
   await row
     .getByLabel("Rôle", { exact: true })
     .selectOption({ label: "Lecture seule" });
@@ -62,13 +62,13 @@ test("équipe : invitation, inscription de l'invité, adhésion automatique, rô
   await page.reload();
   await expect(
     page
-      .getByRole("listitem")
+      .getByRole("row")
       .filter({ hasText: email })
       .getByLabel("Rôle", { exact: true }),
   ).toHaveValue(sql(`select id from "Role" where "systemKey" = 'VIEWER'`));
   page.once("dialog", (d) => d.accept());
   await page
-    .getByRole("listitem")
+    .getByRole("row")
     .filter({ hasText: email })
     .getByRole("button", { name: "Retirer" })
     .click();

@@ -50,7 +50,7 @@ test("parrainage : inscription par le lien, organisation rattachée au parrain (
   browser,
 }) => {
   const { slug } = await organizer(page);
-  await page.goto(appUrl(`/o/${slug}/billing`));
+  await page.goto(appUrl(`/o/${slug}/billing?tab=referral`)); // Abonnement, Parrainage
   const link = await page.getByTestId("referral-link").inputValue();
   expect(link).toMatch(/\/register\?ref=[a-z0-9]{8}$/);
   const ctx = await browser.newContext({

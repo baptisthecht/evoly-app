@@ -59,7 +59,9 @@ export function PromoTable({
       cell: (p) => (
         <span className="inline-grid justify-items-end gap-1">
           <span className="tabular-nums">
-            {p.max != null ? `${p.used} / ${p.max}` : p.used}
+            {p.max != null
+              ? t("usesOf", { used: p.used, max: p.max })
+              : t("uses", { used: p.used })}
           </span>
           {p.max ? (
             <span

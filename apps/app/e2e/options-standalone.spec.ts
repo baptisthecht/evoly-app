@@ -24,7 +24,8 @@ test("vestiaire acheté seul : option vendable sans billet, panier sans billet, 
   await page.getByRole("button", { name: "Ajouter l'option" }).click();
   await expect(page.getByText("Option enregistrée.")).toBeVisible();
   await page.reload();
-  const ajout = page.locator("form", { has: page.locator("#option-new-name") }); // le formulaire d'ajout, sous l'option déjà créée
+  await page.getByRole("button", { name: "+ Nouvelle option" }).click(); // l'ajout : dans une fenêtre
+  const ajout = page.locator("form", { has: page.locator("#option-new-name") });
   await ajout.locator("#option-new-name").fill("Jeton boisson");
   await ajout.locator("#option-new-price").fill("0");
   await expect(ajout.getByLabel("Vendable sans billet")).not.toBeChecked(); // décochée par défaut

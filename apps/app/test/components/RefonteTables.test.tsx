@@ -100,7 +100,7 @@ describe("codes promo et équipe", () => {
     );
     const rows = within(table()).getAllByRole("row").slice(1);
     const gala = rows.find((r) => r.textContent!.includes("GALA"))!;
-    expect(gala.textContent).toContain("5 / 10");
+    expect(gala.textContent).toContain("5 / 10 utilisations");
     expect(
       gala.querySelector<HTMLElement>('[style*="width"]')!.style.width,
     ).toBe("50%");
