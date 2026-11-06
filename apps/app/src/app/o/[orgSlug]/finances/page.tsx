@@ -16,6 +16,8 @@ import {
   stripeOverview,
   type Period,
 } from "@/server/finances";
+import { ArrowRightIcon } from "@/components/ui/icons";
+import { cn } from "@/components/ui/cn";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -106,22 +108,23 @@ export default async function FinancesPage({
       {!stripeInfo.connected ? (
         <Link
           href={`/o/${orgSlug}/settings/payments`}
-          className="rounded-lg bg-info-soft px-5 py-4 font-semibold"
+          className="flex items-center justify-between gap-3 rounded-lg bg-info-soft px-5 py-4 font-semibold"
         >
-          {t("stripeNotConnected")} →
+          {t("stripeNotConnected")}
+          <ArrowRightIcon className="size-4 shrink-0" />
         </Link>
       ) : stripeInfo.status !== "ACTIVE" || stripeInfo.requirementsDue > 0 ? (
         <Link
           href={`/o/${orgSlug}/settings/payments`}
-          className="rounded-lg bg-warning-soft px-5 py-4 font-semibold text-warning"
+          className="flex items-center justify-between gap-3 rounded-lg bg-warning-soft px-5 py-4 font-semibold text-warning"
         >
           {t(
             stripeInfo.status === "RESTRICTED" ||
               stripeInfo.status === "DISABLED"
               ? "stripeRestricted"
               : "stripeActionRequired",
-          )}{" "}
-          →
+          )}
+          <ArrowRightIcon className="size-4 shrink-0" />
         </Link>
       ) : (
         <p className="flex items-center gap-2 text-sm">
@@ -132,59 +135,54 @@ export default async function FinancesPage({
         </p>
       )}
 
+      {/* refonte A3 : les totaux se lisent comme un calcul, en ligne et sans carte ; retraits en rouge doux, net en vert */}
       <section
-        className="grid grid-cols-2 gap-3 lg:grid-cols-5"
+        className="grid grid-cols-2 gap-x-6 gap-y-5 border-b border-line pb-5 lg:grid-cols-5 lg:gap-x-0 lg:divide-x lg:divide-line lg:[&>*]:px-6 lg:[&>*:first-child]:pl-0"
         aria-label={t("totals")}
       >
         {[
-          { key: "gross", value: tot.grossMinor, strong: false },
-          { key: "refunded", value: -tot.refundedMinor, strong: false },
-          { key: "commission", value: -tot.commissionMinor, strong: false },
+          { key: "gross", value: tot.grossMinor, tone: "" },
+          {
+            key: "refunded",
+            value: -tot.refundedMinor || 0,
+            tone: "text-minus",
+          },
+          {
+            key: "commission",
+            value: -tot.commissionMinor || 0,
+            tone: "text-minus",
+          },
           {
             key: "bankFees",
-            value: -tot.bankFeeMinor,
-            strong: false,
+            value: -tot.bankFeeMinor || 0,
+            tone: "text-minus",
             note: tot.bankFeeEstimated ? t("estimated") : null,
           },
-          { key: "net", value: tot.netMinor, strong: true },
-        ].map((c) =>
-          c.strong ? (
-            // carte du net : fond foncé posé directement (la carte standard impose son fond clair)
-            <div
-              key={c.key}
-              className="grid content-start gap-1 rounded-lg bg-surface-inverse p-5 text-ink-inverse shadow-sm"
+          { key: "net", value: tot.netMinor, tone: "text-success" },
+        ].map((c) => (
+          <div key={c.key} className="grid min-w-0 content-start gap-1">
+            <p className="text-[0.8125rem] whitespace-nowrap text-ink-muted">
+              {t(`card_${c.key}`)}
+            </p>
+            <p
+              className={cn(
+                "font-figures text-[1.5rem] leading-tight tracking-[var(--tracking-figures)] whitespace-nowrap tabular-nums",
+                c.value === 0 ? "" : c.tone,
+              )}
             >
-              <p className="font-label text-[0.8rem] font-bold opacity-80">
-                {t(`card_${c.key}`)}
-              </p>
-              <p className="font-display text-2xl tracking-[-0.04em] tabular-nums">
-                {money(c.value)}
-              </p>
-            </div>
-          ) : (
-            <Card key={c.key} className="grid content-start gap-1">
-              <p className="font-label text-[0.8rem] font-bold text-ink-muted">
-                {t(`card_${c.key}`)}
-              </p>
-              <p className="font-display text-2xl tracking-[-0.04em] tabular-nums">
-                {money(c.value)}
-              </p>
-              {c.note ? (
-                <p className="text-xs text-ink-muted">{c.note}</p>
-              ) : null}
-            </Card>
-          ),
-        )}
+              {money(c.value)}
+            </p>
+            {c.note ? <p className="text-xs text-ink-muted">{c.note}</p> : null}
+          </div>
+        ))}
       </section>
       <p className="-mt-3 text-sm text-ink-muted">
         {t("totalsHint", { orders: tot.orders, tickets: tot.tickets })}
       </p>
 
-      <Card className="grid gap-4">
+      <section className="grid gap-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-            {t("byEvent")}
-          </h2>
+          <h2 className="text-[0.9375rem] font-semibold">{t("byEvent")}</h2>
           <div className="flex flex-wrap gap-2">
             <a
               href={`/o/${orgSlug}/finances/export/orders?${query}`}
@@ -218,7 +216,7 @@ export default async function FinancesPage({
             href: `/o/${orgSlug}/events/${r.eventId}`,
           }))}
         />
-      </Card>
+      </section>
 
       {overview.options.rows.length ? (
         <Card className="grid gap-3">
@@ -321,7 +319,7 @@ export default async function FinancesPage({
                 <dd className="font-display text-xl tabular-nums">
                   {stripeInfo.balance.available
                     .map((b) => money(b.amount, b.currency))
-                    .join(" · ") || money(0)}
+                    .join(", ") || money(0)}
                 </dd>
               </div>
               <div>
@@ -331,7 +329,7 @@ export default async function FinancesPage({
                 <dd className="font-display text-xl tabular-nums">
                   {stripeInfo.balance.pending
                     .map((b) => money(b.amount, b.currency))
-                    .join(" · ") || money(0)}
+                    .join(", ") || money(0)}
                 </dd>
               </div>
             </dl>

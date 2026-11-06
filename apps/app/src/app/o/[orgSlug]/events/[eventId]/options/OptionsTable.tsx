@@ -89,7 +89,7 @@ export function OptionsTable({
               className="block h-1 w-16 overflow-hidden rounded-full bg-surface-sunken"
             >
               <span
-                className="block h-1 rounded-full bg-[var(--accent)]"
+                className="block h-1 rounded-full bg-ink" // refonte A3 : le rose est réservé au rythme et à la sélection
                 style={{ width: `${Math.min(100, (o.sold / o.stock) * 100)}%` }}
               />
             </span>

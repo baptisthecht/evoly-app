@@ -3,20 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import {
-  type MouseEvent,
-  type ReactNode,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { type MouseEvent, type ReactNode, useMemo, useState } from "react";
 import { cn } from "./cn";
 
 /**
  * Tableau Evoly, inspiré du tableau de beUI : tri, sélection et actions groupées, en-tête qui
  * reste en haut, chiffres alignés, lignes fantômes au chargement, état vide avec son bouton.
- * Sobre, avec un seul geste marquant : un liseré rose sur la ligne survolée ou sélectionnée.
- * Les lignes apparaissent en fondu au premier affichage seulement. Sur téléphone, chaque ligne
+ * Sobre (refonte A3, docs/INTERFACE.md) : la ligne sélectionnée prend le fond rose pâle et le trait rose, un
+ * rectangle découpé par le tableau ; aucune animation d'entrée. Sur téléphone, chaque ligne
  * devient une carte (titre, sous-titre, pastilles, détails).
  */
 export interface TableColumn<T> {
@@ -93,12 +87,6 @@ export function DataTable<T>({
     if (!selected) setOwnSelection(ids);
     onSelectedChange?.(ids);
   };
-  // un seul fondu, celui du premier affichage : les lignes ajoutées ensuite apparaissent sans effet
-  const [intro, setIntro] = useState(true);
-  useEffect(() => {
-    const id = window.setTimeout(() => setIntro(false), 900);
-    return () => window.clearTimeout(id);
-  }, []);
 
   const read = (row: T, col: TableColumn<T>) =>
     col.sortValue
@@ -153,12 +141,6 @@ export function DataTable<T>({
     if (router) router.push(href);
     else window.location.assign(href);
   };
-  const enter = (i: number) =>
-    intro
-      ? {
-          animation: `evoly-row-in 320ms var(--motion-ease-out) ${Math.min(i, 10) * 28}ms both`,
-        }
-      : undefined;
   const value = (row: T, col: TableColumn<T>) =>
     col.cell
       ? col.cell(row)
@@ -169,7 +151,7 @@ export function DataTable<T>({
       <div
         role="region"
         aria-label={t("selection")}
-        className="flex min-h-12 flex-wrap items-center gap-3 rounded-full bg-surface-inverse py-1.5 pr-2 pl-5 text-sm text-ink-inverse"
+        className="flex min-h-12 flex-wrap items-center gap-3 rounded-lg bg-surface-inverse py-1.5 pr-2 pl-4 text-sm text-ink-inverse"
       >
         <span className="font-semibold tabular-nums">
           {t("selected", { count: chosen.length })}
@@ -180,7 +162,7 @@ export function DataTable<T>({
         <button
           type="button"
           onClick={() => choose([])}
-          className="rounded-full px-3 py-1.5 text-sm font-semibold hover:bg-white/10"
+          className="rounded-md px-3 py-1.5 text-sm font-semibold hover:bg-white/10"
         >
           {t("clearSelection")}
         </button>
@@ -394,10 +376,9 @@ export function DataTable<T>({
                   role="row"
                   data-selected={on || undefined}
                   onClick={(e) => open(e, href)}
-                  style={enter(i)}
                   className={cn(
-                    "group relative flex flex-wrap items-start gap-x-3 gap-y-1.5 rounded-[var(--r-panel)] bg-surface-raised p-4 ring-1 ring-line data-[selected]:ring-2 data-[selected]:ring-[var(--accent)]",
-                    "md:table-row md:h-14 md:rounded-none md:border-t md:border-line md:bg-transparent md:p-0 md:ring-0 md:transition-colors md:hover:bg-surface-sunken/60 md:data-[selected]:bg-[color-mix(in_oklab,var(--accent)_16%,transparent)] md:data-[selected]:ring-0",
+                    "group relative flex flex-wrap items-start gap-x-3 gap-y-1.5 rounded-[var(--r-panel)] bg-surface-raised p-4 ring-1 ring-line data-[selected]:bg-highlight-soft data-[selected]:ring-highlight",
+                    "md:table-row md:h-14 md:rounded-none md:border-t md:border-line md:bg-transparent md:p-0 md:ring-0 md:transition-colors md:hover:bg-surface-sunken/60 md:data-[selected]:bg-highlight-soft md:data-[selected]:ring-0",
                     href && "cursor-pointer",
                   )}
                 >
@@ -449,12 +430,12 @@ export function DataTable<T>({
   );
 }
 
-/** Le liseré rose de la ligne survolée ou sélectionnée. */
+/** Le trait rose de la ligne sélectionnée : un rectangle droit, découpé par l'arrondi du tableau aux extrémités. */
 function Rail() {
   return (
     <span
       aria-hidden="true"
-      className="absolute inset-y-2 left-0 hidden w-[3px] md:block origin-center scale-y-0 rounded-full bg-[var(--accent)] transition-transform duration-200 group-hover:scale-y-100 group-data-[selected]:scale-y-100 motion-reduce:transition-none"
+      className="absolute inset-y-0 left-0 hidden w-[var(--highlight-bar)] bg-highlight opacity-0 group-data-[selected]:opacity-100 md:block"
     />
   );
 }

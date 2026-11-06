@@ -3331,7 +3331,8 @@
     "visits": "Visites de la billetterie",
     "conversion": "{pct} % achètent",
     "ordersCount": "{n, plural, one {# commande} other {# commandes}}",
-    "visitsHint": "Comptées sans cookie"
+    "visitsHint": "Comptées sans cookie",
+    "paceTitle": "Rythme des ventes"
   },
   "sections": {
     "tab_brand": "Votre marque",
@@ -3498,7 +3499,7 @@
     "notStarted": "ventes pas encore ouvertes",
     "soldOf": "{sold} sur {capacity}",
     "sold": "{sold, plural, one {# billet vendu} other {# billets vendus}}",
-    "soldOutAt": "À ce train, complet vers le {date}.",
+    "soldOutAt": "À ce train, complet vers le {date}",
     "label": "{sold} places vendues sur {capacity}, {pace}"
   }
 }

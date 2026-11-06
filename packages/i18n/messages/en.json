@@ -3331,7 +3331,8 @@
     "visits": "Ticketing page visits",
     "conversion": "{pct}% buy",
     "ordersCount": "{n, plural, one {# order} other {# orders}}",
-    "visitsHint": "Counted without cookies"
+    "visitsHint": "Counted without cookies",
+    "paceTitle": "Sales pace"
   },
   "sections": {
     "tab_brand": "Your brand",
@@ -3498,7 +3499,7 @@
     "notStarted": "sales not open yet",
     "soldOf": "{sold} of {capacity}",
     "sold": "{sold, plural, one {# ticket sold} other {# tickets sold}}",
-    "soldOutAt": "At this rate, sold out around {date}.",
+    "soldOutAt": "At this rate, sold out around {date}",
     "label": "{sold} of {capacity} seats sold, {pace}"
   }
 }

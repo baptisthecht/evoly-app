@@ -8,11 +8,11 @@ import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
 import { homeOverview } from "@/server/home";
 import { eventPublicUrl } from "@/server/urls";
+import { Stat } from "@/components/ui/Stat";
 import {
   LiveOrders,
   NextEventBand,
   RevenueSpark,
-  Stat,
   TodoList,
   UpcomingTable,
 } from "./HomeWidgets";

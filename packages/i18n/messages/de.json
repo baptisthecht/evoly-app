@@ -3331,7 +3331,8 @@
     "visits": "Besuche des Ticketings",
     "conversion": "{pct} % kaufen",
     "ordersCount": "{n, plural, one {# Bestellung} other {# Bestellungen}}",
-    "visitsHint": "Ohne Cookies gezählt"
+    "visitsHint": "Ohne Cookies gezählt",
+    "paceTitle": "Verkaufstempo"
   },
   "sections": {
     "tab_brand": "Ihre Marke",
@@ -3498,7 +3499,7 @@
     "notStarted": "Verkauf noch nicht gestartet",
     "soldOf": "{sold} von {capacity}",
     "sold": "{sold, plural, one {# Ticket verkauft} other {# Tickets verkauft}}",
-    "soldOutAt": "In diesem Tempo um den {date} ausverkauft.",
+    "soldOutAt": "In diesem Tempo um den {date} ausverkauft",
     "label": "{sold} von {capacity} Plätzen verkauft, {pace}"
   }
 }

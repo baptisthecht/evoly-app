@@ -257,13 +257,14 @@ describe("onglets en boutons et pastille", () => {
     ).toBeNull();
   });
 
-  it("pastille : point de couleur, et point qui pulse pour un état en cours", () => {
+  it("pastille : un état en cours garde son point de couleur, sans pulsation (refonte A3)", () => {
     const { container } = render(
       <Badge tone="info" live>
         En vente
       </Badge>,
     );
     expect(container.textContent).toBe("En vente");
-    expect(container.querySelector(".animate-ping")).toBeTruthy();
+    expect(container.querySelector(".rounded-full.bg-current")).toBeTruthy();
+    expect(container.querySelector(".animate-ping")).toBeNull();
   });
 });

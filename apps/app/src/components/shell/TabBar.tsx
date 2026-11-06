@@ -18,13 +18,8 @@ import { activeTab, type TabBarSection, type TabBarTab } from "./tabBarItems";
 
 /** Durée de la glissade de la feuille « Plus » (ouverture et fermeture). */
 const SLIDE_MS = 260;
-/** Couleur des tuiles, une par partie de la feuille « Plus » (couleurs de la marque). */
-const TILE = [
-  "var(--evoly-rose)",
-  "var(--evoly-lilas)",
-  "var(--evoly-bulle)",
-  "var(--surface-raised)",
-];
+/** Fond des tuiles de la feuille « Plus » : neutre (refonte A3 : la couleur porte un sens, pas une décoration). */
+const TILE = ["var(--surface-raised)"];
 
 /** Sélecteur d'organisation et compte : en haut de la feuille « Plus » (fournis par la coquille). */
 export const TabBarExtras = createContext<ReactNode>(null);

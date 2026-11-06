@@ -1,11 +1,13 @@
-import { can } from "@evoly/core";
-import { formatMoney, type Locale } from "@evoly/i18n";
+import { can, salesPace, salesWindow } from "@evoly/core";
+import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { CopyButton } from "@/components/CopyButton";
 import { buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { HighlightBand } from "@/components/ui/HighlightBand";
+import { SalesGauge } from "@/components/ui/SalesGauge";
 import { cn } from "@/components/ui/cn";
 import { requireOrgContext } from "@/server/context";
 import { eventPublicationBlockers, getEventWithTickets } from "@/server/events";
@@ -112,6 +114,22 @@ export default async function EventOverview({
   const ov = await getTranslations("overview");
   const money = can(ctx.membership, "FINANCE_VIEW");
   const base = `/o/${orgSlug}/events/${eventId}`;
+  // refonte A3 : le bandeau du rythme (packages/core/src/pace.ts), tant que l'événement est en vente et à venir
+  const pace = salesPace({
+    sold,
+    capacity: o.capacity,
+    ...salesWindow(event),
+    now: new Date(),
+  });
+  const td = await getTranslations("dashboard");
+  const tz = event.timezone;
+  const dayKey = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(d);
+  const daysLeft = Math.round(
+    (Date.parse(dayKey(event.startsAt)) - Date.parse(dayKey(new Date()))) /
+      86_400_000,
+  );
+  const showPace = isLive && daysLeft >= 0;
   return (
     <div className="grid gap-5">
       {/* US-STAT-01 : ventes et remplissage à jour sans recharger la page */}
@@ -170,9 +188,52 @@ export default async function EventOverview({
         </Card>
       ) : null}
 
+      {showPace ? (
+        <HighlightBand
+          aria-labelledby="pace-title"
+          className="md:grid-cols-[minmax(0,1.2fr)_auto_minmax(0,1.3fr)] md:items-center md:gap-7"
+        >
+          <div className="grid min-w-0 gap-0.5">
+            <p className="text-[0.8125rem] font-semibold text-highlight-ink">
+              {ov("paceTitle")}
+            </p>
+            <h2 id="pace-title" className="text-lg leading-snug font-semibold">
+              {formatDateTime(event.startsAt, tz, locale, "long")}
+            </h2>
+          </div>
+          <div className="md:border-x md:border-highlight-line md:px-7 md:text-center">
+            <p className="font-figures text-[2.5rem] leading-none tracking-[-0.05em] whitespace-nowrap">
+              {daysLeft === 0
+                ? td("countdownToday")
+                : daysLeft === 1
+                  ? td("countdownTomorrow")
+                  : td("countdown", { count: daysLeft })}
+            </p>
+            {daysLeft > 1 ? (
+              <p className="mt-1 text-[0.8125rem] text-ink-muted">
+                {td("beforeStart")}
+              </p>
+            ) : null}
+          </div>
+          <div className="grid gap-2.5">
+            <SalesGauge
+              sold={sold}
+              capacity={o.capacity}
+              pace={pace}
+              timezone={tz}
+              locale={locale}
+              projection
+            />
+            <div className="flex flex-wrap gap-2">
+              <CopyButton value={url} label={td("copyLink")} />
+            </div>
+          </div>
+        </HighlightBand>
+      ) : null}
+
       <section
         aria-label={ov("kpis")}
-        className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"
+        className="grid grid-cols-2 gap-x-6 gap-y-5 border-b border-line pb-5 xl:grid-cols-4 xl:gap-x-0 xl:divide-x xl:divide-line xl:[&>*]:px-8 xl:[&>*:first-child]:pl-0"
       >
         {money ? (
           <Kpi
@@ -201,14 +262,14 @@ export default async function EventOverview({
             <>
               {sold}
               {o.capacity !== null ? (
-                <span className="ml-1.5 text-sm font-normal text-ink-muted">
+                <span className="ml-1.5 font-sans text-sm font-normal tracking-normal text-ink-muted">
                   {ov("ofCapacity", { n: o.capacity })}
                 </span>
               ) : null}
             </>
           }
         >
-          {o.capacity !== null ? (
+          {o.capacity !== null && !showPace ? (
             <Gauge ratio={sold / Math.max(1, o.capacity)} />
           ) : null}
         </Kpi>
@@ -216,8 +277,10 @@ export default async function EventOverview({
           <span className="text-xs text-ink-muted">
             {o.conversionPct !== null
               ? ov("conversion", { pct: o.conversionPct })
-              : ov("visitsHint")}{" "}
-            · {ov("ordersCount", { n: o.ordersCount })}
+              : ov("visitsHint")}
+          </span>
+          <span className="text-xs text-ink-muted">
+            {ov("ordersCount", { n: o.ordersCount })}
           </span>
           {money && o.ordersCount ? (
             <span className="text-xs text-ink-muted">
@@ -236,7 +299,7 @@ export default async function EventOverview({
         </Kpi>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <SalesChart
           o={o}
           t={ov}

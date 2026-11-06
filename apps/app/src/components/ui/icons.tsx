@@ -43,3 +43,9 @@ export const AlertIcon = (p: IconProps) => (
     <path d="M12 19h.01" />
   </Svg>
 );
+/** Flèche vers la droite (« ouvrir », « aller à »), à la place du caractère « → » (refonte A3). */
+export const ArrowRightIcon = (p: IconProps) => (
+  <Svg strokeWidth={2} {...p}>
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </Svg>
+);

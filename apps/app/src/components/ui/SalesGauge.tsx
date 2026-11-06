@@ -89,11 +89,14 @@ export function DateLeaf({
   date,
   timezone,
   locale,
+  draft = false,
   className,
 }: {
   date: Date;
   timezone: string;
   locale: Locale;
+  /** Brouillon : la feuille en pointillé, comme sur les maquettes. */
+  draft?: boolean;
   className?: string;
 }) {
   const { day, month } = formatDayMonth(date, timezone, locale);
@@ -101,7 +104,10 @@ export function DateLeaf({
     <span
       aria-hidden="true"
       className={cn(
-        "grid w-11 shrink-0 overflow-hidden rounded-md bg-surface-raised text-center ring-1 ring-line-strong",
+        "grid w-11 shrink-0 overflow-hidden rounded-md bg-surface-raised text-center",
+        draft
+          ? "border border-dashed border-line-strong"
+          : "ring-1 ring-line-strong",
         className,
       )}
     >

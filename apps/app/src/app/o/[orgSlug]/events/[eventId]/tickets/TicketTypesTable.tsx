@@ -125,7 +125,7 @@ export function TicketTypesTable({
               className="block h-1 w-20 overflow-hidden rounded-full bg-surface-sunken"
             >
               <span
-                className="block h-1 rounded-full bg-[var(--accent)]"
+                className="block h-1 rounded-full bg-ink" // refonte A3 : le rose est réservé au rythme et à la sélection
                 style={{
                   width: `${Math.min(100, (r.quantitySold / Number(r.quantity)) * 100)}%`,
                 }}

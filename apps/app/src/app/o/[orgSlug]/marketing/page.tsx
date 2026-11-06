@@ -5,7 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { buttonClass } from "@/components/ui/Button";
-import { Badge, Card, EmptyState } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/Card";
+import { HighlightBand } from "@/components/ui/HighlightBand";
+import { Stat, statRow } from "@/components/ui/Stat";
 import { Input, Select } from "@/components/ui/Field";
 import { searchContacts, type ContactFilter } from "@/server/contacts";
 import { db } from "@/lib/db";
@@ -87,7 +89,7 @@ export default async function MarketingPage({
     return (
       <div className="grid gap-6">
         {banner}
-        <Card className="grid gap-2 bg-surface-accent">
+        <HighlightBand className="gap-2">
           <p className="font-semibold">{t("remindersTitle")}</p>
           <p className="text-sm">
             {pro ? t("remindersPro") : t("remindersFree")}
@@ -100,7 +102,7 @@ export default async function MarketingPage({
               {t("upgrade")}
             </Link>
           ) : null}
-        </Card>
+        </HighlightBand>
       </div>
     );
   if (tab === "campaigns")
@@ -108,7 +110,7 @@ export default async function MarketingPage({
       <div className="grid gap-6">
         {banner}
         {!pro ? (
-          <Card className="grid gap-2 bg-surface-accent">
+          <HighlightBand className="gap-2">
             <p className="text-sm">{tc("upsell")}</p>
             <Link
               href={`/o/${orgSlug}/billing`}
@@ -116,7 +118,7 @@ export default async function MarketingPage({
             >
               {t("upgrade")}
             </Link>
-          </Card>
+          </HighlightBand>
         ) : (
           <CampaignsTable
             rows={campaigns.map((c) => {
@@ -147,16 +149,9 @@ export default async function MarketingPage({
   return (
     <div className="grid gap-6">
       {banner}
-      <section className="grid gap-3 sm:grid-cols-3" aria-label={t("stats")}>
+      <section className={statRow} aria-label={t("stats")}>
         {(["all", "consenting", "unsubscribed"] as const).map((k) => (
-          <Card key={k} className="grid gap-1">
-            <p className="font-label text-[0.8rem] font-bold text-ink-muted">
-              {t(`stat_${k}`)}
-            </p>
-            <p className="font-display text-2xl tabular-nums">
-              {result.stats[k]}
-            </p>
-          </Card>
+          <Stat key={k} label={t(`stat_${k}`)} value={result.stats[k]} />
         ))}
       </section>
       {can(ctx.membership, "MARKETING_MANAGE") ? (

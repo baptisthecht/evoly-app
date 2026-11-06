@@ -64,7 +64,7 @@ export function ContactsTable({ rows }: { rows: ContactRow[] }) {
         <span className="flex min-w-0 items-center gap-3">
           <span
             aria-hidden="true"
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--evoly-lilas)] font-display text-sm text-[var(--evoly-charbon)]"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-xs font-semibold text-ink-muted" // refonte A3 : initiales en gris neutre
           >
             {initials(c.name)}
           </span>

@@ -13,6 +13,7 @@ import { listDistributors } from "@/server/distributors";
 import { searchExternalTickets } from "@/server/externalImport";
 import { searchOrders, type OrderFilter } from "@/server/ordersAdmin";
 import { OrdersTable } from "./OrdersTable";
+import { ArrowRightIcon } from "@/components/ui/icons";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -127,7 +128,7 @@ export default async function OrdersPage({
           className="flex items-center justify-between gap-3 rounded-lg bg-warning-soft px-5 py-4 font-semibold text-warning"
         >
           <span>{t("pendingRequests", { count: result.pendingRequests })}</span>
-          <span aria-hidden="true">→</span>
+          <ArrowRightIcon className="size-4 shrink-0" />
         </Link>
       ) : null}
       <form

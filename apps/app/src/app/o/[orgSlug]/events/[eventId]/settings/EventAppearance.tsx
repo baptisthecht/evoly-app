@@ -179,7 +179,7 @@ export function EventAppearance({
             </form>
           ) : (
             <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full bg-lilas px-2 py-0.5 font-label text-xs font-bold text-charbon">
+              <span className="rounded-sm bg-surface-sunken px-1.5 py-px text-[0.6875rem] font-semibold text-ink">
                 Pro
               </span>
               <p className="text-sm text-ink-muted">

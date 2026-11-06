@@ -11,7 +11,8 @@ export function Card({
   return (
     <section
       className={cn(
-        "rounded-lg bg-surface-raised p-5 shadow-sm ring-1 ring-line sm:p-6",
+        // refonte A3 : aucune ombre, la surface se lit par son filet
+        "rounded-lg bg-surface-raised p-5 ring-1 ring-line sm:p-6",
         className,
       )}
     >
@@ -31,9 +32,8 @@ export type BadgeTone =
   | "lilas";
 
 /**
- * Pastille de statut. Un point de couleur (dot) la rend plus vivante ; « live » le fait pulser,
- * pour un état en cours (vente ouverte, entrées en direct), jamais si le système demande moins
- * d'animations.
+ * Pastille de statut. Un point de couleur (dot) la rend plus vivante ; « live » marque un état en cours (vente ouverte,
+ * entrées en direct) par le même point, sans pulsation (refonte A3 : pas de mouvement qui ne répond à aucune action).
  */
 export function Badge({
   tone = "neutral",
@@ -54,7 +54,7 @@ export function Badge({
     danger: "bg-danger-soft text-danger",
     dark: "bg-surface-inverse text-ink-inverse",
     info: "bg-info-soft text-info",
-    lilas: "bg-[var(--evoly-lilas)] text-[var(--evoly-charbon)]",
+    lilas: "bg-surface-sunken text-ink", // refonte A3 : plus de lilas dans l'app, ton neutre
   } as const;
   return (
     <span
@@ -65,9 +65,6 @@ export function Badge({
     >
       {dot || live ? (
         <span aria-hidden="true" className="relative inline-flex size-1.5">
-          {live ? (
-            <span className="absolute inset-0 animate-ping rounded-full bg-current opacity-60 motion-reduce:animate-none" />
-          ) : null}
           <span className="relative size-1.5 rounded-full bg-current" />
         </span>
       ) : null}

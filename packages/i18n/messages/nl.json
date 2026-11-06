@@ -3331,7 +3331,8 @@
     "visits": "Bezoeken aan de ticketing",
     "conversion": "{pct} % koopt",
     "ordersCount": "{n, plural, one {# bestelling} other {# bestellingen}}",
-    "visitsHint": "Geteld zonder cookies"
+    "visitsHint": "Geteld zonder cookies",
+    "paceTitle": "Verkooptempo"
   },
   "sections": {
     "tab_brand": "Uw merk",
@@ -3498,7 +3499,7 @@
     "notStarted": "verkoop nog niet gestart",
     "soldOf": "{sold} van {capacity}",
     "sold": "{sold, plural, one {# ticket verkocht} other {# tickets verkocht}}",
-    "soldOutAt": "In dit tempo uitverkocht rond {date}.",
+    "soldOutAt": "In dit tempo uitverkocht rond {date}",
     "label": "{sold} van {capacity} plaatsen verkocht, {pace}"
   }
 }

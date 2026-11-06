@@ -22,9 +22,9 @@ export interface FinanceEventRow {
 
 const Minus = ({ value }: { value: string | null }) =>
   value ? (
-    <span className="text-danger/80">−{value}</span>
+    <span className="text-minus">−{value}</span>
   ) : (
-    <span className="text-ink-subtle">·</span>
+    <span className="text-ink-subtle">-</span>
   );
 
 /** Finances : recettes par événement (billets, brut, remboursements, commission, frais bancaires, net). */

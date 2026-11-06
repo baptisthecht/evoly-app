@@ -11,6 +11,7 @@ import { requireOrgContext } from "@/server/context";
 import { ThemePro } from "@/components/theme/ThemePro";
 import { effectivePlan } from "@evoly/core";
 import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
+import { ArrowRightIcon } from "@/components/ui/icons";
 
 export default async function OrgLayout({
   children,
@@ -124,12 +125,12 @@ export default async function OrgLayout({
           role="alert"
         >
           <span>{pastDue}</span>
-          <span aria-hidden="true">→</span>
+          <ArrowRightIcon className="size-4 shrink-0" />
         </a>
       ) : null}
       {ctx.supportView ? (
         <div
-          className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-[var(--evoly-lilas)] px-5 py-4 font-semibold text-[var(--evoly-charbon)]"
+          className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-info-soft px-5 py-4 font-semibold text-ink"
           role="status"
         >
           <span>

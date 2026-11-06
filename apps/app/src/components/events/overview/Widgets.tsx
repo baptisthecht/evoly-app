@@ -9,7 +9,7 @@ import { SubmitOnChange } from "./SubmitOnChange";
 type T = (key: string, values?: Record<string, string | number>) => string;
 type Overview = Awaited<ReturnType<typeof eventOverview>>;
 
-/** Carte de chiffre de la vue d'ensemble (maquette validée). */
+/** Chiffre de la vue d'ensemble (refonte A3) : sans carte, le chiffre en Archivo Black. */
 export function Kpi({
   label,
   value,
@@ -20,9 +20,9 @@ export function Kpi({
   children?: ReactNode;
 }) {
   return (
-    <div className="grid min-w-0 content-start gap-1.5 rounded-lg bg-surface-raised px-3.5 py-3.5 ring-1 ring-line sm:px-[1.125rem] sm:py-4">
-      <span className="text-xs text-ink-muted">{label}</span>
-      <span className="text-xl font-semibold tracking-[-0.02em] tabular-nums sm:text-2xl">
+    <div className="grid min-w-0 content-start gap-1">
+      <span className="text-[0.8125rem] text-ink-muted">{label}</span>
+      <span className="font-figures text-[1.5rem] leading-tight tracking-[var(--tracking-figures)] tabular-nums sm:text-[1.6875rem]">
         {value}
       </span>
       {children}
@@ -37,7 +37,10 @@ export function Gauge({ ratio }: { ratio: number }) {
       className="h-1 overflow-hidden rounded-full bg-line"
     >
       <div
-        className="h-full rounded-full bg-success"
+        className={cn(
+          "h-full rounded-full",
+          ratio >= 1 ? "bg-success" : "bg-ink", // vert : statut « complet » seulement (refonte A3)
+        )}
         style={{
           width: `${Math.round(Math.min(1, Math.max(0, ratio)) * 100)}%`,
         }}
@@ -178,8 +181,8 @@ export function TiersCard({
   ticketsHref: string | null;
 }) {
   return (
-    <Card className="grid content-start gap-3.5">
-      <div className="flex items-center justify-between">
+    <section className="grid content-start gap-1.5">
+      <div className="flex items-baseline justify-between">
         <h2 className="text-[0.9375rem] font-semibold">{t("tiersTitle")}</h2>
         {ticketsHref ? (
           <Link
@@ -194,10 +197,16 @@ export function TiersCard({
         const soldOut = tt.quantity !== null && tt.quantitySold >= tt.quantity;
         const tiers = tiersSold.get(tt.id) ?? [];
         return (
-          <div key={tt.id} className="grid gap-1.5">
+          <div
+            key={tt.id}
+            className="grid gap-1.5 border-b border-line py-2.5 first-of-type:border-t"
+          >
             <div className="flex justify-between gap-3 text-[0.8125rem]">
-              <span className="truncate font-medium">
-                {tt.name} · {formatMoney(tt.priceMinor, currency, locale)}
+              <span className="flex min-w-0 gap-3">
+                <span className="truncate font-medium">{tt.name}</span>
+                <span className="text-ink-muted tabular-nums">
+                  {formatMoney(tt.priceMinor, currency, locale)}
+                </span>
               </span>
               <span
                 className={
@@ -218,7 +227,7 @@ export function TiersCard({
             ) : null}
             {tiers.length > 1 ? (
               <span className="text-xs text-ink-muted" data-testid="tier-sales">
-                {tiers.map((x) => `${x.name} : ${x.sold}`).join(" · ")}
+                {tiers.map((x) => `${x.name} : ${x.sold}`).join(", ")}
               </span>
             ) : null}
           </div>
@@ -227,12 +236,12 @@ export function TiersCard({
       {ticketsHref ? (
         <Link
           href={ticketsHref}
-          className="mt-auto inline-flex min-h-11 items-center justify-center rounded-md border border-dashed border-line-strong text-[0.8125rem] font-medium text-ink-muted hover:text-ink"
+          className="mt-1 inline-flex min-h-10 items-center text-[0.8125rem] font-medium text-ink-muted underline-offset-4 hover:text-ink hover:underline"
         >
           {t("addTier")}
         </Link>
       ) : null}
-    </Card>
+    </section>
   );
 }
 

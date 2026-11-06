@@ -55,7 +55,7 @@ describe("jauge du rythme (refonte A3)", () => {
     ).toBeTruthy();
     expect(container.querySelector(".bg-highlight")).not.toBeNull();
     expect(
-      screen.getByText(/^À ce train, complet vers le \d+ \S+\.$/),
+      screen.getByText(/^À ce train, complet vers le \d+ \S+$/),
     ).toBeTruthy();
   });
 

@@ -114,19 +114,19 @@ export default async function MembersPage({
             })}
           />
           {invitations.length > 0 ? (
-            <Card className="grid gap-2">
-              <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+            <section className="grid gap-1.5">
+              <h2 className="text-[0.9375rem] font-semibold">
                 {t("pendingTitle")}
               </h2>
-              <ul className="grid gap-2">
+              <ul role="list" className="grid">
                 {invitations.map((i) => (
                   <li
                     key={i.id}
-                    className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2 text-sm"
+                    className="grid gap-2 border-b border-line py-2.5 text-sm first:border-t sm:grid-cols-[minmax(0,1fr)_12rem_12rem_auto] sm:items-center sm:gap-4"
                   >
-                    <span>
-                      <span className="font-semibold">{i.email}</span> ·{" "}
-                      {label(i.role)} ·{" "}
+                    <span className="truncate font-semibold">{i.email}</span>
+                    <span>{label(i.role)}</span>
+                    <span className="text-ink-muted">
                       {t("expires", {
                         date: formatDate(
                           i.expiresAt,
@@ -144,10 +144,10 @@ export default async function MembersPage({
                   </li>
                 ))}
               </ul>
-            </Card>
+            </section>
           ) : null}
-          <Card className="grid gap-3">
-            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+          <section className="grid gap-3 border-t border-line pt-5">
+            <h2 className="text-[0.9375rem] font-semibold">
               {owner ? t("transferTitle") : t("leaveTitle")}
             </h2>
             {owner ? (
@@ -168,7 +168,7 @@ export default async function MembersPage({
             ) : (
               <LeaveOrganization orgSlug={orgSlug} />
             )}
-          </Card>
+          </section>
         </>
       ) : (
         <>
@@ -284,7 +284,7 @@ export default async function MembersPage({
                   <p className="text-xs text-ink-muted">
                     {(r.permissions as Permission[])
                       .map((p) => tp(p))
-                      .join(" · ")}
+                      .join(", ")}
                   </p>
                   {manageRoles && customRoles ? (
                     <RoleEditor

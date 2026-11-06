@@ -62,6 +62,8 @@ ce n'est pas fini.
 ## Mots
 
 - Le verbe exact : « Copier le lien », « Renvoyer les billets », « Créer le tarif ».
-- Pas de flèche « → », de tiret long décoratif, de « A · B · C » : une information par colonne, ou une phrase.
+- Pas de flèche « → » ni de tiret long décoratif. Une information par colonne, ou une phrase. Le point médian « · »
+  reste toléré dans le sous-titre d'une ligne (détails secondaires), jamais dans un titre, un libellé ou entre deux
+  chiffres.
 - Typographie française : apostrophes courbes, espaces insécables avant « : ; ? ! € % ».
 - Chaque nouveau texte dans les 7 langues (`packages/i18n`).

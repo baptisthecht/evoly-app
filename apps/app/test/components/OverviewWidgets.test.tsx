@@ -138,7 +138,7 @@ describe("widgets de la vue d'ensemble", () => {
     expect(screen.getByText(t("soldOf", { sold: 12, total: 50 }))).toBeTruthy();
     expect(screen.getByText(t("soldUnlimited", { sold: 3 }))).toBeTruthy();
     expect(screen.getByTestId("tier-sales").textContent).toBe(
-      "Prévente : 8 · Normal : 4",
+      "Prévente : 8, Normal : 4",
     );
     expect(screen.getByRole("link", { name: ov.addTier })).toBeTruthy();
     rerender(

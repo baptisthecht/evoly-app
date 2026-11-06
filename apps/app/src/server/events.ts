@@ -6,12 +6,14 @@ import {
   EVENT_TRANSITIONS,
   eventPublicCode,
   isValidTimeZone,
+  normalizeAccessCode,
   parseMajorToMinor,
   publicationBlockers,
+  salesPace,
+  salesWindow,
   slugify,
   uniqueSlug,
   zonedLocalToUtc,
-  normalizeAccessCode,
 } from "@evoly/core";
 import { Prisma } from "@evoly/db";
 import { currencyExponent } from "@evoly/i18n";
@@ -579,19 +581,32 @@ export async function listEvents(organizationId: string) {
       capacity: true,
       city: true,
       locationType: true,
+      locationName: true,
+      salesStartAt: true,
+      salesEndAt: true,
+      publishedAt: true,
+      createdAt: true,
       ticketTypes: { select: { quantitySold: true, quantity: true } },
     },
     orderBy: { startsAt: "asc" },
   });
-  return events.map((e) => ({
-    ...e,
-    sold: e.ticketTypes.reduce((n, t) => n + t.quantitySold, 0),
-    total:
+  const now = new Date();
+  return events.map((e) => {
+    const sold = e.ticketTypes.reduce((n, t) => n + t.quantitySold, 0);
+    const total =
       e.capacity ??
       (e.ticketTypes.every((t) => t.quantity != null)
         ? e.ticketTypes.reduce((n, t) => n + (t.quantity ?? 0), 0)
-        : null),
-  }));
+        : null);
+    // refonte A3 : le rythme des ventes (packages/core/src/pace.ts)
+    const pace = salesPace({
+      sold,
+      capacity: total,
+      ...salesWindow(e),
+      now,
+    });
+    return { ...e, sold, total, pace };
+  });
 }
 
 export async function getEventWithTickets(ctx: OrgContext, eventId: string) {

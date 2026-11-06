@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { CopyButton } from "@/components/CopyButton";
 import { buttonClass } from "@/components/ui/Button";
+import { HighlightBand } from "@/components/ui/HighlightBand";
 import { DateLeaf, SalesGauge } from "@/components/ui/SalesGauge";
 import type { homeOverview } from "@/server/home";
 
@@ -28,20 +29,6 @@ const daysUntil = (d: Date, tz: string) =>
 const sectionTitle = "text-[0.9375rem] font-semibold";
 const quietLink =
   "text-[0.8125rem] text-ink-muted underline-offset-4 hover:text-ink hover:underline";
-
-/** Un indicateur : libellé, grand chiffre en Archivo Black. */
-export function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid content-start gap-1">
-      <p className="text-[0.8125rem] whitespace-nowrap text-ink-muted">
-        {label}
-      </p>
-      <p className="font-figures text-[1.6875rem] leading-tight tracking-[var(--tracking-figures)] whitespace-nowrap tabular-nums">
-        {value}
-      </p>
-    </div>
-  );
-}
 
 /** La recette des 30 derniers jours, jour par jour, en petit histogramme à côté des indicateurs. */
 export async function RevenueSpark({
@@ -114,9 +101,9 @@ export async function NextEventBand({
         ? t("countdownTomorrow")
         : t("countdown", { count: days });
   return (
-    <section
+    <HighlightBand
       aria-labelledby="next-event"
-      className="relative grid gap-5 overflow-hidden rounded-lg bg-highlight-soft py-4 pr-5 pl-[calc(var(--highlight-bar)+1.4rem)] before:absolute before:inset-y-0 before:left-0 before:w-[var(--highlight-bar)] before:bg-highlight md:grid-cols-[minmax(0,1.3fr)_auto_minmax(0,1.2fr)] md:items-center md:gap-7"
+      className="md:grid-cols-[minmax(0,1.3fr)_auto_minmax(0,1.2fr)] md:items-center md:gap-7"
     >
       <div className="grid min-w-0 gap-0.5">
         <p className="text-[0.8125rem] font-semibold text-highlight-ink">
@@ -161,7 +148,7 @@ export async function NextEventBand({
           </Link>
         </div>
       </div>
-    </section>
+    </HighlightBand>
   );
 }
 

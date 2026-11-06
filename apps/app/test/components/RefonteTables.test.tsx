@@ -66,7 +66,7 @@ const table = () => screen.getByRole("table");
 const draw = (ui: React.ReactNode) => render(<Fr>{ui}</Fr>);
 
 describe("codes promo et équipe", () => {
-  it("codes promo : jauge des utilisations, point qui pulse pour un code actif, supprimer seulement s'il n'a pas servi", () => {
+  it("codes promo : jauge des utilisations, point (sans pulsation) pour un code actif, supprimer seulement s'il n'a pas servi", () => {
     draw(
       <PromoTable
         orgSlug="club"
@@ -104,7 +104,8 @@ describe("codes promo et équipe", () => {
     expect(
       gala.querySelector<HTMLElement>('[style*="width"]')!.style.width,
     ).toBe("50%");
-    expect(gala.querySelector(".animate-ping")).toBeTruthy();
+    expect(gala.querySelector(".rounded-full.bg-current")).toBeTruthy();
+    expect(gala.querySelector(".animate-ping")).toBeNull(); // refonte A3 : aucun mouvement continu
     expect(gala.textContent).toContain(all.promo!.unlocks);
     expect(
       within(gala).queryByRole("button", { name: all.promo!.delete }),
@@ -177,7 +178,7 @@ describe("codes promo et équipe", () => {
 });
 
 describe("marketing, commandes, revente", () => {
-  it("contacts : consentement en pastille ; campagnes : lien vers la fiche, taux, point qui pulse pendant l'envoi", () => {
+  it("contacts : consentement en pastille ; campagnes : lien vers la fiche, taux, point (sans pulsation) pendant l'envoi", () => {
     const { unmount } = draw(
       <ContactsTable
         rows={[
@@ -226,7 +227,8 @@ describe("marketing, commandes, revente", () => {
         .getAttribute("href"),
     ).toBe("/o/club/marketing/campaigns/k1");
     expect(row.textContent).toContain("42 %");
-    expect(row.querySelector(".animate-ping")).toBeTruthy();
+    expect(row.querySelector(".rounded-full.bg-current")).toBeTruthy();
+    expect(row.querySelector(".animate-ping")).toBeNull();
   });
 
   it("import des contacts dans une fenêtre", async () => {
@@ -302,7 +304,7 @@ describe("marketing, commandes, revente", () => {
     expect(screen.getByRole("navigation", { name: "Pagination" })).toBeTruthy();
   });
 
-  it("revente : transfert en pastille, point qui pulse en vente ; événement : échec expliqué, annulation possible seulement en vente", () => {
+  it("revente : transfert en pastille, point (sans pulsation) en vente ; événement : échec expliqué, annulation possible seulement en vente", () => {
     const { unmount } = draw(
       <ResaleTable
         rows={[
@@ -325,7 +327,8 @@ describe("marketing, commandes, revente", () => {
     );
     const r = within(table()).getAllByRole("row")[1]!;
     expect(r.textContent).toContain(all.resaleAdmin!.transfer);
-    expect(r.querySelector(".animate-ping")).toBeTruthy();
+    expect(r.querySelector(".rounded-full.bg-current")).toBeTruthy();
+    expect(r.querySelector(".animate-ping")).toBeNull();
     unmount();
     const row = {
       code: "CD34",
