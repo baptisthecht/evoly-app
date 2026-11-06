@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { eventHeaderData } from "./eventData";
 import { OrgTabBar } from "./OrgTabBar";
 import { TabBar } from "./TabBar";
-import { eventTabBar } from "./tabBar";
+import { eventTabBar } from "./tabBarItems";
 
 /** Barre du téléphone dans un événement : Aperçu, Billetterie, Participants, Jour J, puis « Plus » ; son étiquette en fait sortir. */
 export async function EventTabBar({

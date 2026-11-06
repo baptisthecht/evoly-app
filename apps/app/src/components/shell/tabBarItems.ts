@@ -1,4 +1,4 @@
-import type { EventTab } from "./eventTabs";
+import type { EventTab } from "./eventTabItems";
 import type { NavIcon } from "./SideNav";
 
 /** Onglet de la barre du téléphone : actif sur sa page, ou sous l'une de ses adresses. */

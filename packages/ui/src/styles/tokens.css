@@ -223,6 +223,59 @@
   color-scheme: dark;
 }
 
+/* =============================================================================
+   Refonte A3 du tableau de bord (docs/DECISIONS.md, 6 novembre 2026)
+   - la barre latérale en charbon : .theme-sidebar redéfinit les rôles pour tout ce qu'elle contient ;
+   - le rose de mise en avant : page active, trait du rythme, bandeau et ligne sélectionnée ;
+   - Archivo Black pour les grands chiffres (--type-figures), nulle part ailleurs.
+   ============================================================================= */
+:root {
+  --evoly-rose-vif: #ff5fc4;
+  --sidebar-bg: var(--evoly-charbon);
+  --highlight: var(
+    --evoly-rose-vif
+  ); /* trait du rythme, trait du bandeau, page active */
+  --highlight-soft: #fff5fb; /* fond du bandeau et de la ligne mise en avant */
+  --highlight-line: #f4d3e7; /* filets dans le bandeau */
+  --highlight-ink: #b0157a; /* texte rose lisible sur blanc (4,5:1 et plus) */
+  --minus-ink: #b4534f; /* montants retirés (remboursements, frais) */
+  --type-figures:
+    "Archivo Black", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --tracking-figures: -0.045em;
+  --highlight-bar: 7px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sidebar-bg: #141414;
+    --highlight-soft: #33202d;
+    --highlight-line: #4a2c40;
+    --highlight-ink: #ff9ad9;
+    --minus-ink: #e08a86;
+  }
+}
+:root[data-theme="dark"] {
+  --sidebar-bg: #141414;
+  --highlight-soft: #33202d;
+  --highlight-line: #4a2c40;
+  --highlight-ink: #ff9ad9;
+  --minus-ink: #e08a86;
+}
+/* tout ce qui est posé dans la barre charbon (sélecteur d'organisation, liens, compte) reprend ces rôles */
+.theme-sidebar {
+  --surface: #333333;
+  --surface-raised: #2b2b2b;
+  --surface-sunken: #2e2e2e;
+  --ink: var(--evoly-creme);
+  --ink-muted: rgba(255, 246, 240, 0.72);
+  --ink-subtle: rgba(255, 246, 240, 0.5);
+  --line: rgba(255, 246, 240, 0.12);
+  --line-strong: rgba(255, 246, 240, 0.24);
+  --focus-ring: var(--evoly-creme);
+  background: var(--sidebar-bg);
+  color: var(--ink);
+  color-scheme: dark;
+}
+
 /* Marque d'un organisateur Pro (RG-UI-01), injectée sur les pages publiques */
 [data-brand] {
   --accent: var(--brand-primary, var(--evoly-rose));

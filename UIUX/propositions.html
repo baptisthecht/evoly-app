@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evoly, trois pistes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@500;600;700&family=Poppins:wght@400;500;600;700&family=Yellowtail&display=swap">
+<style>
+/* ---------------------------------------------------------------------------
+   Page de présentation (hors maquettes)
+   --------------------------------------------------------------------------- */
+:root{
+  --page:#ecebe8; --page-ink:#222; --page-soft:#625c58; --page-line:#d8d4cf;
+  --charbon:#222222; --creme:#fff6f0; --rose:#ffb8e8; --lilas:#f3d9f0;
+  --ok:#1f7a4d; --ok-bg:#eaf6ef; --warn:#a35700; --warn-bg:#fdecd6; --ko:#bd3333; --ko-bg:#fbe1e1;
+  --sys:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --pop:"Poppins", system-ui, sans-serif;
+  --blk:"Archivo Black", "Arial Black", sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--page);color:var(--page-ink);font:400 15px/1.5 var(--sys);
+  padding:40px 16px 80px}
+.wrap{max-width:1240px;margin:0 auto}
+a{color:inherit}
+.intro{display:grid;gap:10px;max-width:760px;margin-bottom:28px}
+.intro h1{font:800 34px/1.1 var(--sys);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.intro p{margin:0;color:var(--page-soft);font-size:16px}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 44px}
+.jump a{text-decoration:none;background:#fff;border:1px solid var(--page-line);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px}
+.jump a:hover{border-color:var(--charbon)}
+section.part{margin:0 0 72px;scroll-margin-top:20px}
+.part > h2{font:800 26px/1.15 var(--sys);letter-spacing:-.015em;margin:0 0 6px}
+.part > .lede{margin:0 0 20px;color:var(--page-soft);max-width:78ch;font-size:16px}
+.cols{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));margin-bottom:24px}
+.box{background:#fff;border-radius:14px;padding:18px 20px;border:1px solid var(--page-line)}
+.box h3{font:700 16px var(--sys);margin:0 0 10px}
+.box ul,.box ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.box li{color:#3b3632}
+.box p{margin:0 0 8px;color:#3b3632}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-weight:600;color:var(--page-soft);padding:8px 10px;border-bottom:1px solid var(--page-line)}
+.tbl td{padding:9px 10px;border-bottom:1px solid #eeebe7;vertical-align:top}
+.tbl td:first-child{font-weight:600}
+.sev{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.sev.f{background:var(--ko-bg);color:var(--ko)} .sev.m{background:var(--warn-bg);color:var(--warn)} .sev.l{background:#eee;color:#555}
+code{font:500 12.5px ui-monospace, Menlo, monospace;background:#f3f1ee;padding:1px 5px;border-radius:5px}
+.tokens{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin:0 0 22px}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{display:grid;gap:4px;font-size:12px;color:var(--page-soft);width:78px}
+.sw i{display:block;height:40px;border-radius:10px;border:1px solid rgba(0,0,0,.08)}
+.sw b{color:var(--page-ink);font-weight:600}
+.caption{font-size:13.5px;color:var(--page-soft);margin:10px 2px 0}
+.screens{display:grid;gap:28px;grid-template-columns:minmax(0,1fr)}
+.lower{display:grid;gap:28px;grid-template-columns:auto minmax(0,1fr);align-items:start}
+@media (max-width:900px){.lower{grid-template-columns:minmax(0,1fr)}}
+
+/* Cadres : ordinateur 1200 × 760, téléphone 390 × 844 ; défilement horizontal si l'écran est plus étroit */
+.scroller{overflow-x:auto;border-radius:16px;padding-bottom:6px}
+.desk{width:1200px;height:760px;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 24px 50px -28px rgba(0,0,0,.35);
+  display:grid;grid-template-columns:232px 1fr;position:relative}
+.phone{width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;box-shadow:0 0 0 10px #161616,0 22px 44px -20px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;margin:10px}
+.phone .sb{display:flex;justify-content:space-between;padding:15px 30px 6px;font:600 15px var(--sys);flex:none}
+
+/* Numéros d'annotation de l'écran « avant » */
+.pin{position:absolute;z-index:5;width:24px;height:24px;border-radius:50%;background:var(--ko);color:#fff;font:700 13px/24px var(--sys);text-align:center;
+  box-shadow:0 0 0 3px #fff}
+
+/* ---------------------------------------------------------------------------
+   AVANT : reconstitution de l'accueil actuel (thème pro, d'après le code)
+   --------------------------------------------------------------------------- */
+.av{background:#f7f6f4;font-family:var(--pop);color:#222}
+.av .side{background:#fff;border-right:1px solid #e6e2de;padding:18px 14px;display:flex;flex-direction:column;gap:4px}
+.av .logo{font:400 19px/0.9 var(--blk);letter-spacing:-.04em;margin:0 6px 16px}
+.av .org{display:flex;align-items:center;gap:8px;border:1px solid #e6e2de;border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600;margin-bottom:12px}
+.av .org i{width:22px;height:22px;border-radius:6px;background:var(--lilas)}
+.av .nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:13.5px;text-decoration:none;color:#3d3d3d}
+.av .nav a.on{background:#ffe3f4;color:#222;font-weight:600}
+.av .nav a svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
+.av main{padding:28px 32px;display:grid;gap:22px;align-content:start;overflow:hidden}
+.av .greet{font-size:18px;font-weight:500;margin:0}
+.av .greet span{font-family:"Yellowtail","Brush Script MT",cursive;font-size:1.15em;font-style:italic}
+.av .sub{margin:2px 0 0;color:#6b6460;font-size:14px}
+.av .card{background:#fff;border-radius:14px;box-shadow:0 1px 2px rgba(34,34,34,.04);outline:1px solid #e6e2de;padding:18px}
+.av .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.av .kpi p{margin:0}
+.av .kpi .l{font:700 12.8px var(--pop);color:#6b6460}
+.av .kpi .v{font:600 30px/1 var(--pop);letter-spacing:-.04em;margin-top:8px;font-variant-numeric:tabular-nums}
+.av .grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.av .next{display:grid;grid-template-columns:1.1fr 1fr;padding:0;overflow:hidden}
+.av .poster{position:relative;background:var(--rose);min-height:220px;overflow:hidden}
+.av .poster .b1{position:absolute;top:-40px;left:-32px;width:160px;height:160px;border-radius:50%;background:var(--lilas)}
+.av .poster .b2{position:absolute;top:40px;right:24px;width:112px;height:112px;border-radius:30%;background:#222;transform:rotate(12deg)}
+.av .nb{padding:18px;display:grid;gap:10px;align-content:start}
+.av .chip{justify-self:start;display:inline-flex;align-items:center;gap:8px;background:#222;color:var(--creme);border-radius:999px;padding:5px 13px;font-size:13px;font-weight:600}
+.av .dot{width:8px;height:8px;border-radius:50%;background:var(--rose);box-shadow:0 0 0 4px rgba(255,184,232,.35)}
+.av h3{margin:0;font:600 22px/1.2 var(--pop);letter-spacing:-.01em}
+.av .muted{color:#6b6460;font-size:13px;margin:0}
+.av .bar{height:8px;border-radius:99px;background:#f0ece8;overflow:hidden}
+.av .bar i{display:block;height:100%;border-radius:99px;background:var(--rose)}
+.av .btn{justify-self:start;border:1px solid #dad4cf;border-radius:10px;padding:7px 13px;font-size:13px;font-weight:500;background:#fff}
+.av .h{font:600 17px var(--pop);margin:0}
+.av .live{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;background:var(--ok-bg);color:var(--ok);border-radius:99px;padding:2px 9px}
+.av .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.av .ord{display:flex;align-items:center;gap:10px;padding:7px 4px}
+.av .ini{width:34px;height:34px;border-radius:50%;background:var(--lilas);display:grid;place-items:center;font:400 13px var(--blk)}
+.av .ord .n{flex:1;min-width:0;font-size:13px;font-weight:600;line-height:1.25}
+.av .ord .n small{display:block;font-weight:400;color:#6b6460;font-size:12px}
+.av .ord .a{text-align:right;font-size:13px;font-weight:600;line-height:1.25}
+.av .ord .a small{display:block;font-weight:400;color:#6b6460;font-size:12px}
+.av .fill{display:grid;gap:12px}
+.av .fill .r{display:grid;gap:6px}
+.av .fill .t{display:flex;justify-content:space-between;font-size:13px}
+.av .fill .t b{font-weight:600}
+.av .fill .t span{color:#6b6460;font-variant-numeric:tabular-nums}
+
+/* ---------------------------------------------------------------------------
+   PISTE A : L'outil (proche des tableaux de bord que les organisateurs connaissent)
+   --------------------------------------------------------------------------- */
+.dA{--bg:#ffffff;--side:#fafafa;--ink:#1d1d1f;--soft:#6e6a67;--faint:#9a9591;--line:#ebe8e5;--line2:#dcd8d4;--act:#222222;--sel:#fde6f4;--sel-ink:#7a1f5c;
+  background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--sys)}
+.dA .side{background:var(--side);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:2px}
+.dA .logo{font:400 18px/0.9 var(--blk);letter-spacing:-.04em;margin:2px 8px 18px}
+.dA .org{display:flex;align-items:center;justify-content:space-between;padding:6px 8px;border-radius:8px;font-weight:600;margin-bottom:10px}
+.dA .org small{display:block;font-weight:400;color:var(--soft);font-size:12px}
+.dA .org svg,.dA .nav svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;flex:none}
+.dA .nav a{display:flex;align-items:center;gap:10px;height:32px;padding:0 8px;border-radius:7px;text-decoration:none;color:#3a3633;font-size:13.5px}
+.dA .nav a.on{background:#efedeb;color:var(--ink);font-weight:600}
+.dA .nav a .count{margin-left:auto;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums}
+.dA main{display:flex;flex-direction:column;min-width:0}
+.dA .top{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;flex:none}
+.dA .top h1{font:600 16px var(--sys);margin:0}
+.dA .btn{height:34px;border-radius:8px;padding:0 13px;display:inline-flex;align-items:center;gap:7px;font:500 13.5px var(--sys);border:1px solid var(--line2);background:#fff;color:var(--ink)}
+.dA .btn.p{background:var(--act);border-color:var(--act);color:#fff}
+.dA .btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.dA .body{padding:24px 28px;display:grid;gap:28px;align-content:start;overflow:hidden}
+.dA .stats{display:grid;grid-template-columns:repeat(3,auto) 1fr;gap:0;border-bottom:1px solid var(--line);padding-bottom:22px}
+.dA .stat{padding-right:36px;margin-right:36px;border-right:1px solid var(--line)}
+.dA .stat:nth-child(3){border-right:0}
+.dA .stat .l,.dA .stat .d{white-space:nowrap}
+.dA .stat .l{color:var(--soft);font-size:13px}
+.dA .stat .v{font:600 26px/1.15 var(--sys);letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
+.dA .stat .d{font-size:12.5px;color:var(--ok);font-variant-numeric:tabular-nums}
+.dA .stat .d.n{color:var(--soft)}
+.dA .spark{align-self:end;justify-self:end;width:300px;height:56px}
+.dA .sec{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.dA .sec h2{font:600 14.5px var(--sys);margin:0}
+.dA .sec a{font-size:13px;color:var(--soft);text-decoration:none}
+.dA table{width:100%;border-collapse:collapse}
+.dA th{font:500 12.5px var(--sys);color:var(--soft);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.dA td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle;font-variant-numeric:tabular-nums}
+.dA tr.hl td{background:#fcfbfa}
+.dA td.ev b{font-weight:600;display:block}
+.dA td.ev small{color:var(--soft);font-size:12.5px}
+.dA .num{text-align:right}
+.dA .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;background:#f1efed;color:#4b4642;white-space:nowrap}
+.dA .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.dA .pill.ok{background:var(--ok-bg);color:var(--ok)} .dA .pill.warn{background:var(--warn-bg);color:var(--warn)}
+.dA .lower2{display:grid;grid-template-columns:1.25fr 1fr;gap:36px}
+.dA .row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.dA .row b{font-weight:500}
+.dA .row small{display:block;color:var(--soft);font-size:12.5px}
+.dA .row .r{text-align:right;font-variant-numeric:tabular-nums}
+.dA .todo{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.dA .todo svg{width:16px;height:16px;stroke:var(--warn);fill:none;stroke-width:2;flex:none}
+.dA .todo span{flex:1}
+.dA .todo a{font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+
+/* ---------------------------------------------------------------------------
+   PISTE B : La charte, assainie
+   --------------------------------------------------------------------------- */
+.dB{--bg:#f7f6f4;--raised:#ffffff;--ink:#222;--soft:#6b6460;--faint:#8f8782;--line:#e6e2de;--rose:#ffb8e8;--rose-soft:#ffe3f4;
+  background:var(--bg);color:var(--ink);font:400 14px/1.5 var(--pop)}
+.dB .side{background:var(--bg);padding:20px 14px;display:flex;flex-direction:column;gap:2px}
+.dB .logo{font:400 20px/0.9 var(--blk);letter-spacing:-.05em;margin:0 10px 20px}
+.dB .org{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--raised);font-weight:600;font-size:13.5px;margin-bottom:14px}
+.dB .org i{width:28px;height:28px;border-radius:8px;background:#222;color:var(--rose);display:grid;place-items:center;font:400 12px var(--blk);font-style:normal}
+.dB .nav a{display:flex;align-items:center;gap:11px;height:36px;padding:0 10px;border-radius:10px;text-decoration:none;color:#4a4542;font-size:13.5px;font-weight:500;position:relative}
+.dB .nav a.on{background:var(--raised);color:var(--ink);font-weight:600}
+.dB .nav a.on::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:#222}
+.dB .nav svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.75;flex:none}
+.dB main{padding:28px 32px 28px 8px;display:grid;gap:18px;align-content:start;overflow:hidden}
+.dB .sheet{background:var(--raised);border-radius:16px;padding:26px 28px;display:grid;gap:26px}
+.dB .hello{display:flex;align-items:end;justify-content:space-between;gap:24px}
+.dB .hello p{margin:0;color:var(--soft)}
+.dB .big{font:400 54px/0.95 var(--blk);letter-spacing:-.05em;font-variant-numeric:tabular-nums;margin:4px 0 6px}
+.dB .big small{font-size:30px;letter-spacing:-.03em}
+.dB .minis{display:flex;gap:32px;color:var(--soft);font-size:13.5px}
+.dB .minis b{display:block;color:var(--ink);font:600 20px/1.2 var(--pop);font-variant-numeric:tabular-nums}
+.dB .chart{width:420px;height:96px}
+.dB .btn{height:40px;border-radius:10px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;font:500 14px var(--pop);border:1px solid var(--line);background:#fff;color:var(--ink);white-space:nowrap}
+.dB .btn.p{background:#222;color:#fff;border-color:#222}
+.dB .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.dB .next{display:grid;grid-template-columns:300px 1fr;gap:26px;align-items:stretch;border-top:1px solid var(--line);padding-top:26px}
+.dB .affiche{background:var(--rose);border-radius:12px;padding:18px;display:flex;flex-direction:column;justify-content:space-between;min-height:200px;color:#222}
+.dB .affiche b{font:400 34px/0.92 var(--blk);letter-spacing:-.055em;text-transform:lowercase}
+.dB .affiche span{font:600 13px var(--pop)}
+.dB .ninfo{display:grid;gap:14px;align-content:start}
+.dB .when{display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--soft)}
+.dB .when b{background:#222;color:var(--creme);border-radius:8px;padding:3px 10px;font-weight:600;font-size:13px}
+.dB h3{font:600 24px/1.2 var(--pop);letter-spacing:-.015em;margin:0}
+.dB .gauge-l{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px}
+.dB .gauge-l b{font-weight:600}
+.dB .gauge-l span{color:var(--soft);font-variant-numeric:tabular-nums}
+.dB .twocol{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.dB .panel{background:var(--raised);border-radius:16px;padding:20px 22px}
+.dB .panel h4{font:600 15.5px var(--pop);margin:0 0 6px;display:flex;justify-content:space-between;align-items:baseline}
+.dB .panel h4 small{font:400 12.5px var(--pop);color:var(--soft)}
+.dB .ln{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.dB .ln:first-of-type{border-top:0}
+.dB .qty{font:400 15px var(--blk);letter-spacing:-.03em;background:var(--bg);border-radius:8px;height:34px;display:grid;place-items:center}
+.dB .ln b{font-weight:600;font-size:13.5px;display:block;line-height:1.3}
+.dB .ln small{color:var(--soft);font-size:12.5px}
+.dB .ln .r{text-align:right;font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:600;line-height:1.3}
+.dB .ln .r small{display:block;font-weight:400}
+.dB .fl{display:grid;gap:7px;padding:11px 0;border-top:1px solid var(--line)}
+.dB .fl:first-of-type{border-top:0}
+
+/* La jauge avec le trait du rythme : partagée par B et C */
+.gauge{position:relative;height:10px;border-radius:99px;background:#efebe7}
+.gauge i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#222}
+.gauge i.warn{background:var(--warn)}
+.gauge i.ok{background:var(--ok)}
+.gauge .pace{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;background:#ff5fc4;box-shadow:0 0 0 2px #fff}
+.pacetxt{font-size:12.5px;color:var(--soft,#6b6460)}
+.pacetxt.ok{color:var(--ok)} .pacetxt.warn{color:var(--warn)}
+
+/* ---------------------------------------------------------------------------
+   PISTE C : Jour J (idée tirée du sujet : tout se lit par rapport à la date de l'événement)
+   --------------------------------------------------------------------------- */
+.dC{--bg:#fff6f0;--sheet:#ffffff;--ink:#222;--soft:#6b6460;--line:#eee5df;--dark:#222;--on-dark:#fff6f0;--rose:#ffb8e8;
+  background:var(--dark);color:var(--ink);font:400 14px/1.5 var(--pop)}
+.dC .side{background:var(--dark);color:var(--on-dark);padding:20px 14px;display:flex;flex-direction:column;gap:2px}
+.dC .logo{font:400 20px/0.9 var(--blk);letter-spacing:-.05em;margin:0 10px 22px;color:var(--on-dark)}
+.dC .org{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:#2e2e2e;font-weight:600;font-size:13.5px;margin-bottom:14px}
+.dC .org i{width:28px;height:28px;border-radius:8px;background:var(--rose);color:#222;display:grid;place-items:center;font:400 12px var(--blk);font-style:normal}
+.dC .nav a{display:flex;align-items:center;gap:11px;height:36px;padding:0 10px;border-radius:10px;text-decoration:none;color:rgba(255,246,240,.72);font-size:13.5px;font-weight:500}
+.dC .nav a.on{background:#333;color:var(--on-dark);font-weight:600}
+.dC .nav svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.75;flex:none}
+.dC main{display:flex;flex-direction:column;min-width:0;padding:14px 14px 0 0}
+.dC .stage{background:#2b2b2b;border-radius:16px 16px 0 0;color:var(--on-dark);padding:22px 26px 0;flex:none}
+.dC .stage-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.dC .stage-h p{margin:0;font-size:14px;color:rgba(255,246,240,.7)}
+.dC .stage-h p b{color:var(--on-dark);font-weight:600}
+.dC .btn{height:38px;border-radius:10px;padding:0 15px;display:inline-flex;align-items:center;gap:8px;font:500 14px var(--pop);border:0;background:var(--rose);color:#222}
+.dC .btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+/* frise des 8 prochaines semaines */
+.dC .frise{position:relative;height:74px;margin:0 4px}
+.dC .frise .axis{position:absolute;left:0;right:0;top:34px;height:1px;background:rgba(255,246,240,.22)}
+.dC .frise .wk{position:absolute;top:28px;width:1px;height:13px;background:rgba(255,246,240,.22)}
+.dC .frise .wkl{position:absolute;top:46px;font-size:11.5px;color:rgba(255,246,240,.5);transform:translateX(-50%);white-space:nowrap}
+.dC .frise .today{position:absolute;top:18px;bottom:20px;width:2px;background:var(--rose);border-radius:2px}
+.dC .frise .today span{position:absolute;top:-18px;left:-4px;font-size:11.5px;color:var(--rose);font-weight:600;white-space:nowrap}
+.dC .frise .ev{position:absolute;top:27px;width:15px;height:15px;border-radius:50%;background:#2b2b2b;border:2px solid var(--on-dark);transform:translateX(-50%)}
+.dC .frise .ev.on{background:var(--rose);border-color:var(--rose);width:17px;height:17px;top:26px}
+.dC .frise .ev.draft{border-style:dashed;border-color:rgba(255,246,240,.55)}
+.dC .frise .evl{position:absolute;top:0;font-size:12px;font-weight:600;transform:translateX(-50%);white-space:nowrap;color:rgba(255,246,240,.85)}
+/* le billet */
+.dC .ticket{display:grid;grid-template-columns:1fr 210px;background:var(--bg);color:var(--ink);border-radius:14px 14px 0 0;margin-top:10px;position:relative}
+.dC .t-main{padding:22px 26px;display:grid;gap:14px}
+.dC .t-main h3{margin:0;font:400 36px/0.95 var(--blk);letter-spacing:-.05em;text-transform:lowercase}
+.dC .t-main .meta{display:flex;gap:22px;color:var(--soft);font-size:13.5px}
+.dC .t-main .meta b{color:var(--ink);font-weight:600;display:block}
+.dC .t-stub{border-left:2px dashed #e1d3c9;padding:22px 22px;display:grid;align-content:space-between;position:relative}
+.dC .t-stub::before,.dC .t-stub::after{content:"";position:absolute;left:-12px;width:22px;height:22px;border-radius:50%;background:#2b2b2b}
+.dC .t-stub::before{top:-11px} .dC .t-stub::after{bottom:-11px;background:var(--bg);display:none}
+.dC .jj{font:400 64px/0.85 var(--blk);letter-spacing:-.06em}
+.dC .jj small{font-size:15px;letter-spacing:0;display:block;margin-bottom:10px;font-family:var(--pop);font-weight:600}
+.dC .t-stub p{margin:0;font-size:13px;color:var(--soft)}
+.dC .rest{background:var(--bg);flex:1;padding:4px 26px 24px;display:grid;grid-template-columns:1.1fr 1fr 0.9fr;gap:30px;overflow:hidden;border-top:1px solid var(--line)}
+.dC .rest h4{font:600 14.5px var(--pop);margin:18px 0 4px;display:flex;justify-content:space-between;align-items:baseline}
+.dC .rest h4 small{font:400 12.5px var(--pop);color:var(--soft)}
+.dC .big{font:400 40px/1 var(--blk);letter-spacing:-.05em;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+.dC .big small{font-size:22px}
+.dC .ln{display:grid;grid-template-columns:1fr auto;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}
+.dC .ln:first-of-type{border-top:0}
+.dC .ln b{font-weight:600}
+.dC .ln small{display:block;color:var(--soft);font-size:12.5px}
+.dC .ln .r{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.dC .ln .r small{font-weight:400}
+.dC .fl{display:grid;gap:6px;padding:9px 0;border-top:1px solid var(--line)}
+.dC .fl:first-of-type{border-top:0}
+.dC .fl .t{display:flex;justify-content:space-between;font-size:13.5px}
+.dC .fl .t b{font-weight:600}
+.dC .fl .t span{color:var(--soft);font-variant-numeric:tabular-nums}
+.dC .chart{width:100%;height:70px}
+
+/* téléphones : versions courtes */
+.ph-A{background:#fff;color:#1d1d1f;font:400 15px/1.45 var(--sys)}
+.ph-B{background:#f7f6f4;color:#222;font:400 15px/1.5 var(--pop)}
+.ph-C{background:#222;color:#fff6f0;font:400 15px/1.5 var(--pop)}
+.tabbar{margin-top:auto;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px 26px;border-top:1px solid rgba(0,0,0,.08);font-size:11px;text-align:center;flex:none}
+.tabbar span{display:grid;justify-items:center;gap:3px;color:#8f8782}
+.tabbar span.on{color:#222;font-weight:600}
+.tabbar svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.75}
+
+.legend{display:grid;gap:10px}
+.legend .item{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center}
+.legend .item p{margin:0;font-size:14px}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.compare .box h3{font-size:14px;color:var(--page-soft);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="intro">
+  <h1>Evoly&nbsp;: retirer la patte «&nbsp;IA&nbsp;» du tableau de bord</h1>
+  <p>Analyse faite avec la méthode du dossier unslop, puis trois pistes sur le même écran&nbsp;: l’accueil d’une organisation. Données fictives. Rien n’est codé&nbsp;: on choisit d’abord, on code ensuite.</p>
+</header>
+<nav class="jump" aria-label="Sommaire">
+  <a href="#constat">Le constat</a>
+  <a href="#avant">L’accueil aujourd’hui</a>
+  <a href="#a">Piste A, l’outil</a>
+  <a href="#b">Piste B, la charte assainie</a>
+  <a href="#c">Piste C, Jour J</a>
+  <a href="#rythme">La jauge du rythme</a>
+  <a href="#questions">Questions</a>
+</nav>
+
+<!-- =========================================================== CONSTAT -->
+<section class="part" id="constat">
+  <h2>Le constat</h2>
+  <p class="lede">La charte d’Evoly a une vraie identité (charbon, rose, Archivo Black en minuscules serrées, comme sur evoly.me). Le tableau de bord, lui, l’a quittée pour un «&nbsp;thème pro&nbsp;» qui ressemble à tous les tableaux de bord générés&nbsp;: des cartes blanches ombrées partout, quatre indicateurs identiques, des décors pour remplir le vide.</p>
+
+  <div class="box" style="margin-bottom:20px;overflow-x:auto">
+    <h3>Les tics relevés (audit du code et lecture des écrans)</h3>
+    <table class="tbl">
+      <thead><tr><th>Tic</th><th>Où, et la preuve</th><th>Gravité</th></tr></thead>
+      <tbody>
+        <tr><td>Kit de cartes SaaS</td><td>chaque bloc est une <code>Card</code> blanche ombrée et cerclée&nbsp;; 623 occurrences de «&nbsp;card&nbsp;» dans <code>apps/</code>, 115 ombres</td><td><span class="sev f">forte</span></td></tr>
+        <tr><td>Quatre indicateurs identiques</td><td>accueil&nbsp;: quatre cartes de même poids, dont «&nbsp;Taux de présence&nbsp;» toujours affiché «&nbsp;-&nbsp;» (<code>page.tsx</code>, <code>kpiCheckin</code>)</td><td><span class="sev f">forte</span></td></tr>
+        <tr><td>Décor à la place du contenu</td><td>sans image, l’affiche du prochain événement devient un rond lilas et un carré noir tourné (<code>HomeWidgets.tsx:76-79</code>)</td><td><span class="sev f">forte</span></td></tr>
+        <tr><td>Slogan dans un outil</td><td>«&nbsp;bonjour camille, <i>on s’y met&nbsp;?</i>&nbsp;» en minuscules forcées et écriture script</td><td><span class="sev m">moyenne</span></td></tr>
+        <tr><td>Pastille d’initiales répétée</td><td>un rond lilas avec deux lettres sur chaque commande&nbsp;: n’apprend rien</td><td><span class="sev m">moyenne</span></td></tr>
+        <tr><td>Mouvement décoratif</td><td>point qui pulse en continu, pastille «&nbsp;En direct&nbsp;» permanente, fondu à l’arrivée des lignes du tableau</td><td><span class="sev m">moyenne</span></td></tr>
+        <tr><td>Jauges sans réponse</td><td>«&nbsp;312 / 400&nbsp;» ne dit pas si c’est bien ou inquiétant&nbsp;: tout dépend du temps qu’il reste avant la soirée</td><td><span class="sev m">moyenne</span></td></tr>
+        <tr><td>Le même événement deux fois</td><td>le prochain événement est dans le grand bloc et en tête de «&nbsp;Remplissage&nbsp;»</td><td><span class="sev m">moyenne</span></td></tr>
+        <tr><td>Échelle qui flotte</td><td>15 rayons (8 à 32, 99, 999), plus de 15 tailles de texte écrites à la main (<code>text-[0.8125rem]</code> ×46, <code>text-[0.8rem]</code> ×21, 13, 14, 15 px…)</td><td><span class="sev m">moyenne</span></td></tr>
+        <tr><td>Deux systèmes de couleurs</td><td>le thème pro ne s’applique qu’en clair&nbsp;; en sombre, l’app reprend la charte (<code>tokens.css</code>, fin du fichier)</td><td><span class="sev m">moyenne</span></td></tr>
+        <tr><td>Flèches en caractère</td><td>«&nbsp;→&nbsp;» dans l’interface (<code>layout.tsx:127</code>, <code>orders/page.tsx:130</code>, <code>finances/page.tsx:111</code> et <code>124</code>)</td><td><span class="sev l">faible</span></td></tr>
+        <tr><td>Étiquette en capitales espacées</td><td>evoly.me&nbsp;: «&nbsp;EVOLY, LA BILLETTERIE EN LIGNE&nbsp;» au-dessus du titre</td><td><span class="sev l">faible</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cols">
+    <div class="box">
+      <h3>Ce qu’on garde</h3>
+      <ul>
+        <li>La charte&nbsp;: charbon, rose, crème, Archivo Black en minuscules serrées. Elle est à vous, pas une palette par défaut.</li>
+        <li>Les jetons centralisés dans <code>packages/ui</code> et la règle «&nbsp;aucune couleur en dur&nbsp;».</li>
+        <li>Le tableau unique (tri, chiffres alignés, lignes fantômes, état vide avec bouton, cartes sur téléphone).</li>
+        <li>Les fenêtres centrées sur ordinateur et la feuille du bas sur téléphone.</li>
+        <li>La typographie française (apostrophes, espaces insécables) et les sept langues.</li>
+        <li>«&nbsp;Réduire les animations&nbsp;» déjà respecté.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Les trois pistes en une phrase</h3>
+      <ol>
+        <li><b>A, l’outil</b>&nbsp;: la police du système, des lignes au lieu de cartes, la charte réduite au logo et à la sélection. Le plus sûr.</li>
+        <li><b>B, la charte assainie</b>&nbsp;: on garde l’esprit d’evoly.me (rose, Archivo Black) mais pour une seule chose par écran, et on retire les décors.</li>
+        <li><b>C, Jour J</b>&nbsp;: l’idée tirée du sujet. Une billetterie vit au rythme de ses dates&nbsp;: l’accueil devient une frise des semaines à venir et un billet du prochain événement.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== AVANT -->
+<section class="part" id="avant">
+  <h2>L’accueil aujourd’hui</h2>
+  <p class="lede">Reconstitué d’après le code (thème pro, mode clair), faute de pouvoir se connecter ici. Les numéros renvoient au constat.</p>
+  <div class="scroller">
+  <div class="desk av">
+    <span class="pin" style="left:236px;top:30px">1</span>
+    <span class="pin" style="left:236px;top:122px">2</span>
+    <span class="pin" style="left:236px;top:262px">3</span>
+    <span class="pin" style="left:730px;top:252px">4</span>
+    <span class="pin" style="left:1160px;top:226px">5</span>
+    <span class="pin" style="left:236px;top:540px">6</span>
+    <aside class="side">
+      <div class="logo">ev<br>oly</div>
+      <div class="org"><i></i>Les Nuits du Quai</div>
+      <nav class="nav">
+        <a class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</a>
+        <a><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Événements</a>
+        <a><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</a>
+        <a><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>Revente</a>
+        <a><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Finances</a>
+        <a><svg viewBox="0 0 24 24"><path d="M4 12l16-7-5 16-3-7z"/></svg>Marketing</a>
+        <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Marque</a>
+        <a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6M16 4a3.5 3.5 0 0 1 0 7M22 20c0-3-1.5-5-4-5.7"/></svg>Équipe</a>
+        <a><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Abonnement</a>
+        <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>Paramètres</a>
+      </nav>
+    </aside>
+    <main>
+      <div>
+        <p class="greet">bonjour camille, <span>on s’y met&nbsp;?</span></p>
+        <p class="sub">Vos chiffres des 30 derniers jours.</p>
+      </div>
+      <div class="kpis">
+        <div class="card kpi"><p class="l">Recette nette</p><p class="v">8&#8239;412,50&nbsp;€</p></div>
+        <div class="card kpi"><p class="l">Billets vendus</p><p class="v">486</p></div>
+        <div class="card kpi"><p class="l">Événements en vente</p><p class="v">3</p></div>
+        <div class="card kpi"><p class="l">Taux de présence</p><p class="v">-</p></div>
+      </div>
+      <div class="grid2">
+        <div style="display:grid;gap:16px">
+          <div class="card next">
+            <div class="poster"><span class="b1"></span><span class="b2"></span></div>
+            <div class="nb">
+              <span class="chip"><span class="dot"></span>Dans 16 jours</span>
+              <h3>Bal folk d’automne</h3>
+              <p class="muted">sam. 22 nov. 2026, 20:00 · Salle des fêtes, Wépion</p>
+              <div style="display:grid;gap:6px;margin-top:4px">
+                <div style="display:flex;justify-content:space-between;font-size:13px"><b style="font-weight:600">Billets vendus</b><span>312 / 400</span></div>
+                <div class="bar"><i style="width:78%"></i></div>
+              </div>
+              <span class="btn">Voir l’événement</span>
+            </div>
+          </div>
+          <div class="card fill">
+            <p class="h">Remplissage</p>
+            <div class="r"><div class="t"><b>Bal folk d’automne</b><span>312 / 400</span></div><div class="bar"><i style="width:78%"></i></div></div>
+            <div class="r"><div class="t"><b>Les Marées en concert</b><span>128 / 250</span></div><div class="bar"><i style="width:51%"></i></div></div>
+          </div>
+        </div>
+        <div style="display:grid;gap:16px;align-content:start">
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><p class="h">Dernières commandes</p><span class="live">En direct</span></div>
+            <div class="ord"><span class="ini">LM</span><span class="n">Léa Martin<small>Bal folk d’automne</small></span><span class="a">36,00&nbsp;€<small>il y a 3 min</small></span></div>
+            <div class="ord"><span class="ini">TR</span><span class="n">Thomas Renard<small>Bal folk d’automne</small></span><span class="a">72,00&nbsp;€<small>il y a 18 min</small></span></div>
+            <div class="ord"><span class="ini">ID</span><span class="n">Inès Dubois<small>Les Marées en concert</small></span><span class="a">18,00&nbsp;€<small>il y a 41 min</small></span></div>
+            <div class="ord"><span class="ini">HL</span><span class="n">Hugo Lambert<small>Bal folk d’automne</small></span><span class="a">Gratuit<small>il y a 1 h</small></span></div>
+          </div>
+          <div class="card">
+            <p class="h" style="margin-bottom:8px">À faire</p>
+            <p style="font-size:13px;margin:0 0 8px">1 événement à venir sans image</p>
+            <p style="font-size:13px;margin:0">2 brouillons oubliés depuis une semaine</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  </div>
+  <p class="caption">Au plissement d’yeux, cinq blocs pèsent pareil&nbsp;: les quatre indicateurs et l’affiche décorative. Rien ne dit si les ventes vont bien.</p>
+</section>
+
+<!-- =========================================================== PISTE A -->
+<section class="part" id="a">
+  <h2>Piste A&nbsp;: l’outil</h2>
+  <p class="lede">Un tableau de bord qui se fait oublier, comme ceux que les organisateurs connaissent déjà (Stripe, Shopify). La charte reste au logo, à la billetterie publique et aux e-mails. La personnalité passe par la précision&nbsp;: la jauge du rythme, les bons mots, les chiffres justes.</p>
+  <div class="tokens">
+    <div class="box"><h3>Couleurs</h3>
+      <div class="swatches">
+        <div class="sw"><i style="background:#fff"></i><b>Page</b>#FFFFFF</div>
+        <div class="sw"><i style="background:#fafafa"></i><b>Barre</b>#FAFAFA</div>
+        <div class="sw"><i style="background:#ebe8e5"></i><b>Filet</b>#EBE8E5</div>
+        <div class="sw"><i style="background:#1d1d1f"></i><b>Encre</b>#1D1D1F</div>
+        <div class="sw"><i style="background:#222"></i><b>Action</b>#222222</div>
+        <div class="sw"><i style="background:#ff5fc4"></i><b>Rythme</b>#FF5FC4</div>
+      </div></div>
+    <div class="box"><h3>Le reste</h3>
+      <p><b>Police</b>&nbsp;: celle du système (San Francisco, Segoe UI). Archivo Black seulement dans le logo.</p>
+      <p><b>Rayons</b>&nbsp;: 6 (pastilles), 8 (boutons, champs), 12 (fenêtres). Aucune carte.</p>
+      <p><b>Surfaces</b>&nbsp;: des filets, pas d’ombres. Grille de 4, marges de 28.</p>
+    </div>
+  </div>
+  <div class="screens">
+    <div class="scroller">
+    <div class="desk dA">
+      <aside class="side">
+        <div class="logo">ev<br>oly</div>
+        <div class="org"><span>Les Nuits du Quai<small>Offre Pro</small></span><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></div>
+        <nav class="nav">
+          <a class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Événements<span class="count">4</span></a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</a>
+          <a><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>Revente</a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Finances</a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 12l16-7-5 16-3-7z"/></svg>Marketing</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Marque</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/></svg>Équipe</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Abonnement</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Paramètres</a>
+        </nav>
+      </aside>
+      <main>
+        <div class="top"><h1>Accueil</h1><span class="btn p"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Créer un événement</span></div>
+        <div class="body">
+          <div class="stats">
+            <div class="stat"><div class="l">Encaissé sur 30 jours</div><div class="v">8&#8239;412,50&nbsp;€</div><div class="d">+1&#8239;240&nbsp;€ sur la période d’avant</div></div>
+            <div class="stat"><div class="l">Billets vendus</div><div class="v">486</div><div class="d">+64</div></div>
+            <div class="stat"><div class="l">Événements en vente</div><div class="v">3</div><div class="d n">et 1 brouillon</div></div>
+            <svg class="spark" data-bars="A" viewBox="0 0 300 56" aria-label="Recette jour par jour sur 30 jours"></svg>
+          </div>
+          <div>
+            <div class="sec"><h2>À venir</h2><a>Tous les événements</a></div>
+            <table>
+              <thead><tr><th>Événement</th><th>Date</th><th style="width:300px">Ventes</th><th class="num">Encaissé</th><th>Statut</th></tr></thead>
+              <tbody>
+                <tr class="hl"><td class="ev"><b>Bal folk d’automne</b><small>Salle des fêtes, Wépion</small></td><td>sam. 22 nov.<br><small style="color:#6e6a67">dans 16 jours</small></td>
+                  <td><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>312 sur 400</span><span class="pacetxt ok">en avance</span></div><div class="gauge" style="height:6px"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div></td>
+                  <td class="num">5&#8239;616,00&nbsp;€</td><td><span class="pill ok">En vente</span></td></tr>
+                <tr><td class="ev"><b>Les Marées en concert</b><small>Le Belvédère, Namur</small></td><td>sam. 6 déc.<br><small style="color:#6e6a67">dans 30 jours</small></td>
+                  <td><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>128 sur 250</span><span class="pacetxt warn">un peu lent</span></div><div class="gauge" style="height:6px"><i style="width:51%"></i><span class="pace" style="left:60%"></span></div></td>
+                  <td class="num">2&#8239;304,00&nbsp;€</td><td><span class="pill ok">En vente</span></td></tr>
+                <tr><td class="ev"><b>Marché de Noël nocturne</b><small>Place d’Armes, Namur</small></td><td>sam. 13 déc.<br><small style="color:#6e6a67">dans 37 jours</small></td>
+                  <td><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>44 sur 600</span><span class="pacetxt">dans le rythme</span></div><div class="gauge" style="height:6px"><i style="width:7%"></i><span class="pace" style="left:6%"></span></div></td>
+                  <td class="num">Gratuit</td><td><span class="pill ok">En vente</span></td></tr>
+                <tr><td class="ev"><b>Réveillon du Quai</b><small>Lieu à préciser</small></td><td>mer. 31 déc.<br><small style="color:#6e6a67">dans 55 jours</small></td>
+                  <td style="color:#6e6a67;font-size:13px">Pas encore en vente</td><td class="num" style="color:#6e6a67">-</td><td><span class="pill">Brouillon</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="lower2">
+            <div>
+              <div class="sec"><h2>Dernières commandes</h2><a>Toutes les commandes</a></div>
+              <div class="row"><span><b>Léa Martin</b><small>2 billets, Bal folk d’automne</small></span><span class="r">36,00&nbsp;€<small>il y a 3 min</small></span></div>
+              <div class="row"><span><b>Thomas Renard</b><small>4 billets, Bal folk d’automne</small></span><span class="r">72,00&nbsp;€<small>il y a 18 min</small></span></div>
+              <div class="row"><span><b>Inès Dubois</b><small>1 billet, Les Marées en concert</small></span><span class="r">18,00&nbsp;€<small>il y a 41 min</small></span></div>
+            </div>
+            <div>
+              <div class="sec"><h2>À faire</h2></div>
+              <div class="todo"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg><span>Les Marées en concert n’a pas d’image</span><a>Ajouter</a></div>
+              <div class="todo"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg><span>2 brouillons pas modifiés depuis une semaine</span><a>Voir</a></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    </div>
+    <div class="lower">
+      <div class="phone ph-A">
+        <div class="sb"><span>9:41</span><span>●●●</span></div>
+        <div style="padding:6px 20px 0;display:grid;gap:18px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:28px;letter-spacing:-.02em">Accueil</b><span style="width:36px;height:36px;border-radius:50%;background:#222;color:#fff;display:grid;place-items:center;font-size:22px;line-height:1"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2.2" fill="none"><path d="M12 5v14M5 12h14"/></svg></span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #ebe8e5;padding-bottom:16px">
+            <div><div style="font-size:13px;color:#6e6a67">Encaissé sur 30 jours</div><div style="font-size:24px;font-weight:600;letter-spacing:-.02em">8&#8239;412,50&nbsp;€</div></div>
+            <div style="border-left:1px solid #ebe8e5;padding-left:16px"><div style="font-size:13px;color:#6e6a67">Billets vendus</div><div style="font-size:24px;font-weight:600">486</div></div>
+          </div>
+          <div>
+            <div style="font-weight:600;margin-bottom:4px">À venir</div>
+            <div style="padding:12px 0;border-bottom:1px solid #ebe8e5;display:grid;gap:7px">
+              <div style="display:flex;justify-content:space-between"><b style="font-weight:600">Bal folk d’automne</b><span style="color:#6e6a67;font-size:14px">dans 16 jours</span></div>
+              <div class="gauge" style="height:6px"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px"><span>312 sur 400</span><span class="pacetxt ok">en avance</span></div>
+            </div>
+            <div style="padding:12px 0;border-bottom:1px solid #ebe8e5;display:grid;gap:7px">
+              <div style="display:flex;justify-content:space-between"><b style="font-weight:600">Les Marées en concert</b><span style="color:#6e6a67;font-size:14px">dans 30 jours</span></div>
+              <div class="gauge" style="height:6px"><i style="width:51%"></i><span class="pace" style="left:60%"></span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px"><span>128 sur 250</span><span class="pacetxt warn">un peu lent</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:600;margin-bottom:4px">Dernières commandes</div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ebe8e5"><span>Léa Martin<br><small style="color:#6e6a67">2 billets</small></span><span style="text-align:right">36,00&nbsp;€<br><small style="color:#6e6a67">il y a 3 min</small></span></div>
+          </div>
+        </div>
+        <div class="tabbar"><span class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</span><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>Événements</span><span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</span><span><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7"/></svg>Finances</span><span><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>Plus</span></div>
+      </div>
+      <div class="box">
+        <h3>Ce qui change par rapport à aujourd’hui</h3>
+        <ul>
+          <li>Les quatre cartes deviennent une ligne de trois chiffres, avec l’évolution. «&nbsp;Taux de présence&nbsp;» disparaît tant qu’il n’existe pas.</li>
+          <li>«&nbsp;Prochain événement&nbsp;» et «&nbsp;Remplissage&nbsp;» fusionnent en un tableau «&nbsp;À venir&nbsp;»&nbsp;: chaque événement une fois, avec sa date, sa jauge, sa recette.</li>
+          <li>Les commandes&nbsp;: le nombre de billets remplace la pastille d’initiales.</li>
+          <li>«&nbsp;À faire&nbsp;» dit le nom de l’événement et propose le verbe («&nbsp;Ajouter&nbsp;», «&nbsp;Voir&nbsp;»).</li>
+          <li>Pas de salutation, pas d’écriture script&nbsp;: le titre de la page suffit.</li>
+        </ul>
+        <p style="margin-top:12px"><b>Le risque</b>&nbsp;: la marque disparaît presque de l’app. Un organisateur ne reconnaîtrait pas Evoly sur une capture.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== PISTE B -->
+<section class="part" id="b">
+  <h2>Piste B&nbsp;: la charte assainie</h2>
+  <p class="lede">On garde ce qui fait Evoly sur evoly.me&nbsp;: le charbon, le rose, Archivo Black en minuscules serrées. Mais chacun a un seul rôle. Archivo Black pour le grand chiffre de la page et le titre d’une affiche, le rose pour les affiches et le trait du rythme, le charbon pour l’action. Une seule feuille blanche par page, pas de cartes dans les cartes.</p>
+  <div class="tokens">
+    <div class="box"><h3>Couleurs</h3>
+      <div class="swatches">
+        <div class="sw"><i style="background:#f7f6f4"></i><b>Fond</b>#F7F6F4</div>
+        <div class="sw"><i style="background:#fff"></i><b>Feuille</b>#FFFFFF</div>
+        <div class="sw"><i style="background:#222"></i><b>Charbon</b>action</div>
+        <div class="sw"><i style="background:#ffb8e8"></i><b>Rose</b>affiche</div>
+        <div class="sw"><i style="background:#ff5fc4"></i><b>Rythme</b>#FF5FC4</div>
+        <div class="sw"><i style="background:#1f7a4d"></i><b>Vert</b>statut</div>
+      </div></div>
+    <div class="box"><h3>Le reste</h3>
+      <p><b>Polices</b>&nbsp;: Archivo Black pour un seul grand chiffre et les titres d’affiche&nbsp;; Poppins pour tout le reste. Yellowtail réservée à la billetterie publique.</p>
+      <p><b>Rayons</b>&nbsp;: 10 (contrôles), 12 (affiche), 16 (feuille). <b>Ombres</b>&nbsp;: aucune, la feuille se détache par la teinte.</p>
+    </div>
+  </div>
+  <div class="screens">
+    <div class="scroller">
+    <div class="desk dB">
+      <aside class="side">
+        <div class="logo">ev<br>oly</div>
+        <div class="org"><i>NQ</i>Les Nuits du Quai</div>
+        <nav class="nav">
+          <a class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Événements</a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</a>
+          <a><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>Revente</a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Finances</a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 12l16-7-5 16-3-7z"/></svg>Marketing</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Marque</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/></svg>Équipe</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Abonnement</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Paramètres</a>
+        </nav>
+      </aside>
+      <main>
+        <div class="sheet">
+          <div class="hello">
+            <div>
+              <p>Bonjour Camille. Sur les 30 derniers jours, vous avez encaissé</p>
+              <div class="big">8&#8239;412,50<small>&nbsp;€</small></div>
+              <div class="minis"><span><b>486</b>billets vendus</span><span><b>3</b>événements en vente</span><span><b style="color:var(--ok)">+17&nbsp;%</b>sur 30 jours</span></div>
+            </div>
+            <div style="display:grid;gap:12px;justify-items:end">
+              <span class="btn p"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Créer un événement</span>
+              <svg class="chart" data-bars="B" viewBox="0 0 420 96" aria-label="Recette jour par jour sur 30 jours"></svg>
+            </div>
+          </div>
+          <div class="next">
+            <div class="affiche"><b>bal folk<br>d’automne</b><span>Salle des fêtes, Wépion</span></div>
+            <div class="ninfo">
+              <div class="when"><b>Dans 16 jours</b>samedi 22 novembre, 20:00</div>
+              <h3>Votre prochain événement</h3>
+              <div style="display:grid;gap:8px;max-width:520px">
+                <div class="gauge-l"><b>312 billets sur 400</b><span>il reste 88 places</span></div>
+                <div class="gauge"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div>
+                <span class="pacetxt ok">En avance&nbsp;: 78&nbsp;% vendus alors que 69&nbsp;% de la période de vente est passée.</span>
+              </div>
+              <div style="display:flex;gap:10px"><span class="btn">Ouvrir l’événement</span><span class="btn">Copier le lien de la billetterie</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="twocol">
+          <div class="panel">
+            <h4>Dernières commandes <small>mises à jour il y a 12 s</small></h4>
+            <div class="ln"><span class="qty">2</span><span><b>Léa Martin</b><small>Bal folk d’automne</small></span><span class="r">36,00&nbsp;€<small>il y a 3 min</small></span></div>
+            <div class="ln"><span class="qty">4</span><span><b>Thomas Renard</b><small>Bal folk d’automne</small></span><span class="r">72,00&nbsp;€<small>il y a 18 min</small></span></div>
+            <div class="ln"><span class="qty">1</span><span><b>Inès Dubois</b><small>Les Marées en concert</small></span><span class="r">18,00&nbsp;€<small>il y a 41 min</small></span></div>
+          </div>
+          <div class="panel">
+            <h4>Les autres événements</h4>
+            <div class="fl"><div class="gauge-l"><b>Les Marées en concert</b><span>128 sur 250</span></div><div class="gauge" style="height:7px"><i style="width:51%"></i><span class="pace" style="left:60%"></span></div><span class="pacetxt warn">Un peu lent, et pas encore d’image</span></div>
+            <div class="fl"><div class="gauge-l"><b>Marché de Noël nocturne</b><span>44 sur 600</span></div><div class="gauge" style="height:7px"><i style="width:7%"></i><span class="pace" style="left:6%"></span></div><span class="pacetxt">Dans le rythme</span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+    </div>
+    <div class="lower">
+      <div class="phone ph-B">
+        <div class="sb"><span>9:41</span><span>●●●</span></div>
+        <div style="padding:6px 16px 0;display:grid;gap:12px">
+          <div style="background:#fff;border-radius:16px;padding:18px;display:grid;gap:14px">
+            <p style="margin:0;color:#6b6460;font-size:14px">Encaissé sur 30 jours</p>
+            <div style="font:400 44px/0.95 var(--blk);letter-spacing:-.05em;margin-top:-8px">8&#8239;412,50<small style="font-size:24px">&nbsp;€</small></div>
+            <div style="display:flex;gap:24px;font-size:13px;color:#6b6460"><span><b style="display:block;color:#222;font-size:18px;font-weight:600">486</b>billets</span><span><b style="display:block;color:#222;font-size:18px;font-weight:600">3</b>en vente</span></div>
+          </div>
+          <div style="background:#fff;border-radius:16px;overflow:hidden">
+            <div style="background:#ffb8e8;padding:16px 18px;display:flex;justify-content:space-between;align-items:end"><b style="font:400 30px/0.92 var(--blk);letter-spacing:-.055em">bal folk<br>d’automne</b><span style="background:#222;color:#fff6f0;border-radius:8px;padding:3px 9px;font-size:13px;font-weight:600">Dans 16 jours</span></div>
+            <div style="padding:14px 18px;display:grid;gap:8px">
+              <div style="display:flex;justify-content:space-between;font-size:14px"><b style="font-weight:600">312 sur 400</b><span class="pacetxt ok" style="font-size:13px">en avance</span></div>
+              <div class="gauge"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-radius:16px;padding:6px 18px">
+            <div class="dB" style="background:none"><div class="ln" style="display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:10px 0"><span class="qty">2</span><span><b>Léa Martin</b><small>il y a 3 min</small></span><span class="r">36,00&nbsp;€</span></div>
+            <div class="ln" style="display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:10px 0"><span class="qty">4</span><span><b>Thomas Renard</b><small>il y a 18 min</small></span><span class="r">72,00&nbsp;€</span></div></div>
+          </div>
+        </div>
+        <div class="tabbar" style="background:#f7f6f4"><span class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</span><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>Événements</span><span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</span><span><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7"/></svg>Finances</span><span><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>Plus</span></div>
+      </div>
+      <div class="box">
+        <h3>Ce qui change par rapport à aujourd’hui</h3>
+        <ul>
+          <li>Un seul chiffre en Archivo Black, dans une phrase&nbsp;: «&nbsp;vous avez encaissé 8&#8239;412,50&nbsp;€&nbsp;». Les autres chiffres sont plus petits, sans carte.</li>
+          <li>L’affiche sans image devient une affiche typographique&nbsp;: le titre de l’événement en Archivo Black sur le rose, comme sur evoly.me. Plus de rond lilas ni de carré tourné.</li>
+          <li>La jauge dit si c’est bien, avec une phrase (voir «&nbsp;La jauge du rythme&nbsp;» plus bas).</li>
+          <li>«&nbsp;En direct&nbsp;» ne pulse plus&nbsp;: «&nbsp;mises à jour il y a 12&nbsp;s&nbsp;».</li>
+          <li>La pastille d’initiales devient le nombre de billets de la commande.</li>
+          <li>Le prochain événement n’apparaît qu’une fois&nbsp;; «&nbsp;Les autres événements&nbsp;» prennent la suite.</li>
+        </ul>
+        <p style="margin-top:12px"><b>Le compromis</b>&nbsp;: c’est la piste la plus proche de l’existant, donc la moins coûteuse. Elle tient si on s’interdit de remettre Archivo Black ou le rose ailleurs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== PISTE C -->
+<section class="part" id="c">
+  <h2>Piste C&nbsp;: Jour J</h2>
+  <p class="lede">L’unité d’une billetterie, c’est la date. Tout ce qu’un organisateur regarde se lit par rapport à elle&nbsp;: combien de jours restent, si les ventes suivent, ce qu’il faut finir avant. Le haut de l’accueil devient une scène charbon (comme la page de connexion et evoly.me) avec la frise des huit semaines à venir, puis le billet du prochain événement, avec sa souche «&nbsp;J−16&nbsp;». Le billet est la seule chose mémorable de l’écran&nbsp;; le reste est calme, sur crème.</p>
+  <div class="tokens">
+    <div class="box"><h3>Couleurs</h3>
+      <div class="swatches">
+        <div class="sw"><i style="background:#222"></i><b>Scène</b>#222222</div>
+        <div class="sw"><i style="background:#2b2b2b"></i><b>Scène 2</b>#2B2B2B</div>
+        <div class="sw"><i style="background:#fff6f0"></i><b>Billet</b>crème</div>
+        <div class="sw"><i style="background:#ffb8e8"></i><b>Rose</b>aujourd’hui, action</div>
+        <div class="sw"><i style="background:#ff5fc4"></i><b>Rythme</b>#FF5FC4</div>
+        <div class="sw"><i style="background:#a35700"></i><b>Orange</b>statut</div>
+      </div></div>
+    <div class="box"><h3>Le reste</h3>
+      <p><b>Polices</b>&nbsp;: Archivo Black pour le titre du billet, le compte à rebours et le grand chiffre&nbsp;; Poppins ailleurs.</p>
+      <p><b>Le motif</b>&nbsp;: la souche perforée, une seule fois par écran. Dans un événement, la même souche resterait en haut («&nbsp;J−16&nbsp;») sur toutes ses pages.</p>
+      <p><b>Rayons</b>&nbsp;: 10, 14, 16. Aucune ombre.</p>
+    </div>
+  </div>
+  <div class="screens">
+    <div class="scroller">
+    <div class="desk dC">
+      <aside class="side">
+        <div class="logo">ev<br>oly</div>
+        <div class="org"><i>NQ</i>Les Nuits du Quai</div>
+        <nav class="nav">
+          <a class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Événements</a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</a>
+          <a><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>Revente</a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Finances</a>
+          <a><svg viewBox="0 0 24 24"><path d="M4 12l16-7-5 16-3-7z"/></svg>Marketing</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Marque</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/></svg>Équipe</a>
+          <a><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Abonnement</a>
+          <a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Paramètres</a>
+        </nav>
+      </aside>
+      <main>
+        <div class="stage">
+          <div class="stage-h"><p><b>Jeudi 6 novembre.</b> 4 événements dans les 8 prochaines semaines.</p><span class="btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Créer un événement</span></div>
+          <div class="frise" id="frise"></div>
+          <div class="ticket">
+            <div class="t-main">
+              <h3>bal folk d’automne</h3>
+              <div class="meta"><span><b>Samedi 22 novembre</b>portes à 20:00</span><span><b>Salle des fêtes</b>Wépion</span><span><b>5&#8239;616,00&nbsp;€</b>encaissés</span></div>
+              <div style="display:grid;gap:8px;max-width:560px">
+                <div style="display:flex;justify-content:space-between;font-size:13.5px"><b style="font-weight:600">312 billets sur 400</b><span style="color:var(--soft)">il reste 88 places</span></div>
+                <div class="gauge"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div>
+                <span class="pacetxt ok">En avance sur le rythme. À ce train, complet vers le 17 novembre.</span>
+              </div>
+            </div>
+            <div class="t-stub">
+              <div class="jj"><small>samedi 22 nov.</small>J−16</div>
+              <p>Contrôle des entrées prêt&nbsp;: 3 bénévoles invités.</p>
+            </div>
+          </div>
+        </div>
+        <div class="rest">
+          <div>
+            <h4>Encaissé sur 30 jours <small>+17&nbsp;%</small></h4>
+            <div class="big">8&#8239;412,50<small>&nbsp;€</small></div>
+            <svg class="chart" data-bars="C" viewBox="0 0 330 70" aria-label="Recette jour par jour sur 30 jours"></svg>
+          </div>
+          <div>
+            <h4>Dernières commandes <small>il y a 12 s</small></h4>
+            <div class="ln"><span><b>Léa Martin</b><small>2 billets, Bal folk</small></span><span class="r">36,00&nbsp;€<small>3 min</small></span></div>
+            <div class="ln"><span><b>Thomas Renard</b><small>4 billets, Bal folk</small></span><span class="r">72,00&nbsp;€<small>18 min</small></span></div>
+            <div class="ln"><span><b>Inès Dubois</b><small>1 billet, Les Marées</small></span><span class="r">18,00&nbsp;€<small>41 min</small></span></div>
+            <div class="ln"><span><b>Hugo Lambert</b><small>1 invitation, Bal folk</small></span><span class="r">offert<small>1 h</small></span></div>
+            <div class="ln"><span><b>Sarah Peeters</b><small>3 billets, Marché de Noël</small></span><span class="r">gratuit<small>2 h</small></span></div>
+          </div>
+          <div>
+            <h4>Avant les prochaines dates</h4>
+            <div class="fl"><div class="t"><b>Les Marées, J−30</b><span>128 sur 250</span></div><div class="gauge" style="height:6px"><i class="warn" style="width:51%"></i><span class="pace" style="left:60%"></span></div><span class="pacetxt warn">Un peu lent. Ajouter une image aiderait.</span></div>
+            <div class="fl"><div class="t"><b>Marché de Noël, J−37</b><span>44 sur 600</span></div><div class="gauge" style="height:6px"><i style="width:7%"></i><span class="pace" style="left:6%"></span></div><span class="pacetxt">Dans le rythme. 2 bénévoles à inviter pour les entrées.</span></div>
+            <div class="fl"><div class="t"><b>Réveillon, J−55</b><span>brouillon</span></div><span class="pacetxt">Pas modifié depuis 9 jours. Publier&nbsp;?</span></div>
+          </div>
+        </div>
+      </main>
+    </div>
+    </div>
+    <div class="lower">
+      <div class="phone ph-C">
+        <div class="sb"><span>9:41</span><span>●●●</span></div>
+        <div style="padding:4px 18px 14px">
+          <p style="margin:0 0 12px;font-size:14px;color:rgba(255,246,240,.7)"><b style="color:#fff6f0">Jeudi 6 novembre.</b> 4 dates à venir.</p>
+          <div style="display:flex;gap:8px;overflow:hidden">
+            <span style="flex:none;background:#ffb8e8;color:#222;border-radius:10px;padding:6px 11px;font-size:13px;font-weight:600">22 nov., J−16</span>
+            <span style="flex:none;background:#333;border-radius:10px;padding:6px 11px;font-size:13px">6 déc., J−30</span>
+            <span style="flex:none;background:#333;border-radius:10px;padding:6px 11px;font-size:13px">13 déc., J−37</span>
+          </div>
+        </div>
+        <div style="background:#fff6f0;color:#222;margin:0 12px;border-radius:14px;display:grid;grid-template-rows:auto auto">
+          <div style="padding:18px 18px 16px;display:grid;gap:10px">
+            <b style="font:400 32px/0.92 var(--blk);letter-spacing:-.055em">bal folk<br>d’automne</b>
+            <span style="font-size:13.5px;color:#6b6460">Samedi 22 novembre, 20:00, Wépion</span>
+            <div class="gauge"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><b style="font-weight:600">312 sur 400</b><span class="pacetxt ok">en avance</span></div>
+          </div>
+          <div style="border-top:2px dashed #e1d3c9;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;position:relative">
+            <span style="position:absolute;left:-11px;top:-11px;width:20px;height:20px;border-radius:50%;background:#222"></span>
+            <span style="position:absolute;right:-11px;top:-11px;width:20px;height:20px;border-radius:50%;background:#222"></span>
+            <span style="font:400 40px/0.9 var(--blk);letter-spacing:-.06em">J−16</span>
+            <span style="font-size:13px;color:#6b6460;text-align:right">5&#8239;616,00&nbsp;€<br>encaissés</span>
+          </div>
+        </div>
+        <div style="background:#fff6f0;color:#222;margin-top:14px;border-radius:22px 22px 0 0;flex:1;padding:16px 18px;display:grid;align-content:start;gap:2px">
+          <b style="font-weight:600;font-size:15px;margin-bottom:4px">Dernières commandes</b>
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee5df;font-size:14px"><span>Léa Martin<br><small style="color:#6b6460">2 billets</small></span><span style="text-align:right;font-weight:600">36,00&nbsp;€<br><small style="color:#6b6460;font-weight:400">3 min</small></span></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee5df;font-size:14px"><span>Thomas Renard<br><small style="color:#6b6460">4 billets</small></span><span style="text-align:right;font-weight:600">72,00&nbsp;€<br><small style="color:#6b6460;font-weight:400">18 min</small></span></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #eee5df;font-size:14px"><span>Inès Dubois<br><small style="color:#6b6460">1 billet, Les Marées</small></span><span style="text-align:right;font-weight:600">18,00&nbsp;€<br><small style="color:#6b6460;font-weight:400">41 min</small></span></div>
+        </div>
+        <div class="tabbar" style="background:#fff6f0;border-top-color:#eee5df"><span class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</span><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>Événements</span><span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</span><span><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7"/></svg>Finances</span><span><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>Plus</span></div>
+      </div>
+      <div class="box">
+        <h3>Ce qui change par rapport à aujourd’hui</h3>
+        <ul>
+          <li>La frise répond à «&nbsp;qu’est-ce qui arrive&nbsp;?&nbsp;» d’un coup d’œil&nbsp;: chaque date, le trait rose d’aujourd’hui, les brouillons en pointillé. Un clic sur un point ouvre son billet.</li>
+          <li>Le billet du prochain événement remplace l’affiche décorative et les quatre indicateurs. Sa souche donne le compte à rebours et ce qui est prêt pour le jour J.</li>
+          <li>La jauge dit si les ventes suivent et projette la date du complet.</li>
+          <li>«&nbsp;À faire&nbsp;» devient «&nbsp;Avant les prochaines dates&nbsp;»&nbsp;: les tâches sont rangées par événement, avec leur J−.</li>
+          <li>Dans un événement, la souche «&nbsp;J−16&nbsp;» resterait en haut de toutes ses pages. Le jour même, elle passerait à «&nbsp;Ce soir&nbsp;» et mènerait au contrôle des entrées.</li>
+        </ul>
+        <p style="margin-top:12px"><b>Le compromis</b>&nbsp;: c’est la piste la plus marquée, et la seule qu’on ne confondrait avec aucune autre app. Elle demande plus de travail (frise, souche, projection du complet) et le billet doit rester unique&nbsp;: pas de souches ailleurs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== JAUGE -->
+<section class="part" id="rythme">
+  <h2>La jauge du rythme, valable pour les trois pistes</h2>
+  <p class="lede">«&nbsp;312 sur 400&nbsp;» ne dit pas si c’est bien. Trois semaines avant la soirée, c’est très bien&nbsp;; la veille, c’est inquiétant. Le trait rose marque la part de la période de vente déjà passée. Si la barre le dépasse, on vend plus vite que prévu. La phrase en dessous le dit en mots, pour qui ne lit pas les graphiques. Le calcul reste dans <code>packages/core</code>, comme les autres règles.</p>
+  <div class="box legend" style="max-width:820px">
+    <div class="item"><span class="pacetxt ok"><b>En avance</b></span><div style="display:grid;gap:6px"><div class="gauge"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div><p>78&nbsp;% vendus, 69&nbsp;% de la période passée. «&nbsp;À ce train, complet vers le 17 novembre.&nbsp;»</p></div></div>
+    <div class="item"><span class="pacetxt"><b>Dans le rythme</b></span><div style="display:grid;gap:6px"><div class="gauge"><i style="width:42%"></i><span class="pace" style="left:44%"></span></div><p>Écart de moins de 5 points&nbsp;: rien à signaler.</p></div></div>
+    <div class="item"><span class="pacetxt warn"><b>Un peu lent</b></span><div style="display:grid;gap:6px"><div class="gauge"><i class="warn" style="width:51%"></i><span class="pace" style="left:60%"></span></div><p>La barre passe en orange. On propose une action&nbsp;: un code promo, une image, relancer les contacts.</p></div></div>
+    <div class="item"><span class="pacetxt ok"><b>Complet</b></span><div style="display:grid;gap:6px"><div class="gauge"><i class="ok" style="width:100%"></i></div><p>Barre verte, plus de trait. «&nbsp;Complet depuis le 14 novembre. 12 personnes en liste d’attente.&nbsp;»</p></div></div>
+  </div>
+</section>
+
+<!-- =========================================================== QUESTIONS -->
+<section class="part" id="questions">
+  <h2>Questions avant de coder</h2>
+  <div class="cols">
+    <div class="box">
+      <ol>
+        <li><b>Quelle piste&nbsp;?</b> Ou un mélange&nbsp;: par exemple la sobriété de A pour les tableaux et les réglages, et le billet de C sur l’accueil et en haut des pages d’un événement.</li>
+        <li><b>L’écriture script</b> (Yellowtail)&nbsp;: on la retire de l’app pour la garder à evoly.me et à la billetterie publique&nbsp;?</li>
+        <li><b>Le rose</b>&nbsp;: seulement pour l’affiche et le rythme (A, B), ou aussi pour l’action principale (C)&nbsp;?</li>
+      </ol>
+    </div>
+    <div class="box">
+      <ol start="4">
+        <li><b>La jauge du rythme</b>&nbsp;: on la met partout où il y a une jauge de ventes (accueil, événements, tarifs)&nbsp;?</li>
+        <li><b>Le mode sombre</b>&nbsp;: aujourd’hui il reprend la charte, sans le thème pro. On conçoit un sombre propre à la piste choisie&nbsp;?</li>
+        <li><b>evoly.me</b>&nbsp;: on retire aussi l’étiquette en capitales au-dessus du titre&nbsp;?</li>
+      </ol>
+    </div>
+  </div>
+  <p class="caption">Pas vérifié&nbsp;: l’écran «&nbsp;avant&nbsp;» est reconstitué d’après le code, sans capture de l’app connectée&nbsp;; les maquettes sont en mode clair seulement&nbsp;; les contrastes du rose sur crème n’ont pas été mesurés.</p>
+</section>
+
+</div>
+
+<script>
+// Recette jour par jour (fictive), en euros
+const days=[120,0,340,180,95,410,620,230,150,0,280,510,760,390,210,180,330,450,880,1240,300,160,90,420,560,310,640,280,190,610];
+const max=Math.max(...days);
+const styles={A:{fill:"#cfcac6",last:"#222"},B:{fill:"#e9e4df",last:"#222"},C:{fill:"#e6d9cf",last:"#222"}};
+document.querySelectorAll("svg[data-bars]").forEach(svg=>{
+  const [,, w, h]=svg.getAttribute("viewBox").split(" ").map(Number);
+  const s=styles[svg.dataset.bars], gap=3, bw=(w-gap*(days.length-1))/days.length;
+  days.forEach((v,i)=>{
+    const bh=Math.max(2,(v/max)*(h-4));
+    const r=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x",i*(bw+gap)); r.setAttribute("y",h-bh); r.setAttribute("width",bw); r.setAttribute("height",bh);
+    r.setAttribute("rx",Math.min(2,bw/2)); r.setAttribute("fill",i===days.length-1?s.last:s.fill);
+    svg.appendChild(r);
+  });
+});
+// Frise de la piste C : 8 semaines à partir du jeudi 6 novembre
+(function(){
+  const f=document.getElementById("frise"); if(!f) return;
+  const span=56, pct=d=>(d/span*100)+"%";
+  f.innerHTML='<div class="axis"></div>';
+  const weeks=["10 nov.","17 nov.","24 nov.","1er déc.","8 déc.","15 déc.","22 déc.","29 déc."];
+  weeks.forEach((w,i)=>{const d=4+i*7;f.insertAdjacentHTML("beforeend",`<span class="wk" style="left:${pct(d)}"></span><span class="wkl" style="left:${pct(d)}">${w}</span>`)});
+  f.insertAdjacentHTML("beforeend",`<span class="today" style="left:0"><span>aujourd’hui</span></span>`);
+  [[16,"Bal folk","on"],[30,"Les Marées",""],[37,"Marché de Noël",""],[55,"Réveillon","draft"]].forEach(([d,n,c])=>{
+    f.insertAdjacentHTML("beforeend",`<span class="evl" style="left:${pct(d)}">${n}</span><span class="ev ${c}" style="left:${pct(d)}"></span>`);
+  });
+})();
+</script>
+</body>
+</html>

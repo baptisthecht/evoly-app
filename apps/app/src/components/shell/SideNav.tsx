@@ -260,13 +260,13 @@ export function NavGlyph({
 
 const pathOf = (href: string) => href.split("?")[0]!;
 
-// page active : texte en gras et son segment du trait en rose ; survol : texte en gras seulement (ni fond, ni arrondi)
-// maquette validée : lien actif sur fond gris, icône de chaque page, aucun filet
+// refonte A3 (docs/DECISIONS.md) : lien actif sur fond plus clair que la barre charbon, marqué d'un trait rose
+// collé au bord de la barre ; icône de chaque page, aucun filet
 const itemClass = (on: boolean) =>
   cn(
-    "flex min-h-10 items-center gap-2.5 rounded-sm px-2.5 text-[0.875rem] transition-colors",
+    "relative flex min-h-10 items-center gap-2.5 rounded-sm px-2.5 text-[0.875rem] transition-colors",
     on
-      ? "bg-surface font-medium text-ink"
+      ? "bg-surface font-medium text-ink before:absolute before:inset-y-2 before:-left-3 before:w-[3px] before:rounded-r-[3px] before:bg-highlight"
       : "text-ink-muted hover:bg-surface hover:text-ink",
   );
 const soloClass = itemClass;
@@ -318,7 +318,7 @@ export function SideNav({
           >
             <p
               className={cn(
-                "px-2.5 pb-1.5 text-[0.6875rem] font-semibold tracking-[0.05em] uppercase",
+                "px-2.5 pb-1.5 text-[0.75rem] font-semibold", // sans capitales espacées (tic relevé par l'audit)
                 open ? "text-ink" : "text-ink-muted",
               )}
             >

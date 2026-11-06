@@ -36,3 +36,4 @@ export * from "./people";
 export * from "./tracking";
 export * from "./promotions";
 export * from "./buyerKey";
+export * from "./pace";

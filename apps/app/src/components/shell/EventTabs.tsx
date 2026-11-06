@@ -4,7 +4,11 @@ import { ButtonTabs } from "@/components/ui/ButtonTabs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { activeEventTab, type EventTab, type HiddenFeature } from "./eventTabs";
+import {
+  activeEventTab,
+  type EventTab,
+  type HiddenFeature,
+} from "./eventTabItems";
 
 const under = (path: string, href: string) =>
   path === href || path.startsWith(`${href}/`);

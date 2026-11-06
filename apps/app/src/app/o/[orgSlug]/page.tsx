@@ -3,16 +3,18 @@ import { formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ButtonLink } from "@/components/ui/Button";
-import { Card, EmptyState } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/Card";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
 import { homeOverview } from "@/server/home";
+import { eventPublicUrl } from "@/server/urls";
 import {
-  FillWidget,
-  LiveOrdersWidget,
-  NextEventWidget,
-  RevenueWidget,
-  TodoWidget,
+  LiveOrders,
+  NextEventBand,
+  RevenueSpark,
+  Stat,
+  TodoList,
+  UpcomingTable,
 } from "./HomeWidgets";
 import { StripeBanner } from "./StripeBanner";
 
@@ -69,8 +71,8 @@ export default async function OrgHome({
   const showMoney = can(ctx.membership, "FINANCE_VIEW");
   const home = await homeOverview(ctx);
   const base = `/o/${ctx.organization.slug}`;
-  const firstName = ctx.user.name.split(" ")[0] ?? ctx.user.name;
 
+  // refonte A3 : trois indicateurs en ligne (le taux de présence, jamais calculé, est retiré)
   const kpis = [
     {
       label: t("kpiNet"),
@@ -80,69 +82,66 @@ export default async function OrgHome({
     },
     { label: t("kpiTickets"), value: String(tickets) },
     { label: t("kpiEvents"), value: String(events) },
-    { label: t("kpiCheckin"), value: "-" },
   ];
 
   return (
-    <div className="grid gap-8">
-      <header className="grid gap-2">
-        <p className="text-lg font-medium">
-          {t("greeting", { name: firstName.toLowerCase() })}{" "}
-          <span className="script text-[1.1em]">{t("greetingScript")}</span>
-        </p>
-        <p className="text-ink-muted">{t("period")}</p>
-      </header>
-
+    <div className="grid gap-7">
       <StripeBanner ctx={ctx} />
 
       <section
         aria-label={t("kpisLabel")}
-        className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+        className="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-line pb-5 sm:grid-cols-3 lg:grid-cols-[repeat(3,auto)_minmax(0,1fr)] lg:gap-x-0"
       >
         {kpis.map((k) => (
-          <Card key={k.label} className="grid gap-2">
-            <p className="font-label text-[0.8rem] font-bold text-ink-muted">
-              {k.label}
-            </p>
-            <p className="font-display text-[clamp(1.6rem,3vw,2.2rem)] leading-none tracking-[-0.04em] tabular-nums">
-              {k.value}
-            </p>
-          </Card>
+          <div
+            key={k.label}
+            className="lg:mr-9 lg:border-r lg:border-line lg:pr-9 lg:last-of-type:mr-0 lg:last-of-type:border-r-0"
+          >
+            <Stat label={k.label} value={k.value} />
+          </div>
         ))}
+        {showMoney ? (
+          <div className="hidden lg:grid">
+            <RevenueSpark
+              revenue={home.revenue}
+              currency={ctx.organization.currency}
+              locale={locale}
+            />
+          </div>
+        ) : null}
       </section>
 
-      {/* accueil vivant : prochain événement, dernières commandes, recette, remplissage, à faire */}
       {events > 0 ? (
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <div className="grid content-start gap-4">
-            <NextEventWidget next={home.next} base={base} locale={locale} />
-            {showMoney ? (
-              <RevenueWidget
-                revenue={home.revenue}
-                currency={ctx.organization.currency}
-                locale={locale}
-              />
-            ) : null}
-          </div>
-          <div className="grid content-start gap-4">
+        <>
+          {home.next ? (
+            <NextEventBand
+              next={home.next}
+              url={eventPublicUrl(ctx.organization, home.next)}
+              base={base}
+              locale={locale}
+            />
+          ) : null}
+          <UpcomingTable
+            events={home.fill.slice(1)}
+            base={base}
+            locale={locale}
+          />
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-9">
             {can(ctx.membership, "ORDERS_VIEW") ? (
-              <LiveOrdersWidget
+              <LiveOrders
                 recent={home.recent}
                 base={base}
                 locale={locale}
                 money={showMoney}
               />
             ) : null}
-            <TodoWidget
+            <TodoList
               todo={home.todo}
               base={base}
               canPay={can(ctx.membership, "PAYMENTS_MANAGE")}
             />
           </div>
-          <div className="lg:col-span-2">
-            <FillWidget fill={home.fill} base={base} locale={locale} />
-          </div>
-        </section>
+        </>
       ) : null}
 
       {events === 0 ? (

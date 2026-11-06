@@ -19,8 +19,23 @@ export async function SectionHeader({
   const tabs = (list: Array<[string, string, string?]>) =>
     list.map(([label, href, match]) => ({ label, href, match }));
   switch (section) {
-    case "":
-      return <PageHeader title={nav("home")} />;
+    case "": {
+      // refonte A3 : « Créer un événement » à portée de main depuis l'accueil
+      const te = await getTranslations("events");
+      const canCreate = can(ctx.membership, "EVENTS_CREATE") && !ctx.readOnly;
+      return (
+        <PageHeader
+          title={nav("home")}
+          actions={
+            canCreate ? (
+              <ButtonLink href={`${base}/events/new`}>
+                {te("newEvent")}
+              </ButtonLink>
+            ) : null
+          }
+        />
+      );
+    }
     case "events": {
       const te = await getTranslations("events");
       const canCreate = can(ctx.membership, "EVENTS_CREATE") && !ctx.readOnly;

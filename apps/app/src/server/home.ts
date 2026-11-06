@@ -1,3 +1,4 @@
+import { salesPace, salesWindow } from "@evoly/core";
 import { db } from "@/lib/db";
 import type { OrgContext } from "./context";
 
@@ -22,8 +23,14 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
       select: {
         id: true,
         title: true,
+        slug: true,
+        subdomain: true,
         startsAt: true,
         timezone: true,
+        salesStartAt: true,
+        salesEndAt: true,
+        publishedAt: true,
+        createdAt: true,
         city: true,
         locationName: true,
         coverImageUrl: true,
@@ -51,6 +58,7 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
         currency: true,
         paidAt: true,
         event: { select: { title: true } },
+        _count: { select: { tickets: true } },
       },
     }),
     db.$queryRaw<Array<{ day: Date; total: bigint | number | null }>>`
@@ -79,10 +87,15 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
     return {
       id: e.id,
       title: e.title,
+      slug: e.slug,
+      subdomain: e.subdomain,
       startsAt: e.startsAt,
       timezone: e.timezone,
+      place: e.city ?? e.locationName ?? "",
       sold,
       capacity,
+      // refonte A3 : le rythme des ventes (packages/core/src/pace.ts)
+      pace: salesPace({ sold, capacity, ...salesWindow(e), now }),
     };
   });
   const byDay = new Map(
@@ -96,17 +109,12 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
   });
   const next = upcoming[0] ?? null;
   return {
-    next: next
-      ? {
-          ...fill[0]!,
-          coverImageUrl: next.coverImageUrl,
-          place: next.city ?? next.locationName ?? "",
-        }
-      : null,
+    next: next ? { ...fill[0]!, coverImageUrl: next.coverImageUrl } : null,
     recent: recent.map((o) => ({
       id: o.id,
       name: `${o.buyerFirstName} ${o.buyerLastName}`.trim() || o.buyerEmail,
       event: o.event.title,
+      tickets: o._count.tickets,
       totalMinor: o.totalMinor,
       currency: o.currency,
       paidAt: o.paidAt!,

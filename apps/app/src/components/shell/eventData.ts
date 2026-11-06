@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { cache } from "react";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
-import { buildEventTabs } from "./eventTabs";
+import { buildEventTabs } from "./eventTabItems";
 
 /** Événement de l'en-tête et ses onglets (une seule lecture par requête, partagée par la bande et la seconde rangée). */
 export const eventHeaderData = cache(

@@ -910,7 +910,23 @@
     "todoStripe": "Stripe verbinden, um kostenpflichtige Tickets zu verkaufen",
     "todoCover": "{count, plural, one {# kommende Veranstaltung ohne Bild} other {# kommende Veranstaltungen ohne Bild}}",
     "todoDrafts": "{count, plural, one {# Entwurf seit einer Woche unberührt} other {# Entwürfe seit einer Woche unberührt}}",
-    "todoNone": "Alles in Ordnung"
+    "todoNone": "Alles in Ordnung",
+    "nextLabel": "Nächste Veranstaltung",
+    "countdown": "{count, plural, one {# Tag} other {# Tage}}",
+    "countdownToday": "Heute",
+    "countdownTomorrow": "Morgen",
+    "beforeStart": "bis zum Beginn",
+    "copyLink": "Link kopieren",
+    "open": "Öffnen",
+    "upcomingTitle": "Demnächst",
+    "allEvents": "Alle Veranstaltungen",
+    "allOrders": "Alle Bestellungen",
+    "tickets": "{count, plural, one {# Ticket} other {# Tickets}}",
+    "colEvent": "Veranstaltung",
+    "colDate": "Datum",
+    "colSales": "Verkauf",
+    "inDays": "{count, plural, =0 {heute} =1 {morgen} other {in # Tagen}}",
+    "revenueChart": "Tageseinnahmen der letzten 30 Tage"
   },
   "events": {
     "newEvent": "Neue Veranstaltung",
@@ -3473,5 +3489,16 @@
   },
   "dialog": {
     "close": "Schließen"
+  },
+  "pace": {
+    "ahead": "schneller als geplant",
+    "onTrack": "im Plan",
+    "behind": "etwas langsam",
+    "soldOut": "ausverkauft",
+    "notStarted": "Verkauf noch nicht gestartet",
+    "soldOf": "{sold} von {capacity}",
+    "sold": "{sold, plural, one {# Ticket verkauft} other {# Tickets verkauft}}",
+    "soldOutAt": "In diesem Tempo um den {date} ausverkauft.",
+    "label": "{sold} von {capacity} Plätzen verkauft, {pace}"
   }
 }

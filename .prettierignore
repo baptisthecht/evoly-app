@@ -19,3 +19,6 @@ apps/web/styles.css
 apps/web/app.js
 apps/web/drafts
 apps/web/partials
+
+# Maquettes HTML de la refonte (pages autonomes, gardées telles qu'elles ont été validées)
+UIUX/*.html

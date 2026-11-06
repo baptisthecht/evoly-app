@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evoly, piste A3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap">
+<style>
+:root{
+  --page:#ecebe8; --page-soft:#625c58; --page-line:#d8d4cf;
+  --charbon:#222; --creme:#fff6f0; --rose:#ffb8e8; --rose-soft:#ffe9f6; --rose-vif:#ff5fc4; --rose-ink:#b0157a;
+  --ok:#1f7a4d; --ok-bg:#eaf6ef; --warn:#a35700; --warn-bg:#fdecd6;
+  --sys:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --blk:"Archivo Black", "Arial Black", sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:#222;font:400 15px/1.5 var(--sys);padding:40px 16px 80px}
+.wrap{max-width:1240px;margin:0 auto}
+.intro{display:grid;gap:10px;max-width:780px;margin-bottom:22px}
+.intro h1{font:800 34px/1.1 var(--sys);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.intro p{margin:0;color:var(--page-soft);font-size:16px}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 44px}
+.jump a{text-decoration:none;color:inherit;background:#fff;border:1px solid var(--page-line);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px}
+.jump a:hover{border-color:#222}
+section.part{margin:0 0 72px;scroll-margin-top:20px}
+.part > h2{font:800 26px/1.15 var(--sys);letter-spacing:-.015em;margin:0 0 6px}
+.part > .lede{margin:0 0 18px;color:var(--page-soft);max-width:80ch;font-size:16px}
+.dose{display:inline-flex;gap:4px;margin-left:10px;vertical-align:middle}
+.dose i{width:10px;height:10px;border-radius:50%;background:#d6d1cc}
+.dose i.on{background:var(--rose-vif)}
+.box{background:#fff;border-radius:14px;padding:18px 20px;border:1px solid var(--page-line)}
+.box h3{font:700 16px var(--sys);margin:0 0 10px}
+.box ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.box p{margin:0 0 8px}
+.cols{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.caption{font-size:13.5px;color:var(--page-soft);margin:10px 2px 0}
+.scroller{overflow-x:auto;border-radius:16px;padding-bottom:6px;margin-bottom:18px}
+
+/* ---------------------------------------------------------------- écran (piste A) */
+.desk{--bg:#fff;--side:#fafafa;--ink:#1d1d1f;--soft:#6e6a67;--line:#ebe8e5;--line2:#dcd8d4;
+  width:1200px;height:800px;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 24px 50px -28px rgba(0,0,0,.35);
+  display:grid;grid-template-columns:232px 1fr;background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--sys)}
+.desk svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;flex:none}
+.side{background:var(--side);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:2px}
+.logo{font:400 18px/0.9 var(--blk);letter-spacing:-.04em;margin:2px 8px 18px}
+.org{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;font-weight:600;margin-bottom:10px}
+.org .av{width:26px;height:26px;border-radius:7px;background:#e9e6e3;display:grid;place-items:center;font:400 11px var(--blk);letter-spacing:-.02em;flex:none}
+.org span{flex:1;min-width:0}
+.org small{display:block;font-weight:400;color:var(--soft);font-size:12px}
+.nav a{display:flex;align-items:center;gap:10px;height:32px;padding:0 8px;border-radius:7px;text-decoration:none;color:#3a3633;font-size:13.5px;position:relative}
+.nav a.on{background:#efedeb;color:var(--ink);font-weight:600}
+.nav a .count{margin-left:auto;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums}
+main{display:flex;flex-direction:column;min-width:0}
+.top{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;flex:none}
+.top h1{font:600 16px var(--sys);margin:0}
+.btn{height:34px;border-radius:8px;padding:0 13px;display:inline-flex;align-items:center;gap:7px;font:500 13.5px var(--sys);border:1px solid var(--line2);background:#fff;color:var(--ink);white-space:nowrap}
+.btn.p{background:#222;border-color:#222;color:#fff}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.body{padding:22px 28px;display:grid;gap:24px;align-content:start;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(3,auto) 1fr;border-bottom:1px solid var(--line);padding-bottom:20px}
+.stat{padding-right:36px;margin-right:36px;border-right:1px solid var(--line)}
+.stat:nth-child(3){border-right:0}
+.stat .l,.stat .d{white-space:nowrap}
+.stat .l{color:var(--soft);font-size:13px}
+.stat .v{font:600 26px/1.15 var(--sys);letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat .d{font-size:12.5px;color:var(--ok);font-variant-numeric:tabular-nums}
+.stat .d.n{color:var(--soft)}
+.spark{align-self:end;justify-self:end;width:280px;height:52px}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.sec h2{font:600 14.5px var(--sys);margin:0}
+.sec a{font-size:13px;color:var(--soft);text-decoration:none}
+table{width:100%;border-collapse:collapse}
+th{font:500 12.5px var(--sys);color:var(--soft);text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:middle;font-variant-numeric:tabular-nums;transition:background .15s}
+tr.hl td{background:#faf9f8}
+td.ev b{font-weight:600;display:block}
+td.ev small,td small{color:var(--soft);font-size:12.5px}
+.num{text-align:right}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;background:#f1efed;color:#4b4642;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.lower2{display:grid;grid-template-columns:1.25fr 1fr;gap:36px}
+.row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.row b{font-weight:500}
+.row small{display:block;color:var(--soft);font-size:12.5px}
+.row .r{text-align:right;font-variant-numeric:tabular-nums}
+.todo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.todo svg{width:16px;height:16px;stroke:var(--warn);fill:none;stroke-width:2;flex:none}
+.todo span{flex:1}
+.todo a{font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+
+/* jauge du rythme */
+.gauge{position:relative;height:6px;border-radius:99px;background:#efebe7}
+.gauge i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#222}
+.gauge i.warn{background:var(--warn)}
+.gauge .pace{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;background:var(--rose-vif);box-shadow:0 0 0 2px #fff}
+.pt{font-size:12.5px;color:var(--soft)} .pt.ok{color:var(--ok)} .pt.warn{color:var(--warn)}
+
+/* ---------------------------------------------------------------- la frise */
+.frise-wrap{display:grid;gap:4px}
+.frise{position:relative;height:78px;margin:0 6px}
+.frise .axis{position:absolute;left:0;right:0;top:38px;height:2px;border-radius:2px;background:#ebe7e3}
+.frise .sale{position:absolute;top:38px;height:2px;background:#222;border-radius:2px;opacity:.18}
+.frise .wk{position:absolute;top:33px;width:1px;height:12px;background:#dcd7d2}
+.frise .wkl{position:absolute;top:52px;font-size:11.5px;color:#9a9591;transform:translateX(-50%);white-space:nowrap}
+.frise .today{position:absolute;top:20px;height:38px;width:2px;background:var(--rose-vif);border-radius:2px}
+.frise .today span{position:absolute;top:-18px;left:-2px;font-size:11.5px;color:var(--rose-ink);font-weight:600;white-space:nowrap}
+.frise .ev{position:absolute;top:31px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #222;transform:translateX(-50%);cursor:pointer;padding:0}
+.frise .ev.next{background:#222}
+.frise .ev.draft{border-style:dashed;border-color:#9a9591}
+.frise .ev.sel{box-shadow:0 0 0 4px var(--rose)}
+.frise .evl{position:absolute;top:2px;font-size:12.5px;font-weight:600;transform:translateX(-50%);white-space:nowrap;cursor:pointer;text-align:center;line-height:1.15}
+.frise .evl small{display:block;font-weight:400;color:var(--soft);font-size:11.5px}
+.frise .evl.draft{color:var(--soft);font-weight:500}
+
+/* ---------------------------------------------------------------- doses de marque */
+/* rose : élément actif de la barre */
+.nav-rose .nav a.on{background:var(--rose-soft);color:#222}
+.nav-rose .nav a.on svg{color:var(--rose-ink)}
+.nav-rose .org .av{background:#222;color:var(--rose)}
+/* chiffres en Archivo Black */
+.nums-blk .stat .v{font:400 27px/1.15 var(--blk);letter-spacing:-.045em}
+.nums-blk .top h1{font:400 19px var(--blk);letter-spacing:-.045em}
+/* barre latérale charbon */
+.side-dark .side{background:#222;border-right:0;color:var(--creme)}
+.side-dark .logo{color:var(--creme)}
+.side-dark .org small{color:rgba(255,246,240,.6)}
+.side-dark .org .av{background:var(--rose);color:#222}
+.side-dark .nav a{color:rgba(255,246,240,.72)}
+.side-dark .nav a .count{color:rgba(255,246,240,.5)}
+.side-dark .nav a.on{background:#333;color:var(--creme)}
+.side-dark .nav a.on::before{content:"";position:absolute;left:-12px;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:var(--rose)}
+/* frise sur une bande charbon */
+.frise-dark .frise-band{background:#222;color:var(--creme);padding:16px 28px 8px;flex:none}
+.frise-dark .frise-band .sec h2{color:var(--creme)}
+.frise-dark .frise-band .sec a{color:rgba(255,246,240,.6)}
+.frise-dark .frise .axis{background:rgba(255,246,240,.18)}
+.frise-dark .frise .sale{background:var(--creme);opacity:.35}
+.frise-dark .frise .wk{background:rgba(255,246,240,.2)}
+.frise-dark .frise .wkl{color:rgba(255,246,240,.5)}
+.frise-dark .frise .today span{color:var(--rose)}
+.frise-dark .frise .ev{background:#222;border-color:var(--creme)}
+.frise-dark .frise .ev.next{background:var(--rose);border-color:var(--rose)}
+.frise-dark .frise .ev.draft{border-color:rgba(255,246,240,.5)}
+.frise-dark .frise .ev.sel{box-shadow:0 0 0 4px rgba(255,184,232,.35)}
+.frise-dark .frise .evl{color:var(--creme)}
+.frise-dark .frise .evl small,.frise-dark .frise .evl.draft{color:rgba(255,246,240,.6)}
+.frise-dark .gauge .pace{box-shadow:0 0 0 2px #fff}
+/* bouton principal rose */
+.btn-rose .btn.p{background:var(--rose);border-color:var(--rose);color:#222}
+/* ligne du prochain événement teintée */
+.row-rose tr.hl td{background:#fff5fb}
+.row-rose tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--rose-vif)}
+
+/* ---------------------------------------------------------------- à la carte */
+.carte{display:grid;gap:14px}
+.carte .line{display:grid;grid-template-columns:200px repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+.carte .line > b{font-size:14px;align-self:center}
+.opt{background:#fff;border:1px solid var(--page-line);border-radius:12px;padding:14px;display:grid;gap:10px;align-content:start;font:400 13.5px/1.4 var(--sys)}
+.opt .t{font-size:12.5px;color:var(--page-soft)}
+.opt .demo{display:flex;align-items:center;gap:10px;min-height:40px}
+@media (max-width:900px){.carte .line{grid-template-columns:1fr}}
+
+/* téléphone */
+.phone{width:390px;height:844px;border-radius:46px;overflow:hidden;box-shadow:0 0 0 10px #161616,0 22px 44px -20px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;margin:10px;background:#fff;color:#1d1d1f;font:400 15px/1.45 var(--sys);flex:none}
+.phone .sb{display:flex;justify-content:space-between;padding:15px 30px 6px;font:600 15px var(--sys)}
+.tabbar{margin-top:auto;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px 26px;border-top:1px solid #ebe8e5;font-size:11px;text-align:center}
+.tabbar span{display:grid;justify-items:center;gap:3px;color:#8f8782}
+.tabbar span.on{color:#222;font-weight:600}
+.tabbar span.on svg{color:var(--rose-ink)}
+.tabbar svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.75}
+.phones{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.chips{display:flex;gap:8px;overflow:hidden;padding:2px 0}
+.chip{flex:none;border:1px solid #e3dfdb;border-radius:10px;padding:7px 11px;font-size:13px;line-height:1.2}
+.chip b{display:block;font-weight:600}
+.chip small{color:#6e6a67}
+.chip.next{background:#222;color:#fff;border-color:#222}
+.chip.next small{color:var(--rose)}
+.chip.draft{border-style:dashed;color:#6e6a67}
+
+/* ---------------------------------------------------------------- A3 retenue : titre en police normale */
+.desk .top h1{font:600 16px var(--sys);letter-spacing:0}
+
+/* O1 : feuilles de calendrier dans le tableau */
+.leaf{width:44px;border-radius:8px;border:1px solid var(--line2);text-align:center;overflow:hidden;flex:none;background:#fff}
+.leaf small{display:block;font:600 10.5px/1 var(--sys);color:var(--rose-ink);padding:5px 0 3px;border-bottom:1px solid var(--line);background:#fff8fc}
+.leaf b{display:block;font:400 19px/1 var(--blk);letter-spacing:-.04em;padding:5px 0 6px}
+.leaf.draft{border-style:dashed}
+.leaf.draft small{color:var(--soft);background:#fafafa}
+td.evl{display:flex;gap:12px;align-items:center}
+td.evl b{font-weight:600;display:block}
+
+/* O2 : bandeau du prochain événement */
+.band{display:grid;grid-template-columns:1.3fr auto 1.2fr;gap:28px;align-items:center;background:#fff5fb;border-radius:12px;padding:18px 22px 18px 30px;position:relative;overflow:hidden}
+/* le trait : un rectangle de 7 px, arrondi à gauche par le bandeau qui le découpe, droit à droite */
+.band::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:var(--rose-vif)}
+.band .k{font-size:12.5px;color:var(--rose-ink);font-weight:600}
+.band h3{margin:2px 0;font:600 19px/1.25 var(--sys);letter-spacing:-.01em}
+.band p{margin:0;color:var(--soft);font-size:13px}
+.band .cd{text-align:center;padding:0 26px;border-left:1px solid #f4d3e7;border-right:1px solid #f4d3e7}
+.band .cd b{display:block;font:400 40px/1 var(--blk);letter-spacing:-.05em}
+.band .cd span{font-size:12.5px;color:var(--soft)}
+.band .acts{display:flex;gap:8px;margin-top:10px}
+
+/* O3 : calendrier */
+.withcal{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:32px;align-items:start}
+.cal{display:grid;gap:16px}
+.month h4{margin:0 0 6px;font:600 13.5px var(--sys)}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums}
+.grid7 .dh{color:var(--soft);font-size:11px;padding-bottom:2px}
+.grid7 span{height:27px;display:grid;place-items:center;border-radius:7px;color:#3a3633}
+.grid7 span.past{color:#c4bfbb}
+.grid7 span.today{box-shadow:inset 0 0 0 1.5px #222;font-weight:600}
+.grid7 span.ev{background:#222;color:#fff;font-weight:600;cursor:pointer}
+.grid7 span.ev.next{background:var(--rose);color:#222}
+.grid7 span.ev.draft{background:none;color:#222;box-shadow:inset 0 0 0 1.5px #9a9591;border:0}
+.grid7 span.ev.draft{outline:1.5px dashed #9a9591;outline-offset:-1.5px;box-shadow:none}
+.cal .key{display:flex;gap:14px;font-size:12px;color:var(--soft)}
+.cal .key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* O4 : les affiches */
+.posters{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.poster{display:grid;gap:8px;align-content:start}
+.poster .img{aspect-ratio:4/3;border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.poster .img b{font:400 22px/0.95 var(--blk);letter-spacing:-.05em;text-transform:lowercase}
+.poster .img span{align-self:flex-start;font-size:12px;font-weight:600;border-radius:6px;padding:2px 8px}
+.poster .t{display:flex;justify-content:space-between;font-size:13px}
+.poster .t b{font-weight:600}
+.poster .t span{color:var(--soft)}
+.poster.draft .img{border:1.5px dashed var(--line2);background:#fafafa;color:var(--soft)}
+
+/* O5 : la phrase */
+.sentence{font:400 19px/1.5 var(--sys);letter-spacing:-.01em;max-width:62ch;margin:0;color:#3a3633}
+.sentence a{color:#222;font-weight:600;text-decoration:underline;text-decoration-color:var(--rose-vif);text-decoration-thickness:2px;text-underline-offset:4px}
+.sentence .ok{color:var(--ok);font-weight:600}
+.sentence .warn{color:var(--warn);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="intro">
+  <h1>Piste A3, sans la frise</h1>
+  <p>Base retenue&nbsp;: A3 (barre charbon, chiffres en Archivo Black, prochain événement souligné en rose), avec le titre de la page en police normale. La frise disparaît. Voici cinq façons de montrer ce qui arrive, à la place.</p>
+  <p>Les dates ont été corrigées&nbsp;: les événements tombent bien un samedi (le 6 novembre 2026 est un vendredi).</p>
+</header>
+<nav class="jump" aria-label="Sommaire">
+  <a href="#o1">1, les feuilles de calendrier</a>
+  <a href="#o2">2, le bandeau du prochain</a>
+  <a href="#o3">3, le calendrier</a>
+  <a href="#o4">4, les affiches</a>
+  <a href="#o5">5, la phrase</a>
+  <a href="#avis">Mon avis</a>
+</nav>
+
+<section class="part" id="o1">
+  <h2>1, les feuilles de calendrier</h2>
+  <p class="lede">Rien au-dessus du tableau. La date devient une petite feuille de calendrier au début de chaque ligne&nbsp;: le jour en Archivo Black, le mois en rose. On lit l’ordre et l’écart entre les dates sans une ligne de plus. Le plus sobre.</p>
+  <div class="scroller"><div class="desk side-dark nums-blk row-rose" data-o="1"></div></div>
+</section>
+
+<section class="part" id="o2">
+  <h2>2, le bandeau du prochain événement</h2>
+  <p class="lede">Le prochain événement a sa ligne à lui, en haut&nbsp;: le compte à rebours, la jauge du rythme et les deux actions qu’on fait le plus avant une soirée (copier le lien, ouvrir). Le tableau en dessous ne liste que les suivants. Le rose pâle vient du liseré du tableau actuel.</p>
+  <div class="scroller"><div class="desk side-dark nums-blk" data-o="2"></div></div>
+</section>
+
+<section class="part" id="o3">
+  <h2>3, le calendrier</h2>
+  <p class="lede">Un calendrier de deux mois à côté du tableau, comme dans un agenda&nbsp;: aujourd’hui cerclé, les dates en charbon, la prochaine en rose, les brouillons en pointillé. Un clic sur une date met sa ligne en avant. Familier, et utile pour placer un nouvel événement sans chevauchement.</p>
+  <div class="scroller"><div class="desk side-dark nums-blk row-rose" data-o="3"></div></div>
+</section>
+
+<section class="part" id="o4">
+  <h2>4, les affiches</h2>
+  <p class="lede">Les événements à venir en affiches, avec leur image de couverture. Sans image, une affiche typographique (le titre en Archivo Black), qui invite à en ajouter une. C’est le contenu de l’organisateur qui colore la page, pas un décor. Le tableau reste sur la page Événements.</p>
+  <div class="scroller"><div class="desk side-dark nums-blk" data-o="4"></div></div>
+</section>
+
+<section class="part" id="o5">
+  <h2>5, la phrase</h2>
+  <p class="lede">Une phrase en tête, calculée par des règles (pas par une IA), qui dit ce qui compte cette semaine, avec des liens sur les noms. Puis le tableau. Ça se lit comme un message d’un collègue.</p>
+  <div class="scroller"><div class="desk side-dark nums-blk row-rose" data-o="5"></div></div>
+</section>
+
+<section class="part" id="avis">
+  <h2>Mon avis</h2>
+  <div class="cols">
+    <div class="box">
+      <h3>Ce que je prendrais</h3>
+      <p>La <b>2 (le bandeau)</b> avec les <b>feuilles de la 1</b> dans le tableau en dessous. Le bandeau répond à la question qu’on se pose en ouvrant l’app («&nbsp;et ma prochaine soirée&nbsp;?&nbsp;»), les feuilles donnent le rythme des dates suivantes, sans rien ajouter d’autre.</p>
+    </div>
+    <div class="box">
+      <h3>À savoir</h3>
+      <ul>
+        <li>La 3 prend de la largeur&nbsp;: sur un écran de 13 pouces, le tableau se resserre.</li>
+        <li>La 4 dépend des images&nbsp;: tant que les organisateurs n’en mettent pas, on verra surtout des affiches typographiques.</li>
+        <li>La 5 doit rester courte et toujours vraie&nbsp;: deux phrases au plus, sinon on ne la lit plus.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="caption">Pas vérifié&nbsp;: mode sombre et téléphone non dessinés pour ces options, données fictives.</p>
+</section>
+
+</div>
+
+<script>
+const EV=[
+  {day:21,mon:"nov.",d:15,n:"Bal folk d’automne",date:"samedi 21 novembre",place:"Salle des fêtes, Wépion",sold:312,cap:400,pace:71,pt:"ok",ptx:"en avance",cash:"5&#8239;616,00&nbsp;€",bg:"#ffb8e8",fg:"#222",img:false},
+  {day:5,mon:"déc.",d:29,n:"Les Marées en concert",date:"samedi 5 décembre",place:"Le Belvédère, Namur",sold:128,cap:250,pace:62,pt:"warn",ptx:"un peu lent",cash:"2&#8239;304,00&nbsp;€",bg:"#222",fg:"#fff6f0",img:false,noimg:true},
+  {day:12,mon:"déc.",d:36,n:"Marché de Noël nocturne",date:"samedi 12 décembre",place:"Place d’Armes, Namur",sold:44,cap:600,pace:6,pt:"",ptx:"dans le rythme",cash:"Gratuit",bg:"#e9e4f7",fg:"#222"},
+  {day:31,mon:"déc.",d:55,n:"Réveillon du Quai",date:"jeudi 31 décembre",place:"Lieu à préciser",draft:true}
+];
+const ico={home:'<path d="M3 10.5 12 3l9 7.5V21H3z"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',list:'<path d="M4 7h16M4 12h16M4 17h10"/>',swap:'<path d="M7 7h11l-3-3M17 17H6l3 3"/>',chart:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',send:'<path d="M4 12l16-7-5 16-3-7z"/>',brand:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',team:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/>',card:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>'};
+const i=k=>`<svg class="i" viewBox="0 0 24 24">${ico[k]}</svg>`;
+const nav=[["home","Accueil"],["cal","Événements",4],["list","Commandes"],["swap","Revente"],["chart","Finances"],["send","Marketing"],["brand","Marque"],["team","Équipe"],["card","Abonnement"],["gear","Paramètres"]];
+const gauge=e=>`<div class="gauge"><i class="${e.pt==="warn"?"warn":""}" style="width:${Math.round(e.sold/e.cap*100)}%"></i><span class="pace" style="left:${e.pace}%"></span></div>`;
+const sales=e=>`<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${e.sold} sur ${e.cap}</span><span class="pt ${e.pt}">${e.ptx}</span></div>${gauge(e)}`;
+
+function table(list,leaf,narrow){
+  const rows=list.map(e=>{const k=EV.indexOf(e);
+    const first=leaf?`<td class="ev evl"><span class="leaf ${e.draft?"draft":""}"><small>${e.mon}</small><b>${e.day}</b></span><span><b>${e.n}</b><small>${e.place}</small></span></td>`:`<td class="ev"><b>${e.n}</b><small>${e.place}</small></td>`;
+    const date=leaf?`<td>dans ${e.d} jours<br><small>${e.date.split(" ")[0]}</small></td>`:`<td style="white-space:nowrap">${e.date.split(" ")[0].slice(0,3)}. ${e.day} ${e.mon}<br><small>dans ${e.d} jours</small></td>`;
+    return e.draft
+      ?`<tr data-k="${k}">${first}${date}<td style="color:#6e6a67;font-size:13px">Pas encore en vente</td>${narrow?"":`<td class="num" style="color:#6e6a67">-</td>`}<td><span class="pill">Brouillon</span></td></tr>`
+      :`<tr data-k="${k}" class="${k===0?"hl":""}">${first}${date}<td>${sales(e)}</td>${narrow?"":`<td class="num">${e.cash}</td>`}<td><span class="pill ok">En vente</span></td></tr>`;}).join("");
+  return `<div><div class="sec"><h2>À venir</h2><a>Tous les événements</a></div><table><thead><tr><th>Événement</th><th>Date</th><th style="width:${narrow?220:280}px">Ventes</th>${narrow?"":`<th class="num">Encaissé</th>`}<th>Statut</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function month(name,first,len,today){
+  let h=`<div class="month"><h4>${name}</h4><div class="grid7">`+["L","M","M","J","V","S","D"].map(x=>`<span class="dh">${x}</span>`).join("");
+  for(let n=0;n<first;n++) h+="<span></span>";
+  for(let day=1;day<=len;day++){
+    const e=EV.find(x=>x.day===day&&x.mon===(name.startsWith("nov")?"nov.":"déc."));
+    let c=today&&day<today?"past":""; if(today===day) c="today";
+    if(e) c=`ev ${EV.indexOf(e)===0?"next":""} ${e.draft?"draft":""}`;
+    h+=`<span class="${c}" ${e?`data-k="${EV.indexOf(e)}" title="${e.n}"`:""}>${day}</span>`;
+  }
+  return h+"</div></div>";
+}
+const lower=`<div class="lower2">
+  <div><div class="sec"><h2>Dernières commandes</h2><a>Toutes les commandes</a></div>
+    <div class="row"><span><b>Léa Martin</b><small>2 billets, Bal folk d’automne</small></span><span class="r">36,00&nbsp;€<small>il y a 3 min</small></span></div>
+    <div class="row"><span><b>Thomas Renard</b><small>4 billets, Bal folk d’automne</small></span><span class="r">72,00&nbsp;€<small>il y a 18 min</small></span></div></div>
+  <div><div class="sec"><h2>À faire</h2></div>
+    <div class="todo"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg><span>Les Marées en concert n’a pas d’image</span><a>Ajouter</a></div>
+    <div class="todo"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg><span>Réveillon du Quai, brouillon depuis 9 jours</span><a>Reprendre</a></div></div></div>`;
+const stats=`<div class="stats">
+  <div class="stat"><div class="l">Encaissé sur 30 jours</div><div class="v">8&#8239;412,50&nbsp;€</div><div class="d">+1&#8239;240&nbsp;€ sur la période d’avant</div></div>
+  <div class="stat"><div class="l">Billets vendus</div><div class="v">486</div><div class="d">+64</div></div>
+  <div class="stat"><div class="l">Événements en vente</div><div class="v">3</div><div class="d n">et 1 brouillon</div></div>
+  <svg class="spark" data-bars viewBox="0 0 280 52" aria-label="Recette jour par jour sur 30 jours"></svg></div>`;
+
+function content(o){
+  const e=EV[0];
+  if(o===1) return stats+table(EV,true)+lower;
+  if(o===2) return stats+`<div class="band">
+      <div><div class="k">Prochain événement</div><h3>${e.n}</h3><p>${e.date}, portes à 20:00, ${e.place}</p></div>
+      <div class="cd"><b>${e.d} jours</b><span>avant les portes</span></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span><b style="font-weight:600">${e.sold} sur ${e.cap}</b>, ${e.cash}</span><span class="pt ok">${e.ptx}</span></div>${gauge(e)}
+        <div class="acts"><span class="btn"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>Copier le lien</span><span class="btn">Ouvrir</span></div></div>
+    </div>`+table(EV.slice(1),true)+lower;
+  if(o===3) return stats+`<div class="withcal">${table(EV,false,true)}<div class="cal">${month("novembre 2026",6,30,6)}${month("décembre 2026",1,31,0)}
+      <div class="key"><span><i style="background:#ffb8e8"></i>prochain</span><span><i style="background:#222"></i>en vente</span><span><i style="outline:1.5px dashed #9a9591;outline-offset:-1.5px"></i>brouillon</span></div></div></div>`+lower;
+  if(o===4) return stats+`<div><div class="sec"><h2>À venir</h2><a>Tous les événements</a></div><div class="posters">`+EV.map(x=>x.draft
+      ?`<div class="poster draft"><div class="img"><span style="background:#ecebe8">brouillon</span><b>${x.n}</b></div><div class="t"><b>${x.day} ${x.mon}</b><span>dans ${x.d} jours</span></div><span class="pt">Pas encore en vente. <u>Reprendre</u></span></div>`
+      :`<div class="poster"><div class="img" style="background:${x.bg};color:${x.fg}"><span style="background:${x.fg};color:${x.bg}">dans ${x.d} jours</span><b>${x.n}</b></div><div class="t"><b>${x.day} ${x.mon}</b><span>${x.sold} sur ${x.cap}</span></div>${gauge(x)}<span class="pt ${x.pt}">${x.ptx}${x.noimg?", et pas d’image":""}</span></div>`).join("")+`</div></div>`+lower;
+  if(o===5) return stats+`<p class="sentence"><a>${e.n}</a> a lieu dans ${e.d} jours et se remplit <span class="ok">plus vite que prévu</span>&nbsp;: 88 places restent. <a>Les Marées en concert</a> vend <span class="warn">un peu lentement</span>, et n’a pas encore d’image.</p>`+table(EV,true)+lower;
+}
+function screen(o){
+  return `<aside class="side"><div class="logo">ev<br>oly</div>
+    <div class="org"><span class="av">NQ</span><span>Les Nuits du Quai<small>Offre Pro</small></span><svg class="i" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></div>
+    <nav class="nav">${nav.map(([k,l,c],n)=>`<a class="${n===0?"on":""}">${i(k)}${l}${c?`<span class="count">${c}</span>`:""}</a>`).join("")}</nav></aside>
+  <main><div class="top"><h1>Accueil</h1><span class="btn p"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Créer un événement</span></div>
+    <div class="body">${content(o)}</div></main>`;
+}
+document.querySelectorAll(".desk[data-o]").forEach(d=>{
+  d.innerHTML=screen(+d.dataset.o);
+  d.addEventListener("click",ev=>{const t=ev.target.closest(".cal [data-k]"); if(!t) return;
+    d.querySelectorAll("tbody tr").forEach(r=>r.classList.toggle("hl",r.dataset.k===t.dataset.k));});
+});
+const days=[120,0,340,180,95,410,620,230,150,0,280,510,760,390,210,180,330,450,880,1240,300,160,90,420,560,310,640,280,190,610];
+const max=Math.max(...days);
+document.querySelectorAll("svg[data-bars]").forEach(svg=>{
+  const [,,w,h]=svg.getAttribute("viewBox").split(" ").map(Number),gap=3,bw=(w-gap*29)/30;
+  days.forEach((v,k)=>{const bh=Math.max(2,v/max*(h-4));svg.insertAdjacentHTML("beforeend",`<rect x="${k*(bw+gap)}" y="${h-bh}" width="${bw}" height="${bh}" rx="1.5" fill="${k===29?"#222":"#d6d1cc"}"/>`);});
+});
+</script>
+</body>
+</html>

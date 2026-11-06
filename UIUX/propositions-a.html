@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evoly, piste A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap">
+<style>
+:root{
+  --page:#ecebe8; --page-soft:#625c58; --page-line:#d8d4cf;
+  --charbon:#222; --creme:#fff6f0; --rose:#ffb8e8; --rose-soft:#ffe9f6; --rose-vif:#ff5fc4; --rose-ink:#b0157a;
+  --ok:#1f7a4d; --ok-bg:#eaf6ef; --warn:#a35700; --warn-bg:#fdecd6;
+  --sys:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --blk:"Archivo Black", "Arial Black", sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:#222;font:400 15px/1.5 var(--sys);padding:40px 16px 80px}
+.wrap{max-width:1240px;margin:0 auto}
+.intro{display:grid;gap:10px;max-width:780px;margin-bottom:22px}
+.intro h1{font:800 34px/1.1 var(--sys);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.intro p{margin:0;color:var(--page-soft);font-size:16px}
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 44px}
+.jump a{text-decoration:none;color:inherit;background:#fff;border:1px solid var(--page-line);border-radius:10px;padding:8px 14px;font-weight:600;font-size:14px}
+.jump a:hover{border-color:#222}
+section.part{margin:0 0 72px;scroll-margin-top:20px}
+.part > h2{font:800 26px/1.15 var(--sys);letter-spacing:-.015em;margin:0 0 6px}
+.part > .lede{margin:0 0 18px;color:var(--page-soft);max-width:80ch;font-size:16px}
+.dose{display:inline-flex;gap:4px;margin-left:10px;vertical-align:middle}
+.dose i{width:10px;height:10px;border-radius:50%;background:#d6d1cc}
+.dose i.on{background:var(--rose-vif)}
+.box{background:#fff;border-radius:14px;padding:18px 20px;border:1px solid var(--page-line)}
+.box h3{font:700 16px var(--sys);margin:0 0 10px}
+.box ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.box p{margin:0 0 8px}
+.cols{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.caption{font-size:13.5px;color:var(--page-soft);margin:10px 2px 0}
+.scroller{overflow-x:auto;border-radius:16px;padding-bottom:6px;margin-bottom:18px}
+
+/* ---------------------------------------------------------------- écran (piste A) */
+.desk{--bg:#fff;--side:#fafafa;--ink:#1d1d1f;--soft:#6e6a67;--line:#ebe8e5;--line2:#dcd8d4;
+  width:1200px;height:800px;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 24px 50px -28px rgba(0,0,0,.35);
+  display:grid;grid-template-columns:232px 1fr;background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--sys)}
+.desk svg.i{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75;flex:none}
+.side{background:var(--side);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:2px}
+.logo{font:400 18px/0.9 var(--blk);letter-spacing:-.04em;margin:2px 8px 18px}
+.org{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;font-weight:600;margin-bottom:10px}
+.org .av{width:26px;height:26px;border-radius:7px;background:#e9e6e3;display:grid;place-items:center;font:400 11px var(--blk);letter-spacing:-.02em;flex:none}
+.org span{flex:1;min-width:0}
+.org small{display:block;font-weight:400;color:var(--soft);font-size:12px}
+.nav a{display:flex;align-items:center;gap:10px;height:32px;padding:0 8px;border-radius:7px;text-decoration:none;color:#3a3633;font-size:13.5px;position:relative}
+.nav a.on{background:#efedeb;color:var(--ink);font-weight:600}
+.nav a .count{margin-left:auto;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums}
+main{display:flex;flex-direction:column;min-width:0}
+.top{height:56px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;flex:none}
+.top h1{font:600 16px var(--sys);margin:0}
+.btn{height:34px;border-radius:8px;padding:0 13px;display:inline-flex;align-items:center;gap:7px;font:500 13.5px var(--sys);border:1px solid var(--line2);background:#fff;color:var(--ink);white-space:nowrap}
+.btn.p{background:#222;border-color:#222;color:#fff}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.body{padding:22px 28px;display:grid;gap:24px;align-content:start;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(3,auto) 1fr;border-bottom:1px solid var(--line);padding-bottom:20px}
+.stat{padding-right:36px;margin-right:36px;border-right:1px solid var(--line)}
+.stat:nth-child(3){border-right:0}
+.stat .l,.stat .d{white-space:nowrap}
+.stat .l{color:var(--soft);font-size:13px}
+.stat .v{font:600 26px/1.15 var(--sys);letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat .d{font-size:12.5px;color:var(--ok);font-variant-numeric:tabular-nums}
+.stat .d.n{color:var(--soft)}
+.spark{align-self:end;justify-self:end;width:280px;height:52px}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.sec h2{font:600 14.5px var(--sys);margin:0}
+.sec a{font-size:13px;color:var(--soft);text-decoration:none}
+table{width:100%;border-collapse:collapse}
+th{font:500 12.5px var(--sys);color:var(--soft);text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:middle;font-variant-numeric:tabular-nums;transition:background .15s}
+tr.hl td{background:#faf9f8}
+td.ev b{font-weight:600;display:block}
+td.ev small,td small{color:var(--soft);font-size:12.5px}
+.num{text-align:right}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border-radius:6px;padding:2px 8px;background:#f1efed;color:#4b4642;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.lower2{display:grid;grid-template-columns:1.25fr 1fr;gap:36px}
+.row{display:grid;grid-template-columns:1fr auto;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.row b{font-weight:500}
+.row small{display:block;color:var(--soft);font-size:12.5px}
+.row .r{text-align:right;font-variant-numeric:tabular-nums}
+.todo{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.todo svg{width:16px;height:16px;stroke:var(--warn);fill:none;stroke-width:2;flex:none}
+.todo span{flex:1}
+.todo a{font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:3px}
+
+/* jauge du rythme */
+.gauge{position:relative;height:6px;border-radius:99px;background:#efebe7}
+.gauge i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:#222}
+.gauge i.warn{background:var(--warn)}
+.gauge .pace{position:absolute;top:-4px;bottom:-4px;width:2px;border-radius:2px;background:var(--rose-vif);box-shadow:0 0 0 2px #fff}
+.pt{font-size:12.5px;color:var(--soft)} .pt.ok{color:var(--ok)} .pt.warn{color:var(--warn)}
+
+/* ---------------------------------------------------------------- la frise */
+.frise-wrap{display:grid;gap:4px}
+.frise{position:relative;height:78px;margin:0 6px}
+.frise .axis{position:absolute;left:0;right:0;top:38px;height:2px;border-radius:2px;background:#ebe7e3}
+.frise .sale{position:absolute;top:38px;height:2px;background:#222;border-radius:2px;opacity:.18}
+.frise .wk{position:absolute;top:33px;width:1px;height:12px;background:#dcd7d2}
+.frise .wkl{position:absolute;top:52px;font-size:11.5px;color:#9a9591;transform:translateX(-50%);white-space:nowrap}
+.frise .today{position:absolute;top:20px;height:38px;width:2px;background:var(--rose-vif);border-radius:2px}
+.frise .today span{position:absolute;top:-18px;left:-2px;font-size:11.5px;color:var(--rose-ink);font-weight:600;white-space:nowrap}
+.frise .ev{position:absolute;top:31px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #222;transform:translateX(-50%);cursor:pointer;padding:0}
+.frise .ev.next{background:#222}
+.frise .ev.draft{border-style:dashed;border-color:#9a9591}
+.frise .ev.sel{box-shadow:0 0 0 4px var(--rose)}
+.frise .evl{position:absolute;top:2px;font-size:12.5px;font-weight:600;transform:translateX(-50%);white-space:nowrap;cursor:pointer;text-align:center;line-height:1.15}
+.frise .evl small{display:block;font-weight:400;color:var(--soft);font-size:11.5px}
+.frise .evl.draft{color:var(--soft);font-weight:500}
+
+/* ---------------------------------------------------------------- doses de marque */
+/* rose : élément actif de la barre */
+.nav-rose .nav a.on{background:var(--rose-soft);color:#222}
+.nav-rose .nav a.on svg{color:var(--rose-ink)}
+.nav-rose .org .av{background:#222;color:var(--rose)}
+/* chiffres en Archivo Black */
+.nums-blk .stat .v{font:400 27px/1.15 var(--blk);letter-spacing:-.045em}
+.nums-blk .top h1{font:400 19px var(--blk);letter-spacing:-.045em}
+/* barre latérale charbon */
+.side-dark .side{background:#222;border-right:0;color:var(--creme)}
+.side-dark .logo{color:var(--creme)}
+.side-dark .org small{color:rgba(255,246,240,.6)}
+.side-dark .org .av{background:var(--rose);color:#222}
+.side-dark .nav a{color:rgba(255,246,240,.72)}
+.side-dark .nav a .count{color:rgba(255,246,240,.5)}
+.side-dark .nav a.on{background:#333;color:var(--creme)}
+.side-dark .nav a.on::before{content:"";position:absolute;left:-12px;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:var(--rose)}
+/* frise sur une bande charbon */
+.frise-dark .frise-band{background:#222;color:var(--creme);padding:16px 28px 8px;flex:none}
+.frise-dark .frise-band .sec h2{color:var(--creme)}
+.frise-dark .frise-band .sec a{color:rgba(255,246,240,.6)}
+.frise-dark .frise .axis{background:rgba(255,246,240,.18)}
+.frise-dark .frise .sale{background:var(--creme);opacity:.35}
+.frise-dark .frise .wk{background:rgba(255,246,240,.2)}
+.frise-dark .frise .wkl{color:rgba(255,246,240,.5)}
+.frise-dark .frise .today span{color:var(--rose)}
+.frise-dark .frise .ev{background:#222;border-color:var(--creme)}
+.frise-dark .frise .ev.next{background:var(--rose);border-color:var(--rose)}
+.frise-dark .frise .ev.draft{border-color:rgba(255,246,240,.5)}
+.frise-dark .frise .ev.sel{box-shadow:0 0 0 4px rgba(255,184,232,.35)}
+.frise-dark .frise .evl{color:var(--creme)}
+.frise-dark .frise .evl small,.frise-dark .frise .evl.draft{color:rgba(255,246,240,.6)}
+.frise-dark .gauge .pace{box-shadow:0 0 0 2px #fff}
+/* bouton principal rose */
+.btn-rose .btn.p{background:var(--rose);border-color:var(--rose);color:#222}
+/* ligne du prochain événement teintée */
+.row-rose tr.hl td{background:#fff5fb}
+.row-rose tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--rose-vif)}
+
+/* ---------------------------------------------------------------- à la carte */
+.carte{display:grid;gap:14px}
+.carte .line{display:grid;grid-template-columns:200px repeat(3,minmax(0,1fr));gap:12px;align-items:stretch}
+.carte .line > b{font-size:14px;align-self:center}
+.opt{background:#fff;border:1px solid var(--page-line);border-radius:12px;padding:14px;display:grid;gap:10px;align-content:start;font:400 13.5px/1.4 var(--sys)}
+.opt .t{font-size:12.5px;color:var(--page-soft)}
+.opt .demo{display:flex;align-items:center;gap:10px;min-height:40px}
+@media (max-width:900px){.carte .line{grid-template-columns:1fr}}
+
+/* téléphone */
+.phone{width:390px;height:844px;border-radius:46px;overflow:hidden;box-shadow:0 0 0 10px #161616,0 22px 44px -20px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;margin:10px;background:#fff;color:#1d1d1f;font:400 15px/1.45 var(--sys);flex:none}
+.phone .sb{display:flex;justify-content:space-between;padding:15px 30px 6px;font:600 15px var(--sys)}
+.tabbar{margin-top:auto;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px 26px;border-top:1px solid #ebe8e5;font-size:11px;text-align:center}
+.tabbar span{display:grid;justify-items:center;gap:3px;color:#8f8782}
+.tabbar span.on{color:#222;font-weight:600}
+.tabbar span.on svg{color:var(--rose-ink)}
+.tabbar svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.75}
+.phones{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+.chips{display:flex;gap:8px;overflow:hidden;padding:2px 0}
+.chip{flex:none;border:1px solid #e3dfdb;border-radius:10px;padding:7px 11px;font-size:13px;line-height:1.2}
+.chip b{display:block;font-weight:600}
+.chip small{color:#6e6a67}
+.chip.next{background:#222;color:#fff;border-color:#222}
+.chip.next small{color:var(--rose)}
+.chip.draft{border-style:dashed;color:#6e6a67}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="intro">
+  <h1>Piste A, avec la frise et un peu d’Evoly</h1>
+  <p>La base reste la piste A&nbsp;: la police du système, des lignes au lieu de cartes, la jauge du rythme. La frise des semaines à venir de la piste C passe en haut, à la place du billet. On ajoute la marque par petites doses, de la plus légère à la plus visible. Les points roses indiquent la dose.</p>
+  <p>La frise est cliquable&nbsp;: un clic sur un événement le met en avant dans le tableau.</p>
+</header>
+<nav class="jump" aria-label="Sommaire">
+  <a href="#v1">A1, la touche rose</a>
+  <a href="#v2">A2, les chiffres Evoly</a>
+  <a href="#v3">A3, la barre charbon</a>
+  <a href="#v4">A4, la frise sur scène</a>
+  <a href="#carte">À la carte</a>
+  <a href="#tel">Sur téléphone</a>
+</nav>
+
+<section class="part" id="v1">
+  <h2>A1, la touche rose <span class="dose"><i class="on"></i><i></i><i></i><i></i></span></h2>
+  <p class="lede">Le rose n’apparaît qu’à trois endroits&nbsp;: la page active dans la barre, le trait d’aujourd’hui sur la frise, le trait du rythme sur les jauges. Plus la pastille de l’organisation en charbon et rose. Tout le reste est la piste A.</p>
+  <div class="scroller"><div class="desk nav-rose" data-v="1"></div></div>
+</section>
+
+<section class="part" id="v2">
+  <h2>A2, les chiffres Evoly <span class="dose"><i class="on"></i><i class="on"></i><i></i><i></i></span></h2>
+  <p class="lede">A1, plus Archivo Black (la police d’evoly.me) pour le titre de la page et les trois chiffres du haut. C’est la typographie qui fait reconnaître Evoly, sans ajouter une couleur. Le prochain événement est souligné en rose dans le tableau.</p>
+  <div class="scroller"><div class="desk nav-rose nums-blk row-rose" data-v="2"></div></div>
+</section>
+
+<section class="part" id="v3">
+  <h2>A3, la barre charbon <span class="dose"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></h2>
+  <p class="lede">A2, avec la barre latérale en charbon, comme le panneau de la page de connexion. La page active est marquée d’un trait rose. Le contenu reste blanc et sobre&nbsp;: la marque encadre, elle ne remplit pas.</p>
+  <div class="scroller"><div class="desk side-dark nums-blk row-rose" data-v="3"></div></div>
+</section>
+
+<section class="part" id="v4">
+  <h2>A4, la frise sur scène <span class="dose"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></h2>
+  <p class="lede">La frise passe sur une bande charbon sous le titre, le prochain événement en rose, comme dans la piste C. Barre latérale claire. C’est la dose maximale avant de retomber dans la piste C.</p>
+  <div class="scroller"><div class="desk nav-rose nums-blk frise-dark" data-v="4"></div></div>
+</section>
+
+<section class="part" id="carte">
+  <h2>À la carte</h2>
+  <p class="lede">Chaque touche se choisit séparément. On peut prendre A1 et y ajouter une seule chose.</p>
+  <div class="carte">
+    <div class="line"><b>Page active de la barre</b>
+      <div class="opt"><div class="demo desk" style="all:unset;display:block"><div class="nav" style="width:200px"><a class="on" style="background:#efedeb;font-weight:600"><svg class="i" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</a></div></div><span class="t">Gris (piste A)</span></div>
+      <div class="opt"><div class="nav" style="width:200px"><a class="on" style="background:var(--rose-soft);font-weight:600"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--rose-ink);fill:none;stroke-width:1.75"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</a></div><span class="t">Rose pâle, icône rose (A1, A2, A4)</span></div>
+      <div class="opt" style="background:#222;color:var(--creme)"><div class="nav" style="width:200px;padding-left:12px"><a class="on" style="background:#333;color:var(--creme);font-weight:600;box-shadow:-12px 0 0 -9px var(--rose)"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.75"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</a></div><span class="t" style="color:rgba(255,246,240,.6)">Barre charbon, trait rose (A3)</span></div>
+    </div>
+    <div class="line"><b>Les grands chiffres</b>
+      <div class="opt"><div class="demo"><span style="font:600 26px var(--sys);letter-spacing:-.02em">8&#8239;412,50&nbsp;€</span></div><span class="t">Police du système</span></div>
+      <div class="opt"><div class="demo"><span style="font:400 27px var(--blk);letter-spacing:-.045em">8&#8239;412,50&nbsp;€</span></div><span class="t">Archivo Black (A2 à A4)</span></div>
+      <div class="opt"><div class="demo"><span style="font:400 27px var(--blk);letter-spacing:-.045em">8&#8239;412,50</span><span style="font:600 16px var(--sys);color:#6e6a67;margin-left:-4px">&nbsp;€</span></div><span class="t">Archivo Black, devise discrète</span></div>
+    </div>
+    <div class="line"><b>Bouton principal</b>
+      <div class="opt"><div class="demo"><span class="btn" style="background:#222;border-color:#222;color:#fff;height:34px;border-radius:8px;padding:0 13px;display:inline-flex;align-items:center;gap:7px;font:500 13.5px var(--sys)"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 5v14M5 12h14"/></svg>Créer un événement</span></div><span class="t">Charbon (toutes les variantes)</span></div>
+      <div class="opt"><div class="demo"><span style="background:var(--rose);color:#222;height:34px;border-radius:8px;padding:0 13px;display:inline-flex;align-items:center;gap:7px;font:500 13.5px var(--sys)"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2"><path d="M12 5v14M5 12h14"/></svg>Créer un événement</span></div><span class="t">Rose, comme sur evoly.me</span></div>
+      <div class="opt"><div class="demo"><span style="background:#222;color:#fff;height:34px;border-radius:8px;padding:0 13px;display:inline-flex;align-items:center;gap:7px;font:500 13.5px var(--sys)"><svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:var(--rose);fill:none;stroke-width:2.2"><path d="M12 5v14M5 12h14"/></svg>Créer un événement</span></div><span class="t">Charbon, « + » rose</span></div>
+    </div>
+    <div class="line"><b>Le prochain événement dans le tableau</b>
+      <div class="opt"><div class="demo" style="background:#faf9f8;border-radius:6px;padding:8px 10px"><b style="font-weight:600">Bal folk d’automne</b></div><span class="t">Gris très pâle</span></div>
+      <div class="opt"><div class="demo" style="background:#fff5fb;box-shadow:inset 3px 0 0 var(--rose-vif);border-radius:6px;padding:8px 12px"><b style="font-weight:600">Bal folk d’automne</b></div><span class="t">Rose pâle et liseré (A2, A3), le liseré du tableau actuel</span></div>
+      <div class="opt"><div class="demo" style="padding:8px 10px"><b style="font-weight:600">Bal folk d’automne</b><span style="background:var(--rose);color:#222;font-size:12px;font-weight:600;border-radius:6px;padding:2px 8px">J−16</span></div><span class="t">Pastille « J−16 » rose</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="part" id="tel">
+  <h2>Sur téléphone</h2>
+  <p class="lede">La frise ne tient pas en largeur sur un téléphone. Deux façons de la garder.</p>
+  <div class="phones">
+    <div class="phone">
+      <div class="sb"><span>9:41</span><span>●●●</span></div>
+      <div style="padding:6px 20px 0;display:grid;gap:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font:400 28px var(--blk);letter-spacing:-.05em">accueil</b><span style="width:36px;height:36px;border-radius:50%;background:#222;display:grid;place-items:center"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2.2" fill="none"><path d="M12 5v14M5 12h14"/></svg></span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #ebe8e5;padding-bottom:14px">
+          <div><div style="font-size:13px;color:#6e6a67">Encaissé sur 30 jours</div><div style="font:400 23px var(--blk);letter-spacing:-.045em">8&#8239;412,50&nbsp;€</div></div>
+          <div style="border-left:1px solid #ebe8e5;padding-left:16px"><div style="font-size:13px;color:#6e6a67">Billets vendus</div><div style="font:400 23px var(--blk);letter-spacing:-.045em">486</div></div>
+        </div>
+        <div style="font-weight:600">Les 4 prochaines semaines</div>
+        <div class="frise" data-mini style="margin:-8px 4px 0"></div>
+        <div>
+          <div style="padding:12px 0;border-bottom:1px solid #ebe8e5;display:grid;gap:7px">
+            <div style="display:flex;justify-content:space-between"><b style="font-weight:600">Bal folk d’automne</b><span style="color:#6e6a67;font-size:14px">dans 16 jours</span></div>
+            <div class="gauge"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span>312 sur 400</span><span class="pt ok">en avance</span></div>
+          </div>
+          <div style="padding:12px 0;border-bottom:1px solid #ebe8e5;display:grid;gap:7px">
+            <div style="display:flex;justify-content:space-between"><b style="font-weight:600">Les Marées en concert</b><span style="color:#6e6a67;font-size:14px">dans 30 jours</span></div>
+            <div class="gauge"><i class="warn" style="width:51%"></i><span class="pace" style="left:60%"></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span>128 sur 250</span><span class="pt warn">un peu lent</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="tabbar"><span class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</span><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>Événements</span><span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</span><span><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7"/></svg>Finances</span><span><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>Plus</span></div>
+    </div>
+    <div class="phone">
+      <div class="sb"><span>9:41</span><span>●●●</span></div>
+      <div style="padding:6px 20px 0;display:grid;gap:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b style="font:400 28px var(--blk);letter-spacing:-.05em">accueil</b><span style="width:36px;height:36px;border-radius:50%;background:#222;display:grid;place-items:center"><svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2.2" fill="none"><path d="M12 5v14M5 12h14"/></svg></span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #ebe8e5;padding-bottom:14px">
+          <div><div style="font-size:13px;color:#6e6a67">Encaissé sur 30 jours</div><div style="font:400 23px var(--blk);letter-spacing:-.045em">8&#8239;412,50&nbsp;€</div></div>
+          <div style="border-left:1px solid #ebe8e5;padding-left:16px"><div style="font-size:13px;color:#6e6a67">Billets vendus</div><div style="font:400 23px var(--blk);letter-spacing:-.045em">486</div></div>
+        </div>
+        <div style="font-weight:600">À venir</div>
+        <div class="chips" style="margin-top:-8px">
+          <span class="chip next"><b>Bal folk</b><small>22 nov., J−16</small></span>
+          <span class="chip"><b>Les Marées</b><small>6 déc., J−30</small></span>
+          <span class="chip"><b>Marché de Noël</b><small>13 déc., J−37</small></span>
+          <span class="chip draft"><b>Réveillon</b><small>brouillon</small></span>
+        </div>
+        <div style="display:grid;gap:8px;padding:4px 0 14px;border-bottom:1px solid #ebe8e5">
+          <div style="display:flex;justify-content:space-between"><b style="font-weight:600">Bal folk d’automne</b><span style="color:#6e6a67;font-size:14px">sam. 22 nov.</span></div>
+          <div class="gauge"><i style="width:78%"></i><span class="pace" style="left:69%"></span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span>312 sur 400, 5&#8239;616,00&nbsp;€</span><span class="pt ok">en avance</span></div>
+        </div>
+        <div>
+          <div style="font-weight:600;margin-bottom:2px">Dernières commandes</div>
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #ebe8e5"><span>Léa Martin<br><small style="color:#6e6a67">2 billets</small></span><span style="text-align:right">36,00&nbsp;€<br><small style="color:#6e6a67">il y a 3 min</small></span></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #ebe8e5"><span>Thomas Renard<br><small style="color:#6e6a67">4 billets</small></span><span style="text-align:right">72,00&nbsp;€<br><small style="color:#6e6a67">il y a 18 min</small></span></div>
+        </div>
+      </div>
+      <div class="tabbar"><span class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>Accueil</span><span><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>Événements</span><span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Commandes</span><span><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7"/></svg>Finances</span><span><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>Plus</span></div>
+    </div>
+    <div class="box" style="max-width:420px">
+      <h3>Les deux façons</h3>
+      <ul>
+        <li><b>À gauche</b>, la frise réduite aux quatre prochaines semaines. On voit encore les écarts entre les dates.</li>
+        <li><b>À droite</b>, la frise devient une rangée de dates qu’on fait défiler, et la date touchée s’affiche en dessous. Plus lisible au doigt, mais on perd la sensation du temps.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="caption">Pas vérifié&nbsp;: mode sombre non dessiné, contraste du rose pâle de la barre non mesuré, données fictives.</p>
+</section>
+
+</div>
+
+<script>
+const EV=[
+  {d:16,n:"Bal folk d’automne",s:"Bal folk",date:"sam. 22 nov.",place:"Salle des fêtes, Wépion",sold:312,cap:400,pace:69,pt:"ok",ptx:"en avance",cash:"5&#8239;616,00&nbsp;€",open:-36,cls:"next"},
+  {d:30,n:"Les Marées en concert",s:"Les Marées",date:"sam. 6 déc.",place:"Le Belvédère, Namur",sold:128,cap:250,pace:60,pt:"warn",ptx:"un peu lent",cash:"2&#8239;304,00&nbsp;€",open:-15,cls:""},
+  {d:37,n:"Marché de Noël nocturne",s:"Marché de Noël",date:"sam. 13 déc.",place:"Place d’Armes, Namur",sold:44,cap:600,pace:6,pt:"",ptx:"dans le rythme",cash:"Gratuit",open:-2,cls:""},
+  {d:55,n:"Réveillon du Quai",s:"Réveillon",date:"mer. 31 déc.",place:"Lieu à préciser",draft:true,cls:"draft"}
+];
+const ico={
+  home:'<path d="M3 10.5 12 3l9 7.5V21H3z"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  list:'<path d="M4 7h16M4 12h16M4 17h10"/>',swap:'<path d="M7 7h11l-3-3M17 17H6l3 3"/>',chart:'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
+  send:'<path d="M4 12l16-7-5 16-3-7z"/>',brand:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',team:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-4 3-6 7-6s7 2 7 6"/>',
+  card:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>'
+};
+const i=k=>`<svg class="i" viewBox="0 0 24 24">${ico[k]}</svg>`;
+const nav=[["home","Accueil"],["cal","Événements",4],["list","Commandes"],["swap","Revente"],["chart","Finances"],["send","Marketing"],["brand","Marque"],["team","Équipe"],["card","Abonnement"],["gear","Paramètres"]];
+
+function frise(span,weeks,mini){
+  const p=d=>(d/span*100)+"%";
+  let h='<div class="axis"></div>';
+  EV.filter(e=>!e.draft&&e.d<=span).forEach(e=>{const a=Math.max(0,e.open),b=e.d;h+=`<span class="sale" style="left:${p(a)};width:${(b-a)/span*100}%"></span>`});
+  weeks.forEach(([d,l])=>{h+=`<span class="wk" style="left:${p(d)}"></span><span class="wkl" style="left:${p(d)}">${l}</span>`});
+  h+=`<span class="today" style="left:0"><span>aujourd’hui</span></span>`;
+  EV.forEach((e,k)=>{ if(e.d>span) return;
+    const lab=mini?e.s:`${e.s}<small>${e.draft?"brouillon":"J−"+e.d}</small>`;
+    h+=`<span class="evl ${e.draft?"draft":""}" data-k="${k}" style="left:${p(e.d)}">${lab}</span><button class="ev ${e.cls} ${k===0?"sel":""}" data-k="${k}" style="left:${p(e.d)}" aria-label="${e.n}"></button>`;});
+  return h;
+}
+const WEEKS=[[4,"10 nov."],[11,"17 nov."],[18,"24 nov."],[25,"1er déc."],[32,"8 déc."],[39,"15 déc."],[46,"22 déc."],[53,"29 déc."]];
+
+function screen(v){
+  const darkFrise=v===4;
+  const friseBlock=`<div class="frise-wrap"><div class="sec"><h2>Les 8 prochaines semaines</h2><a>Calendrier</a></div><div class="frise">${frise(58,WEEKS)}</div></div>`;
+  const rows=EV.map((e,k)=>e.draft
+    ?`<tr data-k="${k}"><td class="ev"><b>${e.n}</b><small>${e.place}</small></td><td>${e.date}<br><small>dans ${e.d} jours</small></td><td style="color:#6e6a67;font-size:13px">Pas encore en vente</td><td class="num" style="color:#6e6a67">-</td><td><span class="pill">Brouillon</span></td></tr>`
+    :`<tr data-k="${k}" class="${k===0?"hl":""}"><td class="ev"><b>${e.n}</b><small>${e.place}</small></td><td>${e.date}<br><small>dans ${e.d} jours</small></td>
+      <td><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${e.sold} sur ${e.cap}</span><span class="pt ${e.pt}">${e.ptx}</span></div><div class="gauge"><i class="${e.pt==="warn"?"warn":""}" style="width:${Math.round(e.sold/e.cap*100)}%"></i><span class="pace" style="left:${e.pace}%"></span></div></td>
+      <td class="num">${e.cash}</td><td><span class="pill ok">En vente</span></td></tr>`).join("");
+  return `
+  <aside class="side">
+    <div class="logo">ev<br>oly</div>
+    <div class="org"><span class="av">NQ</span><span>Les Nuits du Quai<small>Offre Pro</small></span><svg class="i" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg></div>
+    <nav class="nav">${nav.map(([k,l,c],n)=>`<a class="${n===0?"on":""}">${i(k)}${l}${c?`<span class="count">${c}</span>`:""}</a>`).join("")}</nav>
+  </aside>
+  <main>
+    <div class="top"><h1>${v>=2?"accueil":"Accueil"}</h1><span class="btn p"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Créer un événement</span></div>
+    ${darkFrise?`<div class="frise-band">${friseBlock}</div>`:""}
+    <div class="body">
+      <div class="stats">
+        <div class="stat"><div class="l">Encaissé sur 30 jours</div><div class="v">8&#8239;412,50&nbsp;€</div><div class="d">+1&#8239;240&nbsp;€ sur la période d’avant</div></div>
+        <div class="stat"><div class="l">Billets vendus</div><div class="v">486</div><div class="d">+64</div></div>
+        <div class="stat"><div class="l">Événements en vente</div><div class="v">3</div><div class="d n">et 1 brouillon</div></div>
+        <svg class="spark" data-bars viewBox="0 0 280 52" aria-label="Recette jour par jour sur 30 jours"></svg>
+      </div>
+      ${darkFrise?"":friseBlock}
+      <div><table>
+        <thead><tr><th>Événement</th><th>Date</th><th style="width:290px">Ventes</th><th class="num">Encaissé</th><th>Statut</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+      <div class="lower2">
+        <div><div class="sec"><h2>Dernières commandes</h2><a>Toutes les commandes</a></div>
+          <div class="row"><span><b>Léa Martin</b><small>2 billets, Bal folk d’automne</small></span><span class="r">36,00&nbsp;€<small>il y a 3 min</small></span></div>
+          <div class="row"><span><b>Thomas Renard</b><small>4 billets, Bal folk d’automne</small></span><span class="r">72,00&nbsp;€<small>il y a 18 min</small></span></div>
+        </div>
+        <div><div class="sec"><h2>À faire</h2></div>
+          <div class="todo"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg><span>Les Marées en concert n’a pas d’image</span><a>Ajouter</a></div>
+          <div class="todo"><svg viewBox="0 0 24 24"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg><span>Réveillon du Quai, brouillon depuis 9 jours</span><a>Reprendre</a></div>
+        </div>
+      </div>
+    </div>
+  </main>`;
+}
+
+document.querySelectorAll(".desk[data-v]").forEach(d=>{
+  d.innerHTML=screen(+d.dataset.v);
+  d.addEventListener("click",ev=>{
+    const t=ev.target.closest("[data-k]"); if(!t||!t.closest(".frise")) return;
+    const k=t.dataset.k;
+    d.querySelectorAll(".frise .ev").forEach(b=>b.classList.toggle("sel",b.dataset.k===k));
+    d.querySelectorAll("tbody tr").forEach(r=>r.classList.toggle("hl",r.dataset.k===k));
+  });
+});
+document.querySelectorAll(".frise[data-mini]").forEach(f=>{
+  f.innerHTML=frise(35,[[4,"10"],[11,"17"],[18,"24 nov."],[25,"1er"]],true);
+});
+const days=[120,0,340,180,95,410,620,230,150,0,280,510,760,390,210,180,330,450,880,1240,300,160,90,420,560,310,640,280,190,610];
+const max=Math.max(...days);
+document.querySelectorAll("svg[data-bars]").forEach(svg=>{
+  const [,,w,h]=svg.getAttribute("viewBox").split(" ").map(Number), gap=3, bw=(w-gap*29)/30;
+  days.forEach((v,k)=>{const bh=Math.max(2,v/max*(h-4));
+    svg.insertAdjacentHTML("beforeend",`<rect x="${k*(bw+gap)}" y="${h-bh}" width="${bw}" height="${bh}" rx="1.5" fill="${k===29?"#222":"#d6d1cc"}"/>`);});
+});
+</script>
+</body>
+</html>

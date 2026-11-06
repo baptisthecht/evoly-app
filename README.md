@@ -45,6 +45,7 @@ cd apps/app && npx playwright install chromium && npx playwright test
 - Chaque action serveur suit : validation, authentification, autorisation (`can`), offre (`hasFeature`), appartenance à l'organisation, transaction (RG-ARC-03).
 - Montants en unités mineures, devises ISO 4217, taux en points de base, dates en UTC.
 - Aucune couleur ni typographie en dur : tout passe par `packages/ui`.
+- Interface du tableau de bord : suivre [docs/INTERFACE.md](docs/INTERFACE.md) (refonte A3 : lignes plutôt que cartes, barre charbon, rose réservé à la mise en avant, jauge du rythme). Décisions dans [docs/DECISIONS.md](docs/DECISIONS.md), maquettes dans `UIUX/`.
 - Tout texte visible passe par `packages/i18n`, dans les deux langues du lancement (typographie française : apostrophes courbes, espaces insécables).
 - Authentification : Better Auth (CDC, décision 16). Les jetons sont stockés hachés, les mots de passe en Argon2id.
 - Les décisions encore ouvertes sont listées en section 17 du CDC ; leur valeur par défaut est celle implémentée.

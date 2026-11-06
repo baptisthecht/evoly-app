@@ -101,3 +101,20 @@ export function timeZoneLabel(
   }).formatToParts(date);
   return parts.find((p) => p.type === "timeZoneName")?.value ?? timeZone;
 }
+
+/** Feuille de calendrier (refonte A3) : le jour et le mois abrégé, dans le fuseau de l'événement (« 21 », « nov. »). */
+export function formatDayMonth(
+  date: Date,
+  timeZone: string,
+  locale: Locale,
+): { day: string; month: string } {
+  const parts = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    timeZone,
+    day: "numeric",
+    month: "short",
+  }).formatToParts(date);
+  return {
+    day: parts.find((p) => p.type === "day")?.value ?? "",
+    month: parts.find((p) => p.type === "month")?.value ?? "",
+  };
+}

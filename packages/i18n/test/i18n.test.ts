@@ -4,6 +4,7 @@ import {
   flattenKeys,
   formatBps,
   formatDate,
+  formatDayMonth,
   formatDateTime,
   formatMoney,
   formatTime,
@@ -68,6 +69,19 @@ describe("formats", () => {
       "20:00",
     );
     expect(timeZoneLabel(d, "Europe/Brussels", "en")).toBe("GMT+1");
+  });
+});
+
+describe("feuille de calendrier", () => {
+  it("jour et mois abrégé dans le fuseau de l'événement", () => {
+    // 21 novembre 23:30 à Bruxelles = 22:30 UTC
+    const d = new Date("2026-11-21T22:30:00Z");
+    expect(formatDayMonth(d, "Europe/Brussels", "fr")).toEqual({
+      day: "21",
+      month: "nov.",
+    });
+    expect(formatDayMonth(d, "Asia/Tokyo", "fr").day).toBe("22");
+    expect(formatDayMonth(d, "Europe/Brussels", "en").month).toBe("Nov");
   });
 });
 

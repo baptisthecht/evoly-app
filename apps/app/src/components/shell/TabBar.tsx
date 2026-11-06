@@ -14,7 +14,7 @@ import {
 } from "react";
 import { cn } from "../ui/cn";
 import { NavGlyph } from "./SideNav";
-import { activeTab, type TabBarSection, type TabBarTab } from "./tabBar";
+import { activeTab, type TabBarSection, type TabBarTab } from "./tabBarItems";
 
 /** Durée de la glissade de la feuille « Plus » (ouverture et fermeture). */
 const SLIDE_MS = 260;

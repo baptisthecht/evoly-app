@@ -57,3 +57,35 @@ describe("feuilles de style", () => {
     expect(forced).toEqual(system);
   });
 });
+
+describe("refonte A3 (docs/DECISIONS.md) : contrastes mesurés", () => {
+  const css = readFileSync(
+    new URL("../src/styles/tokens.css", import.meta.url),
+    "utf8",
+  );
+  const all = (name: string) =>
+    [...css.matchAll(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`, "g"))].map(
+      (m) => m[1]!,
+    );
+  it("rose de texte et montants retirés lisibles sur le blanc et sur le fond du bandeau (clair)", () => {
+    const [ink] = all("highlight-ink");
+    const [minus] = all("minus-ink");
+    const [soft] = all("highlight-soft");
+    for (const c of [ink!, minus!]) {
+      expect(contrastRatio(c, palette.blanc)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(c, soft!)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+  it("en sombre, le rose de texte reste lisible sur le fond du bandeau", () => {
+    const inks = all("highlight-ink");
+    const softs = all("highlight-soft");
+    expect(contrastRatio(inks.at(-1)!, softs.at(-1)!)).toBeGreaterThanOrEqual(
+      4.5,
+    );
+  });
+  it("le trait du rythme : 3:1 contre le charbon de la barre ; sur le fond clair il est plus faible, d'où la phrase qui dit le rythme en mots", () => {
+    const [vif] = all("evoly-rose-vif");
+    expect(contrastRatio(vif!, palette.blanc)).toBeGreaterThanOrEqual(2.5);
+    expect(contrastRatio(vif!, palette.charbon)).toBeGreaterThanOrEqual(3);
+  });
+});

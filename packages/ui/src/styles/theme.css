@@ -33,12 +33,19 @@
   --color-info: var(--evoly-info);
   --color-info-soft: var(--evoly-info-soft);
   --color-scan-checked: var(--evoly-scan-checked);
+  --color-sidebar: var(--sidebar-bg);
+  --color-highlight: var(--highlight);
+  --color-highlight-soft: var(--highlight-soft);
+  --color-highlight-line: var(--highlight-line);
+  --color-highlight-ink: var(--highlight-ink);
+  --color-minus: var(--minus-ink);
 
   --font-display: var(--type-display);
   --font-label: var(--type-label);
   --font-script: var(--type-script);
   --font-sans: var(--type-body);
   --font-mono: var(--type-mono);
+  --font-figures: var(--type-figures);
 
   --radius-sm: var(--r-sm);
   --radius-md: var(--r-md);

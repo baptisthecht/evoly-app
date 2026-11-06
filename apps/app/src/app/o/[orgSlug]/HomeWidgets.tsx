@@ -1,9 +1,15 @@
 import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { ButtonLink } from "@/components/ui/Button";
-import { Badge, Card } from "@/components/ui/Card";
+import { CopyButton } from "@/components/CopyButton";
+import { buttonClass } from "@/components/ui/Button";
+import { DateLeaf, SalesGauge } from "@/components/ui/SalesGauge";
 import type { homeOverview } from "@/server/home";
+
+/*
+ * Accueil, refonte A3 (docs/DECISIONS.md, maquette UIUX/propositions-a3.html, option 2) : des lignes plutôt que des
+ * cartes, le bandeau rose du prochain événement, les feuilles de calendrier et la jauge du rythme.
+ */
 
 type Home = Awaited<ReturnType<typeof homeOverview>>;
 const dayOf = (d: Date, tz: string) =>
@@ -13,117 +19,219 @@ const dayOf = (d: Date, tz: string) =>
     month: "2-digit",
     day: "2-digit",
   }).format(d);
-const Gauge = ({
-  sold,
-  capacity,
-}: {
-  sold: number;
-  capacity: number | null;
-}) =>
-  capacity ? (
-    <span
-      aria-hidden="true"
-      className="block h-2 overflow-hidden rounded-full bg-surface-sunken"
-    >
-      <span
-        className="block h-2 rounded-full bg-[var(--accent)]"
-        style={{ width: `${Math.min(100, (sold / capacity) * 100)}%` }}
-      />
-    </span>
-  ) : null;
-const initials = (name: string) =>
-  name
-    .split(/[\s@.]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join("") || "?";
+/** Jours pleins entre aujourd'hui et la date de l'événement, dans son fuseau. */
+const daysUntil = (d: Date, tz: string) =>
+  Math.round(
+    (Date.parse(dayOf(d, tz)) - Date.parse(dayOf(new Date(), tz))) / 86_400_000,
+  );
 
-/** Le prochain événement : son image, un compte à rebours, la jauge de ses ventes. */
-export async function NextEventWidget({
+const sectionTitle = "text-[0.9375rem] font-semibold";
+const quietLink =
+  "text-[0.8125rem] text-ink-muted underline-offset-4 hover:text-ink hover:underline";
+
+/** Un indicateur : libellé, grand chiffre en Archivo Black. */
+export function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid content-start gap-1">
+      <p className="text-[0.8125rem] whitespace-nowrap text-ink-muted">
+        {label}
+      </p>
+      <p className="font-figures text-[1.6875rem] leading-tight tracking-[var(--tracking-figures)] whitespace-nowrap tabular-nums">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+/** La recette des 30 derniers jours, jour par jour, en petit histogramme à côté des indicateurs. */
+export async function RevenueSpark({
+  revenue,
+  currency,
+  locale,
+}: {
+  revenue: Home["revenue"];
+  currency: string;
+  locale: Locale;
+}) {
+  const t = await getTranslations("dashboard");
+  const max = Math.max(1, ...revenue.map((d) => d.totalMinor));
+  const W = 280;
+  const H = 52;
+  const gap = 3;
+  const bw = (W - gap * (revenue.length - 1)) / revenue.length;
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="h-13 w-full max-w-[17.5rem] self-end justify-self-end"
+      role="img"
+      aria-label={t("revenueChart")}
+    >
+      {revenue.map((d, i) => {
+        const h = d.totalMinor
+          ? Math.max(3, (d.totalMinor / max) * (H - 4))
+          : 2;
+        return (
+          <rect
+            key={d.day}
+            x={i * (bw + gap)}
+            y={H - h}
+            width={bw}
+            height={h}
+            rx={1.5}
+            fill={
+              i === revenue.length - 1 ? "var(--ink)" : "var(--line-strong)"
+            }
+          >
+            <title>{`${d.day} : ${formatMoney(d.totalMinor, currency, locale)}`}</title>
+          </rect>
+        );
+      })}
+    </svg>
+  );
+}
+
+/**
+ * Bandeau du prochain événement : compte à rebours, jauge du rythme et les deux actions les plus courantes.
+ * Le trait rose est un rectangle découpé par l'arrondi du bandeau (arrondi à gauche, droit à droite), pas une bordure.
+ */
+export async function NextEventBand({
   next,
+  url,
   base,
   locale,
 }: {
-  next: Home["next"];
+  next: NonNullable<Home["next"]>;
+  url: string;
   base: string;
   locale: Locale;
 }) {
   const t = await getTranslations("dashboard");
-  if (!next) return null;
-  const days = Math.round(
-    (Date.parse(dayOf(next.startsAt, next.timezone)) -
-      Date.parse(dayOf(new Date(), next.timezone))) /
-      86_400_000,
-  );
-  const when =
+  const days = daysUntil(next.startsAt, next.timezone);
+  const big =
     days <= 0
-      ? t("nextToday")
+      ? t("countdownToday")
       : days === 1
-        ? t("nextTomorrow")
-        : t("nextIn", { count: days });
+        ? t("countdownTomorrow")
+        : t("countdown", { count: days });
   return (
-    <Card className="grid overflow-hidden p-0 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-      <div className="relative h-44 bg-[var(--accent)] md:h-full md:min-h-56">
-        {next.coverImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={next.coverImageUrl}
-            alt=""
-            className="absolute inset-0 size-full object-cover"
-          />
-        ) : (
-          <span aria-hidden="true" className="absolute inset-0 overflow-hidden">
-            <span className="absolute -top-10 -left-8 size-40 rounded-full bg-[var(--accent-panel,var(--evoly-lilas))]" />
-            <span className="absolute top-10 right-6 size-28 rotate-12 rounded-[30%] bg-surface-inverse" />
-          </span>
-        )}
-      </div>
-      <div className="grid content-start gap-3 p-5">
-        <p className="inline-flex items-center gap-2 justify-self-start rounded-full bg-surface-inverse px-3.5 py-1.5 text-sm font-semibold text-ink-inverse">
-          {days <= 1 ? (
-            <span aria-hidden="true" className="relative inline-flex size-2">
-              <span className="absolute inset-0 animate-ping rounded-full bg-[var(--accent)] motion-reduce:animate-none" />
-              <span className="relative size-2 rounded-full bg-[var(--accent)]" />
-            </span>
-          ) : null}
-          {when}
+    <section
+      aria-labelledby="next-event"
+      className="relative grid gap-5 overflow-hidden rounded-lg bg-highlight-soft py-4 pr-5 pl-[calc(var(--highlight-bar)+1.4rem)] before:absolute before:inset-y-0 before:left-0 before:w-[var(--highlight-bar)] before:bg-highlight md:grid-cols-[minmax(0,1.3fr)_auto_minmax(0,1.2fr)] md:items-center md:gap-7"
+    >
+      <div className="grid min-w-0 gap-0.5">
+        <p className="text-[0.8125rem] font-semibold text-highlight-ink">
+          {t("nextLabel")}
         </p>
-        <h2 className="font-display text-2xl leading-tight tracking-[var(--tracking-title)]">
-          {next.title}
+        <h2 id="next-event" className="text-lg leading-snug font-semibold">
+          <Link href={`${base}/events/${next.id}`} className="hover:underline">
+            {next.title}
+          </Link>
         </h2>
-        <p className="text-sm text-ink-muted">
+        <p className="text-[0.8125rem] text-ink-muted">
           {formatDateTime(next.startsAt, next.timezone, locale, "long")}
-          {next.place ? (
-            <>
-              <br />
-              {next.place}
-            </>
-          ) : null}
+          {next.place ? `, ${next.place}` : null}
         </p>
-        <div className="grid gap-1.5">
-          <p className="flex items-baseline justify-between text-sm">
-            <span className="font-semibold">{t("nextSold")}</span>
-            <span className="tabular-nums">
-              {next.capacity ? `${next.sold} / ${next.capacity}` : next.sold}
-            </span>
-          </p>
-          <Gauge sold={next.sold} capacity={next.capacity} />
-        </div>
-        <ButtonLink
-          href={`${base}/events/${next.id}`}
-          variant="dark"
-          className="mt-1 justify-self-start"
-        >
-          {t("viewEvent")}
-        </ButtonLink>
       </div>
-    </Card>
+      <div className="md:border-x md:border-highlight-line md:px-7 md:text-center">
+        <p className="font-figures text-[2.5rem] leading-none tracking-[-0.05em] whitespace-nowrap">
+          {big}
+        </p>
+        {days > 1 ? (
+          <p className="mt-1 text-[0.8125rem] text-ink-muted">
+            {t("beforeStart")}
+          </p>
+        ) : null}
+      </div>
+      <div className="grid gap-2.5">
+        <SalesGauge
+          sold={next.sold}
+          capacity={next.capacity}
+          pace={next.pace}
+          timezone={next.timezone}
+          locale={locale}
+          projection
+        />
+        <div className="flex flex-wrap gap-2">
+          <CopyButton value={url} label={t("copyLink")} />
+          <Link
+            href={`${base}/events/${next.id}`}
+            className={buttonClass("secondary", "sm")}
+          >
+            {t("open")}
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
-/** Les dernières commandes, sous une pastille « En direct ». */
-export async function LiveOrdersWidget({
+/** Les événements suivants, chaque ligne ouverte par sa feuille de calendrier. */
+export async function UpcomingTable({
+  events,
+  base,
+  locale,
+}: {
+  events: Home["fill"];
+  base: string;
+  locale: Locale;
+}) {
+  const t = await getTranslations("dashboard");
+  if (events.length === 0) return null;
+  return (
+    <section aria-labelledby="upcoming" className="grid gap-1.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id="upcoming" className={sectionTitle}>
+          {t("upcomingTitle")}
+        </h2>
+        <Link href={`${base}/events`} className={quietLink}>
+          {t("allEvents")}
+        </Link>
+      </div>
+      <ul role="list" className="grid">
+        {events.map((e) => {
+          const days = daysUntil(e.startsAt, e.timezone);
+          return (
+            <li key={e.id} className="border-b border-line first:border-t">
+              <Link
+                href={`${base}/events/${e.id}`}
+                className="grid gap-3 py-2.5 hover:bg-surface-sunken/50 sm:grid-cols-[minmax(0,1fr)_8rem_minmax(0,18rem)] sm:items-center sm:gap-6"
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  <DateLeaf
+                    date={e.startsAt}
+                    timezone={e.timezone}
+                    locale={locale}
+                  />
+                  <span className="grid min-w-0">
+                    <span className="truncate font-semibold">{e.title}</span>
+                    {e.place ? (
+                      <span className="truncate text-[0.8125rem] text-ink-muted">
+                        {e.place}
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+                <span className="text-[0.875rem] text-ink-muted max-sm:hidden">
+                  {t("inDays", { count: Math.max(0, days) })}
+                </span>
+                <SalesGauge
+                  sold={e.sold}
+                  capacity={e.capacity}
+                  pace={e.pace}
+                  timezone={e.timezone}
+                  locale={locale}
+                />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+/** Les dernières commandes : le nom, le nombre de billets et l'événement, le montant. */
+export async function LiveOrders({
   recent,
   base,
   locale,
@@ -144,165 +252,92 @@ export async function LiveOrdersWidget({
     return rtf.format(Math.round(h / 24), "day");
   };
   return (
-    <Card className="grid content-start gap-3">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+    <section
+      aria-labelledby="recent-orders"
+      className="grid content-start gap-1.5"
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id="recent-orders" className={sectionTitle}>
           {t("liveTitle")}
         </h2>
-        <Badge tone="accent" live>
-          {t("live")}
-        </Badge>
+        <Link href={`${base}/orders`} className={quietLink}>
+          {t("allOrders")}
+        </Link>
       </div>
       {recent.length === 0 ? (
-        <p className="text-sm text-ink-muted">{t("liveEmpty")}</p>
-      ) : null}
-      <ul role="list" className="grid gap-1">
-        {recent.map((o) => (
-          <li key={o.id}>
-            <Link
-              href={`${base}/orders/${o.id}`}
-              className="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-surface-sunken"
-            >
-              <span
-                aria-hidden="true"
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--evoly-lilas)] font-display text-sm text-[var(--evoly-charbon)]"
-              >
-                {initials(o.name)}
-              </span>
-              <span className="grid min-w-0 flex-1">
-                <span className="truncate text-sm font-semibold">{o.name}</span>
-                <span className="truncate text-xs text-ink-muted">
-                  {o.event}
-                </span>
-              </span>
-              <span className="grid justify-items-end">
-                {money ? (
-                  <span className="text-sm font-semibold tabular-nums">
-                    {o.totalMinor === 0
-                      ? t("free")
-                      : formatMoney(o.totalMinor, o.currency, locale)}
-                  </span>
-                ) : null}
-                <span className="text-xs text-ink-muted">{ago(o.paidAt)}</span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
-}
-
-/** La recette des 30 derniers jours, jour par jour. */
-export async function RevenueWidget({
-  revenue,
-  currency,
-  locale,
-}: {
-  revenue: Home["revenue"];
-  currency: string;
-  locale: Locale;
-}) {
-  const t = await getTranslations("dashboard");
-  const max = Math.max(1, ...revenue.map((d) => d.totalMinor));
-  const total = revenue.reduce((n, d) => n + d.totalMinor, 0);
-  const W = 300;
-  const H = 80;
-  const bw = W / revenue.length;
-  return (
-    <Card className="grid content-start gap-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-          {t("revenueTitle")}
-        </h2>
-        <p className="font-display text-xl tabular-nums">
-          {formatMoney(total, currency, locale)}
+        <p className="border-t border-line py-3 text-[0.875rem] text-ink-muted">
+          {t("liveEmpty")}
         </p>
-      </div>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="h-24 w-full"
-        role="img"
-        aria-label={t("revenueLabel", {
-          total: formatMoney(total, currency, locale),
-        })}
-        preserveAspectRatio="none"
-      >
-        {revenue.map((d, i) => {
-          const h = d.totalMinor
-            ? Math.max(3, (d.totalMinor / max) * (H - 4))
-            : 2;
-          return (
-            <rect
-              key={d.day}
-              x={i * bw + 1.5}
-              y={H - h}
-              width={bw - 3}
-              height={h}
-              rx={2}
-              fill={
-                i === revenue.length - 1
-                  ? "var(--evoly-charbon)"
-                  : d.totalMinor
-                    ? "var(--accent)"
-                    : "var(--line)"
-              }
-            >
-              <title>{`${d.day} : ${formatMoney(d.totalMinor, currency, locale)}`}</title>
-            </rect>
-          );
-        })}
-      </svg>
-    </Card>
+      ) : (
+        <ul role="list" className="grid">
+          {recent.map((o) => (
+            <li key={o.id} className="border-b border-line first:border-t">
+              <Link
+                href={`${base}/orders/${o.id}`}
+                className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-2.5 hover:bg-surface-sunken/50"
+              >
+                <span className="grid min-w-0">
+                  <span className="truncate text-[0.875rem] font-medium">
+                    {o.name}
+                  </span>
+                  <span className="truncate text-[0.8125rem] text-ink-muted">
+                    {t("tickets", { count: o.tickets })}, {o.event}
+                  </span>
+                </span>
+                <span className="grid justify-items-end">
+                  {money ? (
+                    <span className="text-[0.875rem] tabular-nums">
+                      {o.totalMinor === 0
+                        ? t("free")
+                        : formatMoney(o.totalMinor, o.currency, locale)}
+                    </span>
+                  ) : null}
+                  <span className="text-[0.8125rem] text-ink-muted">
+                    {ago(o.paidAt)}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
-/** Le remplissage des événements à venir. */
-export async function FillWidget({
-  fill,
-  base,
-  locale,
-}: {
-  fill: Home["fill"];
-  base: string;
-  locale: Locale;
-}) {
-  const t = await getTranslations("dashboard");
-  if (fill.length === 0) return null;
-  return (
-    <Card className="grid content-start gap-3">
-      <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-        {t("fillTitle")}
-      </h2>
-      <ul role="list" className="grid gap-3">
-        {fill.map((e) => (
-          <li key={e.id}>
-            <Link
-              href={`${base}/events/${e.id}`}
-              className="grid gap-1.5 rounded-lg px-2 py-1.5 hover:bg-surface-sunken"
-            >
-              <span className="flex items-baseline justify-between gap-3 text-sm">
-                <span className="truncate font-semibold">{e.title}</span>
-                <span className="shrink-0 tabular-nums text-ink-muted">
-                  {e.capacity
-                    ? `${Math.round((e.sold / e.capacity) * 100)} %`
-                    : e.sold}
-                </span>
-              </span>
-              <Gauge sold={e.sold} capacity={e.capacity} />
-              <span className="text-xs text-ink-muted">
-                {formatDateTime(e.startsAt, e.timezone, locale, "short")}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Card>
-  );
-}
+const TodoIcon = ({ kind }: { kind: "stripe" | "cover" | "draft" }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="size-4 shrink-0 text-warning"
+  >
+    {kind === "stripe" ? (
+      <>
+        <rect x="3" y="6" width="18" height="13" rx="2" />
+        <path d="M3 10h18" />
+      </>
+    ) : kind === "cover" ? (
+      <>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <circle cx="9" cy="10" r="2" />
+        <path d="m21 16-5-5-9 9" />
+      </>
+    ) : (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 8v5l3 2" />
+      </>
+    )}
+  </svg>
+);
 
 /** Ce qu'il reste à faire : Stripe, les images manquantes, les brouillons oubliés. */
-export async function TodoWidget({
+export async function TodoList({
   todo,
   base,
   canPay,
@@ -318,7 +353,7 @@ export async function TodoWidget({
           {
             href: `${base}/settings/payments`,
             label: t("todoStripe"),
-            tone: "warning" as const,
+            kind: "stripe" as const,
           },
         ]
       : []),
@@ -327,7 +362,7 @@ export async function TodoWidget({
           {
             href: `${base}/events`,
             label: t("todoCover", { count: todo.noCover }),
-            tone: "info" as const,
+            kind: "cover" as const,
           },
         ]
       : []),
@@ -336,44 +371,47 @@ export async function TodoWidget({
           {
             href: `${base}/events`,
             label: t("todoDrafts", { count: todo.drafts }),
-            tone: "neutral" as const,
+            kind: "draft" as const,
           },
         ]
       : []),
   ];
   return (
-    <Card className="grid content-start gap-3">
-      <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+    <section aria-labelledby="todo" className="grid content-start gap-1.5">
+      <h2 id="todo" className={sectionTitle}>
         {t("todoTitle")}
       </h2>
       {items.length === 0 ? (
-        <p className="flex items-center gap-2 text-sm">
-          <Badge tone="success" dot>
-            {t("todoNone")}
-          </Badge>
+        <p className="flex items-center gap-2 border-t border-line py-3 text-[0.875rem] text-success">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-4"
+          >
+            <path d="m5 12 5 5 9-10" />
+          </svg>
+          {t("todoNone")}
         </p>
       ) : (
-        <ul role="list" className="grid gap-1">
+        <ul role="list" className="grid">
           {items.map((i) => (
-            <li key={i.label}>
+            <li key={i.label} className="border-b border-line first:border-t">
               <Link
                 href={i.href}
-                className="flex items-center justify-between gap-3 rounded-lg px-2 py-2 text-sm hover:bg-surface-sunken"
+                className="flex items-center gap-2.5 py-2.5 text-[0.875rem] hover:bg-surface-sunken/50"
               >
-                <span className="flex items-center gap-2.5">
-                  <Badge tone={i.tone} dot>
-                    {" "}
-                  </Badge>
-                  {i.label}
-                </span>
-                <span aria-hidden="true" className="text-ink-subtle">
-                  ›
-                </span>
+                <TodoIcon kind={i.kind} />
+                <span className="min-w-0 flex-1">{i.label}</span>
               </Link>
             </li>
           ))}
         </ul>
       )}
-    </Card>
+    </section>
   );
 }

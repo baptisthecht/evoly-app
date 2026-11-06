@@ -1,14 +1,14 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { EventTab } from "@/components/shell/eventTabs";
+import type { EventTab } from "@/components/shell/eventTabItems";
 import { TabBar } from "@/components/shell/TabBar";
 import {
   activeTab,
   eventTabBar,
   type TabBarSection,
   type TabBarTab,
-} from "@/components/shell/tabBar";
+} from "@/components/shell/tabBarItems";
 import { Fr } from "./intl";
 
 // barre d'onglets du téléphone (maquette validée : capsule flottante, variante D)

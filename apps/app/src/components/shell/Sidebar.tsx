@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { TabBarExtras } from "./TabBar";
 
 /**
- * Coquille de l'espace organisateur : sur ordinateur, une barre latérale claire ;
+ * Coquille de l'espace organisateur : sur ordinateur, une barre latérale charbon (refonte A3, docs/DECISIONS.md) ;
  * sur téléphone, une barre d'onglets flottante (organisation ou événement), avec
  * le sélecteur d'organisation et le compte dans sa feuille « Plus ».
  */
@@ -32,12 +32,13 @@ export function Shell({
   const accountLabel = useTranslations("nav")("tabBarAccount");
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15.5rem_minmax(0,1fr)]">
-      <aside className="hidden border-r border-line bg-surface-raised px-3 py-4 text-ink lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:gap-2">
+      <aside className="theme-sidebar hidden px-3 py-4 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:gap-2">
         <div className="px-2.5 pt-1 pb-2">
           <Logo className="h-8 w-auto text-ink" />
         </div>
         {orgSwitcher}
-        <div className="-mx-1 mt-2 flex-1 overflow-y-auto px-1">{nav}</div>
+        {/* -mx-3 px-3 : le trait rose de la page active touche le bord de la barre sans être coupé par le défilement */}
+        <div className="-mx-3 mt-2 flex-1 overflow-y-auto px-3">{nav}</div>
         <div className="grid gap-1 border-t border-line pt-2">
           {bell}
           {account}
@@ -63,12 +64,18 @@ export function Shell({
             <details className="group rounded-[1rem] bg-surface-raised px-3 py-1 shadow-[inset_0_0_0_1px_var(--line)]">
               <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between font-display text-sm [&::-webkit-details-marker]:hidden">
                 {accountLabel}
-                <span
+                <svg
                   aria-hidden="true"
-                  className="transition-transform group-open:rotate-180"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-4 transition-transform group-open:rotate-180"
                 >
-                  ⌄
-                </span>
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </summary>
               <div className="pb-2">{account}</div>
             </details>

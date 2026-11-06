@@ -1,7 +1,10 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
-import { activeEventTab, buildEventTabs } from "@/components/shell/eventTabs";
+import {
+  activeEventTab,
+  buildEventTabs,
+} from "@/components/shell/eventTabItems";
 import { EventSubTabs, EventTabs } from "@/components/shell/EventTabs";
 import { ShareLink } from "@/components/shell/ShareLink";
 import { Fr } from "./intl";

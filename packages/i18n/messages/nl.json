@@ -910,7 +910,23 @@
     "todoStripe": "Stripe koppelen om betalende tickets te verkopen",
     "todoCover": "{count, plural, one {# komend evenement zonder afbeelding} other {# komende evenementen zonder afbeelding}}",
     "todoDrafts": "{count, plural, one {# concept al een week niet aangeraakt} other {# concepten al een week niet aangeraakt}}",
-    "todoNone": "Alles in orde"
+    "todoNone": "Alles in orde",
+    "nextLabel": "Volgend evenement",
+    "countdown": "{count, plural, one {# dag} other {# dagen}}",
+    "countdownToday": "Vandaag",
+    "countdownTomorrow": "Morgen",
+    "beforeStart": "tot de start",
+    "copyLink": "Link kopiëren",
+    "open": "Openen",
+    "upcomingTitle": "Binnenkort",
+    "allEvents": "Alle evenementen",
+    "allOrders": "Alle bestellingen",
+    "tickets": "{count, plural, one {# ticket} other {# tickets}}",
+    "colEvent": "Evenement",
+    "colDate": "Datum",
+    "colSales": "Verkoop",
+    "inDays": "{count, plural, =0 {vandaag} =1 {morgen} other {over # dagen}}",
+    "revenueChart": "Dagelijkse opbrengst over 30 dagen"
   },
   "events": {
     "newEvent": "Nieuw evenement",
@@ -3473,5 +3489,16 @@
   },
   "dialog": {
     "close": "Sluiten"
+  },
+  "pace": {
+    "ahead": "voor op schema",
+    "onTrack": "op schema",
+    "behind": "wat traag",
+    "soldOut": "uitverkocht",
+    "notStarted": "verkoop nog niet gestart",
+    "soldOf": "{sold} van {capacity}",
+    "sold": "{sold, plural, one {# ticket verkocht} other {# tickets verkocht}}",
+    "soldOutAt": "In dit tempo uitverkocht rond {date}.",
+    "label": "{sold} van {capacity} plaatsen verkocht, {pace}"
   }
 }

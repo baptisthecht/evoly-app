@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
 import { NAV } from "./nav";
 import { TabBar } from "./TabBar";
-import { ORG_TABS, type TabBarSection, type TabBarTab } from "./tabBar";
+import { ORG_TABS, type TabBarSection, type TabBarTab } from "./tabBarItems";
 
 /** Barre du téléphone dans l'organisation : Accueil, Événements, Commandes, Finances, puis « Plus » (selon les droits). */
 export async function OrgTabBar({ orgSlug }: { orgSlug: string }) {

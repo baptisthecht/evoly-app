@@ -910,7 +910,23 @@
     "todoStripe": "Conecta Stripe para vender entradas de pago",
     "todoCover": "{count, plural, one {# evento próximo sin imagen} other {# eventos próximos sin imagen}}",
     "todoDrafts": "{count, plural, one {# borrador olvidado desde hace una semana} other {# borradores olvidados desde hace una semana}}",
-    "todoNone": "Todo en orden"
+    "todoNone": "Todo en orden",
+    "nextLabel": "Próximo evento",
+    "countdown": "{count, plural, one {# día} other {# días}}",
+    "countdownToday": "Hoy",
+    "countdownTomorrow": "Mañana",
+    "beforeStart": "para el inicio",
+    "copyLink": "Copiar el enlace",
+    "open": "Abrir",
+    "upcomingTitle": "Próximamente",
+    "allEvents": "Todos los eventos",
+    "allOrders": "Todos los pedidos",
+    "tickets": "{count, plural, one {# entrada} other {# entradas}}",
+    "colEvent": "Evento",
+    "colDate": "Fecha",
+    "colSales": "Ventas",
+    "inDays": "{count, plural, =0 {hoy} =1 {mañana} other {dentro de # días}}",
+    "revenueChart": "Ingresos diarios de los últimos 30 días"
   },
   "events": {
     "newEvent": "Nuevo evento",
@@ -3473,5 +3489,16 @@
   },
   "dialog": {
     "close": "Cerrar"
+  },
+  "pace": {
+    "ahead": "por delante del ritmo",
+    "onTrack": "al ritmo previsto",
+    "behind": "algo lento",
+    "soldOut": "agotado",
+    "notStarted": "venta aún no abierta",
+    "soldOf": "{sold} de {capacity}",
+    "sold": "{sold, plural, one {# entrada vendida} other {# entradas vendidas}}",
+    "soldOutAt": "A este ritmo, agotado hacia el {date}.",
+    "label": "{sold} de {capacity} plazas vendidas, {pace}"
   }
 }
