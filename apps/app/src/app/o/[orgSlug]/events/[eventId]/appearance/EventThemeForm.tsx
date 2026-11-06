@@ -42,9 +42,7 @@ export function EventThemeForm({
   );
   return (
     <Card className="grid gap-5">
-      <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-        {t("eventStyleTitle")}
-      </h2>
+      <h2 className="text-[0.9375rem] font-semibold">{t("eventStyleTitle")}</h2>
       <form {...formProps} className="grid gap-5" noValidate>
         <fieldset className="grid gap-2 sm:grid-cols-2">
           {(["organization", "custom"] as const).map((m) => (

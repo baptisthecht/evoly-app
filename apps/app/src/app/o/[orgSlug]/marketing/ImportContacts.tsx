@@ -39,7 +39,7 @@ export function ImportContacts({
   const [pending, start] = useTransition();
   return (
     <Card className="grid gap-3">
-      <h2 className="font-display text-lg">{labels.title}</h2>
+      <h2 className="text-[0.9375rem] font-semibold">{labels.title}</h2>
       <p className="text-sm text-ink-muted">{labels.intro}</p>
       <form
         className="grid gap-3"

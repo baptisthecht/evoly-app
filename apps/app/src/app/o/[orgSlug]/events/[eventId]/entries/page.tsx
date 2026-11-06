@@ -69,12 +69,12 @@ export default async function EntriesPage({
               <p className="font-label text-[0.8rem] font-bold text-ink-muted">
                 {t("present")}
               </p>
-              <p className="font-display text-5xl tracking-[-0.05em] tabular-nums">
+              <p className="font-figures text-5xl tracking-[var(--tracking-figures)] tabular-nums">
                 {stats.present}{" "}
                 <span className="text-2xl text-ink-muted">/ {stats.total}</span>
               </p>
             </div>
-            <p className="font-display text-3xl tabular-nums">
+            <p className="font-figures text-3xl tracking-[var(--tracking-figures)] tabular-nums">
               {Math.round(stats.rateBps / 100)} %
             </p>
           </div>
@@ -112,9 +112,7 @@ export default async function EntriesPage({
           {canScan ? <OpenScanner orgSlug={orgSlug} eventId={eventId} /> : null}
         </Card>
         <Card className="grid content-start gap-3">
-          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-            {t("recentTitle")}
-          </h2>
+          <h2 className="text-[0.9375rem] font-semibold">{t("recentTitle")}</h2>
           {stats.recent.length === 0 ? (
             <p className="text-sm text-ink-muted">{t("noScans")}</p>
           ) : null}
@@ -161,10 +159,7 @@ export default async function EntriesPage({
 
       {canManage ? (
         <section className="grid gap-3" aria-labelledby="links-title">
-          <h2
-            id="links-title"
-            className="font-display text-xl tracking-[var(--tracking-title)]"
-          >
+          <h2 id="links-title" className="text-[0.9375rem] font-semibold">
             {t("linksTitle")}
           </h2>
           <p className="-mt-1 text-sm text-ink-muted">{t("linksIntro")}</p>

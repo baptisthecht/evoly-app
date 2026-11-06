@@ -146,9 +146,7 @@ export function CampaignEditor({
             </Field>
           </Card>
           <section className="grid gap-4" aria-label={t("content")}>
-            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-              {t("content")}
-            </h2>
+            <h2 className="text-[0.9375rem] font-semibold">{t("content")}</h2>
             <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <EmailEditor
                 orgSlug={orgSlug}
@@ -167,9 +165,7 @@ export function CampaignEditor({
         </div>
         <aside className="grid content-start gap-4 lg:sticky lg:top-6">
           <Card className="grid gap-3">
-            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-              {t("audience")}
-            </h2>
+            <h2 className="text-[0.9375rem] font-semibold">{t("audience")}</h2>
             <Select
               aria-label={t("audience")}
               value={v.segment.kind}

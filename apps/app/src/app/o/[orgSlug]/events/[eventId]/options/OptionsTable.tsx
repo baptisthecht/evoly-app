@@ -8,6 +8,7 @@ import { DataTable, type TableColumn } from "@/components/ui/DataTable";
 import { Dialog } from "@/components/ui/Dialog";
 import { type Initial, OptionCommand, OptionForm } from "./OptionForm";
 import { OptionsRefundPolicy } from "./OptionsRefundPolicy";
+import { PlusIcon } from "@/components/ui/icons";
 
 export interface OptionRow {
   id: string;
@@ -157,7 +158,8 @@ export function OptionsTable({
             size="md"
             onClick={() => setDialog("new")}
           >
-            + {t("newTitle")}
+            <PlusIcon className="size-4 shrink-0" />
+            {t("newTitle")}
           </Button>
           <Button
             type="button"

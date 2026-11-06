@@ -4,9 +4,8 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/Card";
-import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
-import { homeOverview } from "@/server/home";
+import { homeKpis, homeOverview } from "@/server/home";
 import { eventPublicUrl } from "@/server/urls";
 import { Stat } from "@/components/ui/Stat";
 import {
@@ -32,56 +31,44 @@ export default async function OrgHome({
   const ctx = await requireOrgContext(orgSlug);
   const t = await getTranslations("dashboard");
   const locale = (await getLocale()) as Locale;
-  const since = new Date(Date.now() - 30 * 86_400_000);
-  const [events, paid] = await Promise.all([
-    db.event.count({
-      where: {
-        organizationId: ctx.organization.id,
-        status: { in: ["PUBLISHED", "SALES_PAUSED"] },
-        deletedAt: null,
-      },
-    }),
-    db.order.aggregate({
-      where: {
-        organizationId: ctx.organization.id,
-        status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
-        paidAt: { gte: since },
-      },
-      _sum: {
-        totalMinor: true,
-        applicationFeeMinor: true,
-        paymentFeeMinor: true,
-        refundedMinor: true,
-      },
-    }),
-  ]);
-  const tickets = await db.ticket.count({
-    where: {
-      event: { organizationId: ctx.organization.id },
-      status: { in: ["VALID", "CHECKED_IN"] },
-      createdAt: { gte: since },
-    },
-  });
-  const s = paid._sum;
-  const net =
-    (s.totalMinor ?? 0) -
-    (s.refundedMinor ?? 0) -
-    (s.applicationFeeMinor ?? 0) -
-    (s.paymentFeeMinor ?? 0);
+  const k = await homeKpis(ctx);
   const showMoney = can(ctx.membership, "FINANCE_VIEW");
   const home = await homeOverview(ctx);
   const base = `/o/${ctx.organization.slug}`;
+  const money = (m: number) =>
+    formatMoney(m, ctx.organization.currency, locale);
+  const signed = (n: number, text: string) =>
+    n > 0 ? `+${text}` : n < 0 ? `\u2212${text.replace(/^-/, "")}` : text;
+  const events = k.events;
 
-  // refonte A3 : trois indicateurs en ligne (le taux de présence, jamais calculé, est retiré)
+  // refonte A3 : trois indicateurs en ligne avec leur évolution sur 30 jours (le taux de présence, jamais calculé, est retiré)
   const kpis = [
     {
       label: t("kpiNet"),
-      value: showMoney
-        ? formatMoney(net, ctx.organization.currency, locale)
-        : "-",
+      value: showMoney ? money(k.netMinor) : "-",
+      sub:
+        showMoney && k.netDeltaMinor !== 0
+          ? t("deltaPrevious", {
+              amount: signed(k.netDeltaMinor, money(Math.abs(k.netDeltaMinor))),
+            })
+          : null,
+      up: k.netDeltaMinor > 0,
     },
-    { label: t("kpiTickets"), value: String(tickets) },
-    { label: t("kpiEvents"), value: String(events) },
+    {
+      label: t("kpiTickets"),
+      value: String(k.tickets),
+      sub:
+        k.ticketsDelta !== 0
+          ? signed(k.ticketsDelta, String(Math.abs(k.ticketsDelta)))
+          : null,
+      up: k.ticketsDelta > 0,
+    },
+    {
+      label: t("kpiEvents"),
+      value: String(k.events),
+      sub: k.drafts ? t("andDrafts", { count: k.drafts }) : null,
+      up: false,
+    },
   ];
 
   return (
@@ -97,7 +84,12 @@ export default async function OrgHome({
             key={k.label}
             className="lg:mr-9 lg:border-r lg:border-line lg:pr-9 lg:last-of-type:mr-0 lg:last-of-type:border-r-0"
           >
-            <Stat label={k.label} value={k.value} />
+            <Stat
+              label={k.label}
+              value={k.value}
+              sub={k.sub}
+              subTone={k.up ? "success" : "muted"}
+            />
           </div>
         ))}
         {showMoney ? (
@@ -122,7 +114,8 @@ export default async function OrgHome({
             />
           ) : null}
           <UpcomingTable
-            events={home.fill.slice(1)}
+            events={home.fill}
+            money={showMoney}
             base={base}
             locale={locale}
           />

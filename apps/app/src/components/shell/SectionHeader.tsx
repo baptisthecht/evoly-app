@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { ButtonLink } from "@/components/ui/Button";
 import { requireOrgContext } from "@/server/context";
 import { PageHeader } from "./PageHeader";
+import { PlusIcon } from "@/components/ui/icons";
 
 /** En-tête de chaque section de l'organisation : une seule configuration, le même rendu partout. */
 export async function SectionHeader({
@@ -29,6 +30,7 @@ export async function SectionHeader({
           actions={
             canCreate ? (
               <ButtonLink href={`${base}/events/new`}>
+                <PlusIcon className="size-4 shrink-0" />
                 {te("newEvent")}
               </ButtonLink>
             ) : null
@@ -45,6 +47,7 @@ export async function SectionHeader({
           actions={
             canCreate ? (
               <ButtonLink href={`${base}/events/new`}>
+                <PlusIcon className="size-4 shrink-0" />
                 {te("newEvent")}
               </ButtonLink>
             ) : null

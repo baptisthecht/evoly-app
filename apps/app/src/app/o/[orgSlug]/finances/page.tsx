@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { buttonClass } from "@/components/ui/Button";
-import { Badge, Card, EmptyState } from "@/components/ui/Card";
+import { Badge, EmptyState } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Field";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
@@ -79,7 +79,7 @@ export default async function FinancesPage({
   return (
     <div className="grid gap-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <form className="grid w-full gap-2 sm:w-auto sm:grid-cols-[12rem_14rem_auto]">
+        <form className="grid w-full items-center gap-2 sm:w-auto sm:grid-cols-[11rem_13rem_auto] [&_select]:h-9 [&_select]:text-[0.8125rem]">
           <Select name="period" defaultValue={period} aria-label={t("period")}>
             {PERIODS.map((p) => (
               <option key={p} value={p}>
@@ -99,7 +99,7 @@ export default async function FinancesPage({
               </option>
             ))}
           </Select>
-          <button type="submit" className={buttonClass("dark", "md")}>
+          <button type="submit" className={buttonClass("secondary", "sm")}>
             {t("show")}
           </button>
         </form>
@@ -219,9 +219,9 @@ export default async function FinancesPage({
       </section>
 
       {overview.options.rows.length ? (
-        <Card className="grid gap-3">
+        <section className="grid gap-3 border-t border-line pt-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+            <h2 className="text-[0.9375rem] font-semibold">
               {t("optionsTitle")}
             </h2>
             <a
@@ -302,21 +302,19 @@ export default async function FinancesPage({
               </tfoot>
             </table>
           </div>
-        </Card>
+        </section>
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="grid content-start gap-3">
-          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-            {t("stripeTitle")}
-          </h2>
+        <section className="grid content-start gap-3 border-t border-line pt-5">
+          <h2 className="text-[0.9375rem] font-semibold">{t("stripeTitle")}</h2>
           {stripeInfo.connected && stripeInfo.balance ? (
             <dl className="grid grid-cols-2 gap-3">
               <div>
                 <dt className="font-label text-[0.8rem] font-bold text-ink-muted">
                   {t("available")}
                 </dt>
-                <dd className="font-display text-xl tabular-nums">
+                <dd className="font-figures text-xl tracking-[var(--tracking-figures)] tabular-nums">
                   {stripeInfo.balance.available
                     .map((b) => money(b.amount, b.currency))
                     .join(", ") || money(0)}
@@ -326,7 +324,7 @@ export default async function FinancesPage({
                 <dt className="font-label text-[0.8rem] font-bold text-ink-muted">
                   {t("pending")}
                 </dt>
-                <dd className="font-display text-xl tabular-nums">
+                <dd className="font-figures text-xl tracking-[var(--tracking-figures)] tabular-nums">
                   {stripeInfo.balance.pending
                     .map((b) => money(b.amount, b.currency))
                     .join(", ") || money(0)}
@@ -374,10 +372,10 @@ export default async function FinancesPage({
               {t("openStripe")}
             </a>
           ) : null}
-        </Card>
+        </section>
 
-        <Card className="grid content-start gap-3">
-          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+        <section className="grid content-start gap-3 border-t border-line pt-5">
+          <h2 className="text-[0.9375rem] font-semibold">
             {t("statementsTitle")}
           </h2>
           <p className="-mt-1 text-sm text-ink-muted">{t("statementsIntro")}</p>
@@ -411,12 +409,12 @@ export default async function FinancesPage({
               </li>
             ))}
           </ul>
-        </Card>
+        </section>
       </div>
 
       {stripeInfo.connected && stripeInfo.disputes.length > 0 ? (
-        <Card className="grid gap-3 ring-2 ring-warning">
-          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+        <section className="grid gap-3 ring-2 ring-warning border-t border-line pt-5">
+          <h2 className="text-[0.9375rem] font-semibold">
             {t("disputesTitle")}
           </h2>
           <ul className="grid gap-2 text-sm">
@@ -462,7 +460,7 @@ export default async function FinancesPage({
           >
             {t("answerDisputes")}
           </a>
-        </Card>
+        </section>
       ) : null}
     </div>
   );

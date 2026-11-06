@@ -64,7 +64,7 @@ export default async function ResaleAdminPage({
             <p className="font-label text-[0.8rem] font-bold text-ink-muted">
               {s.label}
             </p>
-            <p className="font-display text-3xl tracking-[-0.04em] tabular-nums">
+            <p className="font-figures text-[1.6875rem] tracking-[var(--tracking-figures)] tabular-nums">
               {s.value}
             </p>
           </div>

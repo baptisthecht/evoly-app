@@ -66,9 +66,7 @@ export function EventAppearance({
     <div className="mt-10 grid gap-4">
       {part !== "subdomain" ? (
         <Card className="grid gap-3">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-            {t("coverTitle")}
-          </h2>
+          <h2 className="text-[0.9375rem] font-semibold">{t("coverTitle")}</h2>
           <p className="-mt-1 text-sm text-ink-muted">{t("coverHint")}</p>
           {cover ? (
             <img
@@ -126,7 +124,7 @@ export function EventAppearance({
       ) : null}
       {part !== "cover" ? (
         <Card className="grid gap-3">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+          <h2 className="text-[0.9375rem] font-semibold">
             {t("eventSubdomainTitle")}
           </h2>
           {canSubdomain ? (

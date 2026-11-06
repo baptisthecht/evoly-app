@@ -15,6 +15,7 @@ export function Shell({
   orgSwitcher,
   account,
   bell,
+  accountName,
   header,
   tabBar,
   children,
@@ -23,6 +24,8 @@ export function Shell({
   orgSwitcher: ReactNode;
   account: ReactNode;
   bell?: ReactNode;
+  /** Nom affiché dans la rangée du compte, en bas de la barre (refonte A3). */
+  accountName?: string;
   /** Bande d'en-tête pleine largeur au-dessus du contenu (en-tête d'un événement). */
   header?: ReactNode;
   /** Barre d'onglets du téléphone (emplacement parallèle, selon la page). */
@@ -39,9 +42,42 @@ export function Shell({
         {orgSwitcher}
         {/* -mx-3 px-3 : le trait rose de la page active touche le bord de la barre sans être coupé par le défilement */}
         <div className="-mx-3 mt-2 flex-1 overflow-y-auto px-3">{nav}</div>
-        <div className="grid gap-1 border-t border-line pt-2">
+        {/* refonte A3 : le bas de la barre se réduit à une rangée, le compte (menu qui s'ouvre vers le haut) et les notifications */}
+        <div className="flex items-center gap-1 pt-2">
+          <details className="group relative min-w-0 flex-1">
+            <summary className="flex h-11 cursor-pointer list-none items-center gap-2.5 rounded-[10px] px-2 hover:bg-surface group-open:bg-surface [&::-webkit-details-marker]:hidden">
+              <span
+                aria-hidden="true"
+                className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-surface text-[0.6875rem] font-semibold text-ink-muted"
+              >
+                {(accountName ?? "")
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .map((w) => w[0]!.toUpperCase())
+                  .join("")}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-[0.84375rem] font-medium">
+                {accountName ?? accountLabel}
+              </span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="size-4 shrink-0 text-ink-muted"
+              >
+                <path d="m7 15 5 5 5-5M7 9l5-5 5 5" />
+              </svg>
+            </summary>
+            <div className="absolute inset-x-0 bottom-full z-10 mb-2 rounded-lg bg-surface-raised p-2 shadow-lg ring-1 ring-line">
+              {account}
+            </div>
+          </details>
           {bell}
-          {account}
         </div>
       </aside>
 

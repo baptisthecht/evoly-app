@@ -6,6 +6,7 @@ import {
   EVENT_TRANSITIONS,
   eventPublicCode,
   isValidTimeZone,
+  netOfSums,
   normalizeAccessCode,
   parseMajorToMinor,
   publicationBlockers,
@@ -582,6 +583,7 @@ export async function listEvents(organizationId: string) {
       city: true,
       locationType: true,
       locationName: true,
+      currency: true,
       salesStartAt: true,
       salesEndAt: true,
       publishedAt: true,
@@ -591,6 +593,19 @@ export async function listEvents(organizationId: string) {
     orderBy: { startsAt: "asc" },
   });
   const now = new Date();
+  // refonte A3 : l'encaissé de chaque événement (ventes payées, remboursements déduits)
+  const collected = new Map(
+    (
+      await db.order.groupBy({
+        by: ["eventId"],
+        where: {
+          organizationId,
+          status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
+        },
+        _sum: { totalMinor: true, refundedMinor: true },
+      })
+    ).map((c) => [c.eventId, netOfSums(c._sum)]),
+  );
   return events.map((e) => {
     const sold = e.ticketTypes.reduce((n, t) => n + t.quantitySold, 0);
     const total =
@@ -605,7 +620,15 @@ export async function listEvents(organizationId: string) {
       ...salesWindow(e),
       now,
     });
-    return { ...e, sold, total, pace };
+    return {
+      ...e,
+      sold,
+      total,
+      capacity: total,
+      pace,
+      place: e.city ?? e.locationName ?? "",
+      collectedMinor: collected.get(e.id) ?? 0,
+    };
   });
 }
 

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Card";
 import { DataTable, type TableColumn } from "@/components/ui/DataTable";
 import { Dialog } from "@/components/ui/Dialog";
 import { ComplimentaryForm } from "../ComplimentaryForm";
+import { PlusIcon } from "@/components/ui/icons";
 
 export interface ComplimentaryRow {
   id: string;
@@ -100,7 +101,8 @@ export function ComplimentaryTable({
             className="justify-self-start"
             onClick={() => setOpen(true)}
           >
-            + {t("title")}
+            <PlusIcon className="size-4 shrink-0" />
+            {t("title")}
           </Button>
           <Dialog
             open={open}

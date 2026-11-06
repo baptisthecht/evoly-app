@@ -49,3 +49,9 @@ export const ArrowRightIcon = (p: IconProps) => (
     <path d="M5 12h14M13 6l6 6-6 6" />
   </Svg>
 );
+/** Plus (« ajouter », « nouveau »), à la place du caractère « + » dans les boutons (refonte A3). */
+export const PlusIcon = (p: IconProps) => (
+  <Svg strokeWidth={2} {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </Svg>
+);

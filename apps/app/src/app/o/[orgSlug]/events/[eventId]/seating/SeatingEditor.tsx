@@ -419,10 +419,7 @@ export function SeatingEditor({
           aria-labelledby="plan-title"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2
-              id="plan-title"
-              className="font-display text-xl tracking-[var(--tracking-title)]"
-            >
+            <h2 id="plan-title" className="text-[0.9375rem] font-semibold">
               {t("planTitle")}
             </h2>
             {!readOnly ? (
@@ -1066,10 +1063,7 @@ function Panel({
       aria-labelledby={id}
       className="grid gap-3 rounded-[var(--r-card)] border border-line bg-surface-raised p-4"
     >
-      <h3
-        id={id}
-        className="font-display text-lg tracking-[var(--tracking-title)]"
-      >
+      <h3 id={id} className="text-[0.9375rem] font-semibold">
         {title}
       </h3>
       {children}
@@ -2256,7 +2250,7 @@ function TemplatePicker({
       ) : null}
       <div className="flex flex-wrap items-start gap-4">
         <fieldset className="grid min-w-0 flex-[999_1_520px] grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
-          <legend className="mb-2 font-display text-xl tracking-[var(--tracking-title)]">
+          <legend className="mb-2 text-[0.9375rem] font-semibold">
             {t("chooseTemplate")}
           </legend>
           {SEATING_TEMPLATES.map((tpl) => (

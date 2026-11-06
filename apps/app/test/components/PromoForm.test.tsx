@@ -42,7 +42,7 @@ const draw = (ticketTypes = types) => {
       />
     </Fr>,
   );
-  fireEvent.click(screen.getByRole("button", { name: `+ ${t.new}` }));
+  fireEvent.click(screen.getByRole("button", { name: t.new }));
 };
 const type = (v: "PERCENT" | "AMOUNT" | "FREE") =>
   fireEvent.change(document.getElementById("promo-type")!, {
@@ -83,9 +83,7 @@ describe("codes promo d'un événement", () => {
         />
       </Fr>,
     );
-    fireEvent.click(
-      screen.getAllByRole("button", { name: `+ ${t.new}` }).at(-1)!,
-    );
+    fireEvent.click(screen.getAllByRole("button", { name: t.new }).at(-1)!);
     expect(
       screen.getAllByRole("checkbox", { name: t.unlocksHidden }),
     ).toHaveLength(1); // seulement le premier formulaire
@@ -115,7 +113,7 @@ describe("codes promo d'un événement", () => {
       data.getAll("ticketTypeIds"),
     ]).toEqual(["moins10", "PERCENT", "10", ["t1"]]);
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: `+ ${t.new}` })).toBeTruthy(),
+      expect(screen.getByRole("button", { name: t.new })).toBeTruthy(),
     );
   });
 

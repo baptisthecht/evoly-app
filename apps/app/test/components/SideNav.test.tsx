@@ -52,7 +52,7 @@ beforeEach(() => {
 });
 
 describe("barre latérale (indications du 18 octobre 2026)", () => {
-  it("page active (maquette validée) : fond gris, texte foncé ; plus de filet ni de trait rose", () => {
+  it("page active (refonte A3) : fond plus clair que la barre, texte foncé, trait rose collé au bord ; pas de filet", () => {
     draw();
     expect(link("Finances").getAttribute("aria-current")).toBe("page");
     expect(cls("Finances")).toEqual(
@@ -60,9 +60,10 @@ describe("barre latérale (indications du 18 octobre 2026)", () => {
         "bg-surface",
         "font-medium",
         "text-ink",
-        "rounded-sm",
+        "before:bg-highlight",
       ]),
     );
+    expect(cls("Accueil")).not.toContain("before:bg-highlight");
     for (const name of ["Accueil", "Finances"])
       expect(cls(name).some((c) => /^border-(l|rose|line)/.test(c))).toBe(
         false,

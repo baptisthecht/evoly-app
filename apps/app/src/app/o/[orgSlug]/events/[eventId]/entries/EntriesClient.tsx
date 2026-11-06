@@ -17,6 +17,7 @@ import {
   openScannerAction,
   revokeScannerLinkAction,
 } from "../../actions";
+import { PlusIcon } from "@/components/ui/icons";
 
 export function OpenScanner({
   orgSlug,
@@ -67,14 +68,13 @@ export function NewScannerLink({
         className="justify-self-start"
         onClick={() => setOpen(true)}
       >
-        + {t("newLink")}
+        <PlusIcon className="size-4 shrink-0" />
+        {t("newLink")}
       </Button>
     );
   return (
     <Card className="grid gap-5">
-      <h3 className="font-display text-lg tracking-[var(--tracking-title)]">
-        {t("newLink")}
-      </h3>
+      <h3 className="text-[0.9375rem] font-semibold">{t("newLink")}</h3>
       <form {...formProps} className="grid gap-5" noValidate>
         <FormError state={state} />
         <div className="grid gap-5 sm:grid-cols-2">

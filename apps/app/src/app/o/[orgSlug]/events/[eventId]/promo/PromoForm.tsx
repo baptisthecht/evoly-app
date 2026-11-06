@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { createPromoAction, promoCommandAction } from "../../actions";
+import { PlusIcon } from "@/components/ui/icons";
 
 export function PromoForm({
   orgSlug,
@@ -46,7 +47,8 @@ export function PromoForm({
         className="justify-self-start"
         onClick={() => setOpen(true)}
       >
-        + {t("new")}
+        <PlusIcon className="size-4 shrink-0" />
+        {t("new")}
       </Button>
       <Dialog
         open={open}

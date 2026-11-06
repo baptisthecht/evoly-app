@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
 import { TicketTypeForm } from "./TicketTypeEditor";
+import { PlusIcon } from "@/components/ui/icons";
 
 export function NewTicketType({
   orgSlug,
@@ -28,7 +29,8 @@ export function NewTicketType({
         onClick={() => setOpen(true)}
         className="justify-self-start"
       >
-        + {t("addTicketType")}
+        <PlusIcon className="size-4 shrink-0" />
+        {t("addTicketType")}
       </Button>
       <Dialog
         open={open}

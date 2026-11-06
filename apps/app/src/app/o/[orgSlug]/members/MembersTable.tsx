@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Card";
 import { DataTable, type TableColumn } from "@/components/ui/DataTable";
 import { Dialog } from "@/components/ui/Dialog";
 import { InviteForm, MemberRole, RemoveMember } from "./TeamClient";
+import { PlusIcon } from "@/components/ui/icons";
 
 export interface MemberRow {
   id: string;
@@ -142,7 +143,8 @@ export function InviteDialog({
         className="justify-self-start"
         onClick={() => setOpen(true)}
       >
-        + {t("inviteTitle")}
+        <PlusIcon className="size-4 shrink-0" />
+        {t("inviteTitle")}
       </Button>
       <Dialog
         open={open}

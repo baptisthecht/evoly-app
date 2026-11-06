@@ -57,7 +57,7 @@ export default async function OrganizationResalePage({
             <p className="font-label text-[0.8rem] font-bold text-ink-muted">
               {s.label}
             </p>
-            <p className="font-display text-3xl tracking-[-0.04em] tabular-nums">
+            <p className="font-figures text-[1.6875rem] tracking-[var(--tracking-figures)] tabular-nums">
               {s.value}
             </p>
           </div>
@@ -65,10 +65,7 @@ export default async function OrganizationResalePage({
       </Card>
 
       <section className="grid gap-3" aria-labelledby="resale-recent">
-        <h2
-          id="resale-recent"
-          className="font-display text-xl tracking-[var(--tracking-title)]"
-        >
+        <h2 id="resale-recent" className="text-[0.9375rem] font-semibold">
           {t("recent")}
         </h2>
         <ResaleTable

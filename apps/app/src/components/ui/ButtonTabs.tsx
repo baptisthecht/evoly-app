@@ -12,12 +12,16 @@ import { cn } from "./cn";
 export function ButtonTabs({
   items,
   label,
+  current,
 }: {
   items: { href: string; label: string; count?: number }[];
   label: string;
+  /** Onglet actif imposé (onglets portés par un paramètre de l'adresse, que le chemin ne distingue pas). */
+  current?: string;
 }) {
   const pathname = usePathname().replace(/\/$/, "");
   const active =
+    current ??
     items.find((i) => i.href === pathname)?.href ??
     items
       .filter((i) => pathname.startsWith(`${i.href}/`))
@@ -26,7 +30,7 @@ export function ButtonTabs({
     <nav aria-label={label} className="-mx-1 overflow-x-auto px-1 pb-1">
       <ul
         role="list"
-        className="inline-flex gap-1 rounded-full bg-surface-sunken p-1"
+        className="inline-flex gap-0.5 rounded-[9px] bg-surface-sunken p-[3px]" // refonte A3 : la forme des maquettes
       >
         {items.map((i) => {
           const on = i.href === active;
@@ -36,10 +40,10 @@ export function ButtonTabs({
                 href={i.href}
                 aria-current={on ? "page" : undefined}
                 className={cn(
-                  "inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors",
+                  "inline-flex h-8 items-center gap-1.5 rounded-[7px] px-3 text-[0.8125rem] whitespace-nowrap transition-colors",
                   on
-                    ? "bg-surface-raised text-ink shadow-[var(--elev-sm)]"
-                    : "text-ink-muted hover:text-ink",
+                    ? "bg-surface-raised font-semibold text-ink shadow-[0_1px_2px_rgba(34,34,34,0.08)]"
+                    : "font-medium text-ink-muted hover:text-ink",
                 )}
               >
                 {i.label}

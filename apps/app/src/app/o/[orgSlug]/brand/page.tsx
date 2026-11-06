@@ -81,7 +81,7 @@ export default async function BrandPage({
       {/* onglet « Domaines » : adresse de la billetterie et domaines personnalisés (seul onglet sans la marque) */}
       {canAddress && (tab === "domains" || (tab === "brand" && !canBrand)) ? (
         <Card className="grid gap-3">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+          <h2 className="text-[0.9375rem] font-semibold">
             {t("addressTitle")}
           </h2>
           <p className="text-sm text-ink-muted">
@@ -106,7 +106,7 @@ export default async function BrandPage({
       {canAddress && tab === "page" ? (
         <Card className="grid gap-4">
           <div className="grid gap-1">
-            <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+            <h2 className="text-[0.9375rem] font-semibold">
               {ts("featuredTitle")}
             </h2>
             <p className="text-sm text-ink-muted">{ts("featuredHint")}</p>
@@ -129,7 +129,7 @@ export default async function BrandPage({
       {canBrand && tab === "brand" ? (
         <Card className="grid gap-4">
           <div className="grid gap-1">
-            <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+            <h2 className="text-[0.9375rem] font-semibold">
               {t("brandTitle")}
             </h2>
             <p className="text-sm text-ink-muted">{t("brandIntro")}</p>
@@ -187,10 +187,7 @@ export default async function BrandPage({
 
       {canDomains && (tab === "domains" || (tab === "brand" && !canBrand)) ? (
         <section className="grid gap-3" aria-labelledby="domains-title">
-          <h2
-            id="domains-title"
-            className="font-display text-xl tracking-[var(--tracking-title)]"
-          >
+          <h2 id="domains-title" className="text-[0.9375rem] font-semibold">
             {t("domainsTitle")}
           </h2>
           <p className="-mt-1 text-sm text-ink-muted">{t("domainsIntro")}</p>

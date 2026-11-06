@@ -177,10 +177,10 @@ export function SettingsForm({
         />
 
         <fieldset
-          className="grid gap-5"
+          className="grid max-w-3xl gap-5"
           hidden={!!section && section !== "sales"}
         >
-          <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+          <legend className="mb-1 text-[0.9375rem] font-semibold">
             {t("sectionSales")}
           </legend>
           <div className="grid gap-5 sm:grid-cols-2">
@@ -267,10 +267,10 @@ export function SettingsForm({
         </fieldset>
 
         <fieldset
-          className="grid gap-5"
+          className="grid max-w-3xl gap-5"
           hidden={!!section && section !== "sales"}
         >
-          <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+          <legend className="mb-1 text-[0.9375rem] font-semibold">
             {t("limitsTitle")}
           </legend>
           <p className="-mt-3 text-sm text-ink-muted">{t("limitsHint")}</p>
@@ -341,10 +341,10 @@ export function SettingsForm({
           </p>
         </fieldset>
         <fieldset
-          className="grid gap-5"
+          className="grid max-w-3xl gap-5"
           hidden={!!section && section !== "sales"}
         >
-          <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+          <legend className="mb-1 text-[0.9375rem] font-semibold">
             {t("sectionRefunds")}
           </legend>
           <div className="grid gap-5 sm:grid-cols-2">
@@ -393,10 +393,10 @@ export function SettingsForm({
         </fieldset>
 
         <fieldset
-          className="grid gap-5"
+          className="grid max-w-3xl gap-5"
           hidden={!!section && section !== "sales"}
         >
-          <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+          <legend className="mb-1 text-[0.9375rem] font-semibold">
             {t("sectionResale")}
           </legend>
           <label className="flex items-center gap-3">

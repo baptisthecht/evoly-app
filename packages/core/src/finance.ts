@@ -148,3 +148,24 @@ export function vatIncluded(totalMinor: Minor, rateBps: number): Minor {
 export function statementNumber(year: number, sequence: number): string {
   return `EVO-${year}-${String(sequence).padStart(6, "0")}`;
 }
+
+/** Sommes d'un agrégat de commandes, telles que la base les renvoie (null quand il n'y a aucune commande). */
+export interface OrderSums {
+  totalMinor?: Minor | null;
+  refundedMinor?: Minor | null;
+  applicationFeeMinor?: Minor | null;
+  paymentFeeMinor?: Minor | null;
+}
+
+/**
+ * Montant d'un agrégat de commandes (accueil, refonte A3) : total payé moins les remboursements, et moins la commission
+ * et les frais de paiement quand ils sont fournis. Sans frais : l'encaissé ; avec : la recette nette.
+ */
+export function netOfSums(s: OrderSums): Minor {
+  return (
+    (s.totalMinor ?? 0) -
+    (s.refundedMinor ?? 0) -
+    (s.applicationFeeMinor ?? 0) -
+    (s.paymentFeeMinor ?? 0)
+  );
+}

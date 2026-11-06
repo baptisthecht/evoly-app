@@ -67,9 +67,7 @@ export function VenueCard({
     null,
   );
   const title = (
-    <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-      {t("title")}
-    </h2>
+    <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
   );
   if (!venue)
     return (
@@ -135,7 +133,7 @@ export function VenueCard({
       <div className="grid gap-2">
         <p className="text-sm">
           <span className="font-semibold">{t("balance")}</span>{" "}
-          <span className="font-display text-xl tabular-nums">
+          <span className="font-figures text-xl tracking-[var(--tracking-figures)] tabular-nums">
             {money(venue.balanceMinor)}
           </span>
         </p>

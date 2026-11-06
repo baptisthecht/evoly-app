@@ -59,7 +59,7 @@ export default async function SettingsPage({
       <div className="grid gap-6">
         {owner ? (
           <Card className="grid gap-3 ring-1 ring-danger/40">
-            <h2 className="font-display text-xl tracking-[var(--tracking-title)] text-danger">
+            <h2 className="text-[0.9375rem] font-semibold text-danger">
               {ts("deleteTitle")}
             </h2>
             <p className="-mt-1 text-sm text-ink-muted">{ts("deleteIntro")}</p>
@@ -110,7 +110,7 @@ export default async function SettingsPage({
       <Link href={`/o/${orgSlug}/brand`} className="block rounded-lg">
         <Card className="flex flex-wrap items-center justify-between gap-3 transition-shadow hover:shadow-md">
           <div className="grid min-w-0 gap-1">
-            <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+            <h2 className="text-[0.9375rem] font-semibold">
               {ts("pageAddress")}
             </h2>
             <p className="truncate font-mono text-sm text-ink-muted">
@@ -128,9 +128,7 @@ export default async function SettingsPage({
       >
         <Card className="flex items-center justify-between gap-4 transition-shadow hover:shadow-md">
           <div className="grid gap-1">
-            <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-              {t("payments")}
-            </h2>
+            <h2 className="text-[0.9375rem] font-semibold">{t("payments")}</h2>
             <p className="text-sm text-ink-muted">{t("paymentsSummary")}</p>
           </div>
           <Badge tone={stripeTone}>

@@ -1,13 +1,19 @@
+import type { ReactNode } from "react";
 import { cn } from "./cn";
 
 /** Un indicateur (refonte A3, docs/INTERFACE.md) : libellé gris, grand chiffre en Archivo Black, sans carte. */
 export function Stat({
   label,
   value,
+  sub,
+  subTone = "muted",
   className,
 }: {
   label: string;
   value: string | number;
+  /** Une ligne sous le chiffre : l'évolution (en vert si elle monte) ou un complément. */
+  sub?: ReactNode;
+  subTone?: "success" | "muted";
   className?: string;
 }) {
   return (
@@ -18,6 +24,16 @@ export function Stat({
       <p className="font-figures text-[1.6875rem] leading-tight tracking-[var(--tracking-figures)] whitespace-nowrap tabular-nums">
         {value}
       </p>
+      {sub ? (
+        <p
+          className={cn(
+            "text-[0.8125rem] whitespace-nowrap tabular-nums",
+            subTone === "success" ? "text-success" : "text-ink-muted",
+          )}
+        >
+          {sub}
+        </p>
+      ) : null}
     </div>
   );
 }

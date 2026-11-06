@@ -144,7 +144,7 @@ export function OptionForm({
   if (option) return <div className="mt-3">{form}</div>;
   return (
     <Card className="grid gap-4">
-      <h2 className="font-display text-xl">{t("newTitle")}</h2>
+      <h2 className="text-[0.9375rem] font-semibold">{t("newTitle")}</h2>
       {form}
     </Card>
   );

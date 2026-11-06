@@ -64,7 +64,7 @@ export function NewEventForm({
         venue={venue}
       />
       <fieldset className="grid gap-5">
-        <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+        <legend className="mb-1 text-[0.9375rem] font-semibold">
           {t("sectionTickets")}
         </legend>
         <p className="-mt-3 text-sm text-ink-muted">{t("firstTicketHint")}</p>

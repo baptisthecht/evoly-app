@@ -4,7 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { CopyButton } from "@/components/CopyButton";
 import { buttonClass } from "@/components/ui/Button";
 import { HighlightBand } from "@/components/ui/HighlightBand";
-import { DateLeaf, SalesGauge } from "@/components/ui/SalesGauge";
+import { SalesGauge } from "@/components/ui/SalesGauge";
+import { EventsTable } from "@/components/events/EventsTable";
 import type { homeOverview } from "@/server/home";
 
 /*
@@ -152,15 +153,17 @@ export async function NextEventBand({
   );
 }
 
-/** Les événements suivants, chaque ligne ouverte par sa feuille de calendrier. */
+/** Les événements suivants (refonte A3) : le tableau des événements, sous son titre. */
 export async function UpcomingTable({
   events,
   base,
   locale,
+  money,
 }: {
   events: Home["fill"];
   base: string;
   locale: Locale;
+  money: boolean;
 }) {
   const t = await getTranslations("dashboard");
   if (events.length === 0) return null;
@@ -174,45 +177,7 @@ export async function UpcomingTable({
           {t("allEvents")}
         </Link>
       </div>
-      <ul role="list" className="grid">
-        {events.map((e) => {
-          const days = daysUntil(e.startsAt, e.timezone);
-          return (
-            <li key={e.id} className="border-b border-line first:border-t">
-              <Link
-                href={`${base}/events/${e.id}`}
-                className="grid gap-3 py-2.5 hover:bg-surface-sunken/50 sm:grid-cols-[minmax(0,1fr)_8rem_minmax(0,18rem)] sm:items-center sm:gap-6"
-              >
-                <span className="flex min-w-0 items-center gap-3">
-                  <DateLeaf
-                    date={e.startsAt}
-                    timezone={e.timezone}
-                    locale={locale}
-                  />
-                  <span className="grid min-w-0">
-                    <span className="truncate font-semibold">{e.title}</span>
-                    {e.place ? (
-                      <span className="truncate text-[0.8125rem] text-ink-muted">
-                        {e.place}
-                      </span>
-                    ) : null}
-                  </span>
-                </span>
-                <span className="text-[0.875rem] text-ink-muted max-sm:hidden">
-                  {t("inDays", { count: Math.max(0, days) })}
-                </span>
-                <SalesGauge
-                  sold={e.sold}
-                  capacity={e.capacity}
-                  pace={e.pace}
-                  timezone={e.timezone}
-                  locale={locale}
-                />
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <EventsTable events={events} base={base} locale={locale} money={money} />
     </section>
   );
 }
@@ -340,6 +305,7 @@ export async function TodoList({
           {
             href: `${base}/settings/payments`,
             label: t("todoStripe"),
+            action: t("todoActionStripe"),
             kind: "stripe" as const,
           },
         ]
@@ -349,6 +315,7 @@ export async function TodoList({
           {
             href: `${base}/events`,
             label: t("todoCover", { count: todo.noCover }),
+            action: t("todoActionCover"),
             kind: "cover" as const,
           },
         ]
@@ -358,6 +325,7 @@ export async function TodoList({
           {
             href: `${base}/events`,
             label: t("todoDrafts", { count: todo.drafts }),
+            action: t("todoActionDrafts"),
             kind: "draft" as const,
           },
         ]
@@ -394,6 +362,9 @@ export async function TodoList({
               >
                 <TodoIcon kind={i.kind} />
                 <span className="min-w-0 flex-1">{i.label}</span>
+                <span className="shrink-0 text-[0.8125rem] font-medium underline underline-offset-4">
+                  {i.action}
+                </span>
               </Link>
             </li>
           ))}

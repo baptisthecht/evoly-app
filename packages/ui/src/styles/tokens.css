@@ -329,7 +329,7 @@
 /* couleurs du thème pro : en mode clair seulement (en mode sombre, celles de la charte, toujours lisibles) */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]):has(.theme-pro) {
-    --surface: #f7f6f4;
+    --surface: #ffffff; /* refonte A3 : page blanche (maquettes UIUX/) */
     --surface-raised: #ffffff;
     --surface-sunken: #f7f6f4;
     --surface-accent: #ffe3f4;
@@ -344,7 +344,7 @@
   }
 }
 :root[data-theme="light"]:has(.theme-pro) {
-  --surface: #f7f6f4;
+  --surface: #ffffff; /* refonte A3 : page blanche (maquettes UIUX/) */
   --surface-raised: #ffffff;
   --surface-sunken: #f7f6f4;
   --surface-accent: #ffe3f4;

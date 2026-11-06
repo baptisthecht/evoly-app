@@ -33,7 +33,7 @@ export function AmbassadorForm({
   const error = useFieldError(state);
   return (
     <Card className="grid gap-4">
-      <h2 className="font-display text-xl">{t("newTitle")}</h2>
+      <h2 className="text-[0.9375rem] font-semibold">{t("newTitle")}</h2>
       <form {...formProps} className="grid gap-4" noValidate>
         <FormError state={state} />
         <div className="grid gap-4 sm:grid-cols-2">

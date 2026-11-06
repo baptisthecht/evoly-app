@@ -224,7 +224,9 @@ export default async function CampaignPage({
                 <p className="font-label text-[0.75rem] font-bold text-ink-muted">
                   {t(k)}
                 </p>
-                <p className="font-display text-2xl tabular-nums">{n}</p>
+                <p className="font-figures text-[1.6875rem] tracking-[var(--tracking-figures)] tabular-nums">
+                  {n}
+                </p>
                 {r ? <p className="text-xs text-ink-muted">{r}</p> : null}
               </Card>
             ))}

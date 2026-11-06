@@ -149,9 +149,7 @@ export function EventMarketingEmails({
   const t = useTranslations("marketingAutomations");
   return (
     <Card className="mt-4 grid gap-3">
-      <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-        {t("title")}
-      </h2>
+      <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
       <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
       {automations.map((a) => (
         <AutomationForm

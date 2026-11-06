@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { SectionTabs, type SectionTab } from "./SectionTabs";
 
-/** Bande blanche en haut de chaque page (maquette validée) : titre, onglets éventuels, un ou deux boutons à droite. */
+/** Bande en haut de chaque page (refonte A3, maquettes UIUX/) : titre compact, onglets éventuels, un ou deux boutons à droite. */
 export function PageHeader({
   title,
   tabs,
@@ -22,13 +22,15 @@ export function PageHeader({
   return (
     <div className="border-b border-line bg-surface-raised px-4 sm:px-8 lg:px-10">
       <div
-        className={`mx-auto grid max-w-[var(--content-max)] gap-3.5 pt-[1.125rem] ${tabs?.length ? "" : "pb-[1.125rem]"}`}
+        className={`mx-auto grid max-w-[var(--content-max)] gap-3 pt-3.5 ${tabs?.length ? "" : "pb-3.5"}`}
       >
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="grid min-w-0 gap-1">
             {eyebrow}
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="page-title min-w-0 break-words">{title}</h1>
+              <h1 className="min-w-0 text-[1.0625rem] leading-tight font-semibold break-words">
+                {title}
+              </h1>
               {badge}
             </div>
             {meta}

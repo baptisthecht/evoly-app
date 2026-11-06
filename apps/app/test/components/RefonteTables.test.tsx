@@ -168,7 +168,7 @@ describe("codes promo et équipe", () => {
     await act(
       async () =>
         void fireEvent.click(
-          screen.getByRole("button", { name: `+ ${all.team!.inviteTitle}` }),
+          screen.getByRole("button", { name: all.team!.inviteTitle }),
         ),
     );
     expect(
@@ -411,7 +411,7 @@ describe("billetterie et finances", () => {
     await act(
       async () =>
         void fireEvent.click(
-          screen.getByRole("button", { name: `+ ${all.complimentary!.title}` }),
+          screen.getByRole("button", { name: all.complimentary!.title }),
         ),
     );
     expect(
@@ -461,7 +461,7 @@ describe("billetterie et finances", () => {
     await act(
       async () =>
         void fireEvent.click(
-          screen.getByRole("button", { name: `+ ${all.options!.newTitle}` }),
+          screen.getByRole("button", { name: all.options!.newTitle }),
         ),
     );
     expect(

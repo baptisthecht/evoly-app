@@ -131,8 +131,9 @@ export default async function OrdersPage({
           <ArrowRightIcon className="size-4 shrink-0" />
         </Link>
       ) : null}
+      {/* refonte A3 : une barre d'outils compacte, comme sur les maquettes (UIUX/pages-a3.html) */}
       <form
-        className="grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]"
+        className="flex flex-wrap items-center gap-2 [&_input]:h-9 [&_input]:text-[0.8125rem] [&_select]:h-9 [&_select]:text-[0.8125rem] [&>*]:w-auto [&>*:first-child]:w-full sm:[&>*:first-child]:w-72"
         role="search"
       >
         <Input
@@ -193,7 +194,7 @@ export default async function OrdersPage({
             </option>
           ))}
         </Select>
-        <button type="submit" className={buttonClass("dark", "md")}>
+        <button type="submit" className={buttonClass("secondary", "sm")}>
           {t("search")}
         </button>
       </form>

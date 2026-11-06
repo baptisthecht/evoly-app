@@ -68,7 +68,7 @@ export default async function OrgLayout({
           aria-label={(await getTranslations("notifications"))("bell", {
             count: unread,
           })}
-          className="relative inline-flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[0.84rem] font-medium text-ink-muted hover:bg-surface-sunken hover:text-ink lg:w-full"
+          className="relative inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] text-ink-muted hover:bg-surface hover:text-ink"
         >
           <svg
             viewBox="0 0 24 24"
@@ -81,12 +81,12 @@ export default async function OrgLayout({
             <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
             <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
           </svg>
-          <span className="hidden lg:inline">
+          <span className="sr-only">
             {(await getTranslations("notifications"))("title")}
           </span>
           {unread > 0 ? (
             <span
-              className="ml-auto rounded-full bg-rose px-2 py-0.5 text-xs font-bold text-charbon"
+              className="absolute -top-0.5 -right-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose px-1 text-[0.625rem] font-bold text-charbon"
               data-testid="unread-count"
             >
               {unread > 99 ? "99+" : unread}
@@ -95,6 +95,7 @@ export default async function OrgLayout({
         </Link>
       }
       nav={sidebar}
+      accountName={ctx.user.name}
       orgSwitcher={
         <OrgSwitcher
           userId={ctx.user.id}

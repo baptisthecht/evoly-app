@@ -62,7 +62,7 @@ export function OrganizationSettingsForm({
     <form {...formProps} className="grid gap-8" noValidate>
       <FormError state={state} />
       <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">
+        <legend className="mb-1 text-[0.9375rem] font-semibold">
           {t("identity")}
         </legend>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -130,7 +130,7 @@ export function OrganizationSettingsForm({
       </fieldset>
 
       <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">
+        <legend className="mb-1 text-[0.9375rem] font-semibold">
           {t("contact")}
         </legend>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -159,7 +159,7 @@ export function OrganizationSettingsForm({
       </fieldset>
 
       <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">
+        <legend className="mb-1 text-[0.9375rem] font-semibold">
           {t("region")}
         </legend>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -223,7 +223,7 @@ export function OrganizationSettingsForm({
       </fieldset>
 
       <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 font-display text-lg tracking-[var(--tracking-title)]">
+        <legend className="mb-1 text-[0.9375rem] font-semibold">
           {t("billing")}
         </legend>
         <p className="-mt-3 text-sm text-ink-muted">{t("billingHint")}</p>

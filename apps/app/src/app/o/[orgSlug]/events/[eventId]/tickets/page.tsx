@@ -64,10 +64,13 @@ export default async function TicketsPage({
   const tiersEnabled = hasFeature(ctx.features, "DYNAMIC_PRICING");
   return (
     <div className="grid gap-4">
-      <p className="text-ink-muted">{t("pageIntro")}</p>
-      {manage ? (
-        <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} />
-      ) : null}
+      {/* refonte A3 : la phrase d'aide et « Ajouter un tarif » sur une seule ligne, au-dessus du tableau */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[0.8125rem] text-ink-muted">{t("pageIntro")}</p>
+        {manage ? (
+          <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} />
+        ) : null}
+      </div>
       <TicketTypesTable
         rows={rows}
         orgSlug={orgSlug}

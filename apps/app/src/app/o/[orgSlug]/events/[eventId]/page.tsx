@@ -1,5 +1,10 @@
 import { can, salesPace, salesWindow } from "@evoly/core";
-import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
+import {
+  formatDateTime,
+  formatDayMonth,
+  formatMoney,
+  type Locale,
+} from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -130,13 +135,17 @@ export default async function EventOverview({
       86_400_000,
   );
   const showPace = isLive && daysLeft >= 0;
+  const soldOutAt =
+    pace.pace === "ahead" && pace.soldOutAt
+      ? formatDayMonth(pace.soldOutAt, tz, locale)
+      : null;
   return (
     <div className="grid gap-5">
       {/* US-STAT-01 : ventes et remplissage à jour sans recharger la page */}
       <AutoRefresh everyMs={5_000} maxTimes={720} />
       {event.status === "DRAFT" || event.status === "SALES_PAUSED" ? (
         <Card className="grid gap-4">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+          <h2 className="text-[0.9375rem] font-semibold">
             {t(event.status === "DRAFT" ? "checklistTitle" : "pausedTitle")}
           </h2>
           <ul className="grid gap-3">
@@ -195,11 +204,20 @@ export default async function EventOverview({
         >
           <div className="grid min-w-0 gap-0.5">
             <p className="text-[0.8125rem] font-semibold text-highlight-ink">
-              {ov("paceTitle")}
+              {ov(`pace_${pace.pace}`)}
             </p>
             <h2 id="pace-title" className="text-lg leading-snug font-semibold">
-              {formatDateTime(event.startsAt, tz, locale, "long")}
+              {soldOutAt
+                ? ov("soldOutAround", {
+                    date: `${soldOutAt.day} ${soldOutAt.month}`,
+                  })
+                : formatDateTime(event.startsAt, tz, locale, "long")}
             </h2>
+            {soldOutAt ? (
+              <p className="text-[0.8125rem] text-ink-muted">
+                {formatDateTime(event.startsAt, tz, locale, "long")}
+              </p>
+            ) : null}
           </div>
           <div className="md:border-x md:border-highlight-line md:px-7 md:text-center">
             <p className="font-figures text-[2.5rem] leading-none tracking-[-0.05em] whitespace-nowrap">
@@ -222,7 +240,6 @@ export default async function EventOverview({
               pace={pace}
               timezone={tz}
               locale={locale}
-              projection
             />
             <div className="flex flex-wrap gap-2">
               <CopyButton value={url} label={td("copyLink")} />
@@ -333,10 +350,11 @@ export default async function EventOverview({
         />
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* refonte A3 : liens et actions en sections, sans carte */}
+      <div className="grid gap-8 border-t border-line pt-5 lg:grid-cols-2">
         {isLive ? (
-          <Card className="grid content-start gap-4">
-            <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
+          <section className="grid content-start gap-4">
+            <h2 className="text-[0.9375rem] font-semibold">
               {t("linksTitle")}
             </h2>
             {[
@@ -344,9 +362,7 @@ export default async function EventOverview({
               { label: t("linkShort"), value: short },
             ].map((l) => (
               <div key={l.label} className="grid min-w-0 gap-2">
-                <p className="font-label text-[0.8rem] font-bold text-ink-muted">
-                  {l.label}
-                </p>
+                <p className="text-[0.8125rem] text-ink-muted">{l.label}</p>
                 <div className="flex min-w-0 items-center gap-2">
                   <a
                     href={l.value}
@@ -360,10 +376,10 @@ export default async function EventOverview({
                 </div>
               </div>
             ))}
-          </Card>
+          </section>
         ) : null}
-        <Card className="grid content-start gap-3">
-          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+        <section className="grid content-start gap-3">
+          <h2 className="text-[0.9375rem] font-semibold">
             {t("actionsTitle")}
           </h2>
           {canPublish && event.status === "PUBLISHED" ? (
@@ -374,7 +390,7 @@ export default async function EventOverview({
               href={url}
               target="_blank"
               rel="noreferrer"
-              className={buttonClass("secondary", "lg", "w-full")}
+              className={buttonClass("secondary", "md", "w-full")}
             >
               {t("openPublicPage")}
             </a>
@@ -382,7 +398,7 @@ export default async function EventOverview({
           {can(ctx.membership, "ORDERS_VIEW") ? (
             <a
               href={`${base}/participants`}
-              className={buttonClass("secondary", "lg", "w-full")}
+              className={buttonClass("secondary", "md", "w-full")}
             >
               {t("exportParticipants")}
             </a>
@@ -392,7 +408,7 @@ export default async function EventOverview({
               {t("cancelledNotice", { reason: event.cancellationReason ?? "" })}
             </p>
           ) : null}
-        </Card>
+        </section>
       </div>
     </div>
   );

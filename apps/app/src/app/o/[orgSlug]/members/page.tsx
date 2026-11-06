@@ -11,7 +11,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { buttonClass } from "@/components/ui/Button";
-import { Badge, Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Card";
 import { cn } from "@/components/ui/cn";
 import { requireOrgContext } from "@/server/context";
 import { InviteDialog, MembersTable } from "./MembersTable";
@@ -174,10 +174,7 @@ export default async function MembersPage({
         <>
           {/* matrice des droits : les droits en lignes, les rôles en colonnes */}
           <section className="grid gap-3" aria-labelledby="roles-matrix">
-            <h2
-              id="roles-matrix"
-              className="font-display text-lg tracking-[var(--tracking-title)]"
-            >
+            <h2 id="roles-matrix" className="text-[0.9375rem] font-semibold">
               {t("matrixTitle")}
             </h2>
             <div className="max-h-[70dvh] overflow-auto rounded-[var(--r-panel)] bg-surface-raised ring-1 ring-line">
@@ -259,10 +256,7 @@ export default async function MembersPage({
             </div>
           </section>
           <section className="grid gap-3" aria-labelledby="custom-roles">
-            <h2
-              id="custom-roles"
-              className="font-display text-lg tracking-[var(--tracking-title)]"
-            >
+            <h2 id="custom-roles" className="text-[0.9375rem] font-semibold">
               {t("customRoles")}
             </h2>
             {!customRoles ? (
@@ -271,7 +265,10 @@ export default async function MembersPage({
             {roles
               .filter((r) => !r.systemKey)
               .map((r) => (
-                <Card key={r.id} className="grid gap-2">
+                <section
+                  key={r.id}
+                  className="grid gap-2 border-t border-line pt-5"
+                >
                   <p className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold">{r.name}</span>
                     <Badge>
@@ -298,7 +295,7 @@ export default async function MembersPage({
                       allowed={allowed}
                     />
                   ) : null}
-                </Card>
+                </section>
               ))}
             {manageRoles && customRoles ? (
               <RoleEditor orgSlug={orgSlug} role={null} allowed={allowed} />

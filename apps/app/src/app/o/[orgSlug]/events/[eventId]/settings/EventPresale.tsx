@@ -92,9 +92,7 @@ export function EventPresale(p: Props) {
     <Card className="mt-6">
       <div className="grid gap-5">
         <div className="grid gap-1">
-          <h2 className="font-display text-xl tracking-[-0.02em]">
-            {t("title")}
-          </h2>
+          <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
           <p className="text-sm text-ink-muted">{t("intro")}</p>
         </div>
         <fieldset className="grid gap-2" disabled={p.readOnly}>

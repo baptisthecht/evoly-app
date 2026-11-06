@@ -289,7 +289,13 @@
     "tabTables": "Tables",
     "atVenue": "This event takes place at {name} (partner venue)",
     "atVenueInfo": "The venue only sees the total number of tickets and its share, never your buyers.",
-    "advancedIntro": "Duplicate this event, delete a draft or cancel the event."
+    "advancedIntro": "Duplicate this event, delete a draft or cancel the event.",
+    "group_archived": "Archived",
+    "tabsLabel": "Events to show",
+    "searchEvents": "Search events",
+    "emptyTab": "No events here.",
+    "recentPast": "Recently ended",
+    "allPast": "All past events"
   },
   "tickets": {
     "addTicketType": "Add a ticket type",
@@ -1203,7 +1209,16 @@
     "colDate": "Date",
     "colSales": "Sales",
     "inDays": "{count, plural, =0 {today} =1 {tomorrow} other {in # days}}",
-    "revenueChart": "Daily revenue over 30 days"
+    "revenueChart": "Daily revenue over 30 days",
+    "colCollected": "Collected",
+    "colStatus": "Status",
+    "notOnSale": "Not on sale yet",
+    "deltaPrevious": "{amount} vs previous period",
+    "andDrafts": "{count, plural, one {and # draft} other {and # drafts}}",
+    "todoActionStripe": "Connect",
+    "todoActionCover": "Add",
+    "todoActionDrafts": "Resume",
+    "daysAgo": "{count, plural, =1 {yesterday} other {# days ago}}"
   },
   "settings": {
     "title": "Settings",
@@ -3332,7 +3347,14 @@
     "conversion": "{pct}% buy",
     "ordersCount": "{n, plural, one {# order} other {# orders}}",
     "visitsHint": "Counted without cookies",
-    "paceTitle": "Sales pace"
+    "paceTitle": "Sales pace",
+    "pace_ahead": "Ahead of pace",
+    "pace_onTrack": "On pace",
+    "pace_behind": "A little slow",
+    "pace_soldOut": "Sold out",
+    "pace_notStarted": "Sales not open yet",
+    "pace_unknown": "Sales pace",
+    "soldOutAround": "Sold out around {date}"
   },
   "sections": {
     "tab_brand": "Your brand",

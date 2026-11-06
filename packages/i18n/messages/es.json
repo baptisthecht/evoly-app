@@ -926,7 +926,16 @@
     "colDate": "Fecha",
     "colSales": "Ventas",
     "inDays": "{count, plural, =0 {hoy} =1 {mañana} other {dentro de # días}}",
-    "revenueChart": "Ingresos diarios de los últimos 30 días"
+    "revenueChart": "Ingresos diarios de los últimos 30 días",
+    "colCollected": "Cobrado",
+    "colStatus": "Estado",
+    "notOnSale": "Aún no a la venta",
+    "deltaPrevious": "{amount} respecto al periodo anterior",
+    "andDrafts": "{count, plural, one {y # borrador} other {y # borradores}}",
+    "todoActionStripe": "Conectar",
+    "todoActionCover": "Añadir",
+    "todoActionDrafts": "Retomar",
+    "daysAgo": "{count, plural, =1 {ayer} other {hace # días}}"
   },
   "events": {
     "newEvent": "Nuevo evento",
@@ -1035,7 +1044,13 @@
     "tabTables": "Mesas",
     "atVenue": "Este evento tiene lugar en {name} (local asociado)",
     "atVenueInfo": "El local solo ve el número total de entradas y su parte, nunca a tus compradores.",
-    "advancedIntro": "Duplicar este evento, eliminar un borrador o cancelar el evento."
+    "advancedIntro": "Duplicar este evento, eliminar un borrador o cancelar el evento.",
+    "group_archived": "Archivados",
+    "tabsLabel": "Eventos que mostrar",
+    "searchEvents": "Buscar un evento",
+    "emptyTab": "No hay eventos aquí.",
+    "recentPast": "Terminados recientemente",
+    "allPast": "Todos los eventos pasados"
   },
   "tickets": {
     "addTicketType": "Añadir una tarifa",
@@ -3332,7 +3347,14 @@
     "conversion": "{pct} % compran",
     "ordersCount": "{n, plural, one {# pedido} other {# pedidos}}",
     "visitsHint": "Contadas sin cookies",
-    "paceTitle": "Ritmo de ventas"
+    "paceTitle": "Ritmo de ventas",
+    "pace_ahead": "Por delante del ritmo",
+    "pace_onTrack": "Al ritmo previsto",
+    "pace_behind": "Algo lento",
+    "pace_soldOut": "Agotado",
+    "pace_notStarted": "Venta aún no abierta",
+    "pace_unknown": "Ritmo de ventas",
+    "soldOutAround": "Agotado hacia el {date}"
   },
   "sections": {
     "tab_brand": "Tu marca",

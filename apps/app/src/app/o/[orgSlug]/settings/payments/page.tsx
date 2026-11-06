@@ -44,9 +44,7 @@ export default async function PaymentsPage({
       ) : null}
       <Card className="grid gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-            Stripe
-          </h2>
+          <h2 className="text-[0.9375rem] font-semibold">Stripe</h2>
           <Badge
             tone={
               status === "ACTIVE"
@@ -91,9 +89,7 @@ export default async function PaymentsPage({
         ) : null}
       </Card>
       <Card className="grid gap-3">
-        <h2 className="font-display text-xl tracking-[var(--tracking-title)]">
-          {t("feesTitle")}
-        </h2>
+        <h2 className="text-[0.9375rem] font-semibold">{t("feesTitle")}</h2>
         <p className="text-[0.95rem] text-ink-muted">
           {t(
             ctx.plan === "partner"

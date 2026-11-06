@@ -17,6 +17,7 @@ import {
   questionCommandAction,
   saveQuestionAction,
 } from "@/app/o/[orgSlug]/events/actions";
+import { PlusIcon } from "@/components/ui/icons";
 
 const TYPES = [
   "TEXT",
@@ -334,7 +335,8 @@ export function QuestionsManager({
               size="md"
               onClick={() => setEditing("new")}
             >
-              + {t("add")}
+              <PlusIcon className="size-4 shrink-0" />
+              {t("add")}
             </Button>
           ) : null}
         </span>

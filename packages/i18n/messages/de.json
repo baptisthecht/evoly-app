@@ -926,7 +926,16 @@
     "colDate": "Datum",
     "colSales": "Verkauf",
     "inDays": "{count, plural, =0 {heute} =1 {morgen} other {in # Tagen}}",
-    "revenueChart": "Tageseinnahmen der letzten 30 Tage"
+    "revenueChart": "Tageseinnahmen der letzten 30 Tage",
+    "colCollected": "Eingenommen",
+    "colStatus": "Status",
+    "notOnSale": "Noch nicht im Verkauf",
+    "deltaPrevious": "{amount} gegenüber dem Vorzeitraum",
+    "andDrafts": "{count, plural, one {und # Entwurf} other {und # Entwürfe}}",
+    "todoActionStripe": "Verbinden",
+    "todoActionCover": "Hinzufügen",
+    "todoActionDrafts": "Fortsetzen",
+    "daysAgo": "{count, plural, =1 {gestern} other {vor # Tagen}}"
   },
   "events": {
     "newEvent": "Neue Veranstaltung",
@@ -1035,7 +1044,13 @@
     "tabTables": "Tische",
     "atVenue": "Diese Veranstaltung findet in {name} statt (Partner-Location)",
     "atVenueInfo": "Die Location sieht nur die Gesamtzahl der Tickets und ihren Anteil, nie Ihre Käufer.",
-    "advancedIntro": "Diese Veranstaltung duplizieren, einen Entwurf löschen oder die Veranstaltung absagen."
+    "advancedIntro": "Diese Veranstaltung duplizieren, einen Entwurf löschen oder die Veranstaltung absagen.",
+    "group_archived": "Archiviert",
+    "tabsLabel": "Anzuzeigende Veranstaltungen",
+    "searchEvents": "Veranstaltung suchen",
+    "emptyTab": "Hier gibt es keine Veranstaltungen.",
+    "recentPast": "Kürzlich vorbei",
+    "allPast": "Alle vergangenen Veranstaltungen"
   },
   "tickets": {
     "addTicketType": "Tarif hinzufügen",
@@ -3332,7 +3347,14 @@
     "conversion": "{pct} % kaufen",
     "ordersCount": "{n, plural, one {# Bestellung} other {# Bestellungen}}",
     "visitsHint": "Ohne Cookies gezählt",
-    "paceTitle": "Verkaufstempo"
+    "paceTitle": "Verkaufstempo",
+    "pace_ahead": "Schneller als geplant",
+    "pace_onTrack": "Im Plan",
+    "pace_behind": "Etwas langsam",
+    "pace_soldOut": "Ausverkauft",
+    "pace_notStarted": "Verkauf noch nicht gestartet",
+    "pace_unknown": "Verkaufstempo",
+    "soldOutAround": "Ausverkauft um den {date}"
   },
   "sections": {
     "tab_brand": "Ihre Marke",

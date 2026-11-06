@@ -926,7 +926,16 @@
     "colDate": "Data",
     "colSales": "Vendite",
     "inDays": "{count, plural, =0 {oggi} =1 {domani} other {tra # giorni}}",
-    "revenueChart": "Incasso giornaliero degli ultimi 30 giorni"
+    "revenueChart": "Incasso giornaliero degli ultimi 30 giorni",
+    "colCollected": "Incassato",
+    "colStatus": "Stato",
+    "notOnSale": "Non ancora in vendita",
+    "deltaPrevious": "{amount} rispetto al periodo precedente",
+    "andDrafts": "{count, plural, one {e # bozza} other {e # bozze}}",
+    "todoActionStripe": "Collega",
+    "todoActionCover": "Aggiungi",
+    "todoActionDrafts": "Riprendi",
+    "daysAgo": "{count, plural, =1 {ieri} other {# giorni fa}}"
   },
   "events": {
     "newEvent": "Nuovo evento",
@@ -1035,7 +1044,13 @@
     "tabTables": "Tavoli",
     "atVenue": "Questo evento si svolge presso {name} (locale partner)",
     "atVenueInfo": "Il locale vede solo il numero totale di biglietti e la sua quota, mai i tuoi acquirenti.",
-    "advancedIntro": "Duplicare questo evento, eliminare una bozza o annullare l’evento."
+    "advancedIntro": "Duplicare questo evento, eliminare una bozza o annullare l’evento.",
+    "group_archived": "Archiviati",
+    "tabsLabel": "Eventi da mostrare",
+    "searchEvents": "Cerca un evento",
+    "emptyTab": "Nessun evento qui.",
+    "recentPast": "Conclusi di recente",
+    "allPast": "Tutti gli eventi passati"
   },
   "tickets": {
     "addTicketType": "Aggiungi una tariffa",
@@ -3332,7 +3347,14 @@
     "conversion": "{pct} % acquista",
     "ordersCount": "{n, plural, one {# ordine} other {# ordini}}",
     "visitsHint": "Contate senza cookie",
-    "paceTitle": "Ritmo delle vendite"
+    "paceTitle": "Ritmo delle vendite",
+    "pace_ahead": "In anticipo",
+    "pace_onTrack": "In linea",
+    "pace_behind": "Un po’ lento",
+    "pace_soldOut": "Esaurito",
+    "pace_notStarted": "Vendita non ancora aperta",
+    "pace_unknown": "Ritmo delle vendite",
+    "soldOutAround": "Esaurito verso il {date}"
   },
   "sections": {
     "tab_brand": "Il tuo marchio",

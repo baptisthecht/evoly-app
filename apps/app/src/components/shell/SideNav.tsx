@@ -46,6 +46,8 @@ export interface NavItem {
   exact?: boolean;
   pro?: string;
   icon?: NavIcon;
+  /** Nombre affiché à droite (refonte A3 : les événements à venir et brouillons). */
+  count?: number;
 }
 export interface NavSection {
   label: string;
@@ -54,7 +56,7 @@ export interface NavSection {
 }
 export type NavSolo = NavItem & { icon: NavIcon };
 
-// un seul jeu d'icônes, au trait fin, pour toute la navigation
+// un seul jeu d'icônes, au trait fin, pour toute la navigation (refonte A3 : celles des maquettes UIUX/)
 const ICONS: Record<NavIcon, ReactNode> = {
   pilot: (
     <>
@@ -102,9 +104,7 @@ const ICONS: Record<NavIcon, ReactNode> = {
   users: (
     <>
       <circle cx="9" cy="8" r="3.5" />
-      <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
-      <path d="M16 4.5a3.5 3.5 0 0 1 0 7" />
-      <path d="M18 14a6.5 6.5 0 0 1 3.5 6" />
+      <path d="M2 20c0-4 3-6 7-6s7 2 7 6" />
     </>
   ),
   settings: (
@@ -116,58 +116,33 @@ const ICONS: Record<NavIcon, ReactNode> = {
     </>
   ),
   back: <path d="M15 18l-6-6 6-6" />,
-  home: (
-    <>
-      <path d="M3 11l9-7 9 7" />
-      <path d="M5 10v10h14V10" />
-    </>
-  ),
+  home: <path d="M3 10.5 12 3l9 7.5V21H3z" />,
   calendar: (
     <>
       <rect x="3" y="5" width="18" height="16" rx="2" />
       <path d="M3 10h18M8 3v4M16 3v4" />
     </>
   ),
-  receipt: (
-    <>
-      <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
-      <path d="M9 8h6M9 12h6M9 16h3" />
-    </>
-  ),
-  repeat: (
-    <>
-      <path d="M17 1l4 4-4 4" />
-      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-      <path d="M7 23l-4-4 4-4" />
-      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-    </>
-  ),
-  coins: (
-    <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M14.8 9a2.8 2.8 0 0 0-2.8-1.5c-1.5 0-2.7.9-2.7 2.1 0 2.9 5.7 1.6 5.7 4.6 0 1.2-1.3 2.2-2.9 2.2a3 3 0 0 1-2.9-1.6M12 6v1.5M12 16.5V18" />
-    </>
-  ),
-  send: <path d="M3 11l18-8-8 18-2-8-8-2z" />,
+  receipt: <path d="M4 7h16M4 12h16M4 17h10" />,
+  repeat: <path d="M7 7h11l-3-3M17 17H6l3 3" />,
+  coins: <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />,
+  send: <path d="M4 12l16-7-5 16-3-7z" />,
   palette: (
     <>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 3a9 9 0 0 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4" />
-      <circle cx="7.5" cy="11" r="1" />
-      <circle cx="10" cy="7" r="1" />
-      <circle cx="15" cy="7.5" r="1" />
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="3" />
     </>
   ),
   card: (
     <>
-      <rect x="2.5" y="5" width="19" height="14" rx="2" />
-      <path d="M2.5 10h19M6 15h4" />
+      <rect x="3" y="6" width="18" height="13" rx="2" />
+      <path d="M3 10h18" />
     </>
   ),
   gear: (
     <>
       <circle cx="12" cy="12" r="3" />
-      <path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
@@ -264,7 +239,7 @@ const pathOf = (href: string) => href.split("?")[0]!;
 // collé au bord de la barre ; icône de chaque page, aucun filet
 const itemClass = (on: boolean) =>
   cn(
-    "relative flex min-h-10 items-center gap-2.5 rounded-sm px-2.5 text-[0.875rem] transition-colors",
+    "relative flex min-h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-[0.84375rem] transition-colors",
     on
       ? "bg-surface font-medium text-ink before:absolute before:inset-y-2 before:-left-3 before:w-[3px] before:rounded-r-[3px] before:bg-highlight"
       : "text-ink-muted hover:bg-surface hover:text-ink",
@@ -314,16 +289,22 @@ export function SideNav({
         return (
           <div
             key={s.label}
-            className={cn("grid gap-0.5", n > 0 || top ? "mt-4" : "")}
+            className={cn(
+              "grid gap-0.5",
+              s.label && (n > 0 || top) ? "mt-4" : "",
+            )}
           >
-            <p
-              className={cn(
-                "px-2.5 pb-1.5 text-[0.75rem] font-semibold", // sans capitales espacées (tic relevé par l'audit)
-                open ? "text-ink" : "text-ink-muted",
-              )}
-            >
-              {s.label}
-            </p>
+            {/* refonte A3 : une liste plate, sans titre de catégorie, quand la section n'a pas de libellé */}
+            {s.label ? (
+              <p
+                className={cn(
+                  "px-2.5 pb-1.5 text-[0.75rem] font-semibold", // sans capitales espacées (tic relevé par l'audit)
+                  open ? "text-ink" : "text-ink-muted",
+                )}
+              >
+                {s.label}
+              </p>
+            ) : null}
             <ul className="grid gap-0.5">
               {s.items.map((i) => (
                 <li key={i.href}>
@@ -334,6 +315,11 @@ export function SideNav({
                   >
                     {i.icon ? <NavGlyph name={i.icon} /> : null}
                     <span className="truncate">{i.label}</span>
+                    {i.count ? (
+                      <span className="ml-auto text-xs text-ink-subtle tabular-nums">
+                        {i.count}
+                      </span>
+                    ) : null}
                     {i.pro ? (
                       <span className="ml-auto rounded-sm bg-surface-sunken px-1.5 py-px text-[0.625rem] font-semibold text-ink">
                         {i.pro}

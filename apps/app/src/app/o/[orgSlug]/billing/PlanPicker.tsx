@@ -63,7 +63,7 @@ export function PlanPicker({
                 </span>
               ) : null}
             </span>
-            <span className="font-display text-2xl tabular-nums">
+            <span className="font-figures text-[1.6875rem] tracking-[var(--tracking-figures)] tabular-nums">
               {money(prices[i])}
             </span>
             <span className="text-sm opacity-80">

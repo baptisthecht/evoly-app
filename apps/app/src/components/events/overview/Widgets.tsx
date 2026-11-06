@@ -280,9 +280,9 @@ export function RecentOrders({
   return (
     <section
       aria-labelledby="recent-orders"
-      className="overflow-hidden rounded-lg bg-surface-raised ring-1 ring-line"
+      className="overflow-hidden border-t border-line" // refonte A3 : section sans carte
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-4">
         <h2 id="recent-orders" className="text-[0.9375rem] font-semibold">
           {t("recentOrders")}
         </h2>

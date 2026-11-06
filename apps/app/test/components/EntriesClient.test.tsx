@@ -35,7 +35,7 @@ const box = (name: string) =>
 describe("liens des bénévoles du scanner (RG-SCN-01, RG-SCN-07)", () => {
   it("nouveau lien : valeurs par défaut sûres (recherche manuelle oui, vérification seule et vente non, jour de l'événement)", () => {
     wrap(<NewScannerLink orgSlug="club" eventId="e1" />);
-    fireEvent.click(screen.getByRole("button", { name: `+ ${t.newLink}` }));
+    fireEvent.click(screen.getByRole("button", { name: t.newLink }));
     expect([
       box(t.allowManualSearch!).checked,
       box(t.checkOnly!).checked,
@@ -49,7 +49,7 @@ describe("liens des bénévoles du scanner (RG-SCN-01, RG-SCN-07)", () => {
 
   it("échéance personnalisée : la date est demandée", () => {
     wrap(<NewScannerLink orgSlug="club" eventId="e1" />);
-    fireEvent.click(screen.getByRole("button", { name: `+ ${t.newLink}` }));
+    fireEvent.click(screen.getByRole("button", { name: t.newLink }));
     fireEvent.change(document.getElementById("link-duration")!, {
       target: { value: "CUSTOM" },
     });
@@ -60,7 +60,7 @@ describe("liens des bénévoles du scanner (RG-SCN-01, RG-SCN-07)", () => {
 
   it("création : réglages envoyés, puis le formulaire se referme", async () => {
     wrap(<NewScannerLink orgSlug="club" eventId="e1" />);
-    fireEvent.click(screen.getByRole("button", { name: `+ ${t.newLink}` }));
+    fireEvent.click(screen.getByRole("button", { name: t.newLink }));
     fireEvent.change(document.getElementById("link-label")!, {
       target: { value: "Porte A" },
     });
@@ -85,9 +85,7 @@ describe("liens des bénévoles du scanner (RG-SCN-01, RG-SCN-07)", () => {
       data.get("canSell"),
     ]).toEqual(["Porte A", "EVENT_DAY", "on", "on", null]);
     await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: `+ ${t.newLink}` }),
-      ).toBeTruthy(),
+      expect(screen.getByRole("button", { name: t.newLink })).toBeTruthy(),
     );
   });
 

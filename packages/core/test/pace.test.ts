@@ -100,3 +100,26 @@ describe("rythme des ventes (refonte A3)", () => {
     ).toBe(createdAt);
   });
 });
+
+describe("montant d'un agrégat de commandes (accueil)", () => {
+  it("encaissé sans frais, recette nette avec ; aucune commande : zéro", async () => {
+    const { netOfSums } = await import("../src");
+    expect(netOfSums({ totalMinor: 10_000, refundedMinor: 1_800 })).toBe(8_200);
+    expect(
+      netOfSums({
+        totalMinor: 10_000,
+        refundedMinor: 1_800,
+        applicationFeeMinor: 300,
+        paymentFeeMinor: 150,
+      }),
+    ).toBe(7_750);
+    expect(
+      netOfSums({
+        totalMinor: null,
+        refundedMinor: null,
+        applicationFeeMinor: null,
+        paymentFeeMinor: null,
+      }),
+    ).toBe(0);
+  });
+});

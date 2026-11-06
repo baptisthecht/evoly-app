@@ -136,7 +136,7 @@ describe("questions posées à l'acheteur, côté organisateur (US-QST-01)", () 
 
   it("nouvelle question à choix : les choix sont demandés ; enregistrée puis le formulaire se referme", async () => {
     draw([]);
-    fireEvent.click(screen.getByRole("button", { name: `+ ${t.add}` }));
+    fireEvent.click(screen.getByRole("button", { name: t.add }));
     expect(document.getElementById("qo-new")).toBeNull();
     fireEvent.change(document.getElementById("qt-new")!, {
       target: { value: "SELECT" },
@@ -164,13 +164,13 @@ describe("questions posées à l'acheteur, côté organisateur (US-QST-01)", () 
       data.get("scope"),
     ]).toEqual(["Taille du t-shirt", "SELECT", "S\nM\nL", "ORDER"]);
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: `+ ${t.add}` })).toBeTruthy(),
+      expect(screen.getByRole("button", { name: t.add })).toBeTruthy(),
     ); // refermé
   });
 
   it("lecture seule : aucune modification possible", () => {
     draw([q("a", { answers: 1 })], true);
-    for (const name of [t.edit, t.archive, t.up, `+ ${t.add}`])
+    for (const name of [t.edit, t.archive, t.up, t.add])
       expect(screen.queryByRole("button", { name })).toBeNull();
   });
 });

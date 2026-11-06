@@ -9,6 +9,7 @@ import {
   type EventTab,
   type HiddenFeature,
 } from "./eventTabItems";
+import { PlusIcon } from "@/components/ui/icons";
 
 const under = (path: string, href: string) =>
   path === href || path.startsWith(`${href}/`);
@@ -81,7 +82,8 @@ export function EventSubTabs({
       {toAdd.length ? (
         <details className="relative">
           <summary className="inline-flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-md border border-dashed border-line-strong px-3 text-[0.8125rem] text-ink-muted hover:text-ink">
-            + {t("addFeature")}
+            <PlusIcon className="size-4 shrink-0" />
+            {t("addFeature")}
           </summary>
           <ul className="absolute z-20 mt-1.5 grid w-72 gap-0.5 rounded-md bg-surface-raised p-1 shadow-md ring-1 ring-line">
             {toAdd.map((h) => (

@@ -48,7 +48,7 @@ export default async function TablesPage({
       {types.map((tt) => (
         <Card key={tt.id} className="grid gap-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="font-display text-xl">{tt.name}</h2>
+            <h2 className="text-[0.9375rem] font-semibold">{tt.name}</h2>
             <p className="text-sm text-ink-muted">
               {formatMoney(tt.priceMinor, event.currency, locale, {
                 trimZeroCents: true,

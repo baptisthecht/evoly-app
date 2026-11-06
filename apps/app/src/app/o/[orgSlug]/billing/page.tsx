@@ -279,7 +279,7 @@ export default async function BillingPage({
       ) : null}
       {view === "venue" && referredBy ? (
         <Card className="grid gap-2">
-          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+          <h2 className="text-[0.9375rem] font-semibold">
             {tv("referredTitle")}
           </h2>
           <p className="text-sm text-ink-muted">

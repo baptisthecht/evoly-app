@@ -71,7 +71,7 @@ export function EventFields({
   return (
     <>
       <fieldset className="grid gap-5" hidden={!show.essentials}>
-        <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+        <legend className="mb-1 text-[0.9375rem] font-semibold">
           {t("sectionEssentials")}
         </legend>
         <div className="grid gap-5 sm:grid-cols-2">
@@ -161,7 +161,7 @@ export function EventFields({
       </fieldset>
 
       <fieldset className="grid gap-5" hidden={!show.location}>
-        <legend className="mb-1 font-display text-xl tracking-[var(--tracking-title)]">
+        <legend className="mb-1 text-[0.9375rem] font-semibold">
           {t("sectionLocation")}
         </legend>
         <div

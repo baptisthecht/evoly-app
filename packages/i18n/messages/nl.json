@@ -926,7 +926,16 @@
     "colDate": "Datum",
     "colSales": "Verkoop",
     "inDays": "{count, plural, =0 {vandaag} =1 {morgen} other {over # dagen}}",
-    "revenueChart": "Dagelijkse opbrengst over 30 dagen"
+    "revenueChart": "Dagelijkse opbrengst over 30 dagen",
+    "colCollected": "Ontvangen",
+    "colStatus": "Status",
+    "notOnSale": "Nog niet te koop",
+    "deltaPrevious": "{amount} t.o.v. de vorige periode",
+    "andDrafts": "{count, plural, one {en # concept} other {en # concepten}}",
+    "todoActionStripe": "Koppelen",
+    "todoActionCover": "Toevoegen",
+    "todoActionDrafts": "Verdergaan",
+    "daysAgo": "{count, plural, =1 {gisteren} other {# dagen geleden}}"
   },
   "events": {
     "newEvent": "Nieuw evenement",
@@ -1035,7 +1044,13 @@
     "tabTables": "Tafels",
     "atVenue": "Dit evenement vindt plaats in {name} (partnerlocatie)",
     "atVenueInfo": "De locatie ziet alleen het totale aantal tickets en haar deel, nooit je kopers.",
-    "advancedIntro": "Dit evenement dupliceren, een concept verwijderen of het evenement annuleren."
+    "advancedIntro": "Dit evenement dupliceren, een concept verwijderen of het evenement annuleren.",
+    "group_archived": "Gearchiveerd",
+    "tabsLabel": "Te tonen evenementen",
+    "searchEvents": "Evenement zoeken",
+    "emptyTab": "Hier staan geen evenementen.",
+    "recentPast": "Onlangs afgelopen",
+    "allPast": "Alle afgelopen evenementen"
   },
   "tickets": {
     "addTicketType": "Tarief toevoegen",
@@ -3332,7 +3347,14 @@
     "conversion": "{pct} % koopt",
     "ordersCount": "{n, plural, one {# bestelling} other {# bestellingen}}",
     "visitsHint": "Geteld zonder cookies",
-    "paceTitle": "Verkooptempo"
+    "paceTitle": "Verkooptempo",
+    "pace_ahead": "Voor op schema",
+    "pace_onTrack": "Op schema",
+    "pace_behind": "Wat traag",
+    "pace_soldOut": "Uitverkocht",
+    "pace_notStarted": "Verkoop nog niet gestart",
+    "pace_unknown": "Verkooptempo",
+    "soldOutAround": "Uitverkocht rond {date}"
   },
   "sections": {
     "tab_brand": "Uw merk",

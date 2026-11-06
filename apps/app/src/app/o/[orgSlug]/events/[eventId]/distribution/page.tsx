@@ -61,7 +61,7 @@ export default async function DistributionPage({
       <p className="max-w-prose text-ink-muted">{t("intro")}</p>
       <Card className="grid gap-4">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="font-display text-xl">{t("reportTitle")}</h2>
+          <h2 className="text-[0.9375rem] font-semibold">{t("reportTitle")}</h2>
           {canEdit ? (
             <a
               href={`/o/${orgSlug}/events/${eventId}/distribution/bilan`}
@@ -126,7 +126,7 @@ export default async function DistributionPage({
         </div>
       </Card>
       <Card className="grid gap-4">
-        <h2 className="font-display text-xl">{t("networksTitle")}</h2>
+        <h2 className="text-[0.9375rem] font-semibold">{t("networksTitle")}</h2>
         {data.distributors.length === 0 ? (
           <p className="text-ink-muted">{t("empty")}</p>
         ) : (
@@ -222,7 +222,9 @@ export default async function DistributionPage({
 
       {batches.length ? (
         <Card className="grid gap-4">
-          <h2 className="font-display text-xl">{t("historyTitle")}</h2>
+          <h2 className="text-[0.9375rem] font-semibold">
+            {t("historyTitle")}
+          </h2>
 
           <ImportHistory
             orgSlug={orgSlug}
@@ -256,7 +258,7 @@ export default async function DistributionPage({
 
       {data.distributors.length === 0 ? null : data.seated ? (
         <Card className="grid gap-3">
-          <h2 className="font-display text-xl">{t("seatsTitle")}</h2>
+          <h2 className="text-[0.9375rem] font-semibold">{t("seatsTitle")}</h2>
           <p className="max-w-prose text-ink-muted">{t("seatsBody")}</p>
           <div>
             <Link
@@ -270,7 +272,9 @@ export default async function DistributionPage({
       ) : (
         <Card className="grid gap-5">
           <div className="grid gap-1">
-            <h2 className="font-display text-xl">{t("allocationsTitle")}</h2>
+            <h2 className="text-[0.9375rem] font-semibold">
+              {t("allocationsTitle")}
+            </h2>
             <p className="max-w-prose text-sm text-ink-muted">
               {t("allocationsHint")}
             </p>

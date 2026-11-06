@@ -289,7 +289,13 @@
     "tabTables": "Tables",
     "atVenue": "Cet événement a lieu à {name} (lieu partenaire)",
     "atVenueInfo": "Le lieu voit seulement le nombre total de billets et sa part, jamais vos acheteurs.",
-    "advancedIntro": "Dupliquer cet événement, supprimer un brouillon ou annuler l’événement."
+    "advancedIntro": "Dupliquer cet événement, supprimer un brouillon ou annuler l’événement.",
+    "group_archived": "Archivés",
+    "tabsLabel": "Événements à afficher",
+    "searchEvents": "Rechercher un événement",
+    "emptyTab": "Aucun événement ici.",
+    "recentPast": "Récemment passés",
+    "allPast": "Tous les événements passés"
   },
   "tickets": {
     "addTicketType": "Ajouter un tarif",
@@ -1203,7 +1209,16 @@
     "colDate": "Date",
     "colSales": "Ventes",
     "inDays": "{count, plural, =0 {aujourd’hui} =1 {demain} other {dans # jours}}",
-    "revenueChart": "Recette jour par jour sur 30 jours"
+    "revenueChart": "Recette jour par jour sur 30 jours",
+    "colCollected": "Encaissé",
+    "colStatus": "Statut",
+    "notOnSale": "Pas encore en vente",
+    "deltaPrevious": "{amount} sur la période d’avant",
+    "andDrafts": "{count, plural, one {et # brouillon} other {et # brouillons}}",
+    "todoActionStripe": "Connecter",
+    "todoActionCover": "Ajouter",
+    "todoActionDrafts": "Reprendre",
+    "daysAgo": "{count, plural, =1 {hier} other {il y a # jours}}"
   },
   "settings": {
     "title": "Paramètres",
@@ -3332,7 +3347,14 @@
     "conversion": "{pct} % achètent",
     "ordersCount": "{n, plural, one {# commande} other {# commandes}}",
     "visitsHint": "Comptées sans cookie",
-    "paceTitle": "Rythme des ventes"
+    "paceTitle": "Rythme des ventes",
+    "pace_ahead": "En avance sur le rythme",
+    "pace_onTrack": "Dans le rythme",
+    "pace_behind": "Un peu lent",
+    "pace_soldOut": "Complet",
+    "pace_notStarted": "Ventes pas encore ouvertes",
+    "pace_unknown": "Rythme des ventes",
+    "soldOutAround": "Complet vers le {date}"
   },
   "sections": {
     "tab_brand": "Votre marque",

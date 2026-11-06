@@ -67,7 +67,7 @@ export function TiersEditor({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4
           id={`tiers-${ticketTypeId}`}
-          className="font-display text-lg tracking-[var(--tracking-title)]"
+          className="text-[0.9375rem] font-semibold"
         >
           {t("title")}
         </h4>

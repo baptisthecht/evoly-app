@@ -75,7 +75,7 @@ export default async function DiffusionPage({
       {link}
       <p className="text-ink-muted">{t("intro")}</p>
       <Card className="grid gap-3">
-        <h2 className="font-display text-xl">{t("sitesTitle")}</h2>
+        <h2 className="text-[0.9375rem] font-semibold">{t("sitesTitle")}</h2>
         {origins.length ? (
           <ul className="grid gap-1 text-sm">
             {origins.map((o) => (
@@ -102,7 +102,7 @@ export default async function DiffusionPage({
         { title: t("moduleTitle"), hint: t("moduleHint"), code: module },
       ].map((b) => (
         <Card key={b.title} className="grid gap-3">
-          <h2 className="font-display text-xl">{b.title}</h2>
+          <h2 className="text-[0.9375rem] font-semibold">{b.title}</h2>
           <p className="text-sm text-ink-muted">{b.hint}</p>
           <pre className="overflow-x-auto rounded-lg bg-surface-sunken p-3 text-xs">
             <code>{b.code}</code>
@@ -113,7 +113,7 @@ export default async function DiffusionPage({
         </Card>
       ))}
       <Card className="grid gap-3">
-        <h2 className="font-display text-xl">{t("eventsTitle")}</h2>
+        <h2 className="text-[0.9375rem] font-semibold">{t("eventsTitle")}</h2>
         <p className="text-sm text-ink-muted">{t("eventsHint")}</p>
         <pre className="overflow-x-auto rounded-lg bg-surface-sunken p-3 text-xs">
           <code>{`<script>\n  window.addEventListener("evoly:order_completed", (e) => {\n    // e.detail : { tickets, amountMinor, currency }\n  });\n</script>`}</code>

@@ -77,7 +77,7 @@ export default async function OrderDetailPage({
       {tab === "tickets" ? (
         <>
           <Card className="grid gap-3">
-            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+            <h2 className="text-[0.9375rem] font-semibold">
               {t("ticketsTitle", { count: order.tickets.length })}
             </h2>
             <ul className="grid gap-2">
@@ -157,7 +157,7 @@ export default async function OrderDetailPage({
           </Card>
           {order.soldListings.length > 0 ? (
             <Card className="grid gap-2">
-              <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+              <h2 className="text-[0.9375rem] font-semibold">
                 {t("resaleTitle")}
               </h2>
               {order.soldListings.map((l) => (
@@ -176,9 +176,7 @@ export default async function OrderDetailPage({
       {tab === "buyer" ? (
         <div className="grid gap-4 lg:grid-cols-2">
           <Card className="grid content-start gap-3">
-            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-              {t("buyer")}
-            </h2>
+            <h2 className="text-[0.9375rem] font-semibold">{t("buyer")}</h2>
             <p>{order.buyerEmail}</p>
             {order.buyerPhone ? <p>{order.buyerPhone}</p> : null}
             <p className="text-sm text-ink-muted">
@@ -196,7 +194,7 @@ export default async function OrderDetailPage({
           </Card>
           {order.answers.length > 0 ? (
             <Card className="grid gap-2">
-              <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+              <h2 className="text-[0.9375rem] font-semibold">
                 {t("answersTitle")}
               </h2>
               <dl className="grid gap-2 text-sm">
@@ -239,9 +237,7 @@ export default async function OrderDetailPage({
       {tab === "payment" ? (
         <>
           <Card className="grid content-start gap-2">
-            <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-              {t("payment")}
-            </h2>
+            <h2 className="text-[0.9375rem] font-semibold">{t("payment")}</h2>
             <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 text-sm">
               <dt className="text-ink-muted">{t("total")}</dt>
               <dd className="text-right font-semibold tabular-nums">
@@ -297,7 +293,7 @@ export default async function OrderDetailPage({
           </Card>
           {order.refunds.length > 0 ? (
             <Card className="grid gap-3">
-              <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+              <h2 className="text-[0.9375rem] font-semibold">
                 {t("refundsTitle")}
               </h2>
               <ul className="grid gap-3">
@@ -366,7 +362,7 @@ export default async function OrderDetailPage({
         <>
           {order.options.length > 0 ? (
             <Card className="grid gap-3">
-              <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
+              <h2 className="text-[0.9375rem] font-semibold">
                 {t("optionsTitle")}
               </h2>
               <ul className="grid gap-1 text-sm">
@@ -413,9 +409,7 @@ export default async function OrderDetailPage({
       ) : null}
       {tab === "emails" ? (
         <Card className="grid gap-2">
-          <h2 className="font-display text-lg tracking-[var(--tracking-title)]">
-            {t("emailsTitle")}
-          </h2>
+          <h2 className="text-[0.9375rem] font-semibold">{t("emailsTitle")}</h2>
           {order.emailMessages.length === 0 ? (
             <p className="text-sm text-ink-muted">{t("noEmails")}</p>
           ) : null}
