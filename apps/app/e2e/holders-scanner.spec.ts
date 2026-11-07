@@ -3,6 +3,7 @@ import { appUrl, organizer, publishedFreeEvent, siteUrl, sql } from "./helpers";
 
 test("e-mail de chaque titulaire, puis accès membre au scanner depuis scanner.evoly.me (RG-QST-01, US-SCN-06)", async ({
   page,
+  browser,
 }) => {
   const { id, slug } = await organizer(page);
   await publishedFreeEvent(page, slug, `Stage ${id}`, 20);
@@ -47,4 +48,20 @@ test("e-mail de chaque titulaire, puis accès membre au scanner depuis scanner.e
     .getByRole("button", { name: "Ouvrir le scanner" })
     .click();
   await page.waitForURL(/scanner\.localhost:3001\/s\//);
+
+  // avant le chargement du JavaScript (téléphone lent à l'entrée), le bouton part comme un formulaire classique : sa
+  // redirection vers scanner.… passe par la règle form-action de la CSP, qui la bloquait sans rien afficher
+  const noScript = await browser.newContext({
+    javaScriptEnabled: false,
+    storageState: await page.context().storageState(),
+  });
+  const slow = await noScript.newPage();
+  await slow.goto(appUrl("/acces-scanner"));
+  await slow
+    .getByRole("listitem")
+    .filter({ hasText: `Stage ${id}` })
+    .getByRole("button", { name: "Ouvrir le scanner" })
+    .click();
+  await slow.waitForURL(/scanner\.localhost:3001\/s\//);
+  await noScript.close();
 });
