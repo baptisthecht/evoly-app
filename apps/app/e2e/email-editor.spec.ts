@@ -22,17 +22,24 @@ test("éditeur d'e-mails : mise en forme, bouton, aperçu en temps réel, bloc H
   const preview = page.frameLocator(`iframe[title="Aperçu de l'e-mail"]`);
 
   // texte en gras : visible dans l'aperçu, sans rien enregistrer
-  await editor.click();
-  // fin du document : Ctrl+Fin (Linux, Windows) ; sur macOS, Cmd+Fin ne bouge pas le curseur, c'est Cmd+Flèche bas
-  await page.keyboard.press(
-    process.platform === "darwin" ? "Meta+ArrowDown" : "Control+End",
-  );
+  // curseur à la fin du dernier paragraphe, par un clic au bout de sa dernière ligne, comme un utilisateur : les
+  // raccourcis « fin du document » changent d'un système à l'autre (Ctrl+Fin, Cmd+Flèche bas). Le clic qui donne le
+  // focus à l'éditeur peut voir ProseMirror remettre son curseur au début du document (sa sélection rétablie avant
+  // la lecture de celle du clic) : on reclique tant que la barre n'affiche pas le style du paragraphe (« Texte »)
+  const last = editor.locator("p").last();
+  const style = page.getByRole("combobox", { name: "Style du texte" });
+  await expect(async () => {
+    const box = (await last.boundingBox())!;
+    await last.click({ position: { x: box.width - 1, y: box.height - 1 } });
+    await expect(style).toHaveValue("p", { timeout: 1000 });
+  }).toPass();
   await page.keyboard.press("Enter");
   await page.keyboard.type("Texte important");
-  await page.keyboard.down("Shift");
-  for (let i = 0; i < "Texte important".length; i++)
-    await page.keyboard.press("ArrowLeft");
-  await page.keyboard.up("Shift");
+  // le paragraphe sélectionné d'un triple clic, une fois l'aperçu à jour, puis mis en gras
+  await expect(preview.getByText("Texte important")).toBeVisible();
+  await editor
+    .getByText("Texte important", { exact: true })
+    .click({ clickCount: 3 });
   await page.getByRole("button", { name: "Gras" }).click();
   await expect(
     preview.locator("strong", { hasText: "Texte important" }),
