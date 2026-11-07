@@ -3,15 +3,19 @@ import path from "node:path";
 
 const DIR = process.env.EMAIL_OUTBOX_DIR ?? "/tmp/evoly-outbox";
 
+type OutboxEmail = {
+  to: string;
+  template: string;
+  subject: string;
+  text: string;
+  attachments?: Array<{ filename: string; contentType: string; size: number }>;
+};
+
 /** Dernier e-mail d'un modèle donné, écrit par l'app dans la boîte d'envoi locale. */
 export async function lastEmail(
   to: string,
   template: string,
-): Promise<{
-  subject: string;
-  text: string;
-  attachments?: Array<{ filename: string; contentType: string; size: number }>;
-}> {
+): Promise<OutboxEmail> {
   for (let i = 0; i < 50; i++) {
     const files = (() => {
       try {
@@ -24,7 +28,14 @@ export async function lastEmail(
       }
     })();
     for (const f of files) {
-      const m = JSON.parse(readFileSync(path.join(DIR, f), "utf8"));
+      // fichier illisible (incomplet ou retiré entre-temps, les parcours tournent en parallèle) : ignoré pour ce tour,
+      // relu au suivant, au lieu de faire échouer le parcours
+      let m: OutboxEmail;
+      try {
+        m = JSON.parse(readFileSync(path.join(DIR, f), "utf8")) as OutboxEmail;
+      } catch {
+        continue;
+      }
       if (m.to === to && m.template === template) return m;
     }
     await new Promise((r) => setTimeout(r, 200));

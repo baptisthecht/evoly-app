@@ -1,6 +1,6 @@
 import "server-only";
 import { Prisma } from "@evoly/db";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Resend } from "resend";
 import { db } from "@/lib/db";
@@ -97,8 +97,11 @@ async function deliver(p: Payload, messageId: string): Promise<string | null> {
       path: file,
     });
   }
+  // écrit sous un nom provisoire puis renommé : un fichier .json n'apparaît qu'une fois complet, jamais à moitié écrit
+  // pour ceux qui lisent la boîte en même temps (parcours complets en parallèle)
+  const file = path.join(dir, `${stamp}.json`);
   await writeFile(
-    path.join(dir, `${stamp}.json`),
+    `${file}.tmp`,
     JSON.stringify(
       {
         from: p.from,
@@ -114,6 +117,7 @@ async function deliver(p: Payload, messageId: string): Promise<string | null> {
       2,
     ),
   );
+  await rename(`${file}.tmp`, file);
   return null;
 }
 
