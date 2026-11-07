@@ -4,8 +4,6 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 
 ## Production
 
-- **Redéployer** (`ops/deploy.sh`) : les migrations s'appliquent d'elles-mêmes (vitrine de l'organisateur, limites
-  d'achat, empreinte de la carte). Le déploiement met aussi en ligne ce qui a suivi celui du 21 octobre.
 - Google Ads : sous 48 heures, les conversions « Organisation créée » (principale) et « Inscription » (secondaire)
   doivent passer de « Inactive » à l'enregistrement ; dans deux ou trois semaines, rapport « Performances des éléments »
   de l'annonce (remplacer les titres classés « Faible ») ; le 31 mars 2027, fin de l'offre de lancement : retirer le
@@ -15,8 +13,9 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 
 Arborescence, règles d'interface et ordre de mise en œuvre décidés le 28 octobre 2026 : voir `docs/ARBORESCENCE.md`.
 
-- Fait : le socle (tableau, fenêtre, onglets en boutons, pastille) et l'arborescence de l'événement.
-- À venir : l'arborescence de l'organisation, puis les tableaux page par page, puis l'accueil vivant.
+- Fait : le socle (tableau, fenêtre, onglets en boutons, pastille), l'arborescence de l'événement puis de
+  l'organisation, les tableaux page par page et l'accueil vivant, avec la refonte A3 de toutes les pages et du
+  téléphone (6 et 7 novembre 2026, maquettes `UIUX/`, consignes dans `docs/INTERFACE.md`).
 - L'archivage d'un événement n'existe pas encore : à créer pour Réglages, Avancé.
 
 ## Limites d'achat, lot 4 : compte acheteur obligatoire
@@ -65,6 +64,14 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
   carte, remboursement réel, webhooks, souscription Pro (Checkout et portail), ouverture d'un compte Stripe Connect.
   Demande des clés Stripe de test dans les secrets de la CI.
 - Ambassadeurs (vente par le lien d'un ambassadeur, classement) et prévente (code, code épuisé, lien `?prevente=CODE`).
+
+## Déjà fait (novembre 2026)
+
+Déploiement du 7 novembre : refonte A3 du tableau de bord et du téléphone ; vitrine de l'organisateur, limites d'achat
+et empreinte de la carte (migrations) ; node-forge 1.4.2, plus aucune faille connue dans les dépendances ; boutons et
+formulaires sûrs avant le chargement du JavaScript (« Ouvrir le scanner », « Connecter mon compte Stripe », connexion
+avec Google ou Apple, « Retrouver mes billets », « Prévenez-moi »). Vérifié en ligne : santé, pages de l'app, du
+scanner et du site vitrine, règle de sécurité des formulaires, tâches planifiées fermées sans leur secret.
 
 ## Déjà fait (octobre 2026)
 
