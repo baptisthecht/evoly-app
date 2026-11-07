@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { BarActions } from "@/components/shell/EventTabs";
+import { buttonClass } from "@/components/ui/Button";
+import { SectionTitle } from "@/components/ui/Controls";
+import { DownloadIcon } from "@/components/ui/icons";
 import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
@@ -27,31 +31,34 @@ export default async function WaitlistPage({
         {t("waitlistEmptyBody")}
       </EmptyState>
     );
+  // refonte A3 : l'export à droite des onglets en boutons (BarActions), une ligne par tarif entre des filets
   return (
-    <section
-      className="grid gap-1 rounded-lg bg-surface-sunken p-4 text-sm"
-      aria-label={t("waitlistTitle")}
-    >
-      <h2 className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
-        {t("waitlistTitle")}
+    <>
+      <BarActions>
         <a
           href={`/o/${orgSlug}/events/${eventId}/waitlist.csv`}
-          className="text-sm font-normal underline underline-offset-4"
+          className={buttonClass("secondary")}
         >
+          <DownloadIcon />
           {t("waitlistExport")}
         </a>
-      </h2>
-      {waitlist.map((w) => (
-        <p key={w.ticketTypeId}>
-          {t("waitlistLine", {
-            name:
-              event.ticketTypes.find((tt) => tt.id === w.ticketTypeId)?.name ??
-              "",
-            people: w._count._all,
-            places: w._sum.quantity ?? 0,
-          })}
-        </p>
-      ))}
-    </section>
+      </BarActions>
+      <section aria-labelledby="waitlist-title">
+        <SectionTitle id="waitlist-title" title={t("waitlistTitle")} />
+        <ul role="list">
+          {waitlist.map((w) => (
+            <li key={w.ticketTypeId} className="border-b border-line py-[9px]">
+              {t("waitlistLine", {
+                name:
+                  event.ticketTypes.find((tt) => tt.id === w.ticketTypeId)
+                    ?.name ?? "",
+                people: w._count._all,
+                places: w._sum.quantity ?? 0,
+              })}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </>
   );
 }

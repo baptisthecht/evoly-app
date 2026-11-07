@@ -14,10 +14,183 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Sur téléphone, l'en-tête reste collé en haut : le défilement automatique (navigation, ancres) en tient compte. */
+/* refonte A3 (maquettes UIUX/) : le texte de l'espace organisateur, police du système en 14 px sur 1,45, sans lissage
+   forcé (la graisse de la maquette) */
+:root:has(.theme-pro) body {
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: auto;
+  text-rendering: auto;
+}
+/* boutons sur une ligne ; icônes de 15 px, quelle que soit la taille donnée à l'icône elle-même */
+:root:has(.theme-pro) .evoly-btn {
+  white-space: nowrap;
+  line-height: normal;
+}
+/* bouton d'envoi d'un formulaire : pleine largeur sur les pages publiques, à sa taille dans l'espace organisateur
+   (maquettes : aucun bouton étiré) */
+:root:has(.theme-pro) .evoly-btn.submit-default:not(.public-scope *) {
+  width: auto;
+  justify-self: start;
+}
+/* champs sans icône (maquettes) : l'icône de gauche disparaît, le texte reprend la marge normale */
+:root:has(.theme-pro) .field-icon {
+  display: none;
+}
+:root:has(.theme-pro) .with-field-icon {
+  padding-left: var(--field-px);
+}
+:root:has(.theme-pro) .evoly-btn > svg {
+  width: var(--btn-icon);
+  height: var(--btn-icon);
+  flex-shrink: 0;
+}
+/* les règles A3 ci-dessous épargnent l'aperçu de la page publique (« .public-scope », Prévisualiser), qui doit rester celle
+   que voient les acheteurs */
+/* parties de page (refonte A3) : pas de cartes dans les maquettes ; une partie se sépare de la suivante par un filet,
+   son titre en 14,5 px demi-gras comme les titres de section (« .sec h2 », « .setrow h3 ») */
+:root:has(.theme-pro) .evoly-card:not(.public-scope *) {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+:root:has(.theme-pro) .evoly-card:last-child:not(.public-scope *) {
+  border-bottom: 0;
+}
+/* la première partie d'une page commence sous l'en-tête, sans marge en plus */
+:root:has(.theme-pro) .evoly-card:first-child:not(.public-scope *) {
+  padding-top: 0;
+}
+:root:has(.theme-pro)
+  .evoly-card:not(.public-scope *)
+  :is(h2, h3).text-\[0\.9375rem\] {
+  font-size: 14.5px;
+  line-height: normal;
+}
+/* libellés hérités (« font-label … font-bold ») : comme les libellés des maquettes (« .fld label »), 13 px, graisse 500 ;
+   les pastilles (arrondies) gardent leur dessin */
+:root:has(.theme-pro)
+  :is(label, legend, summary, p, span, dt).font-label.font-bold:not(
+    [class*="rounded-full"]
+  ):not(.public-scope *) {
+  font-size: 13px;
+  font-weight: 500;
+}
+/* boutons radio, dessinés comme les cases à cocher de la maquette : 16 px, filet de 1,5 px ; choisi, charbon avec un point
+   blanc (les boutons masqués, « sr-only », restent masqués) */
+:root:has(.theme-pro)
+  input[type="radio"]:not(.sr-only):not(.hidden):not(.public-scope *) {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  vertical-align: middle;
+  border: 1.5px solid var(--check-line);
+  border-radius: 50%;
+  background: var(--surface-raised);
+  cursor: pointer;
+}
+:root:has(.theme-pro)
+  input[type="radio"]:not(.sr-only):not(.hidden):not(.public-scope *):checked {
+  border-color: var(--ink-strong);
+  background: var(--ink-strong);
+}
+:root:has(.theme-pro)
+  input[type="radio"]:not(.sr-only):not(.hidden):not(
+    .public-scope *
+  ):checked::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+}
+:root:has(.theme-pro) input[type="radio"]:disabled:not(.public-scope *) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+/* cases à cocher (maquette « .cb ») : 16 px, filet de 1,5 px, arrondi 4 px ; cochée, charbon avec une coche blanche */
+:root:has(.theme-pro) input[type="checkbox"]:not([role="switch"]) {
+  appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  vertical-align: middle;
+  border: 1.5px solid var(--check-line);
+  border-radius: 4px;
+  background: var(--surface-raised);
+  cursor: pointer;
+}
+:root:has(.theme-pro)
+  input[type="checkbox"]:not([role="switch"]):is(:checked, :indeterminate) {
+  border-color: var(--ink-strong);
+  background: var(--ink-strong);
+}
+:root:has(.theme-pro)
+  input[type="checkbox"]:not([role="switch"]):checked::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid var(--surface-raised);
+  border-bottom: 2px solid var(--surface-raised);
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+:root:has(.theme-pro)
+  input[type="checkbox"]:not([role="switch"]):indeterminate::after {
+  content: "";
+  width: 8px;
+  border-bottom: 2px solid var(--surface-raised);
+}
+/* interrupteurs (maquette « .sw ») : une case à cocher role="switch", 34 × 20 px, le bouton blanc glisse à droite */
+:root:has(.theme-pro) input[type="checkbox"][role="switch"] {
+  appearance: none;
+  position: relative;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+  border-radius: 99px;
+  background: var(--control-off);
+  cursor: pointer;
+  transition: background-color var(--motion-fast) ease-out;
+}
+:root:has(.theme-pro) input[type="checkbox"][role="switch"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: left var(--motion-fast) ease-out;
+}
+:root:has(.theme-pro) input[type="checkbox"][role="switch"]:checked {
+  background: var(--ink-strong);
+}
+:root:has(.theme-pro) input[type="checkbox"][role="switch"]:checked::after {
+  left: 16px;
+  /* blanc sur charbon en clair ; en sombre, le bouton prend la surface pour rester visible sur le crème */
+  background: var(--surface-raised);
+}
+:root:has(.theme-pro) input[type="checkbox"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sur téléphone, pas de barre collée en haut (maquette « Sur téléphone ») : les ancres gardent une petite marge. */
 @media (max-width: 1023.98px) {
   html {
-    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 5.5rem);
+    scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 1rem);
   }
 }
 
@@ -51,6 +224,15 @@ body {
 :root:has(.theme-pro) .font-display[class*="text-5xl"],
 :root:has(.theme-pro) .font-display[class*="text-display"] {
   font-size: 1.75rem;
+}
+/* titres de partie hérités (« font-display text-lg ») : comme les titres de section des maquettes, 14,5 px demi-gras */
+:root:has(.theme-pro)
+  :is(h2, h3, legend).font-display[class*="text-lg"]:not(.tabular-nums):not(
+    .public-scope *
+  ) {
+  font-size: 14.5px;
+  line-height: normal;
+  letter-spacing: 0;
 }
 /* thème pro : boutons et liens en pilule dessinés à la main, alignés sur les boutons du thème (interrupteurs exclus ;
    pastilles de la barre d'onglets du téléphone exclues : leur arrondi suit celui de la capsule) */

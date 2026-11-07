@@ -80,7 +80,7 @@ async function EventTheme({
   const custom = Object.values(e).some(Boolean);
   const pick = (k: keyof typeof e) => (custom ? e[k] : brand?.[k]) ?? "";
   return (
-    <div className="mt-6">
+    <div>
       <EventThemeForm
         orgSlug={orgSlug}
         eventId={eventId}

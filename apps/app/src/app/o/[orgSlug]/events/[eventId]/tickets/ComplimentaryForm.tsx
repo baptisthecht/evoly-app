@@ -1,23 +1,24 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FormError, SubmitButton, useActionForm } from "@/components/forms";
-import { Card } from "@/components/ui/Card";
-import { Field, Input, Select } from "@/components/ui/Field";
+import { FormError, useActionForm } from "@/components/forms";
+import { Button } from "@/components/ui/Button";
+import { DialogFooter } from "@/components/ui/Dialog";
+import { Field, Input, Select, TEXTAREA_CLASS } from "@/components/ui/Field";
 import { complimentaryAction } from "@/app/o/[orgSlug]/events/actions";
 
-/** US-ORD-03 : billets offerts (commande sans paiement ni commission, décomptée de la jauge). */
+/** US-ORD-03 : billets offerts (commande sans paiement ni commission, décomptée de la jauge), dans une fenêtre. */
 export function ComplimentaryForm({
   orgSlug,
   eventId,
   ticketTypes,
-  inDialog = false,
+  onDone,
 }: {
   orgSlug: string;
   eventId: string;
   ticketTypes: Array<{ id: string; name: string }>;
-  /** Dans une fenêtre : sans cadre ni titre (la fenêtre a les siens). */
-  inDialog?: boolean;
+  /** Fermer la fenêtre (« Annuler »). */
+  onDone?: () => void;
 }) {
   const t = useTranslations("complimentary");
   const tf = useTranslations("formErrors");
@@ -27,14 +28,13 @@ export function ComplimentaryForm({
   );
   const data = state?.ok ? state.data : null;
   const sent = data?.results.filter((r) => r.ok).length ?? 0;
-  const Wrap = inDialog ? "div" : Card;
+  const tc = useTranslations("common");
+  const formId = "complimentary-form";
+  // refonte A3 (maquette « Nouveau tarif ») : dans la fenêtre, les boutons dans son pied (DialogFooter)
   return (
-    <Wrap className={inDialog ? "grid gap-3" : "mt-10 grid gap-3"}>
-      {inDialog ? null : (
-        <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
-      )}
-      <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
-      <form {...formProps} className="grid gap-4" noValidate>
+    <div className="grid gap-4">
+      <p className="text-[13px] text-ink-muted">{t("intro")}</p>
+      <form id={formId} {...formProps} className="grid gap-4" noValidate>
         <FormError state={state} />
         <Field
           label={t("recipients")}
@@ -45,13 +45,13 @@ export function ComplimentaryForm({
             id="comp-recipients"
             name="recipients"
             rows={5}
-            className="block w-full rounded-md bg-surface-raised px-4 py-3 font-mono text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+            className={TEXTAREA_CLASS}
             placeholder={
               "lea@exemple.be\nTom Dubois <tom@exemple.be>\nines@exemple.be;Inès;Benali"
             }
           />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <Field label={t("ticketType")} htmlFor="comp-type">
             <Select
               id="comp-type"
@@ -76,19 +76,29 @@ export function ComplimentaryForm({
             />
           </Field>
         </div>
-        <SubmitButton
-          pending={pending}
-          className="w-full sm:w-auto sm:justify-self-start"
-        >
-          {t("send")}
-        </SubmitButton>
+        <DialogFooter>
+          {onDone ? (
+            <Button type="button" variant="secondary" onClick={onDone}>
+              {tc("cancel")}
+            </Button>
+          ) : null}
+          <Button
+            type="submit"
+            form={formId}
+            variant="primary"
+            disabled={pending}
+            aria-busy={pending}
+          >
+            {t("send")}
+          </Button>
+        </DialogFooter>
       </form>
       {data ? (
         <div
-          className="grid gap-2 rounded-md bg-surface-sunken p-4 text-sm"
+          className="grid gap-1.5 rounded-[8px] bg-surface-soft px-3 py-2.5 text-[13px]"
           role="status"
         >
-          <p className="font-semibold">{t("sent", { count: sent })}</p>
+          <p className="font-medium">{t("sent", { count: sent })}</p>
           {data.results
             .filter((r) => !r.ok)
             .map((r) => (
@@ -105,6 +115,6 @@ export function ComplimentaryForm({
           {data.tooMany ? <p className="text-warning">{t("tooMany")}</p> : null}
         </div>
       ) : null}
-    </Wrap>
+    </div>
   );
 }

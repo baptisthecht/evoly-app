@@ -2,14 +2,14 @@
 
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { useLocale, useTranslations } from "next-intl";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   FormError,
   SubmitButton,
   useActionForm,
   useFieldError,
 } from "@/components/forms";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClass } from "@/components/ui/Button";
 import { Field, Input, Select } from "@/components/ui/Field";
 import {
   correctEmailAction,
@@ -194,6 +194,10 @@ export function RefundTickets({
     refundTicketsAction.bind(null, orgSlug, orderId),
     null,
   );
+  // « Rembourser » de la barre de sélection des commandes : la fiche s'ouvre sur le remboursement (#rembourser)
+  useEffect(() => {
+    if (window.location.hash === "#rembourser") setOpen(true);
+  }, []);
   const total = tickets
     .filter((tk) => selected.includes(tk.id))
     .reduce((n, tk) => n + tk.faceValueMinor, 0);
@@ -201,9 +205,10 @@ export function RefundTickets({
   if (!open)
     return (
       <Button
+        id="rembourser"
         type="button"
         variant="secondary"
-        size="lg"
+        className="justify-self-start"
         onClick={() => setOpen(true)}
       >
         {t("refund")}
@@ -211,6 +216,7 @@ export function RefundTickets({
     );
   return (
     <form
+      id="rembourser"
       {...formProps}
       onSubmit={(e) =>
         window.confirm(
@@ -219,14 +225,16 @@ export function RefundTickets({
           ? formProps.onSubmit(e)
           : e.preventDefault()
       }
-      className="grid gap-4 rounded-md bg-surface-sunken p-4"
+      // refonte A3 : un cadre fin autour du formulaire ouvert dans la page ; l'avertissement des frais une seule fois
+      className="grid max-w-[640px] gap-3.5 rounded-[10px] border border-line p-4"
     >
       <FormError state={state} />
       <fieldset className="grid gap-2">
-        <legend className="mb-1 font-semibold">{t("refundWhich")}</legend>
-        <p className="mb-2 text-xs text-ink-muted">{t("feesNotReturned")}</p>
+        <legend className="mb-1.5 text-[14.5px] leading-[normal] font-semibold">
+          {t("refundWhich")}
+        </legend>
         {tickets.map((tk) => (
-          <label key={tk.id} className="flex items-center gap-3 text-sm">
+          <label key={tk.id} className="flex items-center gap-2.5">
             <input
               type="checkbox"
               name="ticketIds"
@@ -239,7 +247,6 @@ export function RefundTickets({
                     : s.filter((x) => x !== tk.id),
                 )
               }
-              className="size-5 accent-[var(--ink)]"
             />
             {tk.label} ·{" "}
             {tk.faceValueMinor === 0
@@ -269,15 +276,11 @@ export function RefundTickets({
       >
         <Input id="refund-message" name="message" maxLength={500} />
       </Field>
-      <p className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning">
+      <p className="rounded-[8px] bg-warning-soft px-3 py-2.5 text-[13px] text-warning">
         {t("feesNotReturned")}
       </p>
-      <div className="flex flex-wrap items-center gap-3">
-        <SubmitButton
-          pending={pending}
-          variant="dark"
-          className="w-full sm:w-auto"
-        >
+      <div className="flex flex-wrap items-center gap-2">
+        <SubmitButton pending={pending} variant="primary">
           {selected.length
             ? t("refundAmount", {
                 amount: formatMoney(total, currency, locale),
@@ -286,8 +289,7 @@ export function RefundTickets({
         </SubmitButton>
         <Button
           type="button"
-          variant="ghost"
-          size="lg"
+          variant="secondary"
           onClick={() => setOpen(false)}
         >
           {t("cancel")}
@@ -339,18 +341,12 @@ export function RefundDecision({
       >
         <Input id={`resp-${refundId}`} name="message" maxLength={500} />
       </Field>
-      <p className="text-xs text-ink-muted">{t("feesNotReturned")}</p>
+      <p className="text-[12.5px] text-ink-muted">{t("feesNotReturned")}</p>
       <div className="flex flex-wrap gap-2">
-        <button
-          formAction={approve}
-          className="h-11 rounded-full bg-surface-inverse px-5 font-semibold text-ink-inverse"
-        >
+        <button formAction={approve} className={buttonClass("primary")}>
           {t("approve")}
         </button>
-        <button
-          formAction={reject}
-          className="h-11 rounded-full px-5 font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]"
-        >
+        <button formAction={reject} className={buttonClass("secondary")}>
           {t("reject")}
         </button>
       </div>
@@ -460,7 +456,7 @@ export function RefundOptions({
       <Button
         type="button"
         variant="secondary"
-        size="lg"
+        className="justify-self-start"
         onClick={() => setOpen(true)}
       >
         {t("optionsRefund")}
@@ -476,14 +472,17 @@ export function RefundOptions({
           ? formProps.onSubmit(e)
           : e.preventDefault()
       }
-      className="grid gap-4 rounded-md bg-surface-sunken p-4"
+      // refonte A3 : comme le remboursement des billets, un cadre fin
+      className="grid max-w-[640px] gap-3.5 rounded-[10px] border border-line p-4"
     >
       <FormError state={state} />
       <fieldset className="grid gap-2">
-        <legend className="mb-1 font-semibold">
+        <legend className="mb-1.5 text-[14.5px] leading-[normal] font-semibold">
           {t("optionsRefundWhich")}
         </legend>
-        <p className="mb-2 text-xs text-ink-muted">{t("feesNotReturned")}</p>
+        <p className="mb-1 text-[12.5px] text-ink-muted">
+          {t("feesNotReturned")}
+        </p>
         {refundable.map((o) => (
           <label
             key={o.id}
@@ -505,7 +504,7 @@ export function RefundOptions({
                 }))
               }
               aria-label={t("optionsQuantity", { name: o.name })}
-              className="h-10 w-20 rounded-md bg-surface px-2 tabular-nums"
+              className="h-10 w-20 rounded-[8px] border border-line-strong bg-surface-raised px-2.5 tabular-nums"
             />
             {o.name} · {formatMoney(o.unitPriceMinor, currency, locale)} ·{" "}
             {t("optionsLeft", { left: o.left })}

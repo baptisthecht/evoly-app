@@ -28,12 +28,13 @@ export default async function PreviewPage({
   return (
     <div className="-mx-4 sm:-mx-8 lg:-mx-10">
       <p
-        className="mx-4 mb-4 rounded-md bg-info-soft px-4 py-3 text-sm sm:mx-8 lg:mx-10"
+        className="mx-4 mb-4 rounded-[8px] bg-info-soft px-3 py-2.5 text-[13px] sm:mx-8 lg:mx-10"
         role="status"
       >
         {t("previewBanner")}
       </p>
-      <div className="overflow-hidden rounded-none bg-surface lg:mx-10 lg:rounded-lg lg:ring-1 lg:ring-line">
+      {/* public-scope : les règles de l'espace organisateur (globals.css) n'y touchent pas */}
+      <div className="public-scope overflow-hidden rounded-none bg-surface lg:mx-10 lg:rounded-lg lg:ring-1 lg:ring-line">
         <EventPublicView org={org} data={data} preview />
       </div>
     </div>

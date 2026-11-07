@@ -84,7 +84,12 @@ export async function publishedFreeEvent(
   await page.waitForURL(/\/events\/c[a-z0-9]{20,}$/);
   const eventUrl = page.url();
   await page.getByRole("button", { name: "Publier" }).click();
-  await expect(page.getByText("Liens à partager")).toBeVisible();
+  // refonte A3 : la vue d'ensemble suit la maquette (les liens à partager sont dans Vente, Diffusion) ; publié, le
+  // statut « En vente » s'affiche à côté du titre et la liste « avant de publier » disparaît
+  await expect(page.getByRole("button", { name: "Publier" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "En vente",
+  );
   return eventUrl;
 }
 

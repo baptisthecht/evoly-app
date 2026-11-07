@@ -51,7 +51,8 @@ describe("options d'un événement (section 9.29)", () => {
     fireEvent.change(document.getElementById("option-new-price")!, {
       target: { value: "2" },
     });
-    fireEvent.click(screen.getByRole("checkbox"));
+    // refonte A3 : « Vendable sans billet » est un interrupteur
+    fireEvent.click(screen.getByRole("switch"));
     await submit(opt.add!);
     await waitFor(() => expect(actions.createOptionAction).toHaveBeenCalled());
     const data = actions.createOptionAction.mock.calls[0]!.at(-1) as FormData;
@@ -172,7 +173,9 @@ describe("tables et forfaits (section 9.31)", () => {
 
 describe("interrupteurs des réglages : jamais un état affiché différent de l'état enregistré", () => {
   const labels = {
-    title: "Protection anti-robots",
+    section: "Protection anti-robots",
+    description: "Contre les achats automatisés en masse.",
+    title: "Activer la protection",
     hint: "Pour les ventes à forte demande",
     saved: "Enregistré",
   };
@@ -186,7 +189,7 @@ describe("interrupteurs des réglages : jamais un état affiché différent de l
         labels={labels}
       />,
     );
-    await act(async () => void fireEvent.click(screen.getByRole("checkbox")));
+    await act(async () => void fireEvent.click(screen.getByRole("switch")));
     expect(actions.saveBotProtectionAction).toHaveBeenCalledWith(
       "club",
       "e1",
@@ -197,9 +200,9 @@ describe("interrupteurs des réglages : jamais un état affiché différent de l
       ok: false,
       error: "INCONNUE",
     });
-    await act(async () => void fireEvent.click(screen.getByRole("checkbox")));
+    await act(async () => void fireEvent.click(screen.getByRole("switch")));
     await waitFor(() =>
-      expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(
+      expect((screen.getByRole("switch") as HTMLInputElement).checked).toBe(
         true,
       ),
     ); // l'arrêt a échoué : toujours active
@@ -213,7 +216,7 @@ describe("interrupteurs des réglages : jamais un état affiché différent de l
         labels={labels}
       />,
     );
-    expect((screen.getByRole("checkbox") as HTMLInputElement).disabled).toBe(
+    expect((screen.getByRole("switch") as HTMLInputElement).disabled).toBe(
       true,
     );
   });
@@ -227,8 +230,9 @@ describe("interrupteurs des réglages : jamais un état affiché différent de l
       <EventReminders orgSlug="club" eventId="e1" pro reminders={reminders} />,
     );
     const j7 = () =>
-      screen.getByRole("checkbox", {
-        name: rem.type_REMINDER_J7,
+      // refonte A3 : un interrupteur par rappel, son explication fait partie de son nom
+      screen.getByRole("switch", {
+        name: new RegExp(`^${rem.type_REMINDER_J7}`),
       }) as HTMLInputElement;
     await act(async () => void fireEvent.click(j7()));
     expect(actions.reminderAction).toHaveBeenCalledWith(
@@ -246,8 +250,8 @@ describe("interrupteurs des réglages : jamais un état affiché différent de l
     await waitFor(() => expect(j7().checked).toBe(false)); // la réactivation a échoué : toujours coupé
     expect(
       (
-        screen.getByRole("checkbox", {
-          name: rem.type_REMINDER_J1,
+        screen.getByRole("switch", {
+          name: new RegExp(`^${rem.type_REMINDER_J1}`),
         }) as HTMLInputElement
       ).checked,
     ).toBe(true);

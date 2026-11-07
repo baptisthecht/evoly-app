@@ -4,7 +4,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Badge, Card, EmptyState } from "@/components/ui/Card";
+import { buttonClass } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Card";
+import { SectionTitle } from "@/components/ui/Controls";
+import { Stat, StatCell, StatRow } from "@/components/ui/Stat";
 import { requireOrgContext } from "@/server/context";
 import { organizationResaleOverview } from "@/server/resale";
 import { ResaleTable } from "./ResaleTable";
@@ -40,34 +43,27 @@ export default async function OrganizationResalePage({
     ctx.organization.id,
   );
   const t = await getTranslations("resaleAdmin");
-  const tn = await getTranslations("nav");
   const locale = (await getLocale()) as Locale;
   const money = (v: number) =>
     formatMoney(v, ctx.organization.currency, locale, { trimZeroCents: true });
   return (
+    // refonte A3 : les chiffres comme ceux de l'accueil (filets verticaux), les dernières annonces, puis les événements
     <div className="grid gap-6">
-      <Card className="grid gap-3 sm:grid-cols-4">
+      <StatRow label={t("recent")}>
         {[
           { label: t("statActive"), value: String(totals.open) },
           { label: t("statSold"), value: String(totals.sold) },
           { label: t("statAmount"), value: money(totals.amountMinor) },
           { label: t("statFailed"), value: String(totals.failed) },
         ].map((s) => (
-          <div key={s.label}>
-            <p className="font-label text-[0.8rem] font-bold text-ink-muted">
-              {s.label}
-            </p>
-            <p className="font-figures text-[1.6875rem] tracking-[var(--tracking-figures)] tabular-nums">
-              {s.value}
-            </p>
-          </div>
+          <StatCell key={s.label}>
+            <Stat label={s.label} value={s.value} />
+          </StatCell>
         ))}
-      </Card>
+      </StatRow>
 
-      <section className="grid gap-3" aria-labelledby="resale-recent">
-        <h2 id="resale-recent" className="text-[0.9375rem] font-semibold">
-          {t("recent")}
-        </h2>
+      <section aria-labelledby="resale-recent">
+        <SectionTitle id="resale-recent" title={t("recent")} />
         <ResaleTable
           rows={recent.map((l) => ({
             id: l.id,
@@ -91,43 +87,52 @@ export default async function OrganizationResalePage({
         />
       </section>
 
-      {/* réglages de revente par événement : un raccourci discret, replié */}
-      <details className="group rounded-[var(--r-panel)] bg-surface-raised px-4 py-3 ring-1 ring-line">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
-          {t("byEventShortcut")}
-          <span
+      {/* réglages de revente par événement : un raccourci discret, replié (le chevron dessiné de la barre latérale) */}
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[13px] font-medium text-ink-muted hover:text-ink [&::-webkit-details-marker]:hidden">
+          <svg
             aria-hidden="true"
-            className="text-ink-muted transition-transform group-open:rotate-180"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            className="size-3.5 shrink-0 transition-transform group-open:rotate-90"
           >
-            ⌄
-          </span>
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+          {t("byEventShortcut")}
         </summary>
         {events.length === 0 ? (
-          <p className="pt-3 text-sm text-ink-muted">{t("noEventsBody")}</p>
+          <p className="pt-3 text-[13px] text-ink-muted">{t("noEventsBody")}</p>
         ) : null}
-        <ul className="grid gap-2 pt-3">
+        <ul role="list" className="pt-2">
           {events.map((e) => (
-            <li key={e.id}>
-              <Card className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                <div className="grid min-w-0 gap-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="truncate font-semibold">{e.title}</p>
-                    <Badge tone={e.resaleEnabled ? "success" : "neutral"}>
-                      {e.resaleEnabled ? t("on") : t("off")}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-ink-muted">
-                    {formatDateTime(e.startsAt, e.timezone, locale, "short")} ·{" "}
-                    {t("eventCounts", { open: e.open, sold: e.sold })}
-                  </p>
+            <li
+              key={e.id}
+              className="grid gap-2 border-b border-line py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+            >
+              <div className="grid min-w-0 gap-0.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="truncate font-medium">{e.title}</p>
+                  <Badge tone={e.resaleEnabled ? "success" : "neutral"} dot>
+                    {e.resaleEnabled ? t("on") : t("off")}
+                  </Badge>
                 </div>
-                <Link
-                  href={`/o/${orgSlug}/events/${e.id}/resale`}
-                  className="justify-self-start rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)] sm:justify-self-end"
-                >
-                  {t("manage")}
-                </Link>
-              </Card>
+                <p className="text-[13px] text-ink-muted">
+                  {formatDateTime(e.startsAt, e.timezone, locale, "short")} ·{" "}
+                  {t("eventCounts", { open: e.open, sold: e.sold })}
+                </p>
+              </div>
+              <Link
+                href={`/o/${orgSlug}/events/${e.id}/resale`}
+                className={buttonClass(
+                  "secondary",
+                  "sm",
+                  "justify-self-start sm:justify-self-end",
+                )}
+              >
+                {t("manage")}
+              </Link>
             </li>
           ))}
         </ul>

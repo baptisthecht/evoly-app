@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { BarActions } from "@/components/shell/EventTabs";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Card";
 import { DataTable, type TableColumn } from "@/components/ui/DataTable";
@@ -32,6 +33,7 @@ export function OptionsTable({
   eventId,
   symbol,
   refundAfterStart,
+  intro,
 }: {
   rows: OptionRow[];
   manage: boolean;
@@ -39,6 +41,8 @@ export function OptionsTable({
   eventId: string;
   symbol: string;
   refundAfterStart: boolean;
+  /** La phrase d'explication, au-dessus du tableau. */
+  intro: string;
 }) {
   const t = useTranslations("options");
   const [dialog, setDialog] = useState<"new" | "settings" | string | null>(
@@ -148,71 +152,78 @@ export function OptionsTable({
         </span>
       ),
     });
+  // refonte A3 (maquette « Tarifs ») : les boutons de la page à droite des onglets en boutons (BarActions)
   return (
-    <div className="grid gap-4">
+    <>
       {manage ? (
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="dark"
-            size="md"
-            onClick={() => setDialog("new")}
-          >
-            <PlusIcon className="size-4 shrink-0" />
-            {t("newTitle")}
-          </Button>
+        <BarActions>
           <Button
             type="button"
             variant="secondary"
-            size="md"
             onClick={() => setDialog("settings")}
           >
             {t("settings")}
           </Button>
-        </div>
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => setDialog("new")}
+          >
+            <PlusIcon />
+            {t("newTitle")}
+          </Button>
+        </BarActions>
       ) : null}
-      <DataTable
-        rows={rows}
-        columns={columns}
-        getRowId={(o) => o.id}
-        caption={t("tableCaption")}
-        emptyState={{ title: t("emptyTitle"), description: t("emptyBody") }}
-      />
-      <Dialog
-        open={dialog === "new"}
-        onClose={() => setDialog(null)}
-        title={t("newTitle")}
-        size="lg"
-      >
-        <OptionForm orgSlug={orgSlug} eventId={eventId} symbol={symbol} bare />
-      </Dialog>
-      <Dialog
-        open={dialog === "settings"}
-        onClose={() => setDialog(null)}
-        title={t("settings")}
-      >
-        <OptionsRefundPolicy
-          orgSlug={orgSlug}
-          eventId={eventId}
-          allowed={refundAfterStart}
+      <div className="grid gap-3.5">
+        <p className="max-w-[720px] text-[13px] text-ink-muted">{intro}</p>
+        <DataTable
+          rows={rows}
+          columns={columns}
+          getRowId={(o) => o.id}
+          caption={t("tableCaption")}
+          emptyState={{ title: t("emptyTitle"), description: t("emptyBody") }}
         />
-      </Dialog>
-      <Dialog
-        open={!!editing}
-        onClose={() => setDialog(null)}
-        title={editing ? editing.name : t("edit")}
-        size="lg"
-      >
-        {editing ? (
+        <Dialog
+          open={dialog === "new"}
+          onClose={() => setDialog(null)}
+          title={t("newTitle")}
+          size="lg"
+        >
           <OptionForm
             orgSlug={orgSlug}
             eventId={eventId}
             symbol={symbol}
-            option={editing.initial}
-            bare
+            onDone={() => setDialog(null)}
           />
-        ) : null}
-      </Dialog>
-    </div>
+        </Dialog>
+        <Dialog
+          open={dialog === "settings"}
+          onClose={() => setDialog(null)}
+          title={t("settings")}
+        >
+          <OptionsRefundPolicy
+            orgSlug={orgSlug}
+            eventId={eventId}
+            allowed={refundAfterStart}
+          />
+        </Dialog>
+        <Dialog
+          open={!!editing}
+          onClose={() => setDialog(null)}
+          title={editing ? editing.name : t("edit")}
+          size="lg"
+        >
+          {editing ? (
+            <OptionForm
+              orgSlug={orgSlug}
+              eventId={eventId}
+              symbol={symbol}
+              option={editing.initial}
+              onDone={() => setDialog(null)}
+            />
+          ) : null}
+        </Dialog>
+      </div>
+    </>
   );
 }

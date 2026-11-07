@@ -11,7 +11,13 @@ import {
   useActionForm,
   useFieldError,
 } from "@/components/forms";
-import { Card } from "@/components/ui/Card";
+import { buttonClass } from "@/components/ui/Button";
+import {
+  SavedNote,
+  SectionTitle,
+  SettingsRow,
+  SwitchRow,
+} from "@/components/ui/Controls";
 import { Field, Input } from "@/components/ui/Field";
 import { marketingAutomationAction } from "@/app/o/[orgSlug]/events/actions";
 
@@ -54,85 +60,78 @@ function AutomationForm({
   );
   const error = useFieldError(state);
   return (
-    <form
-      {...formProps}
-      className="grid gap-3 border-t border-line pt-3"
-      noValidate
+    // refonte A3 (maquette « Réglages de l'événement ») : une rangée par e-mail, l'éditeur sur toute la largeur
+    <SettingsRow
+      title={t(`type_${a.type}`)}
+      description={a.sent ? t("sent") : t(`when_${a.type}`)}
+      wide
     >
-      <label className="flex items-center justify-between gap-3">
-        <span>
-          <span className="block font-semibold">{t(`type_${a.type}`)}</span>
-          <span className="block text-sm text-ink-muted">
-            {a.sent ? t("sent") : t(`when_${a.type}`)}
-          </span>
-        </span>
-        <input
-          type="checkbox"
+      <form {...formProps} className="grid gap-3.5" noValidate>
+        <SwitchRow
           name="enabled"
           defaultChecked={a.enabled}
-          className="size-5 accent-[var(--ink)]"
-          aria-label={t("enable", { type: t(`type_${a.type}`) })}
+          label={t("enable", { type: t(`type_${a.type}`) })}
         />
-      </label>
-      <FormError state={state} />
-      <Field
-        label={t("subject")}
-        htmlFor={`${a.type}-subject`}
-        error={error("subject")}
-      >
-        <Input
-          id={`${a.type}-subject`}
-          name="subject"
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          maxLength={150}
-        />
-      </Field>
-      <div className="grid gap-2">
-        <span className="text-sm font-semibold">{t("message")}</span>
-        <span className="-mt-1 text-sm text-ink-muted">{t("messageHint")}</span>
-        <input type="hidden" name="content" value={JSON.stringify(content)} />
-        <EmailEditor
-          orgSlug={orgSlug}
-          value={a.content}
-          onChange={setContent}
-          events={[]}
-        />
-        {error("content") ? (
-          <p className="text-sm text-danger" role="alert">
-            {error("content")}
-          </p>
-        ) : null}
-        <button
-          type="button"
-          aria-expanded={preview}
-          onClick={() => setPreview((v) => !v)}
-          className="justify-self-start rounded-full px-4 py-2 text-sm font-semibold hover:bg-surface-sunken"
+        <FormError state={state} />
+        <Field
+          label={t("subject")}
+          htmlFor={`${a.type}-subject`}
+          error={error("subject")}
         >
-          {te("preview")}
-        </button>
-        {preview && (
-          <EmailPreview
-            orgSlug={orgSlug}
-            subject={subject}
-            previewText=""
-            content={shown}
+          <Input
+            id={`${a.type}-subject`}
+            name="subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            maxLength={150}
           />
-        )}
-      </div>
-      {state?.ok ? (
-        <p className="text-sm text-success" role="status">
-          {t("saved")}
-        </p>
-      ) : null}
-      <SubmitButton
-        pending={pending}
-        variant="secondary"
-        className="w-full sm:w-auto sm:justify-self-start"
-      >
-        {t("save")}
-      </SubmitButton>
-    </form>
+        </Field>
+        <div className="grid gap-1.5">
+          <span className="text-[length:var(--label-size)] [font-weight:var(--label-weight)]">
+            {t("message")}
+          </span>
+          <input type="hidden" name="content" value={JSON.stringify(content)} />
+          <EmailEditor
+            orgSlug={orgSlug}
+            value={a.content}
+            onChange={setContent}
+            events={[]}
+          />
+          <p className="-mt-px text-[length:var(--hint-size)] text-ink-muted">
+            {t("messageHint")}
+          </p>
+          {error("content") ? (
+            <p className="text-[13px] text-danger" role="alert">
+              {error("content")}
+            </p>
+          ) : null}
+          {preview && (
+            <EmailPreview
+              orgSlug={orgSlug}
+              subject={subject}
+              previewText=""
+              content={shown}
+            />
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <SubmitButton pending={pending} variant="secondary">
+            {t("save")}
+          </SubmitButton>
+          <button
+            type="button"
+            aria-expanded={preview}
+            onClick={() => setPreview((v) => !v)}
+            className={buttonClass("ghost")}
+          >
+            {te("preview")}
+          </button>
+          {state?.ok ? (
+            <SavedNote id={`automation-${a.type}`}>{t("saved")}</SavedNote>
+          ) : null}
+        </div>
+      </form>
+    </SettingsRow>
   );
 }
 
@@ -148,9 +147,11 @@ export function EventMarketingEmails({
 }) {
   const t = useTranslations("marketingAutomations");
   return (
-    <Card className="mt-4 grid gap-3">
-      <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
-      <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
+    <>
+      <div className="pt-6 pb-1">
+        <SectionTitle title={t("title")} />
+        <p className="max-w-[720px] text-[13px] text-ink-muted">{t("intro")}</p>
+      </div>
       {automations.map((a) => (
         <AutomationForm
           key={a.type}
@@ -159,6 +160,6 @@ export function EventMarketingEmails({
           a={a}
         />
       ))}
-    </Card>
+    </>
   );
 }

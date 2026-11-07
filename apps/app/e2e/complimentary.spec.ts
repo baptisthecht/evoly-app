@@ -8,7 +8,8 @@ test("billets offerts depuis l'onglet Billets, commandes « Offert », export de
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Vernissage ${id}`, 30);
   await page.goto(`${eventUrl}/tickets/complimentary`); // Billetterie, Billets offerts : le formulaire dans une fenêtre
-  await page.getByRole("button", { name: "+ Billets offerts" }).click();
+  // refonte A3 : « Offrir des billets » à droite des onglets en boutons
+  await page.getByRole("button", { name: "Offrir des billets" }).click();
   await page
     .getByLabel("Invités")
     .fill(
@@ -25,7 +26,8 @@ test("billets offerts depuis l'onglet Billets, commandes « Offert », export de
   ).toContain(`Vernissage ${id}`);
 
   await page.goto(appUrl(`/o/${slug}/orders`));
-  await expect(page.getByText("Offert", { exact: true })).toHaveCount(2);
+  // le montant d'une commande offerte : « offert » (maquette « Commandes »)
+  await expect(page.getByText("offert", { exact: true })).toHaveCount(2);
   const csv = await page.request.get(`${eventUrl}/participants`);
   const text = await csv.text();
   expect(text).toContain(`lea.${id}@exemple.be`);

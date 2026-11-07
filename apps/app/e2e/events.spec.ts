@@ -37,10 +37,12 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
   // publication : le billet gratuit ne demande pas Stripe
   await page.goto(eventPath);
   await page.getByRole("button", { name: "Publier" }).click();
-  await expect(
-    page.getByText("En vente", { exact: true }).first(),
-  ).toBeVisible();
-  await expect(page.getByText("Liens à partager")).toBeVisible();
+  // le statut à côté du titre (sur téléphone, la pastille « En vente » est masquée, comme la maquette)
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "En vente",
+  );
+  // refonte A3 : les liens à partager sont dans Vente, Diffusion ; la vue d'ensemble suit la maquette
+  await expect(page.getByRole("button", { name: "Publier" })).toHaveCount(0);
 
   const res = await page.goto(siteUrl(slug, `/${eventSlug}`));
   expect(res?.status()).toBe(200);
@@ -65,11 +67,14 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
 
   // RG-EVT-02 : pas de tarif payant sur un événement en vente sans Stripe
   await page.goto(`${eventPath}/tickets`);
-  await page.getByRole("button", { name: "+ Ajouter un tarif" }).click();
-  await page.getByLabel("Nom du tarif").last().fill("VIP");
-  await page.getByLabel("Prix").last().fill("45");
-  await expect(page.getByText(/Vous percevez environ 42,88/)).toBeVisible();
-  await page.getByRole("button", { name: "Ajouter un tarif" }).last().click();
+  // refonte A3 (maquette « Tarifs ») : « Nouveau tarif » ouvre la fenêtre ; le net perçu est sous « Plus d'options »
+  await page.getByRole("button", { name: "Nouveau tarif" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Nom du tarif").fill("VIP");
+  await dialog.getByLabel("Prix").fill("45");
+  await dialog.getByRole("button", { name: "Plus d’options" }).click();
+  await expect(dialog.getByText(/Vous percevez environ 42,88/)).toBeVisible();
+  await dialog.getByRole("button", { name: "Créer le tarif" }).click();
   await expect(
     page.getByText(
       "Connectez un compte Stripe actif pour vendre des billets payants.",
@@ -143,8 +148,11 @@ test("prix dynamiques : réservés au Pro, puis prix de prévente sur la page pu
   await page.waitForURL(new RegExp(`/o/${slug}/events/c[a-z0-9]{20,}$`));
   const eventPath = page.url(); // adresse absolue : les pages publiques sont sur un autre hôte
 
+  // refonte A3 (maquette « Tarifs ») : un tarif s'ouvre d'un clic sur son nom, dans une fenêtre
+  const openTariff = () =>
+    page.getByRole("table").getByRole("button").first().click();
   await page.goto(`${eventPath}/tickets`);
-  await page.getByRole("button", { name: "Modifier" }).click();
+  await openTariff();
   await expect(
     page.getByText("Prévente, tarif normal, dernière minute"),
   ).toBeVisible();
@@ -159,10 +167,10 @@ test("prix dynamiques : réservés au Pro, puis prix de prévente sur la page pu
   );
 
   await page.reload();
-  await page.getByRole("button", { name: "Modifier" }).click();
+  await openTariff();
   await page.getByLabel("Prix").first().fill("24");
   await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
-  await page.getByRole("button", { name: "Modifier" }).click();
+  await openTariff();
   await page.getByRole("button", { name: "Ajouter un palier" }).click();
   await page.getByLabel("Nom du palier").fill("Prévente");
   await page.getByLabel("Prix du palier").fill("18");
@@ -172,9 +180,10 @@ test("prix dynamiques : réservés au Pro, puis prix de prévente sur la page pu
 
   await page.goto(eventPath);
   await page.getByRole("button", { name: "Publier" }).click();
-  await expect(
-    page.getByText("En vente", { exact: true }).first(),
-  ).toBeVisible();
+  // le statut à côté du titre (sur téléphone, la pastille « En vente » est masquée, comme la maquette)
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "En vente",
+  );
   await page.goto(siteUrl(slug, `/festival-${id}`));
   await expect(page.getByText("Prévente")).toBeVisible();
   await expect(page.getByText(/^18\s€$/)).toBeVisible();

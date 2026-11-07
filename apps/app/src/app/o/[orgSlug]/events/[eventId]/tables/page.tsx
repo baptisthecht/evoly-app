@@ -3,7 +3,8 @@ import { formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ProLocked } from "@/components/ProLocked";
-import { Card, EmptyState } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/Card";
+import { SettingsRow } from "@/components/ui/Controls";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { tableSettings } from "@/server/tables";
@@ -23,7 +24,10 @@ export default async function TablesPage({
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
-  const t = await getTranslations("tables");
+  const [t, tc] = await Promise.all([
+    getTranslations("tables"),
+    getTranslations("common"),
+  ]);
   if (!hasFeature(ctx.features, "SEATING_MAPS")) {
     return (
       <div className="grid gap-4">
@@ -40,34 +44,41 @@ export default async function TablesPage({
   const locale = (await getLocale()) as Locale;
   const manage = can(ctx.membership, "TICKETS_MANAGE") && !ctx.readOnly;
   return (
-    <div className="grid gap-4">
-      <p className="text-ink-muted">{t("intro")}</p>
+    <div className="grid gap-2">
+      <p className="max-w-[720px] text-[13px] text-ink-muted">{t("intro")}</p>
       {types.length === 0 ? (
         <EmptyState title={t("emptyTitle")}>{t("emptyBody")}</EmptyState>
       ) : null}
-      {types.map((tt) => (
-        <Card key={tt.id} className="grid gap-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-[0.9375rem] font-semibold">{tt.name}</h2>
-            <p className="text-sm text-ink-muted">
-              {formatMoney(tt.priceMinor, event.currency, locale, {
+      {/* refonte A3 (maquette « Réglages de l'événement ») : une rangée par tarif, son nom et son prix à gauche */}
+      <div>
+        {types.map((tt) => (
+          <SettingsRow
+            key={tt.id}
+            title={tt.name}
+            description={
+              formatMoney(tt.priceMinor, event.currency, locale, {
                 trimZeroCents: true,
-              })}
-              {tt.groupSize > 1
-                ? ` · ${t("perPerson", { amount: formatMoney(Math.round(tt.priceMinor / tt.groupSize), event.currency, locale, { trimZeroCents: true }), count: tt.groupSize })}`
-                : ""}
-            </p>
-          </div>
-          {manage ? (
-            <TableForm
-              orgSlug={orgSlug}
-              eventId={eventId}
-              type={tt}
-              options={options}
-            />
-          ) : null}
-        </Card>
-      ))}
+              }) +
+              (tt.groupSize > 1
+                ? `, ${t("perPerson", { amount: formatMoney(Math.round(tt.priceMinor / tt.groupSize), event.currency, locale, { trimZeroCents: true }), count: tt.groupSize })}`
+                : "")
+            }
+          >
+            {manage ? (
+              <TableForm
+                orgSlug={orgSlug}
+                eventId={eventId}
+                type={tt}
+                options={options}
+              />
+            ) : (
+              <p className="text-[13px] text-ink-muted">
+                {tc("labelColon", { label: t("groupSize") })} {tt.groupSize}
+              </p>
+            )}
+          </SettingsRow>
+        ))}
+      </div>
     </div>
   );
 }

@@ -35,7 +35,7 @@ test("bar sans réseau : options retrouvées dans la liste du téléphone, retra
   );
 
   await page.goto(`${eventUrl}/entries`);
-  await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
+  await page.getByRole("button", { name: "Nouveau lien bénévole" }).click();
   await page.getByLabel("Libellé").fill("Bar");
   await page.getByRole("button", { name: "Créer le lien" }).click();
   const url = (await page.getByTestId("scanner-url").textContent())!;

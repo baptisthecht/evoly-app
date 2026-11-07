@@ -26,8 +26,8 @@ export default async function OptionsPage({
   const t = await getTranslations("options");
   if (!hasFeature(ctx.features, "PREPAID_OPTIONS")) {
     return (
-      <div className="grid gap-4">
-        <p className="text-ink-muted">{t("intro")}</p>
+      <div className="grid gap-3.5">
+        <p className="max-w-[720px] text-[13px] text-ink-muted">{t("intro")}</p>
         <ProLocked
           orgSlug={orgSlug}
           feature="PREPAID_OPTIONS"
@@ -49,10 +49,11 @@ export default async function OptionsPage({
     })
       .formatToParts(0)
       .find((p) => p.type === "currency")?.value ?? event.currency;
+  // un fragment : la barre des boutons (BarActions) se place à droite des onglets en boutons
   return (
-    <div className="grid gap-4">
-      <p className="text-ink-muted">{t("intro")}</p>
+    <>
       <OptionsTable
+        intro={t("intro")}
         orgSlug={orgSlug}
         eventId={eventId}
         manage={manage}
@@ -82,6 +83,6 @@ export default async function OptionsPage({
           },
         }))}
       />
-    </div>
+    </>
   );
 }

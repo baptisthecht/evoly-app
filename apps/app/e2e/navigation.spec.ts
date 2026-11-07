@@ -12,7 +12,7 @@ const background = (page: Page, value: string) =>
     return c;
   }, value);
 
-test("barre latérale (maquette validée) : page active sur fond gris, autres pages sans fond, fond gris au survol", async ({
+test("barre latérale (refonte A3) : page active sur le charbon clair avec le trait rose, autres pages sans fond, fond au survol", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -22,16 +22,17 @@ test("barre latérale (maquette validée) : page active sur fond gris, autres pa
   const { slug } = await organizer(page);
   await page.goto(appUrl(`/o/${slug}`));
   const nav = page.getByRole("navigation", { name: "Navigation principale" });
-  const grey = await background(page, "var(--surface)");
+  // maquettes UIUX/ : la page active sur le gris du charbon (--sidebar-raised), en demi-gras, marquée d'un trait rose
+  const raised = await background(page, "var(--sidebar-raised)");
   const home = nav.getByRole("link", { name: "Accueil" });
   await expect(home).toHaveAttribute("aria-current", "page");
-  await expect(home).toHaveCSS("background-color", grey);
-  await expect(home).toHaveCSS("font-weight", "500");
+  await expect(home).toHaveCSS("background-color", raised);
+  await expect(home).toHaveCSS("font-weight", "600");
   const finances = nav.getByRole("link", { name: "Finances" });
   await expect(finances).not.toHaveAttribute("aria-current", "page");
   await expect(finances).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await finances.hover();
-  await expect(finances).toHaveCSS("background-color", grey);
+  await expect(finances).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 });
 
 test("événement : la barre de l'organisation reste, sept parties en onglets, toutes les pages de la partie ouverte, retour", async ({
@@ -96,7 +97,7 @@ test("événement : la barre de l'organisation reste, sept parties en onglets, t
   ).toHaveCount(0);
 });
 
-test("téléphone : la barre d'onglets de l'organisation ; dans un événement, la sienne et ses parties en haut", async ({
+test("téléphone : la barre d'onglets de l'organisation, la même dans un événement, et ses parties en haut", async ({
   page,
 }, testInfo) => {
   test.skip(
@@ -106,22 +107,23 @@ test("téléphone : la barre d'onglets de l'organisation ; dans un événement, 
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Soirée ${id}`, 10);
   await page.goto(appUrl(`/o/${slug}`));
-  // barre d'onglets du téléphone : les onglets de l'organisation, puis ceux de l'événement
-  await expect(
-    page
-      .getByRole("navigation", { name: "Navigation de l’organisation" })
-      .getByRole("link", { name: "Finances" }),
-  ).toBeVisible();
+  // barre d'onglets du téléphone (maquette « Sur téléphone ») : les onglets de l'organisation, les mêmes dans un
+  // événement ; les parties de l'événement sont en haut, dans ses onglets
+  const bar = page.getByRole("navigation", {
+    name: "Navigation de l’organisation",
+  });
+  await expect(bar.getByRole("link", { name: "Finances" })).toBeVisible();
   await page.goto(eventUrl);
-  await page
-    .getByRole("navigation", { name: "Navigation de l’événement" })
-    .getByRole("link", { name: "Participants" })
-    .click();
-  await expect(page).toHaveURL(/\/orders$/);
-  await page.goto(eventUrl);
+  await expect(bar.getByRole("link", { name: "Événements" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
   const tabs = page.getByRole("navigation", {
     name: "Sections de l’événement",
   });
+  await tabs.getByRole("link", { name: "Participants" }).click();
+  await expect(page).toHaveURL(/\/orders$/);
+  await page.goto(eventUrl);
   await tabs.getByRole("link", { name: "Billetterie" }).click();
   await expect(page).toHaveURL(/\/tickets$/);
   await expect(

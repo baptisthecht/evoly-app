@@ -26,36 +26,36 @@ export function ButtonTabs({
     items
       .filter((i) => pathname.startsWith(`${i.href}/`))
       .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+  // refonte A3 (maquettes UIUX/, « .seg ») : fond gris, arrondi 9 px, 3 px de marge ; onglets de 13 px (5 px sur 12 px),
+  // l'actif sur blanc en demi-gras avec une ombre fine ; le compteur en gris, après une espace
   return (
-    <nav aria-label={label} className="-mx-1 overflow-x-auto px-1 pb-1">
+    <nav aria-label={label} className="-mx-1 max-w-full overflow-x-auto px-1">
       <ul
         role="list"
-        className="inline-flex gap-0.5 rounded-[9px] bg-surface-sunken p-[3px]" // refonte A3 : la forme des maquettes
+        className="inline-flex gap-0.5 rounded-[9px] bg-surface-sunken p-[3px]"
       >
         {items.map((i) => {
           const on = i.href === active;
           return (
-            <li key={i.href}>
+            <li key={i.href} className="flex">
               <Link
                 href={i.href}
                 aria-current={on ? "page" : undefined}
                 className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-[7px] px-3 text-[0.8125rem] whitespace-nowrap transition-colors",
+                  "rounded-[7px] px-3 py-[5px] text-[13px] whitespace-nowrap",
                   on
-                    ? "bg-surface-raised font-semibold text-ink shadow-[0_1px_2px_rgba(34,34,34,0.08)]"
-                    : "font-medium text-ink-muted hover:text-ink",
+                    ? "bg-surface-raised font-semibold text-ink-strong shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
+                    : "text-ink-soft hover:text-ink",
                 )}
               >
                 {i.label}
                 {i.count != null ? (
-                  <span
-                    className={cn(
-                      "text-xs tabular-nums",
-                      on ? "text-ink-muted" : "text-ink-subtle",
-                    )}
-                  >
-                    {i.count}
-                  </span>
+                  <>
+                    {" "}
+                    <span className="text-ink-muted tabular-nums">
+                      {i.count}
+                    </span>
+                  </>
                 ) : null}
               </Link>
             </li>

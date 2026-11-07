@@ -6,12 +6,14 @@ import {
   type CampaignBlock,
   type CampaignSegment,
 } from "@evoly/core";
+import { ButtonTabs } from "@/components/ui/ButtonTabs";
+import { Stat, StatCell, StatRow } from "@/components/ui/Stat";
 import { formatDateTime, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Badge, Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Card";
 import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
 import { sanitizeEmailHtml } from "@/server/email/sanitize";
@@ -143,15 +145,18 @@ export default async function CampaignPage({
       : "-";
   return (
     <div className="grid gap-6">
-      <header className="grid gap-2">
+      {/* refonte A3 : comme l'en-tête d'un événement (« .ehead ») : le fil en 12,5 px gris, le titre en 21 px demi-gras */}
+      <header className="grid gap-1">
         <Link
           href={`/o/${orgSlug}/marketing?tab=campaigns`}
-          className="text-sm font-semibold text-ink-muted hover:text-ink"
+          className="w-fit text-[12.5px] text-ink-muted hover:text-ink"
         >
-          ← {t("back")}
+          {t("back")}
         </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="page-title">{campaign?.name ?? t("newTitle")}</h1>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <h1 className="text-[21px] leading-[1.25] font-semibold tracking-[-0.01em]">
+            {campaign?.name ?? t("newTitle")}
+          </h1>
           {campaign ? (
             <Badge
               tone={
@@ -168,31 +173,30 @@ export default async function CampaignPage({
           ) : null}
         </div>
         {!campaign ? (
-          <nav className="flex flex-wrap gap-2" aria-label={t("templates")}>
-            {TEMPLATES.map((k) => (
-              <Link
-                key={k}
-                href={`?template=${k}`}
-                className={`rounded-full px-4 py-2 text-sm font-semibold ${k === tpl && !chosen ? "bg-surface-inverse text-ink-inverse" : "ring-1 ring-line-strong"}`}
-              >
-                {tt(`${k}Name`)}
-              </Link>
-            ))}
-            {personal.map((p) => (
-              <Link
-                key={p.id}
-                href={`?template=personal:${p.id}`}
-                className={`rounded-full px-4 py-2 text-sm font-semibold ${chosen?.id === p.id ? "bg-surface-inverse text-ink-inverse" : "bg-surface-accent"}`}
-              >
-                ★ {p.name}
-              </Link>
-            ))}
-          </nav>
+          // les modèles en choix segmenté (« .seg »), le modèle choisi sur blanc
+          <div id="modeles" className="mt-2 scroll-mt-6">
+            <ButtonTabs
+              label={t("templates")}
+              items={[
+                ...TEMPLATES.map((k) => ({
+                  href: `?template=${k}`,
+                  label: tt(`${k}Name`),
+                })),
+                ...personal.map((p) => ({
+                  href: `?template=personal:${p.id}`,
+                  label: `★ ${p.name}`,
+                })),
+              ]}
+              current={
+                chosen ? `?template=personal:${chosen.id}` : `?template=${tpl}`
+              }
+            />
+          </div>
         ) : null}
       </header>
       {locked && campaign ? (
         <>
-          <p className="text-ink-muted">
+          <p className="text-[13px] text-ink-muted">
             {campaign.sentAt
               ? t("sentOn", {
                   date: formatDateTime(
@@ -205,10 +209,8 @@ export default async function CampaignPage({
               : t(`status_${campaign.status}`)}{" "}
             · « {campaign.subject} »
           </p>
-          <section
-            className="grid gap-3 sm:grid-cols-3 lg:grid-cols-7"
-            aria-label={t("stats")}
-          >
+          {/* refonte A3 : les chiffres comme ceux de l'accueil, en rangée compacte (sept indicateurs) */}
+          <StatRow label={t("stats")} compact>
             {(
               [
                 ["recipientsStat", campaign.recipientCount ?? 0, null],
@@ -220,18 +222,12 @@ export default async function CampaignPage({
                 ["unsubscribes", campaign.unsubscribeCount, null],
               ] as const
             ).map(([k, n, r]) => (
-              <Card key={k} className="grid gap-1">
-                <p className="font-label text-[0.75rem] font-bold text-ink-muted">
-                  {t(k)}
-                </p>
-                <p className="font-figures text-[1.6875rem] tracking-[var(--tracking-figures)] tabular-nums">
-                  {n}
-                </p>
-                {r ? <p className="text-xs text-ink-muted">{r}</p> : null}
-              </Card>
+              <StatCell key={k}>
+                <Stat label={t(k)} value={n} sub={r ?? undefined} />
+              </StatCell>
             ))}
-          </section>
-          <p className="text-xs text-ink-muted">{t("statsHint")}</p>
+          </StatRow>
+          <p className="text-[12.5px] text-ink-muted">{t("statsHint")}</p>
         </>
       ) : (
         // clé : un changement de modèle recrée l'éditeur (sinon son état garderait le contenu précédent)

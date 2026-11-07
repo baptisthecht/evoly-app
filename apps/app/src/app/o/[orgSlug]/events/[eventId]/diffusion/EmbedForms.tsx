@@ -9,7 +9,7 @@ import {
   useFieldError,
 } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
-import { Field, Input } from "@/components/ui/Field";
+import { Input } from "@/components/ui/Field";
 import { addEmbedOriginAction, removeEmbedOriginAction } from "../../actions";
 
 /** Ajout d'un site autorisé (section 9.26). */
@@ -27,23 +27,45 @@ export function AddOriginForm({
   );
   const error = useFieldError(state);
   return (
-    <form {...formProps} className="grid gap-3 sm:flex sm:items-end" noValidate>
+    // refonte A3 : le champ et son bouton sur une ligne, l'aide ou l'erreur dessous
+    <form {...formProps} className="grid gap-1.5" noValidate>
       <FormError state={state} />
-      <Field
-        label={t("siteAdd")}
+      <label
         htmlFor="embed-origin"
-        hint={t("sitesHint")}
-        error={error("origin")}
+        className="text-[length:var(--label-size)] [font-weight:var(--label-weight)]"
       >
-        <Input
-          id="embed-origin"
-          name="origin"
-          placeholder="monclub.be"
-          maxLength={200}
-          required
-        />
-      </Field>
-      <SubmitButton pending={pending}>{t("add")}</SubmitButton>
+        {t("siteAdd")}
+      </label>
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1">
+          <Input
+            id="embed-origin"
+            name="origin"
+            placeholder="monclub.be"
+            maxLength={200}
+            required
+            invalid={!!error("origin")}
+            aria-describedby={error("origin") ? "embed-origin-help" : undefined}
+          />
+        </span>
+        <SubmitButton
+          pending={pending}
+          variant="secondary"
+          className="shrink-0"
+        >
+          {t("add")}
+        </SubmitButton>
+      </div>
+      {/* l'explication est à gauche, dans la rangée : ici, l'erreur seule */}
+      {error("origin") ? (
+        <p
+          id="embed-origin-help"
+          role="alert"
+          className="-mt-px text-[length:var(--hint-size)] text-danger"
+        >
+          {error("origin")}
+        </p>
+      ) : null}
     </form>
   );
 }

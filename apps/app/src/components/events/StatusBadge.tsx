@@ -4,13 +4,36 @@ import { Badge } from "../ui/Card";
 const TONES = {
   DRAFT: "neutral",
   PUBLISHED: "success",
+  SCHEDULED: "info",
   SALES_PAUSED: "warning",
   CANCELLED: "danger",
-  ENDED: "dark",
+  ENDED: "neutral",
   ARCHIVED: "neutral",
 } as const;
+type Status = Exclude<keyof typeof TONES, "SCHEDULED">;
 
-export function EventStatusBadge({ status }: { status: keyof typeof TONES }) {
+/**
+ * Statut d'un événement (refonte A3, maquettes UIUX/) : « En vente » en vert, « Programmé » (publié, ventes pas encore
+ * ouvertes) en bleu, « Brouillon » en gris, avec leur point ; « Terminé » et « Archivé » en simple étiquette, sans point.
+ */
+export function EventStatusBadge({
+  status,
+  salesStartAt,
+}: {
+  status: Status;
+  /** Ouverture des ventes : publié avant cette date, l'événement est « Programmé ». */
+  salesStartAt?: Date | null;
+}) {
   const t = useTranslations("events.status");
-  return <Badge tone={TONES[status]}>{t(status)}</Badge>;
+  const shown =
+    status === "PUBLISHED" &&
+    salesStartAt &&
+    salesStartAt.getTime() > Date.now()
+      ? "SCHEDULED"
+      : status;
+  return (
+    <Badge tone={TONES[shown]} dot={shown !== "ENDED" && shown !== "ARCHIVED"}>
+      {t(shown)}
+    </Badge>
+  );
 }

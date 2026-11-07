@@ -3,6 +3,29 @@
 Les décisions d'interface prises par le porteur du projet. Elles priment sur les habitudes et sur les règles générales
 du design system. Les maquettes de référence sont dans `UIUX/`.
 
+## 7 novembre 2026 : conformité aux maquettes A3, toutes les pages
+
+Le porteur du projet veut chaque écran conforme aux maquettes « à 100 % ». Les écrans maquettés sont comparés pixel par
+pixel (captures et images de différence) ; les autres reprennent les mêmes formes.
+
+- **Plus de cartes encadrées** dans l'espace organisateur : des parties séparées par des filets, des rangées de
+  réglages (titre à gauche, champs à droite), des tableaux à filets.
+- **Fenêtres** : toutes au modèle de « Nouveau tarif » (pied gris, boutons à droite, « Annuler » avant le bouton
+  principal).
+- **Téléphone** : la barre d'onglets blanche de la maquette remplace la capsule flottante (variante D), y compris dans
+  un événement ; plus de barre en haut (les notifications passent dans « Plus ») ; les tableaux deviennent des lignes
+  séparées par des filets.
+- **Écarts assumés**, chacun pour une raison : la maquette coupe la colonne « Date » des commandes à 1200 px (le tableau
+  défile) ; sur les téléphones de la maquette, les champs et « Exporter » perdent leur filet par une erreur de la
+  maquette (variable `--line2` définie seulement dans `.desk`) ; des fonctions existantes absentes des maquettes
+  restent (filtre « Canal », réglages de revente repliés, protection anti-robots, « Plus d'options » d'un tarif).
+- **Accessibilité avant le pixel** : le gris des onglets inactifs de la barre du téléphone passe de `#8f8782`
+  (maquette, contraste 3,5:1) à `#7a736e` (4,6:1, exigé pour un texte de 11 px, test d'accessibilité et test des
+  jetons) ; le nom d'une option reste l'en-tête de sa ligne dans Finances.
+- **Statut toujours visible** : sur téléphone, l'en-tête d'un événement en vente n'a pas de pastille (comme la
+  maquette), mais un brouillon, un événement programmé, annulé ou terminé garde la sienne ; la liste des événements,
+  sans maquette sur téléphone, montre la pastille sous le lieu.
+
 ## 6 novembre 2026 : refonte « A3 » du tableau de bord
 
 Direction choisie après comparaison de trois pistes (outil sobre, charte assainie, « Jour J ») puis de quatre doses de

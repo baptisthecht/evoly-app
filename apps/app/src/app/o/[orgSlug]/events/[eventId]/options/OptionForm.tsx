@@ -2,14 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
-import {
-  FormError,
-  SubmitButton,
-  useActionForm,
-  useFieldError,
-} from "@/components/forms";
+import { FormError, useActionForm, useFieldError } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { SavedNote, SwitchRow } from "@/components/ui/Controls";
+import { DialogFooter } from "@/components/ui/Dialog";
 import { Field, Input } from "@/components/ui/Field";
 import {
   createOptionAction,
@@ -27,32 +23,34 @@ export type Initial = {
   standalone: boolean;
 };
 
-/** Ajout ou modification d'une option (section 9.29). */
+/** Ajout ou modification d'une option (section 9.29), dans une fenêtre : les boutons dans son pied. */
 export function OptionForm({
   orgSlug,
   eventId,
   symbol,
   option,
-  bare = false,
+  onDone,
 }: {
   orgSlug: string;
   eventId: string;
   symbol: string;
   option?: Initial;
-  /** Dans une fenêtre : le formulaire seul (la fenêtre a son cadre et son titre). */
-  bare?: boolean;
+  /** Fermer la fenêtre (« Annuler »). */
+  onDone?: () => void;
 }) {
   const t = useTranslations("options");
+  const tc = useTranslations("common");
   const action = option
     ? updateOptionAction.bind(null, orgSlug, eventId, option.id)
     : createOptionAction.bind(null, orgSlug, eventId);
   const { state, pending, formProps } = useActionForm(action, null);
   const error = useFieldError(state);
   const p = option ? `option-${option.id}` : "option-new";
-  const form = (
-    <form {...formProps} className="grid gap-4" noValidate>
+  const formId = `${p}-form`;
+  return (
+    <form id={formId} {...formProps} className="grid gap-4" noValidate>
       <FormError state={state} />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <Field label={t("name")} htmlFor={`${p}-name`} error={error("name")}>
           <Input
             id={`${p}-name`}
@@ -114,39 +112,35 @@ export function OptionForm({
           defaultValue={option?.description}
         />
       </Field>
-      <label className="flex items-start gap-3">
-        <input
-          type="checkbox"
-          name="standalone"
-          defaultChecked={option?.standalone ?? false}
-          className="mt-1 size-5 accent-[var(--ink)]"
-        />
-        <span>
-          <span className="font-semibold">{t("standalone")}</span>
-          <span className="block text-sm text-ink-muted">
-            {t("standaloneHint")}
+      <SwitchRow
+        name="standalone"
+        defaultChecked={option?.standalone ?? false}
+        label={t("standalone")}
+        hint={t("standaloneHint")}
+      />
+      {/* refonte A3 (maquette « Nouveau tarif ») : les boutons dans le pied de la fenêtre */}
+      <DialogFooter>
+        {state?.ok ? (
+          <span className="mr-auto">
+            <SavedNote id={`${p}-saved`}>{t("saved")}</SavedNote>
           </span>
-        </span>
-      </label>
-      {state?.ok ? (
-        <p role="status" className="text-sm text-ink-muted">
-          {t("saved")}
-        </p>
-      ) : null}
-      <div>
-        <SubmitButton pending={pending} className="w-full sm:w-auto">
+        ) : null}
+        {onDone ? (
+          <Button type="button" variant="secondary" onClick={onDone}>
+            {tc("cancel")}
+          </Button>
+        ) : null}
+        <Button
+          type="submit"
+          form={formId}
+          variant="primary"
+          disabled={pending}
+          aria-busy={pending}
+        >
           {option ? t("save") : t("add")}
-        </SubmitButton>
-      </div>
+        </Button>
+      </DialogFooter>
     </form>
-  );
-  if (bare) return form;
-  if (option) return <div className="mt-3">{form}</div>;
-  return (
-    <Card className="grid gap-4">
-      <h2 className="text-[0.9375rem] font-semibold">{t("newTitle")}</h2>
-      {form}
-    </Card>
   );
 }
 

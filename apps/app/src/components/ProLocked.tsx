@@ -2,6 +2,7 @@ import { PALETTE } from "@evoly/core";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { buttonClass } from "@/components/ui/Button";
 
 export type LockedFeature =
   | "SEATING_MAPS"
@@ -33,7 +34,8 @@ export async function ProLocked({
   return (
     <section
       aria-labelledby={id}
-      className="grid gap-4 rounded-[var(--r-card)] border border-dashed border-line-strong bg-surface-raised p-5"
+      // refonte A3 : le cadre en pointillés des brouillons (« .chip.draft »), le titre de section, la pastille grise
+      className="grid gap-3 rounded-[var(--r-card)] border border-dashed border-line-strong bg-surface-raised px-5 py-4"
     >
       <div className="flex flex-wrap items-center gap-2">
         <svg
@@ -50,17 +52,16 @@ export async function ProLocked({
           <rect x="5" y="11" width="14" height="10" rx="2" />
           <path d="M8 11V8a4 4 0 0 1 8 0v3" />
         </svg>
-        <h2
-          id={id}
-          className="font-display text-xl tracking-[var(--tracking-title)]"
-        >
+        <h2 id={id} className="text-[14.5px] leading-[normal] font-semibold">
           {t(`${feature}.title`)}
         </h2>
-        <span className="rounded-full bg-lilas px-2 py-0.5 font-label text-xs font-bold text-charbon">
+        <span className="rounded-[6px] bg-surface-sunken px-2 py-0.5 text-[12px] font-medium text-ink-body">
           {t("badge")}
         </span>
       </div>
-      <p className="-mt-2 text-ink-muted">{t(`${feature}.body`)}</p>
+      <p className="-mt-1.5 text-[13px] text-ink-muted">
+        {t(`${feature}.body`)}
+      </p>
       {preview ? (
         <div
           inert
@@ -74,14 +75,14 @@ export async function ProLocked({
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={`/o/${orgSlug}/billing`}
-            className="inline-flex min-h-11 items-center rounded-full bg-surface-inverse px-5 font-label font-bold text-ink-inverse"
+            className={buttonClass("primary")}
           >
             {t("cta")}
           </Link>
-          <span className="text-sm text-ink-muted">{t("trial")}</span>
+          <span className="text-[13px] text-ink-muted">{t("trial")}</span>
         </div>
       ) : (
-        <p className="text-sm text-ink-muted">{t("askOwner")}</p>
+        <p className="text-[13px] text-ink-muted">{t("askOwner")}</p>
       )}
     </section>
   );

@@ -43,7 +43,10 @@ test("marque, sous-domaine d'événement, changement d'adresse et domaine person
 
   // US-BRD-05 : sous-domaine dédié à l'événement
   await page.goto(`${eventUrl}/diffusion`); // le sous-domaine de l'événement : Vente, Diffusion
-  await page.getByLabel("Sous-domaine de l’événement").fill(`soir-${id}`);
+  // refonte A3 : la rangée porte le même nom que son champ ; on vise le champ
+  await page
+    .getByRole("textbox", { name: "Sous-domaine de l’événement" })
+    .fill(`soir-${id}`);
   await expect(page.getByText("Cette adresse est disponible.")).toBeVisible();
   await page
     .getByRole("button", { name: "Enregistrer le sous-domaine" })

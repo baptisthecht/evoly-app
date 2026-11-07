@@ -1,10 +1,10 @@
 import { can, hasFeature, minorToInput, utcToZonedLocal } from "@evoly/core";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { getPlans } from "@/server/plans";
+import { BarActions } from "@/components/shell/EventTabs";
 import { NewTicketType } from "./NewTicketType";
 import { type TicketTypeRow } from "./TicketTypeEditor";
 import { TicketTypesTable } from "./TicketTypesTable";
@@ -22,12 +22,12 @@ export default async function TicketsPage({
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
-  const t = await getTranslations("tickets");
   const plans = await getPlans();
   const terms =
     plans[ctx.plan].terms[event.currency] ?? plans[ctx.plan].terms.EUR!;
   const tz = event.timezone;
   const local = (d: Date | null) => (d ? utcToZonedLocal(d, tz) : "");
+  const eventDay = utcToZonedLocal(event.startsAt, tz).slice(0, 10);
   const rows: TicketTypeRow[] = event.ticketTypes.map((tt) => ({
     id: tt.id,
     name: tt.name,
@@ -62,25 +62,30 @@ export default async function TicketsPage({
     !ctx.readOnly &&
     !["CANCELLED", "ENDED", "ARCHIVED"].includes(event.status);
   const tiersEnabled = hasFeature(ctx.features, "DYNAMIC_PRICING");
+  // refonte A3 (maquette « Tarifs ») : « Nouveau tarif » à droite des onglets en boutons, puis le tableau
   return (
-    <div className="grid gap-4">
-      {/* refonte A3 : la phrase d'aide et « Ajouter un tarif » sur une seule ligne, au-dessus du tableau */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[0.8125rem] text-ink-muted">{t("pageIntro")}</p>
-        {manage ? (
-          <NewTicketType orgSlug={orgSlug} eventId={eventId} terms={terms} />
-        ) : null}
-      </div>
+    <>
+      {manage ? (
+        <BarActions>
+          <NewTicketType
+            orgSlug={orgSlug}
+            eventId={eventId}
+            terms={terms}
+            eventDay={eventDay}
+          />
+        </BarActions>
+      ) : null}
       <TicketTypesTable
         rows={rows}
         orgSlug={orgSlug}
         eventId={eventId}
         terms={terms}
+        eventDay={eventDay}
         currency={event.currency}
         tiersEnabled={tiersEnabled && manage}
         tiersLocked={!manage}
         manage={manage}
       />
-    </div>
+    </>
   );
 }

@@ -52,7 +52,8 @@ export function SubmitButton({
       variant={variant}
       disabled={pending}
       aria-busy={pending}
-      className={className ?? "w-full"}
+      // pleine largeur sur les pages publiques ; dans l'espace organisateur, à sa taille (globals.css, « .submit-default »)
+      className={className ?? "submit-default w-full"}
     >
       {pending ? (pendingLabel ?? t("loading")) : children}
     </Button>

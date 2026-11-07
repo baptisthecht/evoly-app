@@ -9,7 +9,11 @@ import {
   type ThemeValues,
 } from "@/app/o/[orgSlug]/brand/BrandTheme";
 import { FormError, SubmitButton, useActionForm } from "@/components/forms";
-import { Card } from "@/components/ui/Card";
+import {
+  choiceCardClass,
+  SavedNote,
+  SettingsRow,
+} from "@/components/ui/Controls";
 import { Field, Input } from "@/components/ui/Field";
 import { saveEventThemeAction } from "./actions";
 
@@ -41,16 +45,14 @@ export function EventThemeForm({
     null,
   );
   return (
-    <Card className="grid gap-5">
-      <h2 className="text-[0.9375rem] font-semibold">{t("eventStyleTitle")}</h2>
-      <form {...formProps} className="grid gap-5" noValidate>
-        <fieldset className="grid gap-2 sm:grid-cols-2">
+    // refonte A3 (maquette « Réglages de l'événement ») : une rangée ; l'éditeur et son aperçu prennent toute la largeur
+    <SettingsRow title={t("eventStyleTitle")} wide={mode === "custom"}>
+      <form {...formProps} className="grid gap-3.5" noValidate>
+        <fieldset className="grid max-w-[560px] gap-2 sm:grid-cols-2">
+          <legend className="sr-only">{t("eventStyleTitle")}</legend>
           {(["organization", "custom"] as const).map((m) => (
-            <label
-              key={m}
-              className={`grid cursor-pointer gap-1 rounded-md p-3 ring-1 ${mode === m ? "bg-surface ring-ink" : "ring-line"}`}
-            >
-              <span className="flex items-center gap-2 text-[0.8125rem] font-medium">
+            <label key={m} className={choiceCardClass(mode === m)}>
+              <span className="flex items-center gap-2.5 font-medium">
                 <input
                   type="radio"
                   name="mode"
@@ -60,7 +62,7 @@ export function EventThemeForm({
                 />
                 {t(m === "organization" ? "eventStyleOrg" : "eventStyleCustom")}
               </span>
-              <span className="text-xs text-ink-muted">
+              <span className="text-[12.5px] text-ink-muted">
                 {t(
                   m === "organization"
                     ? "eventStyleOrgHint"
@@ -88,14 +90,13 @@ export function EventThemeForm({
                         onChange={(e) =>
                           set({ [k]: e.target.value.toUpperCase() })
                         }
-                        className="size-11 cursor-pointer rounded-md bg-transparent"
+                        className="size-10 shrink-0 cursor-pointer rounded-[8px] border border-line-strong bg-transparent p-0.5"
                       />
                       <Input
                         id={`ev-${k}`}
                         name={k}
                         value={v[k]}
                         onChange={(e) => set({ [k]: e.target.value })}
-                        className="font-mono"
                         maxLength={9}
                       />
                     </div>
@@ -121,15 +122,15 @@ export function EventThemeForm({
           </div>
         ) : null}
         <FormError state={state} />
-        {state?.ok ? (
-          <p className="text-sm text-success" role="status">
-            {t("eventStyleSaved")}
-          </p>
-        ) : null}
-        <SubmitButton pending={pending} className="justify-self-start">
-          {t("eventStyleSave")}
-        </SubmitButton>
+        <div className="flex flex-wrap items-center gap-3">
+          <SubmitButton pending={pending}>{t("eventStyleSave")}</SubmitButton>
+          {state?.ok ? (
+            <SavedNote id="event-style-status">
+              {t("eventStyleSaved")}
+            </SavedNote>
+          ) : null}
+        </div>
       </form>
-    </Card>
+    </SettingsRow>
   );
 }

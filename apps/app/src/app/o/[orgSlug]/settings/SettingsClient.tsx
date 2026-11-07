@@ -10,7 +10,8 @@ import {
   useActionForm,
   useFieldError,
 } from "@/components/forms";
-import { Field, Input, Select } from "@/components/ui/Field";
+import { SavedNote, SettingsRow } from "@/components/ui/Controls";
+import { Field, Input, Select, TEXTAREA_CLASS } from "@/components/ui/Field";
 import { deleteOrganizationAction, saveSettingsAction } from "./actions";
 
 export interface SettingsValues {
@@ -59,13 +60,11 @@ export function OrganizationSettingsForm({
     ? TIMEZONES
     : [values.timezone, ...TIMEZONES];
   return (
-    <form {...formProps} className="grid gap-8" noValidate>
+    // refonte A3 (maquette « Réglages de l'événement ») : une rangée par partie, le titre à gauche, les champs à droite
+    <form {...formProps} className="grid" noValidate>
       <FormError state={state} />
-      <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 text-[0.9375rem] font-semibold">
-          {t("identity")}
-        </legend>
-        <div className="grid gap-5 sm:grid-cols-2">
+      <SettingsRow fieldset disabled={readOnly} title={t("identity")}>
+        <div className="grid gap-3 sm:grid-cols-2">
           <Field
             label={t("name")}
             htmlFor="org-name"
@@ -124,16 +123,13 @@ export function OrganizationSettingsForm({
             defaultValue={values.description}
             rows={3}
             maxLength={500}
-            className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+            className={TEXTAREA_CLASS}
           />
         </Field>
-      </fieldset>
+      </SettingsRow>
 
-      <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 text-[0.9375rem] font-semibold">
-          {t("contact")}
-        </legend>
-        <div className="grid gap-5 sm:grid-cols-2">
+      <SettingsRow fieldset disabled={readOnly} title={t("contact")}>
+        <div className="grid gap-3 sm:grid-cols-2">
           <Field
             label={t("contactEmail")}
             htmlFor="org-email"
@@ -156,13 +152,10 @@ export function OrganizationSettingsForm({
             />
           </Field>
         </div>
-      </fieldset>
+      </SettingsRow>
 
-      <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 text-[0.9375rem] font-semibold">
-          {t("region")}
-        </legend>
-        <div className="grid gap-5 sm:grid-cols-2">
+      <SettingsRow fieldset disabled={readOnly} title={t("region")}>
+        <div className="grid gap-3 sm:grid-cols-2">
           <Field label={t("country")} htmlFor="org-country">
             <Select
               id="org-country"
@@ -220,13 +213,14 @@ export function OrganizationSettingsForm({
             </Select>
           </Field>
         </div>
-      </fieldset>
+      </SettingsRow>
 
-      <fieldset disabled={readOnly} className="grid gap-5">
-        <legend className="mb-1 text-[0.9375rem] font-semibold">
-          {t("billing")}
-        </legend>
-        <p className="-mt-3 text-sm text-ink-muted">{t("billingHint")}</p>
+      <SettingsRow
+        fieldset
+        disabled={readOnly}
+        title={t("billing")}
+        description={t("billingHint")}
+      >
         <Field label={t("address")} htmlFor="org-addr">
           <Input
             id="org-addr"
@@ -242,7 +236,7 @@ export function OrganizationSettingsForm({
             defaultValue={values.addressLine2}
           />
         </Field>
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-5">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3">
           <Field label={t("postalCode")} htmlFor="org-pc">
             <Input
               id="org-pc"
@@ -254,7 +248,7 @@ export function OrganizationSettingsForm({
             <Input id="org-city" name="city" defaultValue={values.city} />
           </Field>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 sm:items-end">
+        <div className="grid gap-3 sm:grid-cols-2 sm:items-end">
           <Field
             label={t("vatNumber")}
             htmlFor="org-vat"
@@ -266,32 +260,25 @@ export function OrganizationSettingsForm({
               name="vatNumber"
               defaultValue={values.vatNumber}
               placeholder="BE0123456789"
-              className="font-mono"
             />
           </Field>
-          <label className="flex items-center gap-3 pb-3 text-sm">
+          <label className="flex items-center gap-2.5 pb-3">
             <input
               type="checkbox"
               name="vatRegistered"
               defaultChecked={values.vatRegistered}
-              className="size-5 accent-[var(--ink)]"
             />
             {t("vatRegistered")}
           </label>
         </div>
-      </fieldset>
-      {state?.ok ? (
-        <p className="text-sm text-success" role="status">
-          {t("saved")}
-        </p>
-      ) : null}
+      </SettingsRow>
       {!readOnly ? (
-        <SubmitButton
-          pending={pending}
-          className="w-full sm:w-auto sm:justify-self-start"
-        >
-          {t("save")}
-        </SubmitButton>
+        <div className="flex flex-wrap items-center gap-3 pt-5 lg:pl-[282px]">
+          <SubmitButton pending={pending}>{t("save")}</SubmitButton>
+          {state?.ok ? (
+            <SavedNote id="org-settings-status">{t("saved")}</SavedNote>
+          ) : null}
+        </div>
       ) : null}
     </form>
   );

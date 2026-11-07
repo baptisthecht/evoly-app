@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { homeKpis, homeOverview } from "@/server/home";
 import { eventPublicUrl } from "@/server/urls";
-import { Stat } from "@/components/ui/Stat";
+import { Stat, StatCell, StatRow } from "@/components/ui/Stat";
 import {
   LiveOrders,
   NextEventBand,
@@ -49,7 +49,16 @@ export default async function OrgHome({
       sub:
         showMoney && k.netDeltaMinor !== 0
           ? t("deltaPrevious", {
-              amount: signed(k.netDeltaMinor, money(Math.abs(k.netDeltaMinor))),
+              // comme la maquette : l'évolution à l'euro près (« +1 240 € sur la période d'avant »)
+              amount: signed(
+                k.netDeltaMinor,
+                formatMoney(
+                  Math.abs(k.netDeltaMinor),
+                  ctx.organization.currency,
+                  locale,
+                  { units: true },
+                ),
+              ),
             })
           : null,
       up: k.netDeltaMinor > 0,
@@ -71,37 +80,34 @@ export default async function OrgHome({
     },
   ];
 
+  // refonte A3 (maquette UIUX/propositions-a3.html, option 2) : 24 px entre les blocs, comme sur la maquette
   return (
-    <div className="grid gap-7">
+    <div className="grid gap-6">
       <StripeBanner ctx={ctx} />
 
-      <section
-        aria-label={t("kpisLabel")}
-        className="grid grid-cols-2 gap-x-6 gap-y-4 border-b border-line pb-5 sm:grid-cols-3 lg:grid-cols-[repeat(3,auto)_minmax(0,1fr)] lg:gap-x-0"
+      <StatRow
+        label={t("kpisLabel")}
+        aside={
+          showMoney ? (
+            <RevenueSpark
+              revenue={home.revenue}
+              currency={ctx.organization.currency}
+              locale={locale}
+            />
+          ) : null
+        }
       >
         {kpis.map((k) => (
-          <div
-            key={k.label}
-            className="lg:mr-9 lg:border-r lg:border-line lg:pr-9 lg:last-of-type:mr-0 lg:last-of-type:border-r-0"
-          >
+          <StatCell key={k.label}>
             <Stat
               label={k.label}
               value={k.value}
               sub={k.sub}
               subTone={k.up ? "success" : "muted"}
             />
-          </div>
+          </StatCell>
         ))}
-        {showMoney ? (
-          <div className="hidden lg:grid">
-            <RevenueSpark
-              revenue={home.revenue}
-              currency={ctx.organization.currency}
-              locale={locale}
-            />
-          </div>
-        ) : null}
-      </section>
+      </StatRow>
 
       {events > 0 ? (
         <>
@@ -111,6 +117,7 @@ export default async function OrgHome({
               url={eventPublicUrl(ctx.organization, home.next)}
               base={base}
               locale={locale}
+              money={showMoney}
             />
           ) : null}
           <UpcomingTable

@@ -26,6 +26,7 @@ import { csvSafe } from "@/lib/csv";
 export type Period =
   "THIS_MONTH" | "LAST_MONTH" | "LAST_30_DAYS" | "THIS_YEAR" | "ALL";
 const COUNTED = ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] as const;
+const COUNTED_FOR_REFUNDS = new Set<string>(COUNTED);
 
 const monthStart = (year: number, month: number, tz: string) =>
   zonedLocalToUtc(`${year}-${String(month).padStart(2, "0")}-01T00:00`, tz);
@@ -215,18 +216,48 @@ export async function financeOverview(
   opts: { period: Period; eventId?: string },
 ) {
   const range = periodRange(opts.period, ctx.organization.timezone);
+  // refonte A3 : la période d'avant, de même durée, pour l'évolution du net (« +17 % sur la période d'avant »)
+  const previous =
+    range.from != null
+      ? {
+          from: new Date(
+            range.from.getTime() -
+              ((range.to ?? new Date()).getTime() - range.from.getTime()),
+          ),
+          to: range.from,
+        }
+      : null;
   const orders = await periodOrders(
     ctx.organization.id,
     range,
     opts.eventId,
     ctx.organization.currency,
   );
+  const previousTotals = previous
+    ? financeTotals(
+        (
+          await periodOrders(
+            ctx.organization.id,
+            previous,
+            opts.eventId,
+            ctx.organization.currency,
+          )
+        ).map(toFinance),
+      )
+    : null;
   const events = await db.event.findMany({
     where: {
       organizationId: ctx.organization.id,
       id: { in: [...new Set(orders.map((o) => o.eventId))] },
     },
-    select: { id: true, title: true, startsAt: true },
+    select: {
+      id: true,
+      title: true,
+      startsAt: true,
+      timezone: true,
+      status: true,
+      ticketTypes: { select: { priceMinor: true } },
+    },
   });
   const titles = new Map(events.map((e) => [e.id, e]));
   const grouped = financeByEvent(orders.map(toFinance));
@@ -234,13 +265,27 @@ export async function financeOverview(
     range,
     currency: ctx.organization.currency,
     totals: financeTotals(orders.map(toFinance)),
+    /** Commandes remboursées en tout ou en partie (sous « Remboursements »). */
+    refundedOrders: orders.filter(
+      (o) => o.refundedMinor > 0 && COUNTED_FOR_REFUNDS.has(o.status),
+    ).length,
+    previousNetMinor: previousTotals ? previousTotals.netMinor : null,
     byEvent: [...grouped]
-      .map(([eventId, totals]) => ({
-        eventId,
-        title: titles.get(eventId)?.title ?? "-",
-        startsAt: titles.get(eventId)?.startsAt ?? null,
-        ...totals,
-      }))
+      .map(([eventId, totals]) => {
+        const e = titles.get(eventId);
+        return {
+          eventId,
+          title: e?.title ?? "-",
+          startsAt: e?.startsAt ?? null,
+          timezone: e?.timezone ?? ctx.organization.timezone,
+          status: e?.status ?? null,
+          free:
+            !!e &&
+            e.ticketTypes.length > 0 &&
+            e.ticketTypes.every((t) => t.priceMinor === 0),
+          ...totals,
+        };
+      })
       .sort((a, b) => b.grossMinor - a.grossMinor),
     options: summarizeOptions(
       await periodOptionLines(

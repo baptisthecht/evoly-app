@@ -1,13 +1,14 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import {
   previewLinkAction,
   savePublicationAction,
 } from "@/app/o/[orgSlug]/events/actions";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { ExampleNote, SavedNote, SettingsRow } from "@/components/ui/Controls";
+import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Field, Input } from "@/components/ui/Field";
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
 export function EventPublication(p: Props) {
   const t = useTranslations("publication");
   const te = useTranslations("errors");
+  const locale = useLocale();
   const [scheduled, setScheduled] = useState(!!p.publishLocal);
   const [when, setWhen] = useState(p.publishLocal ?? "");
   const [mode, setMode] = useState(p.mode);
@@ -59,82 +61,82 @@ export function EventPublication(p: Props) {
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
   };
+  // refonte A3 (maquette « Réglages de l'événement ») : deux rangées, le titre et l'explication à gauche
+  const choice = "flex cursor-pointer items-start gap-3";
+  // un fragment : les rangées s'enchaînent avec celles de la page (le filet de la dernière disparaît)
   return (
-    <Card className="mt-6">
-      <div className="grid gap-5">
-        <div className="grid gap-1">
-          <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
-          <p className="text-sm text-ink-muted">{t("intro")}</p>
-        </div>
+    <>
+      <SettingsRow title={t("title")} description={t("intro")}>
         {p.status ? (
-          <p
-            role="status"
-            className="rounded-md bg-info-soft px-3 py-2 text-sm"
-          >
+          <p role="status" className="text-[13px] text-ink-body">
             {p.status}
             {p.waiting > 0
               ? ` ${t("alertsWaiting", { count: p.waiting })}`
               : ""}
           </p>
         ) : null}
-        <fieldset className="grid gap-2" disabled={p.readOnly}>
-          <legend className="mb-1 text-sm font-semibold">
+        <fieldset className="grid gap-2.5" disabled={p.readOnly}>
+          <legend className="mb-1.5 text-[length:var(--label-size)] [font-weight:var(--label-weight)]">
             {t("whenLabel")}
           </legend>
-          <label className="flex items-center gap-2 text-sm">
+          <label className={choice}>
             <input
               type="radio"
               name="publication-when"
+              className="mt-0.5"
               checked={!scheduled}
               onChange={() => setScheduled(false)}
             />
             {t("optNow")}
           </label>
-          <label className="flex items-center gap-2 text-sm">
+          <label className={choice}>
             <input
               type="radio"
               name="publication-when"
+              className="mt-0.5"
               checked={scheduled}
               onChange={() => setScheduled(true)}
             />
             {t("optScheduled")}
           </label>
           {scheduled ? (
-            <Field
-              label={t("dateLabel", { tz: p.timezone })}
-              htmlFor="publishLocal"
-            >
-              <Input
-                id="publishLocal"
-                type="datetime-local"
-                value={when}
-                onChange={(e) => setWhen(e.target.value)}
-                required
-              />
-            </Field>
+            <div className="grid gap-3 pt-1 sm:grid-cols-2">
+              <Field
+                label={t("dateLabel", { tz: p.timezone })}
+                htmlFor="publishLocal"
+              >
+                <DateTimeField
+                  id="publishLocal"
+                  locale={locale}
+                  value={when}
+                  onChange={(e) => setWhen(e.target.value)}
+                  required
+                />
+              </Field>
+            </div>
           ) : null}
         </fieldset>
         {scheduled ? (
-          <fieldset className="grid gap-3" disabled={p.readOnly}>
-            <legend className="mb-1 text-sm font-semibold">
+          <fieldset className="grid gap-2.5" disabled={p.readOnly}>
+            <legend className="mb-1.5 text-[length:var(--label-size)] [font-weight:var(--label-weight)]">
               {t("beforeLabel")}
             </legend>
             {(["HIDDEN", "TEASER"] as const).map((m) => (
-              <label key={m} className="flex items-start gap-2 text-sm">
+              <label key={m} className={choice}>
                 <input
                   type="radio"
                   name="publication-mode"
-                  className="mt-1"
+                  className="mt-0.5"
                   checked={mode === m}
                   onChange={() => setMode(m)}
                 />
-                <span className="grid gap-0.5">
-                  <span className="font-medium">
+                <span className="min-w-0">
+                  <span className="block font-medium">
                     {t(m === "HIDDEN" ? "modeHidden" : "modeTeaser")}
                   </span>
-                  <span className="text-ink-muted">
+                  <small className="text-[12.5px] text-ink-muted">
                     {t(m === "HIDDEN" ? "modeHiddenHint" : "modeTeaserHint")}
-                  </span>
+                  </small>
                 </span>
               </label>
             ))}
@@ -152,7 +154,7 @@ export function EventPublication(p: Props) {
             ) : null}
           </fieldset>
         ) : null}
-        <p className="text-sm text-ink-muted">{t("salesHint")}</p>
+        <ExampleNote>{t("salesHint")}</ExampleNote>
         {!p.readOnly ? (
           <div className="flex flex-wrap items-center gap-3">
             <Button
@@ -163,57 +165,55 @@ export function EventPublication(p: Props) {
               {t("save")}
             </Button>
             {msg ? (
-              <p
-                role="status"
-                className={
-                  msg.ok ? "text-sm text-success" : "text-sm text-danger"
-                }
-              >
-                {msg.text}
-              </p>
+              msg.ok ? (
+                <SavedNote id="publication-status">{msg.text}</SavedNote>
+              ) : (
+                <p role="status" className="text-[13px] text-danger">
+                  {msg.text}
+                </p>
+              )
             ) : null}
           </div>
         ) : null}
-        <div className="grid gap-2 border-t border-line pt-4">
-          <h3 className="font-semibold">{t("previewTitle")}</h3>
-          <p className="text-sm text-ink-muted">{t("previewIntro")}</p>
-          {p.previewUrl ? (
-            <div className="flex flex-wrap items-center gap-2">
+      </SettingsRow>
+      <SettingsRow title={t("previewTitle")} description={t("previewIntro")}>
+        {p.previewUrl ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="min-w-0 flex-1">
               <Input
                 readOnly
                 value={p.previewUrl}
                 aria-label={t("previewTitle")}
-                className="min-w-0 flex-1"
                 onFocus={(e) => e.currentTarget.select()}
               />
-              <Button type="button" variant="secondary" onClick={copy}>
-                {copied ? t("previewCopied") : t("previewCopy")}
-              </Button>
-              {!p.readOnly ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => preview(false)}
-                  disabled={pending}
-                >
-                  {t("previewRevoke")}
-                </Button>
-              ) : null}
-            </div>
-          ) : !p.readOnly ? (
-            <div>
+            </span>
+            <Button type="button" variant="secondary" onClick={copy}>
+              {copied ? t("previewCopied") : t("previewCopy")}
+            </Button>
+            {!p.readOnly ? (
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => preview(true)}
+                onClick={() => preview(false)}
                 disabled={pending}
               >
-                {t("previewCreate")}
+                {t("previewRevoke")}
               </Button>
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </Card>
+            ) : null}
+          </div>
+        ) : !p.readOnly ? (
+          <div>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => preview(true)}
+              disabled={pending}
+            >
+              {t("previewCreate")}
+            </Button>
+          </div>
+        ) : null}
+      </SettingsRow>
+    </>
   );
 }

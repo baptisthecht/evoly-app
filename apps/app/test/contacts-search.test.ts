@@ -67,7 +67,13 @@ describe("contacts de l'organisation (US-MKT-04, RGPD)", () => {
     const s = await setup();
     const r = await searchContacts(s.ctx, { filter: "UNSUBSCRIBED" });
     expect(r.rows.map((c) => c.id)).toEqual([s.zoe.id]);
-    expect(r.stats).toEqual({ all: 3, consenting: 1, unsubscribed: 1 });
+    // new30 : les contacts arrivés ces 30 derniers jours (refonte A3, « +96 en 30 jours » sous le total)
+    expect(r.stats).toEqual({
+      all: 3,
+      consenting: 1,
+      unsubscribed: 1,
+      new30: 3,
+    });
     expect((await searchContacts(s.ctx, { filter: "ALL" })).total).toBe(3);
   });
 

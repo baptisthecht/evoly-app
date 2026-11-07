@@ -29,16 +29,17 @@ test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PD
   const eventUrl = page.url();
 
   // tarif nominatif
+  // refonte A3 (maquette « Tarifs ») : le tarif s'ouvre d'un clic sur son nom, dans une fenêtre fermée après l'enregistrement
   await page.goto(`${eventUrl}/tickets`);
-  await page.getByRole("button", { name: "Modifier" }).click();
+  await page.getByRole("button", { name: /^VIP/ }).click();
   await page.getByText("Plus d’options").click();
   await page.getByLabel(/nominatif/i).check();
   await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Modifier" })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 
   // code de gratuité (RG-PRM-05)
   await page.goto(`${eventUrl}/promo`);
-  await page.getByRole("button", { name: "+ Nouveau code" }).click();
+  await page.getByRole("button", { name: "Nouveau code" }).click();
   await page.getByLabel("Code", { exact: true }).fill("invite");
   await page.getByLabel("Réduction").selectOption("FREE");
   await page.getByRole("button", { name: "Créer le code" }).click();
@@ -46,7 +47,10 @@ test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PD
 
   await page.goto(eventUrl);
   await page.getByRole("button", { name: "Publier" }).click();
-  await expect(page.getByText("Liens à partager")).toBeVisible();
+  // refonte A3 : publié, le statut « En vente » à côté du titre (les liens à partager sont dans Diffusion)
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "En vente",
+  );
 
   // achat avec le code : billet payant rendu gratuit
   await page.goto(siteUrl(slug, `/gala-${id}`));

@@ -23,7 +23,10 @@ test("éditeur d'e-mails : mise en forme, bouton, aperçu en temps réel, bloc H
 
   // texte en gras : visible dans l'aperçu, sans rien enregistrer
   await editor.click();
-  await page.keyboard.press("ControlOrMeta+End");
+  // fin du document : Ctrl+Fin (Linux, Windows) ; sur macOS, Cmd+Fin ne bouge pas le curseur, c'est Cmd+Flèche bas
+  await page.keyboard.press(
+    process.platform === "darwin" ? "Meta+ArrowDown" : "Control+End",
+  );
   await page.keyboard.press("Enter");
   await page.keyboard.type("Texte important");
   await page.keyboard.down("Shift");

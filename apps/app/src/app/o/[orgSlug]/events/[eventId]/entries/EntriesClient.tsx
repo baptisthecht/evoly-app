@@ -10,7 +10,6 @@ import {
   useFieldError,
 } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import {
   createScannerLinkAction,
@@ -32,7 +31,7 @@ export function OpenScanner({
     null,
   );
   return (
-    <form action={action} className="grid gap-2">
+    <form action={action} className="grid justify-items-start gap-2">
       <SubmitButton variant="primary" className="w-full sm:w-auto">
         {t("openScanner")}
       </SubmitButton>
@@ -64,20 +63,22 @@ export function NewScannerLink({
       <Button
         type="button"
         variant="secondary"
-        size="lg"
         className="justify-self-start"
         onClick={() => setOpen(true)}
       >
-        <PlusIcon className="size-4 shrink-0" />
+        <PlusIcon />
         {t("newLink")}
       </Button>
     );
   return (
-    <Card className="grid gap-5">
-      <h3 className="text-[0.9375rem] font-semibold">{t("newLink")}</h3>
-      <form {...formProps} className="grid gap-5" noValidate>
+    // refonte A3 : un cadre fin autour du formulaire ouvert dans la page, les champs sur deux colonnes
+    <div className="grid max-w-[640px] gap-4 rounded-[10px] border border-line p-4">
+      <h3 className="text-[14.5px] leading-[normal] font-semibold">
+        {t("newLink")}
+      </h3>
+      <form {...formProps} className="grid gap-3.5" noValidate>
         <FormError state={state} />
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           <Field
             label={t("label")}
             htmlFor="link-label"
@@ -144,17 +145,12 @@ export function NewScannerLink({
           <SubmitButton pending={pending} className="w-full sm:w-auto">
             {t("createLink")}
           </SubmitButton>
-          <Button
-            type="button"
-            variant="ghost"
-            size="lg"
-            onClick={() => setOpen(false)}
-          >
+          <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
             {t("cancel")}
           </Button>
         </div>
       </form>
-    </Card>
+    </div>
   );
 }
 

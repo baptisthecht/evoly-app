@@ -19,9 +19,12 @@ export default async function EventSettingsSales({
   const { orgSlug, eventId } = await params;
   const ctx = await requireOrgContext(orgSlug);
   const e = await getEventWithTickets(ctx, eventId);
-  const tp = await getTranslations("publication");
+  const [tp, te] = await Promise.all([
+    getTranslations("publication"),
+    getTranslations("eventSettings"),
+  ]);
   return (
-    <div className="grid gap-10">
+    <>
       <EventSettingsSection
         orgSlug={orgSlug}
         eventId={eventId}
@@ -34,12 +37,14 @@ export default async function EventSettingsSales({
           enabled={e.botProtection}
           readOnly={ctx.readOnly}
           labels={{
-            title: tp("botTitle"),
+            section: tp("botTitle"),
+            description: te("botDesc"),
+            title: te("botSwitch"),
             hint: tp("botHint"),
             saved: tp("botSaved"),
           }}
         />
       ) : null}
-    </div>
+    </>
   );
 }

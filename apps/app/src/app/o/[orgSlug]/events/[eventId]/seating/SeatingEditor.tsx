@@ -2250,13 +2250,14 @@ function TemplatePicker({
       ) : null}
       <div className="flex flex-wrap items-start gap-4">
         <fieldset className="grid min-w-0 flex-[999_1_520px] grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
-          <legend className="mb-2 text-[0.9375rem] font-semibold">
+          <legend className="mb-2 text-[14.5px] leading-[normal] font-semibold">
             {t("chooseTemplate")}
           </legend>
           {SEATING_TEMPLATES.map((tpl) => (
             <label
               key={tpl}
-              className={`grid cursor-pointer gap-1 rounded-[var(--r-card)] border p-4 ${template === tpl ? "border-ink shadow-[inset_0_0_0_1.5px_var(--ink)]" : "border-line"} bg-surface-raised`}
+              // refonte A3 : un choix en carte, filet de 1 px (charbon quand il est choisi), arrondi 10 px
+              className={`grid cursor-pointer content-start gap-1 rounded-[var(--r-card)] border px-3.5 py-3 ${template === tpl ? "border-ink-strong shadow-[inset_0_0_0_0.5px_var(--ink-strong)]" : "border-line-strong hover:bg-surface-hover"} bg-surface-raised`}
             >
               <span className="flex items-center gap-2">
                 <input
@@ -2265,13 +2266,12 @@ function TemplatePicker({
                   value={tpl}
                   checked={template === tpl}
                   onChange={() => choose(tpl)}
-                  className="size-5 accent-[var(--ink)]"
                 />
-                <span className="font-display text-base">
+                <span className="text-[14px] font-semibold">
                   {t(`tpl_${tpl}`)}
                 </span>
               </span>
-              <span className="text-sm text-ink-muted">
+              <span className="text-[13px] text-ink-muted">
                 {t(`tplDesc_${tpl}`)}
               </span>
             </label>
@@ -2279,9 +2279,12 @@ function TemplatePicker({
         </fieldset>
         <section
           aria-labelledby="tpl-dims"
-          className="grid min-w-0 flex-[1_1_280px] gap-3 rounded-[var(--r-card)] border border-line bg-surface-raised p-4"
+          className="grid min-w-0 flex-[1_1_280px] content-start gap-3 rounded-[var(--r-card)] border border-line bg-surface-raised p-4"
         >
-          <h2 id="tpl-dims" className="font-display text-lg">
+          <h2
+            id="tpl-dims"
+            className="text-[14.5px] leading-[normal] font-semibold"
+          >
             {t("dimensions", { name: t(`tpl_${template}`) })}
           </h2>
           {ROW_TEMPLATES.has(template) ? (

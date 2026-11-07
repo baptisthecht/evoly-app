@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type MouseEvent, type ReactNode, useMemo, useState } from "react";
 import { cn } from "./cn";
+import { SearchField } from "./Controls";
 
 /**
  * Tableau Evoly, inspiré du tableau de beUI : tri, sélection et actions groupées, en-tête qui
@@ -24,8 +25,14 @@ export interface TableColumn<T> {
   align?: "left" | "right" | "center";
   /** Largeur, par exemple « 8rem » ; sinon la colonne partage l'espace restant. */
   width?: string;
-  /** Place dans la carte du téléphone : titre, sous-titre, pastille, détail (par défaut), ou masquée. */
-  mobile?: "title" | "subtitle" | "badge" | "meta" | "hidden";
+  /**
+   * Place sur téléphone : titre, sous-titre, pastille, détail (par défaut), ou masquée ; en lignes (« mobileLines »), aussi
+   * la fin de la ligne du titre (« titleEnd ») et de celle du détail (« metaEnd »).
+   */
+  mobile?:
+    "title" | "titleEnd" | "subtitle" | "badge" | "meta" | "metaEnd" | "hidden";
+  /** Classes de la cellule (taille du texte, couleur, pas de retour à la ligne), comme une colonne de la maquette. */
+  className?: string;
 }
 export type TableSort = { key: string; dir: "asc" | "desc" } | null;
 
@@ -41,6 +48,7 @@ export function DataTable<T>({
   columns,
   getRowId,
   rowHref,
+  onRowClick,
   caption,
   selectable = false,
   selected,
@@ -52,12 +60,16 @@ export function DataTable<T>({
   loading = false,
   defaultSort = null,
   footer,
+  selectedLabel,
+  mobileLines = false,
 }: {
   rows: T[];
   columns: TableColumn<T>[];
   getRowId: (row: T, index: number) => string;
   /** Lien de la ligne : toute la ligne (ou la carte) mène à la fiche. */
   rowHref?: (row: T) => string | null | undefined;
+  /** Clic sur la ligne (ouvre une fenêtre) ; la colonne titre devient un bouton pour le clavier. */
+  onRowClick?: (row: T) => void;
   /** Titre du tableau pour les lecteurs d'écran. */
   caption: string;
   selectable?: boolean;
@@ -77,6 +89,10 @@ export function DataTable<T>({
   defaultSort?: TableSort;
   /** Sous le tableau : pagination, total… */
   footer?: ReactNode;
+  /** Texte de la barre de sélection (« 1 commande sélectionnée ») ; sinon « 1 sélectionné ». */
+  selectedLabel?: (count: number) => string;
+  /** Sur téléphone, des lignes séparées par des filets (« .ocard ») : trois lignes, deux colonnes, sans case à cocher. */
+  mobileLines?: boolean;
 }) {
   const t = useTranslations("table");
   const router = useSafeRouter();
@@ -136,8 +152,10 @@ export function DataTable<T>({
       chosen.includes(id) ? chosen.filter((x) => x !== id) : [...chosen, id],
     );
   const titleCol = columns.find((c) => c.mobile === "title") ?? columns[0]!;
-  const open = (e: MouseEvent, href: string | null | undefined) => {
-    if (!href || (e.target as HTMLElement).closest(INTERACTIVE)) return;
+  const open = (e: MouseEvent, row: T, href: string | null | undefined) => {
+    if ((e.target as HTMLElement).closest(INTERACTIVE)) return;
+    if (onRowClick) return onRowClick(row);
+    if (!href) return;
     if (router) router.push(href);
     else window.location.assign(href);
   };
@@ -146,65 +164,53 @@ export function DataTable<T>({
       ? col.cell(row)
       : ((row as Record<string, ReactNode>)[col.key] ?? null);
 
+  // refonte A3 (maquettes UIUX/) : la barre d'outils (recherche, filtres), puis, s'il y a une sélection, la barre charbon
+  // des actions groupées (« 1 commande sélectionnée », les verbes exacts, « Désélectionner »)
+  const tools =
+    search || toolbar ? (
+      <div className="flex flex-wrap items-center gap-2">
+        {search ? (
+          <SearchField
+            label={search.placeholder ?? t("search")}
+            value={search.value}
+            onChange={(e) => search.onChange(e.target.value)}
+            placeholder={search.placeholder ?? t("search")}
+            className="w-full sm:w-[300px]"
+          />
+        ) : null}
+        {toolbar}
+      </div>
+    ) : null;
   const bar =
     selectable && chosen.length > 0 ? (
       <div
         role="region"
         aria-label={t("selection")}
-        className="flex min-h-12 flex-wrap items-center gap-3 rounded-lg bg-surface-inverse py-1.5 pr-2 pl-4 text-sm text-ink-inverse"
+        className="flex flex-wrap items-center gap-2 rounded-[10px] bg-[var(--btn-primary-bg)] py-1.5 pr-1.5 pl-3.5 text-[13.5px] text-[var(--btn-primary-ink)]"
       >
-        <span className="font-semibold tabular-nums">
-          {t("selected", { count: chosen.length })}
+        <span className="flex-1 tabular-nums">
+          {selectedLabel?.(chosen.length) ??
+            t("selected", { count: chosen.length })}
         </span>
-        <span className="flex flex-1 flex-wrap items-center gap-2">
-          {bulkActions?.(chosen)}
-        </span>
+        {bulkActions?.(chosen)}
         <button
           type="button"
           onClick={() => choose([])}
-          className="rounded-md px-3 py-1.5 text-sm font-semibold hover:bg-white/10"
+          className="h-[30px] rounded-[8px] border border-transparent px-[13px] leading-[normal] font-medium hover:bg-white/10"
         >
           {t("clearSelection")}
         </button>
-      </div>
-    ) : search || toolbar ? (
-      <div className="flex flex-wrap items-center gap-2">
-        {search ? (
-          <label className="relative flex min-w-[min(100%,16rem)] flex-1 items-center">
-            <span className="sr-only">{search.placeholder ?? t("search")}</span>
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="pointer-events-none absolute left-3.5 size-4 text-ink-muted"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>
-            <input
-              type="search"
-              value={search.value}
-              onChange={(e) => search.onChange(e.target.value)}
-              placeholder={search.placeholder ?? t("search")}
-              className="h-11 w-full rounded-full bg-surface-raised pr-4 pl-10 text-sm ring-1 ring-line outline-none placeholder:text-ink-subtle focus:ring-2 focus:ring-[var(--focus-ring)]"
-            />
-          </label>
-        ) : null}
-        {toolbar ? (
-          <div className="flex flex-wrap items-center gap-2">{toolbar}</div>
-        ) : null}
       </div>
     ) : null;
 
   const empty = !loading && sorted.length === 0;
   const emptyBlock = (
     <div className="grid justify-items-center gap-2 px-6 py-14 text-center">
-      <p className="font-display text-lg">{emptyState?.title ?? t("empty")}</p>
+      <p className="text-[15px] font-semibold">
+        {emptyState?.title ?? t("empty")}
+      </p>
       {emptyState?.description ? (
-        <p className="max-w-md text-sm text-ink-muted">
+        <p className="max-w-md text-[13px] text-ink-muted">
           {emptyState.description}
         </p>
       ) : null}
@@ -214,35 +220,53 @@ export function DataTable<T>({
     </div>
   );
 
-  // une seule construction : sur ordinateur un tableau ; sur téléphone, les styles font de chaque ligne une carte
-  // (titre, sous-titre, pastilles, détails avec leur intitulé) ; les rôles explicites gardent la structure partout
+  // une seule construction : sur ordinateur un tableau ; sur téléphone (maquette « Sur téléphone »), chaque ligne devient
+  // une rangée séparée par un filet (titre, sous-titre, pastilles, détails avec leur intitulé) ; les rôles explicites
+  // gardent la structure partout ; sur téléphone seulement (max-md) : sur ordinateur, la cellule garde le texte du tableau
   const MOBILE = {
-    title: "order-1 basis-full text-[0.95rem] font-semibold",
-    subtitle: "order-2 basis-full text-sm text-ink-muted",
+    title: "order-1 basis-full max-md:text-[14px] max-md:font-semibold",
+    titleEnd: "order-1",
+    subtitle: "order-2 basis-full max-md:text-[13px] max-md:text-ink-muted",
     badge: "order-3",
-    meta: "order-4 basis-[calc(50%-0.375rem)] text-xs before:block before:text-ink-muted before:content-[attr(data-label)]",
-    hidden: "hidden",
+    meta: "order-4 basis-[calc(50%-0.375rem)] max-md:text-[12.5px] max-md:before:block max-md:before:text-ink-muted max-md:before:content-[attr(data-label)]",
+    metaEnd: "order-4",
+    hidden: "max-md:hidden",
+  } as const;
+  // en lignes (maquette « Sur téléphone », « .ocard ») : le nom et le montant, puis le détail et la pastille, puis la
+  // référence et la date, en 13 px gris ; les autres colonnes restent sur ordinateur
+  const LINES = {
+    title: "max-md:col-start-1 max-md:row-start-1 max-md:font-semibold",
+    titleEnd: "max-md:col-start-2 max-md:row-start-1 max-md:text-right",
+    subtitle:
+      "max-md:col-start-1 max-md:row-start-2 max-md:text-[13px] max-md:text-ink-muted",
+    badge: "max-md:col-start-2 max-md:row-start-2 max-md:justify-self-end",
+    meta: "max-md:col-start-1 max-md:row-start-3 max-md:text-[13px] max-md:text-ink-muted",
+    metaEnd:
+      "max-md:col-start-2 max-md:row-start-3 max-md:text-right max-md:text-[13px] max-md:text-ink-muted",
+    hidden: "max-md:hidden",
   } as const;
   const cellClass = (c: TableColumn<T>) =>
     cn(
-      MOBILE[c === titleCol ? "title" : (c.mobile ?? "meta")],
-      "min-w-0 md:table-cell md:basis-auto md:px-4 md:py-2 md:align-middle md:text-sm md:font-normal md:text-ink md:before:content-none",
+      mobileLines
+        ? LINES[c === titleCol ? "title" : (c.mobile ?? "hidden")]
+        : MOBILE[c === titleCol ? "title" : (c.mobile ?? "meta")],
+      "min-w-0 md:table-cell md:basis-auto md:border-b md:border-line md:p-2.5 md:align-middle md:tabular-nums",
       ALIGN[c.align ?? "left"],
       c.align === "right" && "tabular-nums",
-      c === titleCol && "md:font-normal",
+      c.className,
     );
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-3.5">
+      {tools}
       {bar}
-      <div className="md:overflow-x-auto md:rounded-[var(--r-panel)] md:bg-surface-raised md:ring-1 md:ring-line">
+      <div className="md:overflow-x-auto">
         <table
           role="table"
           aria-label={caption}
-          className="block w-full border-collapse text-sm md:table"
+          className="block w-full border-collapse text-ink md:table"
         >
-          <caption className="sr-only">{caption}</caption>
           <colgroup>
-            {selectable ? <col style={{ width: "3.25rem" }} /> : null}
+            {selectable ? <col style={{ width: "34px" }} /> : null}
             {columns.map((c) => (
               <col
                 key={c.key}
@@ -254,9 +278,13 @@ export function DataTable<T>({
             role="rowgroup"
             className="sr-only md:not-sr-only md:sticky md:top-0 md:z-[1] md:table-header-group md:bg-surface-raised"
           >
-            <tr role="row" className="md:h-11">
+            <tr role="row">
               {selectable ? (
-                <th role="columnheader" scope="col" className="md:pl-5">
+                <th
+                  role="columnheader"
+                  scope="col"
+                  className="border-b border-line py-[7px] pr-0 pl-2.5 text-left text-[12.5px] leading-[normal]"
+                >
                   <input
                     type="checkbox"
                     aria-label={t("selectAll")}
@@ -265,7 +293,7 @@ export function DataTable<T>({
                       if (el) el.indeterminate = !allChosen && someChosen;
                     }}
                     onChange={toggleAll}
-                    className="size-4 cursor-pointer accent-[var(--evoly-charbon)]"
+                    className="size-4 cursor-pointer"
                   />
                 </th>
               ) : null}
@@ -284,7 +312,7 @@ export function DataTable<T>({
                         : undefined
                     }
                     className={cn(
-                      "px-4 font-[family-name:var(--label-family)] text-xs font-semibold text-ink-muted",
+                      "border-b border-line px-2.5 py-[7px] text-[12.5px] leading-[normal] font-medium whitespace-nowrap text-ink-muted",
                       ALIGN[c.align ?? "left"],
                     )}
                   >
@@ -293,17 +321,22 @@ export function DataTable<T>({
                         type="button"
                         onClick={() => toggleSort(c.key)}
                         className={cn(
-                          "-mx-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 transition-colors hover:text-ink",
+                          "group/sort relative transition-colors hover:text-ink",
                           on && "text-ink",
                         )}
                       >
                         {c.header}
+                        {/* refonte A3 : la flèche du tri n'apparaît qu'au survol ou une fois le tri choisi, posée à côté
+                            du titre sans prendre de place (les colonnes gardent la largeur de la maquette) */}
                         <svg
                           aria-hidden="true"
                           viewBox="0 0 24 24"
                           className={cn(
-                            "size-3.5 transition-transform duration-200",
-                            on ? "opacity-100" : "opacity-35",
+                            "absolute top-1/2 -mt-[7px] size-3.5 transition-transform duration-200",
+                            c.align === "right" ? "-left-4" : "-right-4",
+                            on
+                              ? "opacity-100"
+                              : "opacity-0 group-hover/sort:opacity-60 group-focus-visible/sort:opacity-60",
                             on && sort!.dir === "desc" && "rotate-180",
                           )}
                           fill="none"
@@ -323,23 +356,26 @@ export function DataTable<T>({
               })}
             </tr>
           </thead>
-          <tbody role="rowgroup" className="grid gap-2 md:table-row-group">
+          <tbody role="rowgroup" className="grid md:table-row-group">
             {loading && sorted.length === 0
               ? Array.from({ length: 4 }, (_, i) => (
                   <tr
                     key={`fantome-${i}`}
                     role="row"
                     aria-hidden="true"
-                    className="block h-20 rounded-[var(--r-panel)] bg-surface-sunken md:table-row md:h-14 md:rounded-none md:border-t md:border-line md:bg-transparent"
+                    className="block h-20 rounded-[var(--r-panel)] bg-surface-sunken md:table-row md:h-[41px] md:rounded-none md:bg-transparent"
                   >
                     {selectable ? (
-                      <td role="cell" className="hidden md:table-cell" />
+                      <td
+                        role="cell"
+                        className="hidden border-b border-line md:table-cell"
+                      />
                     ) : null}
                     {columns.map((c) => (
                       <td
                         key={c.key}
                         role="cell"
-                        className="hidden px-4 md:table-cell"
+                        className="hidden border-b border-line p-2.5 md:table-cell"
                       >
                         <span
                           className={cn(
@@ -355,12 +391,12 @@ export function DataTable<T>({
             {empty ? (
               <tr
                 role="row"
-                className="block rounded-[var(--r-panel)] bg-surface-raised ring-1 ring-line md:table-row md:rounded-none md:border-t md:border-line md:ring-0"
+                className="block border-y border-line md:table-row md:border-0"
               >
                 <td
                   role="cell"
                   colSpan={columns.length + (selectable ? 1 : 0)}
-                  className="block md:table-cell"
+                  className="block md:table-cell md:border-b md:border-line"
                 >
                   {emptyBlock}
                 </td>
@@ -375,17 +411,22 @@ export function DataTable<T>({
                   key={id}
                   role="row"
                   data-selected={on || undefined}
-                  onClick={(e) => open(e, href)}
+                  onClick={(e) => open(e, row, href)}
                   className={cn(
-                    "group relative flex flex-wrap items-start gap-x-3 gap-y-1.5 rounded-[var(--r-panel)] bg-surface-raised p-4 ring-1 ring-line data-[selected]:bg-highlight-soft data-[selected]:ring-highlight",
-                    "md:table-row md:h-14 md:rounded-none md:border-t md:border-line md:bg-transparent md:p-0 md:ring-0 md:transition-colors md:hover:bg-surface-sunken/60 md:data-[selected]:bg-highlight-soft md:data-[selected]:ring-0",
-                    href && "cursor-pointer",
+                    mobileLines
+                      ? "group relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-line py-3 data-[selected]:bg-highlight-soft"
+                      : "group relative flex flex-wrap items-start gap-x-3 gap-y-1.5 border-b border-line py-3 data-[selected]:bg-highlight-soft",
+                    "md:table-row md:border-0 md:bg-transparent md:p-0 md:transition-colors md:hover:bg-surface-hover md:data-[selected]:bg-highlight-soft",
+                    (href || onRowClick) && "cursor-pointer",
                   )}
                 >
                   {selectable ? (
                     <td
                       role="cell"
-                      className="relative order-0 md:table-cell md:pl-5 md:align-middle"
+                      className={cn(
+                        "relative order-0 md:table-cell md:border-b md:border-line md:py-2.5 md:pr-0 md:pl-2.5 md:align-middle",
+                        mobileLines && "max-md:hidden",
+                      )}
                     >
                       <Rail />
                       <input
@@ -393,7 +434,7 @@ export function DataTable<T>({
                         aria-label={t("selectRow", { row: i + 1 })}
                         checked={on}
                         onChange={() => toggle(id)}
-                        className="size-5 cursor-pointer accent-[var(--evoly-charbon)] md:size-4"
+                        className="size-5 cursor-pointer md:size-4"
                       />
                     </td>
                   ) : null}
@@ -407,10 +448,18 @@ export function DataTable<T>({
                       className={cn("relative", cellClass(c))}
                     >
                       {!selectable && n === 0 ? <Rail /> : null}
-                      {href && c.key === titleCol.key ? (
+                      {onRowClick && c.key === titleCol.key ? (
+                        <button
+                          type="button"
+                          onClick={() => onRowClick(row)}
+                          className="text-left text-ink underline-offset-4 hover:underline"
+                        >
+                          {value(row, c)}
+                        </button>
+                      ) : href && c.key === titleCol.key ? (
                         <Link
                           href={href}
-                          className="font-semibold text-ink underline-offset-4 hover:underline"
+                          className="text-ink underline-offset-4 hover:underline"
                         >
                           {value(row, c)}
                         </Link>
@@ -430,12 +479,12 @@ export function DataTable<T>({
   );
 }
 
-/** Le trait rose de la ligne sélectionnée : un rectangle droit, découpé par l'arrondi du tableau aux extrémités. */
+/** Le trait rose de la ligne sélectionnée (maquettes UIUX/) : un rectangle de 4 px, droit, contre le bord gauche. */
 function Rail() {
   return (
     <span
       aria-hidden="true"
-      className="absolute inset-y-0 left-0 hidden w-[var(--highlight-bar)] bg-highlight opacity-0 group-data-[selected]:opacity-100 md:block"
+      className="absolute inset-y-0 left-0 hidden w-[var(--row-bar)] bg-highlight opacity-0 group-data-[selected]:opacity-100 md:block"
     />
   );
 }

@@ -4,7 +4,7 @@ import { formatMoney, type Locale } from "@evoly/i18n";
 import { useLocale, useTranslations } from "next-intl";
 import { CopyButton } from "@/components/CopyButton";
 import { FormError, SubmitButton, useActionForm } from "@/components/forms";
-import { Card } from "@/components/ui/Card";
+import { SettingsRow } from "@/components/ui/Controls";
 import { Input } from "@/components/ui/Field";
 import {
   acceptSelfBillingAction,
@@ -66,14 +66,10 @@ export function VenueCard({
     acceptSelfBillingAction.bind(null, orgSlug),
     null,
   );
-  const title = (
-    <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
-  );
+  // refonte A3 (maquette « Réglages de l'événement ») : une rangée, le titre et l'explication à gauche
   if (!venue)
     return (
-      <Card className="grid gap-3">
-        {title}
-        <p className="text-sm text-ink-muted">{t("intro")}</p>
+      <SettingsRow title={t("title")} description={t("intro")}>
         {manage ? (
           <form {...activate.formProps} className="grid gap-2">
             <FormError state={activate.state} />
@@ -84,35 +80,33 @@ export function VenueCard({
             </div>
           </form>
         ) : null}
-      </Card>
+      </SettingsRow>
     );
   return (
-    <Card className="grid gap-4">
-      {title}
-      <p className="text-sm text-ink-muted">{t("activeIntro")}</p>
-      <div className="grid gap-2 text-sm">
+    <SettingsRow title={t("title")} description={t("activeIntro")}>
+      <div className="grid gap-2">
         <p>
-          <span className="font-semibold">{t("code")}</span>{" "}
-          <code className="rounded bg-surface-sunken px-2 py-1 font-mono">
+          <span className="font-medium">{t("code")}</span>{" "}
+          <code className="rounded-[6px] bg-surface-sunken px-2 py-0.5 font-sans">
             {venue.code}
           </code>
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold">{t("link")}</span>
+          <span className="font-medium">{t("link")}</span>
           <CopyButton value={venue.link} label={t("copyLink")} />
         </div>
-        <p className="text-ink-muted">
+        <p className="text-[13px] text-ink-muted">
           {t("organizers", { count: venue.organizers })}
         </p>
       </div>
       {!venue.selfBillingAcceptedAt ? (
         <form
           {...accept.formProps}
-          className="grid gap-2 rounded-md bg-surface-sunken p-3"
+          className="grid gap-2 rounded-[10px] border border-line p-3.5"
         >
           <FormError state={accept.state} />
-          <h3 className="font-semibold">{t("selfBillingTitle")}</h3>
-          <p className="text-sm text-ink-muted">{t("selfBillingBody")}</p>
+          <h3 className="font-medium">{t("selfBillingTitle")}</h3>
+          <p className="text-[13px] text-ink-muted">{t("selfBillingBody")}</p>
           {manage ? (
             <div>
               <SubmitButton pending={accept.pending}>
@@ -122,7 +116,7 @@ export function VenueCard({
           ) : null}
         </form>
       ) : (
-        <p className="text-xs text-ink-muted">
+        <p className="text-[12.5px] text-ink-muted">
           {t("selfBillingAccepted", {
             date: new Date(venue.selfBillingAcceptedAt).toLocaleDateString(
               locale,
@@ -145,7 +139,7 @@ export function VenueCard({
                 {t("payNow")}
               </SubmitButton>
             </div>
-            <p className="text-xs text-ink-muted">{t("payNowHint")}</p>
+            <p className="text-[12.5px] text-ink-muted">{t("payNowHint")}</p>
             {payNow.state?.ok ? (
               <p role="status" className="text-sm font-semibold">
                 {t("paid")}
@@ -158,7 +152,7 @@ export function VenueCard({
         <form {...hall.formProps} className="grid gap-3" noValidate>
           <FormError state={hall.state} />
           <h3 className="font-semibold">{t("hallTitle")}</h3>
-          <p className="text-xs text-ink-muted">{t("hallHint")}</p>
+          <p className="text-[12.5px] text-ink-muted">{t("hallHint")}</p>
           <label className="grid gap-1 text-sm">
             <span>{t("hallName")}</span>
             <Input
@@ -199,7 +193,7 @@ export function VenueCard({
             <SubmitButton pending={hall.pending}>{t("save")}</SubmitButton>
           </div>
           {hall.state?.ok ? (
-            <p role="status" className="text-sm text-ink-muted">
+            <p role="status" className="text-[13px] text-ink-muted">
               {t("saved")}
             </p>
           ) : null}
@@ -226,12 +220,12 @@ export function VenueCard({
               className="w-32"
             />
           </label>
-          <p className="text-xs text-ink-muted">{t("thresholdHint")}</p>
+          <p className="text-[12.5px] text-ink-muted">{t("thresholdHint")}</p>
           <div>
             <SubmitButton pending={threshold.pending}>{t("save")}</SubmitButton>
           </div>
           {threshold.state?.ok ? (
-            <p role="status" className="text-sm text-ink-muted">
+            <p role="status" className="text-[13px] text-ink-muted">
               {t("saved")}
             </p>
           ) : null}
@@ -255,7 +249,7 @@ export function VenueCard({
           </ul>
         </div>
       ) : (
-        <p className="text-sm text-ink-muted">{t("empty")}</p>
+        <p className="text-[13px] text-ink-muted">{t("empty")}</p>
       )}
       {venue.payouts.length > 0 ? (
         <div className="grid gap-1 text-sm">
@@ -285,7 +279,7 @@ export function VenueCard({
           </ul>
         </div>
       ) : null}
-      <p className="text-xs text-ink-muted">{t("privacy")}</p>
-    </Card>
+      <p className="text-[12.5px] text-ink-muted">{t("privacy")}</p>
+    </SettingsRow>
   );
 }

@@ -70,7 +70,7 @@ test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page priv
 
   // option et consommation prépayée (section 9.29)
   await page.goto(`${eventUrl}/options`);
-  await page.getByRole("button", { name: "+ Nouvelle option" }).click(); // l'ajout : dans une fenêtre
+  await page.getByRole("button", { name: "Nouvelle option" }).click(); // l'ajout : dans une fenêtre
   await page.getByLabel("Nom").fill("Jeton boisson");
   await page.getByLabel("Prix").fill("3");
   await page.getByRole("button", { name: "Ajouter l'option" }).click();
@@ -136,8 +136,11 @@ test("Pro : option sur la page de vente, table de 6, ambassadeur et sa page priv
   await expect(
     page.getByRole("link", { name: "Toute l'organisation" }),
   ).toHaveAttribute("aria-current", "page");
-  await expect(page.getByText(/^1\. Marie Dupont$/)).toBeVisible();
-  await expect(page.getByText(/^6 billets · /)).toBeVisible();
+  // le classement en tableau (refonte A3) : rang, nom et événements, billets, montant
+  const top = page.getByRole("row").first();
+  await expect(top.getByRole("cell").first()).toHaveText("1");
+  await expect(top).toContainText("Marie Dupont");
+  await expect(top).toContainText("6 billets");
 
   // billetterie intégrable (section 9.26) : cadre autorisé seulement sur le site déclaré
   await page.goto(`${eventUrl}/diffusion`);

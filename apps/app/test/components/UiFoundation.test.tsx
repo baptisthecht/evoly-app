@@ -121,7 +121,7 @@ describe("tableau Evoly", () => {
     );
     expect(within(bar).getByText("3 sélectionnés")).toBeTruthy();
     fireEvent.click(
-      within(bar).getByRole("button", { name: "Annuler la sélection" }),
+      within(bar).getByRole("button", { name: "Désélectionner" }),
     );
     expect(screen.queryByRole("region", { name: "Sélection" })).toBeNull();
   });
@@ -249,7 +249,7 @@ describe("onglets en boutons et pastille", () => {
     const nav2 = screen.getByRole("navigation", { name: "Billetterie" });
     expect(
       within(nav2).getByRole("link", { current: "page" }).textContent,
-    ).toBe("Questions3");
+    ).toBe("Questions 3");
     expect(
       within(nav2)
         .getByRole("link", { name: "Tarifs" })

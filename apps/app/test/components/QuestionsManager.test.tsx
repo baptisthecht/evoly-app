@@ -150,7 +150,8 @@ describe("questions posées à l'acheteur, côté organisateur (US-QST-01)", () 
     await act(
       async () =>
         void fireEvent.submit(
-          screen.getByRole("button", { name: t.save }).closest("form")!,
+          // le bouton est dans le pied de la fenêtre (form="question-form-new"), hors du formulaire
+          document.getElementById("question-form-new")!,
         ),
     );
     await waitFor(() =>

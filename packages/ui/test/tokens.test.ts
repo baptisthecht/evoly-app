@@ -83,6 +83,10 @@ describe("refonte A3 (docs/DECISIONS.md) : contrastes mesurés", () => {
       4.5,
     );
   });
+  it("onglets inactifs de la barre du téléphone : lisibles sur le blanc (texte de 11 px, 4,5:1)", () => {
+    const [tab] = all("tab-ink");
+    expect(contrastRatio(tab!, palette.blanc)).toBeGreaterThanOrEqual(4.5);
+  });
   it("le trait du rythme : 3:1 contre le charbon de la barre ; sur le fond clair il est plus faible, d'où la phrase qui dit le rythme en mots", () => {
     const [vif] = all("evoly-rose-vif");
     expect(contrastRatio(vif!, palette.blanc)).toBeGreaterThanOrEqual(2.5);

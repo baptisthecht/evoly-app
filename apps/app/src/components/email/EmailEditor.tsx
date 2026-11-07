@@ -6,6 +6,8 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import { useTranslations } from "next-intl";
 import { useRef, useState, type ReactNode } from "react";
 import { uploadFile } from "@/app/o/[orgSlug]/brand/BrandClient";
+import { buttonClass } from "@/components/ui/Button";
+import { FIELD_CONTROL_CLASS, TEXTAREA_CLASS } from "@/components/ui/Field";
 import { EMAIL_BLOCKS, emailExtensions } from "./extensions";
 
 const TEXT_COLORS = [
@@ -17,8 +19,8 @@ const TEXT_COLORS = [
   "#15803d",
   "#b91c1c",
 ];
-const field =
-  "block w-full rounded-md bg-surface-raised px-3 py-2 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]";
+// refonte A3 : les champs des réglages d'un bloc, au dessin des champs de l'application
+const field = FIELD_CONTROL_CLASS;
 
 function Tool({
   label,
@@ -42,7 +44,7 @@ function Tool({
       disabled={disabled}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className={`grid h-9 min-w-9 place-items-center rounded-md px-2 text-sm font-semibold disabled:opacity-40 ${active ? "bg-ink text-surface-raised" : "hover:bg-surface-sunken"}`}
+      className={`grid h-[30px] min-w-[30px] place-items-center rounded-[7px] px-2 text-[13px] font-semibold disabled:opacity-40 ${active ? "bg-ink text-surface-raised" : "hover:bg-surface-sunken"}`}
     >
       {children}
     </button>
@@ -91,13 +93,13 @@ export function EmailEditor({
   if (!editor)
     return (
       <div
-        className="min-h-72 rounded-lg bg-surface-raised ring-1 ring-line"
+        className="min-h-72 rounded-[10px] bg-surface-raised ring-1 ring-line-strong"
         aria-busy="true"
       />
     );
   return (
     <div className="grid gap-3">
-      <div className="overflow-hidden rounded-lg bg-surface-raised ring-1 ring-line">
+      <div className="overflow-hidden rounded-[10px] bg-surface-raised ring-1 ring-line-strong">
         <Toolbar
           editor={editor}
           orgSlug={orgSlug}
@@ -174,7 +176,7 @@ function Toolbar({
                 .toggleHeading({ level: Number(v.slice(1)) as 1 | 2 | 3 })
                 .run();
           }}
-          className="h-9 rounded-md bg-surface-raised px-2 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)]"
+          className="h-[30px] rounded-[8px] border border-line-strong bg-surface-raised px-2 text-[13px]"
         >
           <option value="p">{t("paragraph")}</option>
           <option value="h1">{t("heading1")}</option>
@@ -307,7 +309,7 @@ function Toolbar({
           />
           <button
             type="button"
-            className="h-10 rounded-full bg-ink px-4 text-sm font-semibold text-surface-raised"
+            className={buttonClass("primary")}
             onClick={() => {
               if (link.trim())
                 c()
@@ -321,7 +323,7 @@ function Toolbar({
           </button>
           <button
             type="button"
-            className="h-10 rounded-full px-4 text-sm font-semibold hover:bg-surface-sunken"
+            className={buttonClass("ghost")}
             onClick={() => {
               c().extendMarkRange("link").unsetLink().run();
               setLink(null);
@@ -442,7 +444,7 @@ function Inspector({
   const set = (attrs: Record<string, unknown>) =>
     editor.chain().updateAttributes(kind, attrs).run();
   const alignSelect = (
-    <label className="grid gap-1 text-sm font-semibold">
+    <label className="grid gap-1.5 text-[13px] font-medium">
       {t("align")}
       <select
         value={String(a.align ?? "left")}
@@ -464,11 +466,11 @@ function Inspector({
             ? "html"
             : (kind as "button" | "image" | "spacer"),
       )}
-      className="grid gap-3 rounded-lg bg-surface-raised p-4 ring-1 ring-line"
+      className="grid gap-3 rounded-[10px] bg-surface-raised p-4 ring-1 ring-line"
     >
       {kind === "button" && (
         <>
-          <label className="grid gap-1 text-sm font-semibold">
+          <label className="grid gap-1.5 text-[13px] font-medium">
             {t("buttonLabel")}
             <input
               value={String(a.label ?? "")}
@@ -477,7 +479,7 @@ function Inspector({
               className={field}
             />
           </label>
-          <label className="grid gap-1 text-sm font-semibold">
+          <label className="grid gap-1.5 text-[13px] font-medium">
             {t("buttonUrl")}
             <input
               value={String(a.href ?? "")}
@@ -487,18 +489,18 @@ function Inspector({
             />
           </label>
           <div className="flex flex-wrap items-end gap-3">
-            <label className="grid gap-1 text-sm font-semibold">
+            <label className="grid gap-1.5 text-[13px] font-medium">
               {t("buttonColor")}
               <input
                 type="color"
                 value={typeof a.color === "string" ? a.color : "#ffb8e8"}
                 onChange={(e) => set({ color: e.target.value })}
-                className="h-10 w-16 rounded-md"
+                className="h-10 w-16 rounded-[8px] border border-line-strong p-0.5"
               />
             </label>
             <button
               type="button"
-              className="h-10 rounded-full px-4 text-sm font-semibold hover:bg-surface-sunken"
+              className={buttonClass("ghost")}
               onClick={() => set({ color: null })}
             >
               {t("brandColor")}
@@ -509,7 +511,7 @@ function Inspector({
       )}
       {kind === "image" && (
         <>
-          <label className="grid gap-1 text-sm font-semibold">
+          <label className="grid gap-1.5 text-[13px] font-medium">
             {t("imageUrl")}
             <input
               value={String(a.src ?? "")}
@@ -518,7 +520,7 @@ function Inspector({
               inputMode="url"
             />
           </label>
-          <label className="grid gap-1 text-sm font-semibold">
+          <label className="grid gap-1.5 text-[13px] font-medium">
             {t("imageAlt")}
             <input
               value={String(a.alt ?? "")}
@@ -526,11 +528,11 @@ function Inspector({
               onChange={(e) => set({ alt: e.target.value })}
               className={field}
             />
-            <span className="text-xs font-normal text-ink-muted">
+            <span className="text-[12.5px] font-normal text-ink-muted">
               {t("imageAltHint")}
             </span>
           </label>
-          <label className="grid gap-1 text-sm font-semibold">
+          <label className="grid gap-1.5 text-[13px] font-medium">
             {t("imageWidth")} : {Number(a.width ?? 100)} %
             <input
               type="range"
@@ -545,7 +547,7 @@ function Inspector({
         </>
       )}
       {kind === "eventCard" && (
-        <label className="grid gap-1 text-sm font-semibold">
+        <label className="grid gap-1.5 text-[13px] font-medium">
           {t("eventPick")}
           <select
             value={String(a.eventId ?? "")}
@@ -561,7 +563,7 @@ function Inspector({
         </label>
       )}
       {kind === "spacer" && (
-        <label className="grid gap-1 text-sm font-semibold">
+        <label className="grid gap-1.5 text-[13px] font-medium">
           {t("spacerHeight")} : {Number(a.height ?? 24)} px
           <input
             type="range"
@@ -574,23 +576,27 @@ function Inspector({
         </label>
       )}
       {kind === "rawHtml" && (
-        <label className="grid gap-1 text-sm font-semibold">
+        <label className="grid gap-1.5 text-[13px] font-medium">
           {t("htmlCode")}
           <textarea
             value={String(a.html ?? "")}
             rows={8}
             spellCheck={false}
             onChange={(e) => set({ html: e.target.value })}
-            className={`${field} font-mono`}
+            className={`${TEXTAREA_CLASS} font-mono`}
           />
-          <span className="text-xs font-normal text-ink-muted">
+          <span className="text-[12.5px] font-normal text-ink-muted">
             {t("htmlHint")}
           </span>
         </label>
       )}
       <button
         type="button"
-        className="justify-self-start rounded-full px-4 py-2 text-sm font-semibold text-danger hover:bg-surface-sunken"
+        className={buttonClass(
+          "ghost",
+          "md",
+          "justify-self-start text-danger!",
+        )}
         onClick={() => editor.chain().focus().deleteSelection().run()}
       >
         {t("remove")}

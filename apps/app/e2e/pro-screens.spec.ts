@@ -55,12 +55,15 @@ test("protection anti-robots (Pro) : activée, et toujours active après le rech
 }) => {
   const eventUrl = await proDraft(page);
   await page.goto(`${eventUrl}/settings/sales`); // protection anti-robot : Réglages, Vente
-  const bot = page.getByRole("checkbox", { name: /robots/i });
+  // refonte A3 (maquette « Réglages ») : une rangée « Protection anti-robots », un interrupteur
+  const bot = page.getByRole("region", { name: /robots/i }).getByRole("switch");
   await bot.check();
   await expect(bot).toBeChecked();
   await page.waitForTimeout(500);
   await page.reload();
-  await expect(page.getByRole("checkbox", { name: /robots/i })).toBeChecked();
+  await expect(
+    page.getByRole("region", { name: /robots/i }).getByRole("switch"),
+  ).toBeChecked();
 });
 
 test("ambassadeurs (Pro) : un ambassadeur est ajouté puis listé", async ({

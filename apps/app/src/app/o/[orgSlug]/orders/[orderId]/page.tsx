@@ -94,7 +94,9 @@ export default async function OrderDetailPage({
                           ? ` · ${tk.seat.row.name}${tk.seat.label}`
                           : ""}
                       </span>
-                      <span className="font-mono text-sm">{tk.shortCode}</span>
+                      <span className="text-[13px] text-ink-muted tabular-nums">
+                        {tk.shortCode}
+                      </span>
                       <Badge
                         tone={
                           tk.status === "VALID"
@@ -107,7 +109,7 @@ export default async function OrderDetailPage({
                         {t(`ticket_${tk.status}`)}
                       </Badge>
                     </p>
-                    <p className="text-sm text-ink-muted">
+                    <p className="text-[13px] text-ink-muted">
                       {tk.holderFirstName
                         ? `${tk.holderFirstName} ${tk.holderLastName ?? ""}${tk.holderEmail ? ` · ${tk.holderEmail}` : ""}`
                         : t("noHolder")}
@@ -179,7 +181,7 @@ export default async function OrderDetailPage({
             <h2 className="text-[0.9375rem] font-semibold">{t("buyer")}</h2>
             <p>{order.buyerEmail}</p>
             {order.buyerPhone ? <p>{order.buyerPhone}</p> : null}
-            <p className="text-sm text-ink-muted">
+            <p className="text-[13px] text-ink-muted">
               {order.marketingOptIn ? t("marketingYes") : t("marketingNo")}
             </p>
             {manage ? (
@@ -211,7 +213,7 @@ export default async function OrderDetailPage({
                       <dt className="text-ink-muted">
                         {a.question.label}
                         {ticket ? (
-                          <span className="font-mono">
+                          <span className="tabular-nums">
                             {" "}
                             · {ticket.shortCode}
                           </span>
@@ -312,7 +314,7 @@ export default async function OrderDetailPage({
                       {r.isOutOfDeadline ? (
                         <Badge tone="warning">{t("outOfDeadline")}</Badge>
                       ) : null}
-                      <span className="text-sm text-ink-muted">
+                      <span className="text-[13px] text-ink-muted">
                         {t(`initiator_${r.initiator}`)} ·{" "}
                         {t(`reason_${r.reason}`)} ·{" "}
                         {r.items.map((i) => i.ticket.shortCode).join(", ")} ·{" "}
@@ -323,7 +325,7 @@ export default async function OrderDetailPage({
                       <p className="text-sm">« {r.message} »</p>
                     ) : null}
                     {r.responseMessage ? (
-                      <p className="text-sm text-ink-muted">
+                      <p className="text-[13px] text-ink-muted">
                         {t("response", {
                           name: r.handledBy?.name ?? "",
                           message: r.responseMessage,
@@ -411,7 +413,7 @@ export default async function OrderDetailPage({
         <Card className="grid gap-2">
           <h2 className="text-[0.9375rem] font-semibold">{t("emailsTitle")}</h2>
           {order.emailMessages.length === 0 ? (
-            <p className="text-sm text-ink-muted">{t("noEmails")}</p>
+            <p className="text-[13px] text-ink-muted">{t("noEmails")}</p>
           ) : null}
           <ul className="grid gap-1">
             {order.emailMessages.map((m) => (

@@ -1,10 +1,17 @@
-import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
+import { formatMoney, formatTime, type Locale } from "@evoly/i18n";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { CopyButton } from "@/components/CopyButton";
+import { CopyLinkButton } from "@/components/shell/CopyLinkButton";
 import { buttonClass } from "@/components/ui/Button";
-import { HighlightBand } from "@/components/ui/HighlightBand";
-import { SalesGauge } from "@/components/ui/SalesGauge";
+import { SectionTitle } from "@/components/ui/Controls";
+import {
+  BandCountdown,
+  BandKicker,
+  BandText,
+  BandTitle,
+  HighlightBand,
+} from "@/components/ui/HighlightBand";
+import { Gauge } from "@/components/ui/SalesGauge";
 import { EventsTable } from "@/components/events/EventsTable";
 import type { homeOverview } from "@/server/home";
 
@@ -27,10 +34,6 @@ const daysUntil = (d: Date, tz: string) =>
     (Date.parse(dayOf(d, tz)) - Date.parse(dayOf(new Date(), tz))) / 86_400_000,
   );
 
-const sectionTitle = "text-[0.9375rem] font-semibold";
-const quietLink =
-  "text-[0.8125rem] text-ink-muted underline-offset-4 hover:text-ink hover:underline";
-
 /** La recette des 30 derniers jours, jour par jour, en petit histogramme à côté des indicateurs. */
 export async function RevenueSpark({
   revenue,
@@ -50,7 +53,7 @@ export async function RevenueSpark({
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
-      className="h-13 w-full max-w-[17.5rem] self-end justify-self-end"
+      className="h-[52px] w-[280px] max-w-full"
       role="img"
       aria-label={t("revenueChart")}
     >
@@ -67,7 +70,9 @@ export async function RevenueSpark({
             height={h}
             rx={1.5}
             fill={
-              i === revenue.length - 1 ? "var(--ink)" : "var(--line-strong)"
+              i === revenue.length - 1
+                ? "var(--ink-strong)"
+                : "var(--control-off)"
             }
           >
             <title>{`${d.day} : ${formatMoney(d.totalMinor, currency, locale)}`}</title>
@@ -87,13 +92,18 @@ export async function NextEventBand({
   url,
   base,
   locale,
+  money,
 }: {
   next: NonNullable<Home["next"]>;
   url: string;
   base: string;
   locale: Locale;
+  money: boolean;
 }) {
-  const t = await getTranslations("dashboard");
+  const [t, tp] = await Promise.all([
+    getTranslations("dashboard"),
+    getTranslations("pace"),
+  ]);
   const days = daysUntil(next.startsAt, next.timezone);
   const big =
     days <= 0
@@ -101,49 +111,100 @@ export async function NextEventBand({
       : days === 1
         ? t("countdownTomorrow")
         : t("countdown", { count: days });
+  const date = new Intl.DateTimeFormat(locale, {
+    timeZone: next.timezone,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(next.startsAt);
+  const doors = formatTime(
+    next.doorsOpenAt ?? next.startsAt,
+    next.timezone,
+    locale,
+  );
+  const word =
+    next.pace.pace === "unknown" || next.pace.pace === "notStarted"
+      ? null
+      : tp(next.pace.pace);
+  const tone =
+    next.pace.pace === "ahead" || next.pace.pace === "soldOut"
+      ? "text-success"
+      : next.pace.pace === "behind"
+        ? "text-warning"
+        : "text-ink-muted";
+  const cash = next.free
+    ? t("free")
+    : formatMoney(next.collectedMinor, next.currency, locale);
   return (
     <HighlightBand
       aria-labelledby="next-event"
-      className="md:grid-cols-[minmax(0,1.3fr)_auto_minmax(0,1.2fr)] md:items-center md:gap-7"
+      className="md:grid-cols-[minmax(0,1.3fr)_auto_minmax(0,1.2fr)]"
     >
-      <div className="grid min-w-0 gap-0.5">
-        <p className="text-[0.8125rem] font-semibold text-highlight-ink">
-          {t("nextLabel")}
-        </p>
-        <h2 id="next-event" className="text-lg leading-snug font-semibold">
-          <Link href={`${base}/events/${next.id}`} className="hover:underline">
+      <div className="min-w-0">
+        <BandKicker>{t("nextLabel")}</BandKicker>
+        <BandTitle>
+          <Link
+            id="next-event"
+            href={`${base}/events/${next.id}`}
+            className="hover:underline"
+          >
             {next.title}
           </Link>
-        </h2>
-        <p className="text-[0.8125rem] text-ink-muted">
-          {formatDateTime(next.startsAt, next.timezone, locale, "long")}
+        </BandTitle>
+        <BandText>
+          {t("nextWhen", { date, time: doors })}
           {next.place ? `, ${next.place}` : null}
-        </p>
+        </BandText>
       </div>
-      <div className="md:border-x md:border-highlight-line md:px-7 md:text-center">
-        <p className="font-figures text-[2.5rem] leading-none tracking-[-0.05em] whitespace-nowrap">
-          {big}
-        </p>
-        {days > 1 ? (
-          <p className="mt-1 text-[0.8125rem] text-ink-muted">
-            {t("beforeStart")}
+      <BandCountdown value={big} caption={days > 1 ? t("beforeDoors") : null} />
+      <div>
+        {next.capacity != null ? (
+          <>
+            <p className="mb-[5px] flex justify-between gap-3 text-[13px] tabular-nums">
+              <span>
+                <b className="font-semibold">
+                  {tp("soldOf", { sold: next.sold, capacity: next.capacity })}
+                </b>
+                {money ? `, ${cash}` : null}
+              </span>
+              {word ? (
+                <span className={`text-[12.5px] ${tone}`}>{word}</span>
+              ) : null}
+            </p>
+            <Gauge
+              ratio={next.pace.soldRatio ?? 0}
+              tone={
+                next.pace.pace === "soldOut"
+                  ? "success"
+                  : next.pace.pace === "behind"
+                    ? "warning"
+                    : "ink"
+              }
+              marker={
+                next.pace.elapsedRatio != null &&
+                next.pace.pace !== "soldOut" &&
+                next.pace.pace !== "notStarted"
+                  ? next.pace.elapsedRatio
+                  : null
+              }
+              label={tp("label", {
+                sold: next.sold,
+                capacity: next.capacity,
+                pace: word ?? "",
+              })}
+            />
+          </>
+        ) : (
+          <p className="text-[13px] tabular-nums">
+            <b className="font-semibold">{tp("sold", { sold: next.sold })}</b>
+            {money ? `, ${cash}` : null}
           </p>
-        ) : null}
-      </div>
-      <div className="grid gap-2.5">
-        <SalesGauge
-          sold={next.sold}
-          capacity={next.capacity}
-          pace={next.pace}
-          timezone={next.timezone}
-          locale={locale}
-          projection
-        />
-        <div className="flex flex-wrap gap-2">
-          <CopyButton value={url} label={t("copyLink")} />
+        )}
+        <div className="mt-2.5 flex flex-wrap gap-2">
+          <CopyLinkButton url={url} />
           <Link
             href={`${base}/events/${next.id}`}
-            className={buttonClass("secondary", "sm")}
+            className={buttonClass("secondary")}
           >
             {t("open")}
           </Link>
@@ -168,16 +229,20 @@ export async function UpcomingTable({
   const t = await getTranslations("dashboard");
   if (events.length === 0) return null;
   return (
-    <section aria-labelledby="upcoming" className="grid gap-1.5">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="upcoming" className={sectionTitle}>
-          {t("upcomingTitle")}
-        </h2>
-        <Link href={`${base}/events`} className={quietLink}>
-          {t("allEvents")}
-        </Link>
-      </div>
-      <EventsTable events={events} base={base} locale={locale} money={money} />
+    <section aria-labelledby="upcoming">
+      <SectionTitle
+        id="upcoming"
+        title={t("upcomingTitle")}
+        link={{ href: `${base}/events`, label: t("allEvents") }}
+      />
+      <EventsTable
+        events={events}
+        base={base}
+        locale={locale}
+        money={money}
+        withTime={false}
+        salesWidth={280}
+      />
     </section>
   );
 }
@@ -195,7 +260,10 @@ export async function LiveOrders({
   money: boolean;
 }) {
   const t = await getTranslations("dashboard");
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const rtf = new Intl.RelativeTimeFormat(locale, {
+    numeric: "auto",
+    style: "short",
+  });
   const ago = (d: Date) => {
     const m = Math.round((d.getTime() - Date.now()) / 60_000);
     if (Math.abs(m) < 60) return rtf.format(m, "minute");
@@ -204,49 +272,39 @@ export async function LiveOrders({
     return rtf.format(Math.round(h / 24), "day");
   };
   return (
-    <section
-      aria-labelledby="recent-orders"
-      className="grid content-start gap-1.5"
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="recent-orders" className={sectionTitle}>
-          {t("liveTitle")}
-        </h2>
-        <Link href={`${base}/orders`} className={quietLink}>
-          {t("allOrders")}
-        </Link>
-      </div>
+    <section aria-labelledby="recent-orders" className="min-w-0">
+      <SectionTitle
+        id="recent-orders"
+        title={t("liveTitle")}
+        link={{ href: `${base}/orders`, label: t("allOrders") }}
+      />
       {recent.length === 0 ? (
-        <p className="border-t border-line py-3 text-[0.875rem] text-ink-muted">
+        <p className="border-b border-line py-[9px] text-ink-muted">
           {t("liveEmpty")}
         </p>
       ) : (
-        <ul role="list" className="grid">
+        <ul role="list">
           {recent.map((o) => (
-            <li key={o.id} className="border-b border-line first:border-t">
+            <li key={o.id} className="border-b border-line">
               <Link
                 href={`${base}/orders/${o.id}`}
-                className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-2.5 hover:bg-surface-sunken/50"
+                className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-[9px] hover:bg-surface-hover"
               >
-                <span className="grid min-w-0">
-                  <span className="truncate text-[0.875rem] font-medium">
-                    {o.name}
-                  </span>
-                  <span className="truncate text-[0.8125rem] text-ink-muted">
+                <span className="min-w-0">
+                  <b className="block truncate font-medium">{o.name}</b>
+                  <small className="block truncate text-[12.5px] text-ink-muted">
                     {t("tickets", { count: o.tickets })}, {o.event}
-                  </span>
+                  </small>
                 </span>
-                <span className="grid justify-items-end">
-                  {money ? (
-                    <span className="text-[0.875rem] tabular-nums">
-                      {o.totalMinor === 0
-                        ? t("free")
-                        : formatMoney(o.totalMinor, o.currency, locale)}
-                    </span>
-                  ) : null}
-                  <span className="text-[0.8125rem] text-ink-muted">
+                <span className="text-right tabular-nums">
+                  {money
+                    ? o.totalMinor === 0
+                      ? t("free")
+                      : formatMoney(o.totalMinor, o.currency, locale)
+                    : null}
+                  <small className="block text-[12.5px] text-ink-muted">
                     {ago(o.paidAt)}
-                  </span>
+                  </small>
                 </span>
               </Link>
             </li>
@@ -264,8 +322,6 @@ const TodoIcon = ({ kind }: { kind: "stripe" | "cover" | "draft" }) => (
     fill="none"
     stroke="currentColor"
     strokeWidth={2}
-    strokeLinecap="round"
-    strokeLinejoin="round"
     className="size-4 shrink-0 text-warning"
   >
     {kind === "stripe" ? (
@@ -310,42 +366,43 @@ export async function TodoList({
           },
         ]
       : []),
-    ...(todo.noCover
+    ...(todo.noCover.length === 1
       ? [
           {
-            href: `${base}/events`,
-            label: t("todoCover", { count: todo.noCover }),
+            href: `${base}/events/${todo.noCover[0]!.id}/appearance/images`,
+            label: t("todoCoverOne", { title: todo.noCover[0]!.title }),
             action: t("todoActionCover"),
             kind: "cover" as const,
           },
         ]
-      : []),
-    ...(todo.drafts
-      ? [
-          {
-            href: `${base}/events`,
-            label: t("todoDrafts", { count: todo.drafts }),
-            action: t("todoActionDrafts"),
-            kind: "draft" as const,
-          },
-        ]
-      : []),
+      : todo.noCover.length > 1
+        ? [
+            {
+              href: `${base}/events`,
+              label: t("todoCover", { count: todo.noCover.length }),
+              action: t("todoActionCover"),
+              kind: "cover" as const,
+            },
+          ]
+        : []),
+    ...todo.drafts.map((d) => ({
+      href: `${base}/events/${d.id}`,
+      label: t("todoDraft", { title: d.title, count: d.days }),
+      action: t("todoActionDrafts"),
+      kind: "draft" as const,
+    })),
   ];
   return (
-    <section aria-labelledby="todo" className="grid content-start gap-1.5">
-      <h2 id="todo" className={sectionTitle}>
-        {t("todoTitle")}
-      </h2>
+    <section aria-labelledby="todo" className="min-w-0">
+      <SectionTitle id="todo" title={t("todoTitle")} />
       {items.length === 0 ? (
-        <p className="flex items-center gap-2 border-t border-line py-3 text-[0.875rem] text-success">
+        <p className="flex items-center gap-2.5 border-b border-line py-[9px] text-success">
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth={2.2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
             className="size-4"
           >
             <path d="m5 12 5 5 9-10" />
@@ -353,18 +410,19 @@ export async function TodoList({
           {t("todoNone")}
         </p>
       ) : (
-        <ul role="list" className="grid">
+        <ul role="list">
           {items.map((i) => (
-            <li key={i.label} className="border-b border-line first:border-t">
+            <li
+              key={i.label}
+              className="flex items-center gap-2.5 border-b border-line py-[9px]"
+            >
+              <TodoIcon kind={i.kind} />
+              <span className="min-w-0 flex-1">{i.label}</span>
               <Link
                 href={i.href}
-                className="flex items-center gap-2.5 py-2.5 text-[0.875rem] hover:bg-surface-sunken/50"
+                className="shrink-0 text-[13px] font-medium underline underline-offset-[3px]"
               >
-                <TodoIcon kind={i.kind} />
-                <span className="min-w-0 flex-1">{i.label}</span>
-                <span className="shrink-0 text-[0.8125rem] font-medium underline underline-offset-4">
-                  {i.action}
-                </span>
+                {i.action}
               </Link>
             </li>
           ))}

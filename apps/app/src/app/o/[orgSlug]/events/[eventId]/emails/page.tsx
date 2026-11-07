@@ -35,7 +35,7 @@ export default async function EventEmailsPage({
   const tn = await getTranslations("nav");
   const emailBlocks = await eventEmailBlocks(eventId);
   return (
-    <div className="max-w-3xl">
+    <div>
       {readOnly ? (
         <p className="text-sm text-ink-muted">{tn("readOnlyPage")}</p>
       ) : null}

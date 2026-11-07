@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AccountMenu } from "@/components/shell/AccountMenu";
 import { OrgSwitcher } from "@/components/shell/OrgSwitcher";
 import { Shell } from "@/components/shell/Sidebar";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { daysBeforeDowngrade } from "@evoly/core";
 import Link from "next/link";
 import { unreadCount } from "@/server/notifications";
@@ -43,10 +43,9 @@ export default async function OrgLayout({
   });
   // carte de l'organisation : son offre ; Pro attribué par Evoly (offre, parrainage) : jusqu'à quand, en vert
   const nav = await getTranslations("nav");
-  const locale = await getLocale();
   const isPro = sub ? effectivePlan(sub, new Date()) === "pro" : false;
-  // carte de l'organisation : « Pro » ou « Free », avec le logo de la marque s'il existe
-  const plan = { text: isPro ? "Pro" : "Free", offered: false };
+  // carte de l'organisation : son offre (« Offre Pro », « Offre Free », comme sur les maquettes), avec le logo de la marque s'il existe
+  const plan = { text: nav(isPro ? "planPro" : "planFree"), offered: false };
   const logo =
     (
       await db.organizationBrand.findUnique({
@@ -63,30 +62,18 @@ export default async function OrgLayout({
   return (
     <Shell
       bell={
+        // dans la feuille « Plus » du téléphone : une rangée « Notifications », le nombre de non lues à droite
         <Link
           href={`/o/${ctx.organization.slug}/notifications`}
           aria-label={(await getTranslations("notifications"))("bell", {
             count: unread,
           })}
-          className="relative inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] text-ink-muted hover:bg-surface hover:text-ink"
+          className="flex min-h-11 items-center justify-between gap-3 rounded-[10px] bg-surface-raised px-3 text-sm font-medium shadow-[inset_0_0_0_1px_var(--line)]"
         >
-          <svg
-            viewBox="0 0 24 24"
-            className="size-4"
-            aria-hidden="true"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-          >
-            <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-          </svg>
-          <span className="sr-only">
-            {(await getTranslations("notifications"))("title")}
-          </span>
+          {(await getTranslations("notifications"))("title")}
           {unread > 0 ? (
             <span
-              className="absolute -top-0.5 -right-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose px-1 text-[0.625rem] font-bold text-charbon"
+              className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose px-1.5 text-[11px] font-semibold text-charbon"
               data-testid="unread-count"
             >
               {unread > 99 ? "99+" : unread}
@@ -95,8 +82,17 @@ export default async function OrgLayout({
         </Link>
       }
       nav={sidebar}
-      accountName={ctx.user.name}
       orgSwitcher={
+        <OrgSwitcher
+          userId={ctx.user.id}
+          currentSlug={ctx.organization.slug}
+          currentName={ctx.organization.name}
+          plan={plan}
+          logoUrl={logo}
+          account={{ name: ctx.user.name, email: ctx.user.email, unread }}
+        />
+      }
+      orgSwitcherPhone={
         <OrgSwitcher
           userId={ctx.user.id}
           currentSlug={ctx.organization.slug}

@@ -31,16 +31,13 @@ export function EventCommand({
       onSubmit={(e) => {
         if (confirm && !window.confirm(confirm)) e.preventDefault();
       }}
-      className="grid gap-2"
+      // le bouton à sa taille, aligné à gauche (la grille étirerait ses enfants)
+      className="grid justify-items-start gap-2"
     >
       <SubmitButton
         pending={undefined}
         variant={variant}
-        className={
-          command === "delete"
-            ? "w-full text-danger sm:w-auto lg:w-full"
-            : "w-full sm:w-auto lg:w-full"
-        }
+        className={command === "delete" ? "w-auto text-danger!" : "w-auto"}
       >
         {t(`command_${command}`)}
       </SubmitButton>

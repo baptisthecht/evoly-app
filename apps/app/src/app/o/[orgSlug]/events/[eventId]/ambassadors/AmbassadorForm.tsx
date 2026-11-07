@@ -9,8 +9,8 @@ import {
   useFieldError,
 } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { Field, Input } from "@/components/ui/Field";
+import { SavedNote, SettingsRow } from "@/components/ui/Controls";
+import { Field, Input, Select } from "@/components/ui/Field";
 import {
   ambassadorCommandAction,
   ambassadorPromoAction,
@@ -31,12 +31,12 @@ export function AmbassadorForm({
     null,
   );
   const error = useFieldError(state);
+  // refonte A3 (maquette « Réglages de l'événement ») : une rangée, le titre à gauche, les champs à droite
   return (
-    <Card className="grid gap-4">
-      <h2 className="text-[0.9375rem] font-semibold">{t("newTitle")}</h2>
-      <form {...formProps} className="grid gap-4" noValidate>
+    <SettingsRow title={t("newTitle")}>
+      <form {...formProps} className="grid gap-3.5" noValidate>
         <FormError state={state} />
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           <Field label={t("name")} htmlFor="amb-name" error={error("name")}>
             <Input id="amb-name" name="name" maxLength={80} required />
           </Field>
@@ -65,18 +65,14 @@ export function AmbassadorForm({
             <Input id="amb-reward" name="reward" maxLength={200} />
           </Field>
         </div>
-        {state?.ok ? (
-          <p role="status" className="text-sm text-ink-muted">
-            {t("saved")}
-          </p>
-        ) : null}
-        <div>
-          <SubmitButton pending={pending} className="w-full sm:w-auto">
-            {t("add")}
-          </SubmitButton>
+        <div className="flex flex-wrap items-center gap-3">
+          <SubmitButton pending={pending}>{t("add")}</SubmitButton>
+          {state?.ok ? (
+            <SavedNote id="ambassador-saved">{t("saved")}</SavedNote>
+          ) : null}
         </div>
       </form>
-    </Card>
+    </SettingsRow>
   );
 }
 
@@ -101,18 +97,17 @@ export function AmbassadorPromoForm({
   return (
     <form {...formProps} className="grid gap-2" noValidate>
       <FormError state={state} />
-      <p className="text-ink-muted">{t("promoHint", { code })}</p>
+      <p className="text-[13px] text-ink-muted">{t("promoHint", { code })}</p>
       <div className="flex flex-wrap items-end gap-2">
         <Field label={t("promoType")} htmlFor={`promo-type-${id}`}>
-          <select
+          <Select
             id={`promo-type-${id}`}
             name="discountType"
             defaultValue="PERCENT"
-            className="h-11 rounded-xl bg-surface-sunken px-3"
           >
             <option value="PERCENT">{t("promoPercent")}</option>
             <option value="AMOUNT">{t("promoAmount")}</option>
-          </select>
+          </Select>
         </Field>
         <Field
           label={t("promoValue")}
@@ -125,10 +120,15 @@ export function AmbassadorPromoForm({
             inputMode="decimal"
             maxLength={12}
             required
-            className="w-28"
           />
         </Field>
-        <SubmitButton pending={pending}>{t("promoAdd")}</SubmitButton>
+        <SubmitButton
+          pending={pending}
+          variant="secondary"
+          className="shrink-0"
+        >
+          {t("promoAdd")}
+        </SubmitButton>
       </div>
     </form>
   );

@@ -88,19 +88,22 @@ export default async function BillingPage({
     <div className="grid gap-6">
       {checkout === "success" ? (
         <p
-          className="rounded-lg bg-success-soft px-5 py-4 text-success"
+          className="rounded-[10px] bg-success-soft px-3.5 py-3 text-success"
           role="status"
         >
           {t("checkoutSuccess")}
         </p>
       ) : null}
       {checkout === "cancel" ? (
-        <p className="rounded-lg bg-surface-sunken px-5 py-4" role="status">
+        <p
+          className="rounded-[10px] bg-surface-sunken px-3.5 py-3"
+          role="status"
+        >
           {t("checkoutCancel")}
         </p>
       ) : null}
       {ctx.readOnly ? (
-        <p className="rounded-lg bg-warning-soft px-5 py-4 text-warning">
+        <p className="rounded-[10px] bg-warning-soft px-3.5 py-3 text-warning">
           {t("readOnlyNotice")}
         </p>
       ) : null}
@@ -109,11 +112,14 @@ export default async function BillingPage({
         <>
           <Card className="grid gap-4">
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-display text-3xl tracking-[-0.04em]">
+              {/* refonte A3 : le nom de l'offre comme un titre de fiche (21 px demi-gras) */}
+              <h2 className="text-[21px] leading-[1.25] font-semibold tracking-[-0.01em]">
                 {isPartner ? t("planPartner") : isPro ? "Pro" : "Free"}
               </h2>
               {isPartner ? (
-                <Badge tone="success">{t("badge_PARTNER")}</Badge>
+                <Badge tone="success" dot>
+                  {t("badge_PARTNER")}
+                </Badge>
               ) : null}
               {isPartner ? null : (
                 <Badge

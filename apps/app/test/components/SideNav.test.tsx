@@ -56,14 +56,15 @@ describe("barre latérale (indications du 18 octobre 2026)", () => {
     draw();
     expect(link("Finances").getAttribute("aria-current")).toBe("page");
     expect(cls("Finances")).toEqual(
+      // refonte A3 (maquettes UIUX/) : fond relevé sur le charbon, demi-gras, trait rose de 3 px
       expect.arrayContaining([
-        "bg-surface",
-        "font-medium",
+        "bg-sidebar-raised",
+        "font-semibold",
         "text-ink",
-        "before:bg-highlight",
+        "before:bg-rose",
       ]),
     );
-    expect(cls("Accueil")).not.toContain("before:bg-highlight");
+    expect(cls("Accueil")).not.toContain("before:bg-rose");
     for (const name of ["Accueil", "Finances"])
       expect(cls(name).some((c) => /^border-(l|rose|line)/.test(c))).toBe(
         false,
@@ -76,11 +77,11 @@ describe("barre latérale (indications du 18 octobre 2026)", () => {
     expect(cls("Accueil")).toEqual(
       expect.arrayContaining([
         "text-ink-muted",
-        "hover:bg-surface",
+        "hover:bg-sidebar-raised/60",
         "hover:text-ink",
       ]),
     );
-    expect(cls("Accueil")).not.toContain("bg-surface");
+    expect(cls("Accueil")).not.toContain("bg-sidebar-raised");
   });
 
   it("la catégorie de la page ouverte est active elle aussi ; les autres restent discrètes", () => {
@@ -114,10 +115,10 @@ describe("barre latérale (indications du 18 octobre 2026)", () => {
     draw();
     expect(link("Vue d’ensemble").getAttribute("aria-current")).toBe("page");
     expect(cls("Vue d’ensemble")).toEqual(
-      expect.arrayContaining(["bg-surface", "font-medium"]),
+      expect.arrayContaining(["bg-sidebar-raised", "font-semibold"]),
     );
     expect(cls("Réglages")).toEqual(
-      expect.arrayContaining(["text-ink-muted", "hover:bg-surface"]),
+      expect.arrayContaining(["text-ink-muted", "hover:bg-sidebar-raised/60"]),
     );
   });
 

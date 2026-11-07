@@ -13,7 +13,7 @@ import {
 import { useTranslations } from "next-intl";
 import type { CSSProperties } from "react";
 import "@evoly/ui/brand-fonts.css";
-import { Field, Input, Select } from "@/components/ui/Field";
+import { Field, Input } from "@/components/ui/Field";
 import { FontSelect } from "@/components/ui/FontSelect";
 
 export type SocialKey =
@@ -136,7 +136,7 @@ export function ThemeFields({
             value={v.backgroundColor}
             onChange={(e) => set({ backgroundColor: e.target.value })}
             placeholder={palette.creme}
-            className="font-mono"
+            className="tabular-nums"
             maxLength={9}
           />
           {v.backgroundColor ? (

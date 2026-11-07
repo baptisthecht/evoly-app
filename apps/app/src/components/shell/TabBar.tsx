@@ -12,6 +12,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { buttonClass } from "../ui/Button";
 import { cn } from "../ui/cn";
 import { NavGlyph } from "./SideNav";
 import { activeTab, type TabBarSection, type TabBarTab } from "./tabBarItems";
@@ -25,20 +26,17 @@ const TILE = ["var(--surface-raised)"];
 export const TabBarExtras = createContext<ReactNode>(null);
 
 /**
- * Barre d'onglets du téléphone (maquette validée : capsule flottante, variante D) :
- * l'onglet actif se déploie avec son libellé ; « Plus » ouvre le reste de la
- * navigation ; dans un événement, son étiquette ramène à la liste des événements.
+ * Barre d'onglets du téléphone (refonte A3, maquette « Sur téléphone ») : Accueil, Événements, Commandes, Finances et
+ * « Plus », qui ouvre le reste de la navigation ; la même dans un événement (ses parties sont dans ses onglets).
  */
 export function TabBar({
   label,
   tabs,
   more,
-  event,
 }: {
   label: string;
   tabs: TabBarTab[];
   more: TabBarSection[];
-  event?: { name: string; leaveHref: string };
 }) {
   const t = useTranslations("nav");
   const pathname = usePathname() ?? "";
@@ -123,69 +121,56 @@ export function TabBar({
   };
   const current = activeTab(tabs, pathname);
   const moreOn = open || current === null;
-  // arrondis concentriques : capsule de 68 px (arrondi 34), pastille de 48 px à 10 px du bord (arrondi 24) ;
-  // data-pill la soustrait à l'arrondi des boutons du thème Pro (globals.css)
-  const pill =
-    "inline-flex min-h-12 items-center gap-2 rounded-full bg-surface px-3.5 font-display text-sm text-ink";
-  const icon =
-    "inline-flex size-12 items-center justify-center rounded-full text-ink-inverse";
-
+  // refonte A3 (maquette « Sur téléphone ») : une barre blanche collée en bas, un filet au-dessus, les onglets et « Plus »
+  // en colonnes égales ; l'icône (22 px) au-dessus du libellé (11 px) ; l'onglet actif en charbon, demi-gras, l'icône rose
+  // une seule couleur de texte par onglet : deux classes de couleur se disputeraient (cn ne les fusionne pas)
+  const item =
+    "grid justify-items-center gap-[3px] text-[11px] leading-[normal]";
+  const on = "font-semibold text-ink-strong [&>svg]:text-highlight-ink";
+  const off = "text-tab-ink";
   return (
-    <div
-      className="fixed inset-x-4 z-40 flex flex-col items-start gap-2.5 lg:hidden"
-      style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
-    >
-      {event ? (
-        <Link
-          href={event.leaveHref}
-          aria-label={t("tabBarLeave", { name: event.name })}
-          className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full bg-[var(--evoly-rose)] py-1 pr-2 pl-4 font-display text-sm text-[var(--evoly-charbon)] shadow-[0_8px_20px_rgba(34,34,34,0.18)]"
-        >
-          <span className="truncate">{event.name}</span>
-          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[rgba(34,34,34,0.12)]">
-            <NavGlyph name="close" className="size-4" />
-          </span>
-        </Link>
-      ) : null}
+    <div className="lg:hidden">
       <nav
         aria-label={label}
-        className="flex h-[4.25rem] w-full items-center justify-between rounded-full bg-surface-inverse px-2.5 shadow-[0_18px_40px_rgba(34,34,34,0.35)]"
+        className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-surface-raised px-2 pt-2"
+        style={{
+          gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))`,
+          paddingBottom:
+            "max(26px, calc(env(safe-area-inset-bottom, 0px) + 8px))",
+        }}
       >
-        {tabs.map((tab) =>
-          tab.key === current && !open ? (
-            <Link
-              key={tab.key}
-              href={tab.href}
-              aria-current="page"
-              data-pill=""
-              className={pill}
-            >
-              <NavGlyph name={tab.icon} className="size-[1.375rem]" />
-              {tab.label}
-            </Link>
-          ) : (
-            <Link
-              key={tab.key}
-              href={tab.href}
-              aria-label={tab.label}
-              className={icon}
-            >
-              <NavGlyph name={tab.icon} className="size-[1.375rem]" />
-            </Link>
-          ),
-        )}
+        {tabs.map((tab) => (
+          <Link
+            key={tab.key}
+            href={tab.href}
+            aria-current={tab.key === current && !open ? "page" : undefined}
+            className={cn(item, tab.key === current && !open ? on : off)}
+          >
+            <TabGlyph tab={tab} />
+            {tab.label}
+          </Link>
+        ))}
         <button
           ref={moreRef}
           type="button"
           onClick={() => (open ? close() : show())}
           aria-expanded={open}
           aria-controls={sheetId}
-          aria-label={moreOn ? undefined : t("tabBarMore")}
-          data-pill=""
-          className={moreOn ? pill : icon}
+          className={cn(item, moreOn ? on : off)}
         >
-          <NavGlyph name="more" className="size-[1.375rem]" />
-          {moreOn ? t("tabBarMore") : null}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.75}
+            className="size-[22px]"
+          >
+            <circle cx="5" cy="12" r="1" />
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="19" cy="12" r="1" />
+          </svg>
+          {t("tabBarMore")}
         </button>
       </nav>
 
@@ -227,7 +212,7 @@ export function TabBar({
                 aria-hidden="true"
                 className="mx-auto block h-1.5 w-10 rounded-full bg-[rgba(34,34,34,0.25)]"
               />
-              <p className="pt-3 text-center font-display text-base">
+              <p className="pt-3 text-center text-[15px] font-semibold">
                 {t("tabBarMoreTitle")}
               </p>
             </div>
@@ -246,7 +231,7 @@ export function TabBar({
                       >
                         <span
                           className={cn(
-                            "relative inline-flex size-[3.75rem] items-center justify-center rounded-[1.1rem] text-[var(--evoly-charbon)] shadow-[0_1px_0_rgba(34,34,34,0.08)] transition-transform group-active:scale-95",
+                            "relative inline-flex size-[3.75rem] items-center justify-center rounded-[12px] text-ink shadow-[inset_0_0_0_1px_var(--line)] transition-transform group-active:scale-95",
                             here &&
                               "ring-2 ring-ink ring-offset-2 ring-offset-surface",
                           )}
@@ -276,7 +261,7 @@ export function TabBar({
             <button
               type="button"
               onClick={close}
-              className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-surface-inverse font-display text-sm text-ink-inverse"
+              className={buttonClass("secondary", "md", "mt-6 w-full")}
             >
               {t("tabBarClose")}
             </button>
@@ -284,5 +269,37 @@ export function TabBar({
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Icônes de la barre, comme la maquette : la maison, le calendrier sans anneaux, les lignes, les barres sans socle ;
+ * les autres pages gardent l'icône de la barre latérale.
+ */
+function TabGlyph({ tab }: { tab: TabBarTab }) {
+  const paths: Record<string, ReactNode> = {
+    home: <path d="M3 10.5 12 3l9 7.5V21H3z" />,
+    events: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M3 10h18" />
+      </>
+    ),
+    orders: <path d="M4 7h16M4 12h16M4 17h10" />,
+    finances: <path d="M4 19V9M10 19V5M16 19v-7" />,
+  };
+  const own = paths[tab.key];
+  if (!own) return <NavGlyph name={tab.icon} className="size-[22px]" />;
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      className="size-[22px] shrink-0"
+    >
+      {own}
+    </svg>
   );
 }

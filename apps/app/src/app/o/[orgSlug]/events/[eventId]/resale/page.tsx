@@ -1,10 +1,10 @@
 import { can } from "@evoly/core";
+import { Stat, StatCell, StatRow } from "@/components/ui/Stat";
 import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Badge, Card, EmptyState } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { findEvent } from "@/server/events";
 import { listingsForOrganizer } from "@/server/resale";
@@ -49,8 +49,9 @@ export default async function ResaleAdminPage({
     .reduce((n, l) => n + l.priceMinor, 0);
   const manage = can(ctx.membership, "RESALE_MANAGE") && !ctx.readOnly;
   return (
-    <div className="grid gap-6">
-      <Card className="grid gap-3 sm:grid-cols-4">
+    // refonte A3 : les chiffres comme ceux de l'accueil (sans cadre, séparés par des filets), la phrase des réglages
+    <div className="grid gap-5">
+      <StatRow label={t("statActive")}>
         {[
           {
             label: t("statActive"),
@@ -60,23 +61,18 @@ export default async function ResaleAdminPage({
           { label: t("statAmount"), value: money(soldAmount) },
           { label: t("statFailed"), value: String(count("FAILED")) },
         ].map((s) => (
-          <div key={s.label}>
-            <p className="font-label text-[0.8rem] font-bold text-ink-muted">
-              {s.label}
-            </p>
-            <p className="font-figures text-[1.6875rem] tracking-[var(--tracking-figures)] tabular-nums">
-              {s.value}
-            </p>
-          </div>
+          <StatCell key={s.label}>
+            <Stat label={s.label} value={s.value} />
+          </StatCell>
         ))}
-      </Card>
-      <p className="text-sm text-ink-muted">
+      </StatRow>
+      <p className="text-[13px] text-ink-muted">
         {event.resaleEnabled
           ? t("enabled", { hours: event.resaleCutoffMinutes / 60 })
           : t("disabled")}{" "}
         <Link
-          href={`/o/${orgSlug}/events/${eventId}/settings`}
-          className="font-semibold text-ink underline underline-offset-4"
+          href={`/o/${orgSlug}/events/${eventId}/settings/sales`}
+          className="font-medium text-ink underline underline-offset-4"
         >
           {t("changeSettings")}
         </Link>

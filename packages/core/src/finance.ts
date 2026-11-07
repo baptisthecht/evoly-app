@@ -169,3 +169,12 @@ export function netOfSums(s: OrderSums): Minor {
     (s.paymentFeeMinor ?? 0)
   );
 }
+
+/**
+ * Évolution d'un montant d'une période à la précédente, en pour cent arrondi (refonte A3 : « +17 % sur la période
+ * d'avant »). Rien à comparer (période précédente nulle ou négative) : null.
+ */
+export function growthPct(current: Minor, previous: Minor): number | null {
+  if (previous <= 0) return null;
+  return Math.round(((current - previous) / previous) * 100);
+}

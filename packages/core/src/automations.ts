@@ -55,6 +55,20 @@ export function lastSeatsReached(o: {
   return remaining > 0 && remaining < o.capacity * 0.1;
 }
 
+/**
+ * Refonte A3 (maquette Marketing) : proposer d'activer « Dernières places » quand l'événement se remplit, c'est-à-dire
+ * qu'il reste au plus 35 % des places (l'e-mail part seul sous 10 %, lastSeatsReached).
+ */
+export const LAST_SEATS_SUGGEST_RATIO = 0.35;
+export function suggestLastSeats(o: {
+  capacity: number | null;
+  sold: number;
+}): boolean {
+  if (!o.capacity || o.capacity <= 0) return false;
+  const remaining = o.capacity - o.sold;
+  return remaining > 0 && remaining <= o.capacity * LAST_SEATS_SUGGEST_RATIO;
+}
+
 /** Jauge d'un événement : la jauge globale, sinon la somme des quantités des tarifs (null si un tarif est illimité). */
 export function eventCapacity(
   capacity: number | null,

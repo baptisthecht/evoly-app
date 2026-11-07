@@ -23,10 +23,12 @@ test("commandes : recherche, détail, renvoi des billets, correction de l'e-mail
   const oldLink = page.url();
 
   await page.goto(appUrl(`/o/${slug}/orders`));
+  // refonte A3 (maquette « Commandes ») : pas de bouton, la recherche part avec Entrée
   await page.getByLabel("Rechercher une commande").fill("Léa Martin");
-  await page.getByRole("button", { name: "Rechercher" }).click();
+  await page.getByLabel("Rechercher une commande").press("Enter");
   await expect(page.getByText("1 commande")).toBeVisible();
-  await page.getByText(`lea.${id}@exemple.be`).click();
+  // refonte A3 (maquette « Commandes ») : l'acheteur par son nom, sans l'adresse ; le nom ouvre la commande
+  await page.getByRole("link", { name: "Léa Martin" }).click();
   await expect(page.getByRole("heading", { name: "Léa Martin" })).toBeVisible();
   await expect(page.getByText("2 billets", { exact: true })).toBeVisible();
   await page
@@ -96,7 +98,8 @@ test("remboursement sur demande : l'acheteur demande, l'organisateur accepte (US
     .getByRole("link", { name: /1 demande de remboursement en attente/ })
     .click();
   await expect(page.getByText("1 commande")).toBeVisible();
-  await page.getByText(`lea.${id}@exemple.be`).click();
+  // refonte A3 (maquette « Commandes ») : l'acheteur par son nom, sans l'adresse ; le nom ouvre la commande
+  await page.getByRole("link", { name: "Léa Martin" }).click();
   await page
     .getByRole("navigation", { name: "Sections de la commande" })
     .getByRole("link", { name: /^Paiement/ })

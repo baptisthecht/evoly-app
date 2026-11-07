@@ -1,4 +1,7 @@
 import { hasFeature, sheetSlots, SHEET_PRESETS } from "@evoly/core";
+import { buttonClass } from "@/components/ui/Button";
+import { ExampleNote, SectionTitle } from "@/components/ui/Controls";
+import { FIELD_CONTROL_CLASS } from "@/components/ui/Field";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { requireOrgContext } from "@/server/context";
@@ -9,7 +12,9 @@ import {
   type KitOptions,
 } from "@/server/seatLabels";
 
-const field = "h-11 rounded-xl bg-surface-sunken px-3";
+// refonte A3 : les champs de l'application (40 px, filet de 1 px, arrondi 8 px)
+const field = FIELD_CONTROL_CLASS;
+const legend = "mb-1.5 text-[13px] font-medium";
 
 /** Kit d'installation de salle (section 9.33) : formats, modèles, options, aperçu de la première feuille et téléchargements. */
 export default async function SeatLabelsPage({
@@ -42,27 +47,25 @@ export default async function SeatLabelsPage({
   const band = opts.model === "zone" || opts.model === "classique";
   return (
     <div className="grid gap-6">
-      <header className="grid gap-1">
-        <h1 className="font-display text-2xl tracking-[-0.03em]">
-          {t("pageTitle")}
-        </h1>
-        <p className="max-w-3xl text-ink-muted">{t("intro")}</p>
+      <header>
+        <SectionTitle title={t("pageTitle")} className="mb-0.5" />
+        <p className="max-w-[720px] text-[13px] text-ink-muted">{t("intro")}</p>
       </header>
       {gridError ? (
         <p
           role="alert"
-          className="rounded-2xl p-4 text-sm font-semibold text-danger ring-1 ring-danger"
+          className="rounded-[8px] bg-danger-soft px-3 py-2.5 text-[13px] text-danger"
         >
           {t("invalidGrid")}
         </p>
       ) : null}
       {kit.seats.length === 0 ? (
-        <p className="text-ink-muted">{t("noSeats")}</p>
+        <p className="text-[13px] text-ink-muted">{t("noSeats")}</p>
       ) : null}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <form method="get" className="grid content-start gap-5">
           <fieldset className="grid gap-2">
-            <legend className="mb-1 font-semibold">{t("formatLabel")}</legend>
+            <legend className={legend}>{t("formatLabel")}</legend>
             <select
               name="format"
               defaultValue={opts.formatId}
@@ -75,8 +78,8 @@ export default async function SeatLabelsPage({
                 </option>
               ))}
             </select>
-            <p className="text-sm text-ink-muted">{t("customHint")}</p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <p className="text-[12.5px] text-ink-muted">{t("customHint")}</p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {(
                 [
                   ["colonnes", "columns", opts.format.columns],
@@ -87,7 +90,10 @@ export default async function SeatLabelsPage({
                   ["espaceY", "gapY", opts.format.gapY],
                 ] as const
               ).map(([name, key, value]) => (
-                <label key={name} className="grid gap-1 text-sm">
+                <label
+                  key={name}
+                  className="grid gap-1.5 text-[13px] font-medium"
+                >
                   {t(key)}
                   <input
                     name={name}
@@ -102,15 +108,14 @@ export default async function SeatLabelsPage({
             </div>
           </fieldset>
           <fieldset className="grid gap-2">
-            <legend className="mb-1 font-semibold">{t("modelLabel")}</legend>
+            <legend className={legend}>{t("modelLabel")}</legend>
             {LABEL_MODELS.map((m) => (
-              <label key={m} className="flex items-center gap-2">
+              <label key={m} className="flex items-center gap-2.5">
                 <input
                   type="radio"
                   name="modele"
                   value={m}
                   defaultChecked={opts.model === m}
-                  className="size-5"
                 />
                 {t(`model_${m}`)}
               </label>
@@ -124,17 +129,17 @@ export default async function SeatLabelsPage({
                 name="evenement"
                 value="1"
                 defaultChecked={opts.showEvent}
-                className="peer size-5"
+                className="peer"
               />
               <label htmlFor="evenement">{t("showEvent")}</label>
-              <p className="hidden basis-full text-sm font-semibold text-danger peer-checked:block">
+              <p className="hidden basis-full text-[13px] font-medium text-danger peer-checked:block">
                 {t("showEventWarning")}
               </p>
             </div>
-            <p className="text-sm text-ink-muted">{t("reusableHint")}</p>
+            <p className="text-[12.5px] text-ink-muted">{t("reusableHint")}</p>
           </div>
           <fieldset className="grid gap-2">
-            <legend className="mb-1 font-semibold">{t("selection")}</legend>
+            <legend className={legend}>{t("selection")}</legend>
             <select
               name="bloc"
               defaultValue={opts.blockId ?? ""}
@@ -167,28 +172,22 @@ export default async function SeatLabelsPage({
             </select>
           </fieldset>
           <fieldset className="flex flex-wrap gap-4">
-            <legend className="mb-1 font-semibold">{t("zoneShape")}</legend>
+            <legend className={legend}>{t("zoneShape")}</legend>
             {(["rond", "rectangle"] as const).map((z) => (
-              <label key={z} className="flex items-center gap-2">
+              <label key={z} className="flex items-center gap-2.5">
                 <input
                   type="radio"
                   name="zones"
                   value={z}
                   defaultChecked={opts.zoneShape === z}
-                  className="size-5"
                 />
                 {t(`zone_${z}`)}
               </label>
             ))}
           </fieldset>
-          <p className="rounded-xl bg-surface-sunken p-3 text-sm font-semibold">
-            {t("printHint")}
-          </p>
+          <ExampleNote>{t("printHint")}</ExampleNote>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="submit"
-              className="h-11 rounded-full px-5 font-semibold ring-1 ring-current"
-            >
+            <button type="submit" className={buttonClass("secondary")}>
               {t("refresh")}
             </button>
             {(
@@ -202,7 +201,7 @@ export default async function SeatLabelsPage({
                 key={file}
                 type="submit"
                 formAction={`${base}/${file}`}
-                className="h-11 rounded-full bg-[var(--evoly-charbon)] px-5 font-semibold text-[var(--evoly-creme)]"
+                className={buttonClass("primary")}
               >
                 {t(label)}
               </button>
@@ -210,15 +209,17 @@ export default async function SeatLabelsPage({
           </div>
         </form>
         <section aria-label={t("preview")} className="grid content-start gap-2">
-          <h2 className="font-semibold">{t("preview")}</h2>
-          <p className="text-sm text-ink-muted">
+          <h2 className="text-[14.5px] leading-[normal] font-semibold">
+            {t("preview")}
+          </h2>
+          <p className="text-[13px] text-ink-muted">
             {t("summaryLine", { labels: kit.seats.length, sheets: kit.sheets })}
           </p>
           <svg
             viewBox="0 0 210 297"
             role="img"
             aria-label={t("preview")}
-            className="w-full rounded-md bg-white shadow-md ring-1 ring-black/10"
+            className="w-full rounded-[8px] bg-white ring-1 ring-line-strong"
           >
             {slots.map((s, i) => (
               <rect

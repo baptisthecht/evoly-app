@@ -11,7 +11,7 @@ import {
 } from "@/components/shell/tabBarItems";
 import { Fr } from "./intl";
 
-// barre d'onglets du téléphone (maquette validée : capsule flottante, variante D)
+// barre d'onglets du téléphone (refonte A3, maquette « Sur téléphone » : barre blanche, icône et libellé)
 // jsdom n'a pas PointerEvent : celui du navigateur hérite de MouseEvent (position, bouton)
 if (!("PointerEvent" in window))
   Object.defineProperty(window, "PointerEvent", {
@@ -56,19 +56,14 @@ const more: TabBarSection[] = [
     ],
   },
 ];
-const view = (event?: { name: string; leaveHref: string }) => (
+const view = () => (
   <Fr>
-    <TabBar
-      label="Navigation de l’organisation"
-      tabs={tabs}
-      more={more}
-      event={event}
-    />
+    <TabBar label="Navigation de l’organisation" tabs={tabs} more={more} />
   </Fr>
 );
 
 describe("barre d'onglets du téléphone", () => {
-  it("onglet actif déployé avec son libellé ; les autres, des liens à icône nommés", () => {
+  it("chaque onglet avec son icône et son libellé ; l'onglet de la page marqué, en charbon et demi-gras", () => {
     nav.path = "/o/club/events/e1/tickets";
     render(view());
     const bar = screen.getByRole("navigation", {
@@ -79,14 +74,12 @@ describe("barre d'onglets du téléphone", () => {
       "Événements",
       "/o/club/events",
     ]);
-    // arrondi complet, même dans le thème Pro (qui redessine les autres pilules à l'arrondi de ses boutons)
-    expect([
-      current.hasAttribute("data-pill"),
-      current.className.includes("rounded-full"),
-    ]).toEqual([true, true]);
-    expect(within(bar).getByRole("link", { name: "Accueil" }).textContent).toBe(
-      "",
-    );
+    expect(current.className).toContain("font-semibold");
+    const home = within(bar).getByRole("link", { name: "Accueil" });
+    expect([home.textContent, home.querySelector("svg") !== null]).toEqual([
+      "Accueil",
+      true,
+    ]);
     expect(
       within(bar)
         .getByRole("button", { name: "Plus" })
@@ -134,13 +127,11 @@ describe("barre d'onglets du téléphone", () => {
     ).toBe("page");
   });
 
-  it("dans un événement : son étiquette ramène à la liste des événements", () => {
+  it("dans un événement : la barre de l'organisation, « Événements » marqué (maquette « Sur téléphone »)", () => {
     nav.path = "/o/club/events/e1";
-    render(view({ name: "Gala du 17 avril", leaveHref: "/o/club/events" }));
+    render(view());
     expect(
-      screen
-        .getByRole("link", { name: "Quitter l’événement Gala du 17 avril" })
-        .getAttribute("href"),
+      screen.getByRole("link", { current: "page" }).getAttribute("href"),
     ).toBe("/o/club/events");
   });
 });

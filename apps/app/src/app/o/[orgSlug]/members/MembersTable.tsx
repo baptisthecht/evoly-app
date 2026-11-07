@@ -31,7 +31,10 @@ const initials = (name: string) =>
     .map((w) => w[0]!.toUpperCase())
     .join("") || "?";
 
-/** Équipe, membres : le tableau (membre, rôle modifiable sur place, arrivée, statut, retrait). */
+/**
+ * Équipe, membres (refonte A3, maquette UIUX/pages-a3-suite.html) : les initiales en gris neutre, le nom et l'adresse, le
+ * rôle modifiable sur place (liste compacte), les événements, l'arrivée, « Retirer ».
+ */
 export function MembersTable({
   rows,
   roles,
@@ -49,19 +52,30 @@ export function MembersTable({
       sortable: true,
       mobile: "title",
       cell: (m) => (
-        <span className="flex min-w-0 items-center gap-3">
+        <span className="flex min-w-0 items-center gap-[11px]">
           <span
             aria-hidden="true"
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-xs font-semibold text-ink-muted" // refonte A3 : initiales en gris neutre
+            className="grid size-[30px] shrink-0 place-items-center rounded-full bg-avatar text-[11.5px] leading-[normal] font-semibold text-ink-soft"
           >
             {initials(m.name)}
           </span>
-          <span className="grid min-w-0">
-            <span className="flex flex-wrap items-center gap-2 font-semibold">
+          <span className="min-w-0">
+            <b className="block font-semibold">
               {m.name}
-              {m.self ? <Badge>{t("you")}</Badge> : null}
-            </span>
-            <span className="truncate text-sm text-ink-muted">{m.email}</span>
+              {m.self ? (
+                <span className="ml-1.5 rounded-[5px] bg-surface-sunken px-1.5 py-px text-[11.5px] font-semibold text-ink-soft">
+                  {t("you")}
+                </span>
+              ) : null}
+              {m.suspended ? (
+                <span className="ml-1.5">
+                  <Badge tone="warning" dot>
+                    {t("suspended")}
+                  </Badge>
+                </span>
+              ) : null}
+            </b>
+            <small className="text-[12.5px] text-ink-muted">{m.email}</small>
           </span>
         </span>
       ),
@@ -80,29 +94,22 @@ export function MembersTable({
             roles={roles}
           />
         ) : (
-          <Badge tone={m.owner ? "dark" : "neutral"}>{m.roleLabel}</Badge>
+          <span className="text-[13.5px] text-ink-body">{m.roleLabel}</span>
         ),
+    },
+    {
+      key: "events",
+      header: t("tableEvents"),
+      cell: () => t("allEvents"),
     },
     {
       key: "joined",
       header: t("tableJoined"),
       sortable: true,
       sortValue: (m) => m.joinedAt,
-    },
-    {
-      key: "status",
-      header: t("tableStatus"),
-      mobile: "badge",
-      cell: (m) =>
-        m.suspended ? (
-          <Badge tone="warning" dot>
-            {t("suspended")}
-          </Badge>
-        ) : (
-          <Badge tone="success" dot>
-            {t("activeMember")}
-          </Badge>
-        ),
+      cell: (m) => (
+        <small className="text-[12.5px] text-ink-muted">{m.joined}</small>
+      ),
     },
     {
       key: "actions",
@@ -124,7 +131,7 @@ export function MembersTable({
   );
 }
 
-/** Équipe : inviter un membre, dans une fenêtre. */
+/** Équipe : « Inviter un membre », dans la bande du titre ; le formulaire dans une fenêtre. */
 export function InviteDialog({
   orgSlug,
   roles,
@@ -136,14 +143,8 @@ export function InviteDialog({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button
-        type="button"
-        variant="dark"
-        size="md"
-        className="justify-self-start"
-        onClick={() => setOpen(true)}
-      >
-        <PlusIcon className="size-4 shrink-0" />
+      <Button type="button" onClick={() => setOpen(true)}>
+        <PlusIcon />
         {t("inviteTitle")}
       </Button>
       <Dialog
@@ -151,7 +152,11 @@ export function InviteDialog({
         onClose={() => setOpen(false)}
         title={t("inviteTitle")}
       >
-        <InviteForm orgSlug={orgSlug} roles={roles} />
+        <InviteForm
+          orgSlug={orgSlug}
+          roles={roles}
+          onDone={() => setOpen(false)}
+        />
       </Dialog>
     </>
   );

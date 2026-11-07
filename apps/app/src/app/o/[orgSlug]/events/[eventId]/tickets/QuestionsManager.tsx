@@ -3,21 +3,18 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { DataTable, type TableColumn } from "@/components/ui/DataTable";
-import { Dialog } from "@/components/ui/Dialog";
-import {
-  FormError,
-  SubmitButton,
-  useActionForm,
-  useFieldError,
-} from "@/components/forms";
-import { Button } from "@/components/ui/Button";
-import { Badge, Card } from "@/components/ui/Card";
-import { Field, Input, Select } from "@/components/ui/Field";
+import { Dialog, DialogFooter } from "@/components/ui/Dialog";
+import { FormError, useActionForm, useFieldError } from "@/components/forms";
+import { BarActions } from "@/components/shell/EventTabs";
+import { Button, buttonClass } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Card";
+import { SavedNote } from "@/components/ui/Controls";
+import { Field, Input, Select, TEXTAREA_CLASS } from "@/components/ui/Field";
 import {
   questionCommandAction,
   saveQuestionAction,
 } from "@/app/o/[orgSlug]/events/actions";
-import { PlusIcon } from "@/components/ui/icons";
+import { DownloadIcon, PlusIcon } from "@/components/ui/icons";
 
 const TYPES = [
   "TEXT",
@@ -69,14 +66,12 @@ function QuestionForm({
     if (state?.ok) onDone();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+  const formId = `question-form-${q?.id ?? "new"}`;
+  // refonte A3 (maquette « Nouveau tarif ») : les champs dans la fenêtre, les boutons dans son pied (DialogFooter)
   return (
-    <form
-      {...formProps}
-      className="grid gap-4 rounded-md bg-surface-sunken p-4"
-      noValidate
-    >
+    <form id={formId} {...formProps} className="grid gap-4" noValidate>
       <FormError state={state} />
-      <div className="grid gap-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Field
           label={t("label")}
           htmlFor={`ql-${q?.id ?? "new"}`}
@@ -115,7 +110,7 @@ function QuestionForm({
             name="options"
             defaultValue={(q?.options ?? []).join("\n")}
             rows={4}
-            className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+            className={TEXTAREA_CLASS}
           />
         </Field>
       ) : null}
@@ -132,7 +127,7 @@ function QuestionForm({
         />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <fieldset className="grid gap-2">
+        <fieldset className="grid content-start gap-2">
           <legend className="mb-1 font-label text-[0.8rem] font-bold">
             {t("scope")}
           </legend>
@@ -149,7 +144,7 @@ function QuestionForm({
             </label>
           ))}
         </fieldset>
-        <fieldset className="grid gap-2">
+        <fieldset className="grid content-start gap-2">
           <legend className="mb-1 font-label text-[0.8rem] font-bold">
             {t("ticketTypes")}
           </legend>
@@ -165,7 +160,7 @@ function QuestionForm({
               {tt.name}
             </label>
           ))}
-          <p className="text-xs text-ink-muted">{t("ticketTypesHint")}</p>
+          <p className="text-[12.5px] text-ink-muted">{t("ticketTypesHint")}</p>
         </fieldset>
       </div>
       <label className="flex items-center gap-3 text-sm">
@@ -177,14 +172,20 @@ function QuestionForm({
         />
         {t("required")}
       </label>
-      <div className="flex flex-wrap gap-2">
-        <SubmitButton pending={pending} className="w-full sm:w-auto">
-          {t("save")}
-        </SubmitButton>
-        <Button type="button" variant="ghost" size="lg" onClick={onDone}>
+      <DialogFooter>
+        <Button type="button" variant="secondary" onClick={onDone}>
           {t("cancel")}
         </Button>
-      </div>
+        <Button
+          type="submit"
+          form={formId}
+          variant="primary"
+          disabled={pending}
+          aria-busy={pending}
+        >
+          {t("save")}
+        </Button>
+      </DialogFooter>
     </form>
   );
 }
@@ -315,68 +316,70 @@ export function QuestionsManager({
         );
       },
     });
+  const exportable = questions.some((q) => q.answers > 0);
+  // refonte A3 (maquette « Tarifs ») : les boutons de la page à droite des onglets en boutons (BarActions)
   return (
-    <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-2xl text-sm text-ink-muted">{t("intro")}</p>
-        <span className="flex flex-wrap items-center gap-3">
-          {questions.some((q) => q.answers > 0) ? (
+    <>
+      {exportable || !readOnly ? (
+        <BarActions>
+          {exportable ? (
             <a
               href={`/o/${orgSlug}/events/${eventId}/questions/export`}
-              className="text-sm font-semibold underline underline-offset-4"
+              className={buttonClass("secondary")}
             >
+              <DownloadIcon />
               {t("export")}
             </a>
           ) : null}
           {!readOnly ? (
             <Button
               type="button"
-              variant="dark"
-              size="md"
+              variant="primary"
               onClick={() => setEditing("new")}
             >
-              <PlusIcon className="size-4 shrink-0" />
+              <PlusIcon />
               {t("add")}
             </Button>
           ) : null}
-        </span>
-      </div>
-      {message ? (
-        <p className="text-sm text-success" role="status">
-          {message}
-        </p>
+        </BarActions>
       ) : null}
-      {/* l'ordre des questions est celui du formulaire d'achat : pas de tri */}
-      <DataTable
-        rows={active}
-        columns={columns}
-        getRowId={(q) => q.id}
-        caption={t("title")}
-        emptyState={{ title: t("emptyTitle"), description: t("intro") }}
-      />
-      {questions.some((q) => q.archived) ? (
-        <p className="text-xs text-ink-muted">
-          {t("archivedCount", {
-            count: questions.filter((q) => q.archived).length,
-          })}
-        </p>
-      ) : null}
-      <Dialog
-        open={editing !== null}
-        onClose={() => setEditing(null)}
-        title={current ? t("edit") : t("add")}
-        size="lg"
-      >
-        {editing !== null ? (
-          <QuestionForm
-            orgSlug={orgSlug}
-            eventId={eventId}
-            q={current}
-            ticketTypes={ticketTypes}
-            onDone={() => setEditing(null)}
-          />
+      <div className="grid gap-3.5">
+        <p className="max-w-[720px] text-[13px] text-ink-muted">{t("intro")}</p>
+        {message ? (
+          <SavedNote id="questions-status">{message}</SavedNote>
         ) : null}
-      </Dialog>
-    </div>
+        {/* l'ordre des questions est celui du formulaire d'achat : pas de tri */}
+        <DataTable
+          rows={active}
+          columns={columns}
+          getRowId={(q) => q.id}
+          caption={t("title")}
+          emptyState={{ title: t("emptyTitle"), description: t("intro") }}
+        />
+        {questions.some((q) => q.archived) ? (
+          <p className="text-[12.5px] text-ink-muted">
+            {t("archivedCount", {
+              count: questions.filter((q) => q.archived).length,
+            })}
+          </p>
+        ) : null}
+        <Dialog
+          open={editing !== null}
+          onClose={() => setEditing(null)}
+          title={current ? t("edit") : t("add")}
+          size="lg"
+        >
+          {editing !== null ? (
+            <QuestionForm
+              orgSlug={orgSlug}
+              eventId={eventId}
+              q={current}
+              ticketTypes={ticketTypes}
+              onDone={() => setEditing(null)}
+            />
+          ) : null}
+        </Dialog>
+      </div>
+    </>
   );
 }

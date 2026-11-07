@@ -9,8 +9,8 @@ import {
 } from "@/app/o/[orgSlug]/events/actions";
 import { EmailEditor } from "@/components/email/EmailEditor";
 import { EmailPreview } from "@/components/email/EmailPreview";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Button, buttonClass } from "@/components/ui/Button";
+import { SavedNote, SectionTitle, SettingsRow } from "@/components/ui/Controls";
 
 type Kind = "ticket" | "reminder";
 
@@ -32,14 +32,12 @@ function Block({
   const [status, setStatus] = useState<"saved" | "error" | null>(null);
   const [pending, start] = useTransition();
   return (
-    <section
-      className="grid gap-2 border-t border-line pt-3"
-      aria-label={t(kind)}
+    // refonte A3 (maquette « Réglages de l'événement ») : une rangée par e-mail, l'éditeur sur toute la largeur
+    <SettingsRow
+      title={t(kind)}
+      description={t(kind === "ticket" ? "ticketHint" : "reminderHint")}
+      wide
     >
-      <h3 className="font-semibold">{t(kind)}</h3>
-      <p className="-mt-1 text-sm text-ink-muted">
-        {t(kind === "ticket" ? "ticketHint" : "reminderHint")}
-      </p>
       <EmailEditor
         orgSlug={orgSlug}
         value={initial}
@@ -72,18 +70,17 @@ function Block({
           type="button"
           aria-expanded={preview}
           onClick={() => setPreview((v) => !v)}
-          className="rounded-full px-4 py-2 text-sm font-semibold hover:bg-surface-sunken"
+          className={buttonClass("ghost")}
         >
           {te("preview")}
         </button>
-        {status && (
-          <span
-            role="status"
-            className={`text-sm ${status === "saved" ? "text-success" : "text-danger"}`}
-          >
+        {status === "saved" ? (
+          <SavedNote id={`email-block-${kind}`}>{t(status)}</SavedNote>
+        ) : status ? (
+          <span role="status" className="text-[13px] text-danger">
             {t(status)}
           </span>
-        )}
+        ) : null}
       </div>
       {preview && (
         <EmailPreview
@@ -96,7 +93,7 @@ function Block({
           }
         />
       )}
-    </section>
+    </SettingsRow>
   );
 }
 
@@ -114,9 +111,11 @@ export function EventEmailBlocks({
 }) {
   const t = useTranslations("eventEmailBlocks");
   return (
-    <Card className="mt-4 grid gap-3">
-      <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
-      <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
+    <>
+      <div className="pb-1">
+        <SectionTitle title={t("title")} />
+        <p className="max-w-[720px] text-[13px] text-ink-muted">{t("intro")}</p>
+      </div>
       <Block
         orgSlug={orgSlug}
         eventId={eventId}
@@ -129,6 +128,6 @@ export function EventEmailBlocks({
         kind="reminder"
         initial={reminder}
       />
-    </Card>
+    </>
   );
 }

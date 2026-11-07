@@ -91,11 +91,19 @@ describe("équipe : actions irréversibles toujours confirmées", () => {
         members={[{ id: "m2", label: "Léa Martin" }]}
       />,
     );
+    // refonte A3 (maquette « Équipe, membres ») : « Choisir le nouveau propriétaire » ouvre la fenêtre ; le bouton
+    // « Transférer » est dans son pied (form="transfer-form")
+    fireEvent.click(screen.getByRole("button", { name: t.chooseOwner }));
+    const form = () =>
+      act(
+        async () =>
+          void fireEvent.submit(document.getElementById("transfer-form")!),
+      );
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    await submit(screen.getByRole("button", { name: t.transfer }));
+    await form();
     expect(actions.transferAction).not.toHaveBeenCalled();
     confirm.mockReturnValue(true);
-    await submit(screen.getByRole("button", { name: t.transfer }));
+    await form();
     await waitFor(() => expect(actions.transferAction).toHaveBeenCalled());
     a.unmount();
     wrap(<TransferOwnership orgSlug="club" members={[]} />);

@@ -147,11 +147,17 @@ const ICONS: Record<NavIcon, ReactNode> = {
   ),
   plus: <path d="M12 5v14M5 12h14" />,
   // barre d'onglets du téléphone : « Plus », Jour J (la porte, pas le scanner), quitter un événement
-  more: <path d="M5 12h.01M12 12h.01M19 12h.01" strokeWidth={3} />,
+  more: (
+    <path
+      d="M5 12h.01M12 12h.01M19 12h.01"
+      strokeWidth={3}
+      strokeLinecap="round"
+    />
+  ),
   door: (
     <>
       <path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M3 21h18" />
-      <path d="M14 12h.01" strokeWidth={3} />
+      <path d="M14 12h.01" strokeWidth={3} strokeLinecap="round" />
     </>
   ),
   close: <path d="M6 6l12 12M18 6 6 18" />,
@@ -159,7 +165,7 @@ const ICONS: Record<NavIcon, ReactNode> = {
   tag: (
     <>
       <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" />
-      <path d="M7.5 7.5h.01" strokeWidth={3} />
+      <path d="M7.5 7.5h.01" strokeWidth={3} strokeLinecap="round" />
     </>
   ),
   code: <path d="m8 7-5 5 5 5M16 7l5 5-5 5M14 4l-4 16" />,
@@ -218,13 +224,12 @@ export function NavGlyph({
   className?: string;
 }) {
   return (
+    // refonte A3 (maquettes UIUX/) : le trait des icônes de la maquette, 1,75 px, bouts droits (pas d'arrondi)
     <svg
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
       aria-hidden="true"
       className={cn("size-4 shrink-0", className)}
     >
@@ -235,14 +240,14 @@ export function NavGlyph({
 
 const pathOf = (href: string) => href.split("?")[0]!;
 
-// refonte A3 (docs/DECISIONS.md) : lien actif sur fond plus clair que la barre charbon, marqué d'un trait rose
-// collé au bord de la barre ; icône de chaque page, aucun filet
+// refonte A3 (maquettes UIUX/) : liens de 32 px, arrondi 7 px, 13,5 px ; le lien actif sur un fond plus clair que la
+// barre charbon, en demi-gras, marqué d'un trait rose (3 px) collé au bord de la barre ; icône de chaque page, aucun filet
 const itemClass = (on: boolean) =>
   cn(
-    "relative flex min-h-9 items-center gap-2.5 rounded-[10px] px-2.5 text-[0.84375rem] transition-colors",
+    "relative flex h-8 items-center gap-2.5 rounded-[7px] px-2 text-[13.5px]",
     on
-      ? "bg-surface font-medium text-ink before:absolute before:inset-y-2 before:-left-3 before:w-[3px] before:rounded-r-[3px] before:bg-highlight"
-      : "text-ink-muted hover:bg-surface hover:text-ink",
+      ? "bg-sidebar-raised font-semibold text-ink before:absolute before:top-[7px] before:bottom-[7px] before:-left-3 before:w-[3px] before:rounded-r-[3px] before:bg-rose"
+      : "text-ink-muted hover:bg-sidebar-raised/60 hover:text-ink",
   );
 const soloClass = itemClass;
 
@@ -281,7 +286,7 @@ export function SideNav({
     </Link>
   );
   return (
-    <nav aria-label={label} className="grid gap-0.5">
+    <nav aria-label={label} className="grid">
       {before}
       {top ? solo(top) : null}
       {sections.map((s, n) => {
@@ -289,10 +294,7 @@ export function SideNav({
         return (
           <div
             key={s.label}
-            className={cn(
-              "grid gap-0.5",
-              s.label && (n > 0 || top) ? "mt-4" : "",
-            )}
+            className={cn("grid", s.label && (n > 0 || top) ? "mt-4" : "")}
           >
             {/* refonte A3 : une liste plate, sans titre de catégorie, quand la section n'a pas de libellé */}
             {s.label ? (
@@ -305,7 +307,7 @@ export function SideNav({
                 {s.label}
               </p>
             ) : null}
-            <ul className="grid gap-0.5">
+            <ul className="grid">
               {s.items.map((i) => (
                 <li key={i.href}>
                   <Link
@@ -314,14 +316,14 @@ export function SideNav({
                     className={itemClass(active(i))}
                   >
                     {i.icon ? <NavGlyph name={i.icon} /> : null}
-                    <span className="truncate">{i.label}</span>
+                    <span className="whitespace-nowrap">{i.label}</span>
                     {i.count ? (
-                      <span className="ml-auto text-xs text-ink-subtle tabular-nums">
+                      <span className="ml-auto text-[12px] text-ink-subtle tabular-nums">
                         {i.count}
                       </span>
                     ) : null}
                     {i.pro ? (
-                      <span className="ml-auto rounded-sm bg-surface-sunken px-1.5 py-px text-[0.625rem] font-semibold text-ink">
+                      <span className="ml-auto rounded-[5px] bg-sidebar-raised px-1.5 text-[11px] font-semibold text-ink-muted">
                         {i.pro}
                       </span>
                     ) : null}

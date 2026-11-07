@@ -39,6 +39,22 @@
   --color-highlight-line: var(--highlight-line);
   --color-highlight-ink: var(--highlight-ink);
   --color-minus: var(--minus-ink);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-hover: var(--surface-hover);
+  --color-track: var(--track);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-body: var(--ink-body);
+  --color-ink-faint: var(--ink-faint);
+  --color-control-off: var(--control-off);
+  --color-check-line: var(--check-line);
+  --color-dash: var(--dash);
+  --color-avatar: var(--avatar);
+  --color-leaf-head: var(--leaf-head);
+  --color-scrim: var(--scrim);
+  --color-sidebar-raised: var(--sidebar-raised);
+  --color-ink-caption: var(--ink-caption);
+  --color-tab-ink: var(--tab-ink);
+  --color-ink-strong: var(--ink-strong);
 
   --font-display: var(--type-display);
   --font-label: var(--type-label);

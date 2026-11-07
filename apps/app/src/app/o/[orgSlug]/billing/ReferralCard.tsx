@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { SettingsRow } from "@/components/ui/Controls";
 import { Input } from "@/components/ui/Field";
 
 /** Section 9.22 : lien de parrainage et résultats. */
@@ -21,18 +21,18 @@ export function ReferralCard({
   const t = useTranslations("referral");
   const [copied, setCopied] = useState(false);
   return (
-    <Card className="grid gap-3">
-      <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
-      <p className="-mt-1 text-sm text-ink-muted">{t("intro")}</p>
-      <div className="flex flex-wrap gap-2">
-        <Input
-          readOnly
-          value={url}
-          aria-label={t("link")}
-          className="min-w-0 flex-1 font-mono text-base"
-          data-testid="referral-link"
-          onFocus={(e) => e.currentTarget.select()}
-        />
+    // refonte A3 (maquette « Réglages de l'événement ») : une rangée, le titre et l'explication à gauche
+    <SettingsRow title={t("title")} description={t("intro")}>
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1">
+          <Input
+            readOnly
+            value={url}
+            aria-label={t("link")}
+            data-testid="referral-link"
+            onFocus={(e) => e.currentTarget.select()}
+          />
+        </span>
         <Button
           type="button"
           variant="secondary"
@@ -44,7 +44,9 @@ export function ReferralCard({
           {copied ? t("copied") : t("copy")}
         </Button>
       </div>
-      <p className="text-sm">{t("stats", { signedUp, qualified, rewarded })}</p>
-    </Card>
+      <p className="text-[13px] text-ink-muted">
+        {t("stats", { signedUp, qualified, rewarded })}
+      </p>
+    </SettingsRow>
   );
 }

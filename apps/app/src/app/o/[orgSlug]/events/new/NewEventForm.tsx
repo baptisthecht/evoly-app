@@ -1,5 +1,6 @@
 "use client";
 
+import { SettingsRow } from "@/components/ui/Controls";
 import type { FeeTerms } from "@evoly/core";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -42,7 +43,8 @@ export function NewEventForm({
   );
   const error = useFieldError(state);
   return (
-    <form {...formProps} className="grid gap-10" noValidate>
+    // refonte A3 (maquette « Réglages de l'événement ») : les rangées de l'événement, puis celle du premier tarif
+    <form {...formProps} className="grid" noValidate>
       <FormError state={state} />
       <EventFields
         values={{
@@ -63,12 +65,12 @@ export function NewEventForm({
         error={error}
         venue={venue}
       />
-      <fieldset className="grid gap-5">
-        <legend className="mb-1 text-[0.9375rem] font-semibold">
-          {t("sectionTickets")}
-        </legend>
-        <p className="-mt-3 text-sm text-ink-muted">{t("firstTicketHint")}</p>
-        <div className="grid gap-5 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <SettingsRow
+        fieldset
+        title={t("sectionTickets")}
+        description={t("firstTicketHint")}
+      >
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <Field
             label={t("ticketName")}
             htmlFor="ticketName"
@@ -107,13 +109,10 @@ export function NewEventForm({
           onPrice={setPrice}
           terms={terms}
         />
-      </fieldset>
-      <SubmitButton
-        pending={pending}
-        className="w-full sm:w-auto sm:justify-self-start"
-      >
-        {t("createDraft")}
-      </SubmitButton>
+      </SettingsRow>
+      <div className="pt-5 lg:pl-[282px]">
+        <SubmitButton pending={pending}>{t("createDraft")}</SubmitButton>
+      </div>
     </form>
   );
 }

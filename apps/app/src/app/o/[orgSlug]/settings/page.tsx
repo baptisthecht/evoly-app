@@ -2,9 +2,10 @@ import { baseLocale } from "@evoly/i18n";
 import { can, canOwnerOnly } from "@evoly/core";
 import type { Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Badge, Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Card";
+import { ButtonLink } from "@/components/ui/Button";
+import { SettingsRow } from "@/components/ui/Controls";
 import { db } from "@/lib/db";
 import { LAUNCH_COUNTRIES } from "@/lib/countries";
 import { canonicalOrgUrl } from "@/server/canonical";
@@ -54,88 +55,77 @@ export default async function SettingsPage({
         ? "warning"
         : "neutral";
   // Avancé : supprimer l'organisation (le propriétaire seulement)
+  // refonte A3 (maquette « Réglages de l'événement ») : des rangées, le titre et l'explication à gauche
   if (tab === "advanced")
-    return (
-      <div className="grid gap-6">
-        {owner ? (
-          <Card className="grid gap-3 ring-1 ring-danger/40">
-            <h2 className="text-[0.9375rem] font-semibold text-danger">
-              {ts("deleteTitle")}
-            </h2>
-            <p className="-mt-1 text-sm text-ink-muted">{ts("deleteIntro")}</p>
-            <DeleteOrganization
-              orgSlug={orgSlug}
-              name={org.name}
-              blockers={blockers}
-            />
-          </Card>
-        ) : (
-          <p className="text-sm text-ink-muted">{ts("deleteOwnerOnly")}</p>
-        )}
+    return owner ? (
+      <div>
+        <SettingsRow title={ts("deleteTitle")} description={ts("deleteIntro")}>
+          <DeleteOrganization
+            orgSlug={orgSlug}
+            name={org.name}
+            blockers={blockers}
+          />
+        </SettingsRow>
       </div>
+    ) : (
+      <p className="text-[13px] text-ink-muted">{ts("deleteOwnerOnly")}</p>
     );
   return (
-    <div className="grid gap-6">
-      <Card className="grid gap-4">
-        <OrganizationSettingsForm
-          orgSlug={orgSlug}
-          readOnly={!can(ctx.membership, "ORG_SETTINGS_EDIT") || ctx.readOnly}
-          currencyLocked={locked}
-          currencies={[...new Set(currencies.map((c) => c.currency))]}
-          countries={LAUNCH_COUNTRIES.map((c) => ({
-            code: c.code,
-            name: c.name[baseLocale(locale)],
-          }))}
-          values={{
-            name: org.name,
-            legalName: org.legalName ?? "",
-            type: org.type,
-            description: org.description ?? "",
-            contactEmail: org.contactEmail ?? "",
-            phone: org.phone ?? "",
-            website: org.website ?? "",
-            country: org.country,
-            currency: org.currency,
-            locale: org.locale,
-            timezone: org.timezone,
-            addressLine1: org.addressLine1 ?? "",
-            addressLine2: org.addressLine2 ?? "",
-            postalCode: org.postalCode ?? "",
-            city: org.city ?? "",
-            vatNumber: org.vatNumber ?? "",
-            vatRegistered: org.vatRegistered,
-          }}
-        />
-      </Card>
-      <Link href={`/o/${orgSlug}/brand`} className="block rounded-lg">
-        <Card className="flex flex-wrap items-center justify-between gap-3 transition-shadow hover:shadow-md">
-          <div className="grid min-w-0 gap-1">
-            <h2 className="text-[0.9375rem] font-semibold">
-              {ts("pageAddress")}
-            </h2>
-            <p className="truncate font-mono text-sm text-ink-muted">
-              {url.replace(/^https?:\/\//, "")}
-            </p>
+    <div>
+      <OrganizationSettingsForm
+        orgSlug={orgSlug}
+        readOnly={!can(ctx.membership, "ORG_SETTINGS_EDIT") || ctx.readOnly}
+        currencyLocked={locked}
+        currencies={[...new Set(currencies.map((c) => c.currency))]}
+        countries={LAUNCH_COUNTRIES.map((c) => ({
+          code: c.code,
+          name: c.name[baseLocale(locale)],
+        }))}
+        values={{
+          name: org.name,
+          legalName: org.legalName ?? "",
+          type: org.type,
+          description: org.description ?? "",
+          contactEmail: org.contactEmail ?? "",
+          phone: org.phone ?? "",
+          website: org.website ?? "",
+          country: org.country,
+          currency: org.currency,
+          locale: org.locale,
+          timezone: org.timezone,
+          addressLine1: org.addressLine1 ?? "",
+          addressLine2: org.addressLine2 ?? "",
+          postalCode: org.postalCode ?? "",
+          city: org.city ?? "",
+          vatNumber: org.vatNumber ?? "",
+          vatRegistered: org.vatRegistered,
+        }}
+      />
+      <div className="mt-5 border-t border-line">
+        <SettingsRow
+          title={ts("pageAddress")}
+          description={url.replace(/^https?:\/\//, "")}
+        >
+          <div>
+            <ButtonLink href={`/o/${orgSlug}/brand`} variant="secondary">
+              {ts("changeAddress")}
+            </ButtonLink>
           </div>
-          <span className="text-sm font-semibold underline underline-offset-4">
-            {ts("changeAddress")}
-          </span>
-        </Card>
-      </Link>
-      <Link
-        href={`/o/${orgSlug}/settings/payments`}
-        className="block rounded-lg"
-      >
-        <Card className="flex items-center justify-between gap-4 transition-shadow hover:shadow-md">
-          <div className="grid gap-1">
-            <h2 className="text-[0.9375rem] font-semibold">{t("payments")}</h2>
-            <p className="text-sm text-ink-muted">{t("paymentsSummary")}</p>
+        </SettingsRow>
+        <SettingsRow title={t("payments")} description={t("paymentsSummary")}>
+          <div className="flex flex-wrap items-center gap-3">
+            <Badge tone={stripeTone} dot>
+              {t(`stripeStatus_${ctx.stripe?.status ?? "NONE"}`)}
+            </Badge>
+            <ButtonLink
+              href={`/o/${orgSlug}/settings/payments`}
+              variant="secondary"
+            >
+              {t("payments")}
+            </ButtonLink>
           </div>
-          <Badge tone={stripeTone}>
-            {t(`stripeStatus_${ctx.stripe?.status ?? "NONE"}`)}
-          </Badge>
-        </Card>
-      </Link>
+        </SettingsRow>
+      </div>
     </div>
   );
 }

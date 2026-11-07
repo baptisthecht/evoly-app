@@ -62,7 +62,7 @@ export async function teamOverview(ctx: OrgContext, now = new Date()) {
         expiresAt: { gt: now },
       },
       include: {
-        role: { select: { name: true, systemKey: true } },
+        role: { select: { id: true, name: true, systemKey: true } },
         invitedBy: { select: { name: true } },
       },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],

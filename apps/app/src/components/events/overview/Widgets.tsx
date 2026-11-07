@@ -1,405 +1,276 @@
-import { formatMoney, type Locale } from "@evoly/i18n";
+import { formatDate, formatMoney, type Locale } from "@evoly/i18n";
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { Card } from "@/components/ui/Card";
-import { cn } from "@/components/ui/cn";
-import type { eventOverview, SalesPeriod } from "@/server/eventOverview";
-import { SubmitOnChange } from "./SubmitOnChange";
+import { SectionTitle } from "@/components/ui/Controls";
+import { Gauge } from "@/components/ui/SalesGauge";
+import type { eventOverview } from "@/server/eventOverview";
 
-type T = (key: string, values?: Record<string, string | number>) => string;
+/*
+ * Vue d'ensemble d'un événement, refonte A3 (maquette UIUX/pages-a3.html, « Vue d'ensemble d'un événement ») : le bandeau
+ * du rythme, trois indicateurs et l'histogramme des billets vendus jour par jour, les tarifs en lignes avec leur jauge, les
+ * dernières commandes.
+ */
+
 type Overview = Awaited<ReturnType<typeof eventOverview>>;
+type T = (key: string, values?: Record<string, string | number>) => string;
 
-/** Chiffre de la vue d'ensemble (refonte A3) : sans carte, le chiffre en Archivo Black. */
-export function Kpi({
+/** Les billets vendus jour par jour (30 jours) : barres grises, la dernière en charbon (« .spark », 280 × 52). */
+export function TicketsSpark({
+  days,
   label,
-  value,
-  children,
 }: {
+  days: Overview["days"];
   label: string;
-  value: ReactNode;
-  children?: ReactNode;
 }) {
+  const W = 280;
+  const H = 52;
+  const gap = 3;
+  const n = Math.max(1, days.length);
+  const bw = (W - gap * (n - 1)) / n;
+  const max = Math.max(1, ...days.map((d) => d.tickets));
   return (
-    <div className="grid min-w-0 content-start gap-1">
-      <span className="text-[0.8125rem] text-ink-muted">{label}</span>
-      <span className="font-figures text-[1.5rem] leading-tight tracking-[var(--tracking-figures)] tabular-nums sm:text-[1.6875rem]">
-        {value}
-      </span>
-      {children}
-    </div>
-  );
-}
-
-export function Gauge({ ratio }: { ratio: number }) {
-  return (
-    <div
-      aria-hidden="true"
-      className="h-1 overflow-hidden rounded-full bg-line"
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="h-[52px] w-[280px] max-w-full"
+      role="img"
+      aria-label={label}
     >
-      <div
-        className={cn(
-          "h-full rounded-full",
-          ratio >= 1 ? "bg-success" : "bg-ink", // vert : statut « complet » seulement (refonte A3)
-        )}
-        style={{
-          width: `${Math.round(Math.min(1, Math.max(0, ratio)) * 100)}%`,
-        }}
-      />
-    </div>
+      {days.map((d, i) => {
+        const h = Math.max(2, (d.tickets / max) * (H - 4));
+        return (
+          <rect
+            key={d.day}
+            x={i * (bw + gap)}
+            y={H - h}
+            width={bw}
+            height={h}
+            rx={1.5}
+            fill={
+              i === days.length - 1 ? "var(--ink-strong)" : "var(--control-off)"
+            }
+          >
+            <title>{`${d.day} : ${d.tickets}`}</title>
+          </rect>
+        );
+      })}
+    </svg>
   );
 }
 
-/** Ventes par jour : barres, la dernière (aujourd'hui) foncée ; choix de la période par lien. */
-export function SalesChart({
-  o,
-  t,
-  period,
-  base,
-  locale,
-  className,
-}: {
-  o: Overview;
-  t: T;
-  period: SalesPeriod;
-  base: string;
-  locale: Locale;
-  className?: string;
-}) {
-  const max = Math.max(1, ...o.days.map((d) => d.tickets));
-  const total = o.days.reduce((n, d) => n + d.tickets, 0);
-  const w = 700;
-  const gap = o.days.length > 30 ? 2 : 6;
-  const bw = (w - gap * (o.days.length - 1)) / o.days.length;
-  const first = o.days[0]!.day;
-  const firstLabel = new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "short",
-    timeZone: "UTC",
-  }).format(new Date(`${first}T12:00:00Z`));
-  return (
-    <Card className={cn("grid min-w-0 gap-3.5", className)}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[0.9375rem] font-semibold">
-          {t(
-            period === "7"
-              ? "salesTitle7"
-              : period === "14"
-                ? "salesTitle14"
-                : "salesTitleAll",
-          )}
-        </h2>
-        <nav
-          aria-label={t("period")}
-          className="inline-flex overflow-hidden rounded-md ring-1 ring-line-strong"
-        >
-          {(["7", "14", "all"] as const).map((p) => (
-            <Link
-              key={p}
-              href={`${base}?ventes=${p}`}
-              aria-current={p === period ? "true" : undefined}
-              scroll={false}
-              className={
-                p === period
-                  ? "inline-flex min-h-9 items-center bg-surface-inverse px-3 text-[0.8125rem] font-medium text-ink-inverse"
-                  : "inline-flex min-h-9 items-center bg-surface-raised px-3 text-[0.8125rem] font-medium text-ink-muted hover:text-ink"
-              }
-            >
-              {t(p === "7" ? "period7" : p === "14" ? "period14" : "periodAll")}
-            </Link>
-          ))}
-        </nav>
-      </div>
-      <svg
-        role="img"
-        aria-label={t("chartLabel", { total })}
-        viewBox={`0 0 ${w} 184`}
-        className="h-48 w-full"
-      >
-        <line x1="0" y1="180" x2={w} y2="180" stroke="var(--line)" />
-        <line
-          x1="0"
-          y1="120"
-          x2={w}
-          y2="120"
-          stroke="var(--line)"
-          strokeOpacity="0.5"
-        />
-        <line
-          x1="0"
-          y1="60"
-          x2={w}
-          y2="60"
-          stroke="var(--line)"
-          strokeOpacity="0.5"
-        />
-        {o.days.map((d, i) => {
-          const h = d.tickets ? Math.max(4, (d.tickets / max) * 160) : 2;
-          return (
-            <rect
-              key={d.day}
-              x={i * (bw + gap)}
-              y={180 - h}
-              width={bw}
-              height={h}
-              rx={Math.min(4, bw / 3)}
-              fill={d.day === o.today ? "var(--ink)" : "var(--line-strong)"}
-            />
-          );
-        })}
-      </svg>
-      <div
-        aria-hidden="true"
-        className="-mt-2 flex justify-between text-xs text-ink-muted"
-      >
-        <span>{firstLabel}</span>
-        <span>{t("today")}</span>
-      </div>
-    </Card>
-  );
+interface TierRow {
+  id: string;
+  name: string;
+  description: string | null;
+  priceMinor: number;
+  quantity: number | null;
+  quantitySold: number;
+  salesEndAt: Date | null;
 }
 
-/** Tarifs et leur remplissage ; ventes par palier pour les prix dynamiques (RG-TKT-11). */
-export function TiersCard({
+/** Les tarifs (« Tarifs » de la maquette) : nom et période, prix, puis ventes sur la jauge (verte au complet). */
+export function TiersTable({
   t,
   locale,
   currency,
+  timezone,
   types,
-  tiersSold,
   ticketsHref,
 }: {
   t: T;
   locale: Locale;
   currency: string;
-  types: Array<{
-    id: string;
-    name: string;
-    priceMinor: number;
-    quantity: number | null;
-    quantitySold: number;
-  }>;
-  tiersSold: Map<string, Array<{ name: string; sold: number }>>;
+  timezone: string;
+  types: TierRow[];
   ticketsHref: string | null;
 }) {
   return (
-    <section className="grid content-start gap-1.5">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-[0.9375rem] font-semibold">{t("tiersTitle")}</h2>
-        {ticketsHref ? (
-          <Link
-            href={ticketsHref}
-            className="text-[0.8125rem] text-ink-muted hover:text-ink"
-          >
-            {t("manage")}
-          </Link>
-        ) : null}
-      </div>
-      {types.map((tt) => {
-        const soldOut = tt.quantity !== null && tt.quantitySold >= tt.quantity;
-        const tiers = tiersSold.get(tt.id) ?? [];
-        return (
-          <div
-            key={tt.id}
-            className="grid gap-1.5 border-b border-line py-2.5 first-of-type:border-t"
-          >
-            <div className="flex justify-between gap-3 text-[0.8125rem]">
-              <span className="flex min-w-0 gap-3">
-                <span className="truncate font-medium">{tt.name}</span>
-                <span className="text-ink-muted tabular-nums">
-                  {formatMoney(tt.priceMinor, currency, locale)}
+    <section aria-labelledby="tiers-title" className="min-w-0">
+      <SectionTitle
+        id="tiers-title"
+        title={t("tiersTitle")}
+        link={
+          ticketsHref
+            ? { href: ticketsHref, label: t("manageTickets") }
+            : undefined
+        }
+        className="max-md:[&>a]:hidden"
+      />
+      {/* sur téléphone (maquette « Sur téléphone », « .ocard ») : le nom et le prix, la jauge, puis les ventes */}
+      <ul role="list" className="md:hidden">
+        {types.map((tt) => {
+          const full = tt.quantity !== null && tt.quantitySold >= tt.quantity;
+          return (
+            <li key={tt.id} className="grid gap-1 border-b border-line py-3">
+              <p className="flex items-baseline justify-between gap-3">
+                <b className="font-semibold">{tt.name}</b>
+                <span className="tabular-nums">
+                  {tt.priceMinor === 0
+                    ? t("free")
+                    : formatMoney(tt.priceMinor, currency, locale)}
                 </span>
-              </span>
-              <span
-                className={
-                  soldOut
-                    ? "shrink-0 font-medium text-success"
-                    : "shrink-0 text-ink-muted tabular-nums"
-                }
-              >
-                {soldOut
-                  ? t("soldOut")
-                  : tt.quantity !== null
+              </p>
+              {tt.quantity !== null ? (
+                <Gauge
+                  ratio={tt.quantitySold / Math.max(1, tt.quantity)}
+                  tone={full ? "success" : "ink"}
+                />
+              ) : null}
+              <p className="flex items-center justify-between gap-3 text-[13px] text-ink-muted tabular-nums">
+                <span>
+                  {tt.quantity !== null
                     ? t("soldOf", { sold: tt.quantitySold, total: tt.quantity })
                     : t("soldUnlimited", { sold: tt.quantitySold })}
-              </span>
-            </div>
-            {tt.quantity !== null ? (
-              <Gauge ratio={tt.quantitySold / Math.max(1, tt.quantity)} />
-            ) : null}
-            {tiers.length > 1 ? (
-              <span className="text-xs text-ink-muted" data-testid="tier-sales">
-                {tiers.map((x) => `${x.name} : ${x.sold}`).join(", ")}
-              </span>
-            ) : null}
-          </div>
-        );
-      })}
-      {ticketsHref ? (
-        <Link
-          href={ticketsHref}
-          className="mt-1 inline-flex min-h-10 items-center text-[0.8125rem] font-medium text-ink-muted underline-offset-4 hover:text-ink hover:underline"
-        >
-          {t("addTier")}
-        </Link>
-      ) : null}
+                </span>
+                {full ? (
+                  <span className="text-[12.5px] text-success">
+                    {t("complete")}
+                  </span>
+                ) : null}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+      <table className="w-full border-collapse max-md:hidden">
+        <tbody>
+          {types.map((tt) => {
+            const full = tt.quantity !== null && tt.quantitySold >= tt.quantity;
+            const sub =
+              tt.description ||
+              (tt.salesEndAt
+                ? t("untilDate", {
+                    date: formatDate(tt.salesEndAt, timezone, locale).replace(
+                      /\s\d{4}$/,
+                      "",
+                    ),
+                  })
+                : null);
+            return (
+              <tr key={tt.id}>
+                <td className="border-b border-line p-2.5 align-middle tabular-nums">
+                  <b className="font-semibold">{tt.name}</b>
+                  {sub ? (
+                    <>
+                      <br />
+                      <small className="text-[12.5px] text-ink-muted">
+                        {sub}
+                      </small>
+                    </>
+                  ) : null}
+                </td>
+                <td className="w-20 border-b border-line p-2.5 text-right align-middle whitespace-nowrap tabular-nums">
+                  {tt.priceMinor === 0
+                    ? t("free")
+                    : formatMoney(tt.priceMinor, currency, locale)}
+                </td>
+                <td className="w-[170px] border-b border-line p-2.5 align-middle tabular-nums">
+                  {tt.quantity !== null ? (
+                    <>
+                      <div className="mb-1 flex justify-between text-[12.5px]">
+                        <span>
+                          {t("soldOf", {
+                            sold: tt.quantitySold,
+                            total: tt.quantity,
+                          })}
+                        </span>
+                        {full ? (
+                          <span className="text-success">{t("complete")}</span>
+                        ) : null}
+                      </div>
+                      <Gauge
+                        ratio={tt.quantitySold / Math.max(1, tt.quantity)}
+                        tone={full ? "success" : "ink"}
+                      />
+                    </>
+                  ) : (
+                    <span className="text-[12.5px]">
+                      {t("soldUnlimited", { sold: tt.quantitySold })}
+                    </span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </section>
   );
 }
 
-/** Dernières commandes : recherche et filtre menant à la page des commandes, export, statuts colorés. */
+/** Les dernières commandes (« .row ») : le nom, les billets et leur tarif, le montant et quand. */
 export function RecentOrders({
   o,
   t,
   locale,
   ordersHref,
-  exportHref,
+  orderBase,
   showAmounts,
 }: {
   o: Overview;
   t: T;
   locale: Locale;
   ordersHref: string;
-  exportHref: string;
+  /** Adresse des fiches de commande (« /o/club/orders »). */
+  orderBase: string;
   showAmounts: boolean;
 }) {
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  const rtf = new Intl.RelativeTimeFormat(locale, {
+    numeric: "auto",
+    style: "short",
+  });
   const ago = (d: Date) => {
-    const s = (d.getTime() - Date.now()) / 1000;
-    for (const [unit, n] of [
-      ["day", 86400],
-      ["hour", 3600],
-      ["minute", 60],
-    ] as const)
-      if (Math.abs(s) >= n) return rtf.format(Math.round(s / n), unit);
-    return rtf.format(0, "minute");
+    const m = Math.round((d.getTime() - Date.now()) / 60_000);
+    if (Math.abs(m) < 60) return rtf.format(m, "minute");
+    const h = Math.round(m / 60);
+    if (Math.abs(h) < 24) return rtf.format(h, "hour");
+    return rtf.format(Math.round(h / 24), "day");
   };
-  const tone = {
-    PAID: "bg-success-soft text-success",
-    PARTIALLY_REFUNDED: "bg-warning-soft text-ink",
-    REFUNDED: "bg-surface text-ink-muted",
-  } as const;
   return (
-    <section
-      aria-labelledby="recent-orders"
-      className="overflow-hidden border-t border-line" // refonte A3 : section sans carte
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-4">
-        <h2 id="recent-orders" className="text-[0.9375rem] font-semibold">
-          {t("recentOrders")}
-        </h2>
-        <form
-          action={ordersHref}
-          className="flex flex-wrap gap-2"
-          role="search"
-          aria-label={t("search")}
-        >
-          <div className="relative w-full sm:w-auto">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="M20 20l-3.5-3.5" />
-            </svg>
-            <input
-              name="q"
-              aria-label={t("search")}
-              placeholder={t("searchPlaceholder")}
-              className="h-11 w-full rounded-md sm:w-80 bg-surface-raised pr-3 pl-9 text-[0.8125rem] shadow-[inset_0_0_0_1px_var(--line-strong)] outline-none focus:shadow-[var(--field-focus)]"
-            />
-          </div>
-          <SubmitOnChange
-            name="filter"
-            aria-label={t("status")}
-            defaultValue="ALL"
-            className="h-11 rounded-md bg-surface-raised px-3 text-[0.8125rem] shadow-[inset_0_0_0_1px_var(--line-strong)]"
-          >
-            <option value="ALL">{t("allStatuses")}</option>
-            {(["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] as const).map((s) => (
-              <option key={s} value={s}>
-                {t(s)}
-              </option>
-            ))}
-          </SubmitOnChange>
-          <a
-            href={exportHref}
-            className="inline-flex h-11 items-center rounded-md bg-surface-raised px-3.5 text-[0.8125rem] font-medium shadow-[inset_0_0_0_1px_var(--line-strong)] hover:shadow-[inset_0_0_0_1px_var(--ink)]"
-          >
-            {t("export")}
-          </a>
-        </form>
-      </div>
-      {o.recent.length ? (
-        <div className="overflow-x-auto">
-          <table className="w-full text-[0.8125rem]">
-            <thead>
-              <tr className="text-left text-xs text-ink-muted">
-                <th className="px-5 py-2.5 font-medium">{t("buyer")}</th>
-                <th className="px-3 py-2.5 font-medium">{t("tickets")}</th>
-                {showAmounts ? (
-                  <th className="px-3 py-2.5 font-medium">{t("amount")}</th>
-                ) : null}
-                <th className="px-3 py-2.5 font-medium">{t("status")}</th>
-                <th className="px-5 py-2.5 text-right font-medium">
-                  {t("date")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {o.recent.map((r) => (
-                <tr key={r.id} className="border-t border-line">
-                  <td className="px-5 py-3">
-                    <Link
-                      href={`${ordersHref}/${r.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {r.buyer}
-                    </Link>
-                    <br />
-                    <span className="text-xs text-ink-muted">{r.email}</span>
-                  </td>
-                  <td className="px-3 py-3">{r.lines}</td>
-                  {showAmounts ? (
-                    <td className="px-3 py-3 tabular-nums">
-                      {formatMoney(r.totalMinor, r.currency, locale)}
-                    </td>
-                  ) : null}
-                  <td className="px-3 py-3">
-                    <span
-                      className={cn(
-                        "inline-flex h-[1.375rem] items-center rounded-sm px-2 text-xs font-medium",
-                        tone[r.status],
-                      )}
-                    >
-                      {t(r.status)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-right whitespace-nowrap text-ink-muted">
-                    {ago(r.at)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="px-5 py-6 text-[0.8125rem] text-ink-muted">
+    <section aria-labelledby="recent-title" className="min-w-0">
+      <SectionTitle
+        id="recent-title"
+        title={t("recentOrders")}
+        link={{ href: ordersHref, label: t("allOrders") }}
+      />
+      {o.recent.length === 0 ? (
+        <p className="border-b border-line py-[9px] text-ink-muted">
           {t("noOrders")}
         </p>
+      ) : (
+        <ul role="list">
+          {o.recent.slice(0, 3).map((r) => (
+            <li key={r.id} className="border-b border-line">
+              <Link
+                href={`${orderBase}/${r.id}`}
+                className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-[9px] hover:bg-surface-hover"
+              >
+                <span className="min-w-0">
+                  <b className="font-medium">{r.buyer}</b>
+                  <small className="block text-[12.5px] text-ink-muted">
+                    {r.complimentary
+                      ? t("invitations", { count: r.tickets })
+                      : r.ticketType
+                        ? t("ticketsOfType", {
+                            count: r.tickets,
+                            type: r.ticketType,
+                          })
+                        : t("ticketsCount", { count: r.tickets })}
+                  </small>
+                </span>
+                <span className="text-right tabular-nums">
+                  {showAmounts
+                    ? r.complimentary
+                      ? t("offered")
+                      : formatMoney(r.totalMinor, r.currency, locale)
+                    : null}
+                  <small className="block text-[12.5px] text-ink-muted">
+                    {ago(r.at)}
+                  </small>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
-      <div className="flex justify-end border-t border-line px-5 py-3">
-        <Link
-          href={ordersHref}
-          className="text-[0.8125rem] text-ink-muted hover:text-ink"
-        >
-          {t("allOrders")}
-        </Link>
-      </div>
     </section>
   );
 }

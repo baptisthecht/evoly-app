@@ -27,16 +27,17 @@ export async function OrderHeader({
   return (
     <PageHeader
       eyebrow={
-        <p className="text-xs text-ink-muted">
+        <p className="text-[12.5px] text-ink-muted">
           <Link href={`${org}/orders`} className="hover:text-ink">
             {nav("orders")}
           </Link>{" "}
-          / <span className="font-mono">{order.reference}</span>
+          / <span className="tabular-nums">{order.reference}</span>
         </p>
       }
       title={`${order.buyerFirstName} ${order.buyerLastName}`}
       badge={
         <Badge
+          dot
           tone={
             order.status === "PAID"
               ? "success"
@@ -53,7 +54,7 @@ export async function OrderHeader({
         </Badge>
       }
       meta={
-        <p className="text-[0.8125rem] text-ink-muted">
+        <p className="text-[13px] text-ink-muted">
           {order.event.title} ·{" "}
           {formatDateTime(
             order.createdAt,

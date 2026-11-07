@@ -3,11 +3,14 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { CopyButton } from "@/components/CopyButton";
 import { ProLocked } from "@/components/ProLocked";
-import { Card } from "@/components/ui/Card";
+import { buttonClass } from "@/components/ui/Button";
+import { SectionTitle, SettingsRow } from "@/components/ui/Controls";
+import { Input } from "@/components/ui/Field";
 import { env } from "@/lib/env";
 import { requireOrgContext } from "@/server/context";
 import { listEmbedOrigins } from "@/server/embed";
 import { getEventWithTickets } from "@/server/events";
+import { eventVisits } from "@/server/eventOverview";
 import { eventPublicUrl } from "@/server/urls";
 import { EventAppearance } from "../settings/EventAppearance";
 import { AddOriginForm, RemoveOrigin } from "./EmbedForms";
@@ -32,6 +35,36 @@ export default async function DiffusionPage({
     can(ctx.membership, "EVENTS_EDIT") &&
     !ctx.readOnly &&
     !["CANCELLED", "ENDED", "ARCHIVED"].includes(event.status);
+  const saleUrl = eventPublicUrl(
+    {
+      subdomain: ctx.organization.subdomain ?? null,
+      slug: ctx.organization.slug,
+    },
+    event,
+  );
+  const [visits, ov, tn] = await Promise.all([
+    eventVisits(eventId),
+    getTranslations("overview"),
+    getTranslations("nav"),
+  ]);
+  // refonte A3 (maquette « Réglages de l'événement ») : une rangée par réglage, le titre et l'explication à gauche.
+  // D'abord le lien à partager et ses visites (retirés de la vue d'ensemble, qui suit la maquette), puis le sous-domaine
+  const share = (
+    <SettingsRow title={t("linkTitle")} description={t("linkHint")}>
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1">
+          <Input readOnly value={saleUrl} aria-label={t("linkTitle")} />
+        </span>
+        <CopyButton value={saleUrl} label={tn("copyLink")} size="md" />
+      </div>
+      <p className="text-[13px] text-ink-muted">
+        {t("visitsLine", { views: visits.views })}
+        {visits.conversionPct !== null
+          ? `, ${ov("conversion", { pct: visits.conversionPct })}`
+          : ""}
+      </p>
+    </SettingsRow>
+  );
   const link = editable ? (
     <EventAppearance
       orgSlug={orgSlug}
@@ -44,11 +77,18 @@ export default async function DiffusionPage({
       protocol={new URL(env().NEXT_PUBLIC_APP_URL).protocol}
     />
   ) : null;
+  const site = (
+    <div className="pt-6 pb-1">
+      <SectionTitle title={t("siteTitle")} />
+      <p className="max-w-[720px] text-[13px] text-ink-muted">{t("intro")}</p>
+    </div>
+  );
   if (!hasFeature(ctx.features, "EMBED_WIDGET")) {
     return (
-      <div className="grid gap-4">
+      <div>
+        {share}
         {link}
-        <p className="text-ink-muted">{t("intro")}</p>
+        {site}
         <ProLocked
           orgSlug={orgSlug}
           feature="EMBED_WIDGET"
@@ -60,27 +100,25 @@ export default async function DiffusionPage({
   const origins = await listEmbedOrigins(ctx);
   const manage = can(ctx.membership, "MARKETING_MANAGE") && !ctx.readOnly;
   const app = env().NEXT_PUBLIC_APP_URL;
-  const saleUrl = eventPublicUrl(
-    {
-      subdomain: ctx.organization.subdomain ?? null,
-      slug: ctx.organization.slug,
-    },
-    event,
-  );
   const script = `<script src="${app}/embed.js" defer></script>`;
   const button = `${script}\n<a href="${saleUrl}" data-evoly-button>${t("bookLabel")}</a>`;
   const module = `${script}\n<div data-evoly-module="${event.id}"></div>`;
+  const pre =
+    "overflow-x-auto rounded-[8px] bg-surface-soft px-3 py-2.5 text-[12.5px] leading-[1.5] text-ink-body";
   return (
-    <div className="grid gap-4">
+    <div>
+      {share}
       {link}
-      <p className="text-ink-muted">{t("intro")}</p>
-      <Card className="grid gap-3">
-        <h2 className="text-[0.9375rem] font-semibold">{t("sitesTitle")}</h2>
+      {site}
+      <SettingsRow title={t("sitesTitle")} description={t("sitesHint")}>
         {origins.length ? (
-          <ul className="grid gap-1 text-sm">
+          <ul role="list">
             {origins.map((o) => (
-              <li key={o} className="flex items-center justify-between gap-3">
-                <code className="break-all">{o}</code>
+              <li
+                key={o}
+                className="flex items-center justify-between gap-3 border-b border-line py-1.5"
+              >
+                <span className="break-all">{o}</span>
                 {manage ? (
                   <RemoveOrigin
                     orgSlug={orgSlug}
@@ -93,40 +131,38 @@ export default async function DiffusionPage({
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-ink-muted">{t("noSites")}</p>
+          <p className="text-[13px] text-ink-muted">{t("noSites")}</p>
         )}
         {manage ? <AddOriginForm orgSlug={orgSlug} eventId={eventId} /> : null}
-      </Card>
+      </SettingsRow>
       {[
         { title: t("buttonTitle"), hint: t("buttonHint"), code: button },
         { title: t("moduleTitle"), hint: t("moduleHint"), code: module },
-      ].map((b) => (
-        <Card key={b.title} className="grid gap-3">
-          <h2 className="text-[0.9375rem] font-semibold">{b.title}</h2>
-          <p className="text-sm text-ink-muted">{b.hint}</p>
-          <pre className="overflow-x-auto rounded-lg bg-surface-sunken p-3 text-xs">
+      ].map((b, i) => (
+        <SettingsRow key={b.title} title={b.title} description={b.hint}>
+          <pre className={pre}>
             <code>{b.code}</code>
           </pre>
-          <div>
-            <CopyButton value={b.code} label={t("copy")} />
+          <div className="flex flex-wrap items-center gap-2">
+            <CopyButton value={b.code} label={t("copy")} size="md" />
+            {i === 1 ? (
+              <a
+                href={`${app}/integre/${event.id}`}
+                target="_blank"
+                rel="noopener"
+                className={buttonClass("ghost")}
+              >
+                {t("preview")}
+              </a>
+            ) : null}
           </div>
-        </Card>
+        </SettingsRow>
       ))}
-      <Card className="grid gap-3">
-        <h2 className="text-[0.9375rem] font-semibold">{t("eventsTitle")}</h2>
-        <p className="text-sm text-ink-muted">{t("eventsHint")}</p>
-        <pre className="overflow-x-auto rounded-lg bg-surface-sunken p-3 text-xs">
+      <SettingsRow title={t("eventsTitle")} description={t("eventsHint")}>
+        <pre className={pre}>
           <code>{`<script>\n  window.addEventListener("evoly:order_completed", (e) => {\n    // e.detail : { tickets, amountMinor, currency }\n  });\n</script>`}</code>
         </pre>
-      </Card>
-      <a
-        href={`${app}/integre/${event.id}`}
-        target="_blank"
-        rel="noopener"
-        className="justify-self-start text-sm font-semibold underline underline-offset-4"
-      >
-        {t("preview")}
-      </a>
+      </SettingsRow>
     </div>
   );
 }

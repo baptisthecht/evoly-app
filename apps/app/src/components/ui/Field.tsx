@@ -13,12 +13,16 @@ import { cn } from "./cn";
 import { CheckIcon } from "./icons";
 import { FIELD_ICON_CLASS, FieldIcon, type FieldIconName } from "./fieldIcons";
 
-const control =
-  "block w-full h-[var(--field-h)] rounded-md bg-surface-raised px-4 text-[length:var(--field-text)] text-ink placeholder:text-ink-subtle " +
-  "shadow-[inset_0_0_0_var(--control-border)_var(--line-strong)] outline-none transition-shadow focus:shadow-[var(--field-focus)] " +
-  "aria-[invalid=true]:shadow-[inset_0_0_0_2px_var(--color-danger)]";
+// refonte A3 (maquettes UIUX/, « .inp ») : dans l'espace organisateur, 40 px, arrondi 8 px, 12 px de marge, 14 px
+const look =
+  "w-full rounded-[var(--field-radius)] bg-surface-raised px-[var(--field-px)] text-[length:var(--field-text)] text-ink placeholder:text-[var(--placeholder)] " +
+  "border-[length:var(--field-border)] border-line-strong shadow-[inset_0_0_0_var(--field-ring)_var(--line-strong)] outline-none transition-shadow focus:border-ink-strong focus:shadow-[var(--field-focus)] " +
+  "aria-[invalid=true]:border-danger aria-[invalid=true]:shadow-[inset_0_0_0_var(--field-ring-invalid)_var(--color-danger)]";
+const control = `block h-[var(--field-h)] ${look}`;
 /** Style commun des champs, repris par les listes sur mesure (choix des polices). */
 export const FIELD_CONTROL_CLASS = control;
+/** Zone de texte, du même dessin que les champs : hauteur libre, 10 px de marge en haut et en bas. */
+export const TEXTAREA_CLASS = `block py-2.5 leading-[1.45] ${look}`;
 
 export function Field({
   label,
@@ -97,11 +101,18 @@ export function Field({
       </div>
       {control}
       {error ? (
-        <p id={`${htmlFor}-error`} role="alert" className="text-sm text-danger">
+        <p
+          id={`${htmlFor}-error`}
+          role="alert"
+          className="-mt-px text-[length:var(--hint-size)] text-danger"
+        >
           {error}
         </p>
       ) : hint ? (
-        <p id={`${htmlFor}-hint`} className="text-sm text-ink-muted">
+        <p
+          id={`${htmlFor}-hint`}
+          className="-mt-px text-[length:var(--hint-size)] text-ink-muted"
+        >
           {hint}
         </p>
       ) : null}
@@ -135,7 +146,11 @@ export function Input({
         className={cn(FIELD_ICON_CLASS, "top-1/2 -translate-y-1/2")}
       />
       <input
-        className={cn(control, "has-icon relative pl-10", className)}
+        className={cn(
+          control,
+          "has-icon with-field-icon relative pl-10",
+          className,
+        )}
         aria-invalid={invalid || undefined}
         {...rest}
       />
@@ -153,8 +168,8 @@ export function Select({
     <select
       className={cn(
         control,
-        "appearance-none bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10",
-        icon && "pl-10",
+        "appearance-none bg-[length:12px] bg-[right_14px_center] bg-no-repeat pr-10",
+        icon && "with-field-icon pl-10",
         className,
       )}
       {...rest}

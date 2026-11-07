@@ -9,7 +9,7 @@ import {
   useFieldError,
 } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
-import { Field, Input } from "@/components/ui/Field";
+import { Field, Input, TEXTAREA_CLASS } from "@/components/ui/Field";
 import { cancelEventAction } from "../actions";
 
 /** RG-REF-07 : double confirmation (motif, puis saisie du titre de l'événement). */
@@ -36,9 +36,8 @@ export function CancelEvent({
     return (
       <Button
         type="button"
-        variant="ghost"
-        size="lg"
-        className="w-full text-danger"
+        variant="secondary"
+        className="justify-self-start text-danger!"
         onClick={() => setOpen(true)}
       >
         {t("cancelEvent")}
@@ -47,10 +46,10 @@ export function CancelEvent({
   return (
     <form
       {...formProps}
-      className="grid gap-4 rounded-md bg-danger-soft p-4"
+      className="grid gap-3.5 rounded-[10px] bg-danger-soft p-4"
       noValidate
     >
-      <p className="font-semibold text-danger">
+      <p className="font-medium text-danger">
         {t("cancelWarning", { count: paidOrders })}
       </p>
       <FormError state={state} />
@@ -66,7 +65,7 @@ export function CancelEvent({
           rows={3}
           maxLength={500}
           required
-          className="block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
+          className={TEXTAREA_CLASS}
         />
       </Field>
       <Field
@@ -83,24 +82,15 @@ export function CancelEvent({
         />
       </Field>
       <div className="flex flex-wrap gap-2">
-        <SubmitButton
-          pending={pending}
-          variant="danger"
-          className="w-full sm:w-auto"
-        >
+        <SubmitButton pending={pending} variant="danger">
           {t("cancelSubmit")}
         </SubmitButton>
-        <Button
-          type="button"
-          variant="ghost"
-          size="lg"
-          onClick={() => setOpen(false)}
-        >
+        <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
           {t("cancelAbort")}
         </Button>
       </div>
       {typed && typed.trim() !== title.trim() ? (
-        <p className="text-sm text-danger">{t("cancelTitleMismatch")}</p>
+        <p className="text-[13px] text-danger">{t("cancelTitleMismatch")}</p>
       ) : null}
     </form>
   );

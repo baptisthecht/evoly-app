@@ -97,5 +97,6 @@ export function FieldIcon({
 
 /** Place de l'icône dans un champ de hauteur fixe (centrée) ou dans un texte long (en haut). */
 // au premier plan : le champ, positionné pour le calendrier des dates, se peindrait par-dessus ; transparente aux clics
+// field-icon : repère pour l'espace organisateur, où les champs n'ont pas d'icône (maquettes UIUX/, globals.css)
 export const FIELD_ICON_CLASS =
-  "pointer-events-none absolute left-3.5 z-10 size-4 text-ink-subtle";
+  "field-icon pointer-events-none absolute left-3.5 z-10 size-4 text-ink-subtle";

@@ -4,11 +4,13 @@ import { LOCALE_NAMES, LOCALES } from "@evoly/i18n";
 import type { CampaignSegment, EmailDoc } from "@evoly/core";
 import { EmailEditor } from "@/components/email/EmailEditor";
 import { EmailPreview } from "@/components/email/EmailPreview";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { SavedNote } from "@/components/ui/Controls";
+import { DateTimeField } from "@/components/ui/DateTimeField";
 import { Field, Input, Select } from "@/components/ui/Field";
 import {
   audienceAction,
@@ -20,7 +22,6 @@ import {
   testAction,
   unscheduleAction,
 } from "./actions";
-import { uploadFile } from "@/app/o/[orgSlug]/brand/BrandClient";
 
 type EventOption = { id: string; title: string };
 type Values = {
@@ -30,9 +31,6 @@ type Values = {
   content: EmailDoc;
   segment: CampaignSegment;
 };
-
-const textarea =
-  "block w-full rounded-md bg-surface-raised px-4 py-3 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]";
 
 /** US-MKT-03 : éditeur par blocs, destinataires, aperçu, test, envoi immédiat ou programmé. */
 export function CampaignEditor({
@@ -55,6 +53,7 @@ export function CampaignEditor({
   userEmail: string;
 }) {
   const t = useTranslations("campaigns");
+  const locale = useLocale();
   const tf = useTranslations("formErrors");
   const router = useRouter();
   const [v, setV] = useState<Values>(initial);
@@ -324,90 +323,101 @@ export function CampaignEditor({
                 </option>
               ))}
             </Select>
-            <p className="text-sm font-semibold" data-testid="audience-count">
+            <p className="font-medium" data-testid="audience-count">
               {count == null ? "…" : t("recipients", { count })}
             </p>
-            <p className="text-xs text-ink-muted">{t("audienceHint")}</p>
+            <p className="text-[12.5px] text-ink-muted">{t("audienceHint")}</p>
           </Card>
-          <Card className="grid gap-2">
-            <Button
-              type="button"
-              onClick={() =>
-                run(async () => {
-                  if (await save()) setMessage({ ok: true, text: t("saved") });
-                })
-              }
-              disabled={pending}
-            >
-              {t("save")}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={pending}
-              onClick={() =>
-                run(async () => {
-                  const r = await saveTemplateAction(orgSlug, {
-                    name: v.name,
-                    subject: v.subject,
-                    previewText: v.previewText,
-                    content: v.content,
-                  });
-                  if (r?.ok) setMessage({ ok: true, text: t("templateSaved") });
-                  else fail(r?.error, r && !r.ok ? r.fields : undefined);
-                })
-              }
-            >
-              {t("saveAsTemplate")}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={pending || !id}
-              onClick={() =>
-                run(async () => {
-                  const saved = await save();
-                  if (!saved) return;
-                  const r = await previewAction(orgSlug, saved);
-                  if (r?.ok) setPreview({ html: r.data.html, width: 600 });
-                  else fail(r?.error);
-                })
-              }
-            >
-              {t("preview")}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={pending || !id}
-              onClick={() =>
-                run(async () => {
-                  const saved = await save();
-                  if (!saved) return;
-                  const r = await testAction(orgSlug, saved);
-                  if (r?.ok)
-                    setMessage({
-                      ok: true,
-                      text: t("testSent", { email: r.data.to }),
+          {/* refonte A3 : les actions par groupes, chaque bouton à sa taille (aucun bouton étiré) : enregistrer, vérifier,
+              envoyer */}
+          <section className="grid gap-3.5" aria-label={t("save")}>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                onClick={() =>
+                  run(async () => {
+                    if (await save())
+                      setMessage({ ok: true, text: t("saved") });
+                  })
+                }
+                disabled={pending}
+              >
+                {t("save")}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={pending}
+                onClick={() =>
+                  run(async () => {
+                    const r = await saveTemplateAction(orgSlug, {
+                      name: v.name,
+                      subject: v.subject,
+                      previewText: v.previewText,
+                      content: v.content,
                     });
-                  else fail(r?.error);
-                })
-              }
-            >
-              {t("sendTest", { email: userEmail })}
-            </Button>
+                    if (r?.ok)
+                      setMessage({ ok: true, text: t("templateSaved") });
+                    else fail(r?.error, r && !r.ok ? r.fields : undefined);
+                  })
+                }
+              >
+                {t("saveAsTemplate")}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={pending || !id}
+                onClick={() =>
+                  run(async () => {
+                    const saved = await save();
+                    if (!saved) return;
+                    const r = await previewAction(orgSlug, saved);
+                    if (r?.ok) setPreview({ html: r.data.html, width: 600 });
+                    else fail(r?.error);
+                  })
+                }
+              >
+                {t("preview")}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={pending || !id}
+                className="max-w-full"
+                onClick={() =>
+                  run(async () => {
+                    const saved = await save();
+                    if (!saved) return;
+                    const r = await testAction(orgSlug, saved);
+                    if (r?.ok)
+                      setMessage({
+                        ok: true,
+                        text: t("testSent", { email: r.data.to }),
+                      });
+                    else fail(r?.error);
+                  })
+                }
+              >
+                <span className="truncate">
+                  {t("sendTest", { email: userEmail })}
+                </span>
+              </Button>
+            </div>
             {status === "SCHEDULED" ? (
-              <>
-                <p className="text-sm">
+              <div className="grid justify-items-start gap-2 border-t border-line pt-3.5">
+                <p className="text-[13px]">
                   {t("scheduledFor", {
                     date: scheduledAt
-                      ? new Date(scheduledAt).toLocaleString()
+                      ? new Date(scheduledAt).toLocaleString(locale)
                       : "",
                   })}
                 </p>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="secondary"
                   disabled={pending}
                   onClick={() =>
                     run(async () => {
@@ -419,73 +429,79 @@ export function CampaignEditor({
                 >
                   {t("unschedule")}
                 </Button>
-              </>
+              </div>
             ) : (
-              <>
+              <div className="grid gap-3 border-t border-line pt-3.5">
                 <Field label={t("scheduleAt")} htmlFor="c-at">
-                  <Input
+                  <DateTimeField
                     id="c-at"
-                    type="datetime-local"
+                    locale={locale}
                     value={at}
                     onChange={(e) => setAt(e.target.value)}
                   />
                 </Field>
-                <Button
-                  type="button"
-                  variant="dark"
-                  disabled={pending || !id || !count}
-                  onClick={() =>
-                    run(async () => {
-                      const saved = await save();
-                      if (!saved) return;
-                      const when = at ? new Date(at).toISOString() : null;
-                      if (
-                        !when &&
-                        !window.confirm(
-                          t("confirmSendNow", { count: count ?? 0 }),
-                        )
-                      )
-                        return;
-                      const r = await scheduleAction(orgSlug, saved, when);
-                      if (r?.ok) router.refresh();
-                      else fail(r?.error);
-                    })
-                  }
-                >
-                  {at ? t("schedule") : t("sendNow")}
-                </Button>
-                {id ? (
+                <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    variant="ghost"
-                    disabled={pending}
+                    variant="primary"
+                    disabled={pending || !id || !count}
                     onClick={() =>
                       run(async () => {
-                        if (!window.confirm(t("confirmDelete"))) return;
-                        const r = await deleteCampaignAction(orgSlug, id);
-                        if (r?.ok)
-                          router.push(`/o/${orgSlug}/marketing?tab=campaigns`);
+                        const saved = await save();
+                        if (!saved) return;
+                        const when = at ? new Date(at).toISOString() : null;
+                        if (
+                          !when &&
+                          !window.confirm(
+                            t("confirmSendNow", { count: count ?? 0 }),
+                          )
+                        )
+                          return;
+                        const r = await scheduleAction(orgSlug, saved, when);
+                        if (r?.ok) router.refresh();
                         else fail(r?.error);
                       })
                     }
                   >
-                    {t("delete")}
+                    {at ? t("schedule") : t("sendNow")}
                   </Button>
-                ) : null}
-              </>
+                  {id ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="text-danger!"
+                      disabled={pending}
+                      onClick={() =>
+                        run(async () => {
+                          if (!window.confirm(t("confirmDelete"))) return;
+                          const r = await deleteCampaignAction(orgSlug, id);
+                          if (r?.ok)
+                            router.push(
+                              `/o/${orgSlug}/marketing?tab=campaigns`,
+                            );
+                          else fail(r?.error);
+                        })
+                      }
+                    >
+                      {t("delete")}
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
             )}
             {!id ? (
-              <p className="text-xs text-ink-muted">{t("saveFirst")}</p>
+              <p className="text-[12.5px] text-ink-muted">{t("saveFirst")}</p>
             ) : null}
             {message ? (
-              <p
-                role={message.ok ? "status" : "alert"}
-                className={`text-sm ${message.ok ? "text-success" : "text-danger"}`}
-              >
-                {message.text}
-              </p>
+              message.ok ? (
+                <SavedNote id="campaign-status">{message.text}</SavedNote>
+              ) : (
+                <p role="alert" className="text-[13px] text-danger">
+                  {message.text}
+                </p>
+              )
             ) : null}
-          </Card>
+          </section>
         </aside>
       </div>
       {preview ? (

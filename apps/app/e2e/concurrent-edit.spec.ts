@@ -10,11 +10,11 @@ test("deux onglets modifient le même événement : la dernière sauvegarde l'em
   const other = await context.newPage();
   await page.goto(`${eventUrl}/settings/sales`);
   await other.goto(`${eventUrl}/settings/sales`);
-  await page.getByLabel("Billets par commande (maximum)").fill("7");
+  await page.getByLabel("Par commande", { exact: true }).fill("7");
   await expect(
     page.getByText("Enregistré", { exact: false }).first(),
   ).toBeVisible();
-  await other.getByLabel("Billets par commande (maximum)").fill("9");
+  await other.getByLabel("Par commande", { exact: true }).fill("9");
   await expect(
     other.getByText("Un autre membre a modifié cet événement", {
       exact: false,

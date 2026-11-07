@@ -1,15 +1,14 @@
-import { can } from "@evoly/core";
+import { can, growthPct } from "@evoly/core";
 import { formatDate, formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { buttonClass } from "@/components/ui/Button";
-import { Badge, EmptyState } from "@/components/ui/Card";
-import { Select } from "@/components/ui/Field";
-import { db } from "@/lib/db";
+import { Badge } from "@/components/ui/Card";
+import { SectionTitle } from "@/components/ui/Controls";
+import { Stat, StatCell, StatRow } from "@/components/ui/Stat";
 import { requireOrgContext } from "@/server/context";
-import { FinanceByEventTable } from "./FinanceTables";
+import { FinanceEventsTable } from "./FinanceTables";
 import {
   financeOverview,
   statementMonths,
@@ -17,7 +16,6 @@ import {
   type Period,
 } from "@/server/finances";
 import { ArrowRightIcon } from "@/components/ui/icons";
-import { cn } from "@/components/ui/cn";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -25,14 +23,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const PERIODS: Period[] = [
+  "LAST_30_DAYS",
   "THIS_MONTH",
   "LAST_MONTH",
-  "LAST_30_DAYS",
   "THIS_YEAR",
   "ALL",
 ];
 
-/** Section 9.16 : ventes, commissions, frais, net ; compte Stripe ; relevés ; exports. */
+/**
+ * Section 9.16, refonte A3 (maquette UIUX/pages-a3-suite.html, « Finances ») : les totaux se lisent comme un calcul
+ * (ventes brutes, moins les remboursements, les commissions et les frais bancaires, égale le net), l'état du compte
+ * Stripe, le tableau par événement avec sa ligne de total. La période et l'export sont dans la bande du titre. Ensuite,
+ * hors maquette : options, compte Stripe et relevés, litiges.
+ */
 export default async function FinancesPage({
   params,
   searchParams,
@@ -46,21 +49,12 @@ export default async function FinancesPage({
   if (!can(ctx.membership, "FINANCE_VIEW")) notFound();
   const period = (PERIODS as string[]).includes(sp.period ?? "")
     ? (sp.period as Period)
-    : "THIS_MONTH";
+    : "LAST_30_DAYS";
   const eventId = sp.event || undefined;
-  const [overview, stripeInfo, months, events] = await Promise.all([
+  const [overview, stripeInfo, months] = await Promise.all([
     financeOverview(ctx, { period, eventId }),
     stripeOverview(ctx),
     statementMonths(ctx),
-    db.event.findMany({
-      where: {
-        organizationId: ctx.organization.id,
-        deletedAt: null,
-        status: { not: "DRAFT" },
-      },
-      select: { id: true, title: true },
-      orderBy: { startsAt: "desc" },
-    }),
   ]);
   const t = await getTranslations("finances");
   const locale = (await getLocale()) as Locale;
@@ -76,39 +70,22 @@ export default async function FinancesPage({
       year: "numeric",
       timeZone: "UTC",
     }).format(new Date(`${p}-15T12:00:00Z`));
+  const growth =
+    overview.previousNetMinor != null
+      ? growthPct(tot.netMinor, overview.previousNetMinor)
+      : null;
+  const pct = new Intl.NumberFormat(locale, {
+    style: "percent",
+    maximumFractionDigits: 0,
+    signDisplay: "exceptZero",
+  });
+  const minus = (v: number) => (v ? `\u2212${money(v)}` : money(0));
   return (
     <div className="grid gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <form className="grid w-full items-center gap-2 sm:w-auto sm:grid-cols-[11rem_13rem_auto] [&_select]:h-9 [&_select]:text-[0.8125rem]">
-          <Select name="period" defaultValue={period} aria-label={t("period")}>
-            {PERIODS.map((p) => (
-              <option key={p} value={p}>
-                {t(`period_${p}`)}
-              </option>
-            ))}
-          </Select>
-          <Select
-            name="event"
-            defaultValue={eventId ?? ""}
-            aria-label={t("event")}
-          >
-            <option value="">{t("allEvents")}</option>
-            {events.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.title}
-              </option>
-            ))}
-          </Select>
-          <button type="submit" className={buttonClass("secondary", "sm")}>
-            {t("show")}
-          </button>
-        </form>
-      </header>
-
       {!stripeInfo.connected ? (
         <Link
           href={`/o/${orgSlug}/settings/payments`}
-          className="flex items-center justify-between gap-3 rounded-lg bg-info-soft px-5 py-4 font-semibold"
+          className="flex items-center justify-between gap-3 rounded-[10px] bg-info-soft px-3.5 py-2.5 text-[13.5px] font-medium text-info"
         >
           {t("stripeNotConnected")}
           <ArrowRightIcon className="size-4 shrink-0" />
@@ -116,7 +93,7 @@ export default async function FinancesPage({
       ) : stripeInfo.status !== "ACTIVE" || stripeInfo.requirementsDue > 0 ? (
         <Link
           href={`/o/${orgSlug}/settings/payments`}
-          className="flex items-center justify-between gap-3 rounded-lg bg-warning-soft px-5 py-4 font-semibold text-warning"
+          className="flex items-center justify-between gap-3 rounded-[10px] bg-warning-soft px-3.5 py-2.5 text-[13.5px] font-medium text-warning"
         >
           {t(
             stripeInfo.status === "RESTRICTED" ||
@@ -126,213 +103,253 @@ export default async function FinancesPage({
           )}
           <ArrowRightIcon className="size-4 shrink-0" />
         </Link>
-      ) : (
-        <p className="flex items-center gap-2 text-sm">
-          <span className="shrink-0 whitespace-nowrap">
-            <Badge tone="success">{t("stripeActive")}</Badge>
-          </span>
+      ) : null}
+
+      {/* les totaux comme un calcul : cinq indicateurs, les retraits en rouge doux avec un vrai signe moins, le net en vert */}
+      <StatRow label={t("totals")} compact>
+        <StatCell>
+          <Stat
+            label={t("card_gross")}
+            value={money(tot.grossMinor)}
+            sub={t("ordersCount", { count: tot.orders })}
+          />
+        </StatCell>
+        <StatCell>
+          <Stat
+            label={t("card_refunded")}
+            value={minus(tot.refundedMinor)}
+            valueTone={tot.refundedMinor ? "minus" : undefined}
+            sub={t("ordersCount", { count: overview.refundedOrders })}
+          />
+        </StatCell>
+        <StatCell>
+          <Stat
+            label={t("card_commission")}
+            value={minus(tot.commissionMinor)}
+            valueTone={tot.commissionMinor ? "minus" : undefined}
+            sub={t("notReturned")}
+          />
+        </StatCell>
+        <StatCell>
+          <Stat
+            label={t("card_bankFees")}
+            value={minus(tot.bankFeeMinor)}
+            valueTone={tot.bankFeeMinor ? "minus" : undefined}
+            sub={tot.bankFeeEstimated ? t("partlyEstimated") : null}
+          />
+        </StatCell>
+        <StatCell>
+          <Stat
+            label={t("card_net")}
+            value={money(tot.netMinor)}
+            valueTone="success"
+            sub={
+              growth != null
+                ? t("growth", { value: pct.format(growth / 100) })
+                : null
+            }
+            subTone={growth != null && growth > 0 ? "success" : "muted"}
+          />
+        </StatCell>
+      </StatRow>
+
+      {stripeInfo.connected &&
+      stripeInfo.status === "ACTIVE" &&
+      stripeInfo.requirementsDue === 0 ? (
+        // l'état du compte Stripe (« .status ») : la coche verte, la phrase, « Ouvrir Stripe » à droite
+        <p className="flex items-center gap-2 text-[13.5px]">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.2}
+            className="size-4 shrink-0 text-success"
+          >
+            <path d="m5 12 5 5 9-10" />
+          </svg>
+          <b className="font-semibold">{t("stripeActiveLead")}</b>
           <span className="text-ink-muted">{t("stripeActiveHint")}</span>
+          <a
+            href="https://dashboard.stripe.com/"
+            target="_blank"
+            rel="noreferrer"
+            className="ml-auto text-[13px] font-medium whitespace-nowrap underline underline-offset-[3px]"
+          >
+            {t("openStripeShort")}
+          </a>
         </p>
-      )}
+      ) : null}
 
-      {/* refonte A3 : les totaux se lisent comme un calcul, en ligne et sans carte ; retraits en rouge doux, net en vert */}
-      <section
-        className="grid grid-cols-2 gap-x-6 gap-y-5 border-b border-line pb-5 lg:grid-cols-5 lg:gap-x-0 lg:divide-x lg:divide-line lg:[&>*]:px-6 lg:[&>*:first-child]:pl-0"
-        aria-label={t("totals")}
-      >
-        {[
-          { key: "gross", value: tot.grossMinor, tone: "" },
-          {
-            key: "refunded",
-            value: -tot.refundedMinor || 0,
-            tone: "text-minus",
-          },
-          {
-            key: "commission",
-            value: -tot.commissionMinor || 0,
-            tone: "text-minus",
-          },
-          {
-            key: "bankFees",
-            value: -tot.bankFeeMinor || 0,
-            tone: "text-minus",
-            note: tot.bankFeeEstimated ? t("estimated") : null,
-          },
-          { key: "net", value: tot.netMinor, tone: "text-success" },
-        ].map((c) => (
-          <div key={c.key} className="grid min-w-0 content-start gap-1">
-            <p className="text-[0.8125rem] whitespace-nowrap text-ink-muted">
-              {t(`card_${c.key}`)}
-            </p>
-            <p
-              className={cn(
-                "font-figures text-[1.5rem] leading-tight tracking-[var(--tracking-figures)] whitespace-nowrap tabular-nums",
-                c.value === 0 ? "" : c.tone,
-              )}
-            >
-              {money(c.value)}
-            </p>
-            {c.note ? <p className="text-xs text-ink-muted">{c.note}</p> : null}
-          </div>
-        ))}
-      </section>
-      <p className="-mt-3 text-sm text-ink-muted">
-        {t("totalsHint", { orders: tot.orders, tickets: tot.tickets })}
-      </p>
-
-      <section className="grid gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-[0.9375rem] font-semibold">{t("byEvent")}</h2>
-          <div className="flex flex-wrap gap-2">
-            <a
-              href={`/o/${orgSlug}/finances/export/orders?${query}`}
-              className={buttonClass("secondary", "sm")}
-            >
-              {t("exportOrders")}
-            </a>
-            <a
-              href={`/o/${orgSlug}/finances/export/tickets?${query}`}
-              className={buttonClass("secondary", "sm")}
-            >
-              {t("exportTickets")}
-            </a>
-          </div>
-        </div>
-        <FinanceByEventTable
-          rows={overview.byEvent.map((r) => ({
-            id: r.eventId,
-            title: r.title,
-            tickets: r.tickets,
-            gross: money(r.grossMinor),
-            grossMinor: r.grossMinor,
-            refunded: r.refundedMinor ? money(r.refundedMinor) : null,
-            refundedMinor: r.refundedMinor,
-            commission: r.commissionMinor ? money(r.commissionMinor) : null,
-            commissionMinor: r.commissionMinor,
-            bankFees: r.bankFeeMinor ? money(r.bankFeeMinor) : null,
-            bankFeeMinor: r.bankFeeMinor,
-            net: money(r.netMinor),
-            netMinor: r.netMinor,
-            href: `/o/${orgSlug}/events/${r.eventId}`,
-          }))}
+      <section aria-labelledby="by-event">
+        <SectionTitle
+          id="by-event"
+          title={t("byEvent")}
+          link={{
+            href: `/o/${orgSlug}/finances/export/tickets?${query}`,
+            label: t("exportTickets"),
+          }}
         />
+        {overview.byEvent.length === 0 ? (
+          <p className="border-b border-line py-[9px] text-ink-muted">
+            {t("emptyTitle")} {t("emptyBody")}
+          </p>
+        ) : (
+          <FinanceEventsTable
+            locale={locale}
+            labels={{
+              caption: t("byEventCaption"),
+              event: t("colEvent"),
+              tickets: t("colTickets"),
+              gross: t("colGross"),
+              refunded: t("colRefunded"),
+              commission: t("colCommission"),
+              bankFees: t("colBankFees"),
+              net: t("colNet"),
+            }}
+            rows={overview.byEvent.map((r) => ({
+              id: r.eventId,
+              title: r.title,
+              state: r.free
+                ? t("state_free")
+                : r.status
+                  ? t(`state_${r.status}`)
+                  : "",
+              startsAt: r.startsAt,
+              timezone: r.timezone,
+              free: r.free,
+              tickets: r.tickets,
+              gross: money(r.grossMinor),
+              refunded: money(r.refundedMinor),
+              refundedMinor: r.refundedMinor,
+              commission: money(r.commissionMinor),
+              commissionMinor: r.commissionMinor,
+              bankFees: money(r.bankFeeMinor),
+              bankFeeMinor: r.bankFeeMinor,
+              net: money(r.netMinor),
+              href: `/o/${orgSlug}/events/${r.eventId}`,
+            }))}
+            total={{
+              label: t("totalRow"),
+              tickets: tot.tickets,
+              gross: money(tot.grossMinor),
+              refunded: money(tot.refundedMinor),
+              refundedMinor: tot.refundedMinor,
+              commission: money(tot.commissionMinor),
+              commissionMinor: tot.commissionMinor,
+              bankFees: money(tot.bankFeeMinor),
+              bankFeeMinor: tot.bankFeeMinor,
+              net: money(tot.netMinor),
+            }}
+          />
+        )}
+        <p className="mt-2.5 text-[12.5px] text-ink-muted">{t("footnote")}</p>
       </section>
 
+      {/* hors maquette, dans le même style : les options vendues, le compte Stripe, les relevés, les litiges */}
       {overview.options.rows.length ? (
-        <section className="grid gap-3 border-t border-line pt-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-[0.9375rem] font-semibold">
-              {t("optionsTitle")}
-            </h2>
-            <a
-              href={`/o/${orgSlug}/finances/export/options?${query}`}
-              className={buttonClass("secondary", "sm")}
-            >
-              {t("exportOptions")}
-            </a>
-          </div>
-          <p className="text-sm text-ink-muted">{t("optionsHint")}</p>
+        <section aria-labelledby="options-title">
+          <SectionTitle
+            id="options-title"
+            title={t("optionsTitle")}
+            link={{
+              href: `/o/${orgSlug}/finances/export/options?${query}`,
+              label: t("exportOptions"),
+            }}
+          />
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[36rem] text-sm">
+            <table className="w-full min-w-[36rem] border-collapse">
               <thead>
-                <tr className="text-left text-ink-muted">
-                  <th scope="col" className="py-2 pr-3 font-medium">
-                    {t("optionCol")}
-                  </th>
-                  <th scope="col" className="py-2 pr-3 font-medium">
-                    {t("optionEventCol")}
-                  </th>
-                  <th scope="col" className="py-2 text-right font-medium">
-                    {t("optionSold")}
-                  </th>
-                  <th scope="col" className="py-2 text-right font-medium">
-                    {t("optionRedeemed")}
-                  </th>
-                  <th scope="col" className="py-2 text-right font-medium">
-                    {t("optionAmount")}
-                  </th>
-                  <th scope="col" className="py-2 text-right font-medium">
-                    {t("optionFee")}
-                  </th>
+                <tr>
+                  {[
+                    ["optionCol", "text-left"],
+                    ["optionEventCol", "text-left"],
+                    ["optionSold", "text-right"],
+                    ["optionRedeemed", "text-right"],
+                    ["optionAmount", "text-right"],
+                    ["optionFee", "text-right"],
+                  ].map(([k, align]) => (
+                    <th
+                      key={k}
+                      scope="col"
+                      className={`border-b border-line px-2.5 py-[7px] text-[12.5px] leading-[normal] font-medium text-ink-muted ${align}`}
+                    >
+                      {t(k!)}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="[&_:is(td,th)]:border-b [&_:is(td,th)]:border-line [&_:is(td,th)]:p-2.5 [&_td]:tabular-nums">
                 {overview.options.rows.map((r) => (
-                  <tr key={r.optionId} className="border-t border-line">
-                    <th
-                      scope="row"
-                      className="py-2 pr-3 text-left font-semibold"
-                    >
+                  <tr key={r.optionId}>
+                    {/* le nom de l'option : en-tête de sa ligne (lecteurs d'écran) */}
+                    <th scope="row" className="text-left font-semibold">
                       {r.name}
                     </th>
-                    <td className="py-2 pr-3">{r.eventTitle}</td>
-                    <td className="py-2 text-right tabular-nums">{r.sold}</td>
-                    <td className="py-2 text-right tabular-nums">
-                      {r.redeemed}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">
-                      {money(r.amountMinor)}
-                    </td>
-                    <td className="py-2 text-right tabular-nums">
-                      {r.feeMinor ? `−${money(r.feeMinor)}` : "-"}
+                    <td>{r.eventTitle}</td>
+                    <td className="text-right">{r.sold}</td>
+                    <td className="text-right">{r.redeemed}</td>
+                    <td className="text-right">{money(r.amountMinor)}</td>
+                    <td className="text-right">
+                      {r.feeMinor ? (
+                        <span className="text-minus">{minus(r.feeMinor)}</span>
+                      ) : (
+                        <span className="text-ink-faint">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}
-              </tbody>
-              <tfoot>
-                <tr className="border-t border-line font-semibold">
-                  <th scope="row" colSpan={2} className="py-2 pr-3 text-left">
-                    {t("optionTotal")}
-                  </th>
-                  <td className="py-2 text-right tabular-nums">
-                    {overview.options.totals.sold}
-                  </td>
-                  <td className="py-2 text-right tabular-nums">
+                <tr className="font-semibold [&>td]:border-t-[1.5px] [&>td]:border-b-0 [&>td]:border-t-ink-strong">
+                  <td colSpan={2}>{t("optionTotal")}</td>
+                  <td className="text-right">{overview.options.totals.sold}</td>
+                  <td className="text-right">
                     {overview.options.totals.redeemed}
                   </td>
-                  <td className="py-2 text-right tabular-nums">
+                  <td className="text-right">
                     {money(overview.options.totals.amountMinor)}
                   </td>
-                  <td className="py-2 text-right tabular-nums">
-                    {overview.options.totals.feeMinor
-                      ? `−${money(overview.options.totals.feeMinor)}`
-                      : "-"}
+                  <td className="text-right">
+                    {overview.options.totals.feeMinor ? (
+                      <span className="text-minus">
+                        {minus(overview.options.totals.feeMinor)}
+                      </span>
+                    ) : (
+                      <span className="text-ink-faint">-</span>
+                    )}
                   </td>
                 </tr>
-              </tfoot>
+              </tbody>
             </table>
           </div>
+          <p className="mt-2.5 text-[12.5px] text-ink-muted">
+            {t("optionsHint")}
+          </p>
         </section>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="grid content-start gap-3 border-t border-line pt-5">
-          <h2 className="text-[0.9375rem] font-semibold">{t("stripeTitle")}</h2>
+      <div className="grid gap-8 lg:grid-cols-2 lg:gap-9">
+        <section aria-labelledby="stripe-title" className="min-w-0">
+          <SectionTitle id="stripe-title" title={t("stripeTitle")} />
           {stripeInfo.connected && stripeInfo.balance ? (
-            <dl className="grid grid-cols-2 gap-3">
-              <div>
-                <dt className="font-label text-[0.8rem] font-bold text-ink-muted">
-                  {t("available")}
-                </dt>
-                <dd className="font-figures text-xl tracking-[var(--tracking-figures)] tabular-nums">
-                  {stripeInfo.balance.available
-                    .map((b) => money(b.amount, b.currency))
-                    .join(", ") || money(0)}
-                </dd>
-              </div>
-              <div>
-                <dt className="font-label text-[0.8rem] font-bold text-ink-muted">
-                  {t("pending")}
-                </dt>
-                <dd className="font-figures text-xl tracking-[var(--tracking-figures)] tabular-nums">
-                  {stripeInfo.balance.pending
-                    .map((b) => money(b.amount, b.currency))
-                    .join(", ") || money(0)}
-                </dd>
-              </div>
+            <dl className="grid grid-cols-2 border-b border-line pb-3">
+              {[
+                ["available", stripeInfo.balance.available],
+                ["pending", stripeInfo.balance.pending],
+              ].map(([k, list]) => (
+                <div key={k as string}>
+                  <dt className="text-[13px] text-ink-muted">
+                    {t(k as string)}
+                  </dt>
+                  <dd className="mt-0.5 font-figures text-[20px] leading-[1.15] tracking-[var(--tracking-figures)] tabular-nums">
+                    {(list as { amount: number; currency: string }[])
+                      .map((b) => money(b.amount, b.currency))
+                      .join(", ") || money(0)}
+                  </dd>
+                </div>
+              ))}
             </dl>
           ) : (
-            <p className="text-sm text-ink-muted">
+            <p className="border-b border-line py-[9px] text-ink-muted">
               {stripeInfo.connected
                 ? t("stripeUnavailable")
                 : t("stripeNotConnectedShort")}
@@ -341,11 +358,11 @@ export default async function FinancesPage({
           {stripeInfo.connected &&
           stripeInfo.payouts &&
           stripeInfo.payouts.length > 0 ? (
-            <ul className="grid gap-1 text-sm">
+            <ul role="list">
               {stripeInfo.payouts.map((p) => (
                 <li
                   key={p.id}
-                  className="flex justify-between gap-3 border-t border-line pt-1"
+                  className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-line py-[9px]"
                 >
                   <span>
                     {formatDate(
@@ -354,91 +371,100 @@ export default async function FinancesPage({
                       locale,
                     )}
                   </span>
-                  <span className="tabular-nums">
-                    {money(p.amount, p.currency)} · {t(`payout_${p.status}`)}
+                  <span className="text-right tabular-nums">
+                    {money(p.amount, p.currency)}
+                    <small className="block text-[12.5px] text-ink-muted">
+                      {t(`payout_${p.status}`)}
+                    </small>
                   </span>
                 </li>
               ))}
             </ul>
           ) : null}
-          <p className="text-xs text-ink-muted">{t("noInternalBalance")}</p>
-          {stripeInfo.connected ? (
-            <a
-              href="https://dashboard.stripe.com/"
-              target="_blank"
-              rel="noreferrer"
-              className={buttonClass("secondary", "sm", "justify-self-start")}
-            >
-              {t("openStripe")}
-            </a>
-          ) : null}
+          <p className="mt-2.5 text-[12.5px] text-ink-muted">
+            {t("noInternalBalance")}
+          </p>
         </section>
 
-        <section className="grid content-start gap-3 border-t border-line pt-5">
-          <h2 className="text-[0.9375rem] font-semibold">
-            {t("statementsTitle")}
-          </h2>
-          <p className="-mt-1 text-sm text-ink-muted">{t("statementsIntro")}</p>
+        <section aria-labelledby="statements-title" className="min-w-0">
+          <SectionTitle id="statements-title" title={t("statementsTitle")} />
           {months.length === 0 ? (
-            <p className="text-sm text-ink-muted">{t("noStatements")}</p>
-          ) : null}
-          <ul className="grid gap-2">
-            {months.slice(0, 12).map((m) => (
-              <li
-                key={`${m.period}-${m.currency}`}
-                className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2 text-sm"
-              >
-                <span>
-                  <span className="font-semibold capitalize">
-                    {monthLabel(m.period)}
-                  </span>{" "}
-                  · {money(m.feesMinor, m.currency)}
-                </span>
-                {m.open ? (
-                  <Badge>{t("statementOpen")}</Badge>
-                ) : (
-                  <a
-                    href={`/o/${orgSlug}/finances/statements/${m.period}`}
-                    className="font-semibold underline underline-offset-4"
-                  >
-                    {m.statement
-                      ? t("statementDownload", { number: m.statement.number })
-                      : t("statementIssue")}
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
+            <p className="border-b border-line py-[9px] text-ink-muted">
+              {t("noStatements")}
+            </p>
+          ) : (
+            <ul role="list">
+              {months.slice(0, 12).map((m) => (
+                <li
+                  key={`${m.period}-${m.currency}`}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-line py-[9px]"
+                >
+                  <span>
+                    <b className="font-medium first-letter:uppercase">
+                      {monthLabel(m.period)}
+                    </b>
+                    <small className="block text-[12.5px] text-ink-muted">
+                      {money(m.feesMinor, m.currency)}
+                    </small>
+                  </span>
+                  {m.open ? (
+                    <Badge>{t("statementOpen")}</Badge>
+                  ) : (
+                    <a
+                      href={`/o/${orgSlug}/finances/statements/${m.period}`}
+                      className="text-[13px] font-medium underline underline-offset-[3px]"
+                    >
+                      {m.statement
+                        ? t("statementDownload", { number: m.statement.number })
+                        : t("statementIssue")}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-2.5 text-[12.5px] text-ink-muted">
+            {t("statementsIntro")}
+          </p>
         </section>
       </div>
 
       {stripeInfo.connected && stripeInfo.disputes.length > 0 ? (
-        <section className="grid gap-3 ring-2 ring-warning border-t border-line pt-5">
-          <h2 className="text-[0.9375rem] font-semibold">
-            {t("disputesTitle")}
-          </h2>
-          <ul className="grid gap-2 text-sm">
+        <section aria-labelledby="disputes-title">
+          <SectionTitle
+            id="disputes-title"
+            title={t("disputesTitle")}
+            link={{
+              href: "https://dashboard.stripe.com/disputes",
+              label: t("answerDisputes"),
+            }}
+          />
+          <ul role="list">
             {stripeInfo.disputes.map((d) => (
               <li
                 key={d.id}
-                className="flex flex-wrap justify-between gap-2 border-t border-line pt-2"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-line py-[9px]"
               >
                 <span>
-                  {money(d.amountMinor, d.currency)} · {d.reason}
-                  {d.order ? (
-                    <>
-                      {" "}
-                      ·{" "}
-                      <Link
-                        href={`/o/${orgSlug}/orders/${d.order.id}`}
-                        className="font-mono underline"
-                      >
-                        {d.order.reference}
-                      </Link>
-                    </>
-                  ) : null}
+                  <b className="font-medium">
+                    {money(d.amountMinor, d.currency)}
+                  </b>
+                  <small className="block text-[12.5px] text-ink-muted">
+                    {d.reason}
+                    {d.order ? (
+                      <>
+                        {", "}
+                        <Link
+                          href={`/o/${orgSlug}/orders/${d.order.id}`}
+                          className="underline underline-offset-[3px]"
+                        >
+                          {d.order.reference}
+                        </Link>
+                      </>
+                    ) : null}
+                  </small>
                 </span>
-                <span className="font-semibold text-warning">
+                <span className="text-[13px] font-medium text-warning">
                   {d.evidenceDueBy
                     ? t("disputeDue", {
                         date: formatDate(
@@ -452,14 +478,6 @@ export default async function FinancesPage({
               </li>
             ))}
           </ul>
-          <a
-            href="https://dashboard.stripe.com/disputes"
-            target="_blank"
-            rel="noreferrer"
-            className={buttonClass("dark", "sm", "justify-self-start")}
-          >
-            {t("answerDisputes")}
-          </a>
         </section>
       ) : null}
     </div>

@@ -10,7 +10,7 @@ test("vente sur place : onglet Vente du scanner en espèces, rapport de caisse, 
 
   // l'organisateur crée un lien de caisse avec la vente sur place autorisée
   await page.goto(`${eventUrl}/entries`);
-  await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
+  await page.getByRole("button", { name: "Nouveau lien bénévole" }).click();
   await page.getByLabel("Libellé").fill("Caisse 1");
   await page.getByLabel("Autoriser la vente sur place (espèces)").check();
   await page.getByRole("button", { name: "Créer le lien" }).click();

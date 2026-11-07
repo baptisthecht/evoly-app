@@ -1,6 +1,6 @@
 import "server-only";
 import { CoreError, normalizeShortCode, sha256Hex } from "@evoly/core";
-import type { Prisma } from "@evoly/db";
+import type { OrderSource, Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
 import { orderAccessToken } from "./checkout";
@@ -23,14 +23,20 @@ export async function searchOrders(
     eventId?: string;
     ticketTypeId?: string;
     filter?: OrderFilter;
+    /** Canal (refonte A3) : en ligne, sur place, invitation, revente, import. */
+    source?: OrderSource;
     page?: number;
   },
 ) {
   const q = opts.q?.trim() ?? "";
   const where: Prisma.OrderWhereInput = {
     organizationId: ctx.organization.id,
-    status: { in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED", "FAILED"] },
+    // refonte A3 (maquette Commandes) : les commandes annulées restent dans la liste, avec leur statut
+    status: {
+      in: ["PAID", "PARTIALLY_REFUNDED", "REFUNDED", "FAILED", "CANCELLED"],
+    },
     ...(opts.eventId ? { eventId: opts.eventId } : {}),
+    ...(opts.source ? { source: opts.source } : {}),
     ...(opts.ticketTypeId
       ? { items: { some: { ticketTypeId: opts.ticketTypeId } } }
       : {}),

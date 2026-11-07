@@ -7,7 +7,7 @@ import { SideNav, type NavSection } from "./SideNav";
 
 /**
  * Barre de l'organisation (refonte A3, maquettes UIUX/) : une seule liste, sans titres de catégorie, dans l'ordre de
- * NAV ; « Événements » porte le nombre d'événements à venir et de brouillons.
+ * NAV ; « Événements » porte le nombre d'événements à venir (comme l'onglet « À venir »).
  */
 export async function OrgNav({ orgSlug }: { orgSlug: string }) {
   const ctx = await requireOrgContext(orgSlug);
@@ -19,17 +19,13 @@ export async function OrgNav({ orgSlug }: { orgSlug: string }) {
   const visible = NAV.filter(
     (i) => i.anyOf.length === 0 || i.anyOf.some((p) => can(ctx.membership, p)),
   );
+  // le nombre de l'onglet « À venir » de la page Événements (maquettes UIUX/ : 4 et 4), brouillons non compris
   const upcoming = await db.event.count({
     where: {
       organizationId: ctx.organization.id,
       deletedAt: null,
-      OR: [
-        { status: "DRAFT" },
-        {
-          status: { in: ["PUBLISHED", "SALES_PAUSED"] },
-          startsAt: { gte: new Date() },
-        },
-      ],
+      status: { in: ["PUBLISHED", "SALES_PAUSED"] },
+      startsAt: { gte: new Date() },
     },
   });
   const sections: NavSection[] = [

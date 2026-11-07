@@ -21,6 +21,7 @@ export const eventHeaderData = cache(
         subdomain: true,
         status: true,
         startsAt: true,
+        salesStartAt: true,
         timezone: true,
         locationName: true,
         city: true,

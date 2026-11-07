@@ -51,7 +51,13 @@ export const ArrowRightIcon = (p: IconProps) => (
 );
 /** Plus (« ajouter », « nouveau »), à la place du caractère « + » dans les boutons (refonte A3). */
 export const PlusIcon = (p: IconProps) => (
-  <Svg strokeWidth={2} {...p}>
+  <Svg strokeWidth={2} strokeLinecap="butt" strokeLinejoin="miter" {...p}>
     <path d="M12 5v14M5 12h14" />
+  </Svg>
+);
+/** Téléchargement (« Exporter »), le trait des maquettes (bouts droits). */
+export const DownloadIcon = (p: IconProps) => (
+  <Svg strokeWidth={2} strokeLinecap="butt" strokeLinejoin="miter" {...p}>
+    <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
   </Svg>
 );

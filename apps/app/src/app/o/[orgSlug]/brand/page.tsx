@@ -1,4 +1,5 @@
 import { can, hasFeature } from "@evoly/core";
+import { SettingsRow } from "@/components/ui/Controls";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -77,40 +78,40 @@ export default async function BrandPage({
     </div>
   );
   return (
-    <div className="grid gap-6">
+    // refonte A3 (maquette « Réglages de l'événement ») : des rangées, le titre et l'explication à gauche ; la marque, un
+    // éditeur avec son aperçu, garde toute la largeur
+    <div>
       {/* onglet « Domaines » : adresse de la billetterie et domaines personnalisés (seul onglet sans la marque) */}
       {canAddress && (tab === "domains" || (tab === "brand" && !canBrand)) ? (
-        <Card className="grid gap-3">
-          <h2 className="text-[0.9375rem] font-semibold">
-            {t("addressTitle")}
-          </h2>
-          <p className="text-sm text-ink-muted">
-            {t("addressIntro")}{" "}
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="font-mono font-semibold text-ink underline underline-offset-4"
-            >
-              {url.replace(/^https?:\/\//, "")}
-            </a>
-          </p>
+        <SettingsRow
+          title={t("addressTitle")}
+          description={
+            <>
+              {t("addressIntro")}{" "}
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-ink underline underline-offset-4"
+              >
+                {url.replace(/^https?:\/\//, "")}
+              </a>
+            </>
+          }
+        >
           <SubdomainForm
             orgSlug={orgSlug}
             current={ctx.organization.subdomain ?? ""}
             baseDomain={env().NEXT_PUBLIC_BASE_DOMAIN}
           />
-        </Card>
+        </SettingsRow>
       ) : null}
 
       {canAddress && tab === "page" ? (
-        <Card className="grid gap-4">
-          <div className="grid gap-1">
-            <h2 className="text-[0.9375rem] font-semibold">
-              {ts("featuredTitle")}
-            </h2>
-            <p className="text-sm text-ink-muted">{ts("featuredHint")}</p>
-          </div>
+        <SettingsRow
+          title={ts("featuredTitle")}
+          description={ts("featuredHint")}
+        >
           <FeaturedForm
             orgSlug={orgSlug}
             readOnly={!can(ctx.membership, "ORG_SETTINGS_EDIT") || ctx.readOnly}
@@ -124,7 +125,7 @@ export default async function BrandPage({
               timezone: e.timezone,
             }))}
           />
-        </Card>
+        </SettingsRow>
       ) : null}
       {canBrand && tab === "brand" ? (
         <Card className="grid gap-4">
@@ -186,11 +187,7 @@ export default async function BrandPage({
       ) : null}
 
       {canDomains && (tab === "domains" || (tab === "brand" && !canBrand)) ? (
-        <section className="grid gap-3" aria-labelledby="domains-title">
-          <h2 id="domains-title" className="text-[0.9375rem] font-semibold">
-            {t("domainsTitle")}
-          </h2>
-          <p className="-mt-1 text-sm text-ink-muted">{t("domainsIntro")}</p>
+        <SettingsRow title={t("domainsTitle")} description={t("domainsIntro")}>
           {!pro.domains
             ? upsell(domains.length ? t("domainsDisabled") : t("domainsUpsell"))
             : null}
@@ -215,16 +212,16 @@ export default async function BrandPage({
           ))}
           {pro.domains ? (
             domains.length < MAX_CUSTOM_DOMAINS ? (
-              <Card>
+              <div className="rounded-[10px] border border-line p-4">
                 <AddDomain orgSlug={orgSlug} events={events} />
-              </Card>
+              </div>
             ) : (
-              <p className="text-sm text-ink-muted">
+              <p className="text-[13px] text-ink-muted">
                 {t("domainsLimit", { max: MAX_CUSTOM_DOMAINS })}
               </p>
             )
           ) : null}
-        </section>
+        </SettingsRow>
       ) : null}
     </div>
   );

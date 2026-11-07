@@ -9,7 +9,7 @@ import { PromoTable } from "@/app/o/[orgSlug]/events/[eventId]/promo/PromoTable"
 import { ComplimentaryTable } from "@/app/o/[orgSlug]/events/[eventId]/tickets/complimentary/ComplimentaryTable";
 import { TicketTypesTable } from "@/app/o/[orgSlug]/events/[eventId]/tickets/TicketTypesTable";
 import type { TicketTypeRow } from "@/app/o/[orgSlug]/events/[eventId]/tickets/TicketTypeEditor";
-import { FinanceByEventTable } from "@/app/o/[orgSlug]/finances/FinanceTables";
+import { FinanceEventsTable } from "@/app/o/[orgSlug]/finances/FinanceTables";
 import {
   CampaignsTable,
   ContactsTable,
@@ -57,6 +57,14 @@ const team = vi.hoisted(() =>
 );
 vi.mock("@/app/o/[orgSlug]/events/actions", () => ev);
 vi.mock("@/app/o/[orgSlug]/members/actions", () => team);
+// actions serveur des tableaux de la refonte A3 (renvoi groupé des billets, « Dernières places »)
+vi.mock("@/app/o/[orgSlug]/orders/actions", () => ({
+  resendManyAction: vi.fn(async () => null),
+}));
+vi.mock("@/app/o/[orgSlug]/marketing/actions", () => ({
+  enableLastTicketsAction: vi.fn(async () => null),
+  importContactsAction: vi.fn(async () => null),
+}));
 vi.mock("next/navigation", () => ({
   usePathname: () => "/o/club",
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -207,13 +215,15 @@ describe("marketing, commandes, revente", () => {
           {
             id: "k1",
             name: "Rentrée",
-            subject: "On rouvre",
+            subjectLine: "Objet : On rouvre",
             status: "SENDING",
             statusLabel: "En cours",
             recipients: 100,
+            opensPct: 42,
             opens: 42,
-            clicks: null,
-            when: "2 mai",
+            clicksPct: null,
+            day: "2 mai",
+            time: "10:00",
             whenAt: 1,
             href: "/o/club/marketing/campaigns/k1",
           },
@@ -226,7 +236,7 @@ describe("marketing, commandes, revente", () => {
         .getByRole("link", { name: /Rentrée/ })
         .getAttribute("href"),
     ).toBe("/o/club/marketing/campaigns/k1");
-    expect(row.textContent).toContain("42 %");
+    expect(row.textContent).toContain("42\u00a0%");
     expect(row.querySelector(".rounded-full.bg-current")).toBeTruthy();
     expect(row.querySelector(".animate-ping")).toBeNull();
   });
@@ -256,12 +266,16 @@ describe("marketing, commandes, revente", () => {
       tickets: 1,
       total: "10 €",
       totalMinor: 1000,
-      date: "1 mai",
+      refunded: null,
+      day: "1 mai",
+      time: "10:00",
       dateAt: 1,
     };
     draw(
       <OrdersTable
         caption="Commandes"
+        orgSlug="club"
+        canManage={false}
         rows={[
           {
             ...base,
@@ -411,7 +425,7 @@ describe("billetterie et finances", () => {
     await act(
       async () =>
         void fireEvent.click(
-          screen.getByRole("button", { name: all.complimentary!.title }),
+          screen.getByRole("button", { name: all.complimentary!.new }),
         ),
     );
     expect(
@@ -429,6 +443,7 @@ describe("billetterie et finances", () => {
         manage
         symbol="€"
         refundAfterStart={false}
+        intro="Options et consommations"
         rows={[
           {
             id: "op1",
@@ -487,7 +502,7 @@ describe("billetterie et finances", () => {
     expect(screen.getByRole("dialog", { name: "Vestiaire" })).toBeTruthy();
   });
 
-  it("tarifs : complet, paliers, période de vente ; « Modifier » ouvre l'édition complète", async () => {
+  it("tarifs : complet, illimité, période de vente ; le nom ouvre l'édition complète", async () => {
     const tt = (over: Partial<TicketTypeRow>): TicketTypeRow => ({
       id: "t1",
       name: "Adulte",
@@ -543,13 +558,15 @@ describe("billetterie et finances", () => {
       />,
     );
     const rows = within(table()).getAllByRole("row").slice(1);
+    // refonte A3 (maquette « Tarifs ») : le nom et les places, le prix, les ventes sur leur jauge, la période, le
+    // statut ; les paliers sont dans la fenêtre du tarif, qui s'ouvre d'un clic sur son nom
     expect(rows[0]!.textContent).toContain(all.tickets!.tableSoldOut);
-    expect(rows[1]!.textContent).toContain("1 palier");
+    expect(rows[1]!.textContent).toContain(all.tickets!.unlimited);
     expect(rows[1]!.textContent).toContain(all.tickets!.tableAlways);
     await act(
       async () =>
         void fireEvent.click(
-          within(rows[0]!).getByRole("button", { name: all.tickets!.edit }),
+          within(rows[0]!).getByRole("button", { name: /Adulte/ }),
         ),
     );
     expect(
@@ -562,25 +579,50 @@ describe("billetterie et finances", () => {
   it("finances : déductions en rouge doux, net en vert, l'événement mène à sa vue d'ensemble ; comparer les offres dans une fenêtre", async () => {
     draw(
       <>
-        <FinanceByEventTable
+        <FinanceEventsTable
           rows={[
             {
               id: "e1",
               title: "Gala",
+              state: "terminé",
+              startsAt: new Date("2026-10-24T18:00:00Z"),
+              timezone: "Europe/Brussels",
+              free: false,
               tickets: 10,
               gross: "250 €",
-              grossMinor: 25000,
               refunded: "25 €",
               refundedMinor: 2500,
-              commission: null,
+              commission: "0 €",
               commissionMinor: 0,
               bankFees: "3 €",
               bankFeeMinor: 300,
               net: "222 €",
-              netMinor: 22200,
               href: "/o/club/events/e1",
             },
           ]}
+          total={{
+            label: "Total de la période",
+            tickets: 10,
+            gross: "250 €",
+            refunded: "25 €",
+            refundedMinor: 2500,
+            commission: "0 €",
+            commissionMinor: 0,
+            bankFees: "3 €",
+            bankFeeMinor: 300,
+            net: "222 €",
+          }}
+          labels={{
+            caption: "Par événement",
+            event: "Événement",
+            tickets: "Billets",
+            gross: "Ventes brutes",
+            refunded: "Remboursements",
+            commission: "Commissions",
+            bankFees: "Frais bancaires",
+            net: "Net",
+          }}
+          locale="fr"
         />
         <CompareOffers label="Comparer les offres" title="Comparer">
           <p>Free et Pro</p>
@@ -590,8 +632,9 @@ describe("billetterie et finances", () => {
     const row = within(table()).getAllByRole("row")[1]!;
     expect(row.textContent).toContain("−25 €");
     expect(row.querySelector(".text-success")!.textContent).toBe("222 €");
+    // refonte A3 (maquette « Finances ») : la feuille du calendrier, le titre et l'état, en lien vers l'événement
     expect(
-      within(row).getByRole("link", { name: "Gala" }).getAttribute("href"),
+      within(row).getByRole("link", { name: /Gala/ }).getAttribute("href"),
     ).toBe("/o/club/events/e1");
     await act(
       async () =>

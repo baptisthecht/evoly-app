@@ -37,11 +37,11 @@ export default async function NewEventPage({
       .formatToParts(0)
       .find((p) => p.type === "currency")?.value ?? ctx.organization.currency;
   return (
-    <div className="grid max-w-3xl gap-8">
-      <header className="grid gap-2">
-        <h1 className="page-title">{t("newEvent")}</h1>
-        <p className="text-ink-muted">{t("newEventIntro")}</p>
-      </header>
+    // refonte A3 : le titre est dans la bande d'en-tête (« Nouvel événement ») ; ici, l'explication puis les rangées
+    <div className="grid gap-2">
+      <p className="max-w-[720px] text-[13px] text-ink-muted">
+        {t("newEventIntro")}
+      </p>
       <NewEventForm
         orgSlug={orgSlug}
         venue={await partnerVenueFor(ctx.organization.id)}

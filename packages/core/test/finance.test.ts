@@ -4,6 +4,7 @@ import {
   estimateBankFee,
   financeByEvent,
   financeTotals,
+  growthPct,
   statementNumber,
   vatIncluded,
 } from "../src";
@@ -143,5 +144,17 @@ describe("TVA sur la commission et relevés (RG-FEE-30)", () => {
     expect(vatIncluded(612, 2100)).toBe(106);
     expect(vatIncluded(612, 0)).toBe(0);
     expect(statementNumber(2026, 42)).toBe("EVO-2026-000042");
+  });
+});
+
+describe("growthPct (refonte A3, évolution sur la période d'avant)", () => {
+  it("donne l'évolution en pour cent, arrondie", () => {
+    expect(growthPct(117_00, 100_00)).toBe(17);
+    expect(growthPct(80_00, 100_00)).toBe(-20);
+    expect(growthPct(100_00, 300_00)).toBe(-67);
+  });
+  it("rien à comparer sans période précédente positive", () => {
+    expect(growthPct(100_00, 0)).toBeNull();
+    expect(growthPct(100_00, -5_00)).toBeNull();
   });
 });

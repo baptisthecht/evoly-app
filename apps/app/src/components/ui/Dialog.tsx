@@ -1,7 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { cn } from "./cn";
 
@@ -15,6 +23,23 @@ const still = () =>
 const phone = () =>
   typeof window !== "undefined" &&
   !!window.matchMedia?.("(max-width: 767px)").matches;
+
+/** Le pied de la fenêtre ouverte, où un formulaire place ses boutons (DialogFooter). */
+const FooterSlot = createContext<HTMLElement | null>(null);
+
+/**
+ * Boutons d'un formulaire dans le pied de sa fenêtre (refonte A3, maquette « Nouveau tarif ») : fond gris très clair, filet
+ * au-dessus, alignés à droite. Hors d'une fenêtre, une rangée de boutons à droite. Le bouton d'envoi porte form={id}.
+ */
+export function DialogFooter({ children }: { children: ReactNode }) {
+  const slot = useContext(FooterSlot);
+  if (slot) return createPortal(children, slot);
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {children}
+    </div>
+  );
+}
 
 /**
  * Fenêtre : centrée sur ordinateur, feuille qui monte du bas sur téléphone, qu'on ferme en la
@@ -48,6 +73,7 @@ export function Dialog({
   const [dy, setDy] = useState(0);
   const [dragging, setDragging] = useState(false);
   const drag = useRef<{ y: number; t: number; dy: number } | null>(null);
+  const [slot, setSlot] = useState<HTMLDivElement | null>(null);
   const isPhone = phone();
 
   useEffect(() => {
@@ -144,7 +170,7 @@ export function Dialog({
         tabIndex={-1}
         aria-label={t("close")}
         onClick={onClose}
-        className="absolute inset-0 bg-[rgba(34,34,34,0.45)]"
+        className="absolute inset-0 bg-scrim"
         style={{
           opacity: shown ? Math.max(0, 1 - dy / 400) : 0,
           transition:
@@ -159,8 +185,9 @@ export function Dialog({
         tabIndex={-1}
         className={cn(
           "relative flex max-h-[90dvh] w-full flex-col overflow-hidden bg-surface-raised text-ink outline-none",
-          "rounded-t-[1.75rem] md:rounded-[var(--r-xl)] md:shadow-[var(--elev-lg)]",
-          size === "lg" ? "md:max-w-2xl" : "md:max-w-lg",
+          // refonte A3 (maquette « Nouveau tarif », UIUX/pages-a3.html) : 540 px, arrondi 14 px, ombre longue et douce
+          "rounded-t-[1.75rem] md:rounded-[14px] md:shadow-[0_24px_60px_-20px_rgba(0,0,0,0.45)]",
+          size === "lg" ? "md:max-w-[680px]" : "md:max-w-[540px]",
         )}
         style={{
           transform: isPhone
@@ -187,45 +214,45 @@ export function Dialog({
             className="mx-auto block h-1.5 w-10 rounded-full bg-[rgba(34,34,34,0.25)]"
           />
         </div>
-        <div className="flex items-start justify-between gap-4 px-5 pt-3 md:px-6 md:pt-6">
-          <div className="grid gap-1">
+        <div className="flex items-center justify-between gap-4 px-[18px] pt-2 pb-1 md:px-[22px] md:pt-[18px]">
+          <div className="grid min-w-0 gap-0.5">
             <h2
               id={titleId}
-              className="font-display text-xl tracking-[var(--tracking-title)]"
+              className="text-[17px] leading-[normal] font-semibold"
             >
               {title}
             </h2>
             {description ? (
-              <div className="text-sm text-ink-muted">{description}</div>
+              <div className="text-[13px] text-ink-muted">{description}</div>
             ) : null}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label={t("close")}
-            className="-mt-1 -mr-2 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-surface-sunken hover:text-ink"
+            className="inline-flex size-[30px] shrink-0 items-center justify-center rounded-[8px] text-ink-muted hover:bg-surface-sunken hover:text-ink"
           >
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
-              className="size-5"
+              className="size-4"
               fill="none"
               stroke="currentColor"
               strokeWidth={2}
-              strokeLinecap="round"
             >
               <path d="M6 6l12 12M18 6 6 18" />
             </svg>
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 md:px-6">
-          {children}
+        <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto px-[18px] pt-3 pb-5 md:px-[22px]">
+          <FooterSlot.Provider value={slot}>{children}</FooterSlot.Provider>
         </div>
-        {footer ? (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-4 md:px-6">
-            {footer}
-          </div>
-        ) : null}
+        <div
+          ref={setSlot}
+          className="flex flex-wrap items-center justify-end gap-2 border-t border-line bg-surface-soft px-[18px] py-3.5 empty:hidden md:px-[22px]"
+        >
+          {footer}
+        </div>
       </div>
     </div>,
     document.body,

@@ -1,16 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useState } from "react";
-import { Dialog } from "@/components/ui/Dialog";
-import {
-  FormError,
-  SubmitButton,
-  useActionForm,
-  useFieldError,
-} from "@/components/forms";
+import { BarActions } from "@/components/shell/EventTabs";
+import { DateTimeField } from "@/components/ui/DateTimeField";
+import { Dialog, DialogFooter } from "@/components/ui/Dialog";
+import { FormError, useActionForm, useFieldError } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { createPromoAction, promoCommandAction } from "../../actions";
 import { PlusIcon } from "@/components/ui/icons";
@@ -27,6 +23,7 @@ export function PromoForm({
   currencySymbol: string;
 }) {
   const t = useTranslations("promo");
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<"PERCENT" | "AMOUNT" | "FREE">("PERCENT");
   const { state, pending, formProps } = useActionForm(
@@ -37,17 +34,12 @@ export function PromoForm({
   useEffect(() => {
     if (state?.ok) setOpen(false);
   }, [state]);
-  // création d'un code : dans une fenêtre (centrée sur ordinateur, feuille sur téléphone)
+  // création d'un code : dans une fenêtre (centrée sur ordinateur, feuille sur téléphone) ; refonte A3 (maquette
+  // « Tarifs ») : le bouton à droite des onglets en boutons (BarActions), les boutons de la fenêtre dans son pied
   return (
-    <>
-      <Button
-        type="button"
-        variant="secondary"
-        size="lg"
-        className="justify-self-start"
-        onClick={() => setOpen(true)}
-      >
-        <PlusIcon className="size-4 shrink-0" />
+    <BarActions>
+      <Button type="button" variant="primary" onClick={() => setOpen(true)}>
+        <PlusIcon />
         {t("new")}
       </Button>
       <Dialog
@@ -56,9 +48,9 @@ export function PromoForm({
         title={t("new")}
         size="lg"
       >
-        <form {...formProps} className="grid gap-5" noValidate>
+        <form id="promo-form" {...formProps} className="grid gap-4" noValidate>
           <FormError state={state} />
-          <div className="grid gap-5 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-3">
             <Field
               label={t("code")}
               htmlFor="promo-code"
@@ -113,7 +105,7 @@ export function PromoForm({
                 />
               </Field>
             ) : (
-              <p className="self-end pb-3 text-sm text-ink-muted">
+              <p className="self-end pb-3 text-[13px] text-ink-muted">
                 {t("freeHint")}
               </p>
             )}
@@ -122,7 +114,7 @@ export function PromoForm({
             <legend className="mb-1 font-label text-[0.8rem] font-bold">
               {t("ticketTypes")}
             </legend>
-            <p className="-mt-1 text-sm text-ink-muted">
+            <p className="-mt-1 text-[12.5px] text-ink-muted">
               {t("ticketTypesHint")}
             </p>
             {ticketTypes.map((tt) => (
@@ -140,7 +132,7 @@ export function PromoForm({
               </label>
             ))}
           </fieldset>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Field
               label={t("maxUses")}
               htmlFor="promo-max"
@@ -184,17 +176,17 @@ export function PromoForm({
               />
             </Field>
             <Field label={t("startsAt")} htmlFor="promo-start">
-              <Input
+              <DateTimeField
                 id="promo-start"
                 name="startsAtLocal"
-                type="datetime-local"
+                locale={locale}
               />
             </Field>
             <Field label={t("expiresAt")} htmlFor="promo-end">
-              <Input
+              <DateTimeField
                 id="promo-end"
                 name="expiresAtLocal"
-                type="datetime-local"
+                locale={locale}
               />
             </Field>
           </div>
@@ -208,22 +200,27 @@ export function PromoForm({
               {t("unlocksHidden")}
             </label>
           ) : null}
-          <div className="flex flex-wrap gap-3">
-            <SubmitButton pending={pending} className="w-full sm:w-auto">
-              {t("create")}
-            </SubmitButton>
+          <DialogFooter>
             <Button
               type="button"
-              variant="ghost"
-              size="lg"
+              variant="secondary"
               onClick={() => setOpen(false)}
             >
               {t("cancel")}
             </Button>
-          </div>
+            <Button
+              type="submit"
+              form="promo-form"
+              variant="primary"
+              disabled={pending}
+              aria-busy={pending}
+            >
+              {t("create")}
+            </Button>
+          </DialogFooter>
         </form>
       </Dialog>
-    </>
+    </BarActions>
   );
 }
 

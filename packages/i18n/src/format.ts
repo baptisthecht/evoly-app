@@ -29,7 +29,8 @@ export function formatMoney(
   minor: number,
   currency: string,
   locale: Locale,
-  options: { trimZeroCents?: boolean } = {},
+  /** trimZeroCents : « 18 € » au lieu de « 18,00 € » ; units : arrondi à l'unité (« +1 240 € », une évolution). */
+  options: { trimZeroCents?: boolean; units?: boolean } = {},
 ): string {
   const value = fromMinor(minor, currency);
   const exp = currencyExponent(currency);
@@ -37,8 +38,9 @@ export function formatMoney(
   return new Intl.NumberFormat(INTL_LOCALE[locale], {
     style: "currency",
     currency,
-    minimumFractionDigits: options.trimZeroCents && whole ? 0 : exp,
-    maximumFractionDigits: exp,
+    minimumFractionDigits:
+      options.units || (options.trimZeroCents && whole) ? 0 : exp,
+    maximumFractionDigits: options.units ? 0 : exp,
   }).format(value);
 }
 
@@ -87,6 +89,68 @@ export function formatTime(
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+}
+
+/** Date courte (« 21 nov. », « 1er déc. »), dans le fuseau de l'événement ; en français, le premier du mois en ordinal. */
+export function formatShortDate(
+  date: Date,
+  timeZone: string,
+  locale: Locale,
+): string {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    timeZone,
+    day: "numeric",
+    month: "short",
+  })
+    .formatToParts(date)
+    .map((p) =>
+      p.type === "day" && locale === "fr" && p.value === "1" ? "1er" : p.value,
+    )
+    .join("");
+}
+
+/**
+ * Date longue et heure d'un événement (refonte A3, maquettes UIUX/) : « Samedi 21 novembre 2026, 20:00 », la majuscule
+ * en tête, une virgule avant l'heure (jamais de point médian).
+ */
+export function formatEventWhen(
+  date: Date,
+  timeZone: string,
+  locale: Locale,
+): string {
+  const day = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    timeZone,
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+  const text = `${day}, ${formatTime(date, timeZone, locale)}`;
+  return text.charAt(0).toLocaleUpperCase(INTL_LOCALE[locale]) + text.slice(1);
+}
+
+/**
+ * Date courte et heure d'un événement, sur téléphone (refonte A3, maquette « Sur téléphone ») : « Sam. 21 nov., 20:00 »,
+ * la majuscule en tête, « 1er » en français.
+ */
+export function shortEventWhen(
+  date: Date,
+  timeZone: string,
+  locale: Locale,
+): string {
+  const day = new Intl.DateTimeFormat(INTL_LOCALE[locale], {
+    timeZone,
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  })
+    .formatToParts(date)
+    .map((p) =>
+      p.type === "day" && locale === "fr" && p.value === "1" ? "1er" : p.value,
+    )
+    .join("");
+  const text = `${day}, ${formatTime(date, timeZone, locale)}`;
+  return text.charAt(0).toLocaleUpperCase(INTL_LOCALE[locale]) + text.slice(1);
 }
 
 /** Abréviation du fuseau (« UTC+1 »…), affichée quand elle diffère de celle de l'acheteur. */

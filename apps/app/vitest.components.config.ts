@@ -36,6 +36,9 @@ export default defineConfig({
         "src/components/LocaleSwitch.tsx",
         "src/components/public/DisabledSite.tsx",
         "src/components/shell/AccountMenu.tsx",
+        // 7 novembre 2026 : le corps de la page des commandes (composant serveur avec la base), sorti du fichier de route
+        // (déjà hors couverture) pour l'onglet Participants d'un événement ; parcours complets
+        "src/app/o/[orgSlug]/orders/OrdersView.tsx",
       ],
       reporter: ["text-summary", "json-summary"],
       reportsDirectory: "coverage-components",

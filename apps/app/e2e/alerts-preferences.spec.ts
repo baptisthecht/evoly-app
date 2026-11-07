@@ -32,8 +32,9 @@ test("préférences de notification : une case modifiée garde son nouvel état 
 }) => {
   const { slug } = await organizer(page);
   await page.goto(appUrl(`/o/${slug}/notifications/preferences`));
+  // refonte A3 : le titre est dans l'en-tête (Notifications, onglet Préférences) ; le tableau des préférences
   await expect(
-    page.getByRole("heading", { name: "Préférences de notification" }),
+    page.getByRole("columnheader", { name: "Notification" }),
   ).toBeVisible();
   const box = page.getByRole("checkbox").first();
   const before = await box.isChecked();

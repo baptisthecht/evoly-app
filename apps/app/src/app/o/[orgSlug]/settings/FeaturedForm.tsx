@@ -44,7 +44,8 @@ export function FeaturedForm({
           {(["NEXT", "CHOSEN", "NONE"] as const).map((m) => (
             <label
               key={m}
-              className="flex cursor-pointer items-start gap-3 rounded-lg p-3 ring-1 ring-line has-[:checked]:ring-2 has-[:checked]:ring-ink"
+              // refonte A3 : un choix en carte, comme le plan de salle et le style de la billetterie
+              className="flex cursor-pointer items-start gap-3 rounded-[var(--r-card)] border border-line-strong bg-surface-raised px-3.5 py-3 hover:bg-surface-hover has-[:checked]:border-ink-strong has-[:checked]:bg-surface-raised has-[:checked]:shadow-[inset_0_0_0_0.5px_var(--ink-strong)]"
             >
               <input
                 type="radio"
@@ -52,11 +53,11 @@ export function FeaturedForm({
                 value={m}
                 checked={choice === m}
                 onChange={() => setChoice(m)}
-                className="mt-1"
+                className="mt-0.5"
               />
               <span className="grid gap-0.5">
-                <span className="font-semibold">{t(`featured_${m}`)}</span>
-                <span className="text-sm text-ink-muted">
+                <span className="font-medium">{t(`featured_${m}`)}</span>
+                <span className="text-[12.5px] text-ink-muted">
                   {t(`featured_${m}_hint`)}
                 </span>
               </span>
@@ -87,7 +88,10 @@ export function FeaturedForm({
           )
         ) : null}
         {fallback && choice === "CHOSEN" ? (
-          <p role="status" className="rounded-lg bg-surface-sunken p-3 text-sm">
+          <p
+            role="status"
+            className="rounded-[8px] bg-surface-soft px-3 py-2.5 text-[13px]"
+          >
             {t("featuredFallback")}
           </p>
         ) : null}

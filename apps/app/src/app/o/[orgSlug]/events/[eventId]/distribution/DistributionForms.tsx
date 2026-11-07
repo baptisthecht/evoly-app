@@ -34,11 +34,12 @@ export function AddDistributorForm({
   return (
     <form
       {...formProps}
-      className="grid gap-4 border-t border-line pt-4"
+      // refonte A3 : les champs sur 560 px au plus, comme dans les réglages
+      className="grid max-w-[560px] gap-3.5 pt-1"
       noValidate
     >
       <FormError state={state} />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <Field label={t("kind")} htmlFor="dist-kind" error={error("kind")}>
           <Select id="dist-kind" name="kind" defaultValue={kinds[0]?.value}>
             {kinds.map((k) => (
@@ -58,7 +59,7 @@ export function AddDistributorForm({
         </Field>
       </div>
       {state?.ok ? (
-        <p role="status" className="text-sm text-ink-muted">
+        <p role="status" className="text-[13px] text-ink-muted">
           {t("added")}
         </p>
       ) : null}
@@ -91,7 +92,7 @@ export function AllocationForm(props: {
   return (
     <form
       {...formProps}
-      className="grid gap-2 rounded-md bg-surface-sunken p-3"
+      className="grid gap-2 rounded-[10px] border border-line p-3"
       noValidate
     >
       <input type="hidden" name="distributorId" value={props.distributorId} />
@@ -123,7 +124,7 @@ export function AllocationForm(props: {
       </Field>
       <FormError state={state} />
       {state?.ok ? (
-        <p role="status" className="text-sm text-ink-muted">
+        <p role="status" className="text-[13px] text-ink-muted">
           {t("saved")}
         </p>
       ) : null}
@@ -161,7 +162,7 @@ export function ReleaseUnsoldButton({
       </SubmitButton>
       <FormError state={state} />
       {state?.ok ? (
-        <p role="status" className="text-sm text-ink-muted">
+        <p role="status" className="text-[13px] text-ink-muted">
           {t("released", { count: state.data.released })}
         </p>
       ) : null}
@@ -187,12 +188,12 @@ export function PrecreatedCodesForm(props: {
   return (
     <form
       {...formProps}
-      className="grid w-full gap-3 rounded-md bg-surface p-4"
+      className="grid w-full gap-3 rounded-[10px] border border-line p-4"
       noValidate
     >
       <div className="grid gap-1">
-        <p className="font-semibold">{t("codesTitle")}</p>
-        <p className="text-sm text-ink-muted">{t("codesHint")}</p>
+        <p className="font-medium">{t("codesTitle")}</p>
+        <p className="text-[13px] text-ink-muted">{t("codesHint")}</p>
       </div>
       <input type="hidden" name="distributorId" value={props.distributorId} />
       <div className="grid gap-3 sm:grid-cols-2">
@@ -221,7 +222,7 @@ export function PrecreatedCodesForm(props: {
       </div>
       <FormError state={state} />
       {state?.ok ? (
-        <p role="status" className="text-sm text-ink-muted">
+        <p role="status" className="text-[13px] text-ink-muted">
           {t("codesCreated", { count: state.data.created })}
         </p>
       ) : null}
@@ -232,7 +233,7 @@ export function PrecreatedCodesForm(props: {
         {props.existing > 0 || state?.ok ? (
           <a
             href={download}
-            className="text-sm font-semibold underline underline-offset-4"
+            className="text-[13px] font-medium underline underline-offset-4"
           >
             {t("codesDownload", {
               count: props.existing + (state?.ok ? state.data.created : 0),

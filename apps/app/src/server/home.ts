@@ -44,9 +44,11 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
           locationName: true,
           coverImageUrl: true,
           capacity: true,
+          doorsOpenAt: true,
+          updatedAt: true,
           ticketTypes: {
             where: { status: { not: "ARCHIVED" } },
-            select: { quantity: true, quantitySold: true },
+            select: { quantity: true, quantitySold: true, priceMinor: true },
           },
         },
       }),
@@ -75,15 +77,22 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
       FROM "Order"
       WHERE "organizationId" = ${organizationId} AND status IN ('PAID', 'PARTIALLY_REFUNDED') AND "paidAt" >= ${since}
       GROUP BY 1 ORDER BY 1`,
-      db.event.count({
+      db.event.findMany({
         where: {
           organizationId,
           deletedAt: null,
           status: "DRAFT",
           updatedAt: { lt: new Date(now.getTime() - 7 * 86_400_000) },
         },
+        orderBy: { updatedAt: "asc" },
+        take: 3,
+        select: { id: true, title: true, updatedAt: true },
       }),
-      db.event.count({ where: { ...upcomingWhere, coverImageUrl: null } }),
+      db.event.findMany({
+        where: { ...upcomingWhere, coverImageUrl: null },
+        orderBy: { startsAt: "asc" },
+        select: { id: true, title: true },
+      }),
       // encaissé par événement (toutes ventes payées, remboursements déduits)
       db.order.groupBy({
         by: ["eventId"],
@@ -114,8 +123,14 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
       slug: e.slug,
       subdomain: e.subdomain,
       startsAt: e.startsAt,
+      salesStartAt: e.salesStartAt,
+      doorsOpenAt: e.doorsOpenAt,
       timezone: e.timezone,
-      place: e.city ?? e.locationName ?? "",
+      // refonte A3 (maquettes UIUX/) : le lieu puis la ville (« Salle des fêtes, Wépion »)
+      place: [e.locationName, e.city].filter(Boolean).join(", "),
+      free:
+        e.ticketTypes.length > 0 &&
+        e.ticketTypes.every((t) => t.priceMinor === 0),
       sold,
       capacity,
       // refonte A3 : le rythme des ventes (packages/core/src/pace.ts)
@@ -131,6 +146,13 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
       .slice(0, 10);
     return { day, totalMinor: byDay.get(day) ?? 0 };
   });
+  // refonte A3 (maquettes UIUX/) : les brouillons après les événements publiés
+  fill.sort(
+    (a, b) => Number(a.status === "DRAFT") - Number(b.status === "DRAFT"),
+  );
+  upcoming.sort(
+    (a, b) => Number(a.status === "DRAFT") - Number(b.status === "DRAFT"),
+  );
   const nextIndex = upcoming.findIndex((e) => e.status !== "DRAFT");
   const next = nextIndex >= 0 ? upcoming[nextIndex]! : null;
   return {
@@ -152,7 +174,11 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
     todo: {
       stripe: !ctx.stripe || ctx.stripe.status !== "ACTIVE",
       noCover,
-      drafts,
+      drafts: drafts.map((d) => ({
+        id: d.id,
+        title: d.title,
+        days: Math.floor((now.getTime() - d.updatedAt.getTime()) / 86_400_000),
+      })),
     },
   };
 }

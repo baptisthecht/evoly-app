@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormError, SubmitButton, useActionForm } from "@/components/forms";
-import { Card } from "@/components/ui/Card";
+import { buttonClass } from "@/components/ui/Button";
+import { SettingsRow } from "@/components/ui/Controls";
 import { Input } from "@/components/ui/Field";
 import { uploadFile } from "@/app/o/[orgSlug]/brand/BrandClient";
 import {
@@ -63,20 +64,26 @@ export function EventAppearance({
     if (state?.ok) router.refresh();
   }, [state, router]);
   return (
-    <div className="mt-10 grid gap-4">
+    // refonte A3 (maquette « Réglages de l'événement ») : une rangée par réglage, le titre et l'explication à gauche ; un
+    // fragment, pour que les rangées s'enchaînent avec celles de la page (filets entre elles)
+    <>
       {part !== "subdomain" ? (
-        <Card className="grid gap-3">
-          <h2 className="text-[0.9375rem] font-semibold">{t("coverTitle")}</h2>
-          <p className="-mt-1 text-sm text-ink-muted">{t("coverHint")}</p>
+        <SettingsRow title={t("coverTitle")} description={t("coverHint")}>
           {cover ? (
             <img
               src={cover}
               alt=""
-              className="aspect-[3/1] w-full rounded-md object-cover"
+              className="aspect-[3/1] w-full rounded-[10px] object-cover"
             />
           ) : null}
-          <div className="flex flex-wrap gap-2">
-            <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
+          <div className="flex flex-wrap items-center gap-2">
+            <label
+              className={buttonClass(
+                "secondary",
+                "md",
+                "cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--focus-ring)]",
+              )}
+            >
               {busy ? t("uploading") : t("uploadCover")}
               <input
                 type="file"
@@ -105,7 +112,7 @@ export function EventAppearance({
             {cover ? (
               <button
                 type="button"
-                className="text-sm underline underline-offset-4"
+                className={buttonClass("ghost")}
                 onClick={async () => {
                   await eventCoverAction(orgSlug, eventId, null);
                   router.refresh();
@@ -116,83 +123,71 @@ export function EventAppearance({
             ) : null}
           </div>
           {error ? (
-            <p role="alert" className="text-sm text-danger">
+            <p role="alert" className="text-[13px] text-danger">
               {error}
             </p>
           ) : null}
-        </Card>
+        </SettingsRow>
       ) : null}
       {part !== "cover" ? (
-        <Card className="grid gap-3">
-          <h2 className="text-[0.9375rem] font-semibold">
-            {t("eventSubdomainTitle")}
-          </h2>
+        <SettingsRow
+          title={t("eventSubdomainTitle")}
+          description={
+            canSubdomain ? t("eventSubdomainHint") : t("eventSubdomainUpsell")
+          }
+        >
           {canSubdomain ? (
-            <form {...formProps} className="grid gap-3" noValidate>
-              <p className="-mt-1 text-sm text-ink-muted">
-                {t("eventSubdomainHint")}
-              </p>
+            <form {...formProps} className="grid gap-3.5" noValidate>
               <FormError state={state} />
               <div className="flex flex-wrap items-center gap-2">
                 <Input
                   name="subdomain"
                   value={value}
                   onChange={(e) => setValue(e.target.value.toLowerCase())}
-                  className="max-w-[16rem] font-mono"
+                  className="max-w-[16rem]"
                   aria-label={t("eventSubdomainTitle")}
                 />
-                <span className="font-mono text-sm text-ink-muted">
-                  .{baseDomain}
-                </span>
+                <span className="text-ink-muted">.{baseDomain}</span>
               </div>
               {check ? (
                 <p
-                  className={`text-sm ${check.ok ? "text-success" : "text-danger"}`}
+                  className={`text-[13px] ${check.ok ? "text-success" : "text-danger"}`}
                 >
                   {check.ok ? t("available") : t(`unavailable_${check.reason}`)}
                 </p>
               ) : null}
               {subdomain ? (
-                <p className="text-sm">
+                <p className="text-[13px]">
                   {t("eventSubdomainActive")}{" "}
                   <a
                     href={`${protocol}//${subdomain}.${baseDomain}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-mono font-semibold underline underline-offset-4"
+                    className="font-medium underline underline-offset-4"
                   >
                     {subdomain}.{baseDomain}
                   </a>
                 </p>
               ) : null}
               {/* « Retirer » seulement s'il y a un sous-domaine à retirer */}
-              <SubmitButton
-                pending={pending}
-                className="w-full sm:w-auto sm:justify-self-start"
-              >
+              <SubmitButton pending={pending}>
                 {!value && subdomain
                   ? t("eventSubdomainRemove")
                   : t("eventSubdomainSave")}
               </SubmitButton>
             </form>
           ) : (
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-sm bg-surface-sunken px-1.5 py-px text-[0.6875rem] font-semibold text-ink">
-                Pro
-              </span>
-              <p className="text-sm text-ink-muted">
-                {t("eventSubdomainUpsell")}
-              </p>
+            <div>
               <a
                 href={`/o/${orgSlug}/billing`}
-                className="inline-flex min-h-11 items-center rounded-full bg-surface-inverse px-5 font-label text-sm font-bold text-ink-inverse"
+                className={buttonClass("primary")}
               >
                 {t("upgradePro")}
               </a>
             </div>
           )}
-        </Card>
+        </SettingsRow>
       ) : null}
-    </div>
+    </>
   );
 }

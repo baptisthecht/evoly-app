@@ -1,7 +1,10 @@
 import type { SalesPaceResult } from "@evoly/core";
-import { formatDayMonth, type Locale } from "@evoly/i18n";
+import { formatDayMonth, formatShortDate, type Locale } from "@evoly/i18n";
 import { getTranslations } from "next-intl/server";
 import { cn } from "./cn";
+import { Gauge } from "./Gauge";
+
+export { Gauge };
 
 /**
  * Jauge des ventes avec le trait du rythme (refonte A3, docs/DECISIONS.md) : le trait rose marque la part de la
@@ -14,6 +17,7 @@ export async function SalesGauge({
   timezone,
   locale,
   projection = false,
+  opensAt = null,
   className,
 }: {
   sold: number;
@@ -23,29 +27,32 @@ export async function SalesGauge({
   locale: Locale;
   /** Ajoute la date projetée du complet quand on vend en avance. */
   projection?: boolean;
+  /** Ventes pas encore ouvertes (événement programmé) : « ventes le 1er déc. », jauge vide sans trait. */
+  opensAt?: Date | null;
   className?: string;
 }) {
   const t = await getTranslations("pace");
   if (capacity == null)
     return (
-      <p className={cn("text-[0.8125rem] tabular-nums", className)}>
+      <p className={cn("text-[13px] tabular-nums", className)}>
         {t("sold", { sold })}
       </p>
     );
-  const word = pace.pace === "unknown" ? null : t(pace.pace);
+  const word = opensAt
+    ? t("notStartedOn", {
+        date: formatShortDate(opensAt, timezone, locale),
+      })
+    : pace.pace === "unknown"
+      ? null
+      : t(pace.pace);
   const tone =
     pace.pace === "ahead" || pace.pace === "soldOut"
       ? "text-success"
       : pace.pace === "behind"
         ? "text-warning"
         : "text-ink-muted";
-  const bar =
-    pace.pace === "soldOut"
-      ? "bg-success"
-      : pace.pace === "behind"
-        ? "bg-warning"
-        : "bg-ink";
   const showMarker =
+    !opensAt &&
     pace.elapsedRatio != null &&
     pace.pace !== "soldOut" &&
     pace.pace !== "notStarted";
@@ -54,29 +61,33 @@ export async function SalesGauge({
       ? formatDayMonth(pace.soldOutAt, timezone, locale)
       : null;
   return (
-    <div className={cn("grid gap-1.5", className)}>
-      <p className="flex items-baseline justify-between gap-3 text-[0.8125rem] tabular-nums">
-        <span>{t("soldOf", { sold, capacity })}</span>
-        {word ? <span className={tone}>{word}</span> : null}
-      </p>
-      <span
-        role="img"
-        aria-label={t("label", { sold, capacity, pace: word ?? "" })}
-        className="relative block h-1.5 rounded-full bg-surface-sunken"
-      >
-        <span
-          className={cn("absolute inset-y-0 left-0 rounded-full", bar)}
-          style={{ width: `${(pace.soldRatio ?? 0) * 100}%` }}
-        />
-        {showMarker ? (
-          <span
-            className="absolute -inset-y-1 w-0.5 rounded-full bg-highlight shadow-[0_0_0_2px_var(--surface-raised)]"
-            style={{ left: `${pace.elapsedRatio! * 100}%` }}
-          />
+    <div className={className}>
+      {/* refonte A3 (maquettes UIUX/) : « 312 sur 400 » en 13 px, le rythme en 12,5 px, 5 px au-dessus de la jauge */}
+      {/* sur une colonne étroite (téléphone), le rythme passe sous les ventes au lieu de couper les mots */}
+      <p className="mb-[5px] flex flex-wrap justify-between gap-x-3 text-[13px] tabular-nums">
+        <span className="whitespace-nowrap">
+          {t("soldOf", { sold, capacity })}
+        </span>
+        {word ? (
+          <span className={cn("text-[12.5px] whitespace-nowrap", tone)}>
+            {word}
+          </span>
         ) : null}
-      </span>
+      </p>
+      <Gauge
+        ratio={pace.soldRatio ?? 0}
+        tone={
+          pace.pace === "soldOut"
+            ? "success"
+            : pace.pace === "behind"
+              ? "warning"
+              : "ink"
+        }
+        marker={showMarker ? pace.elapsedRatio! : null}
+        label={t("label", { sold, capacity, pace: word ?? "" })}
+      />
       {soldOut ? (
-        <p className="text-[0.8125rem] text-success">
+        <p className="mt-1 text-[12.5px] text-success">
           {t("soldOutAt", { date: `${soldOut.day} ${soldOut.month}` })}
         </p>
       ) : null}
@@ -100,23 +111,29 @@ export function DateLeaf({
   className?: string;
 }) {
   const { day, month } = formatDayMonth(date, timezone, locale);
+  // refonte A3 (maquettes UIUX/, « .leaf », tel que la maquette s'affiche) : 44 px, filet de 1 px (pointillé pour un
+  // brouillon), arrondi 8 px ; le mois en 12,5 px demi-gras gris sur un rose très pâle, le jour en Archivo Black 19 px
+  // graissé (la maquette demande du demi-gras sur cette police à une seule graisse : le navigateur l'épaissit)
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "grid w-11 shrink-0 overflow-hidden rounded-md bg-surface-raised text-center",
-        draft
-          ? "border border-dashed border-line-strong"
-          : "ring-1 ring-line-strong",
+        "block w-11 shrink-0 overflow-hidden rounded-[8px] border border-line-strong bg-surface-raised text-center",
+        draft && "border-dashed",
         className,
       )}
     >
-      <span className="border-b border-line bg-highlight-soft pt-1 pb-0.5 text-[0.6875rem] leading-none font-semibold text-highlight-ink">
+      <small
+        className={cn(
+          "block border-b border-line pt-[5px] pb-[3px] text-[12.5px] leading-none font-semibold text-ink-muted",
+          draft ? "bg-surface-soft" : "bg-leaf-head",
+        )}
+      >
         {month}
-      </span>
-      <span className="font-figures pt-1 pb-1.5 text-[1.1875rem] leading-none tracking-[var(--tracking-figures)]">
+      </small>
+      <b className="block pt-[5px] pb-1.5 font-figures text-[19px] leading-none font-semibold tracking-[-0.04em]">
         {day}
-      </span>
+      </b>
     </span>
   );
 }

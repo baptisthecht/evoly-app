@@ -31,7 +31,7 @@ test("scanner bénévole : sans compte, code court, déjà scanné, inconnu, rec
   // US-SCN-01 : lien bénévole
   await page.goto(`${eventUrl}/entries`);
   await expect(page.getByText("0 / 3").first()).toBeVisible();
-  await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
+  await page.getByRole("button", { name: "Nouveau lien bénévole" }).click();
   await page.getByLabel("Libellé").fill("Porte A");
   await page.getByRole("button", { name: "Créer le lien" }).click();
   await expect(page.getByText("Porte A")).toBeVisible();
@@ -175,7 +175,7 @@ test("vérification seule : le billet est contrôlé sans être validé, puis en
 
   // contrôle au périmètre : lien en vérification seule
   await page.goto(`${eventUrl}/entries`);
-  await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
+  await page.getByRole("button", { name: "Nouveau lien bénévole" }).click();
   await page.getByLabel("Libellé").fill("Périmètre");
   await page.getByLabel(/^Vérification seule/).check();
   await page.getByRole("button", { name: "Créer le lien" }).click();
@@ -213,7 +213,7 @@ test("vérification seule : le billet est contrôlé sans être validé, puis en
 
   // à l'entrée de la salle : lien normal, vérification possible, puis entrée validée
   await page.reload();
-  await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
+  await page.getByRole("button", { name: "Nouveau lien bénévole" }).click();
   await page.getByLabel("Libellé").fill("Salle");
   await page.getByRole("button", { name: "Créer le lien" }).click();
   await expect(page.getByText("Salle", { exact: true }).first()).toBeVisible(); // le libellé du lien, pas « Plan de salle » de la barre latérale

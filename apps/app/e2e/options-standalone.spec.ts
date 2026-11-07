@@ -17,14 +17,14 @@ test("vestiaire acheté seul : option vendable sans billet, panier sans billet, 
 
   // un vestiaire vendable sans billet, un jeton qui exige un billet (gratuits, pour un achat sans paiement)
   await page.goto(`${eventUrl}/options`);
-  await page.getByRole("button", { name: "+ Nouvelle option" }).click(); // l'ajout : dans une fenêtre
+  await page.getByRole("button", { name: "Nouvelle option" }).click(); // l'ajout : dans une fenêtre
   await page.getByLabel("Nom").fill("Vestiaire");
   await page.getByLabel("Prix").fill("0");
   await page.getByLabel("Vendable sans billet").check();
   await page.getByRole("button", { name: "Ajouter l'option" }).click();
   await expect(page.getByText("Option enregistrée.")).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "+ Nouvelle option" }).click(); // l'ajout : dans une fenêtre
+  await page.getByRole("button", { name: "Nouvelle option" }).click(); // l'ajout : dans une fenêtre
   const ajout = page.locator("form", { has: page.locator("#option-new-name") });
   await ajout.locator("#option-new-name").fill("Jeton boisson");
   await ajout.locator("#option-new-price").fill("0");
@@ -80,7 +80,7 @@ test("vestiaire acheté seul : option vendable sans billet, panier sans billet, 
     `select "optionsShortCode" from "Order" where id = '${orderId}'`,
   );
   await page.goto(`${eventUrl}/entries`);
-  await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
+  await page.getByRole("button", { name: "Nouveau lien bénévole" }).click();
   await page.getByLabel("Libellé").fill("Vestiaire");
   await page.getByRole("button", { name: "Créer le lien" }).click();
   const url = (await page.getByTestId("scanner-url").textContent())!;

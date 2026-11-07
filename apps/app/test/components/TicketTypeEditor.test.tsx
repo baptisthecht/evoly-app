@@ -164,9 +164,11 @@ describe("tarifs de l'événement : formulaire", () => {
         />
       </Fr>,
     );
+    // refonte A3 (maquette « Nouveau tarif ») : les réglages rares sont repliés sous « Plus d'options »
+    fireEvent.click(screen.getByRole("button", { name: tk.moreOptions }));
     expect(
       (
-        screen.getByRole("checkbox", {
+        screen.getByRole("switch", {
           name: tk.resaleAllowed,
         }) as HTMLInputElement
       ).checked,
@@ -177,9 +179,8 @@ describe("tarifs de l'événement : formulaire", () => {
     await act(
       async () =>
         void fireEvent.submit(
-          screen
-            .getByRole("button", { name: tk.addTicketType })
-            .closest("form")!,
+          // « Créer le tarif » (maquette) ; hors d'une fenêtre, le pied reste dans le formulaire
+          screen.getByRole("button", { name: tk.create }).closest("form")!,
         ),
     );
     await waitFor(() =>
@@ -237,9 +238,8 @@ describe("tarifs de l'événement : formulaire", () => {
     await act(
       async () =>
         void fireEvent.submit(
-          screen
-            .getByRole("button", { name: tk.addTicketType })
-            .closest("form")!,
+          // « Créer le tarif » (maquette) ; hors d'une fenêtre, le pied reste dans le formulaire
+          screen.getByRole("button", { name: tk.create }).closest("form")!,
         ),
     );
     await waitFor(() =>

@@ -67,9 +67,9 @@ test("réseau, contingent, import en 1 clic, scan d'un code-barres importé, bil
 
   await page.goto(`${eventUrl}/orders`);
 
+  // refonte A3 (maquette « Commandes ») : le filtre s'applique dès le choix, sans bouton
   await page.getByLabel("Canal").selectOption({ label: "Ticketmaster" });
-
-  await page.getByRole("button", { name: "Rechercher" }).click();
+  await expect(page).toHaveURL(/channel=/);
 
   // commandes et billets des réseaux : un seul tableau (des cartes sur téléphone)
   const networkList = page

@@ -10,9 +10,15 @@ ce n'est pas fini.
 ## Structure
 
 - **Des lignes, pas des cartes.** Listes et tableaux : des lignes séparées par des filets (`border-line`), groupées
-  sous un titre de section (`text-[0.9375rem] font-semibold`) et un lien discret à droite (« Toutes les commandes »).
-- **Une seule surface par niveau.** Jamais de carte dans une carte. La carte (`Card`) est réservée à un vrai objet
-  (un graphique, un formulaire isolé), pas à chaque bloc.
+  sous un titre de section (`SectionTitle` : 14,5 px demi-gras) et un lien discret à droite (« Toutes les commandes »).
+- **Aucune carte encadrée.** Les maquettes n'en ont pas : dans l'espace organisateur, `Card` n'est plus qu'une partie
+  de page séparée de la suivante par un filet (globals.css, `.evoly-card`). Pour un écran neuf, écrire directement des
+  rangées ou des sections, pas de `Card`.
+- **Réglages et formulaires de page** : `SettingsRow` (« .setrow » de la maquette Réglages) : le titre et l'explication
+  dans une colonne de 250 px, les champs à droite sur 560 px au plus (`wide` pour un éditeur avec aperçu). Champs
+  côte à côte : `grid gap-3 sm:grid-cols-2`. Le bouton d'envoi à sa taille, jamais étiré.
+- **Le bouton d'une page** (« Nouveau tarif », « Offrir des billets », un export) va à droite des onglets en boutons,
+  dans `BarActions` ; une explication de la page, en 13 px gris, au-dessus de son contenu (720 px au plus).
 - **Pas d'ombre**, sauf pour ce qui flotte : fenêtre, menu, feuille du téléphone.
 - **Une chose qui ressort par écran** (le grand chiffre, le bandeau). Au plissement d'yeux, le reste est calme.
 - **Indicateurs** : en ligne, sans carte, séparés par des filets verticaux, avec le composant `Stat` (libellé gris,
@@ -46,9 +52,19 @@ ce n'est pas fini.
 - **Jauge de ventes** : toujours `SalesGauge` (`components/ui/SalesGauge.tsx`), qui porte le trait du rythme et dit le
   rythme en mots. La règle est dans `packages/core/src/pace.ts`.
 - **Date d'un événement dans une liste** : `DateLeaf` (feuille de calendrier) en début de ligne.
-- **Tableaux** : le composant unique `DataTable`. Ligne sélectionnée : fond `bg-highlight-soft` et trait rose.
-- **Fenêtres** : `Dialog` (centrée sur ordinateur, feuille du bas sur téléphone). Le bouton dit ce qu'il fait
-  (« Créer le tarif », pas « Valider »).
+- **Tableaux** : le composant unique `DataTable`. Ligne sélectionnée : fond `bg-highlight-soft` et trait rose. Un
+  tableau écrit à la main reprend ses classes : en-têtes gris de 12,5 px (`px-2.5 py-[7px]`), cellules à 10 px, un
+  filet sous chaque ligne. Sur téléphone, des lignes séparées par des filets ; `mobileLines` pour la disposition en
+  trois lignes de la maquette (titre et montant, détail et pastille, référence et date).
+- **Fenêtres** : `Dialog` (centrée sur ordinateur, feuille du bas sur téléphone). Ses boutons vont dans son pied gris
+  (`DialogFooter`, le bouton d'envoi porte `form={id}`), « Annuler » à gauche du bouton principal. Le bouton dit ce qu'il
+  fait (« Créer le tarif », pas « Valider »).
+- **Champs** : 40 px, filet de 1 px, arrondi 8 px (`Input`, `Select`, `TEXTAREA_CLASS`) ; dates et heures avec
+  `DateTimeField` (« 21 nov. 2026, 20:00 », jamais le « jj/mm/aaaa » du navigateur) ; recherche et filtres d'une barre
+  d'outils en 34 px (`SearchField`, `FilterSelect`). Choix exclusifs : choix segmenté (`segClass`) ou choix en cartes
+  (`choiceCardClass`) ; réglages oui/non : interrupteur (`SwitchRow`).
+- **Téléphone** : pas de barre en haut ; la barre d'onglets blanche en bas (Accueil, Événements, Commandes, Finances,
+  Plus), la même dans un événement ; le titre de page en 28 px.
 - **Pastilles** : statut avec un point, sans animation. Pas de point qui pulse en continu.
 
 ## Icônes et mouvement

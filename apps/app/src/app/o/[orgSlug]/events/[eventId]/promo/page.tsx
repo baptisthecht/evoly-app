@@ -42,30 +42,10 @@ export default async function PromoPage({
       : p.discountType === "PERCENT"
         ? `−${(p.percentOffBps ?? 0) / 100} %`
         : `−${formatMoney(p.amountOffMinor ?? 0, event.currency, locale, { trimZeroCents: true })} ${t("perTicket")}`;
+  // refonte A3 : « Nouveau code » à droite des onglets en boutons (BarActions, dans PromoForm), puis l'explication et le
+  // tableau
   return (
-    <div className="grid gap-4">
-      <p className="text-ink-muted">{t("intro")}</p>
-      <PromoTable
-        orgSlug={orgSlug}
-        eventId={eventId}
-        manage={manage}
-        rows={promos.map((p) => ({
-          id: p.id,
-          code: p.code,
-          active: p.isActive,
-          unlocks: p.unlocksHidden,
-          value: value(p),
-          scope:
-            p.ticketTypeIds.length === 0
-              ? t("allTicketTypes")
-              : p.ticketTypeIds.map((id) => names.get(id) ?? "?").join(", "),
-          used: p.usedCount,
-          max: p.maxUses ?? null,
-          until: p.expiresAt
-            ? formatDateTime(p.expiresAt, event.timezone, locale, "short")
-            : null,
-        }))}
-      />
+    <>
       {manage ? (
         <PromoForm
           orgSlug={orgSlug}
@@ -78,6 +58,30 @@ export default async function PromoPage({
           currencySymbol={symbol}
         />
       ) : null}
-    </div>
+      <div className="grid gap-3.5">
+        <p className="max-w-[720px] text-[13px] text-ink-muted">{t("intro")}</p>
+        <PromoTable
+          orgSlug={orgSlug}
+          eventId={eventId}
+          manage={manage}
+          rows={promos.map((p) => ({
+            id: p.id,
+            code: p.code,
+            active: p.isActive,
+            unlocks: p.unlocksHidden,
+            value: value(p),
+            scope:
+              p.ticketTypeIds.length === 0
+                ? t("allTicketTypes")
+                : p.ticketTypeIds.map((id) => names.get(id) ?? "?").join(", "),
+            used: p.usedCount,
+            max: p.maxUses ?? null,
+            until: p.expiresAt
+              ? formatDateTime(p.expiresAt, event.timezone, locale, "short")
+              : null,
+          }))}
+        />
+      </div>
+    </>
   );
 }

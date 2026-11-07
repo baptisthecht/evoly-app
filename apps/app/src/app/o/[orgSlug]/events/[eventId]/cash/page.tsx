@@ -1,4 +1,9 @@
 import { can } from "@evoly/core";
+import { BarActions } from "@/components/shell/EventTabs";
+import { buttonClass } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/Card";
+import { SectionTitle } from "@/components/ui/Controls";
+import { DownloadIcon } from "@/components/ui/icons";
 import { formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -23,7 +28,7 @@ export default async function EventCashPage({
   const canManage = can(ctx.membership, "CHECKIN_MANAGE");
   const canScan = can(ctx.membership, "CHECKIN_SCAN");
   if (!canManage && !canScan && !can(ctx.membership, "STATS_VIEW")) notFound();
-  const event = await findEvent(ctx, eventId);
+  await findEvent(ctx, eventId); // l'événement de l'organisation, sinon page introuvable
   const t = await getTranslations("entries");
   // section 9.27 : rapport de caisse des ventes sur place
   const cashCtx = await requireOrgContext((await params).orgSlug);
@@ -35,63 +40,68 @@ export default async function EventCashPage({
     })
   ).currency;
   const cashLocale = (await getLocale()) as Locale;
+  const eid = (await params).eventId;
+  const row =
+    "flex flex-wrap justify-between gap-3 border-b border-line py-[9px]";
+  // refonte A3 : l'export à droite des onglets en boutons (BarActions), les ventes et la remise de caisse en rangées
+  // entre des filets, sous des titres de section
+  if (!cash.length)
+    return <EmptyState title={(await getTranslations("nav"))("cashEmpty")} />;
   return (
-    <div className="grid gap-6">
-      {cash.length ? (
-        <section
-          className="grid gap-2 rounded-lg bg-surface-sunken p-4 text-sm"
-          aria-label={t("cashTitle")}
+    <>
+      <BarActions>
+        <a
+          href={`/o/${cashCtx.organization.slug}/events/${eid}/caisse.csv`}
+          className={buttonClass("secondary")}
         >
-          <h2 className="flex flex-wrap items-baseline justify-between gap-2 font-semibold">
-            {t("cashTitle")}
-            <a
-              href={`/o/${cashCtx.organization.slug}/events/${(await params).eventId}/caisse.csv`}
-              className="text-sm font-normal underline underline-offset-4"
-            >
-              {t("cashExport")}
-            </a>
-          </h2>
-          {cash.map((c) => (
-            <p
-              key={`${c.label}-${c.device}-${c.mode}`}
-              className="flex flex-wrap justify-between gap-3"
-            >
-              <span>
-                {c.label} ·{" "}
-                {c.mode === "CASH" ? t("cashModeCash") : t("cashModeQr")}
-                {c.device ? ` · ${t("cashDevice", { device: c.device })}` : ""}
-              </span>
-              <span className="tabular-nums">
-                {t("cashLine", { sales: c.sales })} ·{" "}
-                {formatMoney(c.amountMinor, cashCurrency, cashLocale, {
-                  trimZeroCents: true,
-                })}
-              </span>
-            </p>
-          ))}
-          <h3 className="mt-2 font-semibold">{t("cashHandOver")}</h3>
-          {cashHandOver(cash).map((h) => (
-            <p
-              key={`${h.label}-${h.device}`}
-              className="flex flex-wrap justify-between gap-3"
-            >
-              <span>
-                {h.label}
-                {h.device ? ` · ${t("cashDevice", { device: h.device })}` : ""}
-              </span>
-              <span className="font-semibold tabular-nums">
-                {formatMoney(h.amountMinor, cashCurrency, cashLocale, {
-                  trimZeroCents: true,
-                })}
-              </span>
-            </p>
-          ))}
+          <DownloadIcon />
+          {t("cashExport")}
+        </a>
+      </BarActions>
+      <div className="grid gap-6">
+        <section aria-labelledby="cash-title">
+          <SectionTitle id="cash-title" title={t("cashTitle")} />
+          <ul role="list">
+            {cash.map((c) => (
+              <li key={`${c.label}-${c.device}-${c.mode}`} className={row}>
+                <span>
+                  {c.label} ·{" "}
+                  {c.mode === "CASH" ? t("cashModeCash") : t("cashModeQr")}
+                  {c.device
+                    ? ` · ${t("cashDevice", { device: c.device })}`
+                    : ""}
+                </span>
+                <span className="tabular-nums">
+                  {t("cashLine", { sales: c.sales })} ·{" "}
+                  {formatMoney(c.amountMinor, cashCurrency, cashLocale, {
+                    trimZeroCents: true,
+                  })}
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
-      ) : (
-        <p className="text-sm text-ink-muted">
-          {(await getTranslations("nav"))("cashEmpty")}
-        </p>
-      )}
-    </div>
+        <section aria-labelledby="cash-handover">
+          <SectionTitle id="cash-handover" title={t("cashHandOver")} />
+          <ul role="list">
+            {cashHandOver(cash).map((h) => (
+              <li key={`${h.label}-${h.device}`} className={row}>
+                <span>
+                  {h.label}
+                  {h.device
+                    ? ` · ${t("cashDevice", { device: h.device })}`
+                    : ""}
+                </span>
+                <span className="font-semibold tabular-nums">
+                  {formatMoney(h.amountMinor, cashCurrency, cashLocale, {
+                    trimZeroCents: true,
+                  })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </>
   );
 }

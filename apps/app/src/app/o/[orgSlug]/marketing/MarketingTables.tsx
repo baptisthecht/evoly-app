@@ -1,10 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useState, useTransition } from "react";
+import { enableLastTicketsAction } from "./actions";
 import { Button } from "@/components/ui/Button";
 import { Badge, type BadgeTone } from "@/components/ui/Card";
 import { DataTable, type TableColumn } from "@/components/ui/DataTable";
+import { Gauge } from "@/components/ui/Gauge";
 import { Dialog } from "@/components/ui/Dialog";
 
 const initials = (name: string) =>
@@ -14,24 +16,6 @@ const initials = (name: string) =>
     .slice(0, 2)
     .map((w) => w[0]!.toUpperCase())
     .join("") || "?";
-const Rate = ({ value }: { value: number | null }) =>
-  value == null ? (
-    <span className="text-ink-subtle">·</span>
-  ) : (
-    <span className="inline-grid justify-items-end gap-1">
-      <span className="tabular-nums">{value} %</span>
-      <span
-        aria-hidden="true"
-        className="block h-1 w-14 overflow-hidden rounded-full bg-surface-sunken"
-      >
-        <span
-          className="block h-1 rounded-full bg-[var(--evoly-info)]"
-          style={{ width: `${Math.min(100, value)}%` }}
-        />
-      </span>
-    </span>
-  );
-
 export interface ContactRow {
   id: string;
   name: string;
@@ -61,16 +45,23 @@ export function ContactsTable({ rows }: { rows: ContactRow[] }) {
       sortable: true,
       mobile: "title",
       cell: (c) => (
-        <span className="flex min-w-0 items-center gap-3">
+        // comme la maquette « Équipe, membres » : l'avatar de 30 px, le nom et l'adresse ; au moins 220 px, sans quoi le
+        // tableau rognerait le nom
+        <span className="flex min-w-[220px] items-center gap-[11px]">
           <span
             aria-hidden="true"
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-xs font-semibold text-ink-muted" // refonte A3 : initiales en gris neutre
+            className="grid size-[30px] shrink-0 place-items-center rounded-full bg-avatar text-[11.5px] leading-[normal] font-semibold text-ink-soft"
           >
             {initials(c.name)}
           </span>
           <span className="grid min-w-0">
             <span className="truncate font-semibold">{c.name}</span>
-            <span className="truncate text-sm text-ink-muted">{c.email}</span>
+            {/* sans nom, l'adresse tient lieu de nom : pas deux fois la même ligne */}
+            {c.name !== c.email ? (
+              <span className="truncate text-[12.5px] text-ink-muted">
+                {c.email}
+              </span>
+            ) : null}
           </span>
         </span>
       ),
@@ -129,18 +120,28 @@ export function ContactsTable({ rows }: { rows: ContactRow[] }) {
 export interface CampaignRow {
   id: string;
   name: string;
-  subject: string;
+  /** « Objet : … » sous le nom. */
+  subjectLine: string;
   status: string;
   statusLabel: string;
   recipients: number | null;
+  /** Taux d'ouverture (%) et nombre d'ouvertures, une fois envoyée. */
+  opensPct: number | null;
   opens: number | null;
-  clicks: number | null;
-  when: string;
+  clicksPct: number | null;
+  /** « 4 nov. » et « 10:00 » ; un brouillon : « modifiée le 25 oct. » seul. */
+  day: string;
+  time: string | null;
   whenAt: number;
   href: string;
 }
 
-/** Marketing, campagnes : le tableau (campagne, statut, destinataires, ouvertures, clics, date). */
+const faint = <span className="text-ink-faint">-</span>;
+
+/**
+ * Marketing, campagnes (refonte A3, maquette UIUX/pages-a3-suite.html) : le nom et l'objet, le statut, les destinataires,
+ * le taux d'ouverture sur sa jauge (et le nombre d'ouvertures), les clics, la date. Chaque chiffre a sa colonne.
+ */
 export function CampaignsTable({ rows }: { rows: CampaignRow[] }) {
   const t = useTranslations("campaigns");
   const tone = (s: string): BadgeTone =>
@@ -151,6 +152,7 @@ export function CampaignsTable({ rows }: { rows: CampaignRow[] }) {
         : s === "SENDING"
           ? "warning"
           : "neutral";
+  const pct = (v: number) => `${v}\u00a0%`;
   const columns: TableColumn<CampaignRow>[] = [
     {
       key: "name",
@@ -158,12 +160,12 @@ export function CampaignsTable({ rows }: { rows: CampaignRow[] }) {
       sortable: true,
       mobile: "title",
       cell: (c) => (
-        <span className="grid min-w-0">
-          <span className="truncate font-semibold">{c.name}</span>
-          <span className="truncate text-sm text-ink-muted">
-            « {c.subject} »
-          </span>
-        </span>
+        <>
+          <b className="block font-semibold">{c.name}</b>
+          <small className="text-[12.5px] text-ink-muted">
+            {c.subjectLine}
+          </small>
+        </>
       ),
     },
     {
@@ -181,32 +183,53 @@ export function CampaignsTable({ rows }: { rows: CampaignRow[] }) {
       header: t("tableRecipients"),
       align: "right",
       sortable: true,
-      cell: (c) =>
-        c.recipients == null ? (
-          <span className="text-ink-subtle">·</span>
-        ) : (
-          c.recipients
-        ),
+      cell: (c) => (c.recipients == null ? faint : c.recipients),
     },
     {
       key: "opens",
       header: t("tableOpens"),
-      align: "right",
+      width: "190px",
       sortable: true,
-      cell: (c) => <Rate value={c.opens} />,
+      sortValue: (c) => c.opensPct ?? -1,
+      cell: (c) =>
+        c.opensPct != null ? (
+          <>
+            <div className="mb-[5px] flex justify-between text-[13px]">
+              <span>{pct(c.opensPct)}</span>
+              <span className="text-[12.5px] text-ink-muted">{c.opens}</span>
+            </div>
+            <Gauge ratio={c.opensPct / 100} />
+          </>
+        ) : c.status === "SCHEDULED" ? (
+          <span className="text-[13px] text-ink-faint">{t("notSentYet")}</span>
+        ) : (
+          <span className="text-[13px]">{faint}</span>
+        ),
     },
     {
       key: "clicks",
       header: t("tableClicks"),
       align: "right",
       sortable: true,
-      cell: (c) => <Rate value={c.clicks} />,
+      sortValue: (c) => c.clicksPct ?? -1,
+      cell: (c) => (c.clicksPct == null ? faint : pct(c.clicksPct)),
     },
     {
       key: "when",
       header: t("tableDate"),
       sortable: true,
       sortValue: (c) => c.whenAt,
+      className: "whitespace-nowrap",
+      cell: (c) =>
+        c.time ? (
+          <>
+            {c.day}
+            <br />
+            <small className="text-[12.5px] text-ink-muted">{c.time}</small>
+          </>
+        ) : (
+          <small className="text-[12.5px] text-ink-muted">{c.day}</small>
+        ),
     },
   ];
   return (
@@ -232,18 +255,40 @@ export function ImportDialog({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button
-        type="button"
-        variant="secondary"
-        size="md"
-        className="justify-self-start"
-        onClick={() => setOpen(true)}
-      >
+      <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
         {label}
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} title={label}>
         {children}
       </Dialog>
     </>
+  );
+}
+
+/** « Activer » du bandeau « Dernières places » (refonte A3) : l'e-mail automatique se met en route d'un clic. */
+export function EnableLastTickets({
+  orgSlug,
+  eventId,
+  label,
+}: {
+  orgSlug: string;
+  eventId: string;
+  label: string;
+}) {
+  const [pending, start] = useTransition();
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      disabled={pending}
+      aria-busy={pending}
+      onClick={() =>
+        start(async () => {
+          await enableLastTicketsAction(orgSlug, eventId);
+        })
+      }
+    >
+      {label}
+    </Button>
   );
 }

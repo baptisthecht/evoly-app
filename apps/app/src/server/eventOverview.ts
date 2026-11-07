@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 
 const PAID = ["PAID", "PARTIALLY_REFUNDED"] as const;
-export type SalesPeriod = "7" | "14" | "all";
+export type SalesPeriod = "7" | "14" | "30" | "all";
 export const parsePeriod = (v: string | undefined): SalesPeriod =>
   v === "7" || v === "all" ? v : "14";
 
@@ -67,6 +67,7 @@ export async function eventOverview(
       select: {
         id: true,
         reference: true,
+        source: true,
         buyerFirstName: true,
         buyerLastName: true,
         buyerEmail: true,
@@ -163,6 +164,14 @@ export async function eventOverview(
       totalMinor: o.totalMinor,
       currency: o.currency,
       status: o.status as "PAID" | "PARTIALLY_REFUNDED" | "REFUNDED",
+      /** Billets offerts (« 1 invitation », « offert »). */
+      complimentary: o.source === "COMPLIMENTARY",
+      tickets: o.items.reduce((n, it) => n + it.quantity, 0),
+      /** Le tarif, s'il n'y en a qu'un dans la commande (« 2 billets Normal »). */
+      ticketType:
+        new Set(o.items.map((it) => it.ticketType.name)).size === 1
+          ? o.items[0]!.ticketType.name
+          : null,
       at: o.paidAt ?? o.createdAt,
       lines: [
         ...o.items.reduce(
@@ -177,5 +186,24 @@ export async function eventOverview(
         .map(([name, n]) => `${n} × ${name}`)
         .join(", "),
     })),
+  };
+}
+
+/**
+ * Visites de la billetterie (comptage anonyme, sans cookie) et part qui achète (commandes payées ÷ visites, 100 % au
+ * plus), pour la page Diffusion.
+ */
+export async function eventVisits(eventId: string) {
+  const [views, orders] = await Promise.all([
+    db.eventDailyStat.aggregate({
+      where: { eventId },
+      _sum: { pageViews: true },
+    }),
+    db.order.count({ where: { eventId, status: { in: [...PAID] } } }),
+  ]);
+  const n = views._sum.pageViews ?? 0;
+  return {
+    views: n,
+    conversionPct: n > 0 ? Math.min(100, Math.round((100 * orders) / n)) : null,
   };
 }

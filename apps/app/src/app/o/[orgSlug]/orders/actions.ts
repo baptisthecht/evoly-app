@@ -42,6 +42,25 @@ export async function resendTicketsAction(
   return r;
 }
 
+/** Barre de sélection des commandes (refonte A3) : les billets renvoyés pour chaque commande choisie. */
+export async function resendManyAction(
+  orgSlug: string,
+  orderIds: string[],
+): Promise<ActionState<number>> {
+  const ids = [...new Set(orderIds)].slice(0, 200);
+  const r = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "ORDERS_MANAGE" },
+    async (_d, ctx) => {
+      for (const id of ids) await resendTickets(ctx, id);
+      return ids.length;
+    },
+  );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/orders`);
+  return r as ActionState<number>;
+}
+
 export async function correctEmailAction(
   orgSlug: string,
   orderId: string,

@@ -101,7 +101,8 @@ describe("codes promo d'un événement", () => {
     await act(
       async () =>
         void fireEvent.submit(
-          screen.getByRole("button", { name: t.create }).closest("form")!,
+          // le bouton est dans le pied de la fenêtre (form="promo-form"), hors du formulaire
+          document.getElementById("promo-form")!,
         ),
     );
     await waitFor(() => expect(actions.createPromoAction).toHaveBeenCalled());
@@ -127,7 +128,8 @@ describe("codes promo d'un événement", () => {
     await act(
       async () =>
         void fireEvent.submit(
-          screen.getByRole("button", { name: t.create }).closest("form")!,
+          // le bouton est dans le pied de la fenêtre (form="promo-form"), hors du formulaire
+          document.getElementById("promo-form")!,
         ),
     );
     const v = fr.validation as Record<string, string>;

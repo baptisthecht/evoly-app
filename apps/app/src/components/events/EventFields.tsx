@@ -1,11 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { Field, Input, Select } from "../ui/Field";
+import { DateTimeField } from "../ui/DateTimeField";
+import { Field, Input, Select, TEXTAREA_CLASS } from "../ui/Field";
+import { segClass, segItemClass, SettingsRow } from "@/components/ui/Controls";
 import { cn } from "../ui/cn";
 import { AddressSearch, fillInput } from "@/components/places/AddressSearch";
-import { FIELD_ICON_CLASS, FieldIcon } from "@/components/ui/fieldIcons";
 
 export const TIMEZONES = [
   "Europe/Brussels",
@@ -62,6 +63,7 @@ export function EventFields({
   show?: { essentials: boolean; location: boolean };
 }) {
   const t = useTranslations("events");
+  const locale = useLocale();
   const [locationType, setLocationType] = useState(values.locationType);
   const [country, setCountry] = useState(values.country);
   const [atVenue, setAtVenue] = useState(!!venue && values.atVenue !== false);
@@ -70,11 +72,13 @@ export function EventFields({
     : [values.timezone, ...TIMEZONES];
   return (
     <>
-      <fieldset className="grid gap-5" hidden={!show.essentials}>
-        <legend className="mb-1 text-[0.9375rem] font-semibold">
-          {t("sectionEssentials")}
-        </legend>
-        <div className="grid gap-5 sm:grid-cols-2">
+      {/* refonte A3 (maquette Réglages) : une section, le titre à gauche, les champs à droite */}
+      <SettingsRow
+        fieldset
+        hidden={!show.essentials}
+        title={t("sectionEssentials")}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
           <Field label={t("title")} htmlFor="title" error={error("title")}>
             <Input
               icon="type"
@@ -105,17 +109,17 @@ export function EventFields({
             </Select>
           </Field>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {/* comme la maquette : « 21 nov. 2026, 20:00 » dans la langue de l'interface */}
           <Field
             label={t("startsAt")}
             htmlFor="startsAtLocal"
             error={error("startsAtLocal")}
           >
-            <Input
-              icon="calendar"
+            <DateTimeField
               id="startsAtLocal"
               name="startsAtLocal"
-              type="datetime-local"
+              locale={locale}
               defaultValue={values.startsAtLocal}
               required
               invalid={!!error("startsAtLocal")}
@@ -127,12 +131,12 @@ export function EventFields({
             hint={t("optional")}
             error={error("endsAtLocal")}
           >
-            <Input
-              icon="calendar"
+            <DateTimeField
               id="endsAtLocal"
               name="endsAtLocal"
-              type="datetime-local"
+              locale={locale}
               defaultValue={values.endsAtLocal}
+              placeholder={t("endsAtEmpty")}
               invalid={!!error("endsAtLocal")}
             />
           </Field>
@@ -143,40 +147,30 @@ export function EventFields({
           hint={t("summaryHint")}
           error={error("summary")}
         >
-          <div className="relative">
-            <FieldIcon
-              name="text"
-              className={cn(FIELD_ICON_CLASS, "top-3.5")}
-            />
-            <textarea
-              id="summary"
-              name="summary"
-              defaultValue={values.summary}
-              maxLength={280}
-              rows={3}
-              className="block w-full rounded-md bg-surface-raised py-3 pr-4 pl-10 text-base shadow-[inset_0_0_0_1.5px_var(--line-strong)] outline-none focus:shadow-[inset_0_0_0_2px_var(--ink)]"
-            />
-          </div>
+          <textarea
+            id="summary"
+            name="summary"
+            defaultValue={values.summary}
+            maxLength={280}
+            rows={3}
+            className={TEXTAREA_CLASS}
+          />
         </Field>
-      </fieldset>
+      </SettingsRow>
 
-      <fieldset className="grid gap-5" hidden={!show.location}>
-        <legend className="mb-1 text-[0.9375rem] font-semibold">
-          {t("sectionLocation")}
-        </legend>
+      <SettingsRow
+        fieldset
+        hidden={!show.location}
+        title={t("sectionLocation")}
+      >
+        {/* refonte A3 : un choix segmenté (« .seg »), comme les onglets en boutons */}
         <div
-          className="grid grid-cols-3 gap-2"
+          className={cn(segClass, "w-fit")}
           role="radiogroup"
           aria-label={t("location")}
         >
           {(["PHYSICAL", "ONLINE", "HYBRID"] as const).map((v) => (
-            <label
-              key={v}
-              className={cn(
-                "flex h-11 cursor-pointer items-center justify-center rounded-md px-2 text-center text-sm font-medium shadow-[inset_0_0_0_1.5px_var(--line-strong)]",
-                "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:shadow-none",
-              )}
-            >
+            <label key={v} className={segItemClass}>
               <input
                 type="radio"
                 name="locationType"
@@ -196,13 +190,13 @@ export function EventFields({
               name="atVenue"
               checked={atVenue}
               onChange={(e) => setAtVenue(e.target.checked)}
-              className="mt-1 size-5 accent-[var(--ink)]"
+              className="mt-0.5"
             />
             <span>
-              <span className="font-semibold">
+              <span className="font-medium">
                 {t("atVenue", { name: venue.name })}
               </span>
-              <span className="block text-sm text-ink-muted">
+              <span className="block text-[13px] text-ink-muted">
                 {[
                   venue.addressLine1,
                   [venue.postalCode, venue.city].filter(Boolean).join(" "),
@@ -210,14 +204,14 @@ export function EventFields({
                   .filter(Boolean)
                   .join(", ")}
               </span>
-              <span className="block text-xs text-ink-muted">
+              <span className="block text-[12.5px] text-ink-muted">
                 {t("atVenueInfo")}
               </span>
             </span>
           </label>
         ) : null}
         {locationType !== "ONLINE" && !(venue && atVenue) ? (
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Field
               label={t("locationName")}
               htmlFor="locationName"
@@ -265,7 +259,8 @@ export function EventFields({
                 autoComplete="street-address"
               />
             </Field>
-            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-5 sm:col-span-2 sm:grid-cols-2">
+            {/* sur la même grille que les champs du dessus (12 px entre les colonnes) */}
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3 sm:col-span-2 sm:grid-cols-2">
               <Field label={t("postalCode")} htmlFor="postalCode">
                 <Input
                   icon="hash"
@@ -308,7 +303,7 @@ export function EventFields({
             />
           </Field>
         ) : null}
-      </fieldset>
+      </SettingsRow>
     </>
   );
 }

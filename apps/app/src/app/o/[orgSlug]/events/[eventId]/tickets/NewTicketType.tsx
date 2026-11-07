@@ -12,37 +12,33 @@ export function NewTicketType({
   orgSlug,
   eventId,
   terms,
+  eventDay,
 }: {
   orgSlug: string;
   eventId: string;
   terms: FeeTerms;
+  eventDay?: string;
 }) {
   const t = useTranslations("tickets");
   const [open, setOpen] = useState(false);
   // nouveau tarif : dans une fenêtre
   return (
     <>
-      <Button
-        type="button"
-        variant="dark"
-        size="md"
-        onClick={() => setOpen(true)}
-        className="justify-self-start"
-      >
-        <PlusIcon className="size-4 shrink-0" />
-        {t("addTicketType")}
+      <Button type="button" variant="primary" onClick={() => setOpen(true)}>
+        <PlusIcon />
+        {t("newTicketType")}
       </Button>
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
         title={t("newTicketType")}
-        size="lg"
       >
         <TicketTypeForm
           orgSlug={orgSlug}
           eventId={eventId}
           row={null}
           terms={terms}
+          eventDay={eventDay}
           onDone={() => setOpen(false)}
         />
       </Dialog>

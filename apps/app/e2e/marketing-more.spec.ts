@@ -18,9 +18,10 @@ test("remerciement après l'événement, image importée et modèle personnel r�
 
   // US-MKT-02 : remerciement activé, objet personnalisé
   await page.goto(`${eventUrl}/emails`);
-  const card = page
-    .getByRole("heading", { name: "E-mails marketing de l’événement" })
-    .locator("xpath=..");
+  // refonte A3 : une rangée par e-mail, nommée par son titre
+  const card = page.getByRole("region", {
+    name: "Remerciement après l’événement",
+  });
   await card.getByLabel("Activer : Remerciement après l’événement").check();
   await card
     .getByLabel("Objet")

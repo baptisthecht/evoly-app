@@ -65,3 +65,14 @@ describe("e-mails marketing automatiques (US-MKT-02, section 9.18)", async () =>
     expect(eventCapacity(80, [60, null])).toBe(80);
   });
 });
+
+describe("dernières places, la suggestion de la page Marketing (refonte A3)", async () => {
+  const { suggestLastSeats } = await import("../src");
+  it("à partir de 35 % de places restantes, tant qu'il en reste et que la jauge est connue", () => {
+    expect(suggestLastSeats({ capacity: 400, sold: 312 })).toBe(true);
+    expect(suggestLastSeats({ capacity: 100, sold: 65 })).toBe(true);
+    expect(suggestLastSeats({ capacity: 100, sold: 64 })).toBe(false);
+    expect(suggestLastSeats({ capacity: 100, sold: 100 })).toBe(false);
+    expect(suggestLastSeats({ capacity: null, sold: 500 })).toBe(false);
+  });
+});

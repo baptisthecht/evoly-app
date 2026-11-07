@@ -43,8 +43,11 @@ export function PlanPicker({
           <label
             key={i}
             className={cn(
-              "grid cursor-pointer gap-1 rounded-lg p-4 ring-1 ring-line-strong",
-              "has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse has-[:checked]:ring-0",
+              // refonte A3 : un choix en carte (arrondi 10 px, filet de 1 px) ; choisi, charbon comme la puce du prochain
+              // événement (« .chip.next »)
+              "grid cursor-pointer gap-1 rounded-[10px] border border-line-strong px-4 py-3.5",
+              "has-[:checked]:border-surface-inverse has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse",
+              "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--focus-ring)]",
             )}
           >
             <input
@@ -58,7 +61,7 @@ export function PlanPicker({
             <span className="flex items-center justify-between gap-2 font-semibold">
               {t(`interval_${i}`)}
               {i === "YEAR" ? (
-                <span className="rounded-full bg-[var(--evoly-rose)] px-2 py-0.5 text-xs font-bold text-[var(--evoly-charbon)]">
+                <span className="rounded-[6px] bg-[var(--evoly-rose)] px-2 py-0.5 text-[12px] font-semibold text-[var(--evoly-charbon)]">
                   −{saving} %
                 </span>
               ) : null}
@@ -66,7 +69,7 @@ export function PlanPicker({
             <span className="font-figures text-[1.6875rem] tracking-[var(--tracking-figures)] tabular-nums">
               {money(prices[i])}
             </span>
-            <span className="text-sm opacity-80">
+            <span className="text-[13px] opacity-80">
               {i === "MONTH"
                 ? t("perMonth")
                 : t("perYear", { perMonth: money(perMonth) })}

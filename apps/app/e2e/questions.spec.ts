@@ -7,14 +7,14 @@ test("questions à l'achat : création, réponses exigées, réponses dans la co
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Dîner ${id}`, 30);
   await page.goto(`${eventUrl}/tickets/questions`);
-  await page.getByRole("button", { name: "+ Ajouter une question" }).click();
+  await page.getByRole("button", { name: "Ajouter une question" }).click();
   await page
     .getByLabel("Question", { exact: true })
     .fill("Comment nous avez-vous connus ?");
   await page.getByLabel("Réponse obligatoire").check();
   await page.getByRole("button", { name: "Enregistrer la question" }).click();
   await expect(page.getByText("Comment nous avez-vous connus ?")).toBeVisible();
-  await page.getByRole("button", { name: "+ Ajouter une question" }).click();
+  await page.getByRole("button", { name: "Ajouter une question" }).click();
   await page.getByLabel("Question", { exact: true }).fill("Régime alimentaire");
   await page.getByLabel("Type de réponse").selectOption("SELECT");
   await page
@@ -59,7 +59,7 @@ test("événement privé : code d'accès avant affichage et avant réservation (
 }) => {
   const { id, slug } = await organizer(page);
   const eventUrl = await publishedFreeEvent(page, slug, `Gala ${id}`, 30);
-  await page.goto(`${eventUrl}/settings/sales`); // code d'accès : Réglages, Vente
+  await page.goto(`${eventUrl}/settings`); // code d'accès : Réglages, Général (refonte A3 : avec la jauge, absentes de la maquette Vente)
   await page.getByLabel("Visibilité").selectOption("PRIVATE");
   await page.getByLabel("Code d’accès").fill("gala 2026");
   await expect

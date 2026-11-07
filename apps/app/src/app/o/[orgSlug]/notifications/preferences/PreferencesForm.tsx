@@ -2,6 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
+import { SavedNote } from "@/components/ui/Controls";
+
+const th =
+  "border-b border-line px-2.5 py-[7px] text-[12.5px] leading-[normal] font-medium whitespace-nowrap text-ink-muted";
+const td = "border-b border-line p-2.5 align-middle";
 import { savePreferencesAction } from "./actions";
 
 type Row = {
@@ -39,7 +44,7 @@ export function PreferencesForm({
   };
   return (
     <form
-      className="grid gap-4"
+      className="grid gap-3.5"
       onSubmit={(e) => {
         e.preventDefault();
         start(async () => {
@@ -52,40 +57,43 @@ export function PreferencesForm({
         });
       }}
     >
+      {/* refonte A3 : en-têtes gris de 12,5 px, cellules à 10 px de marge, un filet sous chaque ligne */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="text-ink-muted">
+        <table className="w-full border-collapse text-left">
+          <thead>
             <tr>
-              <th className="py-2 pr-3 font-medium">{labels.type}</th>
-              <th className="py-2 pr-3 text-center font-medium">
+              <th scope="col" className={th}>
+                {labels.type}
+              </th>
+              <th scope="col" className={`${th} w-28 text-center`}>
                 {labels.inApp}
               </th>
-              <th className="py-2 text-center font-medium">{labels.email}</th>
+              <th scope="col" className={`${th} w-28 text-center`}>
+                {labels.email}
+              </th>
             </tr>
           </thead>
           <tbody>
             {state.map((r) => (
-              <tr key={r.type} className="border-t border-line">
-                <td className="py-2 pr-3">{r.label}</td>
-                <td className="py-2 pr-3 text-center">
+              <tr key={r.type}>
+                <td className={td}>{r.label}</td>
+                <td className={`${td} text-center`}>
                   <input
                     type="checkbox"
                     aria-label={`${r.label} : ${labels.inApp}`}
                     checked={r.inApp}
                     onChange={() => toggle(r.type, "inApp")}
-                    className="size-4 accent-ink"
                   />
                 </td>
-                <td className="py-2 text-center">
+                <td className={`${td} text-center`}>
                   {r.email === null ? (
-                    <span className="text-ink-muted">-</span>
+                    <span className="text-ink-faint">-</span>
                   ) : (
                     <input
                       type="checkbox"
                       aria-label={`${r.label} : ${labels.email}`}
                       checked={r.email}
                       onChange={() => toggle(r.type, "email")}
-                      className="size-4 accent-ink"
                     />
                   )}
                 </td>
@@ -98,11 +106,7 @@ export function PreferencesForm({
         <Button type="submit" disabled={pending}>
           {labels.save}
         </Button>
-        {saved ? (
-          <p role="status" className="text-sm text-ink-muted">
-            {labels.saved}
-          </p>
-        ) : null}
+        {saved ? <SavedNote id="prefs-status">{labels.saved}</SavedNote> : null}
       </div>
     </form>
   );

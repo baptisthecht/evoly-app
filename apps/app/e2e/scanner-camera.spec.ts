@@ -58,7 +58,7 @@ test("caméra : le mode choisi après l'allumage est respecté (vérification se
     `select t.code from "Ticket" t join "Event" e on e.id = t."eventId" where e.slug = 'soiree-${id}'`,
   );
   await page.goto(`${eventUrl}/entries`);
-  await page.getByRole("button", { name: "+ Nouveau lien bénévole" }).click();
+  await page.getByRole("button", { name: "Nouveau lien bénévole" }).click();
   await page.getByLabel("Libellé").fill("Porte caméra");
   await page.getByRole("button", { name: "Créer le lien" }).click();
   await expect(page.getByText("Porte caméra")).toBeVisible();

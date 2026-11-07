@@ -1,31 +1,41 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import OrdersPage from "../../../orders/page";
+import { BarActions } from "@/components/shell/EventTabs";
+import { buttonClass } from "@/components/ui/Button";
+import { DownloadIcon } from "@/components/ui/icons";
+import { OrdersView, type OrdersSearch } from "../../../orders/OrdersView";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
   return { title: t("orders") };
 }
 
-/** Participants › Commandes : la liste des commandes de l'organisation, filtrée sur l'événement, sans quitter l'événement. */
+/**
+ * Participants › Commandes : les commandes de l'événement, sans quitter l'événement (ni filtre ni colonne « Événement »),
+ * et l'export des participants à droite des onglets en boutons.
+ */
 export default async function EventOrdersPage({
   params,
   searchParams,
 }: {
   params: Promise<{ orgSlug: string; eventId: string }>;
-  searchParams: Promise<{
-    q?: string;
-    type?: string;
-    filter?: string;
-    page?: string;
-  }>;
+  searchParams: Promise<OrdersSearch>;
 }) {
   const { orgSlug, eventId } = await params;
-  const sp = await searchParams;
+  const t = await getTranslations("events");
   return (
-    <OrdersPage
-      params={Promise.resolve({ orgSlug })}
-      searchParams={Promise.resolve({ ...sp, event: eventId })}
-    />
+    <>
+      <BarActions>
+        {/* un fichier CSV : un lien ordinaire, sans préchargement */}
+        <a
+          href={`/o/${orgSlug}/events/${eventId}/participants`}
+          className={buttonClass("secondary")}
+        >
+          <DownloadIcon />
+          {t("exportParticipantsShort")}
+        </a>
+      </BarActions>
+      <OrdersView orgSlug={orgSlug} sp={await searchParams} eventId={eventId} />
+    </>
   );
 }

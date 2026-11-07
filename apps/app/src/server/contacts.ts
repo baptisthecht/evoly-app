@@ -58,13 +58,25 @@ export async function searchContacts(
           unsubscribedAt: { not: null },
         },
       }),
+      // refonte A3 (maquette Marketing) : « +96 en 30 jours »
+      db.contact.count({
+        where: {
+          organizationId: ctx.organization.id,
+          createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) },
+        },
+      }),
     ]),
   ]);
   return {
     rows,
     total,
     pages: Math.ceil(total / 50),
-    stats: { all: stats[0], consenting: stats[1], unsubscribed: stats[2] },
+    stats: {
+      all: stats[0],
+      consenting: stats[1],
+      unsubscribed: stats[2],
+      new30: stats[3],
+    },
   };
 }
 

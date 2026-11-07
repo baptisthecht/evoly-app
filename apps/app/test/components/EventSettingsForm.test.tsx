@@ -82,7 +82,10 @@ describe("réglages d'un événement : enregistrement automatique (RG-EVT-01, RG
 
   it("revente coupée en cours de route : la priorité à la liste d'attente et son délai ne sont pas effacés", async () => {
     draw();
-    fireEvent.click(screen.getByRole("checkbox", { name: t.resaleEnabled }));
+    // refonte A3 : l'interrupteur « Revente entre acheteurs » (son explication fait partie de son nom)
+    fireEvent.click(
+      screen.getByRole("switch", { name: new RegExp(`^${t.resaleSwitch}`) }),
+    );
     const data = await sent();
     expect([
       data.get("resaleEnabled"),
@@ -93,6 +96,10 @@ describe("réglages d'un événement : enregistrement automatique (RG-EVT-01, RG
 
   it("délai de revente saisi en heures, envoyé en minutes", async () => {
     draw();
+    // les délais et la liste d'attente sont repliés (refonte A3) : un clic les montre
+    fireEvent.click(
+      screen.getByRole("button", { name: t.resaleMore!.toLowerCase() }),
+    );
     fireEvent.change(document.getElementById("resaleCutoffHours")!, {
       target: { value: "1.5" },
     });
@@ -144,7 +151,11 @@ describe("réglages d'un événement : enregistrement automatique (RG-EVT-01, RG
   it("champs selon les choix : code d'un événement privé, date limite de remboursement ; lecture seule : rien n'est envoyé", async () => {
     const a = draw();
     expect(document.getElementById("refundDeadlineLocal")).toBeNull();
-    fireEvent.change(document.getElementById("refundPolicy")!, {
+    // refonte A3 : le remboursement s'allume d'un interrupteur, puis « Comment » propose la date limite
+    fireEvent.click(
+      screen.getByRole("switch", { name: new RegExp(`^${t.refundSwitch}`) }),
+    );
+    fireEvent.change(document.getElementById("refundMode")!, {
       target: { value: "UNTIL_DEADLINE" },
     });
     expect(document.getElementById("refundDeadlineLocal")).not.toBeNull();
@@ -170,7 +181,11 @@ describe("limites d'achat : la phrase d'exemple suit la saisie", () => {
         <SettingsForm
           orgSlug="club"
           eventId="e1"
-          values={values({ maxTicketsPerOrder: 6 })}
+          values={values({
+            maxTicketsPerOrder: 6,
+            // la limite propre à la prévente n'apparaît que si elle existe déjà (absente de la maquette)
+            presaleMaxTicketsPerBuyer: 3,
+          })}
           readOnly={false}
           typeLimits={[
             { name: "Fosse", maxPerBuyer: 2 },
@@ -179,11 +194,11 @@ describe("limites d'achat : la phrase d'exemple suit la saisie", () => {
         />
       </Fr>,
     );
+    // refonte A3 (maquette Réglages, Vente) : la phrase d'exemple sous les deux champs
     const sentence = () =>
-      screen.getByText((c) => c.startsWith("Chaque commande contient"))
-        .textContent;
+      screen.getByText((c) => c.startsWith("Une ")).textContent;
     expect(sentence()).toBe(
-      "Chaque commande contient 6 billets au maximum. Par personne : 2 en Fosse.",
+      "Une commande contiendra 6 billets au plus, sans limite par personne. Par personne : 2 en Fosse. Pendant la prévente : 3 billets par personne.",
     );
     fireEvent.change(screen.getByLabelText(t.maxTicketsPerBuyer!), {
       target: { value: "4" },
@@ -192,7 +207,7 @@ describe("limites d'achat : la phrase d'exemple suit la saisie", () => {
       target: { value: "2" },
     });
     expect(sentence()).toBe(
-      "Chaque commande contient 6 billets au maximum. Chaque personne pourra acheter 4 billets au maximum, dont 2 en Fosse. Pendant la prévente : 2 billets par personne.",
+      "Une même personne pourra acheter 4 billets au plus, en 1 commande au moins. Par personne : 2 en Fosse. Pendant la prévente : 2 billets par personne.",
     );
   });
 });

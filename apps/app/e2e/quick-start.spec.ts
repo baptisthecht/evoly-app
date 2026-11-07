@@ -55,7 +55,8 @@ test("création rapide : événement, compte, rappel de l'événement, vérifica
   expect(slug).not.toBe("");
   await page.goto(appUrl(`/o/${slug}/events`));
   await expect(page.getByText(title)).toBeVisible();
+  // la pastille du statut : dans sa colonne sur ordinateur, sous le lieu sur téléphone (l'autre est masquée)
   await expect(
-    page.getByText("Brouillon", { exact: true }).first(),
+    page.getByText("Brouillon", { exact: true }).filter({ visible: true }),
   ).toBeVisible();
 });

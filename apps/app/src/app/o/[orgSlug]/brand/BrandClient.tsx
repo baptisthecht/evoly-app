@@ -5,7 +5,7 @@ import { palette } from "@evoly/ui";
 import { dominantColors } from "@evoly/core";
 import { contrastRatio, inkOn } from "@evoly/ui";
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
 import {
   FormError,
@@ -13,7 +13,7 @@ import {
   useActionForm,
   useFieldError,
 } from "@/components/forms";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClass } from "@/components/ui/Button";
 import { Badge, Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import {
@@ -98,10 +98,10 @@ export function SubdomainForm({
           name="subdomain"
           value={value}
           onChange={(e) => setValue(e.target.value.toLowerCase())}
-          className="max-w-[16rem] font-mono"
+          className="max-w-[16rem]"
           aria-label={t("subdomain")}
         />
-        <span className="font-mono text-sm text-ink-muted">.{baseDomain}</span>
+        <span className="text-ink-muted">.{baseDomain}</span>
       </div>
       {check ? (
         <p className={`text-sm ${check.ok ? "text-success" : "text-danger"}`}>
@@ -247,7 +247,13 @@ export function BrandForm({
                 className="h-16 w-auto justify-self-start rounded-md bg-surface-sunken object-contain p-2"
               />
             ) : null}
-            <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
+            <label
+              className={buttonClass(
+                "secondary",
+                "md",
+                "w-fit cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--focus-ring)]",
+              )}
+            >
               {busy === "logo"
                 ? t("uploading")
                 : v.logoUrl
@@ -281,7 +287,13 @@ export function BrandForm({
                 className="size-10 rounded-md bg-surface-sunken object-contain p-1"
               />
             ) : null}
-            <label className="w-fit cursor-pointer rounded-full px-4 py-2 text-sm font-semibold shadow-[inset_0_0_0_1.5px_var(--line-strong)]">
+            <label
+              className={buttonClass(
+                "secondary",
+                "md",
+                "w-fit cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--focus-ring)]",
+              )}
+            >
               {busy === "favicon" ? t("uploading") : t("uploadFavicon")}
               <input
                 type="file"
@@ -308,7 +320,7 @@ export function BrandForm({
                   onClick={() =>
                     set(i === 0 ? { primaryColor: c } : { accentColor: c })
                   }
-                  className="flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ring-1 ring-line-strong"
+                  className="flex items-center gap-2 rounded-[8px] border border-line-strong px-3 py-1.5 text-[13px] font-medium hover:bg-surface-hover"
                 >
                   <span
                     className="size-4 rounded-full ring-1 ring-line"
@@ -348,7 +360,7 @@ export function BrandForm({
                   placeholder={
                     k === "primaryColor" ? palette.charbon : palette.rose
                   }
-                  className="font-mono"
+                  className="tabular-nums"
                   maxLength={9}
                 />
               </div>
@@ -446,36 +458,31 @@ export function AddDomain({
     null,
   );
   return (
-    <form
-      {...formProps}
-      className="grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] sm:items-end"
-      noValidate
-    >
-      <Field label={t("domain")} htmlFor="new-domain" hint={t("domainHint")}>
-        <Input
-          id="new-domain"
-          name="domain"
-          placeholder="billetterie.monsite.be"
-          autoCapitalize="none"
-          spellCheck={false}
-        />
-      </Field>
-      <Field label={t("scope")} htmlFor="domain-target">
-        <Select id="domain-target" name="target" defaultValue="ORGANIZATION">
-          <option value="ORGANIZATION">{t("scopeOrganization")}</option>
-          {events.map((e) => (
-            <option key={e.id} value={e.id}>
-              {t("scopeEvent", { title: e.title })}
-            </option>
-          ))}
-        </Select>
-      </Field>
-      <SubmitButton pending={pending} className="w-full sm:w-auto">
-        {t("addDomain")}
-      </SubmitButton>
-      <div className="sm:col-span-3">
-        <FormError state={state} />
+    // refonte A3 : les deux champs côte à côte (« .two »), alignés en haut, le bouton dessous à sa taille
+    <form {...formProps} className="grid gap-3.5" noValidate>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label={t("domain")} htmlFor="new-domain" hint={t("domainHint")}>
+          <Input
+            id="new-domain"
+            name="domain"
+            placeholder="billetterie.monsite.be"
+            autoCapitalize="none"
+            spellCheck={false}
+          />
+        </Field>
+        <Field label={t("scope")} htmlFor="domain-target">
+          <Select id="domain-target" name="target" defaultValue="ORGANIZATION">
+            <option value="ORGANIZATION">{t("scopeOrganization")}</option>
+            {events.map((e) => (
+              <option key={e.id} value={e.id}>
+                {t("scopeEvent", { title: e.title })}
+              </option>
+            ))}
+          </Select>
+        </Field>
       </div>
+      <FormError state={state} />
+      <SubmitButton pending={pending}>{t("addDomain")}</SubmitButton>
     </form>
   );
 }

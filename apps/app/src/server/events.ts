@@ -588,7 +588,14 @@ export async function listEvents(organizationId: string) {
       salesEndAt: true,
       publishedAt: true,
       createdAt: true,
-      ticketTypes: { select: { quantitySold: true, quantity: true } },
+      subdomain: true,
+      ticketTypes: {
+        select: { quantitySold: true, quantity: true, priceMinor: true },
+      },
+      // refonte A3 : le bilan d'un événement passé compte les entrées
+      _count: {
+        select: { tickets: { where: { checkedInAt: { not: null } } } },
+      },
     },
     orderBy: { startsAt: "asc" },
   });
@@ -626,7 +633,12 @@ export async function listEvents(organizationId: string) {
       total,
       capacity: total,
       pace,
-      place: e.city ?? e.locationName ?? "",
+      // refonte A3 (maquettes UIUX/) : le lieu puis la ville (« Salle des fêtes, Wépion »)
+      place: [e.locationName, e.city].filter(Boolean).join(", "),
+      free:
+        e.ticketTypes.length > 0 &&
+        e.ticketTypes.every((t) => t.priceMinor === 0),
+      entries: e._count.tickets,
       collectedMinor: collected.get(e.id) ?? 0,
     };
   });

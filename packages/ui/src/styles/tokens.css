@@ -110,6 +110,8 @@
   --r-md: 12px;
   --r-lg: 18px;
   --r-xl: 26px;
+  /* cadres et cartes (plan de salle, choix en cartes) : l'arrondi moyen du thème (10 px dans l'espace organisateur) */
+  --r-card: var(--r-md);
   --r-panel: clamp(22px, 3vw, 36px);
   --r-pill: 999px;
 
@@ -141,6 +143,23 @@
   --control-text-lg: 1rem;
   --btn-primary-bg: var(--accent);
   --btn-primary-ink: var(--accent-ink);
+  --btn-h-sm: 2.25rem;
+  --btn-px-sm: 1rem;
+  --btn-text-sm: 0.875rem;
+  --btn-h-md: 2.75rem;
+  --btn-px-md: 1.25rem;
+  --btn-px-lg: 1.75rem;
+  --btn-gap: 0.5rem;
+  --btn-icon: 1rem;
+  --btn-border: 0px;
+  --btn-ring: var(--control-border);
+  --field-border: 0px;
+  --field-ring: var(--control-border);
+  --field-ring-invalid: 2px;
+  --field-radius: var(--r-md);
+  --field-px: 1rem;
+  --placeholder: var(--ink-subtle);
+  --hint-size: 0.875rem;
   --field-h: 3rem;
   --field-text: 1rem;
   --field-focus:
@@ -243,6 +262,31 @@
     "Archivo Black", "Arial Black", "Helvetica Neue", Arial, sans-serif;
   --tracking-figures: -0.045em;
   --highlight-bar: 7px;
+  --row-bar: 4px; /* trait de la ligne sélectionnée ou mise en avant */
+  /* fidélité aux maquettes (UIUX/) : la police du système, et les gris et fonds de la maquette, un rôle chacun */
+  --type-system:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --surface-soft: #fafafa; /* pied des fenêtres, phrase d'exemple, lignes de groupe */
+  --surface-hover: #faf9f8; /* ligne survolée */
+  --track: #efebe7; /* fond des jauges */
+  --ink-soft: #4b4642; /* onglets en boutons, pastilles neutres, initiales */
+  --ink-body: #3a3633; /* phrase d'exemple, textes des réglages */
+  --ink-faint: #9a9591; /* montant absent (tiret), indication de saisie */
+  --control-off: #d6d1cc; /* interrupteur éteint, barres de l'histogramme */
+  --check-line: #bdb7b2; /* case à cocher vide */
+  --dash: #cfc9c4; /* trait « non » des droits, pastille d'une invitation */
+  --avatar: #ece9e6; /* initiales des membres */
+  --leaf-head: #fff8fc; /* mois des feuilles de calendrier */
+  --scrim: rgba(34, 34, 34, 0.38); /* fond derrière les fenêtres */
+  --sidebar-raised: #333333; /* page active et boutons sur le charbon */
+  --ink-strong: #222222; /* texte actif (onglet, valeur d'un filtre), trait de l'onglet actif */
+  --ink-caption: var(
+    --ink-muted
+  ); /* légende sous un nom (offre de l'organisation) */
+  /* onglets inactifs de la barre du téléphone : le #8f8782 de la maquette assombri (3,5:1 sur blanc) pour atteindre
+     4,6:1, le contraste exigé d'un texte de 11 px (WCAG 2.1 AA, test d'accessibilité) */
+  --tab-ink: #7a736e;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -251,6 +295,21 @@
     --highlight-line: #4a2c40;
     --highlight-ink: #ff9ad9;
     --minus-ink: #e08a86;
+    --surface-soft: #232323;
+    --surface-hover: #2a2a2a;
+    --track: #3a3a3a;
+    --ink-soft: rgba(255, 246, 240, 0.82);
+    --ink-body: rgba(255, 246, 240, 0.86);
+    --ink-faint: rgba(255, 246, 240, 0.45);
+    --tab-ink: rgba(255, 246, 240, 0.5);
+    --control-off: #4a4a4a;
+    --check-line: #6b6b6b;
+    --dash: #555555;
+    --avatar: #3a3a3a;
+    --leaf-head: #33202d;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --sidebar-raised: #262626;
+    --ink-strong: #fff6f0;
   }
 }
 :root[data-theme="dark"] {
@@ -259,15 +318,37 @@
   --highlight-line: #4a2c40;
   --highlight-ink: #ff9ad9;
   --minus-ink: #e08a86;
+  --surface-soft: #232323;
+  --surface-hover: #2a2a2a;
+  --track: #3a3a3a;
+  --ink-soft: rgba(255, 246, 240, 0.82);
+  --ink-body: rgba(255, 246, 240, 0.86);
+  --ink-faint: rgba(255, 246, 240, 0.45);
+  --tab-ink: rgba(255, 246, 240, 0.5);
+  --control-off: #4a4a4a;
+  --check-line: #6b6b6b;
+  --dash: #555555;
+  --avatar: #3a3a3a;
+  --leaf-head: #33202d;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --sidebar-raised: #262626;
+  --ink-strong: #fff6f0;
 }
 /* tout ce qui est posé dans la barre charbon (sélecteur d'organisation, liens, compte) reprend ces rôles */
 .theme-sidebar {
   --surface: #333333;
   --surface-raised: #2b2b2b;
-  --surface-sunken: #2e2e2e;
+  --surface-sunken: #383838; /* survol dans le menu de l'organisation */
   --ink: var(--evoly-creme);
   --ink-muted: rgba(255, 246, 240, 0.72);
   --ink-subtle: rgba(255, 246, 240, 0.5);
+  --ink-caption: rgba(
+    255,
+    246,
+    240,
+    0.6
+  ); /* l'offre sous le nom de l'organisation */
+  --ink-faint: rgba(255, 246, 240, 0.6);
   --line: rgba(255, 246, 240, 0.12);
   --line-strong: rgba(255, 246, 240, 0.24);
   --focus-ring: var(--evoly-creme);
@@ -306,39 +387,63 @@
     0 1px 2px rgba(34, 34, 34, 0.04), 0 8px 24px rgba(34, 34, 34, 0.05);
   --elev-lg:
     0 1px 2px rgba(34, 34, 34, 0.04), 0 16px 40px rgba(34, 34, 34, 0.07);
-  --type-display: var(--type-body);
-  --type-label: var(--type-body);
+  /* refonte A3 (maquettes UIUX/) : la police du système pour tout le texte, titres compris */
+  --type-body: var(--type-system);
+  --type-display: var(--type-system);
+  --type-label: var(--type-system);
   --tracking-display: -0.02em;
   --tracking-title: -0.01em;
   --text-3xl: clamp(1.5rem, 3vw, 1.875rem);
   --text-display: clamp(1.75rem, 4vw, 2.5rem);
-  --control-radius: 10px;
+  /* boutons de la maquette : 34 px, arrondi 8 px, 13,5 px demi-gras léger ; petit 30 px (barre de sélection) ; grand 40 px */
+  --control-radius: 8px;
   --control-weight: 500;
   --control-border: 1px;
-  --control-text-md: 0.875rem;
-  --control-h-lg: 3rem;
-  --control-text-lg: 0.9375rem;
+  --control-text-md: 13.5px;
+  --control-h-lg: 34px; /* un seul bouton de 34 px dans l'espace organisateur (maquettes), 30 px dans la barre de sélection */
+  --control-text-lg: 13.5px;
+  /* la maquette a un vrai filet de 1 px autour des boutons et des champs, 13 et 12 px de marge à l'intérieur */
+  --btn-border: 1px;
+  --btn-ring: 0px;
+  --field-border: 1px;
+  --field-ring: 0px;
+  --field-ring-invalid: 1px;
+  --btn-h-sm: 30px;
+  --btn-px-sm: 13px;
+  --btn-text-sm: 13px;
+  --btn-h-md: 34px;
+  --btn-px-md: 13px;
+  --btn-px-lg: 13px;
+  --btn-gap: 7px;
+  --btn-icon: 15px;
   --btn-primary-bg: var(--surface-inverse);
   --btn-primary-ink: var(--ink-inverse);
-  --field-h: 2.75rem;
-  --field-focus: inset 0 0 0 1px var(--ink), 0 0 0 3px var(--focus-halo);
+  /* champs de la maquette : 40 px, arrondi 8 px, filet clair, focus charbon avec un halo rose pâle */
+  --field-h: 40px;
+  --field-radius: 8px;
+  --field-px: 12px;
+  --hint-size: 12.5px;
+  --field-focus: 0 0 0 3px var(--focus-halo);
   --label-family: var(--type-body);
   --label-weight: 500;
-  --label-size: 0.8125rem;
+  --label-size: 13px;
 }
 /* couleurs du thème pro : en mode clair seulement (en mode sombre, celles de la charte, toujours lisibles) */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]):has(.theme-pro) {
     --surface: #ffffff; /* refonte A3 : page blanche (maquettes UIUX/) */
     --surface-raised: #ffffff;
-    --surface-sunken: #f7f6f4;
+    --surface-sunken: #f1efed; /* onglets en boutons, pastilles */
     --surface-accent: #ffe3f4;
     --surface-accent-2: #fbe3f5;
-    --ink-muted: #6b6460;
+    --ink: #1d1d1f;
+    --ink-muted: #6e6a67;
     --ink-subtle: #8f8782;
-    --line: #e6e2de;
-    --line-strong: #dad4cf;
-    --focus-halo: #ffe3f4;
+    --line: #ebe8e5;
+    --line-strong: #dcd8d4;
+    --focus-halo: #ffe9f6;
+    --btn-primary-ink: #ffffff;
+    --placeholder: #9a9591;
     --evoly-success: #1f7a4d;
     --evoly-success-soft: #eaf6ef;
   }
@@ -346,14 +451,17 @@
 :root[data-theme="light"]:has(.theme-pro) {
   --surface: #ffffff; /* refonte A3 : page blanche (maquettes UIUX/) */
   --surface-raised: #ffffff;
-  --surface-sunken: #f7f6f4;
+  --surface-sunken: #f1efed; /* onglets en boutons, pastilles */
   --surface-accent: #ffe3f4;
   --surface-accent-2: #fbe3f5;
-  --ink-muted: #6b6460;
+  --ink: #1d1d1f;
+  --ink-muted: #6e6a67;
   --ink-subtle: #8f8782;
-  --line: #e6e2de;
-  --line-strong: #dad4cf;
-  --focus-halo: #ffe3f4;
+  --line: #ebe8e5;
+  --line-strong: #dcd8d4;
+  --focus-halo: #ffe9f6;
+  --btn-primary-ink: #ffffff;
+  --placeholder: #9a9591;
   --evoly-success: #1f7a4d;
   --evoly-success-soft: #eaf6ef;
 }

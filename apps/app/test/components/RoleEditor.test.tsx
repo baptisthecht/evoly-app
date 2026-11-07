@@ -46,6 +46,7 @@ const draw = () =>
           permissions: [granted, forbidden],
         }}
         allowed={[granted, other]}
+        trigger="Cible"
       />
     </Fr>,
   );
@@ -55,7 +56,8 @@ const box = (p: Permission) =>
 describe("éditeur des rôles", () => {
   it("permission non accordable : cochée si le rôle l'a, mais désactivée, et jamais envoyée par le formulaire", async () => {
     draw();
-    fireEvent.click(screen.getByRole("button", { name: t.editRole }));
+    // refonte A3 (maquette « Équipe, rôles ») : le nom du rôle, en tête de colonne, ouvre sa fenêtre
+    fireEvent.click(screen.getByRole("button", { name: "Cible" }));
     expect([box(granted).checked, box(granted).disabled]).toEqual([
       true,
       false,
@@ -68,7 +70,8 @@ describe("éditeur des rôles", () => {
     await act(
       async () =>
         void fireEvent.submit(
-          screen.getByRole("button", { name: t.saveRole }).closest("form")!,
+          // le bouton est dans le pied de la fenêtre (form=…), hors du formulaire
+          document.getElementById("role-form-r1")!,
         ),
     );
     await waitFor(() => expect(actions.saveRoleAction).toHaveBeenCalled());
@@ -82,13 +85,11 @@ describe("éditeur des rôles", () => {
 
   it("suppression d'un rôle : confirmation annulée, rien n'est supprimé", async () => {
     draw();
-    fireEvent.click(screen.getByRole("button", { name: t.editRole }));
+    fireEvent.click(screen.getByRole("button", { name: "Cible" }));
     vi.spyOn(window, "confirm").mockReturnValue(false);
     await act(
       async () =>
-        void fireEvent.submit(
-          screen.getByRole("button", { name: t.deleteRole }).closest("form")!,
-        ),
+        void fireEvent.submit(document.getElementById("role-form-r1-delete")!),
     );
     expect(actions.deleteRoleAction).not.toHaveBeenCalled();
   });
@@ -96,12 +97,19 @@ describe("éditeur des rôles", () => {
   it("nouveau rôle : bouton de création, et « annuler » referme", () => {
     render(
       <Fr>
-        <RoleEditor orgSlug="club" role={null} allowed={[granted]} />
+        <RoleEditor
+          orgSlug="club"
+          role={null}
+          allowed={[granted]}
+          trigger={t.createRole}
+        />
       </Fr>,
     );
-    fireEvent.click(screen.getByRole("button", { name: `+ ${t.newRole}` }));
+    fireEvent.click(screen.getByRole("button", { name: t.createRole }));
+    expect(screen.getByRole("dialog")).toBeTruthy();
     expect(screen.queryByRole("button", { name: t.deleteRole })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: t.cancel }));
-    expect(screen.getByRole("button", { name: `+ ${t.newRole}` })).toBeTruthy();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByRole("button", { name: t.createRole })).toBeTruthy();
   });
 });

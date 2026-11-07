@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
-import { Card } from "@/components/ui/Card";
+import { SettingsRow, SwitchRow } from "@/components/ui/Controls";
 import { reminderAction } from "@/app/o/[orgSlug]/events/actions";
 
 type Reminder = {
@@ -26,63 +26,44 @@ export function EventReminders({
   const t = useTranslations("reminders");
   const [state, setState] = useState(reminders);
   const [pending, start] = useTransition();
+  // refonte A3 (maquette « Réglages de l'événement ») : une rangée, un interrupteur par rappel (« .swrow »)
   return (
-    <Card className="mt-10 grid gap-3">
-      <h2 className="text-[0.9375rem] font-semibold">{t("title")}</h2>
-      <p className="-mt-1 text-sm text-ink-muted">
-        {pro ? t("intro") : t("upsell")}
-      </p>
-      {pro ? (
-        <ul className="grid gap-2">
-          {state.map((r) => (
-            <li
+    <SettingsRow
+      title={t("title")}
+      description={pro ? t("intro") : t("upsell")}
+    >
+      {pro
+        ? state.map((r) => (
+            <SwitchRow
               key={r.type}
-              className="flex items-center justify-between gap-3 border-t border-line pt-2"
-            >
-              <div>
-                <p className="font-semibold">{t(`type_${r.type}`)}</p>
-                <p className="text-sm text-ink-muted">
-                  {r.lastRunAt ? t("sent") : t(`when_${r.type}`)}
-                </p>
-              </div>
-              <label className="relative inline-flex cursor-pointer items-center">
-                <input
-                  type="checkbox"
-                  className="peer sr-only"
-                  checked={r.enabled}
-                  disabled={pending}
-                  aria-label={t(`type_${r.type}`)}
-                  onChange={(e) => {
-                    const enabled = e.target.checked;
+              label={t(`type_${r.type}`)}
+              hint={r.lastRunAt ? t("sent") : t(`when_${r.type}`)}
+              checked={r.enabled}
+              disabled={pending}
+              onChange={(e) => {
+                const enabled = e.target.checked;
+                setState((s) =>
+                  s.map((x) => (x.type === r.type ? { ...x, enabled } : x)),
+                );
+                start(async () => {
+                  const res = await reminderAction(
+                    orgSlug,
+                    eventId,
+                    r.type,
+                    enabled,
+                  );
+                  // échec : retour à l'état réel, pour ne jamais afficher un rappel qui ne partira pas (comme la protection anti-robots)
+                  if (!res?.ok)
                     setState((s) =>
-                      s.map((x) => (x.type === r.type ? { ...x, enabled } : x)),
+                      s.map((x) =>
+                        x.type === r.type ? { ...x, enabled: !enabled } : x,
+                      ),
                     );
-                    start(async () => {
-                      const res = await reminderAction(
-                        orgSlug,
-                        eventId,
-                        r.type,
-                        enabled,
-                      );
-                      // échec : retour à l'état réel, pour ne jamais afficher un rappel qui ne partira pas (comme la protection anti-robots)
-                      if (!res?.ok)
-                        setState((s) =>
-                          s.map((x) =>
-                            x.type === r.type ? { ...x, enabled: !enabled } : x,
-                          ),
-                        );
-                    });
-                  }}
-                />
-                <span
-                  className="h-7 w-12 rounded-full bg-line-strong transition-colors after:absolute after:left-1 after:top-1 after:size-5 after:rounded-full after:bg-blanc after:transition-transform peer-checked:bg-surface-inverse peer-checked:after:translate-x-5 peer-focus-visible:outline-2"
-                  aria-hidden="true"
-                />
-              </label>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </Card>
+                });
+              }}
+            />
+          ))
+        : null}
+    </SettingsRow>
   );
 }

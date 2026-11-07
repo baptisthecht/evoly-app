@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { BarActions } from "@/components/shell/EventTabs";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Card";
@@ -91,33 +92,28 @@ export function ComplimentaryTable({
     },
   ];
   return (
-    <div className="grid gap-4">
+    // refonte A3 (maquette « Tarifs ») : le bouton de la page à droite des onglets en boutons (BarActions), puis le tableau
+    <>
       {manage ? (
-        <>
-          <Button
-            type="button"
-            variant="dark"
-            size="md"
-            className="justify-self-start"
-            onClick={() => setOpen(true)}
-          >
-            <PlusIcon className="size-4 shrink-0" />
-            {t("title")}
+        <BarActions>
+          <Button type="button" variant="primary" onClick={() => setOpen(true)}>
+            <PlusIcon />
+            {t("new")}
           </Button>
           <Dialog
             open={open}
             onClose={() => setOpen(false)}
-            title={t("title")}
+            title={t("new")}
             size="lg"
           >
             <ComplimentaryForm
               orgSlug={orgSlug}
               eventId={eventId}
               ticketTypes={ticketTypes}
-              inDialog
+              onDone={() => setOpen(false)}
             />
           </Dialog>
-        </>
+        </BarActions>
       ) : null}
       <DataTable
         rows={rows}
@@ -128,6 +124,6 @@ export function ComplimentaryTable({
         defaultSort={{ key: "sent", dir: "desc" }}
         emptyState={{ title: t("emptyTitle"), description: t("emptyBody") }}
       />
-    </div>
+    </>
   );
 }

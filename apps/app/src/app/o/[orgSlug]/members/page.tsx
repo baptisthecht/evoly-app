@@ -2,26 +2,26 @@ import {
   can,
   canOwnerOnly,
   hasFeature,
+  PERMISSION_GROUPS,
   PERMISSIONS,
   type Permission,
 } from "@evoly/core";
-import { formatDate, type Locale } from "@evoly/i18n";
+import { formatShortDate, formatTime, type Locale } from "@evoly/i18n";
+import { Fragment } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { buttonClass } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Card";
 import { cn } from "@/components/ui/cn";
+import { SectionTitle, SettingsRow } from "@/components/ui/Controls";
+import { BandText, HighlightBand } from "@/components/ui/HighlightBand";
 import { requireOrgContext } from "@/server/context";
-import { InviteDialog, MembersTable } from "./MembersTable";
+import { MembersTable } from "./MembersTable";
 import { teamOverview } from "@/server/team";
 import {
   InvitationActions,
-  InviteForm,
   LeaveOrganization,
-  MemberRole,
-  RemoveMember,
   RoleEditor,
   TransferOwnership,
 } from "./TeamClient";
@@ -65,95 +65,130 @@ export default async function MembersPage({
     .map((r) => ({ id: r.id, label: label(r) }));
   const allowed = PERMISSIONS.filter((p) => can(ctx.membership, p));
   const active = tab === "roles" ? "roles" : "members";
+  const td = "border-b border-line p-2.5 align-middle tabular-nums";
+  // l'ordre des domaines de la maquette : événements, ventes, marketing, entrées, organisation
+  const groups = ["events", "sales", "marketing", "entries", "organization"]
+    .map((k) => PERMISSION_GROUPS.find((g) => g.key === k)!)
+    .filter(Boolean);
+  const invitedFor = (roleId: string) =>
+    invitations.filter((i) => i.role.id === roleId).length;
   return (
     <div className="grid gap-6">
       {!team ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-accent px-4 py-3">
-          <p className="text-sm">{t("upsell")}</p>
+        <HighlightBand className="md:grid-cols-[minmax(0,1fr)_auto]">
+          <BandText>{t("upsell")}</BandText>
           <Link
             href={`/o/${orgSlug}/billing`}
-            className={buttonClass("dark", "sm")}
+            className={buttonClass("secondary")}
           >
             {t("upgrade")}
           </Link>
-        </div>
+        </HighlightBand>
       ) : null}
 
       {active === "members" ? (
         <>
-          {manageMembers && team ? (
-            <InviteDialog orgSlug={orgSlug} roles={assignable} />
-          ) : null}
-          <MembersTable
-            orgSlug={orgSlug}
-            roles={assignable}
-            rows={members.map((m) => {
-              const isSelf = m.userId === ctx.user.id;
-              const isOwnerRow = m.role.systemKey === "OWNER";
-              return {
-                id: m.id,
-                name: m.user.name,
-                email: m.user.email,
-                joined: formatDate(
-                  m.joinedAt,
-                  ctx.organization.timezone,
-                  locale,
-                ),
-                joinedAt: m.joinedAt.getTime(),
-                self: isSelf,
-                owner: isOwnerRow,
-                suspended: !team && !isOwnerRow,
-                roleId: m.role.id,
-                roleLabel: label(m.role),
-                editable:
-                  manageMembers &&
-                  !isOwnerRow &&
-                  !isSelf &&
-                  !!roles.find((r) => r.id === m.role.id)?.assignable,
-              };
-            })}
-          />
+          {/* refonte A3 (maquette Équipe, membres) : « 4 membres », le tableau ; « Inviter un membre » est dans la bande */}
+          <section aria-labelledby="members-title">
+            <SectionTitle
+              id="members-title"
+              title={t("membersTitle", { count: members.length })}
+            />
+            <MembersTable
+              orgSlug={orgSlug}
+              roles={assignable}
+              rows={members.map((m) => {
+                const isSelf = m.userId === ctx.user.id;
+                const isOwnerRow = m.role.systemKey === "OWNER";
+                return {
+                  id: m.id,
+                  name: m.user.name,
+                  email: m.user.email,
+                  // comme la maquette : « 12 sept. 2026 »
+                  joined: new Intl.DateTimeFormat(locale, {
+                    timeZone: ctx.organization.timezone,
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  }).format(m.joinedAt),
+                  joinedAt: m.joinedAt.getTime(),
+                  self: isSelf,
+                  owner: isOwnerRow,
+                  suspended: !team && !isOwnerRow,
+                  roleId: m.role.id,
+                  roleLabel: label(m.role),
+                  editable:
+                    manageMembers &&
+                    !isOwnerRow &&
+                    !isSelf &&
+                    !!roles.find((r) => r.id === m.role.id)?.assignable,
+                };
+              })}
+            />
+          </section>
           {invitations.length > 0 ? (
-            <section className="grid gap-1.5">
-              <h2 className="text-[0.9375rem] font-semibold">
-                {t("pendingTitle")}
-              </h2>
-              <ul role="list" className="grid">
-                {invitations.map((i) => (
-                  <li
-                    key={i.id}
-                    className="grid gap-2 border-b border-line py-2.5 text-sm first:border-t sm:grid-cols-[minmax(0,1fr)_12rem_12rem_auto] sm:items-center sm:gap-4"
-                  >
-                    <span className="truncate font-semibold">{i.email}</span>
-                    <span>{label(i.role)}</span>
-                    <span className="text-ink-muted">
-                      {t("expires", {
-                        date: formatDate(
-                          i.expiresAt,
-                          ctx.organization.timezone,
-                          locale,
-                        ),
-                      })}
-                    </span>
-                    {manageMembers ? (
-                      <InvitationActions
-                        orgSlug={orgSlug}
-                        invitationId={i.id}
-                      />
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
+            <section aria-labelledby="pending-title">
+              <SectionTitle id="pending-title" title={t("pendingTitle")} />
+              <table className="w-full border-collapse">
+                <tbody>
+                  {invitations.map((i) => (
+                    <tr key={i.id}>
+                      <td className={td}>
+                        <span className="flex min-w-0 items-center gap-[11px]">
+                          <span
+                            aria-hidden="true"
+                            className="size-[30px] shrink-0 rounded-full border-[1.5px] border-dashed border-dash"
+                          />
+                          <span className="min-w-0">
+                            <b className="block font-medium">{i.email}</b>
+                            {i.invitedBy ? (
+                              <small className="text-[12.5px] text-ink-muted">
+                                {t("invitedBy", { name: i.invitedBy.name })}
+                              </small>
+                            ) : null}
+                          </span>
+                        </span>
+                      </td>
+                      <td className={td}>{label(i.role)}</td>
+                      <td className={td}>
+                        <small className="text-[12.5px] text-ink-muted">
+                          {t("expiresAt", {
+                            date: formatShortDate(
+                              i.expiresAt,
+                              ctx.organization.timezone,
+                              locale,
+                            ),
+                            time: formatTime(
+                              i.expiresAt,
+                              ctx.organization.timezone,
+                              locale,
+                            ),
+                          })}
+                        </small>
+                      </td>
+                      <td className={cn(td, "text-right")}>
+                        {manageMembers ? (
+                          <InvitationActions
+                            orgSlug={orgSlug}
+                            invitationId={i.id}
+                          />
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </section>
           ) : null}
-          <section className="grid gap-3 border-t border-line pt-5">
-            <h2 className="text-[0.9375rem] font-semibold">
-              {owner ? t("transferTitle") : t("leaveTitle")}
-            </h2>
+          <SettingsRow
+            title={owner ? t("transferTitle") : t("leaveTitle")}
+            description={owner ? t("transferDesc") : undefined}
+            className="border-b-0 pt-1"
+          >
             {owner ? (
               <>
-                <p className="-mt-1 text-sm text-ink-muted">
-                  {t("transferIntro")}
+                <p className="text-[13.5px] text-ink-body">
+                  {t("transferText")}
                 </p>
                 <TransferOwnership
                   orgSlug={orgSlug}
@@ -168,139 +203,117 @@ export default async function MembersPage({
             ) : (
               <LeaveOrganization orgSlug={orgSlug} />
             )}
-          </section>
+          </SettingsRow>
         </>
       ) : (
         <>
-          {/* matrice des droits : les droits en lignes, les rôles en colonnes */}
-          <section className="grid gap-3" aria-labelledby="roles-matrix">
-            <h2 id="roles-matrix" className="text-[0.9375rem] font-semibold">
-              {t("matrixTitle")}
-            </h2>
-            <div className="max-h-[70dvh] overflow-auto rounded-[var(--r-panel)] bg-surface-raised ring-1 ring-line">
-              <table className="w-full border-collapse text-sm">
-                <caption className="sr-only">{t("matrixTitle")}</caption>
-                <thead className="sticky top-0 z-[2] bg-surface-raised">
-                  <tr>
+          {/* refonte A3 (maquette Équipe, rôles) : la matrice des droits groupée par domaine ; les rôles créés s'ouvrent
+              dans une fenêtre en cliquant sur leur nom, « Créer un rôle » est dans la bande du titre */}
+          <div className="overflow-x-auto">
+            <table
+              className="w-full border-collapse"
+              aria-label={t("matrixTitle")}
+            >
+              <thead>
+                <tr>
+                  <th
+                    scope="col"
+                    className="w-[300px] border-b border-line px-2.5 py-[7px] text-left text-[12.5px] leading-[normal] font-medium text-ink-muted"
+                  >
+                    <span className="sr-only">{t("matrixPermission")}</span>
+                  </th>
+                  {roles.map((r) => (
                     <th
+                      key={r.id}
                       scope="col"
-                      className="sticky left-0 z-[3] bg-surface-raised px-4 py-3 text-left text-xs font-semibold text-ink-muted"
+                      className="border-b border-line px-2.5 py-[7px] text-center text-[12.5px] leading-[normal] font-medium text-ink-muted"
                     >
-                      {t("matrixPermission")}
-                    </th>
-                    {roles.map((r) => (
-                      <th
-                        key={r.id}
-                        scope="col"
-                        className="px-3 py-3 text-center text-xs font-semibold whitespace-nowrap"
-                      >
-                        {label(r)}
-                        <span className="block font-normal text-ink-muted tabular-nums">
-                          {t("permissionsCount", {
-                            count: (r.permissions as Permission[]).length,
+                      <span className="font-semibold text-ink-strong">
+                        {!r.systemKey && manageRoles && customRoles ? (
+                          <RoleEditor
+                            orgSlug={orgSlug}
+                            role={{
+                              id: r.id,
+                              name: r.name,
+                              description: r.description ?? "",
+                              permissions: r.permissions as Permission[],
+                            }}
+                            allowed={allowed}
+                            trigger={label(r)}
+                          />
+                        ) : (
+                          label(r)
+                        )}
+                        <small className="block text-[12px] font-normal text-ink-muted">
+                          {t("roleUsage", {
+                            members: r._count.members,
+                            invited: invitedFor(r.id),
                           })}
-                        </span>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PERMISSIONS.map((p) => (
-                    <tr
-                      key={p}
-                      className="border-t border-line hover:bg-surface-sunken/60"
-                    >
-                      <th
-                        scope="row"
-                        className="sticky left-0 z-[1] bg-surface-raised px-4 py-2.5 text-left font-normal"
+                        </small>
+                      </span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {groups.map((g) => (
+                  <Fragment key={g.key}>
+                    <tr>
+                      <td
+                        colSpan={roles.length + 1}
+                        className="border-b border-line bg-surface-soft px-2.5 py-1.5 text-[12.5px] font-semibold text-ink-muted"
                       >
-                        {tp(p)}
-                      </th>
-                      {roles.map((r) => {
-                        const on = (r.permissions as Permission[]).includes(p);
-                        return (
-                          <td key={r.id} className="px-3 py-2.5 text-center">
-                            {on ? (
-                              <span
-                                className="inline-flex size-6 items-center justify-center rounded-full bg-success-soft text-success"
-                                aria-label={t("matrixYes")}
-                              >
+                        {t(`group_${g.key}`)}
+                      </td>
+                    </tr>
+                    {g.permissions.map((p) => (
+                      <tr key={p}>
+                        <th
+                          scope="row"
+                          className={cn(td, "text-left font-normal")}
+                        >
+                          {tp(p)}
+                        </th>
+                        {roles.map((r) => {
+                          const on = (r.permissions as Permission[]).includes(
+                            p,
+                          );
+                          return (
+                            <td key={r.id} className={cn(td, "text-center")}>
+                              {on ? (
                                 <svg
-                                  aria-hidden="true"
+                                  role="img"
+                                  aria-label={t("matrixYes")}
                                   viewBox="0 0 24 24"
-                                  className="size-3.5"
                                   fill="none"
                                   stroke="currentColor"
-                                  strokeWidth={3}
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
+                                  strokeWidth={2.4}
+                                  className="inline-block size-[18px] align-middle text-ink-strong"
                                 >
                                   <path d="m5 12 5 5 9-10" />
                                 </svg>
-                              </span>
-                            ) : (
-                              <span
-                                className="text-ink-subtle"
-                                aria-label={t("matrixNo")}
-                              >
-                                ·
-                              </span>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-          <section className="grid gap-3" aria-labelledby="custom-roles">
-            <h2 id="custom-roles" className="text-[0.9375rem] font-semibold">
-              {t("customRoles")}
-            </h2>
-            {!customRoles ? (
-              <p className="text-sm text-ink-muted">{t("customRolesUpsell")}</p>
-            ) : null}
-            {roles
-              .filter((r) => !r.systemKey)
-              .map((r) => (
-                <section
-                  key={r.id}
-                  className="grid gap-2 border-t border-line pt-5"
-                >
-                  <p className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold">{r.name}</span>
-                    <Badge>
-                      {t("membersUsing", { count: r._count.members })}
-                    </Badge>
-                  </p>
-                  {r.description ? (
-                    <p className="text-sm text-ink-muted">{r.description}</p>
-                  ) : null}
-                  <p className="text-xs text-ink-muted">
-                    {(r.permissions as Permission[])
-                      .map((p) => tp(p))
-                      .join(", ")}
-                  </p>
-                  {manageRoles && customRoles ? (
-                    <RoleEditor
-                      orgSlug={orgSlug}
-                      role={{
-                        id: r.id,
-                        name: r.name,
-                        description: r.description ?? "",
-                        permissions: r.permissions as Permission[],
-                      }}
-                      allowed={allowed}
-                    />
-                  ) : null}
-                </section>
-              ))}
-            {manageRoles && customRoles ? (
-              <RoleEditor orgSlug={orgSlug} role={null} allowed={allowed} />
-            ) : null}
-          </section>
+                              ) : (
+                                <span
+                                  role="img"
+                                  aria-label={t("matrixNo")}
+                                  className="inline-block h-[1.5px] w-2.5 bg-dash align-middle"
+                                />
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!customRoles ? (
+            <p className="text-[12.5px] text-ink-muted">
+              {t("customRolesUpsell")}
+            </p>
+          ) : null}
         </>
       )}
     </div>
