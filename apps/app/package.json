@@ -38,14 +38,14 @@
     "next": "^16.4.2",
     "next-intl": "^4.14.7",
     "node-forge": "^1.4.0",
-    "nodemailer": "^10.0.12",
+    "nodemailer": "^10.2.1",
     "otpauth": "^9.5.2",
     "pdf-lib": "^1.17.1",
     "qrcode": "^1.5.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "resend": "^6.30.0",
-    "sanitize-html": "^2.18.0",
+    "sanitize-html": "^2.18.1",
     "sharp": "^0.35.5",
     "stripe": "^22.6.2",
     "zod": "^4.6.7"
@@ -64,10 +64,10 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/sanitize-html": "^2.16.2",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "4.1.12",
     "jsdom": "^26.1.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   }
 }

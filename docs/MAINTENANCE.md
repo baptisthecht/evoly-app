@@ -32,15 +32,16 @@ Les dépendances npm passent par la vérification hebdomadaire ci-dessus (âge m
 
 ## Décisions en cours
 
-| Dépendance                                         | Version          | Décision                                                              |
-| -------------------------------------------------- | ---------------- | --------------------------------------------------------------------- |
-| nodemailer                                         | 6.10.1 → 10.0.11 | Migrée le 12 octobre 2026 : 16 failles corrigées (6 élevées).         |
-| prisma                                             | 8.0.0            | Version candidate seulement : on attend la version stable.            |
-| typescript                                         | 7                | Réécriture du compilateur : on attend la prise en charge par Next.js. |
-| @types/node                                        | 26               | Reste en 22, comme Node sur le serveur.                               |
-| stripe, @stripe/stripe-js, @stripe/react-stripe-js | 23, 10, 7        | À migrer ensemble, avec un paiement de test complet.                  |
-| vitest, @vitest/coverage-v8                        | 5                | À migrer ensemble.                                                    |
-| dotenv, imapflow, @types/nodemailer                | 18, 2, 8         | À migrer une par une.                                                 |
+| Dépendance                                         | Version          | Décision                                                                                                                                       |
+| -------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| node-forge                                         | 1.4.0 → 1.4.1    | Correctif de 11 failles publié le 27 octobre 2026 : à installer le 10 novembre (14 jours), puis retirer ses 8 exclusions (`docs/SECURITE.md`). |
+| nodemailer                                         | 6.10.1 → 10.0.11 | Migrée le 12 octobre 2026 : 16 failles corrigées (6 élevées).                                                                                  |
+| prisma                                             | 8.0.0            | Version candidate seulement : on attend la version stable.                                                                                     |
+| typescript                                         | 7                | Réécriture du compilateur : on attend la prise en charge par Next.js.                                                                          |
+| @types/node                                        | 26               | Reste en 22, comme Node sur le serveur.                                                                                                        |
+| stripe, @stripe/stripe-js, @stripe/react-stripe-js | 23, 10, 7        | À migrer ensemble, avec un paiement de test complet.                                                                                           |
+| vitest, @vitest/coverage-v8                        | 5                | À migrer ensemble.                                                                                                                             |
+| dotenv, imapflow, @types/nodemailer                | 18, 2, 8         | À migrer une par une.                                                                                                                          |
 
 ## Couverture de tests
 
