@@ -78,6 +78,25 @@ describe("« Prévenez-moi » à l'ouverture des ventes (RG-PRG-04)", () => {
     expect((await screen.findByRole("status")).textContent).toBe("C'est noté");
   });
 
+  it("adresse remplie avant que la page soit active (téléphone lent, remplissage automatique) : transmise telle quelle", async () => {
+    actions.subscribeAlertAction.mockResolvedValue({ ok: true });
+    render(<AlertForm eventId="e1" labels={alertLabels} />);
+    // valeur posée dans le champ sans événement, comme une saisie faite avant que React prenne la main sur la page
+    (screen.getByLabelText("Votre e-mail") as HTMLInputElement).value =
+      "lea@exemple.be";
+    await act(
+      async () =>
+        void fireEvent.submit(
+          screen.getByLabelText("Votre e-mail").closest("form")!,
+        ),
+    );
+    expect(actions.subscribeAlertAction).toHaveBeenCalledWith(
+      "e1",
+      "lea@exemple.be",
+    );
+    expect((await screen.findByRole("status")).textContent).toBe("C'est noté");
+  });
+
   it("chaque refus a son message : adresse invalide, trop de tentatives, erreur", async () => {
     render(<AlertForm eventId="e1" labels={alertLabels} />);
     for (const [error, text] of [

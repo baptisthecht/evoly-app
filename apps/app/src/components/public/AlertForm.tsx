@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 import { subscribeAlertAction } from "@/app/site/[sub]/[eventSlug]/actions";
 import { buttonClass } from "@/components/ui/Button";
 
@@ -25,7 +25,7 @@ export function AlertForm({
   labels: AlertLabels;
 }) {
   const id = useId();
-  const [email, setEmail] = useState("");
+  const field = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<
     "idle" | "done" | "error" | "invalid" | "limited"
   >("idle");
@@ -41,6 +41,9 @@ export function AlertForm({
       className="grid w-full max-w-md gap-2 text-left"
       onSubmit={(e) => {
         e.preventDefault();
+        // adresse lue dans le champ, jamais dans un état de React : remplie avant que la page soit active (téléphone
+        // lent, remplissage automatique), elle n'y était pas encore, et l'envoi partait vide
+        const email = field.current?.value ?? "";
         start(async () => {
           const r = await subscribeAlertAction(eventId, email);
           setState(
@@ -62,13 +65,12 @@ export function AlertForm({
           {labels.email}
         </label>
         <input
+          ref={field}
           id={id}
           type="email"
           required
           autoComplete="email"
           maxLength={200}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
           placeholder={labels.email}
           className="h-11 min-w-0 flex-1 rounded-full bg-surface-raised px-4 text-sm ring-1 ring-line focus:outline-none focus:ring-2 focus:ring-ink"
         />

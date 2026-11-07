@@ -73,6 +73,26 @@ describe("retrouver ses billets", () => {
     );
     expect((await screen.findByRole("status")).textContent).toBe(o.lookupSent);
   });
+
+  it("adresse remplie avant que la page soit active (téléphone lent, remplissage automatique) : envoyée telle quelle", async () => {
+    wrap(<LookupForm sub="club" />);
+    // valeur posée dans le champ sans événement, comme une saisie faite avant que React prenne la main sur la page
+    (
+      screen.getByLabelText(new RegExp(o.lookupEmail!)) as HTMLInputElement
+    ).value = "lea@exemple.be";
+    actions.lookupTicketsAction.mockResolvedValue({ ok: true });
+    await act(
+      async () =>
+        void fireEvent.submit(
+          screen.getByRole("button", { name: o.lookupSubmit }).closest("form")!,
+        ),
+    );
+    expect(actions.lookupTicketsAction).toHaveBeenCalledWith(
+      "club",
+      "lea@exemple.be",
+    );
+    expect((await screen.findByRole("status")).textContent).toBe(o.lookupSent);
+  });
 });
 
 describe("événement privé (RG-PUB-06)", () => {
