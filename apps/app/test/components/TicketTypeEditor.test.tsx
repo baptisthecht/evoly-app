@@ -1,4 +1,9 @@
-import { EUR_TERMS } from "@evoly/core";
+import {
+  EUR_TERMS,
+  grossForNet,
+  netForGross,
+  parseMajorToMinor,
+} from "@evoly/core";
 import {
   act,
   fireEvent,
@@ -246,5 +251,54 @@ describe("tarifs de l'événement : formulaire", () => {
       expect(actions.saveTicketTypeAction).toHaveBeenCalled(),
     );
     expect(onDone).not.toHaveBeenCalled();
+  });
+});
+
+describe("tarifs de l'événement : prix payé ou montant perçu", () => {
+  it("comme à la création de l'événement : saisir le montant perçu calcule le prix payé par l'acheteur, et l'inverse", () => {
+    render(
+      <Fr>
+        <TicketTypeForm
+          orgSlug="club"
+          eventId="e1"
+          row={null}
+          terms={EUR_TERMS.free}
+          onDone={vi.fn()}
+        />
+      </Fr>,
+    );
+    const net = screen.getByLabelText(tk.youGet!) as HTMLInputElement;
+    const price = screen.getByLabelText(
+      new RegExp(`^${tk.price}`),
+    ) as HTMLInputElement;
+    fireEvent.change(net, { target: { value: "20" } });
+    expect(parseMajorToMinor(price.value)).toBe(
+      grossForNet(2000, EUR_TERMS.free),
+    );
+    fireEvent.change(price, { target: { value: "30" } });
+    expect(parseMajorToMinor(net.value)).toBe(
+      netForGross(3000, EUR_TERMS.free),
+    );
+  });
+
+  it("prix figé après les premières ventes : les deux champs sont en lecture seule", () => {
+    render(
+      <Fr>
+        <TicketTypeForm
+          orgSlug="club"
+          eventId="e1"
+          row={row({ priceLocked: true })}
+          terms={EUR_TERMS.free}
+          onDone={vi.fn()}
+        />
+      </Fr>,
+    );
+    expect(
+      (screen.getByLabelText(tk.youGet!) as HTMLInputElement).readOnly,
+    ).toBe(true);
+    expect(
+      (screen.getByLabelText(new RegExp(`^${tk.price}`)) as HTMLInputElement)
+        .readOnly,
+    ).toBe(true);
   });
 });

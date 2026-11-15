@@ -18,6 +18,7 @@ import { ExampleNote, SwitchRow } from "@/components/ui/Controls";
 import { DialogFooter } from "@/components/ui/Dialog";
 import { DateTimeField } from "@/components/ui/DateTimeField";
 import { saveTicketTypeAction, ticketCommandAction } from "../../actions";
+import { PriceFields } from "./PriceFields";
 import { TiersEditor, type TierRow } from "./TiersEditor";
 
 export interface TicketTypeRow {
@@ -184,32 +185,19 @@ export function TicketTypeForm({
           data-autofocus
         />
       </Field>
+      {/* comme à la création de l'événement : saisir le prix payé par l'acheteur, ou le montant que l'organisateur touche */}
+      <PriceFields
+        id={`price-${key}`}
+        name="price"
+        label={t("price")}
+        hint={row?.priceLocked ? t("priceLocked") : undefined}
+        error={error("price")}
+        price={price}
+        onPrice={setPrice}
+        terms={terms}
+        locked={!!row?.priceLocked}
+      />
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field
-          label={t("price")}
-          htmlFor={`price-${key}`}
-          hint={row?.priceLocked ? t("priceLocked") : undefined}
-          error={error("price")}
-        >
-          <div className="relative">
-            <Input
-              id={`price-${key}`}
-              name="price"
-              inputMode="decimal"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              readOnly={row?.priceLocked}
-              required
-              className="pr-8"
-            />
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 right-[13px] -translate-y-1/2 text-ink-muted"
-            >
-              {currencySymbol(terms.currency, locale)}
-            </span>
-          </div>
-        </Field>
         <Field
           label={t("quantity")}
           htmlFor={`quantity-${key}`}
