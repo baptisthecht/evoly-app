@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { lookupTicketsAction } from "@/app/site/[sub]/[eventSlug]/actions";
 import { Button } from "../ui/Button";
 import { Field, Input } from "../ui/Field";
+import { useHydrated } from "../useHydrated";
 
 export function LookupForm({ sub }: { sub: string }) {
   const t = useTranslations("orders");
@@ -12,6 +13,7 @@ export function LookupForm({ sub }: { sub: string }) {
   const [sent, setSent] = useState(false);
   const [invalid, setInvalid] = useState(false);
   const [busy, setBusy] = useState(false);
+  const ready = useHydrated(); // envoi possible seulement une fois la page active (sinon : rechargement, rien d'envoyé)
   if (sent)
     return (
       <p
@@ -54,7 +56,7 @@ export function LookupForm({ sub }: { sub: string }) {
         type="submit"
         size="lg"
         variant="dark"
-        disabled={busy}
+        disabled={busy || !ready}
         className="w-full sm:w-auto sm:justify-self-start"
       >
         {t("lookupSubmit")}

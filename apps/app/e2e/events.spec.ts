@@ -67,13 +67,15 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
 
   // RG-EVT-02 : pas de tarif payant sur un événement en vente sans Stripe
   await page.goto(`${eventPath}/tickets`);
-  // refonte A3 (maquette « Tarifs ») : « Nouveau tarif » ouvre la fenêtre ; le net perçu est sous « Plus d'options »
+  // refonte A3 (maquette « Tarifs ») : « Nouveau tarif » ouvre la fenêtre ; le net perçu est sous le prix, comme à la
+  // création de l'événement, une seule fois (plus dans « Plus d'options »)
   await page.getByRole("button", { name: "Nouveau tarif" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Nom du tarif").fill("VIP");
   await dialog.getByLabel("Prix").fill("45");
-  await dialog.getByRole("button", { name: "Plus d’options" }).click();
   await expect(dialog.getByText(/Vous percevez environ 42,88/)).toBeVisible();
+  await dialog.getByRole("button", { name: "Plus d’options" }).click();
+  await expect(dialog.getByText(/Vous percevez environ 42,88/)).toHaveCount(1);
   await dialog.getByRole("button", { name: "Créer le tarif" }).click();
   await expect(
     page.getByText(

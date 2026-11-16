@@ -3,6 +3,7 @@
 import { useId, useRef, useState, useTransition } from "react";
 import { subscribeAlertAction } from "@/app/site/[sub]/[eventSlug]/actions";
 import { buttonClass } from "@/components/ui/Button";
+import { useHydrated } from "../useHydrated";
 
 export type AlertLabels = {
   title: string;
@@ -30,6 +31,7 @@ export function AlertForm({
     "idle" | "done" | "error" | "invalid" | "limited"
   >("idle");
   const [pending, start] = useTransition();
+  const ready = useHydrated(); // envoi possible seulement une fois la page active (sinon : rechargement, rien d'envoyé)
   if (state === "done")
     return (
       <p role="status" className="rounded-xl bg-info-soft px-4 py-3 text-sm">
@@ -76,7 +78,7 @@ export function AlertForm({
         />
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !ready}
           className={buttonClass("primary")}
         >
           {labels.submit}

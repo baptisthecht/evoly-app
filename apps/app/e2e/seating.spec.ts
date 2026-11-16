@@ -47,7 +47,8 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
   await expect.poll(blockX).not.toBe("0");
 
   // place bloquée : la sélection est rejouée si l'éditeur se rafraîchit juste après l'enregistrement du déplacement
-  // (le panneau de la place se refermait alors, sur mobile surtout : parcours instable)
+  // (le panneau de la place se refermait alors, sur mobile surtout : parcours instable). L'enregistrement est dans la
+  // boucle : un rafraîchissement entre la case cochée et le clic remettait le panneau à zéro (bouton désactivé).
   await expect(async () => {
     await page.getByLabel("Rang", { exact: true }).fill("A");
     await page.getByLabel("Place", { exact: true }).fill("1");
@@ -56,9 +57,11 @@ test("plan de salle : modèle, déplacement d'un bloc, place bloquée, choix de 
       page.getByRole("heading", { name: "Rang A, place 1" }),
     ).toBeVisible({ timeout: 3_000 });
     await page.getByLabel("Bloquée (non vendue)").check({ timeout: 3_000 });
-  }).toPass({ timeout: 30_000 });
-  await page.getByRole("button", { name: "Enregistrer la place" }).click();
-  await expect(page.getByText(/1 bloquée/)).toBeVisible();
+    await page
+      .getByRole("button", { name: "Enregistrer la place" })
+      .click({ timeout: 3_000 });
+    await expect(page.getByText(/1 bloquée/)).toBeVisible({ timeout: 5_000 });
+  }).toPass({ timeout: 45_000 });
 
   // vente : placement numéroté, choix par l'acheteur
   await page.getByLabel(/Placement numéroté/).check();

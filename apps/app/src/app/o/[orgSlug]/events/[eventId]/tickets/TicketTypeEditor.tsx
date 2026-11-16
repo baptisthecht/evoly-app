@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  estimateBankFee,
-  organizerNet,
-  parseMajorToMinor,
-  ticketCommission,
-  type FeeTerms,
-} from "@evoly/core";
+import { parseMajorToMinor, type FeeTerms } from "@evoly/core";
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useState } from "react";
@@ -169,8 +163,6 @@ export function TicketTypeForm({
       : minor === 0
         ? t("exampleFree")
         : t("exampleFeesShort");
-  const commission = minor ? ticketCommission(minor, terms) : 0;
-  const bankFee = minor ? estimateBankFee(minor) : 0;
   return (
     <form {...formProps} id={formId} className="grid gap-4" noValidate>
       <FormError state={state} />
@@ -290,22 +282,7 @@ export function TicketTypeForm({
       {/* les réglages plus rares (absents de la maquette) : dépliés depuis « Plus d'options », dans le pied de la fenêtre */}
       {more ? (
         <div className="grid gap-4 border-t border-line pt-4">
-          {minor ? (
-            <p className="text-[13px]" aria-live="polite">
-              <b className="font-medium">
-                {t("youReceive", {
-                  amount: money(organizerNet(minor, commission, bankFee)),
-                })}
-              </b>
-              <br />
-              <small className="text-[12.5px] text-ink-muted">
-                {t("feesDetail", {
-                  commission: money(commission),
-                  bankFee: money(bankFee),
-                })}
-              </small>
-            </p>
-          ) : null}
+          {/* le montant perçu et le détail des frais : sous le prix (PriceFields), plus ici en double */}
           <Field label={t("description")} htmlFor={`description-${key}`}>
             <Input
               id={`description-${key}`}
