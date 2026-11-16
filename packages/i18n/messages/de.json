@@ -162,7 +162,8 @@
     "orgSocial_facebook": "Facebook",
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
-    "orgSocial_youtube": "YouTube"
+    "orgSocial_youtube": "YouTube",
+    "waitlistErrorBlocked": "Diese Anmeldung kann nicht abgeschlossen werden. Wenden Sie sich an den Veranstalter."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -279,7 +280,8 @@
     "error_CARD_INSUFFICIENT_FUNDS": "Ihre Karte ist nicht ausreichend gedeckt. Versuchen Sie eine andere Karte.",
     "error_CARD_EXPIRED": "Ihre Karte ist abgelaufen. Versuchen Sie eine andere Karte.",
     "error_CARD_INCORRECT_CVC": "Die Prüfnummer Ihrer Karte ist falsch. Prüfen Sie sie und versuchen Sie es erneut.",
-    "error_PAYMENT_INVALID": "Diese Zahlung kann nicht mehr bestätigt werden. Bitte beginnen Sie Ihre Reservierung erneut."
+    "error_PAYMENT_INVALID": "Diese Zahlung kann nicht mehr bestätigt werden. Bitte beginnen Sie Ihre Reservierung erneut.",
+    "error_BUYER_BLOCKED": "Diese Bestellung kann nicht abgeschlossen werden. Wenden Sie sich an den Veranstalter."
   },
   "seatPicker": {
     "title": "Wählen Sie Ihre Plätze",
@@ -1373,7 +1375,9 @@
     "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe hat die Aktivierung von Evoly noch nicht abgeschlossen: Bitte versuchen Sie es in einigen Stunden erneut.",
     "STRIPE_UNAVAILABLE": "Stripe konnte die Verbindung gerade nicht öffnen: Bitte versuchen Sie es in einigen Minuten erneut.",
     "BUYER_TYPE_LIMIT_REACHED": "Sie haben die Höchstzahl an Tickets pro Person für diesen Tarif erreicht.",
-    "PRESALE_BUYER_LIMIT_REACHED": "Sie haben die Höchstzahl an Tickets pro Person im Vorverkauf erreicht."
+    "PRESALE_BUYER_LIMIT_REACHED": "Sie haben die Höchstzahl an Tickets pro Person im Vorverkauf erreicht.",
+    "BLOCK_NEEDS_EMAIL_OR_NAME": "Geben Sie eine E-Mail-Adresse oder einen Vor- und Nachnamen an.",
+    "BUYER_BLOCKED": "Diese Bestellung kann nicht abgeschlossen werden. Wenden Sie sich an den Veranstalter."
   },
   "eventSettings": {
     "unsaved": "Änderungen laufen…",
@@ -1649,7 +1653,38 @@
     "freeLower": "kostenlos",
     "range": "{from} bis {to} von {count, plural, one {# Bestellung} other {# Bestellungen}}",
     "refundSelected": "Erstatten",
-    "resentMany": "{count, plural, one {Tickets für # Bestellung erneut gesendet.} other {Tickets für # Bestellungen erneut gesendet.}}"
+    "resentMany": "{count, plural, one {Tickets für # Bestellung erneut gesendet.} other {Tickets für # Bestellungen erneut gesendet.}}",
+    "flagged": "Markiert",
+    "flaggedBody": "Bestellung markiert: Vor- und Nachname des Käufers entsprechen einer Person, die Sie gesperrt haben. Sie ist durchgegangen; prüfen Sie sie vor der Veranstaltung.",
+    "blockTitle": "Sperre",
+    "blockBuyerBody": "Nach der Sperre kann diese Person weder mit dieser E-Mail-Adresse noch mit den Karten aus ihren Bestellungen bei Ihnen bestellen.",
+    "alreadyBlocked": "Diese E-Mail-Adresse ist bereits gesperrt.",
+    "seeBlocked": "Gesperrte Personen ansehen",
+    "blockThisBuyer": "Diesen Käufer sperren",
+    "blockPerson": "Eine Person sperren",
+    "blockIntro": "Diese Person kann nicht mehr bei Ihnen bestellen, im Wiederverkauf kaufen oder sich auf eine Warteliste setzen und liest nur: „Diese Bestellung kann nicht abgeschlossen werden. Wenden Sie sich an den Veranstalter.“",
+    "blockEmailHint": "Verglichen ohne Rücksicht auf Groß- und Kleinschreibung, Gmail-Punkte und „+“-Zusätze.",
+    "blockNameHint": "Gleicher Vor- und Nachname sperrt nicht: Die Bestellung geht durch und Sie werden benachrichtigt (Namensvettern).",
+    "blockReasonHint": "Nur für Ihr Team sichtbar.",
+    "blockCards": "{count, plural, one {Die in ihren Bestellungen verwendete Karte wird ebenfalls gesperrt.} other {Die # in ihren Bestellungen verwendeten Karten werden ebenfalls gesperrt.}}",
+    "blockNoCard": "Keine Karte in ihren Bestellungen bei Ihnen gespeichert.",
+    "blockSubmit": "Sperren",
+    "blockedIntro": "Eine gesperrte Person kann nicht mehr bei Ihnen bestellen, im Wiederverkauf kaufen oder sich auf eine Warteliste setzen: deren E-Mail-Adresse und Karten werden vor jeder Belastung abgelehnt. Gleicher Vor- und Nachname markiert die Bestellung nur. Nur Ihre Organisation sieht diese Liste.",
+    "blockedPerson": "Person",
+    "blockedEmail": "E-Mail-Adresse",
+    "blockedCard": "Karte gespeichert",
+    "blockedCardYes": "Ja",
+    "blockedCardNo": "Nein",
+    "blockedReason": "Grund",
+    "blockedAddedBy": "Hinzugefügt von",
+    "blockedDate": "Datum",
+    "blockedActions": "Aktionen",
+    "blockedCaption": "Gesperrte Personen",
+    "blockedEmptyTitle": "Keine gesperrten Personen.",
+    "blockedEmptyBody": "Sperren Sie eine böswillige oder störende Person, damit sie nicht mehr bei Ihnen bestellen kann.",
+    "blockedMissing": "Nicht angegeben",
+    "unblock": "Entsperren",
+    "unblockConfirm": "{name} entsperren? Diese Person kann dann wieder bei Ihnen bestellen."
   },
   "seatingEditor": {
     "title": "Saalplan",
@@ -2704,7 +2739,9 @@
     "pref_CAMPAIGN_SENT": "Kampagne versendet",
     "pref_DISPUTE_OPENED": "Streitfall eröffnet",
     "pref_PAYOUT_FAILED": "Auszahlung fehlgeschlagen",
-    "pref_EVENT_PUBLISHED": "Veranstaltung veröffentlicht"
+    "pref_EVENT_PUBLISHED": "Veranstaltung veröffentlicht",
+    "type_BUYER_FLAGGED": "Bestellung markiert",
+    "pref_BUYER_FLAGGED": "Bestellung auf den Namen einer gesperrten Person"
   },
   "entries": {
     "result_VALID": "Einlass bestätigt",
@@ -3527,7 +3564,9 @@
     "tab_offer": "Tarif",
     "tab_referral": "Empfehlung",
     "tab_venue": "Partnerort",
-    "tab_advanced": "Erweitert"
+    "tab_advanced": "Erweitert",
+    "tab_orders": "Bestellungen",
+    "tab_blocked": "Gesperrte Personen"
   },
   "distribution": {
     "intro": "Verkaufen Sie auch über Ticketmaster, Fnac, BilletReduc oder ein Tourismusbüro? Geben Sie ihnen Kontingente: Diese Plätze werden aus dem Verkauf auf Evoly genommen, damit kein Platz doppelt verkauft wird.",

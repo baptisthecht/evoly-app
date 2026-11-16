@@ -36,22 +36,30 @@ export async function OrderHeader({
       }
       title={`${order.buyerFirstName} ${order.buyerLastName}`}
       badge={
-        <Badge
-          dot
-          tone={
-            order.status === "PAID"
-              ? "success"
-              : order.status === "PARTIALLY_REFUNDED"
-                ? "warning"
-                : "neutral"
-          }
-        >
-          {t(
-            order.status === "PAID" && order.totalMinor === 0
-              ? "status_CONFIRMED"
-              : `status_${order.status}`,
-          )}
-        </Badge>
+        <span className="inline-flex flex-wrap items-center gap-1.5">
+          <Badge
+            dot
+            tone={
+              order.status === "PAID"
+                ? "success"
+                : order.status === "PARTIALLY_REFUNDED"
+                  ? "warning"
+                  : "neutral"
+            }
+          >
+            {t(
+              order.status === "PAID" && order.totalMinor === 0
+                ? "status_CONFIRMED"
+                : `status_${order.status}`,
+            )}
+          </Badge>
+          {/* RG-BLK-03 : nom identique à celui d'une personne bloquée (alerte, la commande est passée) */}
+          {order.flaggedAt ? (
+            <Badge tone="danger" dot>
+              {t("flagged")}
+            </Badge>
+          ) : null}
+        </span>
       }
       meta={
         <p className="text-[13px] text-ink-muted">

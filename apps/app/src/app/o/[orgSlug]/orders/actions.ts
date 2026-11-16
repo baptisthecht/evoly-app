@@ -16,6 +16,7 @@ import {
   retryRefund,
 } from "@/server/refunds";
 import { revertCheckIn } from "@/server/scanner";
+import { blockBuyer, unblockBuyer } from "@/server/blockedBuyers";
 
 const path = (orgSlug: string, orderId: string) =>
   `/o/${orgSlug}/orders/${orderId}`;
@@ -241,5 +242,71 @@ export async function refundOptionsAction(
     }),
   );
   if (r?.ok) revalidatePath(path(orgSlug, orderId));
+  return r;
+}
+
+const optionalText = (max: number) =>
+  z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? null : v),
+    z.string().trim().max(max).nullable().optional(),
+  );
+
+/**
+ * Bloquer une personne (onglet « Personnes bloquées », ou « Bloquer cet acheteur » depuis une commande) : une adresse,
+ * ou un prénom et un nom ; les cartes des commandes de cette adresse dans l'organisation sont reprises.
+ */
+export async function blockBuyerAction(
+  orgSlug: string,
+  orderId: string | null,
+  _: ActionState<{ cards: number }>,
+  form: FormData,
+): Promise<ActionState<{ cards: number }>> {
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    {
+      schema: z.object({
+        email: z.preprocess(
+          (v) => (typeof v === "string" && v.trim() === "" ? null : v),
+          z
+            .email({ message: "validation.email" })
+            .max(200)
+            .nullable()
+            .optional(),
+        ),
+        firstName: optionalText(60),
+        lastName: optionalText(60),
+        reason: optionalText(500),
+      }),
+      permission: "ORDERS_MANAGE",
+    },
+    async (d, ctx) => {
+      const { cards } = await blockBuyer(ctx, { ...d, orderId });
+      return { cards };
+    },
+  );
+  if (r?.ok) {
+    revalidatePath(`/o/${orgSlug}/orders`);
+    if (orderId) revalidatePath(path(orgSlug, orderId));
+  }
+  return r as ActionState<{ cards: number }>;
+}
+
+/** Débloquer une personne, à tout moment. */
+export async function unblockBuyerAction(
+  orgSlug: string,
+  blockedBuyerId: string,
+  _: ActionState,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "ORDERS_MANAGE" },
+    async (_d, ctx) => {
+      await unblockBuyer(ctx, blockedBuyerId);
+      return null;
+    },
+  );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/orders`);
   return r;
 }

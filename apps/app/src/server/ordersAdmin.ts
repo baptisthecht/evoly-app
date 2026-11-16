@@ -1,5 +1,10 @@
 import "server-only";
-import { CoreError, normalizeShortCode, sha256Hex } from "@evoly/core";
+import {
+  buyerEmailKey,
+  CoreError,
+  normalizeShortCode,
+  sha256Hex,
+} from "@evoly/core";
 import type { OrderSource, Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { audit } from "./audit";
@@ -198,6 +203,7 @@ export async function correctBuyerEmail(
     where: { id: order.id },
     data: {
       buyerEmail: next,
+      buyerEmailKey: buyerEmailKey(next), // limites par acheteur et personnes bloquées : la nouvelle adresse
       accessTokenVersion: version,
       accessTokenHash: await sha256Hex(orderAccessToken(order.id, version)),
     },

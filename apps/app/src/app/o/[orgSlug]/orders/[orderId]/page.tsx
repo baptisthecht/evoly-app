@@ -6,6 +6,9 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Badge, Card } from "@/components/ui/Card";
 import { requireOrgContext } from "@/server/context";
 import { getOrderDetail } from "@/server/ordersAdmin";
+import { blockPreview } from "@/server/blockedBuyers";
+import { BlockBuyerDialog } from "../BlockedBuyers";
+import Link from "next/link";
 import {
   CorrectEmail,
   HolderForm,
@@ -67,6 +70,9 @@ export default async function OrderDetailPage({
     (asked === "options" && order.options.length > 0)
       ? asked
       : "tickets";
+  // « Bloquer cet acheteur » : adresse et nom préremplis, cartes de ses commandes dans l'organisation
+  const block =
+    tab === "buyer" && manage ? await blockPreview(ctx, order.id) : null;
   const refundable = order.tickets.filter(
     (tk) =>
       (tk.status === "VALID" || tk.status === "CHECKED_IN") &&
@@ -194,6 +200,47 @@ export default async function OrderDetailPage({
               </div>
             ) : null}
           </Card>
+          {order.flaggedAt || block ? (
+            <Card className="grid content-start gap-3">
+              <h2 className="text-[0.9375rem] font-semibold">
+                {t("blockTitle")}
+              </h2>
+              {order.flaggedAt ? (
+                <p className="text-[13.5px] text-danger">{t("flaggedBody")}</p>
+              ) : null}
+              {block?.alreadyBlocked ? (
+                <p className="text-[13.5px] text-ink-body">
+                  {t("alreadyBlocked")}{" "}
+                  <Link
+                    href={`/o/${orgSlug}/orders?tab=blocked`}
+                    className="font-medium underline underline-offset-[3px]"
+                  >
+                    {t("seeBlocked")}
+                  </Link>
+                </p>
+              ) : block ? (
+                <>
+                  <p className="text-[13.5px] text-ink-muted">
+                    {t("blockBuyerBody")}
+                  </p>
+                  <div>
+                    <BlockBuyerDialog
+                      orgSlug={orgSlug}
+                      orderId={order.id}
+                      variant="secondary"
+                      prefill={{
+                        email: block.email,
+                        firstName: block.firstName,
+                        lastName: block.lastName,
+                      }}
+                      cards={block.cards}
+                      trigger={t("blockThisBuyer")}
+                    />
+                  </div>
+                </>
+              ) : null}
+            </Card>
+          ) : null}
           {order.answers.length > 0 ? (
             <Card className="grid gap-2">
               <h2 className="text-[0.9375rem] font-semibold">

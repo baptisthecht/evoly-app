@@ -36,6 +36,8 @@ import { stripe } from "@/lib/stripe";
 import { getPlans } from "./plans";
 import { buyerEmailKey, salesOpeningAt } from "@evoly/core";
 import { checkBuyerLimits } from "./buyerLimits";
+import { audit } from "./audit";
+import { BUYER_BLOCKED, isBlocked, isCardBlocked } from "./blockedBuyers";
 import { presaleCodeFor } from "./presale";
 import { hasFeature, ticketCommission } from "@evoly/core";
 import { latePaymentRefundEmail } from "./email/templates";
@@ -818,6 +820,11 @@ export async function submitBuyer(
   if (order.event.requireBuyerPhone && !buyer.phone)
     throw new CoreError("PHONE_REQUIRED");
   const email = buyer.email.trim().toLowerCase();
+  // RG-BLK-01 et 05 : adresse bloquée par l'organisation (achat et revente) : message neutre, places libérées
+  if (await isBlocked(order.organizationId, { email })) {
+    await cancelReservation(token);
+    throw new CoreError(BUYER_BLOCKED);
+  }
   if (order.promoCode?.maxUsesPerEmail != null) {
     const uses = await db.order.count({
       where: {
@@ -1438,6 +1445,91 @@ export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
   );
 }
 
+/**
+ * RG-BLK-02, filet de sécurité : un paiement confirmé directement depuis le navigateur échappe à la vérification de la
+ * carte faite avant le débit (confirmOrderPayment). Il est relu ici avant de valider la commande, seulement si
+ * l'organisation a bloqué au moins une carte : carte bloquée, paiement remboursé en entier, places libérées, aucun
+ * billet émis. Renvoie vrai si la commande ne doit pas être validée.
+ */
+export async function refundBlockedCardPayment(
+  orderId: string,
+  chargeId: string,
+): Promise<boolean> {
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: {
+      status: true,
+      source: true,
+      eventId: true,
+      organizationId: true,
+      totalMinor: true,
+      stripePaymentIntentId: true,
+    },
+  });
+  if (
+    !order?.stripePaymentIntentId ||
+    !["PENDING", "EXPIRED", "FAILED"].includes(order.status) ||
+    !(await db.blockedCard.findFirst({
+      where: { organizationId: order.organizationId },
+      select: { id: true },
+    }))
+  )
+    return false;
+  const s = stripe();
+  const account = await db.stripeAccount.findUnique({
+    where: { organizationId: order.organizationId },
+    select: { stripeAccountId: true },
+  });
+  if (!s || !account) return false;
+  const options = { stripeAccount: account.stripeAccountId };
+  const charge = await s.charges.retrieve(chargeId, {}, options);
+  const fingerprint = charge.payment_method_details?.card?.fingerprint ?? null;
+  if (!(await isCardBlocked(order.organizationId, fingerprint))) return false;
+  await s.refunds.create(
+    {
+      payment_intent: order.stripePaymentIntentId,
+      refund_application_fee: true,
+      reason: "requested_by_customer",
+      metadata: { orderId, cause: "BUYER_BLOCKED" },
+    },
+    { ...options, idempotencyKey: `order:${orderId}:blocked-refund` },
+  );
+  await db.$transaction(async (tx) => {
+    await lockEvent(tx, order.eventId);
+    const o = await tx.order.findUniqueOrThrow({
+      where: { id: orderId },
+      include: { items: true },
+    });
+    if (!["PENDING", "EXPIRED", "FAILED"].includes(o.status)) return;
+    if (o.status === "PENDING" && o.source !== "RESALE") {
+      await releaseItems(tx, o.items);
+      await releaseSeats(tx, orderId);
+    }
+    if (o.status === "PENDING" && o.source === "RESALE" && o.resaleListingId)
+      await tx.resaleListing.updateMany({
+        where: { id: o.resaleListingId, status: "RESERVED" },
+        data: { status: "ACTIVE", reservedUntil: null },
+      });
+    await tx.order.update({
+      where: { id: orderId },
+      data: {
+        status: "REFUNDED",
+        refundedMinor: o.totalMinor,
+        cardFingerprint: fingerprint,
+        ...(o.source === "RESALE" ? { resaleListingId: null } : {}),
+      },
+    });
+  }, TX_OPTIONS);
+  await audit({
+    action: "order.blocked_card_refunded",
+    organizationId: order.organizationId,
+    actorType: "SYSTEM",
+    targetType: "Order",
+    targetId: orderId,
+  });
+  return true;
+}
+
 /** RG-QST-02 : l'acheteur modifie le titulaire d'un billet jusqu'au début de l'événement, sauf interdiction de l'organisateur. */
 export async function updateTicketHolder(
   token: string,
@@ -1646,6 +1738,16 @@ export async function confirmOrderPayment(
       throw cardFailure(e);
     });
   const fingerprint = ct.payment_method_preview?.card?.fingerprint ?? null;
+  // RG-BLK-02 : carte (ou adresse) bloquée par l'organisation : refus avant le débit, paiement annulé, places libérées
+  if (
+    await isBlocked(order.organizationId, {
+      email: order.buyerEmail,
+      fingerprint,
+    })
+  ) {
+    await cancelReservation(token);
+    throw new CoreError(BUYER_BLOCKED);
+  }
   if (fingerprint) {
     await db.order.update({
       where: { id: order.id },

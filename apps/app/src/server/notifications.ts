@@ -22,6 +22,7 @@ const PERMISSION: Record<NotificationType, Permission> = {
   DISPUTE_OPENED: "FINANCE_VIEW",
   EVENT_PUBLISHED: "EVENTS_PUBLISH",
   PAYOUT_FAILED: "FINANCE_VIEW",
+  BUYER_FLAGGED: "ORDERS_MANAGE",
 };
 /** RG-NTF-02 : notifications importantes, aussi envoyées par e-mail au propriétaire et aux administrateurs. */
 const IMPORTANT = new Set<NotificationType>([
@@ -31,6 +32,7 @@ const IMPORTANT = new Set<NotificationType>([
   "REFUND_REQUESTED",
   "EVENT_PUBLISHED",
   "PAYOUT_FAILED",
+  "BUYER_FLAGGED",
 ]);
 
 async function recipients(organizationId: string, type: NotificationType) {

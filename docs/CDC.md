@@ -1416,6 +1416,22 @@ Beaucoup d'organisateurs posent des chaises non numérotées. Evoly vend pourtan
 - RG-ETIQ-08 : mots fixes (Rang, Place, Zone, Table, Réservé…) dans la langue de l'événement, parmi les 7 langues.
 - RG-ETIQ-09 (plus tard, impression à la demande) : « Commander l'impression » : Evoly imprime et expédie dans une enveloppe A4. Prix par étiquette (proposition : 0,10 €), frais d'envoi selon le pays et minimum de commande ; date limite avant l'événement (proposition : 7 jours en Belgique, 10 vers la France) ; paiement par Stripe ; suivi dans le back-office (imprimée, envoyée, numéro de suivi) et e-mails à l'organisateur. Prérequis : conditions générales (livraison, produit personnalisé exclu du droit de rétractation, réimpressions) et avis de l'expert-comptable sur la TVA. Ensuite : un imprimeur en ligne qui expédie directement, avec des supports durables (vinyle de sol).
 
+### 9.34 Personnes bloquées (P1)
+
+Décidé le 16 novembre 2026. Un organisateur empêche une personne malveillante ou nuisante de commander chez lui. La liste est propre à chaque organisation, jamais partagée entre organisations.
+
+**User stories**
+
+- US-BLK-01 : en tant qu'organisateur (droit de gérer les commandes), je bloque une personne depuis l'onglet « Personnes bloquées » des commandes (adresse, prénom, nom, motif) ou depuis la fiche d'une de ses commandes (« Bloquer cet acheteur », qui reprend son adresse, son nom et les cartes de ses commandes chez moi), et je la débloque à tout moment.
+
+**Règles de gestion**
+
+- RG-BLK-01 : blocage par adresse e-mail, comparée normalisée (`buyerEmailKey` : casse, points Gmail, suffixes « + » des grands fournisseurs) : refus dès la saisie des coordonnées, la réservation est libérée.
+- RG-BLK-02 : blocage par carte, d'après son empreinte Stripe (jamais un numéro de carte) : lue avant le débit (`confirmOrderPayment`), une carte bloquée est refusée, l'intention de paiement est annulée et les places libérées. Filet de sécurité : un paiement confirmé sans cette vérification est relu à sa réception ; carte bloquée, il est remboursé en entier et aucun billet n'est émis.
+- RG-BLK-03 : prénom et nom identiques (casse, accents et espaces ignorés) : simple alerte, jamais un blocage (homonymes). La commande passe, porte la pastille « Signalé » (tableau des commandes et fiche) et l'organisation reçoit la notification « Commande signalée ».
+- RG-BLK-04 : la personne bloquée lit un message neutre, sans motif : « Cette commande ne peut pas aboutir. Contactez l'organisateur. »
+- RG-BLK-05 : le blocage vaut aussi pour l'achat d'une place en revente et pour l'inscription à la liste d'attente. RGPD : motif, auteur et date visibles par l'organisation seule ; déblocage à tout moment ; blocages et déblocages au journal d'audit, sans adresse ni motif.
+
 ## 10. Catalogue des e-mails
 
 Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la file de tâches. Catégories : **T** transactionnel (toujours envoyé), **S** service (respecte la désinscription de l'événement), **M** marketing (consentement requis).

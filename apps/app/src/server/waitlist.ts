@@ -18,6 +18,7 @@ import { eventPublicUrl } from "./urls";
 import type { OrgContext } from "./context";
 import { findEvent } from "./events";
 import { csvSafe } from "@/lib/csv";
+import { isEmailBlocked } from "./blockedBuyers";
 
 /**
  * Liste d'attente (section 9.30). Une place libérée revient d'abord aux inscrits, dans l'ordre d'inscription : tant que des
@@ -131,6 +132,9 @@ export async function joinWaitlist(
     },
   });
   if (!tt) throw new CoreError("NOT_FOUND");
+  // RG-BLK-05 : adresse bloquée par l'organisation : inscription refusée, sans motif
+  if (await isEmailBlocked(tt.event.organizationId, email))
+    throw new CoreError("WAITLIST_BLOCKED");
   const max = Math.min(4, tt.maxPerOrder, tt.event.maxTicketsPerOrder);
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > max)
     throw new CoreError("WAITLIST_QUANTITY_INVALID");

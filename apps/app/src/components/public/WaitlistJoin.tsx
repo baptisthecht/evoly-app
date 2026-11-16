@@ -104,7 +104,9 @@ export function WaitlistJoin({
         <p role="alert" className="text-danger">
           {result === "WAITLIST_NOT_SOLD_OUT"
             ? t("waitlistErrorNotSoldOut")
-            : t("waitlistError")}
+            : result === "WAITLIST_BLOCKED"
+              ? t("waitlistErrorBlocked")
+              : t("waitlistError")}
         </p>
       ) : null}
       <div>

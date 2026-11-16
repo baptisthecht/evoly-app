@@ -526,7 +526,8 @@
     "error_CARD_INSUFFICIENT_FUNDS": "Le solde de votre carte est insuffisant. Essayez une autre carte.",
     "error_CARD_EXPIRED": "Votre carte a expiré. Essayez une autre carte.",
     "error_CARD_INCORRECT_CVC": "Le cryptogramme de votre carte est incorrect. Vérifiez-le et réessayez.",
-    "error_PAYMENT_INVALID": "Ce paiement ne peut plus être confirmé. Recommencez votre réservation."
+    "error_PAYMENT_INVALID": "Ce paiement ne peut plus être confirmé. Recommencez votre réservation.",
+    "error_BUYER_BLOCKED": "Cette commande ne peut pas aboutir. Contactez l’organisateur."
   },
   "orders": {
     "confirmationTitle": "C’est réservé !",
@@ -1172,7 +1173,9 @@
     "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe n’a pas encore terminé l’activation d’Evoly : réessayez dans quelques heures.",
     "STRIPE_UNAVAILABLE": "Stripe n’a pas pu ouvrir la connexion pour le moment : réessayez dans quelques minutes.",
     "BUYER_TYPE_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pour ce tarif.",
-    "PRESALE_BUYER_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pendant la prévente."
+    "PRESALE_BUYER_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pendant la prévente.",
+    "BLOCK_NEEDS_EMAIL_OR_NAME": "Indiquez une adresse e-mail, ou un prénom et un nom.",
+    "BUYER_BLOCKED": "Cette commande ne peut pas aboutir. Contactez l’organisateur."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",
@@ -1531,7 +1534,8 @@
     "orgSocial_facebook": "Facebook",
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
-    "orgSocial_youtube": "YouTube"
+    "orgSocial_youtube": "YouTube",
+    "waitlistErrorBlocked": "Cette inscription ne peut pas aboutir. Contactez l’organisateur."
   },
   "promo": {
     "new": "Nouveau code",
@@ -1879,7 +1883,38 @@
     "freeLower": "gratuit",
     "range": "{from} à {to} sur {count, plural, one {# commande} other {# commandes}}",
     "refundSelected": "Rembourser",
-    "resentMany": "{count, plural, one {Billets renvoyés pour # commande.} other {Billets renvoyés pour # commandes.}}"
+    "resentMany": "{count, plural, one {Billets renvoyés pour # commande.} other {Billets renvoyés pour # commandes.}}",
+    "flagged": "Signalé",
+    "flaggedBody": "Commande signalée : le prénom et le nom de l’acheteur sont ceux d’une personne que vous avez bloquée. Elle est passée ; vérifiez-la avant l’événement.",
+    "blockTitle": "Blocage",
+    "blockBuyerBody": "Une fois bloquée, cette personne ne pourra plus commander chez vous avec cette adresse, ni avec les cartes utilisées dans ses commandes.",
+    "alreadyBlocked": "Cette adresse est déjà bloquée.",
+    "seeBlocked": "Voir les personnes bloquées",
+    "blockThisBuyer": "Bloquer cet acheteur",
+    "blockPerson": "Bloquer une personne",
+    "blockIntro": "Elle ne pourra plus commander chez vous, ni acheter en revente, ni s’inscrire sur une liste d’attente. Elle lira seulement : « Cette commande ne peut pas aboutir. Contactez l’organisateur. »",
+    "blockEmailHint": "Comparée sans tenir compte des majuscules, des points Gmail ni des suffixes « + ».",
+    "blockNameHint": "Un prénom et un nom identiques ne bloquent pas : la commande passe et vous êtes prévenu (homonymes).",
+    "blockReasonHint": "Visible seulement par votre équipe.",
+    "blockCards": "{count, plural, one {La carte utilisée dans ses commandes sera aussi bloquée.} other {Les # cartes utilisées dans ses commandes seront aussi bloquées.}}",
+    "blockNoCard": "Aucune carte enregistrée dans ses commandes chez vous.",
+    "blockSubmit": "Bloquer",
+    "blockedIntro": "Une personne bloquée ne peut plus commander chez vous, ni acheter en revente, ni s’inscrire sur une liste d’attente : son adresse et ses cartes sont refusées avant tout débit. Un prénom et un nom identiques signalent seulement la commande. Cette liste n’est visible que de votre organisation.",
+    "blockedPerson": "Personne",
+    "blockedEmail": "Adresse e-mail",
+    "blockedCard": "Carte enregistrée",
+    "blockedCardYes": "Oui",
+    "blockedCardNo": "Non",
+    "blockedReason": "Motif",
+    "blockedAddedBy": "Ajouté par",
+    "blockedDate": "Date",
+    "blockedActions": "Actions",
+    "blockedCaption": "Personnes bloquées",
+    "blockedEmptyTitle": "Aucune personne bloquée.",
+    "blockedEmptyBody": "Bloquez une personne malveillante ou nuisante : elle ne pourra plus commander chez vous.",
+    "blockedMissing": "Non renseigné",
+    "unblock": "Débloquer",
+    "unblockConfirm": "Débloquer {name} ? Cette personne pourra de nouveau commander chez vous."
   },
   "finances": {
     "title": "Finances",
@@ -2533,7 +2568,9 @@
     "pref_CAMPAIGN_SENT": "Campagne envoyée",
     "pref_DISPUTE_OPENED": "Litige ouvert",
     "pref_PAYOUT_FAILED": "Virement échoué",
-    "pref_EVENT_PUBLISHED": "Événement publié"
+    "pref_EVENT_PUBLISHED": "Événement publié",
+    "type_BUYER_FLAGGED": "Commande signalée",
+    "pref_BUYER_FLAGGED": "Commande au nom d’une personne bloquée"
   },
   "scannerAccess": {
     "title": "Scanner les billets",
@@ -3527,7 +3564,9 @@
     "tab_offer": "Offre",
     "tab_referral": "Parrainage",
     "tab_venue": "Lieu partenaire",
-    "tab_advanced": "Avancé"
+    "tab_advanced": "Avancé",
+    "tab_orders": "Commandes",
+    "tab_blocked": "Personnes bloquées"
   },
   "distribution": {
     "intro": "Vous vendez aussi par Ticketmaster, la Fnac, BilletReduc ou un office de tourisme ? Confiez-leur des places : elles sont retirées de la vente sur Evoly, pour ne jamais vendre deux fois la même place.",

@@ -74,6 +74,7 @@ model User {
   scannerLinksCreated  ScannerLink[]
   checkIns             CheckIn[]
   refundsHandled       Refund[]             @relation("RefundHandler")
+  blockedBuyersAdded   BlockedBuyer[]       @relation("BlockedBuyerAuthor")
   campaignsCreated     EmailCampaign[]
   notifications        Notification[]
   auditLogs            AuditLog[]
@@ -310,6 +311,7 @@ model Organization {
   seatingLayouts      SeatingLayout[]
   promotionRedemption PromotionRedemption? // offre commerciale dont elle a profité à sa création
   distributors        Distributor[]
+  blockedBuyers       BlockedBuyer[] // personnes bloquées : propres à l'organisation, jamais partagées
 
   featuredMode    FeaturedMode @default(NEXT) // vitrine : événement mis en avant (aucun, le prochain, un choisi)
   featuredEventId String? // événement choisi ; la vitrine reprend le prochain s'il n'est plus à venir ou public
@@ -1049,6 +1051,9 @@ model Order {
   accessTokenHash       String         @unique // lien magique « mes billets »
   accessTokenVersion    Int            @default(1) // jeton dérivé (HMAC) : changer la version invalide l’ancien lien (RG-ORD-02)
   termsVersion          String? // conditions acceptées au paiement
+  flaggedAt             DateTime? // « Signalé » : nom et prénom identiques à ceux d'une personne bloquée (alerte, pas de blocage)
+  flaggedBlockedBuyerId String?
+  flaggedBlockedBuyer   BlockedBuyer?  @relation("FlaggedOrders", fields: [flaggedBlockedBuyerId], references: [id], onDelete: SetNull)
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 
@@ -1079,6 +1084,7 @@ model Order {
   @@index([ambassadorId]) // ventes de chaque ambassadeur
   @@index([soldByLinkId]) // rapport de caisse de la vente sur place
   @@index([venuePartnerId]) // commissions des lieux partenaires
+  @@index([flaggedBlockedBuyerId]) // débloquer une personne détache ses commandes signalées
 }
 
 model OrderItem {
@@ -1777,6 +1783,7 @@ enum NotificationType {
   DISPUTE_OPENED
   EVENT_PUBLISHED // événement programmé devenu public
   PAYOUT_FAILED // virement Stripe vers la banque de l'organisateur échoué
+  BUYER_FLAGGED // commande passée sous le nom d'une personne bloquée
 }
 
 model Notification {
@@ -2413,4 +2420,47 @@ enum FeaturedMode {
   NONE
   NEXT
   CHOSEN
+}
+
+// =============================================================================
+// PERSONNES BLOQUÉES (par organisation)
+// =============================================================================
+
+/// Personne qu'une organisation empêche de commander chez elle : par adresse e-mail normalisée et par empreinte de
+/// carte (refus avant le débit) ; le nom et le prénom ne bloquent pas (homonymes), ils signalent la commande. Liste
+/// propre à chaque organisation, jamais partagée ; motif, auteur et date visibles par l'organisation seule.
+model BlockedBuyer {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String? // adresse saisie, pour l'affichage
+  emailKey       String? // adresse normalisée (buyerEmailKey) : casse, points Gmail, suffixes « + »
+  firstName      String?
+  lastName       String?
+  nameKey        String? // prénom et nom normalisés (casse, accents, espaces) : alerte seulement
+  reason         String?
+  createdById    String?
+  createdAt      DateTime @default(now())
+
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy     User?         @relation("BlockedBuyerAuthor", fields: [createdById], references: [id], onDelete: SetNull)
+  cards         BlockedCard[]
+  flaggedOrders Order[]       @relation("FlaggedOrders")
+
+  @@index([organizationId, emailKey])
+  @@index([organizationId, nameKey])
+  @@index([organizationId, createdAt])
+}
+
+/// Empreinte d'une carte bloquée (Stripe) : jamais un numéro de carte.
+model BlockedCard {
+  id             String   @id @default(cuid())
+  blockedBuyerId String
+  organizationId String
+  fingerprint    String
+  createdAt      DateTime @default(now())
+
+  blockedBuyer BlockedBuyer @relation(fields: [blockedBuyerId], references: [id], onDelete: Cascade)
+
+  @@unique([blockedBuyerId, fingerprint])
+  @@index([organizationId, fingerprint])
 }

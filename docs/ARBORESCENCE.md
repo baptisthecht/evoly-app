@@ -8,7 +8,7 @@ Décidée le 28 octobre 2026. Trois niveaux : la barre latérale, les onglets de
 | -------------- | ------------------------------------------------------------------------------- |
 | Accueil        | (des widgets vivants, voir plus bas)                                            |
 | Événements     |                                                                                 |
-| Commandes      |                                                                                 |
+| Commandes      | Commandes · Personnes bloquées                                                  |
 | Revente        | dernières annonces et reventes ; raccourci discret vers les réglages de revente |
 | Finances       |                                                                                 |
 | Marketing      | Contacts · Campagnes · Automatisations (rappels automatiques)                   |

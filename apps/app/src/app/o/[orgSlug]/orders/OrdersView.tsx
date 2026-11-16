@@ -308,6 +308,10 @@ export async function OrdersView({
                     ...(o.refunds.some((r) => r.status === "FAILED")
                       ? [{ label: t("refundFailed"), tone: "danger" as const }]
                       : []),
+                    // RG-BLK-03 : nom identique à celui d'une personne bloquée
+                    ...(o.flaggedAt
+                      ? [{ label: t("flagged"), tone: "danger" as const }]
+                      : []),
                   ],
                   tickets: o._count.tickets,
                   total: complimentary

@@ -1,8 +1,8 @@
 # Traçabilité du cahier des charges
 
-État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (268 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
+État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (360 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 185 · fait : 167 · hors périmètre : 2.
+**Bilan** : fait, testé : 191 · fait : 167 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -370,3 +370,9 @@
 | RG-ETIQ-06 | P2 | deux fichiers pour ne jamais changer de papier en cours d'impression : « Étiquettes » (planches) et « Guide de pose » (p | fait | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
 | RG-ETIQ-07 | P2 | sol : le panneau de zone se colle aux murs et aux portes ; pour le sol, le guide conseille un support adapté (vinyle ant | fait | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
 | RG-ETIQ-08 | P2 | mots fixes (Rang, Place, Zone, Table, Réservé…) dans la langue de l'événement, parmi les 7 langues. | fait | seatLabels.ts (core et app), seatLabelsPdf.ts, page etiquettes, seat-kit.test.ts, seatLabels.test.ts |
+| US-BLK-01 | P1 | en tant qu'organisateur (droit de gérer les commandes), je bloque une personne depuis l'onglet « Personnes bloquées » des | fait, testé | onglet Personnes bloquées, Bloquer cet acheteur (blockedBuyers.ts, BlockedBuyers.tsx, blocked-buyers.test.ts, BlockedBuyers.test.tsx, blocked-buyers.spec.ts) |
+| RG-BLK-01 | P1 | blocage par adresse e-mail, comparée normalisée (`buyerEmailKey` : casse, points Gmail, suffixes « + » des grands fourni | fait, testé | refus à la saisie des coordonnées, réservation libérée (checkout.ts, blocked-buyers.test.ts, blocked-buyers.spec.ts) |
+| RG-BLK-02 | P1 | blocage par carte, d'après son empreinte Stripe (jamais un numéro de carte) : lue avant le débit (`confirmOrderPayment`), | fait, testé | paiement annulé, places libérées ; filet de sécurité à la réception du paiement (checkout.ts, orders.ts, blocked-buyers.test.ts) |
+| RG-BLK-03 | P1 | prénom et nom identiques (casse, accents et espaces ignorés) : simple alerte, jamais un blocage (homonymes). La commande p | fait, testé | pastille Signalé, notification BUYER_FLAGGED (blockedBuyers.ts, buyerKey.ts, blocked-buyers.test.ts, blocked-buyers.spec.ts) |
+| RG-BLK-04 | P1 | la personne bloquée lit un message neutre, sans motif : « Cette commande ne peut pas aboutir. Contactez l'organisateur. » | fait, testé | code BUYER_BLOCKED, WAITLIST_BLOCKED (blockedBuyers.ts, blocked-buyers.spec.ts) |
+| RG-BLK-05 | P1 | le blocage vaut aussi pour l'achat d'une place en revente et pour l'inscription à la liste d'attente. RGPD : motif, auteur | fait, testé | revente et liste d'attente refusées, journal sans données personnelles (waitlist.ts, blockedBuyers.ts, blocked-buyers.test.ts) |

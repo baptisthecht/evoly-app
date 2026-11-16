@@ -7,6 +7,7 @@ import { FilterSelect } from "@/components/ui/FilterSelect";
 import { teamOverview } from "@/server/team";
 import { InviteDialog } from "@/app/o/[orgSlug]/members/MembersTable";
 import { RoleEditor } from "@/app/o/[orgSlug]/members/TeamClient";
+import { BlockBuyerDialog } from "@/app/o/[orgSlug]/orders/BlockedBuyers";
 
 import { PageHeader } from "./PageHeader";
 import { DownloadIcon, PlusIcon } from "@/components/ui/icons";
@@ -78,13 +79,29 @@ export async function SectionHeader({
         <PageHeader title={(await getTranslations("events"))("newEvent")} />
       );
     case "orders": {
-      // refonte A3 (maquette Commandes) : « Exporter » dans la bande du titre
+      // refonte A3 (maquette Commandes) : « Exporter » dans la bande du titre ; onglet « Personnes bloquées » pour qui
+      // gère les commandes, avec « Bloquer une personne »
       const to = await getTranslations("ordersAdmin");
+      const manage = can(ctx.membership, "ORDERS_MANAGE");
+      const onBlocked = manage && query.tab === "blocked";
       return (
         <PageHeader
           title={nav("orders")}
+          tabsLabel={manage ? s("tabs") : undefined}
+          tabs={
+            manage
+              ? tabs([
+                  [s("tab_orders"), `${base}/orders`],
+                  [s("tab_blocked"), `${base}/orders?tab=blocked`],
+                ])
+              : undefined
+          }
           actions={
-            can(ctx.membership, "FINANCE_VIEW") ? (
+            onBlocked ? (
+              ctx.readOnly ? null : (
+                <BlockBuyerDialog orgSlug={ctx.organization.slug} />
+              )
+            ) : can(ctx.membership, "FINANCE_VIEW") ? (
               <ButtonLink
                 href={`${base}/finances/export/orders?period=ALL`}
                 variant="secondary"

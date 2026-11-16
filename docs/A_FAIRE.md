@@ -9,6 +9,15 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
   de l'annonce (remplacer les titres classés « Faible ») ; le 31 mars 2027, fin de l'offre de lancement : retirer le
   titre « 3 mois de Pro offerts ».
 
+## Lots de novembre (décidés le 16 novembre 2026)
+
+- Lot 1, bloquer une personne : fait. Onglet « Personnes bloquées » des commandes, « Bloquer cet acheteur » sur la
+  fiche d'une commande, adresse et carte refusées avant le débit (revente et liste d'attente comprises), nom identique
+  signalé (pastille « Signalé », notification). Au prochain déploiement : migration `20261116120000_personnes_bloquees`.
+- Lot 2, remboursement à coût neutre (intégral, ou moins les frais) : à faire.
+- Lot 3, la boutique (sous-lots 3a à 3d) : à faire ; le modèle de données est présenté au fondateur avant 3a.
+- Lot 4, connexion avec Apple : à faire.
+
 ## Refonte du tableau de bord
 
 Arborescence, règles d'interface et ordre de mise en œuvre décidés le 28 octobre 2026 : voir `docs/ARBORESCENCE.md`.

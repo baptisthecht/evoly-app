@@ -162,7 +162,8 @@
     "orgSocial_facebook": "Facebook",
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
-    "orgSocial_youtube": "YouTube"
+    "orgSocial_youtube": "YouTube",
+    "waitlistErrorBlocked": "Deze inschrijving kan niet worden afgerond. Neem contact op met de organisator."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -279,7 +280,8 @@
     "error_CARD_INSUFFICIENT_FUNDS": "Het saldo van je kaart is onvoldoende. Probeer een andere kaart.",
     "error_CARD_EXPIRED": "Je kaart is verlopen. Probeer een andere kaart.",
     "error_CARD_INCORRECT_CVC": "De beveiligingscode van je kaart is onjuist. Controleer hem en probeer opnieuw.",
-    "error_PAYMENT_INVALID": "Deze betaling kan niet meer worden bevestigd. Begin je reservering opnieuw."
+    "error_PAYMENT_INVALID": "Deze betaling kan niet meer worden bevestigd. Begin je reservering opnieuw.",
+    "error_BUYER_BLOCKED": "Deze bestelling kan niet worden afgerond. Neem contact op met de organisator."
   },
   "seatPicker": {
     "title": "Kies je plaatsen",
@@ -1373,7 +1375,9 @@
     "STRIPE_PLATFORM_NOT_ACTIVATED": "Stripe heeft de activering van Evoly nog niet afgerond: probeer het over een paar uur opnieuw.",
     "STRIPE_UNAVAILABLE": "Stripe kon de verbinding nu niet openen: probeer het over een paar minuten opnieuw.",
     "BUYER_TYPE_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon voor dit tarief bereikt.",
-    "PRESALE_BUYER_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon tijdens de voorverkoop bereikt."
+    "PRESALE_BUYER_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon tijdens de voorverkoop bereikt.",
+    "BLOCK_NEEDS_EMAIL_OR_NAME": "Vul een e-mailadres in, of een voor- en achternaam.",
+    "BUYER_BLOCKED": "Deze bestelling kan niet worden afgerond. Neem contact op met de organisator."
   },
   "eventSettings": {
     "unsaved": "Wijzigingen bezig…",
@@ -1649,7 +1653,38 @@
     "freeLower": "gratis",
     "range": "{from} tot {to} van {count, plural, one {# bestelling} other {# bestellingen}}",
     "refundSelected": "Terugbetalen",
-    "resentMany": "{count, plural, one {Tickets opnieuw verzonden voor # bestelling.} other {Tickets opnieuw verzonden voor # bestellingen.}}"
+    "resentMany": "{count, plural, one {Tickets opnieuw verzonden voor # bestelling.} other {Tickets opnieuw verzonden voor # bestellingen.}}",
+    "flagged": "Gemarkeerd",
+    "flaggedBody": "Bestelling gemarkeerd: de voor- en achternaam van de koper zijn die van een persoon die je hebt geblokkeerd. Ze is doorgegaan; controleer ze vóór het evenement.",
+    "blockTitle": "Blokkeren",
+    "blockBuyerBody": "Eenmaal geblokkeerd kan deze persoon niet meer bij je bestellen met dit e-mailadres, noch met de kaarten die in de bestellingen zijn gebruikt.",
+    "alreadyBlocked": "Dit e-mailadres is al geblokkeerd.",
+    "seeBlocked": "Geblokkeerde personen bekijken",
+    "blockThisBuyer": "Deze koper blokkeren",
+    "blockPerson": "Een persoon blokkeren",
+    "blockIntro": "Deze persoon kan niet meer bij je bestellen, kopen via doorverkoop of zich op een wachtlijst zetten, en ziet alleen: „Deze bestelling kan niet worden afgerond. Neem contact op met de organisator.”",
+    "blockEmailHint": "Vergeleken zonder rekening te houden met hoofdletters, punten in Gmail en achtervoegsels met „+”.",
+    "blockNameHint": "Een identieke voor- en achternaam blokkeert niet: de bestelling gaat door en je krijgt een melding (naamgenoten).",
+    "blockReasonHint": "Alleen zichtbaar voor je team.",
+    "blockCards": "{count, plural, one {De kaart die in de bestellingen is gebruikt, wordt ook geblokkeerd.} other {De # kaarten die in de bestellingen zijn gebruikt, worden ook geblokkeerd.}}",
+    "blockNoCard": "Geen kaart bewaard in de bestellingen bij jou.",
+    "blockSubmit": "Blokkeren",
+    "blockedIntro": "Een geblokkeerde persoon kan niet meer bij je bestellen, kopen via doorverkoop of zich op een wachtlijst zetten: het e-mailadres en de kaarten worden geweigerd vóór elke betaling. Een identieke voor- en achternaam markeert de bestelling alleen. Alleen je organisatie ziet deze lijst.",
+    "blockedPerson": "Persoon",
+    "blockedEmail": "E-mailadres",
+    "blockedCard": "Kaart bewaard",
+    "blockedCardYes": "Ja",
+    "blockedCardNo": "Nee",
+    "blockedReason": "Reden",
+    "blockedAddedBy": "Toegevoegd door",
+    "blockedDate": "Datum",
+    "blockedActions": "Acties",
+    "blockedCaption": "Geblokkeerde personen",
+    "blockedEmptyTitle": "Geen geblokkeerde personen.",
+    "blockedEmptyBody": "Blokkeer een kwaadwillige of storende persoon: die kan dan niet meer bij je bestellen.",
+    "blockedMissing": "Niet ingevuld",
+    "unblock": "Deblokkeren",
+    "unblockConfirm": "{name} deblokkeren? Deze persoon kan dan weer bij je bestellen."
   },
   "seatingEditor": {
     "title": "Zaalplan",
@@ -2704,7 +2739,9 @@
     "pref_CAMPAIGN_SENT": "Campagne verzonden",
     "pref_DISPUTE_OPENED": "Geschil geopend",
     "pref_PAYOUT_FAILED": "Uitbetaling mislukt",
-    "pref_EVENT_PUBLISHED": "Evenement gepubliceerd"
+    "pref_EVENT_PUBLISHED": "Evenement gepubliceerd",
+    "type_BUYER_FLAGGED": "Bestelling gemarkeerd",
+    "pref_BUYER_FLAGGED": "Bestelling op naam van een geblokkeerde persoon"
   },
   "entries": {
     "result_VALID": "Toegang bevestigd",
@@ -3527,7 +3564,9 @@
     "tab_offer": "Abonnement",
     "tab_referral": "Doorverwijzing",
     "tab_venue": "Partnerlocatie",
-    "tab_advanced": "Geavanceerd"
+    "tab_advanced": "Geavanceerd",
+    "tab_orders": "Bestellingen",
+    "tab_blocked": "Geblokkeerde personen"
   },
   "distribution": {
     "intro": "Verkoop je ook via Ticketmaster, Fnac, BilletReduc of een toeristische dienst? Vertrouw hen plaatsen toe: die worden uit de verkoop op Evoly gehaald, zodat dezelfde plaats nooit twee keer wordt verkocht.",

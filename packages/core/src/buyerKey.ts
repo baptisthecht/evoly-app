@@ -42,3 +42,24 @@ export function buyerEmailKey(email: string | null | undefined): string | null {
   if (PLUS.has(domain)) return `${local.split("+")[0]}@${domain}`;
   return `${local}@${domain}`;
 }
+
+/**
+ * Prénom et nom normalisés, pour signaler une commande passée sous le nom d'une personne bloquée (alerte seulement,
+ * jamais un blocage : les homonymes existent). Casse, accents et espaces ignorés ; l'ordre prénom puis nom est gardé.
+ */
+export function buyerNameKey(
+  firstName: string | null | undefined,
+  lastName: string | null | undefined,
+): string | null {
+  const clean = (s: string | null | undefined) =>
+    (s ?? "")
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+  const first = clean(firstName);
+  const last = clean(lastName);
+  if (!first || !last) return null;
+  return `${first} ${last}`;
+}

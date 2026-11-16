@@ -12,6 +12,7 @@ import { stripe } from "@/lib/stripe";
 import {
   finalizeOrder,
   orderAccessToken,
+  refundBlockedCardPayment,
   refundUnfulfilledPayment,
   type FinalizeOutcome,
 } from "./checkout";
@@ -24,6 +25,7 @@ import { emailBrandFor, logoBytes } from "./email/brand";
 import { organizationPublicUrl } from "./urls";
 import { safeError } from "@/lib/redact";
 import { markWaitlistPurchased } from "./waitlist";
+import { flagIfNameMatches } from "./blockedBuyers";
 import { createBytesCache } from "@/lib/bytesCache";
 import { themeForEvent } from "./brand";
 import { inkOn } from "@evoly/ui";
@@ -511,6 +513,11 @@ export async function afterOrderPaid(orderId: string): Promise<void> {
       _count: { select: { tickets: true } },
     },
   });
+  // RG-BLK-03 : commande au nom d'une personne bloquée (achat ou revente) : elle passe, signalée à l'organisation
+  if (o && (o.source === "ONLINE" || o.source === "RESALE"))
+    await flagIfNameMatches(orderId).catch((err) =>
+      console.error("personne bloquée", orderId, safeError(err)),
+    );
   if (o && o.source === "ONLINE") {
     // billets offerts et reventes : pas de notification de vente
     await notifyNewOrder(o.organizationId, {
@@ -534,6 +541,12 @@ export async function completeOrder(
   orderId: string,
   payment?: Parameters<typeof finalizeOrder>[1],
 ): Promise<FinalizeOutcome> {
+  // RG-BLK-02 : carte bloquée passée outre la vérification avant le débit : remboursée, commande non validée
+  if (
+    payment?.chargeId &&
+    (await refundBlockedCardPayment(orderId, payment.chargeId))
+  )
+    return "IGNORED";
   const outcome = await finalizeOrder(orderId, payment);
   // frais réels relevés d'abord : le remboursement du vendeur en dépend (RG-FEE-51)
   if (outcome === "PAID" && payment?.chargeId)
