@@ -13,6 +13,7 @@ Installation sur un seul serveur, sans outil de déploiement tiers : **Caddy** (
 | `ops/deploy.sh`                                | mises à jour                                                                                         |
 | `ops/cron.sh`, `ops/crontab`                   | tâches planifiées                                                                                    |
 | `ops/backup.sh`, `ops/restore.sh`              | sauvegarde quotidienne vers R2, restauration                                                         |
+| `ops/apple-client-secret.mjs`                  | secret de la connexion avec Apple (180 jours), à générer sur un poste de confiance                   |
 
 Serveur conseillé au lancement : 2 cœurs, 4 Go de mémoire, 40 Go de disque (par exemple OVH VPS-1), Debian 13.
 
@@ -184,6 +185,26 @@ Récupère le code, reconstruit l'image, applique les migrations, redémarre l'a
 - Créer une clé sur console.anthropic.com, avec une limite de dépense mensuelle (une analyse coûte quelques centimes ; 20 au plus par organisation et par jour).
 - Ajouter `ANTHROPIC_API_KEY="…"` au `.env` du serveur, puis `ops/deploy.sh`. Sans clé, la carte « D’après une photo » indique que la fonction n’est pas activée.
 - L’image est envoyée à Anthropic pour l’analyse puis oubliée ; Anthropic figure parmi les sous-traitants de la politique de confidentialité. Si des organisateurs utilisent déjà Evoly, les prévenir 30 jours avant d’activer la fonction (accord de sous-traitance, article 4).
+
+## Connexion avec Apple
+
+Le bouton « Continuer avec Apple » n'apparaît que si `AUTH_APPLE_ID` et `AUTH_APPLE_SECRET` sont définis. Compte Apple Developer de l'équipe (le même que pour Apple Wallet), dans Certificates, Identifiers & Profiles.
+
+1. **App ID** : Identifiers → App IDs, créer (ou reprendre) `me.evoly.app` et cocher « Sign in with Apple » (« Enable as a primary App ID »).
+2. **Services ID** : Identifiers → Services IDs, créer `me.evoly.app.signin` : c'est `AUTH_APPLE_ID`. Cocher « Sign in with Apple », puis « Configure » : App ID principal `me.evoly.app`, domaine `app.evoly.me`, URL de retour `https://app.evoly.me/api/auth/callback/apple`.
+3. **Clé** : Keys, créer une clé « Sign in with Apple » rattachée à `me.evoly.app`, noter son Key ID et télécharger `AuthKey_<Key ID>.p8` (téléchargeable une seule fois). La ranger dans le gestionnaire de mots de passe, jamais sur le serveur ni dans le dépôt.
+4. **Secret** : Apple n'accepte pas de mot de passe fixe, mais un jeton signé avec cette clé, valable 6 mois au plus. Sur un poste de confiance :
+
+   ```
+   node ops/apple-client-secret.mjs --team-id <Team ID> --key-id <Key ID> \
+     --services-id me.evoly.app.signin --key AuthKey_<Key ID>.p8
+   ```
+
+   Le script affiche `AUTH_APPLE_SECRET=…` et sa date d'expiration (180 jours).
+
+5. **Serveur** : dans `.env`, `AUTH_APPLE_ID=me.evoly.app.signin` et `AUTH_APPLE_SECRET=<jeton>`, puis `ops/deploy.sh`. Apple renvoie la connexion par un formulaire envoyé depuis `https://appleid.apple.com` : l'app ajoute cette origine à ses origines de confiance dès que `AUTH_APPLE_ID` est défini (sinon la connexion échoue au retour).
+6. **Adresses masquées** (« Masquer mon adresse e-mail ») : Apple ne relaie vers ces adresses (`…@privaterelay.appleid.com`) que les e-mails des domaines déclarés. Dans Services → « Sign in with Apple for Email Communication » → « Configure », déclarer le domaine `evoly.me` et l'adresse d'expédition `no-reply@evoly.me` (`EMAIL_FROM_DOMAIN`) ; le SPF de Resend, déjà en place, est vérifié par Apple. Sans cela, les e-mails d'Evoly (vérification de l'adresse, mot de passe oublié, billets) n'arrivent pas à ces utilisateurs.
+7. **Renouvellement** : générer un nouveau secret avant la date affichée (rappel dans `docs/A_FAIRE.md`), le mettre dans `.env`, puis `ops/deploy.sh`. Un secret expiré fait échouer toute connexion avec Apple (`invalid_client`) ; les autres connexions ne sont pas touchées.
 
 ## Prospection (back-office)
 

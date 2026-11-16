@@ -7,6 +7,7 @@ import { nextCookies } from "better-auth/next-js";
 import { db } from "./db";
 import { env } from "./env";
 import { withSocialLocale } from "./socialLocale";
+import { trustedOriginsFor } from "./authOrigins";
 import { hashPassword, verifyPassword } from "./password";
 import { sendEmail } from "@/server/email/send";
 import { resetPasswordEmail, verifyEmailEmail } from "@/server/email/templates";
@@ -35,6 +36,8 @@ const localeOf = (user: unknown): Locale =>
 export const auth = betterAuth({
   baseURL: e.BETTER_AUTH_URL,
   secret: e.BETTER_AUTH_SECRET,
+  // connexion avec Apple : son retour arrive par un formulaire envoyé depuis appleid.apple.com
+  trustedOrigins: trustedOriginsFor(e),
   database: prismaAdapter(db, { provider: "postgresql" }),
   advanced: { database: { generateId: false }, cookiePrefix: "evoly" },
   // RG-AUTH-03 : identifiants des jetons stockés hachés

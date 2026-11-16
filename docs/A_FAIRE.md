@@ -19,7 +19,8 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
   l'événement, dans le tunnel d'achat et l'e-mail de confirmation ; montant exact dans la demande. Au prochain
   déploiement : migration `20261116130000_remboursement_cout_neutre`.
 - Lot 3, la boutique (sous-lots 3a à 3d) : à faire ; le modèle de données est présenté au fondateur avant 3a.
-- Lot 4, connexion avec Apple : à faire.
+- Lot 4, connexion avec Apple : fait côté code (origine de confiance `https://appleid.apple.com`, script du secret,
+  procédure dans `docs/DEPLOIEMENT.md`) ; reste la configuration chez Apple et sur le serveur (ci-dessous).
 
 ## Refonte du tableau de bord
 
@@ -56,6 +57,10 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
 
 ## Sécurité et exploitation
 
+- Renouvellements Apple : le secret de la connexion avec Apple (`AUTH_APPLE_SECRET`) expire 180 jours après sa
+  génération (date affichée par `ops/apple-client-secret.mjs`, à noter ici à chaque génération) ; le certificat Apple
+  Wallet (`APPLE_PASS_CERT_PEM`) expire au bout d'un an (`openssl x509 -enddate -noout -in pass.pem`). Les renouveler
+  un mois avant, puis `ops/deploy.sh`.
 - 18 novembre 2026 : installer node-forge 1.4.3 (14 jours après sa publication) et retirer les 4 exclusions de
   `pnpm audit` (`package.json`, `docs/SECURITE.md`).
 - Arrêter les tâches planifiées de l'ancienne installation (adresse 51.75.16.245), qui appellent toutes les 5 minutes des adresses qui n'existent plus et exposent un secret dans les journaux de Caddy.
@@ -69,7 +74,9 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
 ## Comptes et marque
 
 - Vérification de la marque Google : « J'ai corrigé les problèmes », puis « Demander une nouvelle validation ».
-- Connexion par Apple : compte Apple Developer requis (99 $ par an).
+- Connexion avec Apple : à configurer (`docs/DEPLOIEMENT.md`, « Connexion avec Apple ») : App ID, Services ID, clé
+  .p8, secret généré par `ops/apple-client-secret.mjs`, domaine `evoly.me` et adresse `no-reply@evoly.me` déclarés
+  pour les adresses masquées.
 - Supprimer l'import d'essai du Loto dans « Réseaux de vente », « Historique des imports ».
 
 ## Parcours complets encore absents (voir `test.md`)
