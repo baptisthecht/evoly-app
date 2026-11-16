@@ -20,6 +20,7 @@ import { Button } from "../ui/Button";
 import { Field, Input } from "../ui/Field";
 import { PayButton, PaymentFields, StripePayment } from "./StripePayment";
 import { notifyOrderCompleted } from "./embedEvents";
+import { RefundRuleText } from "./RefundRuleText";
 
 const DOMAIN_TYPOS: Record<string, string> = {
   "gmial.com": "gmail.com",
@@ -515,6 +516,13 @@ export function CheckoutPanel({
         >
           {message}
         </p>
+      ) : null}
+      {/* RG-REF-11 : la règle de remboursement rappelée avant de payer */}
+      {!reservation.isFree && reservation.refund ? (
+        <RefundRuleText
+          rule={reservation.refund}
+          className="text-xs text-ink-muted"
+        />
       ) : null}
       <p className="text-xs text-ink-muted">
         {t.rich("terms", {

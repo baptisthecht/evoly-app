@@ -8,6 +8,8 @@ import { SettingsRow } from "@/components/ui/Controls";
 import { stripe } from "@/lib/stripe";
 import { findOrgContext, requireOrgContext } from "@/server/context";
 import { refreshStripeAccount } from "@/server/stripeConnect";
+import { db } from "@/lib/db";
+import { RefundDefault } from "./RefundDefault";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("settings");
@@ -32,6 +34,10 @@ export default async function PaymentsPage({
   const t = await getTranslations("settings");
   const status = ctx.stripe?.status ?? "NONE";
   const manage = can(ctx.membership, "PAYMENTS_MANAGE");
+  const { refundFeeMode } = await db.organization.findUniqueOrThrow({
+    where: { id: ctx.organization.id },
+    select: { refundFeeMode: true },
+  });
   const configured = !!stripe();
   const tone =
     status === "ACTIVE"
@@ -86,6 +92,17 @@ export default async function PaymentsPage({
               ) : null}
             </div>
           ) : null}
+        </SettingsRow>
+        {/* RG-REF-09 : remboursement demandé par l'acheteur, valeur proposée aux nouveaux événements */}
+        <SettingsRow
+          title={t("refundDefaultTitle")}
+          description={t("refundDefaultDesc")}
+        >
+          <RefundDefault
+            orgSlug={ctx.organization.slug}
+            value={refundFeeMode}
+            readOnly={!manage || ctx.readOnly}
+          />
         </SettingsRow>
         <SettingsRow title={t("feesTitle")}>
           <p className="text-ink-body">

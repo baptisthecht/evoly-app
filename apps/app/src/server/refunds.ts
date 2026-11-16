@@ -7,6 +7,10 @@ import {
   EVENT_TRANSITIONS,
   REFUND_APPLICATION_FEE,
   refundAmount,
+  buyerBearsRefundFees,
+  estimateBankFee,
+  refundFeesWithheld,
+  type RefundFeeMode,
 } from "@evoly/core";
 import { formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { db } from "@/lib/db";
@@ -106,6 +110,36 @@ async function mailBuyer(
 }
 
 /**
+ * Remboursement à coût neutre (RG-REF-09, RG-REF-10) : frais retenus sur un remboursement demandé par l'acheteur quand
+ * la commande a été passée en mode « moins les frais » : frais de paiement (réels, ou estimés tant que Stripe ne les a
+ * pas transmis) et commission d'Evoly, au prorata du montant, jamais plus que ce qui reste à retenir sur la commande.
+ */
+async function feesToWithhold(
+  order: {
+    id: string;
+    refundFeeMode: RefundFeeMode;
+    totalMinor: number;
+    applicationFeeMinor: number;
+    paymentFeeMinor: number | null;
+  },
+  grossMinor: number,
+): Promise<number> {
+  if (order.refundFeeMode !== "MINUS_FEES") return 0;
+  const already = await db.refund.aggregate({
+    where: { orderId: order.id, status: { not: "REJECTED" } },
+    _sum: { feesWithheldMinor: true },
+  });
+  return refundFeesWithheld({
+    mode: order.refundFeeMode,
+    grossMinor,
+    orderTotalMinor: order.totalMinor,
+    applicationFeeMinor: order.applicationFeeMinor,
+    paymentFeeMinor: order.paymentFeeMinor ?? estimateBankFee(order.totalMinor),
+    alreadyWithheldMinor: already._sum.feesWithheldMinor ?? 0,
+  });
+}
+
+/**
  * Envoi d'un remboursement accepté (RG-REF-02, RG-REF-03) : billets désactivés dès l'envoi, place remise en vente
  * (sauf annulation), remboursement Stripe sans restitution de la commission (RG-FEE-40). Échec : statut FAILED, relançable.
  */
@@ -135,6 +169,7 @@ export async function processRefund(
   if (!["APPROVED", "FAILED"].includes(refund.status))
     throw new CoreError("REFUND_NOT_APPROVED");
   let extra = 0; // options non retirées ajoutées quand plus aucun billet n'est valide (RG-OPT-07)
+  let extraWithheld = 0; // leur part des frais, si l'acheteur les supporte (RG-REF-10)
   if (refund.status === "APPROVED") {
     await db.$transaction(async (tx) => {
       for (const item of refund.items) {
@@ -206,16 +241,25 @@ export async function processRefund(
           });
           extra += left * l.unitPriceMinor;
         }
-        if (extra)
+        if (extra) {
+          extraWithheld = buyerBearsRefundFees(refund)
+            ? await feesToWithhold(refund.order, extra)
+            : 0;
           await tx.refund.update({
             where: { id: refund.id },
-            data: { amountMinor: { increment: extra } },
+            data: {
+              amountMinor: { increment: extra - extraWithheld },
+              feesWithheldMinor: { increment: extraWithheld },
+            },
           });
+        }
       }
       await tx.order.update({
         where: { id: refund.orderId },
         data: {
-          refundedMinor: { increment: refund.amountMinor + extra },
+          refundedMinor: {
+            increment: refund.amountMinor + extra - extraWithheld,
+          },
           // options seules : remboursée quand toutes ses options l'ont été
           status: (
             everTickets > 0
@@ -239,7 +283,7 @@ export async function processRefund(
     for (const item of refund.items)
       await cancelListingsForTicket(item.ticketId);
   }
-  const amount = refund.amountMinor + extra;
+  const amount = refund.amountMinor + extra - extraWithheld;
   let outcome: "SUCCEEDED" | "PROCESSING" | "FAILED" = "SUCCEEDED";
   // RG-POS-08 : une vente sur place en espèces se rembourse en espèces, hors d'Evoly ; aucun appel à Stripe
   if (amount > 0 && refund.order.boxOfficeMode !== "CASH") {
@@ -344,6 +388,15 @@ export async function requestRefund(
   });
   if (!check.canRequest) throw new CoreError("REFUND_NOT_ALLOWED");
   const tickets = await refundableTickets(orderId, ticketIds, false);
+  // RG-REF-09 : en mode « moins les frais », l'acheteur qui demande pour son propre motif supporte les frais, au
+  // prorata ; un changement de date ou de lieu n'est pas de son fait : remboursé en entier
+  const gross = refundAmount(tickets);
+  const withheld = buyerBearsRefundFees({
+    initiator: "BUYER",
+    reason: check.reason,
+  })
+    ? await feesToWithhold(order, gross)
+    : 0;
   // acceptation d'office : politique « toujours » ou « jusqu'à une date limite » dans les délais, changement majeur (RG-EVT-05)
   const automatic =
     !check.outOfDeadline &&
@@ -357,7 +410,8 @@ export async function requestRefund(
       initiator: "BUYER",
       reason: check.reason,
       message: message?.trim().slice(0, 500) || null,
-      amountMinor: refundAmount(tickets),
+      amountMinor: gross - withheld,
+      feesWithheldMinor: withheld,
       isOutOfDeadline: check.outOfDeadline,
       handledAt: automatic ? now : null,
       items: {

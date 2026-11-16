@@ -626,7 +626,9 @@
     "optionsTitle": "Vos options",
     "optionsHint": "À retirer au bar, sur un simple scan de votre billet.",
     "optionsLeft": "{left} sur {quantity} à retirer",
-    "optionsPass": "Votre QR code de retrait : présentez-le au bar ou au vestiaire."
+    "optionsPass": "Votre QR code de retrait : présentez-le au bar ou au vestiaire.",
+    "refundAmount": "Montant remboursé : {amount}",
+    "refundFeesWithheld": "Frais de paiement et de service retenus : {amount}"
   },
   "resale": {
     "sell": "Revendre ma place",
@@ -1295,7 +1297,11 @@
     "feesTitle": "Vos frais",
     "feesBodyFree": "0,29 € + 2 % par billet payant, plafonnée à 2,50 € par billet, hors frais de paiement. Elle est incluse dans le prix de vos billets : vos participants ne paient aucun frais en plus. Les frais de paiement de Stripe s’appliquent au coût réel.",
     "feesBodyPro": "0,29 € + 2 % par billet payant, plafonnée à 1 € par billet avec l’offre Pro, hors frais de paiement. Elle est incluse dans le prix de vos billets : vos participants ne paient aucun frais en plus. Les frais de paiement de Stripe s’appliquent au coût réel.",
-    "feesBodyPartner": "Avec l’offre Partenaire, Evoly ne prélève aucune commission sur vos billets. Seuls les frais de paiement de Stripe s’appliquent, au coût réel."
+    "feesBodyPartner": "Avec l’offre Partenaire, Evoly ne prélève aucune commission sur vos billets. Seuls les frais de paiement de Stripe s’appliquent, au coût réel.",
+    "refundDefaultTitle": "Remboursements",
+    "refundDefaultDesc": "Quand l’acheteur demande un remboursement : réglage proposé aux nouveaux événements. Chaque événement garde ensuite le sien.",
+    "refundDefaultSave": "Enregistrer",
+    "refundDefaultSaved": "Réglage enregistré pour vos prochains événements."
   },
   "upsell": {
     "marketing": "Rappels automatiques J-7, J-1 et jour J, e-mail après l’événement et campagnes ciblées, avec leurs statistiques.",
@@ -1396,7 +1402,13 @@
     "audienceTitle": "Jauge et visibilité",
     "audienceDesc": "Le nombre total de places et qui peut voir la page.",
     "refundHintDays": "jusqu’à {count, plural, one {# jour} other {# jours}} avant l’événement",
-    "resaleMore": "Délais et liste d’attente"
+    "resaleMore": "Délais et liste d’attente",
+    "refundFees": "Si l’acheteur demande un remboursement",
+    "refundFees_FULL": "Remboursement intégral",
+    "refundFees_MINUS_FEES": "Remboursement moins les frais",
+    "refundFeesHint_FULL": "L’acheteur récupère tout ce qu’il a payé ; les frais de paiement et la commission d’Evoly restent à votre charge.",
+    "refundFeesHint_MINUS_FEES": "Coût neutre pour vous : l’acheteur récupère le prix payé moins les frais de paiement et la commission d’Evoly.",
+    "refundFeesAlways": "Annulation de l’événement, changement de date ou de lieu, remboursement à votre initiative : toujours intégral."
   },
   "public": {
     "previewBanner": "Aperçu : c’est la page que verront vos acheteurs. Les achats ne sont pas possibles depuis l’aperçu.",
@@ -1535,7 +1547,14 @@
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
     "orgSocial_youtube": "YouTube",
-    "waitlistErrorBlocked": "Cette inscription ne peut pas aboutir. Contactez l’organisateur."
+    "waitlistErrorBlocked": "Cette inscription ne peut pas aboutir. Contactez l’organisateur.",
+    "refundLabel": "Remboursement :",
+    "refundRule_NON_REFUNDABLE": "billets non remboursables, sauf annulation de l’événement.",
+    "refundRule_ON_REQUEST": "sur demande, étudiée par l’organisateur.",
+    "refundRule_ALWAYS": "possible jusqu’au début de l’événement.",
+    "refundRule_UNTIL_DEADLINE": "possible jusqu’au {date}.",
+    "refundFee_FULL": "Le prix payé est remboursé en entier.",
+    "refundFee_MINUS_FEES": "Les frais de paiement et de service ne sont pas remboursés."
   },
   "promo": {
     "new": "Nouveau code",
@@ -1914,7 +1933,8 @@
     "blockedEmptyBody": "Bloquez une personne malveillante ou nuisante : elle ne pourra plus commander chez vous.",
     "blockedMissing": "Non renseigné",
     "unblock": "Débloquer",
-    "unblockConfirm": "Débloquer {name} ? Cette personne pourra de nouveau commander chez vous."
+    "unblockConfirm": "Débloquer {name} ? Cette personne pourra de nouveau commander chez vous.",
+    "feesWithheld": "frais retenus : {amount}"
   },
   "finances": {
     "title": "Finances",

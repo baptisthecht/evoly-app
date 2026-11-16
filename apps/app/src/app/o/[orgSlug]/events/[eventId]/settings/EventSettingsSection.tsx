@@ -55,6 +55,7 @@ export async function EventSettingsSection({
         hasAccessCode: !!e.accessCodeHash,
         refundPolicy: e.refundPolicy,
         refundDeadlineLocal: local(e.refundDeadlineAt),
+        refundFeeMode: e.refundFeeMode,
         salesStartLocal: local(e.salesStartAt),
         salesEndLocal: local(e.salesEndAt),
         resaleEnabled: e.resaleEnabled,

@@ -9,6 +9,7 @@ import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
 import { saveFeatured } from "@/server/orgPage";
 import {
   deleteOrganization,
+  setRefundFeeDefault,
   updateOrganizationSettings,
 } from "@/server/organization";
 
@@ -109,5 +110,27 @@ export async function saveFeaturedAction(
     (d, ctx) => saveFeatured(ctx, d),
   );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/settings`);
+  return r;
+}
+
+/** Paramètres, Paiements : remboursement par défaut des nouveaux événements (RG-REF-09). */
+export async function refundDefaultAction(
+  orgSlug: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    {
+      schema: z.object({ refundFeeMode: z.enum(["FULL", "MINUS_FEES"]) }),
+      permission: "PAYMENTS_MANAGE",
+    },
+    async (d, ctx) => {
+      await setRefundFeeDefault(ctx, d.refundFeeMode);
+      return null;
+    },
+  );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/settings/payments`);
   return r;
 }

@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  buyerBearsRefundFees,
   checkRefundRequest,
   REFUND_APPLICATION_FEE,
   refundAmount,
+  refundFeesWithheld,
+  refundRuleOf,
   type RefundRequestInput,
 } from "../src";
 
@@ -109,5 +112,98 @@ describe("montants", () => {
   });
   it("commission toujours conservée (RG-FEE-40)", () => {
     expect(REFUND_APPLICATION_FEE).toBe(false);
+  });
+});
+
+describe("remboursement à coût neutre : frais retenus (mode « moins les frais »)", () => {
+  const order = {
+    orderTotalMinor: 5_000,
+    applicationFeeMinor: 150,
+    paymentFeeMinor: 100,
+  };
+  it("intégral : rien n'est retenu", () => {
+    expect(
+      refundFeesWithheld({ ...order, mode: "FULL", grossMinor: 5_000 }),
+    ).toBe(0);
+  });
+  it("moins les frais, commande entière : frais de paiement et commission retenus", () => {
+    expect(
+      refundFeesWithheld({ ...order, mode: "MINUS_FEES", grossMinor: 5_000 }),
+    ).toBe(250);
+  });
+  it("moins les frais, remboursement partiel : au prorata, jamais plus que ce qui reste à retenir", () => {
+    expect(
+      refundFeesWithheld({ ...order, mode: "MINUS_FEES", grossMinor: 2_000 }),
+    ).toBe(100);
+    expect(
+      refundFeesWithheld({
+        ...order,
+        mode: "MINUS_FEES",
+        grossMinor: 3_000,
+        alreadyWithheldMinor: 200,
+      }),
+    ).toBe(50);
+  });
+  it("commande gratuite, ou frais plus élevés que le montant : jamais au-delà du montant remboursé", () => {
+    expect(
+      refundFeesWithheld({
+        mode: "MINUS_FEES",
+        grossMinor: 0,
+        orderTotalMinor: 0,
+        applicationFeeMinor: 0,
+        paymentFeeMinor: 0,
+      }),
+    ).toBe(0);
+    expect(
+      refundFeesWithheld({
+        mode: "MINUS_FEES",
+        grossMinor: 100,
+        orderTotalMinor: 100,
+        applicationFeeMinor: 90,
+        paymentFeeMinor: 40,
+      }),
+    ).toBe(100);
+  });
+  it("seul l'acheteur qui demande pour son propre motif supporte les frais", () => {
+    expect(
+      buyerBearsRefundFees({ initiator: "BUYER", reason: "BUYER_REQUEST" }),
+    ).toBe(true);
+    for (const r of [
+      { initiator: "BUYER", reason: "EVENT_CHANGED" },
+      { initiator: "SYSTEM", reason: "EVENT_CANCELLED" },
+      { initiator: "ORGANIZER", reason: "BUYER_REQUEST" },
+      { initiator: "ORGANIZER", reason: "OTHER" },
+    ])
+      expect(buyerBearsRefundFees(r)).toBe(false);
+  });
+});
+
+describe("règle de remboursement affichée avant l'achat (RG-REF-11)", () => {
+  it("politique et date limite de l'événement, mode figé sur la commande", () => {
+    expect(
+      refundRuleOf(
+        {
+          refundPolicy: "UNTIL_DEADLINE",
+          refundDeadlineAt: new Date("2026-12-12T10:00:00Z"),
+          timezone: "Europe/Brussels",
+        },
+        "MINUS_FEES",
+      ),
+    ).toEqual({
+      policy: "UNTIL_DEADLINE",
+      deadlineAt: "2026-12-12T10:00:00.000Z",
+      timezone: "Europe/Brussels",
+      feeMode: "MINUS_FEES",
+    });
+    expect(
+      refundRuleOf(
+        {
+          refundPolicy: "ALWAYS",
+          refundDeadlineAt: null,
+          timezone: "Europe/Paris",
+        },
+        "FULL",
+      ).deadlineAt,
+    ).toBeNull();
   });
 });

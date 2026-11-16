@@ -204,6 +204,7 @@ const settingsSchema = z.object({
     "ALWAYS",
   ]),
   refundDeadlineLocal: optionalLocalDate,
+  refundFeeMode: z.enum(["FULL", "MINUS_FEES"]).optional(),
   salesStartLocal: optionalLocalDate,
   salesEndLocal: optionalLocalDate,
   resaleEnabled: checkbox,

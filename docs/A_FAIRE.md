@@ -14,7 +14,10 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 - Lot 1, bloquer une personne : fait. Onglet « Personnes bloquées » des commandes, « Bloquer cet acheteur » sur la
   fiche d'une commande, adresse et carte refusées avant le débit (revente et liste d'attente comprises), nom identique
   signalé (pastille « Signalé », notification). Au prochain déploiement : migration `20261116120000_personnes_bloquees`.
-- Lot 2, remboursement à coût neutre (intégral, ou moins les frais) : à faire.
+- Lot 2, remboursement à coût neutre : fait. Réglage par événement (« Remboursement intégral » ou « moins les
+  frais »), valeur par défaut dans Paramètres, Paiements, figé sur la commande ; règle affichée sur la page de
+  l'événement, dans le tunnel d'achat et l'e-mail de confirmation ; montant exact dans la demande. Au prochain
+  déploiement : migration `20261116130000_remboursement_cout_neutre`.
 - Lot 3, la boutique (sous-lots 3a à 3d) : à faire ; le modèle de données est présenté au fondateur avant 3a.
 - Lot 4, connexion avec Apple : à faire.
 

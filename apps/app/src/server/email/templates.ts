@@ -218,6 +218,20 @@ const ORDER_COPY = {
     total: "Total payé",
     free: "Gratuit",
     reference: "Référence",
+    refund: "Remboursement",
+    refundPolicy: {
+      NON_REFUNDABLE:
+        "Billets non remboursables, sauf annulation de l’événement.",
+      ON_REQUEST: "Remboursement sur demande, étudiée par l’organisateur.",
+      ALWAYS: "Remboursables jusqu’au début de l’événement.",
+      UNTIL_DEADLINE:
+        "Remboursables jusqu’à la date limite fixée par l’organisateur.",
+    },
+    refundUntil: (d: string) => `Remboursables jusqu’au ${d}.`,
+    refundFees: {
+      FULL: "Le prix payé est remboursé en entier.",
+      MINUS_FEES: "Les frais de paiement et de service ne sont pas remboursés.",
+    },
     outro:
       "Présentez le QR code de chaque billet à l’entrée, sur votre téléphone ou imprimé. Ce lien est personnel : ne le partagez pas.",
   },
@@ -233,6 +247,19 @@ const ORDER_COPY = {
     total: "Total paid",
     free: "Free",
     reference: "Reference",
+    refund: "Refunds",
+    refundPolicy: {
+      NON_REFUNDABLE:
+        "Tickets are non-refundable, unless the event is cancelled.",
+      ON_REQUEST: "Refunds on request, reviewed by the organiser.",
+      ALWAYS: "Refundable until the event starts.",
+      UNTIL_DEADLINE: "Refundable until the deadline set by the organiser.",
+    },
+    refundUntil: (d: string) => `Refundable until ${d}.`,
+    refundFees: {
+      FULL: "The price paid is refunded in full.",
+      MINUS_FEES: "Payment and service fees are not refunded.",
+    },
     outro:
       "Show each ticket’s QR code at the entrance, on your phone or printed. This link is personal: don’t share it.",
   },
@@ -248,6 +275,20 @@ const ORDER_COPY = {
     total: "Total pagado",
     free: "Gratis",
     reference: "Referencia",
+    refund: "Reembolso",
+    refundPolicy: {
+      NON_REFUNDABLE:
+        "Entradas no reembolsables, salvo cancelación del evento.",
+      ON_REQUEST: "Reembolso a petición, estudiado por el organizador.",
+      ALWAYS: "Reembolsables hasta el inicio del evento.",
+      UNTIL_DEADLINE:
+        "Reembolsables hasta la fecha límite fijada por el organizador.",
+    },
+    refundUntil: (d: string) => `Reembolsables hasta el ${d}.`,
+    refundFees: {
+      FULL: "Se reembolsa el precio pagado completo.",
+      MINUS_FEES: "Los gastos de pago y de servicio no se reembolsan.",
+    },
     outro:
       "Muestra el código QR de cada entrada en el acceso, en el móvil o impreso. Este enlace es personal: no lo compartas.",
   },
@@ -263,6 +304,20 @@ const ORDER_COPY = {
     total: "Bezahlt",
     free: "Kostenlos",
     reference: "Referenz",
+    refund: "Erstattung",
+    refundPolicy: {
+      NON_REFUNDABLE:
+        "Tickets nicht erstattbar, außer bei Absage der Veranstaltung.",
+      ON_REQUEST: "Erstattung auf Anfrage, vom Veranstalter geprüft.",
+      ALWAYS: "Erstattbar bis zum Beginn der Veranstaltung.",
+      UNTIL_DEADLINE:
+        "Erstattbar bis zu der vom Veranstalter festgelegten Frist.",
+    },
+    refundUntil: (d: string) => `Erstattbar bis zum ${d}.`,
+    refundFees: {
+      FULL: "Der gezahlte Preis wird vollständig erstattet.",
+      MINUS_FEES: "Zahlungs- und Servicegebühren werden nicht erstattet.",
+    },
     outro:
       "Zeigen Sie den QR-Code jedes Tickets am Eingang vor, auf dem Handy oder ausgedruckt. Dieser Link ist persönlich: Geben Sie ihn nicht weiter.",
   },
@@ -278,6 +333,20 @@ const ORDER_COPY = {
     total: "Totale pagato",
     free: "Gratuito",
     reference: "Riferimento",
+    refund: "Rimborso",
+    refundPolicy: {
+      NON_REFUNDABLE:
+        "Biglietti non rimborsabili, salvo annullamento dell’evento.",
+      ON_REQUEST: "Rimborso su richiesta, valutata dall’organizzatore.",
+      ALWAYS: "Rimborsabili fino all’inizio dell’evento.",
+      UNTIL_DEADLINE:
+        "Rimborsabili fino alla data limite fissata dall’organizzatore.",
+    },
+    refundUntil: (d: string) => `Rimborsabili fino al ${d}.`,
+    refundFees: {
+      FULL: "Il prezzo pagato viene rimborsato per intero.",
+      MINUS_FEES: "Le spese di pagamento e di servizio non sono rimborsate.",
+    },
     outro:
       "Mostra il codice QR di ogni biglietto all’ingresso, sul telefono o stampato. Questo link è personale: non condividerlo.",
   },
@@ -293,6 +362,20 @@ const ORDER_COPY = {
     total: "Total pago",
     free: "Grátis",
     reference: "Referência",
+    refund: "Reembolso",
+    refundPolicy: {
+      NON_REFUNDABLE:
+        "Bilhetes não reembolsáveis, salvo cancelamento do evento.",
+      ON_REQUEST: "Reembolso a pedido, analisado pelo organizador.",
+      ALWAYS: "Reembolsáveis até ao início do evento.",
+      UNTIL_DEADLINE:
+        "Reembolsáveis até à data-limite fixada pelo organizador.",
+    },
+    refundUntil: (d: string) => `Reembolsáveis até ${d}.`,
+    refundFees: {
+      FULL: "O preço pago é reembolsado na totalidade.",
+      MINUS_FEES: "As taxas de pagamento e de serviço não são reembolsadas.",
+    },
     outro:
       "Apresente o código QR de cada bilhete à entrada, no telemóvel ou impresso. Este link é pessoal: não o partilhe.",
   },
@@ -308,6 +391,20 @@ const ORDER_COPY = {
     total: "Totaal betaald",
     free: "Gratis",
     reference: "Referentie",
+    refund: "Terugbetaling",
+    refundPolicy: {
+      NON_REFUNDABLE:
+        "Tickets worden niet terugbetaald, behalve als het evenement wordt geannuleerd.",
+      ON_REQUEST: "Terugbetaling op aanvraag, beoordeeld door de organisator.",
+      ALWAYS: "Terugbetaalbaar tot het begin van het evenement.",
+      UNTIL_DEADLINE:
+        "Terugbetaalbaar tot de uiterste datum van de organisator.",
+    },
+    refundUntil: (d: string) => `Terugbetaalbaar tot ${d}.`,
+    refundFees: {
+      FULL: "De betaalde prijs wordt volledig terugbetaald.",
+      MINUS_FEES: "Betaal- en servicekosten worden niet terugbetaald.",
+    },
     outro:
       "Toon de QR-code van elk ticket aan de ingang, op je telefoon of afgedrukt. Deze link is persoonlijk: deel hem niet.",
   },
@@ -328,8 +425,26 @@ export function orderConfirmationEmail(o: {
   firstName: string;
   /** Bloc personnalisé de l'organisateur (éditeur visuel), déjà rendu et nettoyé. */
   custom?: { html: string; text: string } | null;
+  /** RG-REF-11 : règle de remboursement rappelée (commandes payantes) ; date limite déjà mise en forme. */
+  refund?: {
+    policy: "NON_REFUNDABLE" | "UNTIL_DEADLINE" | "ON_REQUEST" | "ALWAYS";
+    deadline: string | null;
+    feeMode: "FULL" | "MINUS_FEES";
+  } | null;
 }): RenderedEmail {
   const c = pick(ORDER_COPY, o.locale);
+  const refund = o.refund
+    ? [
+        o.refund.policy === "UNTIL_DEADLINE" && o.refund.deadline
+          ? c.refundUntil(o.refund.deadline)
+          : c.refundPolicy[o.refund.policy],
+        o.refund.policy === "NON_REFUNDABLE"
+          ? ""
+          : c.refundFees[o.refund.feeMode],
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : null;
   const u = escapeHtml(o.url);
   const row = (label: string, value: string) =>
     `<tr><td style="padding:6px 0;color:#555;font-size:13px;width:110px;vertical-align:top">${escapeHtml(label)}</td><td style="padding:6px 0;font-size:15px">${escapeHtml(value)}</td></tr>`;
@@ -340,6 +455,7 @@ export function orderConfirmationEmail(o: {
     ...o.lines.map((l) => row(`${l.quantity} ×`, l.name)),
     row(c.total, o.total ?? c.free),
     row(c.reference, o.reference),
+    refund ? row(c.refund, refund) : "",
   ].join("");
   const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">
@@ -367,6 +483,7 @@ ${eventBlockRows(o.custom)}
     ...o.lines.map((l) => `${l.quantity} × ${l.name}`),
     `${c.total} : ${o.total ?? c.free}`,
     `${c.reference} : ${o.reference}`,
+    refund ? `${c.refund} : ${refund}` : "",
     "",
     c.outro,
   ]

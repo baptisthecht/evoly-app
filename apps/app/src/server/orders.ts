@@ -5,7 +5,12 @@ import { notifyNewOrder, notifySalesMilestone } from "./notifications";
 import { qualifyReferral } from "./referrals";
 import { effectiveEnd } from "@evoly/core";
 import { pick, toLocale } from "@evoly/i18n";
-import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  type Locale,
+} from "@evoly/i18n";
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
@@ -105,6 +110,17 @@ export async function sendOrderConfirmation(
     reference: order.reference,
     url: ticketsUrl(order.organization, order.id, order.accessTokenVersion),
     firstName: order.buyerFirstName,
+    // RG-REF-11 : la règle de remboursement affichée avant l'achat, rappelée (commandes payantes)
+    refund:
+      order.totalMinor > 0
+        ? {
+            policy: e.refundPolicy,
+            deadline: e.refundDeadlineAt
+              ? formatDate(e.refundDeadlineAt, e.timezone, locale)
+              : null,
+            feeMode: order.refundFeeMode,
+          }
+        : null,
   });
   const pdf = await ticketsPdfFor(order, locale);
   const ics = eventIcs(e, `${e.id}-${order.id}`);

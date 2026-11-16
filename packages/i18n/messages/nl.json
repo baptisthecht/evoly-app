@@ -163,7 +163,14 @@
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
     "orgSocial_youtube": "YouTube",
-    "waitlistErrorBlocked": "Deze inschrijving kan niet worden afgerond. Neem contact op met de organisator."
+    "waitlistErrorBlocked": "Deze inschrijving kan niet worden afgerond. Neem contact op met de organisator.",
+    "refundLabel": "Terugbetaling:",
+    "refundRule_NON_REFUNDABLE": "tickets worden niet terugbetaald, behalve als het evenement wordt geannuleerd.",
+    "refundRule_ON_REQUEST": "op aanvraag, beoordeeld door de organisator.",
+    "refundRule_ALWAYS": "mogelijk tot het begin van het evenement.",
+    "refundRule_UNTIL_DEADLINE": "mogelijk tot {date}.",
+    "refundFee_FULL": "De betaalde prijs wordt volledig terugbetaald.",
+    "refundFee_MINUS_FEES": "Betaal- en servicekosten worden niet terugbetaald."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -590,7 +597,9 @@
     "optionsTitle": "Je opties",
     "optionsHint": "In te wisselen aan de bar met een simpele scan van je ticket.",
     "optionsLeft": "Nog {left} van {quantity} in te wisselen",
-    "optionsPass": "Je afhaal-QR-code: toon hem aan de bar of de vestiaire."
+    "optionsPass": "Je afhaal-QR-code: toon hem aan de bar of de vestiaire.",
+    "refundAmount": "Terugbetaald bedrag: {amount}",
+    "refundFeesWithheld": "Ingehouden betaal- en servicekosten: {amount}"
   },
   "scanner": {
     "valid": "Geldig ticket",
@@ -1452,7 +1461,13 @@
     "audienceTitle": "Capaciteit en zichtbaarheid",
     "audienceDesc": "Het totale aantal plaatsen en wie de pagina kan zien.",
     "refundHintDays": "tot {count, plural, one {# dag} other {# dagen}} voor het evenement",
-    "resaleMore": "Termijnen en wachtlijst"
+    "resaleMore": "Termijnen en wachtlijst",
+    "refundFees": "Als de koper om terugbetaling vraagt",
+    "refundFees_FULL": "Volledige terugbetaling",
+    "refundFees_MINUS_FEES": "Terugbetaling min de kosten",
+    "refundFeesHint_FULL": "De koper krijgt het volledige betaalde bedrag terug; de betaalkosten en de commissie van Evoly zijn voor jou.",
+    "refundFeesHint_MINUS_FEES": "Kostenneutraal voor jou: de koper krijgt de betaalde prijs terug min de betaalkosten en de commissie van Evoly.",
+    "refundFeesAlways": "Evenement geannuleerd, datum of locatie gewijzigd, terugbetaling op jouw initiatief: altijd volledig."
   },
   "ordersAdmin": {
     "title": "Bestellingen",
@@ -1684,7 +1699,8 @@
     "blockedEmptyBody": "Blokkeer een kwaadwillige of storende persoon: die kan dan niet meer bij je bestellen.",
     "blockedMissing": "Niet ingevuld",
     "unblock": "Deblokkeren",
-    "unblockConfirm": "{name} deblokkeren? Deze persoon kan dan weer bij je bestellen."
+    "unblockConfirm": "{name} deblokkeren? Deze persoon kan dan weer bij je bestellen.",
+    "feesWithheld": "ingehouden kosten: {amount}"
   },
   "seatingEditor": {
     "title": "Zaalplan",
@@ -2280,7 +2296,11 @@
     "feesTitle": "Je kosten",
     "feesBodyFree": "Commissie: € 0,29 + 2% per betaald ticket, met een plafond van € 2,50 per ticket, exclusief betaalkosten. Ze zit in de prijs van je tickets: je bezoekers betalen geen extra kosten. De betaalkosten van Stripe worden tegen kostprijs aangerekend.",
     "feesBodyPro": "Commissie: € 0,29 + 2% per betaald ticket, met een plafond van € 1 per ticket met Pro, exclusief betaalkosten. Ze zit in de prijs van je tickets: je bezoekers betalen geen extra kosten. De betaalkosten van Stripe worden tegen kostprijs aangerekend.",
-    "feesBodyPartner": "Met Partner rekent Evoly geen commissie op je tickets. Alleen de betaalkosten van Stripe zijn van toepassing, tegen kostprijs."
+    "feesBodyPartner": "Met Partner rekent Evoly geen commissie op je tickets. Alleen de betaalkosten van Stripe zijn van toepassing, tegen kostprijs.",
+    "refundDefaultTitle": "Terugbetalingen",
+    "refundDefaultDesc": "Als de koper om terugbetaling vraagt: de instelling voor nieuwe evenementen. Elk evenement houdt daarna zijn eigen instelling.",
+    "refundDefaultSave": "Opslaan",
+    "refundDefaultSaved": "Instelling opgeslagen voor je volgende evenementen."
   },
   "orgSettings": {
     "identity": "Identiteit",

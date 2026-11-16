@@ -268,6 +268,7 @@ model Organization {
   timezone           String             @default("Europe/Brussels")
   vatNumber          String?
   vatRegistered      Boolean            @default(false)
+  refundFeeMode      RefundFeeMode      @default(FULL) // valeur par défaut des nouveaux événements
   addressLine1       String?
   addressLine2       String?
   postalCode         String?
@@ -546,6 +547,12 @@ enum RefundPolicy {
   ALWAYS
 }
 
+// remboursement demandé par l'acheteur (seulement) : intégral, ou moins les frais de paiement et la commission d'Evoly
+enum RefundFeeMode {
+  FULL // l'acheteur récupère 100 % ; les frais restent à la charge de l'organisateur
+  MINUS_FEES // coût neutre pour l'organisateur : prix payé moins les frais de paiement et la commission
+}
+
 model Event {
   ambassadors               Ambassador[]
   resaleWaitlistFirst       Boolean         @default(false) // section 9.30 : places en revente d'abord proposées aux inscrits de la liste d'attente
@@ -602,6 +609,7 @@ model Event {
   showResaleSection         Boolean         @default(true)
   refundPolicy              RefundPolicy    @default(ON_REQUEST)
   refundDeadlineAt          DateTime?
+  refundFeeMode             RefundFeeMode   @default(FULL) // repris de l'organisation à la création
   confirmationMessage       String?
   faq                       Json? // [{ question, answer }], 10 au maximum
   primaryColor              String? // Pro : surcharge des couleurs de la marque
@@ -1051,6 +1059,7 @@ model Order {
   accessTokenHash       String         @unique // lien magique « mes billets »
   accessTokenVersion    Int            @default(1) // jeton dérivé (HMAC) : changer la version invalide l’ancien lien (RG-ORD-02)
   termsVersion          String? // conditions acceptées au paiement
+  refundFeeMode         RefundFeeMode  @default(FULL) // règle de remboursement affichée avant l'achat, figée à la réservation
   flaggedAt             DateTime? // « Signalé » : nom et prénom identiques à ceux d'une personne bloquée (alerte, pas de blocage)
   flaggedBlockedBuyerId String?
   flaggedBlockedBuyer   BlockedBuyer?  @relation("FlaggedOrders", fields: [flaggedBlockedBuyerId], references: [id], onDelete: SetNull)
@@ -1272,7 +1281,8 @@ model Refund {
   reason                      RefundReason
   message                     String? // message de l'acheteur
   responseMessage             String? // réponse de l'organisateur
-  amountMinor                 Int
+  amountMinor                 Int // montant rendu à l'acheteur
+  feesWithheldMinor           Int             @default(0) // frais retenus (remboursement moins les frais)
   applicationFeeRefundedMinor Int             @default(0)
   isOutOfDeadline             Boolean         @default(false)
   stripeRefundId              String?         @unique

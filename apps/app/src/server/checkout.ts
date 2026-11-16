@@ -34,7 +34,12 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { getPlans } from "./plans";
-import { buyerEmailKey, salesOpeningAt } from "@evoly/core";
+import {
+  buyerEmailKey,
+  refundRuleOf,
+  salesOpeningAt,
+  type RefundRule,
+} from "@evoly/core";
 import { checkBuyerLimits } from "./buyerLimits";
 import { audit } from "./audit";
 import { BUYER_BLOCKED, isBlocked, isCardBlocked } from "./blockedBuyers";
@@ -217,6 +222,8 @@ export interface Reservation {
     perLine: Record<string, PublicQuestion[]>;
   };
   stripeAccountId: string | null;
+  /** Règle de remboursement affichée avant l'achat (RG-REF-11), avec le mode figé sur la commande. */
+  refund: RefundRule;
 }
 
 /**
@@ -526,6 +533,7 @@ export async function reserveOrder(
           buyerLastName: "",
           buyerLocale: input.locale,
           currency: event.currency,
+          refundFeeMode: event.refundFeeMode, // RG-REF-09 : la règle affichée avant l'achat est celle qui s'applique
           ambassadorId,
           ...(optionsOnly
             ? {
@@ -632,6 +640,7 @@ export async function reserveOrder(
       })),
     ),
     stripeAccountId: account?.chargesEnabled ? account.stripeAccountId : null,
+    refund: refundRuleOf(event, order.refundFeeMode),
   };
 }
 
@@ -659,6 +668,9 @@ export async function reservationByToken(
         },
       },
       options: { include: { option: { select: { name: true } } } },
+      event: {
+        select: { refundPolicy: true, refundDeadlineAt: true, timezone: true },
+      },
     },
   });
   if (
@@ -709,6 +721,7 @@ export async function reservationByToken(
       })),
     ),
     stripeAccountId: account?.chargesEnabled ? account.stripeAccountId : null,
+    refund: refundRuleOf(order.event, order.refundFeeMode),
   };
 }
 

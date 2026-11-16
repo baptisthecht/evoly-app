@@ -163,7 +163,14 @@
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
     "orgSocial_youtube": "YouTube",
-    "waitlistErrorBlocked": "Esta inscripción no puede completarse. Contacta con el organizador."
+    "waitlistErrorBlocked": "Esta inscripción no puede completarse. Contacta con el organizador.",
+    "refundLabel": "Reembolso:",
+    "refundRule_NON_REFUNDABLE": "entradas no reembolsables, salvo cancelación del evento.",
+    "refundRule_ON_REQUEST": "a petición, estudiado por el organizador.",
+    "refundRule_ALWAYS": "posible hasta el inicio del evento.",
+    "refundRule_UNTIL_DEADLINE": "posible hasta el {date}.",
+    "refundFee_FULL": "Se reembolsa el precio pagado completo.",
+    "refundFee_MINUS_FEES": "Los gastos de pago y de servicio no se reembolsan."
   },
   "checkout": {
     "tickets": "Entradas",
@@ -590,7 +597,9 @@
     "optionsTitle": "Tus extras",
     "optionsHint": "Se canjean en la barra con un simple escaneo de tu entrada.",
     "optionsLeft": "Quedan {left} de {quantity} por canjear",
-    "optionsPass": "Tu código QR de recogida: muéstralo en la barra o el guardarropa."
+    "optionsPass": "Tu código QR de recogida: muéstralo en la barra o el guardarropa.",
+    "refundAmount": "Importe reembolsado: {amount}",
+    "refundFeesWithheld": "Gastos de pago y de servicio retenidos: {amount}"
   },
   "scanner": {
     "valid": "Entrada válida",
@@ -1452,7 +1461,13 @@
     "audienceTitle": "Aforo y visibilidad",
     "audienceDesc": "El número total de plazas y quién puede ver la página.",
     "refundHintDays": "hasta {count, plural, one {# día} other {# días}} antes del evento",
-    "resaleMore": "Plazos y lista de espera"
+    "resaleMore": "Plazos y lista de espera",
+    "refundFees": "Si el comprador pide un reembolso",
+    "refundFees_FULL": "Reembolso íntegro",
+    "refundFees_MINUS_FEES": "Reembolso menos los gastos",
+    "refundFeesHint_FULL": "El comprador recupera todo lo que pagó; los gastos de pago y la comisión de Evoly corren de tu cuenta.",
+    "refundFeesHint_MINUS_FEES": "Sin coste para ti: el comprador recupera el precio pagado menos los gastos de pago y la comisión de Evoly.",
+    "refundFeesAlways": "Evento cancelado, cambio de fecha o de lugar, reembolso por iniciativa tuya: siempre íntegro."
   },
   "ordersAdmin": {
     "title": "Pedidos",
@@ -1684,7 +1699,8 @@
     "blockedEmptyBody": "Bloquea a una persona malintencionada o molesta: ya no podrá hacerte pedidos.",
     "blockedMissing": "Sin indicar",
     "unblock": "Desbloquear",
-    "unblockConfirm": "¿Desbloquear a {name}? Esta persona podrá volver a hacerte pedidos."
+    "unblockConfirm": "¿Desbloquear a {name}? Esta persona podrá volver a hacerte pedidos.",
+    "feesWithheld": "gastos retenidos: {amount}"
   },
   "seatingEditor": {
     "title": "Plano de sala",
@@ -2280,7 +2296,11 @@
     "feesTitle": "Tus gastos",
     "feesBodyFree": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 2,50 € por entrada, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes no pagan ningún gasto adicional. Los gastos de pago de Stripe se aplican a precio de coste.",
     "feesBodyPro": "Comisión: 0,29 € + 2 % por entrada de pago, con un máximo de 1 € por entrada con el plan Pro, sin contar los gastos de pago. Está incluida en el precio de tus entradas: tus asistentes no pagan ningún gasto adicional. Los gastos de pago de Stripe se aplican a precio de coste.",
-    "feesBodyPartner": "Con la oferta Partner, Evoly no cobra ninguna comisión por tus entradas. Solo se aplican los gastos de pago de Stripe, a precio de coste."
+    "feesBodyPartner": "Con la oferta Partner, Evoly no cobra ninguna comisión por tus entradas. Solo se aplican los gastos de pago de Stripe, a precio de coste.",
+    "refundDefaultTitle": "Reembolsos",
+    "refundDefaultDesc": "Cuando el comprador pide un reembolso: el ajuste propuesto a los nuevos eventos. Cada evento conserva después el suyo.",
+    "refundDefaultSave": "Guardar",
+    "refundDefaultSaved": "Ajuste guardado para tus próximos eventos."
   },
   "orgSettings": {
     "identity": "Identidad",

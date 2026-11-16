@@ -998,6 +998,7 @@ Pied de page : organisateur, conditions, « Billetterie propulsée par Evoly » 
 - US-REF-02 : en tant qu'organisateur, j'accepte ou je refuse une demande, avec un message.
 - US-REF-03 : en tant qu'organisateur, je rembourse une commande ou certains billets à tout moment.
 - US-REF-04 : en tant qu'acheteur, je suis remboursé automatiquement si l'événement est annulé.
+- US-REF-05 : en tant qu'organisateur, je choisis si un remboursement demandé par l'acheteur est intégral, ou diminué des frais (coût neutre pour moi).
 
 **Règles**
 
@@ -1009,6 +1010,9 @@ Pied de page : organisateur, conditions, « Billetterie propulsée par Evoly » 
 - RG-REF-06 : les remboursements sont prélevés sur le solde Stripe de l'organisateur. Si le solde est insuffisant, Stripe applique ses propres règles (débit du compte bancaire) ; Evoly affiche l'erreur éventuelle.
 - RG-REF-07 : annulation d'un événement : double confirmation avec un motif ; puis, automatiquement, toutes les commandes payées sont remboursées intégralement, les annonces de revente sont retirées, les campagnes et automatisations sont annulées, un e-mail est envoyé à tous les acheteurs, et la page affiche l'annulation.
 - RG-REF-08 : chaque remboursement est journalisé (`AuditLog`) avec son auteur.
+- RG-REF-09 : remboursement à coût neutre (décidé le 16 novembre 2026) : réglage par événement, « Remboursement intégral » (par défaut, comportement d'origine) ou « Remboursement moins les frais », avec une valeur par défaut au niveau de l'organisation (Paramètres, Paiements), reprise à la création de l'événement. Le réglage est figé sur la commande à la réservation : la règle affichée avant l'achat est celle qui s'applique. Il ne vaut que pour un remboursement demandé par l'acheteur pour son propre motif (demande, politique de l'événement) ; toujours 100 % : annulation de l'événement, changement de date ou de lieu, remboursement ou annulation à l'initiative de l'organisateur.
+- RG-REF-10 : en mode « moins les frais », l'acheteur récupère le prix payé moins les frais de paiement (réels, ou estimés tant que Stripe ne les a pas transmis) et la commission d'Evoly, au prorata en cas de remboursement partiel ; le total retenu sur une commande ne dépasse jamais ces frais. Evoly garde sa commission (RG-FEE-40, comme en mode intégral). Commande gratuite : rien à retenir. Les frais retenus sont notés sur le remboursement et affichés à l'organisateur.
+- RG-REF-11 : transparence : la règle est affichée avant l'achat (page de l'événement, tunnel d'achat), rappelée dans l'e-mail de confirmation, et la demande de remboursement montre le montant exact rendu (et les frais retenus).
 
 ### 9.15 Commandes et billets offerts
 

@@ -10,6 +10,7 @@ import {
   orderReference,
   originalPaymentRefundable,
   parseMajorToMinor,
+  refundRuleOf,
   resaleAmounts,
   resaleBlockers,
   resaleCutoff,
@@ -385,7 +386,14 @@ export async function reserveResale(
             include: { ticketType: { select: { id: true, name: true } } },
           },
           event: {
-            select: { checkoutHoldMinutes: true, organizationId: true },
+            select: {
+              checkoutHoldMinutes: true,
+              organizationId: true,
+              refundPolicy: true,
+              refundDeadlineAt: true,
+              timezone: true,
+              refundFeeMode: true,
+            },
           },
         },
       });
@@ -430,6 +438,7 @@ export async function reserveResale(
           buyerLastName: "",
           buyerLocale: locale,
           currency: listing.currency,
+          refundFeeMode: listing.event.refundFeeMode, // RG-REF-09 : figé à la réservation
           subtotalMinor: listing.priceMinor,
           totalMinor: listing.priceMinor,
           applicationFeeMinor: amounts.commissionMinor,
@@ -488,6 +497,7 @@ export async function reserveResale(
     })),
     stripeAccountId: account?.chargesEnabled ? account.stripeAccountId : null,
     questions: { order: [], perLine: {} }, // revente : pas de questions (réponses d'origine conservées sur la commande du vendeur)
+    refund: refundRuleOf(result.listing.event, result.order.refundFeeMode),
   };
 }
 

@@ -1,8 +1,8 @@
 # Traçabilité du cahier des charges
 
-État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (360 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
+État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (364 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 191 · fait : 167 · hors périmètre : 2.
+**Bilan** : fait, testé : 195 · fait : 167 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -376,3 +376,7 @@
 | RG-BLK-03 | P1 | prénom et nom identiques (casse, accents et espaces ignorés) : simple alerte, jamais un blocage (homonymes). La commande p | fait, testé | pastille Signalé, notification BUYER_FLAGGED (blockedBuyers.ts, buyerKey.ts, blocked-buyers.test.ts, blocked-buyers.spec.ts) |
 | RG-BLK-04 | P1 | la personne bloquée lit un message neutre, sans motif : « Cette commande ne peut pas aboutir. Contactez l'organisateur. » | fait, testé | code BUYER_BLOCKED, WAITLIST_BLOCKED (blockedBuyers.ts, blocked-buyers.spec.ts) |
 | RG-BLK-05 | P1 | le blocage vaut aussi pour l'achat d'une place en revente et pour l'inscription à la liste d'attente. RGPD : motif, auteur | fait, testé | revente et liste d'attente refusées, journal sans données personnelles (waitlist.ts, blockedBuyers.ts, blocked-buyers.test.ts) |
+| US-REF-05 | | en tant qu'organisateur, je choisis si un remboursement demandé par l'acheteur est intégral, ou diminué des frais (coût ne | fait, testé | Réglages, Vente ; Paramètres, Paiements (SettingsForm.tsx, RefundDefault.tsx, refund-fees.test.ts, RefundFees.test.tsx, refund-fees.spec.ts) |
+| RG-REF-09 | | remboursement à coût neutre (décidé le 16 novembre 2026) : réglage par événement, « Remboursement intégral » (par défa | fait, testé | réglage figé sur la commande, 100 % hors demande de l'acheteur (refunds.ts, checkout.ts, events.ts, refund-fees.test.ts) |
+| RG-REF-10 | | en mode « moins les frais », l'acheteur récupère le prix payé moins les frais de paiement (réels, ou estimés tant que St | fait, testé | refundFeesWithheld, au prorata, plafonné (core refunds.ts, refunds.test.ts, refund-fees.test.ts) |
+| RG-REF-11 | | transparence : la règle est affichée avant l'achat (page de l'événement, tunnel d'achat), rappelée dans l'e-mail de con | fait, testé | RefundRuleText, e-mail de confirmation, montant exact dans la demande (RefundRequest.tsx, templates.ts, RefundFees.test.tsx) |

@@ -41,6 +41,7 @@ import { clientIp } from "@/server/requestInfo";
 import { safeError } from "@/lib/redact";
 import { joinWaitlist } from "@/server/waitlist";
 import { toLocale } from "@evoly/i18n";
+import type { RefundRule } from "@evoly/core";
 
 /** Options et consommations demandées avec les billets (section 9.29). */
 const optionsSchema = z
@@ -84,6 +85,8 @@ export interface ReservationView {
     perLine: Record<string, Array<PublicQuestion>>;
   };
   seats?: Array<{ id: string; row: string; label: string }>;
+  /** Règle de remboursement affichée avant l'achat (RG-REF-11). */
+  refund?: RefundRule;
 }
 
 type Result<T> =

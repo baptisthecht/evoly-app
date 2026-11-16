@@ -36,6 +36,8 @@ export interface SettingsValues extends EventFieldValues {
   hasAccessCode?: boolean;
   refundPolicy: "NON_REFUNDABLE" | "UNTIL_DEADLINE" | "ON_REQUEST" | "ALWAYS";
   refundDeadlineLocal: string;
+  /** RG-REF-09 : remboursement demandé par l'acheteur, intégral ou moins les frais. */
+  refundFeeMode?: "FULL" | "MINUS_FEES";
   salesStartLocal: string;
   salesEndLocal: string;
   resaleEnabled: boolean;
@@ -121,6 +123,9 @@ export function SettingsForm({
         : "ON_REQUEST",
   );
   const [deadline, setDeadline] = useState(values.refundDeadlineLocal);
+  const [refundFees, setRefundFees] = useState<"FULL" | "MINUS_FEES">(
+    values.refundFeeMode ?? "FULL",
+  );
   const [resaleMore, setResaleMore] = useState(false);
   // « jusqu'à 7 jours avant l'événement » : la date limite comptée en jours avant le début
   const daysBefore = (() => {
@@ -459,6 +464,31 @@ export function SettingsForm({
                   ) : null}
                 </div>
               ) : null}
+              {/* RG-REF-09 : ce que récupère l'acheteur qui demande un remboursement ; affiché avant l'achat (RG-REF-11) */}
+              {refundPolicy !== "NON_REFUNDABLE" ? (
+                <Field
+                  label={t("refundFees")}
+                  htmlFor="refundFeeMode"
+                  hint={`${t(`refundFeesHint_${refundFees}`)} ${t("refundFeesAlways")}`}
+                >
+                  <Select
+                    id="refundFeeMode"
+                    name="refundFeeMode"
+                    value={refundFees}
+                    onChange={(e) =>
+                      setRefundFees(e.target.value as typeof refundFees)
+                    }
+                  >
+                    {(["FULL", "MINUS_FEES"] as const).map((m) => (
+                      <option key={m} value={m}>
+                        {t(`refundFees_${m}`)}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              ) : (
+                <input type="hidden" name="refundFeeMode" value={refundFees} />
+              )}
               <SwitchRow
                 name="resaleEnabled"
                 label={t("resaleSwitch")}

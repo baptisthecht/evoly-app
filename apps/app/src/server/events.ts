@@ -52,6 +52,8 @@ export interface EventSettingsInput extends EventEssentials {
   accessCode?: string | null;
   refundPolicy: "NON_REFUNDABLE" | "UNTIL_DEADLINE" | "ON_REQUEST" | "ALWAYS";
   refundDeadlineLocal?: string | null;
+  /** RG-REF-09 : remboursement demandé par l'acheteur, intégral ou moins les frais (absent : inchangé). */
+  refundFeeMode?: "FULL" | "MINUS_FEES";
   salesStartLocal?: string | null;
   salesEndLocal?: string | null;
   resaleEnabled: boolean;
@@ -205,6 +207,11 @@ export async function createEvent(
     o.country,
   );
   const priceMinor = parsePrice(firstTicket.price, o.currency);
+  // RG-REF-09 : le remboursement par défaut de l'organisation, propre à l'événement ensuite
+  const defaults = await db.organization.findUnique({
+    where: { id: o.id },
+    select: { refundFeeMode: true },
+  });
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const event = await db.event.create({
@@ -217,6 +224,7 @@ export async function createEvent(
           currency: o.currency,
           locale: o.locale,
           timezone: e.timezone,
+          refundFeeMode: defaults?.refundFeeMode ?? "FULL",
           startsAt,
           endsAt,
           ...location,
@@ -339,6 +347,7 @@ export async function updateEventSettings(
       ...(await accessCodeData(event.id, event.accessCodeHash, input)),
       refundPolicy: input.refundPolicy,
       refundDeadlineAt,
+      ...(input.refundFeeMode ? { refundFeeMode: input.refundFeeMode } : {}),
       salesStartAt,
       salesEndAt,
       resaleEnabled: input.resaleEnabled,
@@ -499,6 +508,7 @@ export async function duplicateEvent(ctx: OrgContext, eventId: string) {
           resaleCutoffMinutes: source.resaleCutoffMinutes,
           showResaleSection: source.showResaleSection,
           refundPolicy: source.refundPolicy,
+          refundFeeMode: source.refundFeeMode,
           confirmationMessage: source.confirmationMessage,
           faq: source.faq ?? undefined,
           primaryColor: source.primaryColor,

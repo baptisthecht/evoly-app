@@ -355,6 +355,14 @@ export default async function OrderDetailPage({
                       <span className="font-semibold tabular-nums">
                         {r.amountMinor === 0 ? t("free") : money(r.amountMinor)}
                       </span>
+                      {/* RG-REF-10 : remboursement moins les frais, demandé par l'acheteur */}
+                      {r.feesWithheldMinor > 0 ? (
+                        <span className="text-[13px] text-ink-muted tabular-nums">
+                          {t("feesWithheld", {
+                            amount: money(r.feesWithheldMinor),
+                          })}
+                        </span>
+                      ) : null}
                       <Badge tone={REFUND_TONES[r.status]}>
                         {t(`refund_${r.status}`)}
                       </Badge>

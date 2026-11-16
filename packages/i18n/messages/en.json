@@ -626,7 +626,9 @@
     "optionsTitle": "Your add-ons",
     "optionsHint": "Redeem them at the bar with a simple scan of your ticket.",
     "optionsLeft": "{left} of {quantity} left to redeem",
-    "optionsPass": "Your pickup QR code: show it at the bar or cloakroom."
+    "optionsPass": "Your pickup QR code: show it at the bar or cloakroom.",
+    "refundAmount": "Amount refunded: {amount}",
+    "refundFeesWithheld": "Payment and service fees kept: {amount}"
   },
   "resale": {
     "sell": "Resell my ticket",
@@ -1295,7 +1297,11 @@
     "feesTitle": "Your fees",
     "feesBodyFree": "€0.29 + 2% per paid ticket, capped at €2.50 per ticket, excluding payment fees. It’s included in your ticket price: your attendees pay no extra fees. Stripe’s payment fees apply at cost.",
     "feesBodyPro": "€0.29 + 2% per paid ticket, capped at €1 per ticket on Pro, excluding payment fees. It’s included in your ticket price: your attendees pay no extra fees. Stripe’s payment fees apply at cost.",
-    "feesBodyPartner": "With the Partner plan, Evoly charges no fee on your tickets. Only Stripe’s payment fees apply, at cost."
+    "feesBodyPartner": "With the Partner plan, Evoly charges no fee on your tickets. Only Stripe’s payment fees apply, at cost.",
+    "refundDefaultTitle": "Refunds",
+    "refundDefaultDesc": "When the buyer asks for a refund: the setting offered to new events. Each event then keeps its own.",
+    "refundDefaultSave": "Save",
+    "refundDefaultSaved": "Setting saved for your next events."
   },
   "upsell": {
     "marketing": "Automatic reminders one week, one day and on the day, a thank-you email after the event and targeted campaigns, with their stats.",
@@ -1396,7 +1402,13 @@
     "audienceTitle": "Capacity and visibility",
     "audienceDesc": "The total number of places and who can see the page.",
     "refundHintDays": "until {count, plural, one {# day} other {# days}} before the event",
-    "resaleMore": "Deadlines and waiting list"
+    "resaleMore": "Deadlines and waiting list",
+    "refundFees": "If the buyer asks for a refund",
+    "refundFees_FULL": "Full refund",
+    "refundFees_MINUS_FEES": "Refund minus fees",
+    "refundFeesHint_FULL": "The buyer gets back everything they paid; payment fees and Evoly’s commission stay with you.",
+    "refundFeesHint_MINUS_FEES": "No cost to you: the buyer gets back the price paid minus payment fees and Evoly’s commission.",
+    "refundFeesAlways": "Event cancelled, date or venue changed, refund on your initiative: always in full."
   },
   "public": {
     "previewBanner": "Preview: this is the page your buyers will see. Purchases aren’t possible from the preview.",
@@ -1535,7 +1547,14 @@
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
     "orgSocial_youtube": "YouTube",
-    "waitlistErrorBlocked": "This sign-up cannot be completed. Contact the organiser."
+    "waitlistErrorBlocked": "This sign-up cannot be completed. Contact the organiser.",
+    "refundLabel": "Refunds:",
+    "refundRule_NON_REFUNDABLE": "tickets are non-refundable, unless the event is cancelled.",
+    "refundRule_ON_REQUEST": "on request, reviewed by the organiser.",
+    "refundRule_ALWAYS": "possible until the event starts.",
+    "refundRule_UNTIL_DEADLINE": "possible until {date}.",
+    "refundFee_FULL": "The price paid is refunded in full.",
+    "refundFee_MINUS_FEES": "Payment and service fees are not refunded."
   },
   "promo": {
     "new": "New code",
@@ -1914,7 +1933,8 @@
     "blockedEmptyBody": "Block a malicious or disruptive person: they will no longer be able to order from you.",
     "blockedMissing": "Not provided",
     "unblock": "Unblock",
-    "unblockConfirm": "Unblock {name}? This person will be able to order from you again."
+    "unblockConfirm": "Unblock {name}? This person will be able to order from you again.",
+    "feesWithheld": "fees kept: {amount}"
   },
   "finances": {
     "title": "Finances",

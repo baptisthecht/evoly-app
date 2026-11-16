@@ -163,7 +163,14 @@
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
     "orgSocial_youtube": "YouTube",
-    "waitlistErrorBlocked": "Diese Anmeldung kann nicht abgeschlossen werden. Wenden Sie sich an den Veranstalter."
+    "waitlistErrorBlocked": "Diese Anmeldung kann nicht abgeschlossen werden. Wenden Sie sich an den Veranstalter.",
+    "refundLabel": "Erstattung:",
+    "refundRule_NON_REFUNDABLE": "Tickets nicht erstattbar, außer bei Absage der Veranstaltung.",
+    "refundRule_ON_REQUEST": "auf Anfrage, vom Veranstalter geprüft.",
+    "refundRule_ALWAYS": "möglich bis zum Beginn der Veranstaltung.",
+    "refundRule_UNTIL_DEADLINE": "möglich bis zum {date}.",
+    "refundFee_FULL": "Der gezahlte Preis wird vollständig erstattet.",
+    "refundFee_MINUS_FEES": "Zahlungs- und Servicegebühren werden nicht erstattet."
   },
   "checkout": {
     "tickets": "Tickets",
@@ -590,7 +597,9 @@
     "optionsTitle": "Ihre Extras",
     "optionsHint": "An der Bar mit einem einfachen Scan Ihres Tickets einzulösen.",
     "optionsLeft": "Noch {left} von {quantity} einzulösen",
-    "optionsPass": "Ihr Abhol-QR-Code: Zeigen Sie ihn an der Bar oder Garderobe."
+    "optionsPass": "Ihr Abhol-QR-Code: Zeigen Sie ihn an der Bar oder Garderobe.",
+    "refundAmount": "Erstatteter Betrag: {amount}",
+    "refundFeesWithheld": "Einbehaltene Zahlungs- und Servicegebühren: {amount}"
   },
   "scanner": {
     "valid": "Gültiges Ticket",
@@ -1452,7 +1461,13 @@
     "audienceTitle": "Kapazität und Sichtbarkeit",
     "audienceDesc": "Die Gesamtzahl der Plätze und wer die Seite sehen kann.",
     "refundHintDays": "bis {count, plural, one {# Tag} other {# Tage}} vor der Veranstaltung",
-    "resaleMore": "Fristen und Warteliste"
+    "resaleMore": "Fristen und Warteliste",
+    "refundFees": "Wenn der Käufer eine Erstattung beantragt",
+    "refundFees_FULL": "Vollständige Erstattung",
+    "refundFees_MINUS_FEES": "Erstattung abzüglich Gebühren",
+    "refundFeesHint_FULL": "Der Käufer erhält den vollen Betrag zurück; Zahlungsgebühren und die Provision von Evoly tragen Sie.",
+    "refundFeesHint_MINUS_FEES": "Kostenneutral für Sie: Der Käufer erhält den gezahlten Preis abzüglich Zahlungsgebühren und Provision von Evoly zurück.",
+    "refundFeesAlways": "Absage der Veranstaltung, Änderung von Datum oder Ort, Erstattung auf Ihre Initiative: immer vollständig."
   },
   "ordersAdmin": {
     "title": "Bestellungen",
@@ -1684,7 +1699,8 @@
     "blockedEmptyBody": "Sperren Sie eine böswillige oder störende Person, damit sie nicht mehr bei Ihnen bestellen kann.",
     "blockedMissing": "Nicht angegeben",
     "unblock": "Entsperren",
-    "unblockConfirm": "{name} entsperren? Diese Person kann dann wieder bei Ihnen bestellen."
+    "unblockConfirm": "{name} entsperren? Diese Person kann dann wieder bei Ihnen bestellen.",
+    "feesWithheld": "einbehaltene Gebühren: {amount}"
   },
   "seatingEditor": {
     "title": "Saalplan",
@@ -2280,7 +2296,11 @@
     "feesTitle": "Ihre Gebühren",
     "feesBodyFree": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, höchstens 2,50 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen keine zusätzlichen Gebühren. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis.",
     "feesBodyPro": "Gebühr: 0,29 € + 2 % pro kostenpflichtigem Ticket, im Pro-Tarif höchstens 1 € pro Ticket, zuzüglich Zahlungsgebühren. Sie ist im Preis Ihrer Tickets enthalten: Ihre Gäste zahlen keine zusätzlichen Gebühren. Die Zahlungsgebühren von Stripe gelten zum Selbstkostenpreis.",
-    "feesBodyPartner": "Mit dem Partner-Tarif berechnet Evoly keine Gebühr auf Ihre Tickets. Es fallen nur die Zahlungsgebühren von Stripe zum Selbstkostenpreis an."
+    "feesBodyPartner": "Mit dem Partner-Tarif berechnet Evoly keine Gebühr auf Ihre Tickets. Es fallen nur die Zahlungsgebühren von Stripe zum Selbstkostenpreis an.",
+    "refundDefaultTitle": "Erstattungen",
+    "refundDefaultDesc": "Wenn der Käufer eine Erstattung beantragt: die Einstellung für neue Veranstaltungen. Jede Veranstaltung behält danach ihre eigene.",
+    "refundDefaultSave": "Speichern",
+    "refundDefaultSaved": "Einstellung für Ihre nächsten Veranstaltungen gespeichert."
   },
   "orgSettings": {
     "identity": "Identität",

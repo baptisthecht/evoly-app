@@ -1,26 +1,46 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { refundFeesWithheld, type RefundFeeMode } from "@evoly/core";
+import { formatMoney, type Locale } from "@evoly/i18n";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { requestRefundAction } from "@/app/site/[sub]/[eventSlug]/actions";
 import { Button } from "../ui/Button";
 
-/** US-REF-01 : demande de remboursement de tout ou partie des billets, selon la politique de l'événement. */
+/**
+ * US-REF-01 : demande de remboursement de tout ou partie des billets, selon la politique de l'événement. RG-REF-11 : le
+ * montant exact rendu est affiché avant l'envoi, frais retenus compris quand l'acheteur les supporte (RG-REF-09).
+ */
 export function RefundRequest({
   token,
   tickets,
   automatic,
   outOfDeadline,
   policyText,
+  currency = "EUR",
+  optionsWithLastTicketsMinor = 0,
+  fees = null,
 }: {
   token: string;
-  tickets: Array<{ id: string; label: string }>;
+  tickets: Array<{ id: string; label: string; faceValueMinor?: number }>;
   automatic: boolean;
   outOfDeadline: boolean;
   policyText: string;
+  currency?: string;
+  /** Options non retirées, remboursées avec les derniers billets (RG-OPT-07). */
+  optionsWithLastTicketsMinor?: number;
+  /** Frais de la commande quand l'acheteur les supporte (mode « moins les frais ») ; sinon rien n'est retenu. */
+  fees?: {
+    mode: RefundFeeMode;
+    orderTotalMinor: number;
+    applicationFeeMinor: number;
+    paymentFeeMinor: number;
+    alreadyWithheldMinor: number;
+  } | null;
 }) {
   const t = useTranslations("orders");
+  const locale = useLocale() as Locale;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string[]>(
@@ -29,6 +49,15 @@ export function RefundRequest({
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const gross =
+    tickets
+      .filter((tk) => selected.includes(tk.id))
+      .reduce((n, tk) => n + (tk.faceValueMinor ?? 0), 0) +
+    (selected.length === tickets.length ? optionsWithLastTicketsMinor : 0);
+  const withheld = fees
+    ? refundFeesWithheld({ ...fees, grossMinor: gross })
+    : 0;
+  const money = (v: number) => formatMoney(v, currency, locale);
   if (!open)
     return (
       <div className="grid justify-items-center gap-1 text-center">
@@ -79,6 +108,18 @@ export function RefundRequest({
           </label>
         ))}
       </fieldset>
+      {selected.length > 0 && gross > 0 ? (
+        <p className="grid gap-0.5 text-sm" aria-live="polite">
+          <span className="font-semibold">
+            {t("refundAmount", { amount: money(gross - withheld) })}
+          </span>
+          {withheld > 0 ? (
+            <span className="text-ink-muted">
+              {t("refundFeesWithheld", { amount: money(withheld) })}
+            </span>
+          ) : null}
+        </p>
+      ) : null}
       <label className="grid gap-1 text-sm font-semibold">
         {t("refundMessage")}
         <textarea

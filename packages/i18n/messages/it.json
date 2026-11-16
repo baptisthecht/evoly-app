@@ -163,7 +163,14 @@
     "orgSocial_tiktok": "TikTok",
     "orgSocial_linkedin": "LinkedIn",
     "orgSocial_youtube": "YouTube",
-    "waitlistErrorBlocked": "Questa iscrizione non può essere completata. Contatta l’organizzatore."
+    "waitlistErrorBlocked": "Questa iscrizione non può essere completata. Contatta l’organizzatore.",
+    "refundLabel": "Rimborso:",
+    "refundRule_NON_REFUNDABLE": "biglietti non rimborsabili, salvo annullamento dell’evento.",
+    "refundRule_ON_REQUEST": "su richiesta, valutata dall’organizzatore.",
+    "refundRule_ALWAYS": "possibile fino all’inizio dell’evento.",
+    "refundRule_UNTIL_DEADLINE": "possibile fino al {date}.",
+    "refundFee_FULL": "Il prezzo pagato viene rimborsato per intero.",
+    "refundFee_MINUS_FEES": "Le spese di pagamento e di servizio non sono rimborsate."
   },
   "checkout": {
     "tickets": "Biglietti",
@@ -590,7 +597,9 @@
     "optionsTitle": "I tuoi extra",
     "optionsHint": "Da riscattare al bar con una semplice scansione del biglietto.",
     "optionsLeft": "Ne restano {left} su {quantity} da riscattare",
-    "optionsPass": "Il tuo codice QR di ritiro: mostralo al bar o al guardaroba."
+    "optionsPass": "Il tuo codice QR di ritiro: mostralo al bar o al guardaroba.",
+    "refundAmount": "Importo rimborsato: {amount}",
+    "refundFeesWithheld": "Spese di pagamento e di servizio trattenute: {amount}"
   },
   "scanner": {
     "valid": "Biglietto valido",
@@ -1452,7 +1461,13 @@
     "audienceTitle": "Capienza e visibilità",
     "audienceDesc": "Il numero totale di posti e chi può vedere la pagina.",
     "refundHintDays": "fino a {count, plural, one {# giorno} other {# giorni}} prima dell’evento",
-    "resaleMore": "Scadenze e lista d’attesa"
+    "resaleMore": "Scadenze e lista d’attesa",
+    "refundFees": "Se l’acquirente chiede un rimborso",
+    "refundFees_FULL": "Rimborso integrale",
+    "refundFees_MINUS_FEES": "Rimborso meno le spese",
+    "refundFeesHint_FULL": "L’acquirente riceve tutto ciò che ha pagato; le spese di pagamento e la commissione di Evoly restano a tuo carico.",
+    "refundFeesHint_MINUS_FEES": "Costo zero per te: l’acquirente riceve il prezzo pagato meno le spese di pagamento e la commissione di Evoly.",
+    "refundFeesAlways": "Evento annullato, cambio di data o di luogo, rimborso su tua iniziativa: sempre integrale."
   },
   "ordersAdmin": {
     "title": "Ordini",
@@ -1684,7 +1699,8 @@
     "blockedEmptyBody": "Blocca una persona malintenzionata o molesta: non potrà più ordinare da te.",
     "blockedMissing": "Non indicato",
     "unblock": "Sblocca",
-    "unblockConfirm": "Sbloccare {name}? Questa persona potrà di nuovo ordinare da te."
+    "unblockConfirm": "Sbloccare {name}? Questa persona potrà di nuovo ordinare da te.",
+    "feesWithheld": "spese trattenute: {amount}"
   },
   "seatingEditor": {
     "title": "Mappa dei posti",
@@ -2280,7 +2296,11 @@
     "feesTitle": "I tuoi costi",
     "feesBodyFree": "Commissione: 0,29 € + 2% per biglietto a pagamento, con un tetto di 2,50 € a biglietto, esclusi i costi di pagamento. È inclusa nel prezzo dei tuoi biglietti: i partecipanti non pagano costi aggiuntivi. I costi di pagamento di Stripe si applicano al costo reale.",
     "feesBodyPro": "Commissione: 0,29 € + 2% per biglietto a pagamento, con un tetto di 1 € a biglietto con il piano Pro, esclusi i costi di pagamento. È inclusa nel prezzo dei tuoi biglietti: i partecipanti non pagano costi aggiuntivi. I costi di pagamento di Stripe si applicano al costo reale.",
-    "feesBodyPartner": "Con l’offerta Partner, Evoly non trattiene alcuna commissione sui tuoi biglietti. Si applicano solo i costi di pagamento di Stripe, al prezzo di costo."
+    "feesBodyPartner": "Con l’offerta Partner, Evoly non trattiene alcuna commissione sui tuoi biglietti. Si applicano solo i costi di pagamento di Stripe, al prezzo di costo.",
+    "refundDefaultTitle": "Rimborsi",
+    "refundDefaultDesc": "Quando l’acquirente chiede un rimborso: l’impostazione proposta ai nuovi eventi. Ogni evento mantiene poi la propria.",
+    "refundDefaultSave": "Salva",
+    "refundDefaultSaved": "Impostazione salvata per i tuoi prossimi eventi."
   },
   "orgSettings": {
     "identity": "Identità",

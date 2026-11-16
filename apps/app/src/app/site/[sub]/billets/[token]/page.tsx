@@ -16,7 +16,11 @@ import { AutoRefresh } from "@/components/public/AutoRefresh";
 import { HolderEditor } from "@/components/public/HolderEditor";
 import { ResaleControl } from "@/components/public/ResaleControl";
 import { RefundRequest } from "@/components/public/RefundRequest";
-import { checkRefundRequest } from "@evoly/core";
+import {
+  buyerBearsRefundFees,
+  checkRefundRequest,
+  estimateBankFee,
+} from "@evoly/core";
 import { resaleQuote, resaleShortUrl } from "@/server/resale";
 import { db } from "@/lib/db";
 import { PublicShell } from "@/components/public/PublicShell";
@@ -155,6 +159,34 @@ export default async function BuyerTicketsPage({
   const refundableTickets = order.tickets.filter(
     (tk) => tk.status === "VALID" && !pendingTickets.has(tk.id),
   );
+  // RG-REF-11 : le montant exact rendu, affiché dans la demande. Tous les billets restants remboursés : les options non
+  // retirées le sont avec eux (RG-OPT-07), sauf si un billet a déjà été scanné ou est déjà en cours de remboursement.
+  const optionsWithLastTicketsMinor =
+    pendingTickets.size === 0 &&
+    order.tickets.every((tk) => tk.status !== "CHECKED_IN")
+      ? order.options.reduce(
+          (n, o) =>
+            n +
+            Math.max(0, o.quantity - o.redeemed - o.refunded) *
+              o.unitPriceMinor,
+          0,
+        )
+      : 0;
+  const refundFees = buyerBearsRefundFees({
+    initiator: "BUYER",
+    reason: refundCheck.reason,
+  })
+    ? {
+        mode: order.refundFeeMode,
+        orderTotalMinor: order.totalMinor,
+        applicationFeeMinor: order.applicationFeeMinor,
+        paymentFeeMinor:
+          order.paymentFeeMinor ?? estimateBankFee(order.totalMinor),
+        alreadyWithheldMinor: refundsList
+          .filter((r) => r.status !== "REJECTED")
+          .reduce((n, r) => n + r.feesWithheldMinor, 0),
+      }
+    : null;
   const holdActive =
     order.status === "PENDING" &&
     !!order.holdExpiresAt &&
@@ -447,7 +479,11 @@ export default async function BuyerTicketsPage({
                 tickets={refundableTickets.map((tk) => ({
                   id: tk.id,
                   label: `${tk.ticketType.name} · ${tk.shortCode}`,
+                  faceValueMinor: tk.faceValueMinor,
                 }))}
+                currency={order.currency}
+                optionsWithLastTicketsMinor={optionsWithLastTicketsMinor}
+                fees={refundFees}
                 automatic={
                   !refundCheck.outOfDeadline &&
                   (refundCheck.reason === "EVENT_CHANGED" ||

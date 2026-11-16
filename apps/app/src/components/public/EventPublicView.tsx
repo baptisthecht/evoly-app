@@ -1,4 +1,4 @@
-import { daysUntil, effectiveEnd } from "@evoly/core";
+import { daysUntil, effectiveEnd, refundRuleOf } from "@evoly/core";
 import {
   formatDate,
   formatTime,
@@ -14,6 +14,7 @@ import type {
 import { StickyTicketsButton } from "./StickyTicketsButton";
 import type { PublicSeatMap } from "@/server/seating";
 import { TicketPicker } from "./TicketPicker";
+import { RefundRuleText } from "./RefundRuleText";
 import { publicListings } from "@/server/resale";
 import { formatMoney } from "@evoly/i18n";
 import { SalesCountdown } from "./Prepublished";
@@ -293,6 +294,13 @@ export async function EventPublicView({
               ) : null}
             </div>
           </section>
+          {/* RG-REF-11 : la règle de remboursement, avant l'achat (billets payants seulement) */}
+          {ticketTypes.some((tt) => tt.priceMinor > 0) ? (
+            <RefundRuleText
+              rule={refundRuleOf(event, event.refundFeeMode)}
+              className="-mt-3 text-sm text-ink-muted"
+            />
+          ) : null}
 
           {event.summary ? (
             <section aria-labelledby="about-title" className="grid gap-3">

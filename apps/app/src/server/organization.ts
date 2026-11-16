@@ -264,3 +264,25 @@ export async function deleteOrganization(
     targetId: id,
   });
 }
+
+/**
+ * RG-REF-09 : remboursement par défaut des nouveaux événements, quand l'acheteur le demande (intégral, ou moins les
+ * frais). Les événements existants gardent leur réglage ; les commandes, celui affiché avant leur achat.
+ */
+export async function setRefundFeeDefault(
+  ctx: OrgContext,
+  mode: "FULL" | "MINUS_FEES",
+): Promise<void> {
+  await db.organization.update({
+    where: { id: ctx.organization.id },
+    data: { refundFeeMode: mode },
+  });
+  await audit({
+    action: "organization.refund_default_changed",
+    organizationId: ctx.organization.id,
+    actorUserId: ctx.user.id,
+    targetType: "Organization",
+    targetId: ctx.organization.id,
+    metadata: { mode },
+  });
+}
