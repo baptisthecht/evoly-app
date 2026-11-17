@@ -611,9 +611,9 @@ export function CheckoutPanel({
             </span>
           </li>
         ))}
-        {reservation.options.map((o) => (
+        {reservation.options.map((o, i) => (
           <li
-            key={o.optionId}
+            key={`${o.optionId}:${i}`}
             className="flex items-baseline justify-between gap-3 text-sm"
           >
             <span>

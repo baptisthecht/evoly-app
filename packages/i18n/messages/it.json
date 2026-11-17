@@ -288,7 +288,8 @@
     "error_CARD_EXPIRED": "La tua carta è scaduta. Prova un'altra carta.",
     "error_CARD_INCORRECT_CVC": "Il codice di sicurezza della tua carta non è corretto. Controllalo e riprova.",
     "error_PAYMENT_INVALID": "Questo pagamento non può più essere confermato. Ricomincia la prenotazione.",
-    "error_BUYER_BLOCKED": "Questo ordine non può essere completato. Contatta l’organizzatore."
+    "error_BUYER_BLOCKED": "Questo ordine non può essere completato. Contatta l’organizzatore.",
+    "error_OPTION_VARIANT_REQUIRED": "Scegli la taglia o il colore di ogni prodotto."
   },
   "seatPicker": {
     "title": "Scegli i tuoi posti",
@@ -1416,7 +1417,8 @@
     "SHOP_ORDER_STATE": "Questa azione non è più possibile per questo ordine.",
     "SHOP_ALREADY_PICKED_UP": "Questo ordine è già stato consegnato.",
     "SHOP_REFUND_INVALID": "Scegli le quantità da rimborsare, senza superare il rimanente.",
-    "REFUND_FAILED": "Stripe ha rifiutato il rimborso. Riprova, o rimborsa dalla tua dashboard Stripe."
+    "REFUND_FAILED": "Stripe ha rifiutato il rimborso. Riprova, o rimborsa dalla tua dashboard Stripe.",
+    "SHOP_PRODUCT_IN_EVENT": "Questo prodotto è proposto come opzione di un evento: rimuovilo dall’evento o archivia il prodotto."
   },
   "eventSettings": {
     "unsaved": "Modifiche in corso…",
@@ -3250,7 +3252,12 @@
     "tableStatus": "Stato",
     "tableActions": "Azioni",
     "tableCaption": "Opzioni",
-    "settings": "Impostazioni"
+    "settings": "Impostazioni",
+    "productLabel": "Prodotto del negozio",
+    "productNone": "Nessuno: opzione libera",
+    "productHint": "Nome, prezzo e scorte vengono dal negozio: le scorte sono condivise, l’acquirente sceglie taglia o colore.",
+    "fromShop": "Negozio",
+    "sharedStock": "scorte del negozio"
   },
   "ambassadors": {
     "intro": "Dai a ogni membro del team o promoter il proprio link di vendita e scopri chi vende di più.",

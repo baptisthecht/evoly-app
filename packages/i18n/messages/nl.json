@@ -288,7 +288,8 @@
     "error_CARD_EXPIRED": "Je kaart is verlopen. Probeer een andere kaart.",
     "error_CARD_INCORRECT_CVC": "De beveiligingscode van je kaart is onjuist. Controleer hem en probeer opnieuw.",
     "error_PAYMENT_INVALID": "Deze betaling kan niet meer worden bevestigd. Begin je reservering opnieuw.",
-    "error_BUYER_BLOCKED": "Deze bestelling kan niet worden afgerond. Neem contact op met de organisator."
+    "error_BUYER_BLOCKED": "Deze bestelling kan niet worden afgerond. Neem contact op met de organisator.",
+    "error_OPTION_VARIANT_REQUIRED": "Kies de maat of kleur van elk product."
   },
   "seatPicker": {
     "title": "Kies je plaatsen",
@@ -1416,7 +1417,8 @@
     "SHOP_ORDER_STATE": "Deze actie is niet meer mogelijk voor deze bestelling.",
     "SHOP_ALREADY_PICKED_UP": "Deze bestelling werd al overhandigd.",
     "SHOP_REFUND_INVALID": "Kies de aantallen om terug te betalen, zonder te overschrijden wat overblijft.",
-    "REFUND_FAILED": "Stripe weigerde de terugbetaling. Probeer opnieuw, of betaal terug via je Stripe-dashboard."
+    "REFUND_FAILED": "Stripe weigerde de terugbetaling. Probeer opnieuw, of betaal terug via je Stripe-dashboard.",
+    "SHOP_PRODUCT_IN_EVENT": "Dit product wordt als optie bij een evenement aangeboden: verwijder het uit het evenement of archiveer het product."
   },
   "eventSettings": {
     "unsaved": "Wijzigingen bezig…",
@@ -3250,7 +3252,12 @@
     "tableStatus": "Status",
     "tableActions": "Acties",
     "tableCaption": "Opties",
-    "settings": "Instellingen"
+    "settings": "Instellingen",
+    "productLabel": "Product uit de winkel",
+    "productNone": "Geen: vrije optie",
+    "productHint": "Naam, prijs en voorraad komen uit de winkel: de voorraad wordt gedeeld, de koper kiest maat of kleur.",
+    "fromShop": "Winkel",
+    "sharedStock": "voorraad van de winkel"
   },
   "ambassadors": {
     "intro": "Geef elk teamlid of elke promotor een eigen verkooplink en zie wie het meest verkoopt.",

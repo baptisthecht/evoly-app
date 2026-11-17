@@ -529,7 +529,8 @@
     "error_CARD_EXPIRED": "Your card has expired. Try another card.",
     "error_CARD_INCORRECT_CVC": "Your card's security code is incorrect. Check it and try again.",
     "error_PAYMENT_INVALID": "This payment can no longer be confirmed. Please start your booking again.",
-    "error_BUYER_BLOCKED": "This order cannot be completed. Contact the organiser."
+    "error_BUYER_BLOCKED": "This order cannot be completed. Contact the organiser.",
+    "error_OPTION_VARIANT_REQUIRED": "Choose the size or colour of each product."
   },
   "orders": {
     "confirmationTitle": "You’re in!",
@@ -1203,7 +1204,8 @@
     "SHOP_ORDER_STATE": "This action is no longer possible for this order.",
     "SHOP_ALREADY_PICKED_UP": "This order has already been handed over.",
     "SHOP_REFUND_INVALID": "Choose quantities to refund, without exceeding what’s left.",
-    "REFUND_FAILED": "Stripe declined the refund. Try again, or refund from your Stripe dashboard."
+    "REFUND_FAILED": "Stripe declined the refund. Try again, or refund from your Stripe dashboard.",
+    "SHOP_PRODUCT_IN_EVENT": "This product is offered as an event option: remove it from the event, or archive the product."
   },
   "validation": {
     "required": "This field is required.",
@@ -3250,7 +3252,12 @@
     "tableStatus": "Status",
     "tableActions": "Actions",
     "tableCaption": "Options",
-    "settings": "Settings"
+    "settings": "Settings",
+    "productLabel": "Shop product",
+    "productNone": "None: free-form option",
+    "productHint": "Name, price and stock come from the shop: the stock is shared, and buyers choose the size or colour.",
+    "fromShop": "Shop",
+    "sharedStock": "shop stock"
   },
   "ambassadors": {
     "intro": "Give each team member or promoter their own sales link, and see who sells the most.",

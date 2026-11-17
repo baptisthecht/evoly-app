@@ -10,6 +10,7 @@ import {
   zonedLocalToUtc,
   type FinanceOrder,
   type VatMention,
+  optionLineName,
 } from "@evoly/core";
 import { formatDate, formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { Prisma } from "@evoly/db";
@@ -88,6 +89,7 @@ async function periodOptionLines(
       unitPriceMinor: true,
       unitFeeMinor: true,
       redeemed: true,
+      variantLabel: true, // produit de la boutique : la variante choisie
       option: { select: { id: true, name: true, eventId: true } },
       order: {
         select: { reference: true, paidAt: true, currency: true, status: true },
@@ -1101,7 +1103,9 @@ export async function ordersCsv(
     opts.eventId,
   )) {
     const c = parCommande.get(l.orderId) ?? { text: [], amountMinor: 0 };
-    c.text.push(`${l.quantity} × ${l.option.name}`);
+    c.text.push(
+      `${l.quantity} × ${optionLineName(l.option.name, l.variantLabel)}`,
+    );
     c.amountMinor += l.quantity * l.unitPriceMinor;
     parCommande.set(l.orderId, c);
   }
@@ -1167,7 +1171,7 @@ export async function optionsCsv(
       " ",
     ),
     titles.get(l.option.eventId) ?? "",
-    l.option.name,
+    optionLineName(l.option.name, l.variantLabel),
     l.quantity,
     amount(l.unitPriceMinor),
     amount(l.quantity * l.unitPriceMinor),

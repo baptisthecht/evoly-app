@@ -1,8 +1,8 @@
 # Traçabilité du cahier des charges
 
-État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (382 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
+État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (384 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 213 · fait : 167 · hors périmètre : 2.
+**Bilan** : fait, testé : 215 · fait : 167 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -398,3 +398,5 @@
 | RG-SHOP-10 | P1 | reçu (page de la commande et e-mail) : chaque ligne avec son taux de TVA, le total toutes taxes comprises et la TVA compr | fait, testé | shopOrderTotals, shopReceipt (core shop.ts, shopOrders.ts, shop.test.ts, shop-emails.test.ts, shop-orders.test.ts) |
 | RG-SHOP-11 | P1 | droit de rétractation de 14 jours (vente à distance), pour le retrait en main propre comme pour la livraison : ouvert tant | fait, testé | withdrawalOpen, requestShopWithdrawal, conditions de vente (core shop.ts, shopOrders.ts, shop.test.ts, shop-orders.test.ts, ShopPublic.test.tsx) |
 | RG-SHOP-12 | P1 | remboursement par l'organisation (droit de rembourser), ligne par ligne, sur le moyen de paiement de l'acheteur ; les arti | fait, testé | refundShopOrder, syncShopRefund (shopOrders.ts, OrderDetail.tsx, shop-orders.test.ts, ShopOrders.test.tsx) |
+| US-SHOP-07 | P1 | en tant qu'organisateur, je propose un produit de la boutique en option d'un événement ; l'acheteur choisit la variante (t | fait, testé | Billetterie, Options : « Produit de la boutique » (options.ts, OptionForm.tsx, OptionsTable.tsx, shop-event-options.test.ts, EventSmallForms.test.tsx, shop-event-option.spec.ts) |
+| RG-SHOP-13 | P1 | un seul stock pour les deux canaux. Une option d'événement peut reprendre un produit non archivé (offres Pro et Partenaire | fait, testé | holdProductVariants, releaseProductOptions, sellProductOptions (options.ts, checkout.ts, shop-event-options.test.ts, shop-event-option.spec.ts) |

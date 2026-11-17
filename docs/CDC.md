@@ -1451,6 +1451,7 @@ Modèle : produits de l'organisation (`Product`), photos (`ProductImage`), optio
 - US-SHOP-04 : en tant qu'acheteur, je découvre la boutique depuis la page de l'organisation (section « Boutique »), j'ouvre la page d'un produit (galerie, description, choix des options, prix de la variante, disponibilité) et je remplis un panier de plusieurs produits.
 - US-SHOP-05 : en tant qu'acheteur, je commande sans billet : mes coordonnées, le lieu de retrait, le paiement ; je reçois un e-mail avec mon reçu et le lien de ma commande, qui montre son état et le code QR à présenter au retrait.
 - US-SHOP-06 : en tant qu'organisateur (droits des commandes), je suis les commandes de la boutique (à préparer, prêtes, remises), je préviens l'acheteur que sa commande est prête, je la remets en scannant son code QR (ou en saisissant son code) et je la rembourse, ligne par ligne.
+- US-SHOP-07 : en tant qu'organisateur, je propose un produit de la boutique en option d'un événement ; l'acheteur choisit la variante (taille, couleur) pendant l'achat de ses billets et retire le produit à l'événement, comme les autres options.
 
 **Règles de gestion**
 
@@ -1466,6 +1467,7 @@ Modèle : produits de l'organisation (`Product`), photos (`ProductImage`), optio
 - RG-SHOP-10 : reçu (page de la commande et e-mail) : chaque ligne avec son taux de TVA, le total toutes taxes comprises et la TVA comprise de chaque taux, calculée sur la somme du taux et arrondie au centime ; le vendeur est l'organisation.
 - RG-SHOP-11 : droit de rétractation de 14 jours (vente à distance), pour le retrait en main propre comme pour la livraison : ouvert tant que les produits ne sont pas reçus et jusqu'à 14 jours après leur réception ; « Je me rétracte » sur la page de la commande, une seule demande, l'organisation est prévenue (notification et e-mail) et rembourse au retour des produits. Rappelé avant le paiement et dans l'e-mail de confirmation, détaillé dans les conditions de vente.
 - RG-SHOP-12 : remboursement par l'organisation (droit de rembourser), ligne par ligne, sur le moyen de paiement de l'acheteur ; les articles rendus reviennent au stock si l'organisation le choisit ; l'acheteur reçoit un e-mail ; une commande entièrement remboursée ne peut plus être remise.
+- RG-SHOP-13 : un seul stock pour les deux canaux. Une option d'événement peut reprendre un produit non archivé (offres Pro et Partenaire) : nom, prix et description viennent du produit, l'option n'a pas de stock propre. Sur la page de l'événement, elle est proposée variante par variante, au prix de la boutique (supplément compris) et avec sa disponibilité ; la variante choisie est retenue sur le stock de la boutique pendant la réservation (jamais au-delà), libérée à l'expiration ou à l'annulation, vendue au paiement. Aucune commission Evoly sur le produit. Le retrait se fait à l'événement, par le flux des options (scanner, bar). Un produit proposé en option ne se supprime pas.
 
 ## 10. Catalogue des e-mails
 

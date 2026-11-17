@@ -30,7 +30,9 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
     d'une commande (prête, remise, remboursement), scan des retraits ; conditions de vente complétées. Au déploiement :
     migration `20261117140000_boutique_commandes`. Plus tard : les commandes de la boutique dans Finances (recette,
     exports), qui ne comptent aujourd'hui que les billets.
-  - 3c, produits en option des événements, stock partagé : à faire.
+  - 3c, produits en option des événements, stock partagé : fait. Billetterie, Options : « Produit de la boutique » ;
+    l'acheteur choisit la variante avec ses billets, retenue sur le stock de la boutique, retirée à l'événement. Au
+    déploiement : migration `20261117150000_boutique_options_evenements`.
   - 3d, livraison avec numéro de suivi : à faire (les modes de livraison se configurent déjà en 3a).
 - Lot 4, connexion avec Apple : fait côté code (origine de confiance `https://appleid.apple.com`, script du secret,
   procédure dans `docs/DEPLOIEMENT.md`) ; reste la configuration chez Apple et sur le serveur (ci-dessous).

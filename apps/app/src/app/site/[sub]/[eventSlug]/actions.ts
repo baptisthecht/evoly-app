@@ -47,7 +47,7 @@ import type { RefundRule } from "@evoly/core";
 const optionsSchema = z
   .array(
     z.object({
-      optionId: z.string().max(40),
+      optionId: z.string().max(81), // produit de la boutique : « option:variante »
       quantity: z.number().int().min(0).max(100),
     }),
   )

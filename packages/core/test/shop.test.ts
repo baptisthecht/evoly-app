@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatVatRate,
+  optionLineName,
   normalizePickupCode,
   shopOrderTotals,
   withdrawalOpen,
@@ -181,5 +182,12 @@ describe("boutique : reçu, rétractation, code de retrait (RG-SHOP-10, RG-SHOP-
 
   it("code de retrait saisi à la main : majuscules, sans espaces ni tirets", () => {
     expect(normalizePickupCode(" ab3d-ef 7h9k ")).toBe("AB3DEF7H9K");
+  });
+});
+
+describe("boutique en option des événements (RG-SHOP-13)", () => {
+  it("nom d'une option achetée : la variante entre parenthèses", () => {
+    expect(optionLineName("T-shirt", "M")).toBe("T-shirt (M)");
+    expect(optionLineName("Vestiaire", null)).toBe("Vestiaire");
   });
 });

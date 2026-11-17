@@ -2063,31 +2063,38 @@ model EventOption {
   sortOrder   Int              @default(0)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  productId   String? // option reprise d'un produit de la boutique : nom et prix du produit, stock partagé (section 9.35)
   event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  product     Product?         @relation(fields: [productId], references: [id], onDelete: Restrict)
   lines       OrderOption[]
 
   @@index([eventId])
+  @@index([productId])
 }
 
 /// Option achetée dans une commande : prix et commission figés à l'achat, quantité déjà retirée au bar
 model OrderOption {
-  id             String                     @id @default(cuid())
-  orderId        String
-  optionId       String
-  quantity       Int
-  unitPriceMinor Int
-  unitFeeMinor   Int                        @default(0)
-  redeemed       Int                        @default(0)
-  refunded       Int                        @default(0) // quantité remboursée (RG-OPT-07)
-  createdAt      DateTime                   @default(now())
-  order          Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  option         EventOption                @relation(fields: [optionId], references: [id])
-  redemptions    OptionRedemption[]
-  refundItems    RefundOptionItem[]
-  conflicts      OptionRedemptionConflict[]
+  id               String                     @id @default(cuid())
+  orderId          String
+  optionId         String
+  quantity         Int
+  unitPriceMinor   Int
+  unitFeeMinor     Int                        @default(0)
+  redeemed         Int                        @default(0)
+  refunded         Int                        @default(0) // quantité remboursée (RG-OPT-07)
+  productVariantId String? // produit de la boutique : la variante choisie, sur le stock partagé
+  variantLabel     String? // « M · Noir », figé à l'achat
+  createdAt        DateTime                   @default(now())
+  order            Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  option           EventOption                @relation(fields: [optionId], references: [id])
+  productVariant   ProductVariant?            @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
+  redemptions      OptionRedemption[]
+  refundItems      RefundOptionItem[]
+  conflicts        OptionRedemptionConflict[]
 
   @@index([orderId])
   @@index([optionId])
+  @@index([productVariantId])
 }
 
 /// Retrait d'une option au bar (RG-OPT-04) : qui, quand, combien
@@ -2515,6 +2522,7 @@ model Product {
   optionGroups ProductOptionGroup[]
   variants     ProductVariant[]
   orderLines   ShopOrderLine[]
+  eventOptions EventOption[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, status, sortOrder])
@@ -2579,8 +2587,9 @@ model ProductVariant {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  orderLines ShopOrderLine[]
+  product      Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderLines   ShopOrderLine[]
+  orderOptions OrderOption[]
 
   @@unique([productId, key])
   @@index([productId, sortOrder])

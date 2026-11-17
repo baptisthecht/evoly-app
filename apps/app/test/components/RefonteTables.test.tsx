@@ -466,9 +466,61 @@ describe("billetterie et finances", () => {
               standalone: false,
             },
           },
+          // produit de la boutique repris : pastille « Boutique », stock partagé (RG-SHOP-13)
+          {
+            id: "op2",
+            name: "T-shirt",
+            description: "",
+            price: "25 €",
+            priceMinor: 2500,
+            sold: 2,
+            stock: null,
+            redeemed: 0,
+            maxPerOrder: 4,
+            active: true,
+            fromShop: true,
+            shopStock: 7,
+            initial: {
+              id: "op2",
+              name: "T-shirt",
+              description: "",
+              price: "25.00",
+              stock: "",
+              maxPerOrder: "4",
+              standalone: false,
+              productId: "p1",
+            },
+          },
+          {
+            id: "op3",
+            name: "Affiche",
+            description: "",
+            price: "15 €",
+            priceMinor: 1500,
+            sold: 0,
+            stock: null,
+            redeemed: 0,
+            maxPerOrder: 4,
+            active: true,
+            fromShop: true,
+            shopStock: null,
+            initial: {
+              id: "op3",
+              name: "Affiche",
+              description: "",
+              price: "15.00",
+              stock: "",
+              maxPerOrder: "4",
+              standalone: false,
+              productId: "p2",
+            },
+          },
         ]}
+        products={[{ id: "p1", name: "T-shirt", price: "25 €" }]}
       />,
     );
+    expect(screen.getAllByText(all.options!.fromShop!).length).toBe(2);
+    expect(screen.getByText(`7 · ${all.options!.sharedStock}`)).toBeTruthy();
     const row = within(table()).getAllByRole("row")[1]!;
     expect(
       row.querySelector<HTMLElement>('[style*="width"]')!.style.width,

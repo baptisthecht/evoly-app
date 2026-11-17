@@ -218,6 +218,9 @@ export async function deleteProduct(ctx: OrgContext, productId: string) {
     },
   });
   if (used > 0) throw new CoreError("SHOP_PRODUCT_SOLD");
+  // proposé en option d'un événement (RG-SHOP-13) : à retirer de l'événement d'abord
+  if (await db.eventOption.count({ where: { productId: product.id } }))
+    throw new CoreError("SHOP_PRODUCT_IN_EVENT");
   const images = await db.productImage.findMany({
     where: { productId: product.id },
     select: { url: true },

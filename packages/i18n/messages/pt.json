@@ -288,7 +288,8 @@
     "error_CARD_EXPIRED": "O seu cartão expirou. Experimente outro cartão.",
     "error_CARD_INCORRECT_CVC": "O código de segurança do seu cartão está incorreto. Verifique-o e tente novamente.",
     "error_PAYMENT_INVALID": "Este pagamento já não pode ser confirmado. Recomece a sua reserva.",
-    "error_BUYER_BLOCKED": "Esta encomenda não pode ser concluída. Contacte o organizador."
+    "error_BUYER_BLOCKED": "Esta encomenda não pode ser concluída. Contacte o organizador.",
+    "error_OPTION_VARIANT_REQUIRED": "Escolha o tamanho ou a cor de cada produto."
   },
   "seatPicker": {
     "title": "Escolha os seus lugares",
@@ -1416,7 +1417,8 @@
     "SHOP_ORDER_STATE": "Esta ação já não é possível para esta encomenda.",
     "SHOP_ALREADY_PICKED_UP": "Esta encomenda já foi entregue.",
     "SHOP_REFUND_INVALID": "Escolha as quantidades a reembolsar, sem exceder o que resta.",
-    "REFUND_FAILED": "A Stripe recusou o reembolso. Tente novamente ou reembolse a partir do seu painel Stripe."
+    "REFUND_FAILED": "A Stripe recusou o reembolso. Tente novamente ou reembolse a partir do seu painel Stripe.",
+    "SHOP_PRODUCT_IN_EVENT": "Este produto é proposto como opção de um evento: retire-o do evento ou arquive o produto."
   },
   "eventSettings": {
     "unsaved": "Alterações em curso…",
@@ -3250,7 +3252,12 @@
     "tableStatus": "Estado",
     "tableActions": "Ações",
     "tableCaption": "Opções",
-    "settings": "Definições"
+    "settings": "Definições",
+    "productLabel": "Produto da loja",
+    "productNone": "Nenhum: opção livre",
+    "productHint": "O nome, o preço e o stock vêm da loja: o stock é partilhado e o comprador escolhe o tamanho ou a cor.",
+    "fromShop": "Loja",
+    "sharedStock": "stock da loja"
   },
   "ambassadors": {
     "intro": "Dê a cada membro da equipa ou promotor a sua própria ligação de venda e veja quem vende mais.",

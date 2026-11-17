@@ -66,6 +66,36 @@ describe("options d'un événement (section 9.29)", () => {
     expect(actions.updateOptionAction).not.toHaveBeenCalled();
   });
 
+  it("produit de la boutique repris : nom, prix et stock du produit, champs libres masqués (RG-SHOP-13)", async () => {
+    wrap(
+      <OptionForm
+        orgSlug="club"
+        eventId="e1"
+        symbol="€"
+        products={[{ id: "p1", name: "T-shirt", price: "25 €" }]}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText(opt.productLabel!), {
+      target: { value: "p1" },
+    });
+    expect(screen.getByText(opt.productHint!)).toBeTruthy();
+    expect(document.getElementById("option-new-name")).toBeNull();
+    expect(document.getElementById("option-new-stock")).toBeNull();
+    await submit(opt.add!);
+    await waitFor(() => expect(actions.createOptionAction).toHaveBeenCalled());
+    const data = actions.createOptionAction.mock.calls[0]!.at(-1) as FormData;
+    expect([
+      data.get("productId"),
+      data.get("maxPerOrder"),
+      data.get("name"),
+    ]).toEqual(["p1", "10", null]);
+    // retour à une option libre : les champs reviennent
+    fireEvent.change(screen.getByLabelText(opt.productLabel!), {
+      target: { value: "" },
+    });
+    expect(document.getElementById("option-new-name")).toBeTruthy();
+  });
+
   it("option existante : modifiée, jamais recréée", async () => {
     wrap(
       <OptionForm

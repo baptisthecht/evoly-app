@@ -1,4 +1,4 @@
-import { can } from "@evoly/core";
+import { can, optionLineName } from "@evoly/core";
 import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -429,7 +429,8 @@ export default async function OrderDetailPage({
                     className="flex flex-wrap justify-between gap-2"
                   >
                     <span className="font-semibold">
-                      {o.quantity} × {o.option.name}
+                      {o.quantity} ×{" "}
+                      {optionLineName(o.option.name, o.variantLabel)}
                     </span>
                     <span className="text-ink-muted">
                       {t("optionsState", {
@@ -454,7 +455,7 @@ export default async function OrderDetailPage({
                   }
                   options={order.options.map((o) => ({
                     id: o.id,
-                    name: o.option.name,
+                    name: optionLineName(o.option.name, o.variantLabel),
                     left: o.quantity - o.redeemed - o.refunded,
                     unitPriceMinor: o.unitPriceMinor,
                   }))}

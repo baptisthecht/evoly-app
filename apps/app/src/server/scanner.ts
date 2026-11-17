@@ -8,6 +8,7 @@ import {
   effectiveEnd,
   humanCode,
   normalizeShortCode,
+  optionLineName,
   trustedScanTime,
   utcToZonedLocal,
   zonedLocalToUtc,
@@ -305,6 +306,7 @@ export async function scannerManifest(link: ResolvedLink) {
       quantity: true,
       redeemed: true,
       refunded: true,
+      variantLabel: true,
       option: { select: { name: true } },
     },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }], // ordre stable sur le téléphone, même pour des billets créés ensemble
@@ -322,7 +324,7 @@ export async function scannerManifest(link: ResolvedLink) {
   for (const l of optionLines)
     (options[l.orderId] ??= []).push({
       id: l.id,
-      name: l.option.name,
+      name: optionLineName(l.option.name, l.variantLabel),
       quantity: l.quantity,
       redeemed: l.redeemed,
       left: l.quantity - l.redeemed - l.refunded,

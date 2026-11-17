@@ -20,7 +20,7 @@ const schema = z.object({
   options: z
     .array(
       z.object({
-        optionId: z.string().max(40),
+        optionId: z.string().max(81), // produit de la boutique : « option:variante »
         quantity: z.number().int().min(1).max(20),
       }),
     )

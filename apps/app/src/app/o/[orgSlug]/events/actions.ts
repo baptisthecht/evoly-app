@@ -1287,21 +1287,36 @@ export async function saveBotProtectionAction(
 }
 
 // Options et consommations prépayées (section 9.29, Pro)
-const optionSchema = z.object({
-  name: text(80).min(1, { message: "validation.required" }),
-  description: optionalText(300),
-  price: text(12).min(1, { message: "validation.required" }),
-  stock: optionalText(9),
-  maxPerOrder: optionalText(3),
-  standalone: optionalText(5), // case cochée : « on » (RG-OPT-03)
-});
+const optionSchema = z
+  .object({
+    // absents du formulaire pour un produit de la boutique : ils viennent du produit
+    name: optionalText(80),
+    description: optionalText(300),
+    price: optionalText(12),
+    stock: optionalText(9),
+    maxPerOrder: optionalText(3),
+    standalone: optionalText(5), // case cochée : « on » (RG-OPT-03)
+    productId: optionalText(40), // produit de la boutique repris (RG-SHOP-13)
+  })
+  .superRefine((d, issue) => {
+    // option libre : nom et prix obligatoires ; produit de la boutique : ils viennent du produit
+    if (d.productId) return;
+    for (const k of ["name", "price"] as const)
+      if (!d[k])
+        issue.addIssue({
+          code: "custom",
+          path: [k],
+          message: "validation.required",
+        });
+  });
 const optionInput = (d: z.infer<typeof optionSchema>) => ({
-  name: d.name,
+  name: d.name ?? "",
   description: d.description ?? undefined,
-  price: d.price,
+  price: d.price ?? "",
   stock: d.stock ?? undefined,
   maxPerOrder: d.maxPerOrder ?? undefined,
   standalone: d.standalone === "on",
+  productId: d.productId ?? null,
 });
 
 export async function createOptionAction(

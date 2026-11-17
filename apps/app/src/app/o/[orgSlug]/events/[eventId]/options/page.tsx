@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ProLocked } from "@/components/ProLocked";
 import { Badge, Card, EmptyState } from "@/components/ui/Card";
+import { db } from "@/lib/db";
 import { requireOrgContext } from "@/server/context";
 import { getEventWithTickets } from "@/server/events";
 import { listOptions } from "@/server/options";
@@ -37,6 +38,17 @@ export default async function OptionsPage({
     );
   }
   const options = await listOptions(ctx, eventId);
+  // boutique (Pro) : ses produits non archivés peuvent être repris en option, sur le stock partagé (RG-SHOP-13)
+  const products = hasFeature(ctx.features, "SHOP")
+    ? await db.product.findMany({
+        where: {
+          organizationId: ctx.organization.id,
+          status: { not: "ARCHIVED" },
+        },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+        select: { id: true, name: true, priceMinor: true, currency: true },
+      })
+    : [];
   const locale = (await getLocale()) as Locale;
   const manage =
     can(ctx.membership, "TICKETS_MANAGE") &&
@@ -59,6 +71,13 @@ export default async function OptionsPage({
         manage={manage}
         symbol={symbol}
         refundAfterStart={event.optionsRefundAfterStart}
+        products={products.map((x) => ({
+          id: x.id,
+          name: x.name,
+          price: formatMoney(x.priceMinor, x.currency, locale, {
+            trimZeroCents: true,
+          }),
+        }))}
         rows={options.map((o) => ({
           id: o.id,
           name: o.name,
@@ -80,7 +99,10 @@ export default async function OptionsPage({
             stock: o.stock?.toString() ?? "",
             maxPerOrder: String(o.maxPerOrder),
             standalone: o.standalone,
+            productId: o.productId,
           },
+          fromShop: !!o.productId,
+          shopStock: o.shopStock,
         }))}
       />
     </>

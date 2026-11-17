@@ -221,3 +221,11 @@ export function withdrawalOpen(
 export function normalizePickupCode(input: string): string {
   return input.toUpperCase().replace(/[^0-9A-Z]/g, "");
 }
+
+/** Nom d'une option achetée : « T-shirt de la tournée (M) » pour un produit de la boutique, sinon son nom. */
+export function optionLineName(
+  name: string,
+  variantLabel: string | null | undefined,
+): string {
+  return variantLabel ? `${name} (${variantLabel})` : name;
+}

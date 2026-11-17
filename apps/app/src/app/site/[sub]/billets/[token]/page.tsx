@@ -20,6 +20,7 @@ import {
   buyerBearsRefundFees,
   checkRefundRequest,
   estimateBankFee,
+  optionLineName,
 } from "@evoly/core";
 import { resaleQuote, resaleShortUrl } from "@/server/resale";
 import { db } from "@/lib/db";
@@ -267,7 +268,8 @@ export default async function BuyerTicketsPage({
                       className="flex flex-wrap justify-between gap-3"
                     >
                       <span>
-                        {o.quantity} × {o.option.name}
+                        {o.quantity} ×{" "}
+                        {optionLineName(o.option.name, o.variantLabel)}
                       </span>
                       <span className="tabular-nums">
                         {t("optionsLeft", {
