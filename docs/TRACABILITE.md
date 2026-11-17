@@ -1,8 +1,8 @@
 # Traçabilité du cahier des charges
 
-État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (373 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
+État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (382 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 204 · fait : 167 · hors périmètre : 2.
+**Bilan** : fait, testé : 213 · fait : 167 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -389,3 +389,12 @@
 | RG-SHOP-04 | P1 | le stock d'une variante compte les unités disponibles (vide : illimité) ; il diminue à chaque vente, ne descend jamais sous | fait, testé | saveVariants, contraintes de la migration 20261117120000_boutique (shop.ts, shop-catalog.test.ts) |
 | RG-SHOP-05 | P1 | un produit se met en vente avec au moins une variante active et un mode de remise réellement proposé : le retrait avec au m | fait, testé | productSaleBlocker, saleCheck (core shop.ts, shop.ts, shop.test.ts, shop-catalog.test.ts, shop-admin.spec.ts) |
 | RG-SHOP-06 | P1 | seul un produit jamais vendu se supprime, photos comprises ; sinon il s'archive : il n'est plus en vente et ses commandes re | fait, testé | deleteProduct, photos réduites à 1 600 px (shop.ts, brand.ts, shop-catalog.test.ts) |
+| US-SHOP-04 | P1 | en tant qu'acheteur, je découvre la boutique depuis la page de l'organisation (section « Boutique »), j'ouvre la page d'un | fait, testé | boutique publique, page produit, panier (shopPublic.ts, ProductBuy.tsx, CartView.tsx, ProductGrid.tsx, shop-orders.test.ts, ShopPublic.test.tsx, shop-public.spec.ts) |
+| US-SHOP-05 | P1 | en tant qu'acheteur, je commande sans billet : mes coordonnées, le lieu de retrait, le paiement ; je reçois un e-mail avec | fait, testé | paiement et page de la commande (shopCheckout.ts, ShopCheckout.tsx, page commande, shop-orders.test.ts, ShopPublic.test.tsx, shop-public.spec.ts) |
+| US-SHOP-06 | P1 | en tant qu'organisateur (droits des commandes), je suis les commandes de la boutique (à préparer, prêtes, remises), je prév | fait, testé | onglet Commandes, fiche, scan des retraits (shopOrders.ts, ShopOrdersTable.tsx, OrderDetail.tsx, PickupScanner.tsx, shop-orders.test.ts, ShopOrders.test.tsx, shop-public.spec.ts) |
+| RG-SHOP-07 | P1 | le panier vit dans le navigateur et ne fixe rien ; « Commander » relit les prix et la disponibilité, puis retient chaque v | fait, testé | reserveShopOrder, releaseExpiredShopHolds, completeShopOrder (shopCheckout.ts, shop-orders.test.ts) |
+| RG-SHOP-08 | P1 | paiement par charge directe sur le compte Stripe de l'organisation, sans frais d'application : aucune commission Evoly, s | fait, testé | submitShopBuyer, confirmShopPayment, personnes bloquées (shopCheckout.ts, shop-orders.test.ts) |
+| RG-SHOP-09 | P1 | remise en main propre : l'acheteur choisit un lieu de retrait actif ; sa commande porte un code de retrait (QR et 10 carac | fait, testé | markShopOrderReady, markShopOrderPickedUp, findShopOrderByPickupCode (shopOrders.ts, PickupScanner.tsx, shop-orders.test.ts, ShopOrders.test.tsx) |
+| RG-SHOP-10 | P1 | reçu (page de la commande et e-mail) : chaque ligne avec son taux de TVA, le total toutes taxes comprises et la TVA compr | fait, testé | shopOrderTotals, shopReceipt (core shop.ts, shopOrders.ts, shop.test.ts, shop-emails.test.ts, shop-orders.test.ts) |
+| RG-SHOP-11 | P1 | droit de rétractation de 14 jours (vente à distance), pour le retrait en main propre comme pour la livraison : ouvert tant | fait, testé | withdrawalOpen, requestShopWithdrawal, conditions de vente (core shop.ts, shopOrders.ts, shop.test.ts, shop-orders.test.ts, ShopPublic.test.tsx) |
+| RG-SHOP-12 | P1 | remboursement par l'organisation (droit de rembourser), ligne par ligne, sur le moyen de paiement de l'acheteur ; les arti | fait, testé | refundShopOrder, syncShopRefund (shopOrders.ts, OrderDetail.tsx, shop-orders.test.ts, ShopOrders.test.tsx) |

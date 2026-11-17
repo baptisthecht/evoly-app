@@ -144,8 +144,8 @@ async function releaseExpiredInTx(tx: Tx, eventId: string, now: Date) {
   }));
 }
 
-/** Annule les intentions de paiement des réservations libérées, pour éviter un paiement tardif. */
-async function cancelPaymentIntents(
+/** Annule les intentions de paiement des réservations libérées, pour éviter un paiement tardif (billets et boutique). */
+export async function cancelPaymentIntents(
   organizationId: string,
   intents: Array<{ paymentIntentId: string | null }>,
 ) {
@@ -1698,7 +1698,8 @@ export async function changeReservationSeats(
 }
 
 /** Refus de la banque : un message clair dans la langue de l'acheteur (le message de Stripe, côté serveur, est en anglais). */
-function cardFailure(err: unknown): CoreError {
+/** Refus de la carte traduit en code d'erreur lisible (billets et boutique). */
+export function cardFailure(err: unknown): CoreError {
   const e = err as {
     type?: unknown;
     code?: unknown;

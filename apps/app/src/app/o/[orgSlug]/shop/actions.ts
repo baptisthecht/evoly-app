@@ -1,5 +1,6 @@
 "use server";
 
+import { can, CoreError } from "@evoly/core";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -27,6 +28,12 @@ import {
   updatePickupPoint,
   updateShippingMethod,
 } from "@/server/shopDelivery";
+import {
+  findShopOrderByPickupCode,
+  markShopOrderPickedUp,
+  markShopOrderReady,
+  refundShopOrder,
+} from "@/server/shopOrders";
 
 // Boutique (lot 3, Pro), section 9.35 : droit « Gérer la boutique », fonctionnalité SHOP
 const SHOP = { permission: "SHOP_MANAGE", feature: "SHOP" } as const;
@@ -362,6 +369,139 @@ export async function deliveryCommandAction(
         else await setPickupPointActive(ctx, id, d.command === "enable");
       } else if (d.command === "delete") await deleteShippingMethod(ctx, id);
       else await setShippingMethodActive(ctx, id, d.command === "enable");
+      return null;
+    },
+  );
+  if (r?.ok) revalidatePath(shopPath(orgSlug));
+  return r;
+}
+
+// Commandes de la boutique (lot 3b) : préparation, retrait, remboursement (droits des commandes)
+const orderPath = (orgSlug: string, orderId: string) =>
+  `/o/${orgSlug}/shop/orders/${orderId}`;
+
+/** « Prête à retirer » (e-mail à l'acheteur) ou « Retirée » (remise en main propre). */
+export async function fulfillmentAction(
+  orgSlug: string,
+  orderId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    {
+      schema: z.object({ step: z.enum(["READY", "PICKED_UP"]) }),
+      permission: "ORDERS_MANAGE",
+      feature: "SHOP",
+    },
+    async (d, ctx) => {
+      if (d.step === "READY") await markShopOrderReady(ctx, orderId);
+      else await markShopOrderPickedUp(ctx, orderId);
+      return null;
+    },
+  );
+  if (r?.ok) {
+    revalidatePath(orderPath(orgSlug, orderId));
+    revalidatePath(shopPath(orgSlug));
+  }
+  return r;
+}
+
+const refundSchema = z
+  .object({ restock: checkbox })
+  .catchall(z.string().max(4));
+
+/** Remboursement ligne par ligne (champs « qty.<ligne> »), articles remis en stock si demandé. */
+export async function refundShopOrderAction(
+  orgSlug: string,
+  orderId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: refundSchema, permission: "REFUNDS_MANAGE", feature: "SHOP" },
+    async (d, ctx) => {
+      const lines = Object.entries(d)
+        .filter(([k]) => k.startsWith("qty."))
+        .map(([k, v]) => ({ lineId: k.slice(4), quantity: Number(v) || 0 }));
+      return refundShopOrder(ctx, orderId, { lines, restock: d.restock });
+    },
+  );
+  if (r?.ok) {
+    revalidatePath(orderPath(orgSlug, orderId));
+    revalidatePath(shopPath(orgSlug));
+  }
+  return r;
+}
+
+export interface PickupLookup {
+  id: string;
+  reference: string;
+  buyer: string;
+  status: string;
+  fulfillmentStatus: string;
+  withdrawal: boolean;
+  lines: Array<{ name: string; quantity: number; refunded: number }>;
+}
+
+/** Retrait : la commande d'un code QR scanné ou saisi (droit de gérer les commandes ou de scanner). */
+export async function pickupLookupAction(
+  orgSlug: string,
+  code: string,
+): Promise<ActionState<PickupLookup>> {
+  return runOrgAction(
+    orgSlug,
+    { code },
+    {
+      schema: z.object({ code: z.string().trim().min(1).max(40) }),
+      feature: "SHOP",
+      write: false,
+    },
+    async (d, ctx) => {
+      if (
+        !can(ctx.membership, "ORDERS_MANAGE") &&
+        !can(ctx.membership, "CHECKIN_SCAN")
+      )
+        throw new CoreError("FORBIDDEN");
+      const o = await findShopOrderByPickupCode(ctx, d.code);
+      return {
+        id: o.id,
+        reference: o.reference,
+        buyer: [o.buyerFirstName, o.buyerLastName].filter(Boolean).join(" "),
+        status: o.status,
+        fulfillmentStatus: o.fulfillmentStatus,
+        withdrawal: !!o.withdrawalRequestedAt,
+        lines: o.lines.map((l) => ({
+          name: l.variantLabel
+            ? `${l.productName} (${l.variantLabel})`
+            : l.productName,
+          quantity: l.quantity,
+          refunded: l.refundedQuantity,
+        })),
+      };
+    },
+  );
+}
+
+/** Retrait confirmé depuis la page de scan. */
+export async function pickupConfirmAction(
+  orgSlug: string,
+  orderId: string,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    { orderId },
+    { schema: z.object({ orderId: z.string().max(40) }), feature: "SHOP" },
+    async (d, ctx) => {
+      if (
+        !can(ctx.membership, "ORDERS_MANAGE") &&
+        !can(ctx.membership, "CHECKIN_SCAN")
+      )
+        throw new CoreError("FORBIDDEN");
+      await markShopOrderPickedUp(ctx, d.orderId);
       return null;
     },
   );

@@ -9,7 +9,7 @@ export interface RenderedEmail {
   text: string;
 }
 
-const escapeHtml = (s: string) =>
+export const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
     (c) =>
@@ -1169,14 +1169,14 @@ export function subscriptionEmail(o: {
 }
 
 /** En-tête des e-mails aux acheteurs : logo de l'organisation (Pro) ou son nom. */
-function brandHeader(name: string, brand?: EmailBrand | null): string {
+export function brandHeader(name: string, brand?: EmailBrand | null): string {
   return brand?.logoUrl
     ? `<img src="${escapeHtml(brand.logoUrl)}" alt="${escapeHtml(name)}" height="40" style="height:40px;width:auto;border:0;display:block">`
     : escapeHtml(name);
 }
 
 /** Boutons des e-mails aux acheteurs : couleur d'accent de l'organisation (Pro), texte lisible (RG-BRD-01). */
-function brandButton(brand?: EmailBrand | null): string {
+export function brandButton(brand?: EmailBrand | null): string {
   const colors = brand?.accent
     ? `background:${brand.accent};color:${brand.accentInk}`
     : `background:${palette.rose};color:${palette.charbon}`;
@@ -1184,7 +1184,7 @@ function brandButton(brand?: EmailBrand | null): string {
 }
 
 /** Police des titres des e-mails aux acheteurs : celle de la marque, sinon Archivo Black (charte). */
-function brandHeading(brand?: EmailBrand | null): string {
+export function brandHeading(brand?: EmailBrand | null): string {
   return (
     brand?.headingFont ?? "'Archivo Black',Arial Black,Arial,sans-serif"
   ).replace(/"/g, "'");

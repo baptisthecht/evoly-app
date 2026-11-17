@@ -1,3 +1,4 @@
+import { vatIncluded } from "./finance";
 import type { Minor } from "./money";
 
 /**
@@ -97,6 +98,13 @@ export function parseVatRate(input: string): number | null {
   return bps <= MAX_VAT_BPS ? bps : null;
 }
 
+/** Taux de TVA affiché sur un reçu, dans la langue de l'acheteur : 2100 → « 21 », 550 → « 5,5 » (« 5.5 » en anglais). */
+export function formatVatRate(bps: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(
+    bps / 100,
+  );
+}
+
 /** Points de base vers la saisie : 2100 → « 21 », 550 → « 5,5 ». */
 export function vatRateInput(bps: number): string {
   return String(bps / 100).replace(".", ",");
@@ -130,4 +138,86 @@ export function productSaleBlocker(p: {
   if (p.activeVariants === 0) return "NO_VARIANT";
   if (!p.pickupEnabled && !p.shippingEnabled) return "NO_FULFILLMENT";
   return null;
+}
+
+/** Panier de la boutique : 30 lignes au plus, 20 unités d'une même variante. */
+export const SHOP_CART_LIMITS = { lines: 30, quantity: 20 } as const;
+
+export interface ShopTotalsLine {
+  unitPriceMinor: Minor;
+  quantity: number;
+  vatRateBps: number;
+}
+
+export interface ShopTotals {
+  subtotalMinor: Minor;
+  shippingMinor: Minor;
+  totalMinor: Minor;
+  /** TVA comprise, tous taux confondus */
+  vatMinor: Minor;
+  /** par taux (du plus haut au plus bas) : montant toutes taxes comprises et TVA comprise ; taux nul omis */
+  vat: Array<{ rateBps: number; amountMinor: Minor; vatMinor: Minor }>;
+}
+
+/**
+ * RG-SHOP-10 : totaux d'une commande de la boutique, toutes taxes comprises, et TVA comprise de chaque taux pour le
+ * reçu (calculée sur la somme du taux, arrondie au centime). La livraison suit son propre taux.
+ */
+export function shopOrderTotals(
+  lines: readonly ShopTotalsLine[],
+  shipping: { amountMinor: Minor; vatRateBps: number } | null = null,
+): ShopTotals {
+  const byRate = new Map<number, Minor>();
+  const add = (rate: number, amount: Minor) =>
+    byRate.set(rate, (byRate.get(rate) ?? 0) + amount);
+  let subtotalMinor = 0;
+  for (const l of lines) {
+    const amount = l.unitPriceMinor * l.quantity;
+    subtotalMinor += amount;
+    add(l.vatRateBps, amount);
+  }
+  const shippingMinor = shipping?.amountMinor ?? 0;
+  if (shipping && shippingMinor > 0) add(shipping.vatRateBps, shippingMinor);
+  const vat = [...byRate]
+    .filter(([rate, amount]) => rate > 0 && amount > 0)
+    .sort(([a], [b]) => b - a)
+    .map(([rateBps, amountMinor]) => ({
+      rateBps,
+      amountMinor,
+      vatMinor: vatIncluded(amountMinor, rateBps),
+    }));
+  return {
+    subtotalMinor,
+    shippingMinor,
+    totalMinor: subtotalMinor + shippingMinor,
+    vatMinor: vat.reduce((n, v) => n + v.vatMinor, 0),
+    vat,
+  };
+}
+
+/** Délai de rétractation d'un achat à distance (RG-SHOP-11) : 14 jours après la réception. */
+export const WITHDRAWAL_DAYS = 14;
+
+/**
+ * RG-SHOP-11 : rétractation possible sur une commande payée, pas entièrement remboursée, tant que les produits ne sont
+ * pas reçus et jusqu'à 14 jours après leur réception (retrait en main propre ou livraison).
+ */
+export function withdrawalOpen(
+  o: {
+    status: string;
+    totalMinor: Minor;
+    refundedMinor: Minor;
+    receivedAt: Date | null;
+  },
+  now: Date,
+): boolean {
+  if (o.status !== "PAID" && o.status !== "PARTIALLY_REFUNDED") return false;
+  if (o.refundedMinor >= o.totalMinor) return false;
+  if (!o.receivedAt) return true;
+  return now.getTime() < o.receivedAt.getTime() + WITHDRAWAL_DAYS * 86_400_000;
+}
+
+/** Code de retrait saisi à la main : majuscules, sans espaces ni tirets. */
+export function normalizePickupCode(input: string): string {
+  return input.toUpperCase().replace(/[^0-9A-Z]/g, "");
 }

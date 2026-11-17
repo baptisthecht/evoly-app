@@ -129,6 +129,7 @@ async function freeSlug(
     new Set([
       ...rows.map((r) => r.slug),
       "billets",
+      "boutique",
       "commande",
       "revente",
       "api",

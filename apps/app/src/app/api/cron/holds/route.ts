@@ -4,6 +4,7 @@ import { expireResaleListings } from "@/server/resale";
 import { applyTimedDowngrades } from "@/server/billing";
 import { fillMissingStripeFees } from "@/server/orders";
 import { dispatchWaitlist } from "@/server/waitlist";
+import { releaseExpiredShopHolds } from "@/server/shopCheckout";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export async function GET(req: Request) {
   // RG-BUY-02 et RG-RSL-08 : réservations expirées libérées, annonces de revente closes à la fin de la revente
   return Response.json({
     released: await releaseExpiredHolds(),
+    shopReleased: await releaseExpiredShopHolds(), // boutique : produits retenus libérés (RG-SHOP-07)
     waitlist: await dispatchWaitlist(), // section 9.30 : places libérées proposées aux inscrits
     expiredListings: await expireResaleListings(),
     downgraded: await applyTimedDowngrades(),

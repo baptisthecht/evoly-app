@@ -317,6 +317,7 @@ model Organization {
   products            Product[] // boutique (Pro)
   pickupPoints        PickupPoint[]
   shippingMethods     ShippingMethod[]
+  shopOrders          ShopOrder[]
 
   featuredMode    FeaturedMode @default(NEXT) // vitrine : événement mis en avant (aucun, le prochain, un choisi)
   featuredEventId String? // événement choisi ; la vitrine reprend le prochain s'il n'est plus à venir ou public
@@ -1799,6 +1800,8 @@ enum NotificationType {
   EVENT_PUBLISHED // événement programmé devenu public
   PAYOUT_FAILED // virement Stripe vers la banque de l'organisateur échoué
   BUYER_FLAGGED // commande passée sous le nom d'une personne bloquée
+  SHOP_ORDER_PAID // commande payée dans la boutique
+  SHOP_WITHDRAWAL // rétractation demandée sur une commande de la boutique
 }
 
 model Notification {
@@ -2511,6 +2514,7 @@ model Product {
   images       ProductImage[]
   optionGroups ProductOptionGroup[]
   variants     ProductVariant[]
+  orderLines   ShopOrderLine[]
 
   @@unique([organizationId, slug])
   @@index([organizationId, status, sortOrder])
@@ -2575,7 +2579,8 @@ model ProductVariant {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderLines ShopOrderLine[]
 
   @@unique([productId, key])
   @@index([productId, sortOrder])
@@ -2594,6 +2599,7 @@ model PickupPoint {
   updatedAt      DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders       ShopOrder[]
 
   @@index([organizationId, sortOrder])
 }
@@ -2612,4 +2618,136 @@ model ShippingMethod {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, sortOrder])
+}
+
+// Commandes de la boutique (lot 3b) : séparées des commandes de billets, qui exigent toutes un événement
+
+enum ShopOrderStatus {
+  PENDING // produits réservés, paiement en cours
+  PAID
+  CANCELLED // abandonnée avant le paiement (acheteur bloqué, annulation)
+  EXPIRED // réservation expirée sans paiement
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum FulfillmentMode {
+  PICKUP // retrait en main propre, sur présentation du code QR
+  SHIPPING // livraison (lot 3d)
+}
+
+enum FulfillmentStatus {
+  TO_PREPARE // à préparer
+  READY // prête à retirer
+  PICKED_UP // retirée
+  SHIPPED // expédiée (lot 3d)
+}
+
+enum ShopRefundReason {
+  WITHDRAWAL // rétractation de l'acheteur (14 jours)
+  ORGANIZER // remboursement décidé par l'organisation
+}
+
+enum ShopRefundStatus {
+  PROCESSING // envoyé à Stripe
+  SUCCEEDED
+  FAILED
+}
+
+/// Commande de la boutique : produits seuls, sans billet ; aucune commission Evoly (seuls les frais de paiement)
+model ShopOrder {
+  id                    String            @id @default(cuid())
+  organizationId        String
+  reference             String            @unique // EVS-7KQ2-4X9M
+  status                ShopOrderStatus   @default(PENDING)
+  fulfillmentMode       FulfillmentMode   @default(PICKUP)
+  fulfillmentStatus     FulfillmentStatus @default(TO_PREPARE)
+  pickupPointId         String?
+  pickupName            String? // lieu figé à la commande
+  pickupAddress         String?
+  pickupInstructions    String?
+  buyerFirstName        String?
+  buyerLastName         String?
+  buyerEmail            String?
+  buyerEmailKey         String? // adresse normalisée (buyerEmailKey) : personnes bloquées
+  buyerPhone            String?
+  locale                String            @default("fr")
+  currency              String            @db.Char(3)
+  subtotalMinor         Int // produits, toutes taxes comprises
+  shippingMinor         Int               @default(0)
+  totalMinor            Int
+  vatMinor              Int               @default(0) // TVA comprise dans le total, tous taux confondus
+  refundedMinor         Int               @default(0)
+  paymentFeeMinor       Int? // frais de Stripe, relevés après le paiement
+  netMinor              Int?
+  stripePaymentIntentId String?           @unique
+  stripeChargeId        String?           @unique
+  paymentMethodType     String?
+  cardFingerprint       String? // empreinte de la carte (personnes bloquées), jamais un numéro de carte
+  holdExpiresAt         DateTime?
+  accessTokenHash       String?           @unique // lien magique de la commande (hachage seulement)
+  accessTokenVersion    Int               @default(1)
+  pickupCode            String            @unique // code du QR de retrait, aussi saisissable à la main
+  termsVersion          String?
+  marketingOptIn        Boolean           @default(false)
+  withdrawalRequestedAt DateTime? // rétractation demandée par l'acheteur
+  paidAt                DateTime?
+  readyAt               DateTime?
+  pickedUpAt            DateTime?
+  shippedAt             DateTime?
+  cancelledAt           DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id])
+  pickupPoint  PickupPoint?    @relation(fields: [pickupPointId], references: [id], onDelete: SetNull)
+  lines        ShopOrderLine[]
+  refunds      ShopRefund[]
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, status, fulfillmentStatus])
+  @@index([organizationId, buyerEmailKey])
+  @@index([organizationId, buyerLastName])
+  @@index([status, holdExpiresAt])
+}
+
+/// Ligne d'une commande de la boutique : nom, options, prix et TVA figés à l'achat
+model ShopOrderLine {
+  id               String  @id @default(cuid())
+  orderId          String
+  productId        String?
+  variantId        String?
+  productName      String
+  variantLabel     String  @default("")
+  imageUrl         String?
+  quantity         Int
+  unitPriceMinor   Int
+  vatRateBps       Int
+  refundedQuantity Int     @default(0)
+
+  order   ShopOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+/// Remboursement d'une commande de la boutique (rétractation ou décision de l'organisation)
+model ShopRefund {
+  id             String           @id @default(cuid())
+  orderId        String
+  amountMinor    Int
+  reason         ShopRefundReason
+  status         ShopRefundStatus @default(PROCESSING)
+  stripeRefundId String?          @unique
+  failureReason  String?
+  createdById    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  order ShopOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
 }

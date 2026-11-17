@@ -8,6 +8,8 @@ import { syncStripeAccount } from "@/server/stripeConnect";
 import { completeOrder, stripeFeesForCharge } from "@/server/orders";
 import { syncStripeRefund } from "@/server/refunds";
 import { upsertDispute } from "@/server/finances";
+import { completeShopOrder, shopFeesForCharge } from "@/server/shopCheckout";
+import { syncShopRefund } from "@/server/shopOrders";
 
 /** Événements des comptes connectés des organisateurs (RG-PAY-07, section 12), rejouables par la relance des webhooks. */
 export async function handleConnectEvent(
@@ -51,16 +53,15 @@ export async function handleConnectEvent(
     case "charge.updated": {
       // la transaction du paiement (frais Stripe) est créée : frais et net enregistrés sur la commande
       const ch = e.data.object as Stripe.Charge;
-      return ch.balance_transaction && (await stripeFeesForCharge(ch.id))
+      return ch.balance_transaction &&
+        ((await stripeFeesForCharge(ch.id)) || (await shopFeesForCharge(ch.id))) // boutique : mêmes frais, sur la commande de la boutique
         ? "PROCESSED"
         : "IGNORED";
     }
     case "payment_intent.succeeded": {
       // RG-BUY-07 : validation unique de la commande (le paiement peut arriver avant ou après le retour de l'acheteur)
       const pi = e.data.object as Stripe.PaymentIntent;
-      const orderId = pi.metadata?.orderId;
-      if (!orderId) return "IGNORED";
-      await completeOrder(orderId, {
+      const payment = {
         paymentIntentId: pi.id,
         amountMinor: pi.amount_received,
         currency: pi.currency,
@@ -69,7 +70,15 @@ export async function handleConnectEvent(
             ? pi.latest_charge
             : (pi.latest_charge?.id ?? null),
         paymentMethodType: pi.payment_method_types[0] ?? null,
-      });
+      };
+      // RG-SHOP-07 : commande de la boutique, validée de la même façon
+      if (pi.metadata?.shopOrderId) {
+        await completeShopOrder(pi.metadata.shopOrderId, payment);
+        return "PROCESSED";
+      }
+      const orderId = pi.metadata?.orderId;
+      if (!orderId) return "IGNORED";
+      await completeOrder(orderId, payment);
       return "PROCESSED";
     }
     case "charge.refund.updated":
@@ -81,7 +90,8 @@ export async function handleConnectEvent(
         r.id,
         r.status ?? "pending",
         r.failure_reason,
-      ))
+      )) ||
+        (await syncShopRefund(r.id, r.status ?? "pending", r.failure_reason))
         ? "PROCESSED"
         : "IGNORED";
     }
@@ -108,7 +118,15 @@ export async function handleConnectEvent(
       return "PROCESSED";
     case "payment_intent.canceled": {
       // section 12 : réservation libérée aussitôt (la tâche des réservations la remet en vente dans la minute)
-      const orderId = (e.data.object as Stripe.PaymentIntent).metadata?.orderId;
+      const meta = (e.data.object as Stripe.PaymentIntent).metadata;
+      if (meta?.shopOrderId) {
+        await db.shopOrder.updateMany({
+          where: { id: meta.shopOrderId, status: "PENDING" },
+          data: { holdExpiresAt: new Date() },
+        });
+        return "PROCESSED";
+      }
+      const orderId = meta?.orderId;
       if (!orderId) return "IGNORED";
       await db.order.updateMany({
         where: { id: orderId, status: "PENDING" },

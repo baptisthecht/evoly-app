@@ -197,24 +197,50 @@ export async function SectionHeader({
     case "resale":
       return <PageHeader title={nav(section)} />;
     case "shop": {
-      // boutique (lot 3, Pro) : Produits et Retrait et livraison ; « Nouveau produit » sur l'onglet Produits
+      // boutique (lot 3, Pro) : Produits, Commandes, Retrait et livraison selon les droits ; « Nouveau produit » sur
+      // l'onglet Produits, « Scanner un retrait » sur l'onglet Commandes
       const shop = hasFeature(ctx.features, "SHOP");
-      const manage =
-        shop && can(ctx.membership, "SHOP_MANAGE") && !ctx.readOnly;
+      const catalog = can(ctx.membership, "SHOP_MANAGE");
+      const orders = can(ctx.membership, "ORDERS_VIEW");
+      const manage = shop && catalog && !ctx.readOnly;
+      const onOrders = query.tab === "orders" || !catalog;
+      const list = [
+        ...(catalog
+          ? [[s("tab_products"), `${base}/shop`] as [string, string]]
+          : []),
+        ...(orders
+          ? [
+              [
+                s("tab_shopOrders"),
+                `${base}/shop?tab=orders`,
+                `${base}/shop/orders`,
+              ] as [string, string, string],
+            ]
+          : []),
+        ...(catalog
+          ? [
+              [s("tab_delivery"), `${base}/shop?tab=delivery`] as [
+                string,
+                string,
+              ],
+            ]
+          : []),
+      ];
+      const tso = await getTranslations("shopOrders");
       return (
         <PageHeader
           title={nav("shop")}
           tabsLabel={shop ? s("tabs") : undefined}
-          tabs={
-            shop
-              ? tabs([
-                  [s("tab_products"), `${base}/shop`],
-                  [s("tab_delivery"), `${base}/shop?tab=delivery`],
-                ])
-              : undefined
-          }
+          tabs={shop && list.length > 1 ? tabs(list) : undefined}
           actions={
-            manage && query.tab !== "delivery" ? (
+            shop &&
+            onOrders &&
+            (can(ctx.membership, "ORDERS_MANAGE") ||
+              can(ctx.membership, "CHECKIN_SCAN")) ? (
+              <ButtonLink href={`${base}/shop/pickup`} variant="secondary">
+                {tso("scanPickup")}
+              </ButtonLink>
+            ) : manage && query.tab !== "delivery" ? (
               <NewProductDialog
                 orgSlug={ctx.organization.slug}
                 symbol={currencySymbol(ctx.organization.currency)}

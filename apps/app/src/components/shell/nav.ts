@@ -60,7 +60,7 @@ export const NAV: readonly NavItem[] = [
   {
     key: "shop",
     href: "/shop",
-    anyOf: ["SHOP_MANAGE"],
+    anyOf: ["SHOP_MANAGE", "ORDERS_VIEW"], // catalogue, ou commandes de la boutique (billetterie)
     feature: "SHOP",
     group: "pilot",
     icon: "bag",

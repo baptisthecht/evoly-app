@@ -1448,6 +1448,9 @@ Modèle : produits de l'organisation (`Product`), photos (`ProductImage`), optio
 - US-SHOP-01 : en tant qu'organisateur Pro (droit « Gérer la boutique »), je crée un produit (nom, description, photos, prix toutes taxes comprises, taux de TVA propre, mise en avant), je le mets en vente, je le retire de la vente ou je l'archive.
 - US-SHOP-02 : en tant qu'organisateur, je définis les options libres d'un produit (taille, couleur…) et leurs valeurs ; je règle le stock (vide : illimité) et le supplément de prix de chaque combinaison, et je retire une combinaison de la vente.
 - US-SHOP-03 : en tant qu'organisateur, je configure mes lieux de retrait en main propre (nom, adresse, instructions) et mes modes de livraison à prix fixe ; chaque produit choisit les modes de remise qu'il accepte.
+- US-SHOP-04 : en tant qu'acheteur, je découvre la boutique depuis la page de l'organisation (section « Boutique »), j'ouvre la page d'un produit (galerie, description, choix des options, prix de la variante, disponibilité) et je remplis un panier de plusieurs produits.
+- US-SHOP-05 : en tant qu'acheteur, je commande sans billet : mes coordonnées, le lieu de retrait, le paiement ; je reçois un e-mail avec mon reçu et le lien de ma commande, qui montre son état et le code QR à présenter au retrait.
+- US-SHOP-06 : en tant qu'organisateur (droits des commandes), je suis les commandes de la boutique (à préparer, prêtes, remises), je préviens l'acheteur que sa commande est prête, je la remets en scannant son code QR (ou en saisissant son code) et je la rembourse, ligne par ligne.
 
 **Règles de gestion**
 
@@ -1457,6 +1460,12 @@ Modèle : produits de l'organisation (`Product`), photos (`ProductImage`), optio
 - RG-SHOP-04 : le stock d'une variante compte les unités disponibles (vide : illimité) ; il diminue à chaque vente, ne descend jamais sous zéro ni sous les paniers en cours de paiement (réservation atomique, contraintes de la base). Le supplément de prix est positif ou nul.
 - RG-SHOP-05 : un produit se met en vente avec au moins une variante active et un mode de remise réellement proposé : le retrait avec au moins un lieu actif, ou la livraison avec au moins un mode actif. Un produit en vente garde au moins une variante active et un mode de remise.
 - RG-SHOP-06 : seul un produit jamais vendu se supprime, photos comprises ; sinon il s'archive : il n'est plus en vente et ses commandes restent. Photos : 10 au plus par produit, PNG, JPEG ou WebP, réduites à 1 600 px ; la première est la photo principale.
+- RG-SHOP-07 : le panier vit dans le navigateur et ne fixe rien ; « Commander » relit les prix et la disponibilité, puis retient chaque variante de façon atomique (jamais au-delà du stock), pour 15 minutes. Prix, noms, options et taux de TVA sont figés sur la commande. Expirée, la réservation est libérée et l'intention de paiement annulée ; un paiement arrivé ensuite est servi si le stock le permet, sinon remboursé en entier. Le paiement est validé une seule fois (webhook ou retour de l'acheteur) : le stock diminue, les ventes augmentent.
+- RG-SHOP-08 : paiement par charge directe sur le compte Stripe de l'organisation, sans frais d'application : aucune commission Evoly, seuls les frais de paiement de Stripe, relevés sur la commande. Le blocage des personnes (section 9.34) s'applique : adresse refusée à la saisie, carte refusée avant le débit, carte passée outre remboursée.
+- RG-SHOP-09 : remise en main propre : l'acheteur choisit un lieu de retrait actif ; sa commande porte un code de retrait (QR et 10 caractères) ; l'organisation la marque prête (e-mail à l'acheteur), puis remise, une seule fois, depuis la fiche de la commande ou en scannant le code.
+- RG-SHOP-10 : reçu (page de la commande et e-mail) : chaque ligne avec son taux de TVA, le total toutes taxes comprises et la TVA comprise de chaque taux, calculée sur la somme du taux et arrondie au centime ; le vendeur est l'organisation.
+- RG-SHOP-11 : droit de rétractation de 14 jours (vente à distance), pour le retrait en main propre comme pour la livraison : ouvert tant que les produits ne sont pas reçus et jusqu'à 14 jours après leur réception ; « Je me rétracte » sur la page de la commande, une seule demande, l'organisation est prévenue (notification et e-mail) et rembourse au retour des produits. Rappelé avant le paiement et dans l'e-mail de confirmation, détaillé dans les conditions de vente.
+- RG-SHOP-12 : remboursement par l'organisation (droit de rembourser), ligne par ligne, sur le moyen de paiement de l'acheteur ; les articles rendus reviennent au stock si l'organisation le choisit ; l'acheteur reçoit un e-mail ; une commande entièrement remboursée ne peut plus être remise.
 
 ## 10. Catalogue des e-mails
 
@@ -1484,6 +1493,10 @@ Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la
 | `event.cancelled`                        | Acheteurs                       | Annulation de l'événement                              | T    |
 | `refund.requested`                       | Organisateur                    | Demande d'un acheteur                                  | T    |
 | `refund.succeeded`                       | Acheteur                        | Remboursement effectué                                 | T    |
+| `shop.order_confirmed`                   | Acheteur                        | Commande de la boutique payée (reçu, retrait)          | T    |
+| `shop.order_ready`                       | Acheteur                        | Commande de la boutique prête à retirer                | T    |
+| `shop.withdrawal`                        | Acheteur                        | Rétractation enregistrée                               | T    |
+| `shop.order_refunded`                    | Acheteur                        | Remboursement d'une commande de la boutique            | T    |
 | `refund.rejected`                        | Acheteur                        | Demande refusée                                        | T    |
 | `resale.listed`                          | Vendeur                         | Annonce créée (avec le lien)                           | T    |
 | `resale.sold`                            | Vendeur                         | Place vendue, montant remboursé                        | T    |

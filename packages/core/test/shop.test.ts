@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatVatRate,
+  normalizePickupCode,
+  shopOrderTotals,
+  withdrawalOpen,
   cleanNames,
   combinationCount,
   combinations,
@@ -72,6 +76,11 @@ describe("boutique : options, variantes, TVA (RG-SHOP-02, RG-SHOP-03, RG-SHOP-04
     expect(parseVatRate("")).toBeNull();
     expect(vatRateInput(2100)).toBe("21");
     expect(vatRateInput(550)).toBe("5,5");
+    expect([
+      formatVatRate(550, "fr"),
+      formatVatRate(550, "en"),
+      formatVatRate(2100, "de"),
+    ]).toEqual(["5,5", "5.5", "21"]);
   });
 
   it("prix et disponibilité d'une variante", () => {
@@ -103,5 +112,74 @@ describe("boutique : options, variantes, TVA (RG-SHOP-02, RG-SHOP-03, RG-SHOP-04
         shippingEnabled: true,
       }),
     ).toBeNull();
+  });
+});
+
+describe("boutique : reçu, rétractation, code de retrait (RG-SHOP-10, RG-SHOP-11)", () => {
+  it("totaux toutes taxes comprises et TVA de chaque taux, livraison à son taux", () => {
+    const t = shopOrderTotals([
+      { unitPriceMinor: 2500, quantity: 2, vatRateBps: 2100 },
+      { unitPriceMinor: 1200, quantity: 1, vatRateBps: 600 },
+      { unitPriceMinor: 990, quantity: 1, vatRateBps: 2100 },
+      { unitPriceMinor: 500, quantity: 1, vatRateBps: 0 },
+    ]);
+    expect(t).toEqual({
+      subtotalMinor: 7690,
+      shippingMinor: 0,
+      totalMinor: 7690,
+      vatMinor: 1040 + 68,
+      vat: [
+        { rateBps: 2100, amountMinor: 5990, vatMinor: 1040 },
+        { rateBps: 600, amountMinor: 1200, vatMinor: 68 },
+      ],
+    });
+    const withShipping = shopOrderTotals(
+      [{ unitPriceMinor: 2500, quantity: 1, vatRateBps: 2100 }],
+      { amountMinor: 490, vatRateBps: 2100 },
+    );
+    expect(withShipping).toMatchObject({
+      subtotalMinor: 2500,
+      shippingMinor: 490,
+      totalMinor: 2990,
+      vat: [{ rateBps: 2100, amountMinor: 2990, vatMinor: 519 }],
+    });
+    expect(
+      shopOrderTotals([], { amountMinor: 0, vatRateBps: 2100 }).vat,
+    ).toEqual([]);
+  });
+
+  it("rétractation : avant la réception, puis 14 jours ; jamais sur une commande non payée ou remboursée", () => {
+    const now = new Date("2026-12-01T12:00:00Z");
+    const paid = {
+      status: "PAID",
+      totalMinor: 2500,
+      refundedMinor: 0,
+      receivedAt: null,
+    };
+    expect(withdrawalOpen(paid, now)).toBe(true);
+    expect(
+      withdrawalOpen(
+        { ...paid, receivedAt: new Date("2026-11-18T13:00:00Z") },
+        now,
+      ),
+    ).toBe(true);
+    expect(
+      withdrawalOpen(
+        { ...paid, receivedAt: new Date("2026-11-17T11:00:00Z") },
+        now,
+      ),
+    ).toBe(false);
+    expect(withdrawalOpen({ ...paid, status: "PENDING" }, now)).toBe(false);
+    expect(
+      withdrawalOpen(
+        { ...paid, status: "PARTIALLY_REFUNDED", refundedMinor: 1000 },
+        now,
+      ),
+    ).toBe(true);
+    expect(withdrawalOpen({ ...paid, refundedMinor: 2500 }, now)).toBe(false);
+  });
+
+  it("code de retrait saisi à la main : majuscules, sans espaces ni tirets", () => {
+    expect(normalizePickupCode(" ab3d-ef 7h9k ")).toBe("AB3DEF7H9K");
   });
 });

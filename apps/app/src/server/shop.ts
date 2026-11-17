@@ -88,14 +88,17 @@ async function ownProduct(ctx: OrgContext, productId: string) {
 
 async function uniqueSlug(organizationId: string, name: string) {
   const base = slugify(name, 60) || "produit";
-  const taken = new Set(
-    (
+  // chemins réservés de la boutique publique : le panier et les commandes
+  const taken = new Set([
+    "panier",
+    "commande",
+    ...(
       await db.product.findMany({
         where: { organizationId, slug: { startsWith: base } },
         select: { slug: true },
       })
     ).map((p) => p.slug),
-  );
+  ]);
   if (!taken.has(base)) return base;
   for (let i = 2; ; i++) if (!taken.has(`${base}-${i}`)) return `${base}-${i}`;
 }
