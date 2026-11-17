@@ -11,7 +11,7 @@ import {
   submitShopBuyerAction,
 } from "@/app/site/[sub]/boutique/actions";
 import { Button } from "@/components/ui/Button";
-import { Field, Input } from "@/components/ui/Field";
+import { Field, Input, Select } from "@/components/ui/Field";
 import { PayButton, PaymentFields, StripePayment } from "../StripePayment";
 
 export interface PickupChoice {
@@ -21,29 +21,76 @@ export interface PickupChoice {
   instructions: string | null;
 }
 
+export interface ShippingChoice {
+  id: string;
+  name: string;
+  priceMinor: number;
+}
+
+/** Pays proposés pour la livraison : l'Union européenne, la Suisse, le Royaume-Uni et la Norvège. */
+export const SHIPPING_COUNTRIES = [
+  "BE",
+  "FR",
+  "NL",
+  "LU",
+  "DE",
+  "AT",
+  "ES",
+  "IT",
+  "PT",
+  "IE",
+  "DK",
+  "SE",
+  "FI",
+  "PL",
+  "CZ",
+  "SK",
+  "SI",
+  "HR",
+  "HU",
+  "RO",
+  "BG",
+  "GR",
+  "CY",
+  "MT",
+  "EE",
+  "LV",
+  "LT",
+  "CH",
+  "GB",
+  "NO",
+] as const;
+
 /**
- * Paiement d'une commande de la boutique (US-SHOP-04, US-SHOP-05) : coordonnées, lieu de retrait, conditions de vente
- * et droit de rétractation, paiement par Stripe sur le compte de l'organisation. Les produits restent retenus jusqu'à
- * la fin du compte à rebours.
+ * Paiement d'une commande de la boutique (US-SHOP-04, US-SHOP-05, US-SHOP-08) : coordonnées, retrait sur place ou
+ * livraison (mode et adresse, frais ajoutés au total), conditions de vente et droit de rétractation, paiement par Stripe
+ * sur le compte de l'organisation. Les produits restent retenus jusqu'à la fin du compte à rebours.
  */
 export function ShopCheckout({
   token,
   organizationName,
   expiresAt,
-  totalMinor,
+  subtotalMinor,
   currency,
   locale,
   points,
+  shippingMethods = [],
+  defaultCountry = "BE",
   publishableKey,
   stripeAccountId,
 }: {
   token: string;
   organizationName: string;
   expiresAt: string;
-  totalMinor: number;
+  /** produits, toutes taxes comprises (la livraison s'y ajoute) */
+  subtotalMinor: number;
   currency: string;
   locale: string;
+  /** lieux de retrait, si tous les produits acceptent le retrait */
   points: PickupChoice[];
+  /** modes de livraison, si tous les produits acceptent la livraison (RG-SHOP-14) */
+  shippingMethods?: ShippingChoice[];
+  defaultCountry?: string;
   publishableKey: string | null;
   stripeAccountId: string | null;
 }) {
@@ -53,6 +100,9 @@ export function ShopCheckout({
   const [left, setLeft] = useState(() => Date.parse(expiresAt) - Date.now());
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [mode, setMode] = useState<"PICKUP" | "SHIPPING">(
+    points.length || !shippingMethods.length ? "PICKUP" : "SHIPPING",
+  );
   const [buyer, setBuyer] = useState({
     firstName: "",
     lastName: "",
@@ -60,7 +110,26 @@ export function ShopCheckout({
     phone: "",
     marketingOptIn: false,
     pickupPointId: points.length === 1 ? points[0]!.id : "",
+    shippingMethodId:
+      shippingMethods.length === 1 ? shippingMethods[0]!.id : "",
   });
+  const [address, setAddress] = useState({
+    name: "",
+    line1: "",
+    line2: "",
+    postalCode: "",
+    city: "",
+    country: (SHIPPING_COUNTRIES as readonly string[]).includes(defaultCountry)
+      ? defaultCountry
+      : "BE",
+  });
+  const method =
+    mode === "SHIPPING"
+      ? (shippingMethods.find((m) => m.id === buyer.shippingMethodId) ?? null)
+      : null;
+  const totalMinor = subtotalMinor + (method?.priceMinor ?? 0);
+  const money = (v: number) => formatMoney(v, currency, toLocale(locale));
+  const regions = new Intl.DisplayNames([locale], { type: "region" });
   useEffect(() => {
     const timer = window.setInterval(
       () => setLeft(Date.parse(expiresAt) - Date.now()),
@@ -81,8 +150,22 @@ export function ShopCheckout({
       setMessage(t("error_INVALID_BUYER"));
       return false;
     }
-    if (!buyer.pickupPointId) {
+    if (mode === "PICKUP" && !buyer.pickupPointId) {
       setMessage(t("error_SHOP_PICKUP_REQUIRED"));
+      return false;
+    }
+    if (mode === "SHIPPING" && !buyer.shippingMethodId) {
+      setMessage(t("error_SHOP_SHIPPING_REQUIRED"));
+      return false;
+    }
+    if (
+      mode === "SHIPPING" &&
+      (!address.name.trim() ||
+        !address.line1.trim() ||
+        !address.postalCode.trim() ||
+        !address.city.trim())
+    ) {
+      setMessage(t("error_SHOP_ADDRESS_REQUIRED"));
       return false;
     }
     return true;
@@ -97,9 +180,14 @@ export function ShopCheckout({
       setMessage(check.error.message ?? t("error_UNKNOWN"));
       return setBusy(false);
     }
+    const { pickupPointId, shippingMethodId, ...person } = buyer;
     const res = await submitShopBuyerAction(token, {
-      ...buyer,
+      ...person,
       phone: buyer.phone.trim() || null,
+      mode,
+      ...(mode === "SHIPPING"
+        ? { shippingMethodId, address }
+        : { pickupPointId }),
     });
     if (!res.ok) {
       setMessage(explain(res.error));
@@ -213,42 +301,197 @@ export function ShopCheckout({
           maxLength={30}
         />
       </Field>
-      <fieldset className="grid gap-2">
-        <legend className="mb-2 text-sm font-semibold">
-          {t("pickupWhere")}
-        </legend>
-        {points.length === 0 ? (
-          <p className="text-sm text-danger">
-            {t("error_SHOP_PICKUP_REQUIRED")}
-          </p>
-        ) : (
-          points.map((p) => (
-            <label
-              key={p.id}
-              className="grid cursor-pointer gap-0.5 rounded-2xl p-4 ring-1 ring-line has-[:checked]:ring-2 has-[:checked]:ring-ink"
-            >
-              <span className="flex items-center gap-2.5 font-semibold">
+      {points.length && shippingMethods.length ? (
+        <fieldset className="grid gap-2">
+          <legend className="mb-2 text-sm font-semibold">
+            {t("modeTitle")}
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {(["PICKUP", "SHIPPING"] as const).map((m) => (
+              <label
+                key={m}
+                className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-semibold ring-1 ring-line-strong has-[:checked]:bg-surface-inverse has-[:checked]:text-ink-inverse"
+              >
                 <input
                   type="radio"
-                  name="pickup"
-                  value={p.id}
-                  checked={buyer.pickupPointId === p.id}
-                  onChange={() => set({ pickupPointId: p.id })}
+                  name="mode"
+                  value={m}
+                  checked={mode === m}
+                  onChange={() => setMode(m)}
+                  className="sr-only"
                 />
-                {p.name}
-              </span>
-              <span className="pl-6 text-sm whitespace-pre-line text-ink-muted">
-                {p.address}
-              </span>
-              {p.instructions ? (
-                <span className="pl-6 text-sm text-ink-muted">
-                  {p.instructions}
+                {t(m === "PICKUP" ? "modePickup" : "modeShipping")}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+      {mode === "SHIPPING" ? (
+        <>
+          <fieldset className="grid gap-2">
+            <legend className="mb-2 text-sm font-semibold">
+              {t("shippingWhich")}
+            </legend>
+            {shippingMethods.map((m) => (
+              <label
+                key={m.id}
+                className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl p-4 ring-1 ring-line has-[:checked]:ring-2 has-[:checked]:ring-ink"
+              >
+                <span className="flex items-center gap-2.5 font-semibold">
+                  <input
+                    type="radio"
+                    name="shipping"
+                    value={m.id}
+                    checked={buyer.shippingMethodId === m.id}
+                    onChange={() => set({ shippingMethodId: m.id })}
+                  />
+                  {m.name}
                 </span>
-              ) : null}
-            </label>
-          ))
-        )}
-      </fieldset>
+                <span className="tabular-nums">
+                  {m.priceMinor === 0 ? t("shippingFree") : money(m.priceMinor)}
+                </span>
+              </label>
+            ))}
+          </fieldset>
+          <fieldset className="grid gap-3">
+            <legend className="mb-2 text-sm font-semibold">
+              {t("addressTitle")}
+            </legend>
+            <Field label={t("addressName")} htmlFor="ship-name">
+              <Input
+                id="ship-name"
+                autoComplete="shipping name"
+                value={address.name}
+                onChange={(e) =>
+                  setAddress((a) => ({ ...a, name: e.target.value }))
+                }
+                maxLength={100}
+              />
+            </Field>
+            <Field label={t("addressLine1")} htmlFor="ship-line1">
+              <Input
+                id="ship-line1"
+                autoComplete="shipping address-line1"
+                value={address.line1}
+                onChange={(e) =>
+                  setAddress((a) => ({ ...a, line1: e.target.value }))
+                }
+                maxLength={120}
+              />
+            </Field>
+            <Field
+              label={t("addressLine2")}
+              htmlFor="ship-line2"
+              optional={t("optional")}
+            >
+              <Input
+                id="ship-line2"
+                autoComplete="shipping address-line2"
+                value={address.line2}
+                onChange={(e) =>
+                  setAddress((a) => ({ ...a, line2: e.target.value }))
+                }
+                maxLength={120}
+              />
+            </Field>
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-3">
+              <Field label={t("postalCode")} htmlFor="ship-postal">
+                <Input
+                  id="ship-postal"
+                  autoComplete="shipping postal-code"
+                  value={address.postalCode}
+                  onChange={(e) =>
+                    setAddress((a) => ({ ...a, postalCode: e.target.value }))
+                  }
+                  maxLength={12}
+                />
+              </Field>
+              <Field label={t("city")} htmlFor="ship-city">
+                <Input
+                  id="ship-city"
+                  autoComplete="shipping address-level2"
+                  value={address.city}
+                  onChange={(e) =>
+                    setAddress((a) => ({ ...a, city: e.target.value }))
+                  }
+                  maxLength={80}
+                />
+              </Field>
+            </div>
+            <Field label={t("country")} htmlFor="ship-country">
+              <Select
+                id="ship-country"
+                autoComplete="shipping country"
+                value={address.country}
+                onChange={(e) =>
+                  setAddress((a) => ({ ...a, country: e.target.value }))
+                }
+              >
+                {SHIPPING_COUNTRIES.map((c) => (
+                  <option key={c} value={c}>
+                    {regions.of(c) ?? c}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </fieldset>
+        </>
+      ) : (
+        <fieldset className="grid gap-2">
+          <legend className="mb-2 text-sm font-semibold">
+            {t("pickupWhere")}
+          </legend>
+          {points.length === 0 ? (
+            <p className="text-sm text-danger">
+              {t("error_SHOP_PICKUP_REQUIRED")}
+            </p>
+          ) : (
+            points.map((p) => (
+              <label
+                key={p.id}
+                className="grid cursor-pointer gap-0.5 rounded-2xl p-4 ring-1 ring-line has-[:checked]:ring-2 has-[:checked]:ring-ink"
+              >
+                <span className="flex items-center gap-2.5 font-semibold">
+                  <input
+                    type="radio"
+                    name="pickup"
+                    value={p.id}
+                    checked={buyer.pickupPointId === p.id}
+                    onChange={() => set({ pickupPointId: p.id })}
+                  />
+                  {p.name}
+                </span>
+                <span className="pl-6 text-sm whitespace-pre-line text-ink-muted">
+                  {p.address}
+                </span>
+                {p.instructions ? (
+                  <span className="pl-6 text-sm text-ink-muted">
+                    {p.instructions}
+                  </span>
+                ) : null}
+              </label>
+            ))
+          )}
+        </fieldset>
+      )}
+      {method ? (
+        <div className="grid gap-1 border-t border-line pt-3">
+          <p className="flex items-baseline justify-between text-sm">
+            <span>
+              {t("shippingLine")} · {method.name}
+            </span>
+            <span className="tabular-nums">
+              {method.priceMinor === 0
+                ? t("shippingFree")
+                : money(method.priceMinor)}
+            </span>
+          </p>
+          <p className="flex items-baseline justify-between font-semibold">
+            <span>{t("total")}</span>
+            <span className="tabular-nums">{money(totalMinor)}</span>
+          </p>
+        </div>
+      ) : null}
       <label className="flex items-start gap-2.5 text-sm">
         <input
           type="checkbox"
@@ -277,9 +520,7 @@ export function ShopCheckout({
               </p>
             ) : null}
             <PayButton
-              label={t("pay", {
-                amount: formatMoney(totalMinor, currency, toLocale(locale)),
-              })}
+              label={t("pay", { amount: money(totalMinor) })}
               busy={busy}
               onPay={pay}
             />

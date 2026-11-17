@@ -2,7 +2,10 @@ import "server-only";
 import {
   CoreError,
   formatVatRate,
+  isTrackingUrl,
   normalizePickupCode,
+  receivedAt,
+  shippingAddressLines,
   shopOrderTotals,
   withdrawalOpen,
 } from "@evoly/core";
@@ -18,6 +21,7 @@ import { sendEmail } from "./email/send";
 import {
   shopOrderConfirmedEmail,
   shopOrderReadyEmail,
+  shopOrderShippedEmail,
   shopRefundEmail,
   shopWithdrawalEmail,
   type ShopReceipt,
@@ -28,9 +32,9 @@ import { findShopOrderIdByToken, shopOrderToken } from "./shopCheckout";
 import { organizationPublicUrl } from "./urls";
 
 /**
- * Commandes de la boutique (lot 3b), section 9.35 du CDC : confirmation après paiement (e-mail avec le reçu, notification
- * de l'organisation), suivi par l'organisation (à préparer, prête à retirer, retirée), retrait sur présentation du code
- * QR, remboursements et droit de rétractation de 14 jours.
+ * Commandes de la boutique (lots 3b et 3d), section 9.35 du CDC : confirmation après paiement (e-mail avec le reçu,
+ * notification de l'organisation), suivi par l'organisation (à préparer, prête à retirer, retirée ; ou expédiée avec un
+ * numéro de suivi), retrait sur présentation du code QR, remboursements et droit de rétractation de 14 jours.
  */
 
 /** Page de la commande pour l'acheteur (lien magique) : https://club.evoly.me/boutique/commande/<jeton>. */
@@ -53,7 +57,10 @@ export function shopReceipt(
   locale: Locale,
 ): ShopReceipt {
   const money = (v: number) => formatMoney(v, order.currency, locale);
-  const totals = shopOrderTotals(order.lines, null);
+  const totals = shopOrderTotals(order.lines, {
+    amountMinor: order.shippingMinor,
+    vatRateBps: order.shippingVatBps,
+  });
   return {
     lines: order.lines.map((l) => ({
       name: l.variantLabel
@@ -72,7 +79,10 @@ export function shopReceipt(
   };
 }
 
-/** Après la validation du paiement : e-mail de confirmation (reçu, lieu de retrait), notification de l'organisation. */
+/**
+ * Après la validation du paiement : e-mail de confirmation (reçu, lieu de retrait ou adresse de livraison), notification
+ * de l'organisation.
+ */
 export async function afterShopOrderPaid(orderId: string): Promise<void> {
   const order = await db.shopOrder.findUniqueOrThrow({
     where: { id: orderId },
@@ -94,6 +104,13 @@ export async function afterShopOrderPaid(orderId: string): Promise<void> {
               name: order.pickupName,
               address: order.pickupAddress ?? "",
               instructions: order.pickupInstructions,
+            }
+          : null,
+      shipping:
+        order.fulfillmentMode === "SHIPPING"
+          ? {
+              method: order.shippingName ?? "",
+              address: shippingAddressLines(order, locale).join("\n"),
             }
           : null,
     }),
@@ -289,6 +306,51 @@ export async function markShopOrderPickedUp(ctx: OrgContext, orderId: string) {
   await log(ctx, "shop.order_picked_up", order.id);
 }
 
+/**
+ * RG-SHOP-15 : commande expédiée, une seule fois ; transporteur, numéro et lien de suivi (https) ; l'acheteur reçoit un
+ * e-mail avec le lien. Les 14 jours de rétractation partent de la livraison estimée (RG-SHOP-11).
+ */
+export async function markShopOrderShipped(
+  ctx: OrgContext,
+  orderId: string,
+  input: { carrier: string; trackingNumber: string; trackingUrl: string },
+) {
+  const order = await getShopOrder(ctx, orderId);
+  if (order.fulfillmentMode !== "SHIPPING" || order.status === "REFUNDED")
+    throw new CoreError("SHOP_ORDER_STATE");
+  const carrier = input.carrier.replace(/\s+/g, " ").trim().slice(0, 60);
+  const trackingNumber = input.trackingNumber.replace(/\s+/g, "").slice(0, 80);
+  const trackingUrl = input.trackingUrl.trim().slice(0, 500);
+  if (!carrier || !trackingNumber || !isTrackingUrl(trackingUrl))
+    throw new CoreError("SHOP_TRACKING_INVALID");
+  const done = await db.shopOrder.updateMany({
+    where: { id: order.id, fulfillmentStatus: "TO_PREPARE" },
+    data: {
+      fulfillmentStatus: "SHIPPED",
+      shippedAt: new Date(),
+      carrier,
+      trackingNumber,
+      trackingUrl,
+    },
+  });
+  if (done.count === 0) throw new CoreError("SHOP_ORDER_STATE");
+  await log(ctx, "shop.order_shipped", order.id, { carrier });
+  const url = await shopOrderUrl(order.id);
+  await mailBuyer(order, "shop.order_shipped", (brand, locale) =>
+    shopOrderShippedEmail({
+      brand,
+      locale,
+      organizationName: ctx.organization.name,
+      firstName: order.buyerFirstName ?? "",
+      reference: order.reference,
+      url,
+      carrier,
+      trackingNumber,
+      trackingUrl,
+    }),
+  );
+}
+
 /** Retrait : la commande d'un code QR scanné (ou saisi), dans cette organisation seulement. */
 export async function findShopOrderByPickupCode(ctx: OrgContext, code: string) {
   requireShop(ctx);
@@ -317,6 +379,8 @@ export async function refundShopOrder(
   input: {
     lines: Array<{ lineId: string; quantity: number }>;
     restock: boolean;
+    /** rembourser aussi les frais de livraison, une seule fois */
+    shipping?: boolean;
   },
 ) {
   const order = await getShopOrder(ctx, orderId);
@@ -333,10 +397,12 @@ export async function refundShopOrder(
     )
   )
     throw new CoreError("SHOP_REFUND_INVALID");
-  const amount = picked.reduce(
-    (n, r) => n + r.line!.unitPriceMinor * r.quantity,
-    0,
-  );
+  if (input.shipping && (order.shippingMinor <= 0 || order.shippingRefunded))
+    throw new CoreError("SHOP_REFUND_INVALID");
+  const shippingMinor = input.shipping ? order.shippingMinor : 0;
+  const amount =
+    picked.reduce((n, r) => n + r.line!.unitPriceMinor * r.quantity, 0) +
+    shippingMinor;
   if (amount <= 0 || amount > order.totalMinor - order.refundedMinor)
     throw new CoreError("SHOP_REFUND_INVALID");
   const s = stripe();
@@ -397,6 +463,7 @@ export async function refundShopOrder(
       where: { id: order.id },
       data: {
         refundedMinor,
+        ...(shippingMinor ? { shippingRefunded: true } : {}),
         status:
           refundedMinor >= order.totalMinor ? "REFUNDED" : "PARTIALLY_REFUNDED",
       },
@@ -405,6 +472,7 @@ export async function refundShopOrder(
   await log(ctx, "shop.order_refunded", order.id, {
     amountMinor: amount,
     restock: input.restock,
+    shipping: shippingMinor > 0,
   });
   const url = await shopOrderUrl(order.id);
   await mailBuyer(order, "shop.order_refunded", (brand, locale) =>
@@ -444,7 +512,9 @@ export async function syncShopRefund(
   return true;
 }
 
-/** Commande vue par l'acheteur (lien magique) : lignes, reçu, lieu de retrait, état, rétractation possible. */
+/**
+ * Commande vue par l'acheteur (lien magique) : lignes, reçu, lieu de retrait ou livraison, état, rétractation possible.
+ */
 export async function shopOrderForBuyer(token: string, now = new Date()) {
   const id = await findShopOrderIdByToken(token);
   if (!id) return null;
@@ -464,7 +534,7 @@ export async function shopOrderForBuyer(token: string, now = new Date()) {
           status: order.status,
           totalMinor: order.totalMinor,
           refundedMinor: order.refundedMinor,
-          receivedAt: order.pickedUpAt,
+          receivedAt: receivedAt(order),
         },
         now,
       ),

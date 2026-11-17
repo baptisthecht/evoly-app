@@ -83,10 +83,26 @@ const buyerSchema = z.object({
   email: z.email().max(200),
   phone: z.string().trim().max(30).optional().nullable(),
   marketingOptIn: z.boolean(),
-  pickupPointId: z.string().min(1).max(40),
+  // retrait sur place (lieu) ou livraison (mode et adresse), RG-SHOP-14
+  mode: z.enum(["PICKUP", "SHIPPING"]).default("PICKUP"),
+  pickupPointId: z.string().max(40).default(""),
+  shippingMethodId: z.string().max(40).optional(),
+  address: z
+    .object({
+      name: z.string().max(100),
+      line1: z.string().max(120),
+      line2: z.string().max(120).optional(),
+      postalCode: z.string().max(12),
+      city: z.string().max(80),
+      country: z.string().length(2),
+    })
+    .optional(),
 });
 
-/** Coordonnées et lieu de retrait : l'intention de paiement est créée sur le compte de l'organisation. */
+/**
+ * Coordonnées et mode de remise (lieu de retrait, ou mode et adresse de livraison) : l'intention de paiement est créée
+ * sur le compte de l'organisation.
+ */
 export async function submitShopBuyerAction(
   token: string,
   buyer: unknown,

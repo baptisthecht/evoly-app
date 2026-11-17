@@ -5,8 +5,12 @@ import { useActionState, useState } from "react";
 import { FormError } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { SavedNote, SettingsRow, SwitchRow } from "@/components/ui/Controls";
-import { Input } from "@/components/ui/Field";
-import { fulfillmentAction, refundShopOrderAction } from "../../actions";
+import { Field, Input } from "@/components/ui/Field";
+import {
+  fulfillmentAction,
+  refundShopOrderAction,
+  shipOrderAction,
+} from "../../actions";
 
 /**
  * Préparation d'une commande de la boutique (RG-SHOP-09) : « Prête à retirer » (l'acheteur reçoit un e-mail), puis
@@ -53,6 +57,68 @@ export function FulfillmentButtons({
   );
 }
 
+/**
+ * Expédition d'une commande livrée (RG-SHOP-15) : transporteur, numéro et lien de suivi ; l'acheteur reçoit un e-mail
+ * avec le lien de suivi. Une seule fois.
+ */
+export function ShipForm({
+  orgSlug,
+  orderId,
+}: {
+  orgSlug: string;
+  orderId: string;
+}) {
+  const t = useTranslations("shopOrders");
+  const [state, action, pending] = useActionState(
+    shipOrderAction.bind(null, orgSlug, orderId),
+    null,
+  );
+  return (
+    <form action={action} className="grid gap-3">
+      <FormError state={state} />
+      <p className="text-[13px] text-ink-muted">{t("shipIntro")}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label={t("carrier")} htmlFor="ship-carrier">
+          <Input
+            id="ship-carrier"
+            name="carrier"
+            maxLength={60}
+            placeholder={t("carrierPlaceholder")}
+            required
+          />
+        </Field>
+        <Field label={t("trackingNumber")} htmlFor="ship-number">
+          <Input
+            id="ship-number"
+            name="trackingNumber"
+            maxLength={80}
+            required
+          />
+        </Field>
+      </div>
+      <Field
+        label={t("trackingUrl")}
+        htmlFor="ship-url"
+        hint={t("trackingUrlHint")}
+      >
+        <Input
+          id="ship-url"
+          name="trackingUrl"
+          type="url"
+          inputMode="url"
+          maxLength={500}
+          required
+        />
+      </Field>
+      <div>
+        <Button type="submit" disabled={pending} aria-busy={pending}>
+          {t("shipSubmit")}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export interface RefundLine {
   id: string;
   name: string;
@@ -74,6 +140,7 @@ export function RefundForm({
   currency,
   locale,
   withdrawal,
+  shipping = null,
 }: {
   orgSlug: string;
   orderId: string;
@@ -81,22 +148,24 @@ export function RefundForm({
   currency: string;
   locale: string;
   withdrawal: boolean;
+  /** livraison encore remboursable (une seule fois) : son montant */
+  shipping?: { amountMinor: number } | null;
 }) {
   const t = useTranslations("shopOrders");
   const [qty, setQty] = useState<Record<string, number>>(() =>
     // rétractation : tout ce qui reste est proposé
     Object.fromEntries(lines.map((l) => [l.id, withdrawal ? l.left : 0])),
   );
+  const [refundShipping, setRefundShipping] = useState(withdrawal);
   const [state, action, pending] = useActionState(
     refundShopOrderAction.bind(null, orgSlug, orderId),
     null,
   );
-  const amount = lines.reduce(
-    (n, l) => n + l.unitPriceMinor * (qty[l.id] ?? 0),
-    0,
-  );
+  const amount =
+    lines.reduce((n, l) => n + l.unitPriceMinor * (qty[l.id] ?? 0), 0) +
+    (shipping && refundShipping ? shipping.amountMinor : 0);
   const money = new Intl.NumberFormat(locale, { style: "currency", currency });
-  if (!lines.some((l) => l.left > 0)) return null;
+  if (!lines.some((l) => l.left > 0) && !shipping) return null;
   return (
     <SettingsRow title={t("refundTitle")} description={t("refundHint")}>
       <form
@@ -145,6 +214,16 @@ export function RefundForm({
               </li>
             ))}
         </ul>
+        {shipping ? (
+          <SwitchRow
+            name="shipping"
+            checked={refundShipping}
+            onChange={(e) => setRefundShipping(e.target.checked)}
+            label={t("refundShipping", {
+              amount: money.format(shipping.amountMinor / 100),
+            })}
+          />
+        ) : null}
         <SwitchRow
           name="restock"
           defaultChecked

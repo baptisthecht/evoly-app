@@ -84,6 +84,7 @@ export default async function ProductPage({ params }: Props) {
                   {t("pickupAt", { places: product.pickupPoints.join(", ") })}
                 </p>
               ) : null}
+              {product.shippingEnabled ? <p>{t("shippingAvailable")}</p> : null}
               <p>{t("withdrawalShort")}</p>
             </div>
           </div>

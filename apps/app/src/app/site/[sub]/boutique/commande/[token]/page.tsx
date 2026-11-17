@@ -1,4 +1,8 @@
-import { formatVatRate, shopOrderTotals } from "@evoly/core";
+import {
+  formatVatRate,
+  shippingAddressLines,
+  shopOrderTotals,
+} from "@evoly/core";
 import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
 import { palette } from "@evoly/ui";
 import type { Metadata } from "next";
@@ -54,7 +58,13 @@ export default async function ShopOrderPage({
   const t = await getTranslations("shopPublic");
   const locale = (await getLocale()) as Locale;
   const money = (v: number) => formatMoney(v, order.currency, locale);
-  const totals = shopOrderTotals(order.lines, null);
+  // en attente du paiement : les produits seuls, la livraison choisie s'ajoute dans le formulaire de paiement
+  const pending = order.status === "PENDING" && !reservation.expired;
+  const shipping =
+    !pending && order.shippingMinor > 0
+      ? { amountMinor: order.shippingMinor, vatRateBps: order.shippingVatBps }
+      : null;
+  const totals = shopOrderTotals(order.lines, shipping);
   const receipt = (
     <section aria-labelledby="receipt" className="grid gap-3">
       <h2 id="receipt" className="font-display text-xl tracking-[-0.02em]">
@@ -79,9 +89,24 @@ export default async function ShopOrderPage({
         ))}
       </ul>
       <div className="grid gap-1 border-t border-line pt-3">
+        {shipping ? (
+          <p className="flex justify-between text-sm">
+            <span>
+              {t("shippingLine")}
+              {order.shippingName ? ` · ${order.shippingName}` : ""}
+            </span>
+            <span className="tabular-nums">{money(order.shippingMinor)}</span>
+          </p>
+        ) : null}
         <p className="flex justify-between font-semibold">
-          <span>{t("total")}</span>
-          <span className="tabular-nums">{money(order.totalMinor)}</span>
+          <span>
+            {pending && reservation.shippingMethods.length
+              ? t("subtotal")
+              : t("total")}
+          </span>
+          <span className="tabular-nums">
+            {money(pending ? order.subtotalMinor : order.totalMinor)}
+          </span>
         </p>
         {totals.vat.map((v) => (
           <p
@@ -111,7 +136,7 @@ export default async function ShopOrderPage({
   );
 
   // en attente : le paiement
-  if (order.status === "PENDING" && !reservation.expired)
+  if (pending)
     return (
       <PublicShell org={org} homeHref="/">
         <div className="mx-auto grid max-w-2xl gap-8 px-5 pb-16 sm:px-8">
@@ -123,10 +148,12 @@ export default async function ShopOrderPage({
             token={token}
             organizationName={org.brand?.displayName ?? org.name}
             expiresAt={order.holdExpiresAt!.toISOString()}
-            totalMinor={order.totalMinor}
+            subtotalMinor={order.subtotalMinor}
             currency={order.currency}
             locale={locale}
             points={reservation.points}
+            shippingMethods={reservation.shippingMethods}
+            defaultCountry={reservation.country}
             publishableKey={
               process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null
             }
@@ -227,6 +254,40 @@ export default async function ShopOrderPage({
               date: formatDateTime(order.pickedUpAt, tz, locale, "short"),
             })}
           </p>
+        ) : null}
+        {order.fulfillmentMode === "SHIPPING" ? (
+          <section aria-labelledby="shipping" className="grid gap-2">
+            <h2
+              id="shipping"
+              className="font-display text-xl tracking-[-0.02em]"
+            >
+              {t("deliverTo")}
+            </h2>
+            <p className="text-sm whitespace-pre-line">
+              {shippingAddressLines(order, locale).join("\n")}
+            </p>
+            {order.shippedAt && order.trackingUrl ? (
+              <>
+                <p className="text-sm text-ink-muted">
+                  {t("shippedOn", {
+                    date: formatDateTime(order.shippedAt, tz, locale, "short"),
+                    carrier: order.carrier ?? "",
+                    number: order.trackingNumber ?? "",
+                  })}
+                </p>
+                <a
+                  href={order.trackingUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="justify-self-start rounded-full bg-[var(--accent)] px-5 py-3 font-label font-bold text-[var(--accent-ink)]"
+                >
+                  {t("trackParcel")}
+                </a>
+              </>
+            ) : (
+              <p className="text-sm text-ink-muted">{t("shippingPending")}</p>
+            )}
+          </section>
         ) : null}
         {receipt}
         <section aria-labelledby="withdrawal" className="grid gap-2">

@@ -82,6 +82,7 @@ export interface PublicProduct {
     available: number | null;
   }>;
   pickupEnabled: boolean;
+  /** livraison possible : le produit l'accepte et l'organisation a un mode de livraison actif (RG-SHOP-14) */
   shippingEnabled: boolean;
   /** lieux de retrait proposés (nom seulement) */
   pickupPoints: string[];
@@ -112,6 +113,9 @@ export async function publicShopProduct(
         select: { name: true },
       })
     : [];
+  const methods = p.shippingEnabled
+    ? await db.shippingMethod.count({ where: { organizationId, active: true } })
+    : 0;
   return {
     id: p.id,
     slug: p.slug,
@@ -134,7 +138,7 @@ export async function publicShopProduct(
       available: variantAvailable(v),
     })),
     pickupEnabled: p.pickupEnabled,
-    shippingEnabled: p.shippingEnabled,
+    shippingEnabled: methods > 0,
     pickupPoints: points.map((x) => x.name),
   };
 }

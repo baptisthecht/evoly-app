@@ -492,3 +492,122 @@ export function shopRefundEmail(o: {
     ]),
   };
 }
+
+const SHIPPED = {
+  fr: {
+    subject: (org: string) => `Votre commande est en route : ${org}`,
+    title: "Votre commande est en route",
+    intro: (org: string, carrier: string) =>
+      `${org} a expédié votre commande avec ${carrier}.`,
+    cta: "Suivre mon colis",
+    carrier: "Transporteur",
+    tracking: "Numéro de suivi",
+    order: "Voir ma commande",
+  },
+  en: {
+    subject: (org: string) => `Your order is on its way: ${org}`,
+    title: "Your order is on its way",
+    intro: (org: string, carrier: string) =>
+      `${org} has shipped your order with ${carrier}.`,
+    cta: "Track my parcel",
+    carrier: "Carrier",
+    tracking: "Tracking number",
+    order: "View my order",
+  },
+  nl: {
+    subject: (org: string) => `Je bestelling is onderweg: ${org}`,
+    title: "Je bestelling is onderweg",
+    intro: (org: string, carrier: string) =>
+      `${org} heeft je bestelling verstuurd met ${carrier}.`,
+    cta: "Mijn pakket volgen",
+    carrier: "Vervoerder",
+    tracking: "Trackingnummer",
+    order: "Mijn bestelling bekijken",
+  },
+  de: {
+    subject: (org: string) => `Ihre Bestellung ist unterwegs: ${org}`,
+    title: "Ihre Bestellung ist unterwegs",
+    intro: (org: string, carrier: string) =>
+      `${org} hat Ihre Bestellung mit ${carrier} verschickt.`,
+    cta: "Mein Paket verfolgen",
+    carrier: "Versanddienst",
+    tracking: "Sendungsnummer",
+    order: "Meine Bestellung ansehen",
+  },
+  es: {
+    subject: (org: string) => `Tu pedido está en camino: ${org}`,
+    title: "Tu pedido está en camino",
+    intro: (org: string, carrier: string) =>
+      `${org} ha enviado tu pedido con ${carrier}.`,
+    cta: "Seguir mi paquete",
+    carrier: "Transportista",
+    tracking: "Número de seguimiento",
+    order: "Ver mi pedido",
+  },
+  it: {
+    subject: (org: string) => `Il tuo ordine è in viaggio: ${org}`,
+    title: "Il tuo ordine è in viaggio",
+    intro: (org: string, carrier: string) =>
+      `${org} ha spedito il tuo ordine con ${carrier}.`,
+    cta: "Segui il mio pacco",
+    carrier: "Corriere",
+    tracking: "Numero di tracciamento",
+    order: "Vedi il mio ordine",
+  },
+  pt: {
+    subject: (org: string) => `A sua encomenda está a caminho: ${org}`,
+    title: "A sua encomenda está a caminho",
+    intro: (org: string, carrier: string) =>
+      `${org} enviou a sua encomenda com ${carrier}.`,
+    cta: "Seguir a minha encomenda",
+    carrier: "Transportadora",
+    tracking: "Número de seguimento",
+    order: "Ver a minha encomenda",
+  },
+};
+
+/** Commande expédiée (RG-SHOP-15) : transporteur, numéro et lien de suivi. */
+export function shopOrderShippedEmail(o: {
+  brand?: EmailBrand | null;
+  locale: Locale;
+  organizationName: string;
+  firstName: string;
+  reference: string;
+  url: string;
+  carrier: string;
+  trackingNumber: string;
+  trackingUrl: string;
+}): RenderedEmail {
+  const c = pick(COPY, o.locale);
+  const s = pick(SHIPPED, o.locale);
+  return {
+    subject: s.subject(o.organizationName),
+    html: frame({
+      brand: o.brand,
+      organizationName: o.organizationName,
+      title: s.title,
+      paragraphs: [
+        c.hello(o.firstName),
+        s.intro(o.organizationName, o.carrier),
+      ],
+      cta: s.cta,
+      url: o.trackingUrl,
+      rows: [
+        [c.reference, o.reference],
+        [s.carrier, o.carrier],
+        [s.tracking, o.trackingNumber],
+        [s.order, o.url],
+      ],
+    }),
+    text: text([
+      s.title,
+      "",
+      c.hello(o.firstName),
+      s.intro(o.organizationName, o.carrier),
+      "",
+      `${s.cta} : ${o.trackingUrl}`,
+      `${s.tracking} : ${o.trackingNumber}`,
+      `${s.order} : ${o.url}`,
+    ]),
+  };
+}

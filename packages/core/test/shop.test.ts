@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  isTrackingUrl,
+  receivedAt,
+  shippingAddressLines,
+  shippingVatRate,
   formatVatRate,
   optionLineName,
   normalizePickupCode,
@@ -189,5 +193,76 @@ describe("boutique en option des événements (RG-SHOP-13)", () => {
   it("nom d'une option achetée : la variante entre parenthèses", () => {
     expect(optionLineName("T-shirt", "M")).toBe("T-shirt (M)");
     expect(optionLineName("Vestiaire", null)).toBe("Vestiaire");
+  });
+});
+
+describe("boutique : livraison (RG-SHOP-11, RG-SHOP-14, RG-SHOP-15)", () => {
+  it("réception : le retrait, ou l'expédition plus 7 jours ; pas encore reçue : null", () => {
+    const at = new Date("2026-11-20T10:00:00Z");
+    expect(
+      receivedAt({
+        fulfillmentMode: "PICKUP",
+        pickedUpAt: at,
+        shippedAt: null,
+      }),
+    ).toBe(at);
+    expect(
+      receivedAt({
+        fulfillmentMode: "SHIPPING",
+        pickedUpAt: null,
+        shippedAt: at,
+      })!.toISOString(),
+    ).toBe("2026-11-27T10:00:00.000Z");
+    expect(
+      receivedAt({
+        fulfillmentMode: "SHIPPING",
+        pickedUpAt: null,
+        shippedAt: null,
+      }),
+    ).toBeNull();
+  });
+
+  it("TVA de la livraison : le taux le plus élevé des produits", () => {
+    expect(shippingVatRate([{ vatRateBps: 600 }, { vatRateBps: 2100 }])).toBe(
+      2100,
+    );
+    expect(shippingVatRate([])).toBe(0);
+  });
+
+  it("lien de suivi : https seulement", () => {
+    expect(isTrackingUrl("https://track.example/CD123")).toBe(true);
+    expect(isTrackingUrl(" https://track.example/CD123 ")).toBe(true);
+    expect(isTrackingUrl("http://track.example/CD123")).toBe(false);
+    expect(isTrackingUrl("https://track example/CD123")).toBe(false);
+    expect(isTrackingUrl("suivi")).toBe(false);
+  });
+
+  it("adresse de livraison en lignes, le pays dans la langue demandée, sans ligne vide", () => {
+    const address = {
+      shipName: "Camille Dupont",
+      shipAddress1: "Rue Haute 12",
+      shipAddress2: null,
+      shipPostalCode: "1000",
+      shipCity: "Bruxelles",
+      shipCountry: "BE",
+    };
+    expect(shippingAddressLines(address, "fr")).toEqual([
+      "Camille Dupont",
+      "Rue Haute 12",
+      "1000 Bruxelles",
+      "Belgique",
+    ]);
+    expect(shippingAddressLines(address, "nl").at(-1)).toBe("België");
+    expect(
+      shippingAddressLines(
+        {
+          ...address,
+          shipAddress2: "Boîte 3",
+          shipPostalCode: null,
+          shipCountry: null,
+        },
+        "fr",
+      ),
+    ).toEqual(["Camille Dupont", "Rue Haute 12", "Boîte 3", "Bruxelles"]);
   });
 });

@@ -1,4 +1,10 @@
-import { can, formatVatRate, hasFeature, shopOrderTotals } from "@evoly/core";
+import {
+  can,
+  formatVatRate,
+  hasFeature,
+  shippingAddressLines,
+  shopOrderTotals,
+} from "@evoly/core";
 import { formatDateTime, formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -6,7 +12,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { SettingsRow } from "@/components/ui/Controls";
 import { requireOrgContext } from "@/server/context";
 import { getShopOrder } from "@/server/shopOrders";
-import { FulfillmentButtons, RefundForm } from "./OrderDetail";
+import { FulfillmentButtons, RefundForm, ShipForm } from "./OrderDetail";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("shopOrders"))("orderTitle") };
@@ -31,7 +37,12 @@ export default async function ShopOrderPage({
   const locale = (await getLocale()) as Locale;
   const tz = ctx.organization.timezone;
   const money = (v: number) => formatMoney(v, order.currency, locale);
-  const totals = shopOrderTotals(order.lines, null);
+  const totals = shopOrderTotals(
+    order.lines,
+    order.shippingMinor > 0
+      ? { amountMinor: order.shippingMinor, vatRateBps: order.shippingVatBps }
+      : null,
+  );
   const when = (d: Date | null) =>
     d ? formatDateTime(d, tz, locale, "short") : null;
   return (
@@ -50,6 +61,30 @@ export default async function ShopOrderPage({
         title={t("fulfillmentTitle")}
         description={t(`fulfillment_${order.fulfillmentStatus}`)}
       >
+        {order.fulfillmentMode === "SHIPPING" ? (
+          <p className="text-[14px] whitespace-pre-line">
+            <strong>{t("shipTo")}</strong>
+            {"\n"}
+            {shippingAddressLines(order, locale).join("\n")}
+            {order.shippingName ? `\n${order.shippingName}` : ""}
+          </p>
+        ) : null}
+        {order.trackingUrl ? (
+          <p className="text-[14px]">
+            {t("tracking", {
+              carrier: order.carrier ?? "",
+              number: order.trackingNumber ?? "",
+            })}{" "}
+            <a
+              href={order.trackingUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-[3px]"
+            >
+              {t("openTracking")}
+            </a>
+          </p>
+        ) : null}
         {order.fulfillmentMode === "PICKUP" && order.pickupName ? (
           <p className="text-[14px] whitespace-pre-line">
             <strong>{order.pickupName}</strong>
@@ -63,6 +98,7 @@ export default async function ShopOrderPage({
             [t("paidAt"), when(order.paidAt)],
             [t("readyAt"), when(order.readyAt)],
             [t("pickedUpAt"), when(order.pickedUpAt)],
+            [t("shippedAt"), when(order.shippedAt)],
           ]
             .filter(([, v]) => v)
             .map(([k, v]) => (
@@ -71,16 +107,25 @@ export default async function ShopOrderPage({
               </li>
             ))}
         </ul>
-        <FulfillmentButtons
-          orgSlug={ctx.organization.slug}
-          orderId={order.id}
-          status={order.fulfillmentStatus}
-          canManage={
-            can(ctx.membership, "ORDERS_MANAGE") &&
-            !ctx.readOnly &&
-            order.status !== "REFUNDED"
-          }
-        />
+        {order.fulfillmentMode === "SHIPPING" ? (
+          order.fulfillmentStatus === "TO_PREPARE" &&
+          order.status !== "REFUNDED" &&
+          can(ctx.membership, "ORDERS_MANAGE") &&
+          !ctx.readOnly ? (
+            <ShipForm orgSlug={ctx.organization.slug} orderId={order.id} />
+          ) : null
+        ) : (
+          <FulfillmentButtons
+            orgSlug={ctx.organization.slug}
+            orderId={order.id}
+            status={order.fulfillmentStatus}
+            canManage={
+              can(ctx.membership, "ORDERS_MANAGE") &&
+              !ctx.readOnly &&
+              order.status !== "REFUNDED"
+            }
+          />
+        )}
       </SettingsRow>
       <SettingsRow title={t("itemsTitle")} description={t("itemsHint")}>
         <ul className="grid gap-2">
@@ -108,6 +153,12 @@ export default async function ShopOrderPage({
           ))}
         </ul>
         <div className="grid gap-1 border-t border-line pt-3 text-[14px]">
+          {order.shippingMinor > 0 ? (
+            <p className="flex justify-between">
+              <span>{t("shippingLine")}</span>
+              <span className="tabular-nums">{money(order.shippingMinor)}</span>
+            </p>
+          ) : null}
           <p className="flex justify-between font-semibold">
             <span>{t("total")}</span>
             <span className="tabular-nums">{money(order.totalMinor)}</span>
@@ -186,6 +237,11 @@ export default async function ShopOrderPage({
           currency={order.currency}
           locale={locale}
           withdrawal={!!order.withdrawalRequestedAt}
+          shipping={
+            order.shippingMinor > 0 && !order.shippingRefunded
+              ? { amountMinor: order.shippingMinor }
+              : null
+          }
           lines={order.lines.map((l) => ({
             id: l.id,
             name: l.variantLabel

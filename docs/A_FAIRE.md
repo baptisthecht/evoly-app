@@ -33,7 +33,10 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
   - 3c, produits en option des événements, stock partagé : fait. Billetterie, Options : « Produit de la boutique » ;
     l'acheteur choisit la variante avec ses billets, retenue sur le stock de la boutique, retirée à l'événement. Au
     déploiement : migration `20261117150000_boutique_options_evenements`.
-  - 3d, livraison avec numéro de suivi : à faire (les modes de livraison se configurent déjà en 3a).
+  - 3d, livraison avec numéro de suivi : fait. Au paiement, retrait ou livraison (mode, adresse, frais ajoutés au total
+    avec leur TVA) ; fiche d'une commande livrée : adresse, « Marquer expédiée » avec le transporteur, le numéro et le
+    lien de suivi (e-mail à l'acheteur), livraison remboursable une fois ; rétractation ouverte jusqu'à 14 jours après
+    la livraison estimée (expédition plus 7 jours). Au déploiement : migration `20261117160000_boutique_livraison`.
 - Lot 4, connexion avec Apple : fait côté code (origine de confiance `https://appleid.apple.com`, script du secret,
   procédure dans `docs/DEPLOIEMENT.md`) ; reste la configuration chez Apple et sur le serveur (ci-dessous).
 

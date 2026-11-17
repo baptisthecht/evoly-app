@@ -229,3 +229,70 @@ export function optionLineName(
 ): string {
   return variantLabel ? `${name} (${variantLabel})` : name;
 }
+
+/** Délai de livraison estimé, pour situer la réception d'une commande expédiée (rétractation, RG-SHOP-11). */
+export const SHIPPING_TRANSIT_DAYS = 7;
+
+/**
+ * Réception d'une commande, point de départ des 14 jours de rétractation : son retrait, ou son expédition plus le délai
+ * de livraison estimé ; null : pas encore reçue.
+ */
+export function receivedAt(o: {
+  fulfillmentMode: string;
+  pickedUpAt: Date | null;
+  shippedAt: Date | null;
+}): Date | null {
+  if (o.fulfillmentMode === "SHIPPING")
+    return o.shippedAt
+      ? new Date(o.shippedAt.getTime() + SHIPPING_TRANSIT_DAYS * 86_400_000)
+      : null;
+  return o.pickedUpAt;
+}
+
+/**
+ * RG-SHOP-14 : TVA de la livraison : le taux le plus élevé des produits de la commande (règle simple, à valider avec
+ * l'expert-comptable pour les commandes à plusieurs taux).
+ */
+export function shippingVatRate(
+  lines: ReadonlyArray<{ vatRateBps: number }>,
+): number {
+  return lines.reduce((max, l) => Math.max(max, l.vatRateBps), 0);
+}
+
+/**
+ * Adresse de livraison en lignes : destinataire, rue, complément, code postal et ville, puis le pays nommé dans la
+ * langue donnée (reçu, e-mail, page de la commande).
+ */
+export function shippingAddressLines(
+  o: {
+    shipName: string | null;
+    shipAddress1: string | null;
+    shipAddress2: string | null;
+    shipPostalCode: string | null;
+    shipCity: string | null;
+    shipCountry: string | null;
+  },
+  locale: string,
+): string[] {
+  const country = o.shipCountry
+    ? (new Intl.DisplayNames([locale], { type: "region" }).of(o.shipCountry) ??
+      o.shipCountry)
+    : null;
+  return [
+    o.shipName,
+    o.shipAddress1,
+    o.shipAddress2,
+    `${o.shipPostalCode ?? ""} ${o.shipCity ?? ""}`.trim(),
+    country,
+  ].filter((l): l is string => !!l);
+}
+
+/** Lien de suivi saisi par l'organisation : une adresse https, sans espace. */
+export function isTrackingUrl(input: string): boolean {
+  try {
+    const u = new URL(input.trim());
+    return u.protocol === "https:" && !/\s/.test(input.trim()) && !!u.hostname;
+  } catch {
+    return false;
+  }
+}

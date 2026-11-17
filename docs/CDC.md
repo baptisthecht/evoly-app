@@ -1452,6 +1452,7 @@ Modèle : produits de l'organisation (`Product`), photos (`ProductImage`), optio
 - US-SHOP-05 : en tant qu'acheteur, je commande sans billet : mes coordonnées, le lieu de retrait, le paiement ; je reçois un e-mail avec mon reçu et le lien de ma commande, qui montre son état et le code QR à présenter au retrait.
 - US-SHOP-06 : en tant qu'organisateur (droits des commandes), je suis les commandes de la boutique (à préparer, prêtes, remises), je préviens l'acheteur que sa commande est prête, je la remets en scannant son code QR (ou en saisissant son code) et je la rembourse, ligne par ligne.
 - US-SHOP-07 : en tant qu'organisateur, je propose un produit de la boutique en option d'un événement ; l'acheteur choisit la variante (taille, couleur) pendant l'achat de ses billets et retire le produit à l'événement, comme les autres options.
+- US-SHOP-08 : en tant qu'acheteur, je me fais livrer : je choisis un mode de livraison et je saisis mon adresse, les frais s'ajoutent au total ; l'organisateur marque ma commande expédiée avec le transporteur, le numéro et le lien de suivi, et je reçois un e-mail pour suivre mon colis.
 
 **Règles de gestion**
 
@@ -1468,6 +1469,8 @@ Modèle : produits de l'organisation (`Product`), photos (`ProductImage`), optio
 - RG-SHOP-11 : droit de rétractation de 14 jours (vente à distance), pour le retrait en main propre comme pour la livraison : ouvert tant que les produits ne sont pas reçus et jusqu'à 14 jours après leur réception ; « Je me rétracte » sur la page de la commande, une seule demande, l'organisation est prévenue (notification et e-mail) et rembourse au retour des produits. Rappelé avant le paiement et dans l'e-mail de confirmation, détaillé dans les conditions de vente.
 - RG-SHOP-12 : remboursement par l'organisation (droit de rembourser), ligne par ligne, sur le moyen de paiement de l'acheteur ; les articles rendus reviennent au stock si l'organisation le choisit ; l'acheteur reçoit un e-mail ; une commande entièrement remboursée ne peut plus être remise.
 - RG-SHOP-13 : un seul stock pour les deux canaux. Une option d'événement peut reprendre un produit non archivé (offres Pro et Partenaire) : nom, prix et description viennent du produit, l'option n'a pas de stock propre. Sur la page de l'événement, elle est proposée variante par variante, au prix de la boutique (supplément compris) et avec sa disponibilité ; la variante choisie est retenue sur le stock de la boutique pendant la réservation (jamais au-delà), libérée à l'expiration ou à l'annulation, vendue au paiement. Aucune commission Evoly sur le produit. Le retrait se fait à l'événement, par le flux des options (scanner, bar). Un produit proposé en option ne se supprime pas.
+- RG-SHOP-14 : mode de remise d'une commande : le retrait ou la livraison, parmi ceux que tous ses produits acceptent (un mode commun est exigé dès le panier). Livraison : un mode actif de l'organisation (prix fixe, éventuellement offert) et une adresse complète (destinataire, adresse, code postal, ville, pays de l'Union européenne, Suisse, Royaume-Uni ou Norvège). Les frais s'ajoutent au total et au reçu, avec la TVA du taux le plus élevé des produits de la commande (règle simple, à valider avec l'expert-comptable). Changer de mode avant le paiement recalcule le total et le montant de l'intention de paiement.
+- RG-SHOP-15 : expédition : l'organisation (droits des commandes) marque une commande livrée « expédiée », une seule fois, avec le transporteur, le numéro de suivi et le lien de suivi (https) ; l'acheteur reçoit un e-mail avec le lien, que la page de sa commande affiche aussi. La réception est estimée à l'expédition plus 7 jours : le bouton « Je me rétracte » reste ouvert 14 jours après (au-delà, l'acheteur écrit à l'organisateur). Les frais de livraison se remboursent une seule fois, proposés d'office pour une rétractation.
 
 ## 10. Catalogue des e-mails
 
@@ -1495,8 +1498,9 @@ Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la
 | `event.cancelled`                        | Acheteurs                       | Annulation de l'événement                              | T    |
 | `refund.requested`                       | Organisateur                    | Demande d'un acheteur                                  | T    |
 | `refund.succeeded`                       | Acheteur                        | Remboursement effectué                                 | T    |
-| `shop.order_confirmed`                   | Acheteur                        | Commande de la boutique payée (reçu, retrait)          | T    |
+| `shop.order_confirmed`                   | Acheteur                        | Commande de la boutique payée (reçu, retrait, adresse) | T    |
 | `shop.order_ready`                       | Acheteur                        | Commande de la boutique prête à retirer                | T    |
+| `shop.order_shipped`                     | Acheteur                        | Commande de la boutique expédiée (lien de suivi)       | T    |
 | `shop.withdrawal`                        | Acheteur                        | Rétractation enregistrée                               | T    |
 | `shop.order_refunded`                    | Acheteur                        | Remboursement d'une commande de la boutique            | T    |
 | `refund.rejected`                        | Acheteur                        | Demande refusée                                        | T    |

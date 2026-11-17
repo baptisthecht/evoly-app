@@ -1,8 +1,8 @@
 # Traçabilité du cahier des charges
 
-État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (384 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
+État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (387 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 215 · fait : 167 · hors périmètre : 2.
+**Bilan** : fait, testé : 218 · fait : 167 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -400,3 +400,6 @@
 | RG-SHOP-12 | P1 | remboursement par l'organisation (droit de rembourser), ligne par ligne, sur le moyen de paiement de l'acheteur ; les arti | fait, testé | refundShopOrder, syncShopRefund (shopOrders.ts, OrderDetail.tsx, shop-orders.test.ts, ShopOrders.test.tsx) |
 | US-SHOP-07 | P1 | en tant qu'organisateur, je propose un produit de la boutique en option d'un événement ; l'acheteur choisit la variante (t | fait, testé | Billetterie, Options : « Produit de la boutique » (options.ts, OptionForm.tsx, OptionsTable.tsx, shop-event-options.test.ts, EventSmallForms.test.tsx, shop-event-option.spec.ts) |
 | RG-SHOP-13 | P1 | un seul stock pour les deux canaux. Une option d'événement peut reprendre un produit non archivé (offres Pro et Partenaire | fait, testé | holdProductVariants, releaseProductOptions, sellProductOptions (options.ts, checkout.ts, shop-event-options.test.ts, shop-event-option.spec.ts) |
+| US-SHOP-08 | P1 | en tant qu'acheteur, je me fais livrer : je choisis un mode de livraison et je saisis mon adresse, les frais s'ajoutent | fait, testé | Paiement : retrait ou livraison, mode et adresse ; fiche d'une commande : « Marquer expédiée » (ShopCheckout.tsx, OrderDetail.tsx, shopCheckout.ts, shopOrders.ts, shop-shipping.test.ts, ShopPublic.test.tsx, ShopOrders.test.tsx, shop-shipping.spec.ts) |
+| RG-SHOP-14 | P1 | mode de remise d'une commande : le retrait ou la livraison, parmi ceux que tous ses produits acceptent (un mode commun e | fait, testé | submitShopBuyer, shopReservation, shippingVatRate (core shop.ts, shopCheckout.ts, shop.test.ts, shop-shipping.test.ts, ShopPublic.test.tsx) |
+| RG-SHOP-15 | P1 | expédition : l'organisation (droits des commandes) marque une commande livrée « expédiée », une seule fois, avec le tran | fait, testé | markShopOrderShipped, receivedAt, refundShopOrder (core shop.ts, shopOrders.ts, shopTemplates.ts, shop.test.ts, shop-shipping.test.ts, shop-emails.test.ts, ShopOrders.test.tsx) |

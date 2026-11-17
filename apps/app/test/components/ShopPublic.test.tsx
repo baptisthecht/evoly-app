@@ -23,7 +23,8 @@ import { ShopCheckout } from "@/components/public/shop/ShopCheckout";
 import { addToCart, readCart, writeCart } from "@/components/public/shop/cart";
 import { Fr } from "./intl";
 
-// Boutique publique, lot 3b (section 9.35) : page produit, panier, paiement, page de la commande
+// Boutique publique, lots 3b et 3d (section 9.35) : page produit, panier, paiement (retrait ou livraison), page de la
+// commande
 const actions = vi.hoisted(() => ({
   cartPreviewAction: vi.fn(),
   reserveCartAction: vi.fn(),
@@ -357,7 +358,7 @@ describe("panier", () => {
 const checkoutProps = {
   token: "t".repeat(43),
   organizationName: "Théâtre",
-  totalMinor: 5400,
+  subtotalMinor: 5400,
   currency: "EUR",
   locale: "fr",
   points: [
@@ -425,6 +426,7 @@ describe("paiement d'une commande de la boutique", () => {
       email: "lea@exemple.be",
       phone: null,
       marketingOptIn: true,
+      mode: "PICKUP",
       pickupPointId: "pt2",
     });
     expect(actions.confirmShopPaymentAction).toHaveBeenCalledWith(
@@ -535,6 +537,124 @@ describe("paiement d'une commande de la boutique", () => {
     );
     expect(screen.getByText(p.error_PAYMENTS_UNAVAILABLE!)).toBeTruthy();
     expect(screen.getByText(p.error_SHOP_PICKUP_REQUIRED!)).toBeTruthy();
+  });
+});
+
+describe("paiement d'une commande livrée (US-SHOP-08, RG-SHOP-14)", () => {
+  const methods = [
+    { id: "m1", name: "Colis suivi", priceMinor: 490 },
+    { id: "m2", name: "Remise par un bénévole", priceMinor: 0 },
+  ];
+  const ready = () => {
+    stripe.submit.mockResolvedValue({});
+    stripe.createConfirmationToken.mockResolvedValue({
+      confirmationToken: { id: "ctoken_1" },
+    });
+    actions.submitShopBuyerAction.mockResolvedValue({
+      ok: true,
+      data: { clientSecret: "cs", stripeAccountId: "acct_1" },
+    });
+    actions.confirmShopPaymentAction.mockResolvedValue({
+      ok: true,
+      data: { kind: "DONE" },
+    });
+  };
+  const type = (label: string, value: string) =>
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+
+  it("livraison seule : mode et adresse exigés, frais ajoutés au total, adresse envoyée avec le pays", async () => {
+    ready();
+    wrap(
+      <ShopCheckout
+        {...checkoutProps}
+        points={[]}
+        shippingMethods={methods}
+        defaultCountry="FR"
+        expiresAt={new Date(Date.now() + 10 * 60_000).toISOString()}
+      />,
+    );
+    // pas de choix retrait ou livraison : la livraison seulement
+    expect(screen.queryByText(p.modeTitle!)).toBeNull();
+    expect(screen.getByText(p.shippingFree!)).toBeTruthy();
+    expect((screen.getByLabelText(p.country!) as HTMLSelectElement).value).toBe(
+      "FR",
+    );
+    fill();
+    await click(screen.getByRole("button", { name: /^Payer/ }));
+    expect(screen.getByRole("alert").textContent).toBe(
+      p.error_SHOP_SHIPPING_REQUIRED,
+    );
+    fireEvent.click(screen.getByRole("radio", { name: /Colis suivi/ }));
+    // frais de livraison ajoutés au total et au montant payé : 54 € + 4,90 €
+    expect(screen.getByText(/^58,90\s€$/)).toBeTruthy();
+    const payButton = screen.getByRole("button", { name: /^Payer 58,90/ });
+    await click(payButton);
+    expect(screen.getByRole("alert").textContent).toBe(
+      p.error_SHOP_ADDRESS_REQUIRED,
+    );
+    type(p.addressName!, "Léa Martin");
+    type(p.addressLine1!, "Rue Basse 2");
+    type(p.postalCode!, "75011");
+    type(p.city!, "Paris");
+    await click(payButton);
+    await waitFor(() => expect(router.refresh).toHaveBeenCalled());
+    expect(actions.submitShopBuyerAction.mock.calls[0]![1]).toEqual({
+      firstName: "Léa",
+      lastName: "Martin",
+      email: "lea@exemple.be",
+      phone: null,
+      marketingOptIn: false,
+      mode: "SHIPPING",
+      shippingMethodId: "m1",
+      address: {
+        name: "Léa Martin",
+        line1: "Rue Basse 2",
+        line2: "",
+        postalCode: "75011",
+        city: "Paris",
+        country: "FR",
+      },
+    });
+  });
+
+  it("retrait ou livraison au choix : retrait d'abord, livraison offerte, retour au retrait sans frais", async () => {
+    ready();
+    wrap(
+      <ShopCheckout
+        {...checkoutProps}
+        shippingMethods={[methods[1]!]}
+        defaultCountry="US"
+        expiresAt={new Date(Date.now() + 10 * 60_000).toISOString()}
+      />,
+    );
+    expect(screen.getByText(p.modeTitle!)).toBeTruthy();
+    expect(screen.queryByLabelText(p.addressName!)).toBeNull();
+    fireEvent.click(screen.getByRole("radio", { name: p.modeShipping }));
+    // un seul mode de livraison : choisi d'office ; pays hors liste : la Belgique
+    expect(
+      (
+        screen.getByRole("radio", {
+          name: /Remise par un bénévole/,
+        }) as HTMLInputElement
+      ).checked,
+    ).toBe(true);
+    expect((screen.getByLabelText(p.country!) as HTMLSelectElement).value).toBe(
+      "BE",
+    );
+    expect(screen.getByRole("button", { name: /^Payer 54/ })).toBeTruthy();
+    fireEvent.click(screen.getByRole("radio", { name: p.modePickup }));
+    expect(screen.queryByLabelText(p.addressName!)).toBeNull();
+    fill();
+    fireEvent.click(screen.getByRole("radio", { name: /Accueil/ }));
+    await click(screen.getByRole("button", { name: /^Payer/ }));
+    await waitFor(() => expect(router.refresh).toHaveBeenCalled());
+    expect(actions.submitShopBuyerAction.mock.calls[0]![1]).toMatchObject({
+      mode: "PICKUP",
+      pickupPointId: "pt1",
+    });
+    expect(actions.submitShopBuyerAction.mock.calls[0]![1]).not.toHaveProperty(
+      "address",
+    );
   });
 });
 

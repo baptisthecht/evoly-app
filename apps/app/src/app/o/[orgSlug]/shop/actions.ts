@@ -32,6 +32,7 @@ import {
   findShopOrderByPickupCode,
   markShopOrderPickedUp,
   markShopOrderReady,
+  markShopOrderShipped,
   refundShopOrder,
 } from "@/server/shopOrders";
 
@@ -409,7 +410,7 @@ export async function fulfillmentAction(
 }
 
 const refundSchema = z
-  .object({ restock: checkbox })
+  .object({ restock: checkbox, shipping: checkbox })
   .catchall(z.string().max(4));
 
 /** Remboursement ligne par ligne (champs « qty.<ligne> »), articles remis en stock si demandé. */
@@ -427,7 +428,40 @@ export async function refundShopOrderAction(
       const lines = Object.entries(d)
         .filter(([k]) => k.startsWith("qty."))
         .map(([k, v]) => ({ lineId: k.slice(4), quantity: Number(v) || 0 }));
-      return refundShopOrder(ctx, orderId, { lines, restock: d.restock });
+      return refundShopOrder(ctx, orderId, {
+        lines,
+        restock: d.restock,
+        shipping: d.shipping,
+      });
+    },
+  );
+  if (r?.ok) {
+    revalidatePath(orderPath(orgSlug, orderId));
+    revalidatePath(shopPath(orgSlug));
+  }
+  return r;
+}
+
+const shipSchema = z.object({
+  carrier: required(60),
+  trackingNumber: required(80),
+  trackingUrl: required(500),
+});
+
+/** Expédition (RG-SHOP-15) : transporteur, numéro et lien de suivi, envoyés à l'acheteur par e-mail. */
+export async function shipOrderAction(
+  orgSlug: string,
+  orderId: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: shipSchema, permission: "ORDERS_MANAGE", feature: "SHOP" },
+    async (d, ctx) => {
+      await markShopOrderShipped(ctx, orderId, d);
+      return null;
     },
   );
   if (r?.ok) {

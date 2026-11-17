@@ -3,11 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   shopOrderConfirmedEmail,
   shopOrderReadyEmail,
+  shopOrderShippedEmail,
   shopRefundEmail,
   shopWithdrawalEmail,
 } from "@/server/email/shopTemplates";
 
-// Boutique, lot 3b (section 9.35) : chaque e-mail de la boutique, dans les 7 langues, aux couleurs de l'organisation
+// Boutique, lots 3b et 3d (section 9.35) : chaque e-mail de la boutique, dans les 7 langues, aux couleurs de
+// l'organisation
 const receipt = {
   lines: [{ name: "T-shirt (M)", quantity: 2, total: "54,00 €" }],
   subtotal: "54,00 €",
@@ -27,7 +29,13 @@ const base = {
   url: "https://theatre.evoly.me/boutique/commande/abc",
 };
 
-describe("e-mails de la boutique (RG-SHOP-08 à RG-SHOP-12)", () => {
+const shipped = {
+  carrier: "bpost <express>",
+  trackingNumber: "CD123456789BE",
+  trackingUrl: "https://track.example/CD123456789BE",
+};
+
+describe("e-mails de la boutique (RG-SHOP-08 à RG-SHOP-12, RG-SHOP-15)", () => {
   it("dans les 7 langues : sujet, texte, lien ; contenu de l'organisation échappé", () => {
     for (const locale of LOCALES) {
       const mails = [
@@ -42,6 +50,7 @@ describe("e-mails de la boutique (RG-SHOP-08 à RG-SHOP-12)", () => {
         shopOrderReadyEmail({ ...base, locale, pickup }),
         shopWithdrawalEmail({ ...base, locale }),
         shopRefundEmail({ ...base, locale, amount: "27,00 €" }),
+        shopOrderShippedEmail({ ...base, locale, ...shipped }),
       ];
       for (const m of mails) {
         expect(m.subject.length).toBeGreaterThan(5);
@@ -52,7 +61,22 @@ describe("e-mails de la boutique (RG-SHOP-08 à RG-SHOP-12)", () => {
       expect(mails[0]!.text).toContain("9,37 €");
       expect(mails[1]!.text).toContain("Rue Basse 2");
       expect(mails[4]!.text).toContain("27,00 €");
+      // expédiée : le bouton mène au suivi du transporteur, le numéro de suivi est rappelé
+      expect(mails[5]!.html).toContain(`href="${shipped.trackingUrl}"`);
+      expect(mails[5]!.text).toContain(shipped.trackingNumber);
+      expect(mails[5]!.html).not.toContain("<express>");
     }
+  });
+
+  it("expédiée, en français : sujet, transporteur, suivi", () => {
+    const m = shopOrderShippedEmail({ ...base, locale: "fr", ...shipped });
+    expect(m.subject).toBe("Votre commande est en route : Théâtre & Cie");
+    expect(m.text).toContain(
+      "Théâtre & Cie a expédié votre commande avec bpost <express>.",
+    );
+    expect(m.text).toContain(
+      "Suivre mon colis : https://track.example/CD123456789BE",
+    );
   });
 
   it("reçu en français : TVA comprise de chaque taux, droit de rétractation", () => {

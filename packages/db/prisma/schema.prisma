@@ -2625,6 +2625,7 @@ model ShippingMethod {
   updatedAt      DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders       ShopOrder[]
 
   @@index([organizationId, sortOrder])
 }
@@ -2675,6 +2676,19 @@ model ShopOrder {
   pickupName            String? // lieu figé à la commande
   pickupAddress         String?
   pickupInstructions    String?
+  shippingMethodId      String? // livraison (lot 3d) : mode choisi, nom et taux de TVA figés
+  shippingName          String?
+  shippingVatBps        Int               @default(0)
+  shippingRefunded      Boolean           @default(false) // la livraison ne se rembourse qu'une fois
+  shipName              String? // adresse de livraison
+  shipAddress1          String?
+  shipAddress2          String?
+  shipPostalCode        String?
+  shipCity              String?
+  shipCountry           String?           @db.Char(2)
+  carrier               String? // expédition : transporteur, numéro et lien de suivi
+  trackingNumber        String?
+  trackingUrl           String?
   buyerFirstName        String?
   buyerLastName         String?
   buyerEmail            String?
@@ -2708,16 +2722,19 @@ model ShopOrder {
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
 
-  organization Organization    @relation(fields: [organizationId], references: [id])
-  pickupPoint  PickupPoint?    @relation(fields: [pickupPointId], references: [id], onDelete: SetNull)
-  lines        ShopOrderLine[]
-  refunds      ShopRefund[]
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  pickupPoint    PickupPoint?    @relation(fields: [pickupPointId], references: [id], onDelete: SetNull)
+  shippingMethod ShippingMethod? @relation(fields: [shippingMethodId], references: [id], onDelete: SetNull)
+  lines          ShopOrderLine[]
+  refunds        ShopRefund[]
 
   @@index([organizationId, createdAt])
   @@index([organizationId, status, fulfillmentStatus])
   @@index([organizationId, buyerEmailKey])
   @@index([organizationId, buyerLastName])
   @@index([status, holdExpiresAt])
+  @@index([pickupPointId])
+  @@index([shippingMethodId])
 }
 
 /// Ligne d'une commande de la boutique : nom, options, prix et TVA figés à l'achat

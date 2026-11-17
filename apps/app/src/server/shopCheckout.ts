@@ -7,6 +7,7 @@ import {
   hasFeature,
   humanCode,
   sha256Hex,
+  shippingVatRate,
   shopOrderTotals,
   SHOP_CART_LIMITS,
   variantAvailable,
@@ -341,17 +342,36 @@ export async function shopReservation(token: string, now = new Date()) {
   const order = await db.shopOrder.findUniqueOrThrow({
     where: { id },
     include: {
-      lines: { orderBy: { id: "asc" } },
+      lines: {
+        orderBy: { id: "asc" },
+        include: {
+          product: { select: { pickupEnabled: true, shippingEnabled: true } },
+        },
+      },
       refunds: { orderBy: { createdAt: "asc" } },
-      organization: { select: { id: true, name: true, slug: true } },
+      organization: {
+        select: { id: true, name: true, slug: true, country: true },
+      },
     },
   });
+  // modes de remise proposés : ceux que tous les produits de la commande acceptent (RG-SHOP-14)
+  const pending = order.status === "PENDING";
+  const pickup = order.lines.every((l) => l.product?.pickupEnabled ?? true);
+  const shipping = order.lines.every((l) => l.product?.shippingEnabled);
   const points =
-    order.status === "PENDING"
+    pending && pickup
       ? await db.pickupPoint.findMany({
           where: { organizationId: order.organizationId, active: true },
           orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
           select: { id: true, name: true, address: true, instructions: true },
+        })
+      : [];
+  const shippingMethods =
+    pending && shipping
+      ? await db.shippingMethod.findMany({
+          where: { organizationId: order.organizationId, active: true },
+          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          select: { id: true, name: true, priceMinor: true },
         })
       : [];
   const account = await db.stripeAccount.findUnique({
@@ -361,6 +381,8 @@ export async function shopReservation(token: string, now = new Date()) {
   return {
     order,
     points,
+    shippingMethods,
+    country: order.organization.country,
     expired:
       order.status === "PENDING" &&
       (!order.holdExpiresAt || order.holdExpiresAt <= now),
@@ -374,13 +396,125 @@ export interface ShopBuyerInput {
   email: string;
   phone?: string | null;
   marketingOptIn?: boolean;
-  pickupPointId: string;
+  /** retrait sur place (par défaut) ou livraison (RG-SHOP-14) */
+  mode?: "PICKUP" | "SHIPPING";
+  pickupPointId?: string;
+  shippingMethodId?: string;
+  address?: {
+    name: string;
+    line1: string;
+    line2?: string;
+    postalCode: string;
+    city: string;
+    country: string;
+  };
+}
+
+type OrderForFulfillment = {
+  organizationId: string;
+  subtotalMinor: number;
+  lines: Array<{
+    vatRateBps: number;
+    unitPriceMinor: number;
+    quantity: number;
+    product: { pickupEnabled: boolean; shippingEnabled: boolean } | null;
+  }>;
+};
+
+/**
+ * RG-SHOP-14 : mode de remise de la commande. Retrait : un lieu actif, tous les produits le permettent. Livraison : un
+ * mode actif, tous les produits le permettent, une adresse complète ; ses frais s'ajoutent au total, avec la TVA du
+ * taux le plus élevé des produits. Les champs de l'autre mode sont effacés.
+ */
+async function fulfillmentData(
+  order: OrderForFulfillment,
+  buyer: ShopBuyerInput,
+) {
+  if (buyer.mode === "SHIPPING") {
+    const method = order.lines.every((l) => l.product?.shippingEnabled)
+      ? await db.shippingMethod.findFirst({
+          where: {
+            id: buyer.shippingMethodId ?? "",
+            organizationId: order.organizationId,
+            active: true,
+          },
+        })
+      : null;
+    if (!method) throw new CoreError("SHOP_SHIPPING_REQUIRED");
+    const a = buyer.address;
+    const clean = (v: string | undefined, max: number) =>
+      (v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+    const address = {
+      shipName: clean(a?.name, 100),
+      shipAddress1: clean(a?.line1, 120),
+      shipAddress2: clean(a?.line2, 120) || null,
+      shipPostalCode: clean(a?.postalCode, 12),
+      shipCity: clean(a?.city, 80),
+      shipCountry: clean(a?.country, 2).toUpperCase(),
+    };
+    if (
+      !address.shipName ||
+      !address.shipAddress1 ||
+      !address.shipPostalCode ||
+      !address.shipCity ||
+      !/^[A-Z]{2}$/.test(address.shipCountry)
+    )
+      throw new CoreError("SHOP_ADDRESS_REQUIRED");
+    const vatRateBps = shippingVatRate(order.lines);
+    const totals = shopOrderTotals(order.lines, {
+      amountMinor: method.priceMinor,
+      vatRateBps,
+    });
+    return {
+      fulfillmentMode: "SHIPPING" as const,
+      shippingMethodId: method.id,
+      shippingName: method.name,
+      shippingMinor: method.priceMinor,
+      shippingVatBps: vatRateBps,
+      totalMinor: totals.totalMinor,
+      vatMinor: totals.vatMinor,
+      ...address,
+      pickupPointId: null,
+      pickupName: null,
+      pickupAddress: null,
+      pickupInstructions: null,
+    };
+  }
+  const point = order.lines.every((l) => l.product?.pickupEnabled ?? true)
+    ? await db.pickupPoint.findFirst({
+        where: {
+          id: buyer.pickupPointId ?? "",
+          organizationId: order.organizationId,
+          active: true,
+        },
+      })
+    : null;
+  if (!point) throw new CoreError("SHOP_PICKUP_REQUIRED");
+  return {
+    fulfillmentMode: "PICKUP" as const,
+    pickupPointId: point.id,
+    pickupName: point.name,
+    pickupAddress: point.address,
+    pickupInstructions: point.instructions,
+    shippingMethodId: null,
+    shippingName: null,
+    shippingMinor: 0,
+    shippingVatBps: 0,
+    totalMinor: order.subtotalMinor,
+    vatMinor: shopOrderTotals(order.lines).vatMinor,
+    shipName: null,
+    shipAddress1: null,
+    shipAddress2: null,
+    shipPostalCode: null,
+    shipCity: null,
+    shipCountry: null,
+  };
 }
 
 /**
- * Coordonnées de l'acheteur et lieu de retrait, puis l'intention de paiement : charge directe sur le compte de
- * l'organisation, sans commission Evoly (RG-SHOP-08). Adresse bloquée par l'organisation : refus neutre, produits
- * libérés (RG-BLK-01).
+ * Coordonnées de l'acheteur et mode de remise (retrait ou livraison, RG-SHOP-14), puis l'intention de paiement, au
+ * montant de la commande livraison comprise : charge directe sur le compte de l'organisation, sans commission Evoly
+ * (RG-SHOP-08). Adresse bloquée par l'organisation : refus neutre, produits libérés (RG-BLK-01).
  */
 export async function submitShopBuyer(
   token: string,
@@ -392,7 +526,11 @@ export async function submitShopBuyer(
   const order = await db.shopOrder.findUniqueOrThrow({
     where: { id },
     include: {
-      lines: { include: { product: { select: { pickupEnabled: true } } } },
+      lines: {
+        include: {
+          product: { select: { pickupEnabled: true, shippingEnabled: true } },
+        },
+      },
     },
   });
   if (order.status === "PAID") return { paid: true };
@@ -412,15 +550,7 @@ export async function submitShopBuyer(
     await cancelShopReservation(token);
     throw new CoreError(BUYER_BLOCKED);
   }
-  const point = await db.pickupPoint.findFirst({
-    where: {
-      id: buyer.pickupPointId,
-      organizationId: order.organizationId,
-      active: true,
-    },
-  });
-  if (!point || order.lines.some((l) => l.product && !l.product.pickupEnabled))
-    throw new CoreError("SHOP_PICKUP_REQUIRED");
+  const fulfillment = await fulfillmentData(order, buyer);
   await db.shopOrder.update({
     where: { id },
     data: {
@@ -430,14 +560,11 @@ export async function submitShopBuyer(
       buyerEmailKey: buyerEmailKey(email),
       buyerPhone: buyer.phone?.trim().slice(0, 40) || null,
       marketingOptIn: !!buyer.marketingOptIn,
-      fulfillmentMode: "PICKUP",
-      pickupPointId: point.id,
-      pickupName: point.name,
-      pickupAddress: point.address,
-      pickupInstructions: point.instructions,
       termsVersion: SHOP_TERMS_VERSION,
+      ...fulfillment,
     },
   });
+  const totalMinor = fulfillment.totalMinor;
   const s = stripe();
   const account = await db.stripeAccount.findUnique({
     where: { organizationId: order.organizationId },
@@ -454,9 +581,10 @@ export async function submitShopBuyer(
     );
     if (existing.status === "succeeded") return { paid: true };
     if (existing.status !== "canceled" && existing.client_secret) {
+      // le montant suit le mode de remise choisi (livraison comprise ou non)
       await s.paymentIntents.update(
         existing.id,
-        { receipt_email: email },
+        { receipt_email: email, amount: totalMinor },
         options,
       );
       return {
@@ -468,7 +596,7 @@ export async function submitShopBuyer(
   // RG-SHOP-08 : aucune commission Evoly sur les produits (pas de frais d'application)
   const intent = await s.paymentIntents.create(
     {
-      amount: order.totalMinor,
+      amount: totalMinor,
       currency: order.currency.toLowerCase(),
       automatic_payment_methods: { enabled: true },
       receipt_email: email,

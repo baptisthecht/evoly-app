@@ -22,7 +22,8 @@ Le compte personnel (profil, sécurité, préférences de notifications) a sa pr
 
 Boutique (offre Pro, décidée le 16 novembre 2026) : la fiche d'un produit s'ouvre depuis le tableau des produits, avec
 son statut, ses informations, ses photos, ses options et le stock de chaque variante, l'une sous l'autre ; l'onglet
-Commandes suit les commandes de la boutique (à préparer, prêt à retirer, retiré, expédié).
+Commandes suit les commandes de la boutique (à préparer, prêt à retirer, retiré, expédié) ; la fiche d'une commande
+livrée montre l'adresse et prend le transporteur, le numéro et le lien de suivi.
 
 ## Événement
 

@@ -15,14 +15,17 @@ import {
 import {
   FulfillmentButtons,
   RefundForm,
+  ShipForm,
 } from "@/app/o/[orgSlug]/shop/orders/[orderId]/OrderDetail";
 import { PickupScanner } from "@/app/o/[orgSlug]/shop/pickup/PickupScanner";
 import { Fr } from "./intl";
 
-// Commandes de la boutique, lot 3b (section 9.35) : tableau, préparation, remboursement, scan des retraits
+// Commandes de la boutique, lots 3b et 3d (section 9.35) : tableau, préparation, expédition, remboursement, scan des
+// retraits
 const actions = vi.hoisted(() => ({
   fulfillmentAction: vi.fn(),
   refundShopOrderAction: vi.fn(),
+  shipOrderAction: vi.fn(),
   pickupLookupAction: vi.fn(),
   pickupConfirmAction: vi.fn(),
 }));
@@ -176,6 +179,99 @@ describe("fiche d'une commande de la boutique", () => {
       />,
     );
     expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("expédition : transporteur, numéro et lien de suivi envoyés ; refus du serveur affiché (RG-SHOP-15)", async () => {
+    actions.shipOrderAction.mockResolvedValue({
+      ok: false,
+      error: "SHOP_TRACKING_INVALID",
+    });
+    wrap(<ShipForm orgSlug="club" orderId="o1" />);
+    expect(screen.getByText(o.shipIntro!)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(o.carrier!), {
+      target: { value: "bpost" },
+    });
+    fireEvent.change(screen.getByLabelText(o.trackingNumber!), {
+      target: { value: "CD123456789BE" },
+    });
+    fireEvent.change(screen.getByLabelText(o.trackingUrl!), {
+      target: { value: "https://track.example/CD123456789BE" },
+    });
+    await click(screen.getByRole("button", { name: o.shipSubmit }));
+    await waitFor(() =>
+      expect(
+        screen.getByText(fr.formErrors.SHOP_TRACKING_INVALID),
+      ).toBeTruthy(),
+    );
+    expect(actions.shipOrderAction.mock.calls[0]!.slice(0, 2)).toEqual([
+      "club",
+      "o1",
+    ]);
+    expect(sent(actions.shipOrderAction)).toEqual({
+      carrier: "bpost",
+      trackingNumber: "CD123456789BE",
+      trackingUrl: "https://track.example/CD123456789BE",
+    });
+  });
+
+  it("livraison remboursable : proposée d'office pour une rétractation, ajoutée au montant ; seule restante, le formulaire reste", async () => {
+    const lines = [
+      {
+        id: "l1",
+        name: "Sweat",
+        left: 1,
+        unitPriceMinor: 2500,
+        unitPrice: "25 €",
+      },
+    ];
+    const { unmount } = wrap(
+      <RefundForm
+        orgSlug="club"
+        orderId="o1"
+        lines={lines}
+        currency="EUR"
+        locale="fr"
+        withdrawal
+        shipping={{ amountMinor: 490 }}
+      />,
+    );
+    const button = () =>
+      screen.getByRole("button", { name: /^Rembourser/ }) as HTMLButtonElement;
+    const shippingSwitch = screen.getByRole("switch", {
+      name: /Rembourser aussi la livraison \(4,90\s€\)/,
+    }) as HTMLInputElement;
+    expect(shippingSwitch.checked).toBe(true);
+    expect(button().textContent).toMatch(/29,90\s€/);
+    fireEvent.click(shippingSwitch);
+    expect(button().textContent).toMatch(/25,00\s€/);
+    fireEvent.click(shippingSwitch);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    await click(button());
+    await waitFor(() =>
+      expect(actions.refundShopOrderAction).toHaveBeenCalled(),
+    );
+    expect(sent(actions.refundShopOrderAction)).toEqual({
+      "qty.l1": "1",
+      shipping: "on",
+      restock: "on",
+    });
+    unmount();
+    // articles tous remboursés, livraison encore due : seule la livraison est proposée, décochée hors rétractation
+    wrap(
+      <RefundForm
+        orgSlug="club"
+        orderId="o1"
+        lines={[{ ...lines[0]!, left: 0 }]}
+        currency="EUR"
+        locale="fr"
+        withdrawal={false}
+        shipping={{ amountMinor: 490 }}
+      />,
+    );
+    expect(screen.queryByLabelText("Quantité à rembourser : Sweat")).toBeNull();
+    expect(button().disabled).toBe(true);
+    fireEvent.click(screen.getByRole("switch", { name: /livraison/ }));
+    expect(button().textContent).toMatch(/4,90\s€/);
   });
 
   it("remboursement : quantités bornées, montant annoncé, confirmé ; rétractation : tout proposé ; rien à rembourser", async () => {
