@@ -76,4 +76,5 @@ export const PERMISSION_GROUPS: ReadonlyArray<{
   },
   { key: "entries", permissions: ["CHECKIN_SCAN", "CHECKIN_MANAGE"] },
   { key: "marketing", permissions: ["MARKETING_MANAGE", "CONTACTS_EXPORT"] },
+  { key: "shop", permissions: ["SHOP_MANAGE"] },
 ];

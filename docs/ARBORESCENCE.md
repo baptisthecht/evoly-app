@@ -10,6 +10,7 @@ Décidée le 28 octobre 2026. Trois niveaux : la barre latérale, les onglets de
 | Événements     |                                                                                 |
 | Commandes      | Commandes · Personnes bloquées                                                  |
 | Revente        | dernières annonces et reventes ; raccourci discret vers les réglages de revente |
+| Boutique       | Produits (fiche d'un produit) · Commandes · Retrait et livraison                |
 | Finances       |                                                                                 |
 | Marketing      | Contacts · Campagnes · Automatisations (rappels automatiques)                   |
 | Marque         | Votre marque · Page de l'organisation · Adresse et domaines · E-mails           |
@@ -18,6 +19,10 @@ Décidée le 28 octobre 2026. Trois niveaux : la barre latérale, les onglets de
 | Paramètres     | Général · Paiements (Stripe et vos frais) · Avancé (supprimer l'organisation)   |
 
 Le compte personnel (profil, sécurité, préférences de notifications) a sa propre page, « Mon compte ».
+
+Boutique (offre Pro, décidée le 16 novembre 2026) : la fiche d'un produit s'ouvre depuis le tableau des produits, avec
+son statut, ses informations, ses photos, ses options et le stock de chaque variante, l'une sous l'autre ; l'onglet
+Commandes suit les commandes de la boutique (à préparer, prêt à retirer, retiré, expédié).
 
 ## Événement
 

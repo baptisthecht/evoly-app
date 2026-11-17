@@ -18,7 +18,16 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
   frais »), valeur par défaut dans Paramètres, Paiements, figé sur la commande ; règle affichée sur la page de
   l'événement, dans le tunnel d'achat et l'e-mail de confirmation ; montant exact dans la demande. Au prochain
   déploiement : migration `20261116130000_remboursement_cout_neutre`.
-- Lot 3, la boutique (sous-lots 3a à 3d) : à faire ; le modèle de données est présenté au fondateur avant 3a.
+- Lot 3, la boutique (sous-lots 3a à 3d), sur la branche `boutique` (décidé le 17 novembre 2026), modèle de données
+  validé par le fondateur le 17 novembre 2026 :
+  - 3a, catalogue et écrans d'administration : fait. Entrée « Boutique » (Pro) avec les onglets Produits et Retrait et
+    livraison ; fiche d'un produit (statut, informations, photos, options, stock et supplément de chaque variante) ;
+    droit « Gérer la boutique ». Au déploiement : migrations `20261117120000_boutique` et
+    `20261117120100_boutique_offres`.
+  - 3b, boutique publique avec retrait en main propre, paiement, e-mails, code QR de retrait : à faire. Droit de
+    rétractation de 14 jours ouvert aussi au retrait sur place (vente à distance, décidé le 17 novembre 2026).
+  - 3c, produits en option des événements, stock partagé : à faire.
+  - 3d, livraison avec numéro de suivi : à faire (les modes de livraison se configurent déjà en 3a).
 - Lot 4, connexion avec Apple : fait côté code (origine de confiance `https://appleid.apple.com`, script du secret,
   procédure dans `docs/DEPLOIEMENT.md`) ; reste la configuration chez Apple et sur le serveur (ci-dessous).
 

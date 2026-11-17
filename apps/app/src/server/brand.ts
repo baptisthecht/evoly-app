@@ -24,16 +24,21 @@ const MAX_BYTES = {
   cover: 5_000_000,
   campaign: 5_000_000,
   seatview: 8_000_000,
+  product: 8_000_000, // photo d'un produit de la boutique, souvent prise au téléphone : réduite ensuite
 } as const;
 export type UploadKind = keyof typeof MAX_BYTES;
 
-/** Import d'une image : type réel vérifié, taille limitée, clé aléatoire (le nom du fichier d'origine n'est jamais repris). */
+/**
+ * Import d'une image : type réel vérifié, taille limitée, clé aléatoire (le nom du fichier d'origine n'est jamais repris).
+ * `targetId` : l'événement d'une couverture ou d'une vue depuis la place, le produit d'une photo de la boutique.
+ */
 export async function uploadImage(
   ctx: OrgContext,
   kind: UploadKind,
   bytes: Uint8Array,
-  eventId?: string | null,
+  targetId?: string | null,
 ): Promise<string> {
+  const eventId = targetId;
   if (bytes.length === 0 || bytes.length > MAX_BYTES[kind])
     throw new CoreError("UPLOAD_TOO_LARGE");
   let type = sniffImage(bytes);
@@ -93,6 +98,46 @@ export async function uploadImage(
         .replace(/[^a-z0-9]/g, "")}.jpg`,
       bytes,
       "image/jpeg",
+    );
+  }
+  if (kind === "product") {
+    // boutique (Pro) : photo réduite à 1 600 px au plus, dans son format (la transparence d'un PNG est gardée)
+    if (!hasFeature(ctx.features, "SHOP")) throw new CoreError("PRO_REQUIRED");
+    const product = await db.product.findFirst({
+      where: { id: targetId ?? "", organizationId: ctx.organization.id },
+      select: { id: true },
+    });
+    if (!product) throw new CoreError("NOT_FOUND");
+    const sharp = (await import("sharp")).default;
+    try {
+      const img = sharp(Buffer.from(bytes), {
+        limitInputPixels: 60_000_000,
+      })
+        .rotate()
+        .resize({
+          width: 1600,
+          height: 1600,
+          fit: "inside",
+          withoutEnlargement: true,
+        });
+      bytes = new Uint8Array(
+        await (
+          type === "image/png"
+            ? img.png()
+            : type === "image/webp"
+              ? img.webp({ quality: 82 })
+              : img.jpeg({ quality: 82 })
+        ).toBuffer(),
+      );
+    } catch {
+      throw new CoreError("UPLOAD_TYPE");
+    }
+    return putPublicFile(
+      `orgs/${ctx.organization.id}/products/${product.id}-${secretToken(9)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")}.${ext}`,
+      bytes,
+      type,
     );
   }
   if (kind === "cover") {

@@ -1,4 +1,4 @@
-import { can, hasFeature, PERMISSIONS } from "@evoly/core";
+import { can, hasFeature, PERMISSIONS, vatRateInput } from "@evoly/core";
 import { getTranslations } from "next-intl/server";
 import { ButtonLink } from "@/components/ui/Button";
 import { requireOrgContext } from "@/server/context";
@@ -8,6 +8,9 @@ import { teamOverview } from "@/server/team";
 import { InviteDialog } from "@/app/o/[orgSlug]/members/MembersTable";
 import { RoleEditor } from "@/app/o/[orgSlug]/members/TeamClient";
 import { BlockBuyerDialog } from "@/app/o/[orgSlug]/orders/BlockedBuyers";
+import { NewProductDialog } from "@/app/o/[orgSlug]/shop/ProductsTable";
+import { currencySymbol } from "@/app/o/[orgSlug]/shop/money";
+import { defaultVatRateBps } from "@/server/shop";
 
 import { PageHeader } from "./PageHeader";
 import { DownloadIcon, PlusIcon } from "@/components/ui/icons";
@@ -193,6 +196,37 @@ export async function SectionHeader({
     }
     case "resale":
       return <PageHeader title={nav(section)} />;
+    case "shop": {
+      // boutique (lot 3, Pro) : Produits et Retrait et livraison ; « Nouveau produit » sur l'onglet Produits
+      const shop = hasFeature(ctx.features, "SHOP");
+      const manage =
+        shop && can(ctx.membership, "SHOP_MANAGE") && !ctx.readOnly;
+      return (
+        <PageHeader
+          title={nav("shop")}
+          tabsLabel={shop ? s("tabs") : undefined}
+          tabs={
+            shop
+              ? tabs([
+                  [s("tab_products"), `${base}/shop`],
+                  [s("tab_delivery"), `${base}/shop?tab=delivery`],
+                ])
+              : undefined
+          }
+          actions={
+            manage && query.tab !== "delivery" ? (
+              <NewProductDialog
+                orgSlug={ctx.organization.slug}
+                symbol={currencySymbol(ctx.organization.currency)}
+                defaultVat={vatRateInput(
+                  defaultVatRateBps(ctx.organization.country),
+                )}
+              />
+            ) : null
+          }
+        />
+      );
+    }
     case "billing":
       return (
         <PageHeader

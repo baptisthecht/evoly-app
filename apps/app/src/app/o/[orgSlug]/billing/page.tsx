@@ -30,6 +30,7 @@ const COMPARED: PlanFeature[] = [
   "EMAIL_MARKETING",
   "CUSTOM_DOMAINS",
   "EVENT_SUBDOMAINS",
+  "SHOP",
 ];
 
 /** Section 9.21 : offre actuelle, statut, essai, portail client, rappel des effets d'un retour en Free. */

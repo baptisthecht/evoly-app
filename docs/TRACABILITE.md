@@ -1,8 +1,8 @@
 # Traçabilité du cahier des charges
 
-État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (364 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
+État de chaque récit utilisateur (US) et règle de gestion (RG) de `docs/CDC.md` (373 au total). « Fait, testé » : l'identifiant est cité dans le code et dans au moins un test ; « fait » : cité dans le code, ou vérifié à la relecture (colonne de droite) ; « partiel » et « à faire » : écarts connus.
 
-**Bilan** : fait, testé : 195 · fait : 167 · hors périmètre : 2.
+**Bilan** : fait, testé : 204 · fait : 167 · hors périmètre : 2.
 
 ## Écarts connus
 
@@ -380,3 +380,12 @@
 | RG-REF-09 | | remboursement à coût neutre (décidé le 16 novembre 2026) : réglage par événement, « Remboursement intégral » (par défa | fait, testé | réglage figé sur la commande, 100 % hors demande de l'acheteur (refunds.ts, checkout.ts, events.ts, refund-fees.test.ts) |
 | RG-REF-10 | | en mode « moins les frais », l'acheteur récupère le prix payé moins les frais de paiement (réels, ou estimés tant que St | fait, testé | refundFeesWithheld, au prorata, plafonné (core refunds.ts, refunds.test.ts, refund-fees.test.ts) |
 | RG-REF-11 | | transparence : la règle est affichée avant l'achat (page de l'événement, tunnel d'achat), rappelée dans l'e-mail de con | fait, testé | RefundRuleText, e-mail de confirmation, montant exact dans la demande (RefundRequest.tsx, templates.ts, RefundFees.test.tsx) |
+| US-SHOP-01 | P1 | en tant qu'organisateur Pro (droit « Gérer la boutique »), je crée un produit (nom, description, photos, prix toutes taxes | fait, testé | Boutique, onglet Produits et fiche d'un produit (shop.ts, ProductsTable.tsx, ProductEditor.tsx, shop-catalog.test.ts, Shop.test.tsx, shop-admin.spec.ts) |
+| US-SHOP-02 | P1 | en tant qu'organisateur, je définis les options libres d'un produit (taille, couleur…) et leurs valeurs ; je règle le stock | fait, testé | options et variantes (core shop.ts, shop.ts, ProductEditor.tsx, shop.test.ts, shop-catalog.test.ts, Shop.test.tsx, shop-admin.spec.ts) |
+| US-SHOP-03 | P1 | en tant qu'organisateur, je configure mes lieux de retrait en main propre (nom, adresse, instructions) et mes modes de livr | fait, testé | onglet Retrait et livraison (shopDelivery.ts, DeliveryView.tsx, shop-catalog.test.ts, Shop.test.tsx, shop-admin.spec.ts) |
+| RG-SHOP-01 | P1 | réservée aux offres Pro et Partenaire (fonctionnalité `SHOP`) ; en offre gratuite, l'entrée « Boutique » de la barre latér | fait, testé | fonctionnalité SHOP, droit SHOP_MANAGE, encart Pro (shop.ts, nav.ts, shop-catalog.test.ts, shop-admin.spec.ts) |
+| RG-SHOP-02 | P1 | prix toutes taxes comprises, 1,00 au moins dans la devise de l'organisation ; taux de TVA propre au produit, de 0 à 30 % (de | fait, testé | parseVatRate, taux proposé d'après le pays (core shop.ts, shop.ts, shop.test.ts, shop-catalog.test.ts) |
+| RG-SHOP-03 | P1 | 3 options au plus par produit, 20 valeurs par option, 100 combinaisons au plus ; noms uniques, casse ignorée. Chaque combina | fait, testé | combinations, saveProductOptions (core shop.ts, shop.ts, shop.test.ts, shop-catalog.test.ts) |
+| RG-SHOP-04 | P1 | le stock d'une variante compte les unités disponibles (vide : illimité) ; il diminue à chaque vente, ne descend jamais sous | fait, testé | saveVariants, contraintes de la migration 20261117120000_boutique (shop.ts, shop-catalog.test.ts) |
+| RG-SHOP-05 | P1 | un produit se met en vente avec au moins une variante active et un mode de remise réellement proposé : le retrait avec au m | fait, testé | productSaleBlocker, saleCheck (core shop.ts, shop.ts, shop.test.ts, shop-catalog.test.ts, shop-admin.spec.ts) |
+| RG-SHOP-06 | P1 | seul un produit jamais vendu se supprime, photos comprises ; sinon il s'archive : il n'est plus en vente et ses commandes re | fait, testé | deleteProduct, photos réduites à 1 600 px (shop.ts, brand.ts, shop-catalog.test.ts) |

@@ -21,6 +21,7 @@ export type NavIcon =
   | "calendar"
   | "receipt"
   | "repeat"
+  | "bag"
   | "coins"
   | "send"
   | "palette"
@@ -125,6 +126,7 @@ const ICONS: Record<NavIcon, ReactNode> = {
   ),
   receipt: <path d="M4 7h16M4 12h16M4 17h10" />,
   repeat: <path d="M7 7h11l-3-3M17 17H6l3 3" />,
+  bag: <path d="M5 8h14l-1 12H6zM9 8V6a3 3 0 0 1 6 0v2" />,
   coins: <path d="M4 19V9M10 19V5M16 19v-7M22 19H2" />,
   send: <path d="M4 12l16-7-5 16-3-7z" />,
   palette: (

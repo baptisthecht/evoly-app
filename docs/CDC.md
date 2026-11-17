@@ -258,6 +258,7 @@ Le simulateur du site compare les frais d'Evoly (commission + frais d'une carte 
 | Options et consommations prépayées                                    | Non       | Oui    | P1       |
 | Liste d'attente                                                       | Oui       | Oui    | P1       |
 | Tables et forfaits                                                    | Non       | Oui    | P1       |
+| Boutique en ligne sans commission (produits, stock, retrait, envoi)   | Non       | Oui    | P1       |
 
 Le contrôle d'accès aux fonctionnalités passe par une fonction unique `hasFeature(organisation, fonctionnalité)` qui lit `Plan.features` et l'état de l'abonnement (voir section 6.4).
 
@@ -1436,6 +1437,27 @@ Décidé le 16 novembre 2026. Un organisateur empêche une personne malveillante
 - RG-BLK-04 : la personne bloquée lit un message neutre, sans motif : « Cette commande ne peut pas aboutir. Contactez l'organisateur. »
 - RG-BLK-05 : le blocage vaut aussi pour l'achat d'une place en revente et pour l'inscription à la liste d'attente. RGPD : motif, auteur et date visibles par l'organisation seule ; déblocage à tout moment ; blocages et déblocages au journal d'audit, sans adresse ni motif.
 
+### 9.35 Boutique (P1, Pro)
+
+Décidé le 16 novembre 2026. Evoly devient billetterie et boutique en ligne : un établissement vend ses produits (merchandising, objets) seuls, depuis la page de son organisation, et en option avec chaque billet. Aucune commission Evoly sur les produits : seuls les frais de paiement s'appliquent. Livrée en quatre sous-lots : catalogue et écrans d'administration (3a), boutique publique avec retrait en main propre (3b), produits en option des événements (3c), livraison avec suivi (3d).
+
+Modèle : produits de l'organisation (`Product`), photos (`ProductImage`), options libres (`ProductOptionGroup`, `ProductOptionValue`) et variantes (`ProductVariant`, une par combinaison de valeurs, avec son stock et son supplément) ; lieux de retrait (`PickupPoint`) et modes de livraison (`ShippingMethod`). Les commandes de la boutique sont séparées des commandes de billets, qui exigent toutes un événement.
+
+**User stories**
+
+- US-SHOP-01 : en tant qu'organisateur Pro (droit « Gérer la boutique »), je crée un produit (nom, description, photos, prix toutes taxes comprises, taux de TVA propre, mise en avant), je le mets en vente, je le retire de la vente ou je l'archive.
+- US-SHOP-02 : en tant qu'organisateur, je définis les options libres d'un produit (taille, couleur…) et leurs valeurs ; je règle le stock (vide : illimité) et le supplément de prix de chaque combinaison, et je retire une combinaison de la vente.
+- US-SHOP-03 : en tant qu'organisateur, je configure mes lieux de retrait en main propre (nom, adresse, instructions) et mes modes de livraison à prix fixe ; chaque produit choisit les modes de remise qu'il accepte.
+
+**Règles de gestion**
+
+- RG-SHOP-01 : réservée aux offres Pro et Partenaire (fonctionnalité `SHOP`) ; en offre gratuite, l'entrée « Boutique » de la barre latérale porte la pastille Pro et la page montre l'encart Pro. Droit « Gérer la boutique » (`SHOP_MANAGE`) : propriétaire, administrateur, gestion des événements (annexe B).
+- RG-SHOP-02 : prix toutes taxes comprises, 1,00 au moins dans la devise de l'organisation ; taux de TVA propre au produit, de 0 à 30 % (deux décimales au plus), proposé d'après le pays de l'organisation, détaillé sur les reçus.
+- RG-SHOP-03 : 3 options au plus par produit, 20 valeurs par option, 100 combinaisons au plus ; noms uniques, casse ignorée. Chaque combinaison est une variante ; une combinaison qui existait garde son stock et son supplément ; une combinaison disparue est supprimée, ou mise de côté si elle a déjà été vendue ou réservée (ses commandes la gardent). Sans option : une variante unique.
+- RG-SHOP-04 : le stock d'une variante compte les unités disponibles (vide : illimité) ; il diminue à chaque vente, ne descend jamais sous zéro ni sous les paniers en cours de paiement (réservation atomique, contraintes de la base). Le supplément de prix est positif ou nul.
+- RG-SHOP-05 : un produit se met en vente avec au moins une variante active et un mode de remise réellement proposé : le retrait avec au moins un lieu actif, ou la livraison avec au moins un mode actif. Un produit en vente garde au moins une variante active et un mode de remise.
+- RG-SHOP-06 : seul un produit jamais vendu se supprime, photos comprises ; sinon il s'archive : il n'est plus en vente et ses commandes restent. Photos : 10 au plus par produit, PNG, JPEG ou WebP, réduites à 1 600 px ; la première est la photo principale.
+
 ## 10. Catalogue des e-mails
 
 Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la file de tâches. Catégories : **T** transactionnel (toujours envoyé), **S** service (respecte la désinscription de l'événement), **M** marketing (consentement requis).
@@ -1736,6 +1758,7 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 | `STATS_VIEW`        | oui          | oui            | oui                    | oui         |                      | oui           |
 | `MARKETING_MANAGE`  | oui          | oui            | oui                    |             |                      |               |
 | `CONTACTS_EXPORT`   | oui          | oui            |                        |             |                      |               |
+| `SHOP_MANAGE`       | oui          | oui            | oui                    |             |                      |               |
 
 Actions réservées au propriétaire, en plus de ses permissions : transférer la propriété, supprimer l'organisation.
 
