@@ -16,6 +16,7 @@ import { PresaleAutoUnlock } from "./PresaleAutoUnlock";
 import { PresaleForm } from "./PresaleForm";
 import { loadPublicEvent } from "@/server/publicEvents";
 import { presaleCookie } from "@/server/presale";
+import { withEventTheme } from "@/server/brand";
 import { Countdown } from "./Countdown";
 import { PublicEventPage, eventMetadata } from "./EventPage";
 
@@ -264,7 +265,7 @@ export async function eventRouteMetadata(
 
 /** Aiguillage d'une page d'événement : prévente, lien de prévente, pas encore publié, ou page normale. */
 export async function EventRouteView({
-  org,
+  org: site,
   data,
   homeHref,
   query,
@@ -274,6 +275,8 @@ export async function EventRouteView({
   homeHref: string;
   query: Query;
 }) {
+  // style propre à l'événement (Pro) : sa page, l'achat, l'aperçu et la prévente, sur toutes ses adresses
+  const org = withEventTheme(site, data.event);
   const t = await getTranslations("public");
   if (data.presale)
     return (

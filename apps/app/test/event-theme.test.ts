@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { saveEventTheme, themeForEvent } from "@/server/brand";
+import { saveEventTheme, themeForEvent, withEventTheme } from "@/server/brand";
 import { findOrgContext } from "@/server/context";
 import { createOrganization } from "@/server/onboarding";
 
@@ -111,5 +111,41 @@ describe("style propre à un événement (Pro)", () => {
     ).toEqual({ ...brand, accentColor: "#FFD23F" });
     expect(themeForEvent(null, {})).toBeNull();
     expect(themeForEvent(brand, null)).toEqual(brand);
+  });
+
+  it("billetterie de l'événement : son style s'applique même sans marque enregistrée ; en Free, jamais (RG-BRD-03)", () => {
+    const style = {
+      primaryColor: "#000000",
+      accentColor: "#FF6A00",
+      headingFont: "merriweather",
+      bodyFont: null,
+    };
+    // Pro, marque jamais enregistrée (avant le 17 novembre 2026 : style de l'événement ignoré, thème Evoly affiché)
+    const pro = { name: "A.M.W", branded: true, brand: null };
+    expect(withEventTheme(pro, style).brand).toEqual({
+      primaryColor: "#000000",
+      accentColor: "#FF6A00",
+      headingFont: "merriweather",
+    });
+    // Pro avec une marque : réglage par réglage, le reste de la marque gardé
+    const branded = {
+      name: "A.M.W",
+      branded: true,
+      brand: { displayName: "AMW", accentColor: "#FFB8E8", radius: "round" },
+    };
+    expect(withEventTheme(branded, style).brand).toEqual({
+      displayName: "AMW",
+      primaryColor: "#000000",
+      accentColor: "#FF6A00",
+      radius: "round",
+      headingFont: "merriweather",
+    });
+    // sans style propre : la marque telle quelle
+    expect(withEventTheme(branded, { accentColor: null })).toEqual(branded);
+    expect(withEventTheme(pro, null)).toBe(pro);
+    expect(withEventTheme(pro, {})).toBe(pro);
+    // Free (retour en Free après un style enregistré en Pro) : thème Evoly
+    const free = { name: "A.M.W", branded: false, brand: null };
+    expect(withEventTheme(free, style)).toBe(free);
   });
 });

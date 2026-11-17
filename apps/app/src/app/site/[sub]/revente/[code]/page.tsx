@@ -7,6 +7,7 @@ import { PublicShell } from "@/components/public/PublicShell";
 import { ResaleBuy } from "@/components/public/ResaleBuy";
 import { buttonClass } from "@/components/ui/Button";
 import { getPublicOrganization } from "@/server/publicEvents";
+import { withEventTheme } from "@/server/brand";
 import { getListingByCode } from "@/server/resale";
 import { siteGate } from "@/server/siteGuard";
 
@@ -25,9 +26,10 @@ export default async function ResaleListingPage({
 }) {
   const { sub, code } = await params;
   if ((await siteGate(sub, `/revente/${code}`)).kind === "DISABLED") notFound();
-  const org = await getPublicOrganization(sub);
+  const site = await getPublicOrganization(sub);
   const listing = await getListingByCode(code);
-  if (!org || !listing || listing.event.organizationId !== org.id) notFound();
+  if (!site || !listing || listing.event.organizationId !== site.id) notFound();
+  const org = withEventTheme(site, listing.event); // revente d'un billet de l'événement : son style propre (Pro)
   const t = await getTranslations("resale");
   const locale = (await getLocale()) as Locale;
   const now = new Date();

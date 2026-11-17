@@ -28,6 +28,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { findOrderIdByToken } from "@/server/checkout";
 import { getBuyerOrder, syncPaymentFromStripe } from "@/server/orders";
 import { getPublicOrganization } from "@/server/publicEvents";
+import { withEventTheme } from "@/server/brand";
 import { siteGate } from "@/server/siteGuard";
 import { NotifyOpener } from "@/components/public/NotifyOpener";
 
@@ -52,15 +53,17 @@ export default async function BuyerTicketsPage({
   const { sub, token } = await params;
   if ((await siteGate(sub, `/billets/${token}`)).kind === "DISABLED")
     notFound();
-  const org = await getPublicOrganization(sub);
+  const site = await getPublicOrganization(sub);
   const orderId = await findOrderIdByToken(token);
-  if (!org || !orderId) notFound();
+  if (!site || !orderId) notFound();
   let order = await getBuyerOrder(orderId);
-  if (order.organizationId !== org.id) notFound();
+  if (order.organizationId !== site.id) notFound();
   if (order.status === "PENDING" && order.stripePaymentIntentId) {
     await syncPaymentFromStripe(orderId).catch(() => null);
     order = await getBuyerOrder(orderId);
   }
+  // billets d'un événement : son style propre (Pro), comme sa page et ses billets en PDF
+  const org = withEventTheme(site, order.event);
   const t = await getTranslations("orders");
   const wallet = { apple: !!appleCredentials(), google: !!googleCredentials() };
   // badges officiels s'ils sont déposés dans public/wallet (voir LISEZMOI.md), sinon bouton texte

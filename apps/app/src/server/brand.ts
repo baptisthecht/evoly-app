@@ -319,6 +319,20 @@ export function themeForEvent<B extends ThemeSource>(
   return { ...(brand ?? ({} as B)), ...overrides } as B;
 }
 
+/**
+ * Organisation vue depuis la billetterie d'un événement (sa page et l'achat, sur l'adresse de l'organisation comme sur
+ * l'adresse propre à l'événement, ses billets, ses reventes) : le style propre à l'événement remplace celui de la marque,
+ * réglage par réglage, en Pro seulement (RG-BRD-03). Avant le 17 novembre 2026, il était ignoré quand l'organisation
+ * n'avait jamais enregistré sa marque, et partout ailleurs que sur la page de l'événement à l'adresse de l'organisation.
+ */
+export function withEventTheme<
+  O extends { branded: boolean; brand: ThemeSource | null },
+>(org: O, event: ThemeSource | null | undefined): O {
+  if (!org.branded || !event) return org;
+  const brand = themeForEvent(org.brand, event);
+  return brand ? ({ ...org, brand } as O) : org;
+}
+
 /** US-BRD-01, US-BRD-02 (Pro) : configurateur de marque. Le contraste du texte est choisi automatiquement à l'affichage (RG-BRD-01). */
 export async function saveBrand(ctx: OrgContext, input: BrandInput) {
   if (!hasFeature(ctx.features, "BRANDING"))
