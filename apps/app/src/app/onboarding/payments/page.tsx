@@ -30,10 +30,10 @@ export default async function OnboardingPaymentsPage({
     where: { organizationId: ctx.organization.id },
     select: PLAN_SUBSCRIPTION_SELECT,
   });
-  // déjà en Pro (offre de lancement) : pas d'essai à proposer
+  // déjà en Pro (offre de lancement) ou en Partenaire : pas d'essai à proposer
   const wantsPro =
     (await cookies()).get("evoly_plan")?.value === "pro" &&
-    effectivePlan(sub, new Date()) !== "pro";
+    effectivePlan(sub, new Date()) === "free";
   return (
     <>
       <Steps current={2} />

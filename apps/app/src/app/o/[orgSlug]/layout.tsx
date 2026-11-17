@@ -43,9 +43,19 @@ export default async function OrgLayout({
   });
   // carte de l'organisation : son offre ; Pro attribué par Evoly (offre, parrainage) : jusqu'à quand, en vert
   const nav = await getTranslations("nav");
-  const isPro = sub ? effectivePlan(sub, new Date()) === "pro" : false;
-  // carte de l'organisation : son offre (« Offre Pro », « Offre Free », comme sur les maquettes), avec le logo de la marque s'il existe
-  const plan = { text: nav(isPro ? "planPro" : "planFree"), offered: false };
+  const current = sub ? effectivePlan(sub, new Date()) : "free";
+  // carte de l'organisation : son offre (« Offre Pro », « Offre Free », comme sur les maquettes), avec le logo de la marque s'il existe ;
+  // offre Partenaire attribuée par Evoly : « Offre Partenaire » (avant le 17 novembre 2026 : « Offre Free », tout ce qui n'était pas Pro)
+  const plan = {
+    text: nav(
+      current === "partner"
+        ? "planPartner"
+        : current === "pro"
+          ? "planPro"
+          : "planFree",
+    ),
+    offered: false,
+  };
   const logo =
     (
       await db.organizationBrand.findUnique({

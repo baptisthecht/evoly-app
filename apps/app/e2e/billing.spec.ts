@@ -70,6 +70,12 @@ test("offre Partenaire : Pro offert, sans commission, sans bouton d'abonnement",
   await expect(
     page.getByRole("heading", { name: "Partenaire", exact: true }),
   ).toBeVisible();
+  // carte de l'organisation, en haut de la barre latérale (dans la feuille « Plus » sur téléphone) : son offre
+  // (avant le 17 novembre 2026 : « Offre Free », tout ce qui n'était pas Pro)
+  await expect(
+    page.getByText("Offre Partenaire", { exact: true }).first(),
+  ).toBeAttached();
+  await expect(page.getByText("Offre Free", { exact: true })).toHaveCount(0);
   await expect(
     page.getByText("Offerte par Evoly", { exact: true }),
   ).toBeVisible();

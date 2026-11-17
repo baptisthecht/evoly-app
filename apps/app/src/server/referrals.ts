@@ -1,5 +1,5 @@
 import "server-only";
-import { humanCode } from "@evoly/core";
+import { effectivePlan, humanCode } from "@evoly/core";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
@@ -142,13 +142,17 @@ export async function qualifyReferral(
         ? sub.currentPeriodEnd
         : now;
     const until = new Date(from.getTime() + REWARD_DAYS * 86_400_000);
-    // Pro sans limite déjà actif (offre attribuée) : rien à ajouter
-    if (!(
-      sub?.planId === "pro" &&
-      sub.status === "ACTIVE" &&
-      !sub.currentPeriodEnd &&
-      !sub.stripeSubscriptionId
-    ))
+    // Pro sans limite déjà actif (offre attribuée) : rien à ajouter. Offre Partenaire en cours (Pro sans commission, attribuée
+    // par Evoly) : rien à ajouter non plus, et surtout rien à remplacer (avant le 17 novembre 2026 : remplacée par 30 jours de Pro)
+    if (
+      !(
+        sub?.planId === "pro" &&
+        sub.status === "ACTIVE" &&
+        !sub.currentPeriodEnd &&
+        !sub.stripeSubscriptionId
+      ) &&
+      !(sub && effectivePlan(sub, now) === "partner")
+    )
       await db.subscription.upsert({
         where: { organizationId: r.referrerOrgId },
         create: {

@@ -31,6 +31,7 @@ const { qualifyReferral } = await import("@/server/referrals");
 const rid = () => Math.random().toString(36).slice(2, 10);
 const day = 86_400_000;
 type Sub = {
+  planId?: "pro" | "partner";
   status: "ACTIVE" | "TRIALING" | "CANCELED";
   currentPeriodEnd?: Date | null;
   stripeSubscriptionId?: string | null;
@@ -63,7 +64,7 @@ async function setup(
         ? {
             subscription: {
               create: {
-                planId: "pro",
+                planId: referrer.sub.planId ?? "pro",
                 currency: "EUR",
                 status: referrer.sub.status,
                 currentPeriodEnd: referrer.sub.currentPeriodEnd ?? null,
@@ -156,6 +157,24 @@ describe("récompense du parrainage : un mois de Pro au parrain, une seule fois 
     });
     await qualifyReferral(unlimited.filleul.id);
     expect((await sub(unlimited.parrain.id))!.currentPeriodEnd).toBeNull();
+  });
+
+  it("offre Partenaire en cours, sans limite ou datée : gardée telle quelle (avant le 17 novembre 2026 : remplacée par 30 jours de Pro)", async () => {
+    const end = new Date(Date.now() + 10 * day);
+    for (const currentPeriodEnd of [null, end]) {
+      const s = await setup({
+        sub: { planId: "partner", status: "ACTIVE", currentPeriodEnd },
+      });
+      expect(await qualifyReferral(s.filleul.id)).toBe(true);
+      const row = (await sub(s.parrain.id))!;
+      expect(row).toMatchObject({
+        planId: "partner",
+        status: "ACTIVE",
+        currentPeriodEnd,
+      });
+      expect(effectivePlan(row, new Date())).toBe("partner");
+      expect(await status(s.filleul.id)).toBe("REWARDED");
+    }
   });
 
   it("abonnement Stripe terminé : les 30 jours sont bien donnés (avant : annoncés par e-mail, jamais ajoutés)", async () => {
