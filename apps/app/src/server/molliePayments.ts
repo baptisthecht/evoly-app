@@ -8,7 +8,10 @@ import {
   mollieApi,
   mollieLocale,
   toMollieAmount,
+  type MollieApi,
+  type MollieList,
   type MolliePayment,
+  type MollieRefund,
 } from "@/lib/mollie";
 import {
   mollieAccessToken,
@@ -155,6 +158,11 @@ export async function syncPaymentFromMollie(
   const payment = await mollie.api<MolliePayment>(
     `/payments/${order.molliePaymentId}`,
   );
+  // remboursement d'une commande déjà payée : Mollie appelle le même webhook quand son état change (lot 4)
+  if (["PAID", "PARTIALLY_REFUNDED", "REFUNDED"].includes(order.status)) {
+    await syncMollieRefunds(orderId, order.molliePaymentId, mollie.api);
+    return payment.status;
+  }
   if (
     payment.status === "paid" &&
     ["PENDING", "EXPIRED", "FAILED"].includes(order.status)
@@ -185,6 +193,47 @@ export async function handleMollieWebhook(id: string): Promise<void> {
   if (order) await syncPaymentFromMollie(order.id);
 }
 
+/** État d'un remboursement Evoly selon celui de Mollie (« queued » : en attente d'un solde suffisant). */
+export function refundStatusFromMollie(
+  status: MollieRefund["status"],
+): "SUCCEEDED" | "PROCESSING" | "FAILED" {
+  if (status === "refunded") return "SUCCEEDED";
+  if (status === "failed" || status === "canceled") return "FAILED";
+  return "PROCESSING";
+}
+
+/**
+ * Remboursement sur le paiement Mollie d'une commande (acheteur, vendeur d'une revente), pris sur le solde de
+ * l'organisateur. Mollie ne rend jamais la commission d'Evoly (frais d'application). La clé d'idempotence évite un
+ * double remboursement si l'appel est rejoué.
+ */
+export async function createMollieRefund(input: {
+  orderId: string;
+  amountMinor: number;
+  description: string;
+  metadata: Record<string, string>;
+  idempotencyKey: string;
+}): Promise<MollieRefund> {
+  const order = await db.order.findUniqueOrThrow({
+    where: { id: input.orderId },
+    select: { molliePaymentId: true, organizationId: true, currency: true },
+  });
+  const mollie = await mollieForOrganization(order.organizationId);
+  if (!order.molliePaymentId || !mollie)
+    throw new CoreError("PAYMENTS_UNAVAILABLE");
+  return mollie.api<MollieRefund>(
+    `/payments/${order.molliePaymentId}/refunds`,
+    {
+      body: {
+        amount: toMollieAmount(input.amountMinor, order.currency),
+        description: input.description.slice(0, 140),
+        metadata: input.metadata,
+      },
+      idempotencyKey: input.idempotencyKey,
+    },
+  );
+}
+
 /**
  * Remboursement intégral d'un paiement Mollie (paiement tardif sans place, carte bloquée). Mollie ne rend jamais la
  * commission d'Evoly : elle revient à l'organisateur sur son relevé mensuel (docs/MOLLIE.md).
@@ -195,23 +244,42 @@ export async function refundMollieInFull(
 ): Promise<void> {
   const order = await db.order.findUniqueOrThrow({
     where: { id: orderId },
-    select: {
-      molliePaymentId: true,
-      organizationId: true,
-      totalMinor: true,
-      currency: true,
-      reference: true,
-    },
+    select: { totalMinor: true, reference: true },
   });
-  const mollie = await mollieForOrganization(order.organizationId);
-  if (!order.molliePaymentId || !mollie)
-    throw new CoreError("PAYMENTS_UNAVAILABLE");
-  await mollie.api(`/payments/${order.molliePaymentId}/refunds`, {
-    body: {
-      amount: toMollieAmount(order.totalMinor, order.currency),
-      description: `Remboursement ${order.reference}`,
-      metadata: { orderId, cause },
-    },
+  await createMollieRefund({
+    orderId,
+    amountMinor: order.totalMinor,
+    description: `Remboursement ${order.reference}`,
+    metadata: { orderId, cause },
     idempotencyKey: `order:${orderId}:${cause}-refund`,
   });
+}
+
+/**
+ * États des remboursements Mollie d'une commande, relus sur son paiement : remboursements de l'acheteur (Refund) et du
+ * vendeur d'une revente. Un remboursement fait directement chez Mollie, inconnu d'Evoly, est ignoré.
+ */
+async function syncMollieRefunds(
+  orderId: string,
+  molliePaymentId: string,
+  api: MollieApi,
+): Promise<void> {
+  const pending = await db.refund.count({
+    where: { orderId, mollieRefundId: { not: null }, status: "PROCESSING" },
+  });
+  if (pending === 0) return;
+  const list = await api<MollieList<"refunds", MollieRefund>>(
+    `/payments/${molliePaymentId}/refunds`,
+    { query: { limit: 250 } },
+  );
+  for (const r of list._embedded.refunds) {
+    const status = refundStatusFromMollie(r.status);
+    await db.refund.updateMany({
+      where: { mollieRefundId: r.id, status: "PROCESSING" },
+      data: {
+        status,
+        failureReason: status === "FAILED" ? "échec Mollie" : null,
+      },
+    });
+  }
 }

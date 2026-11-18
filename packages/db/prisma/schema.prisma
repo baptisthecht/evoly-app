@@ -1274,6 +1274,7 @@ model ResaleListing {
   cancelledAt          DateTime?
   sellerRefundMinor    Int? // montant rendu au vendeur
   sellerStripeRefundId String?      @unique
+  sellerMollieRefundId String?      @unique // re_… : remboursement Mollie du vendeur (docs/MOLLIE.md)
   failureReason        String?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
@@ -1329,6 +1330,7 @@ model Refund {
   applicationFeeRefundedMinor Int             @default(0)
   isOutOfDeadline             Boolean         @default(false)
   stripeRefundId              String?         @unique
+  mollieRefundId              String?         @unique // re_… : remboursement Mollie (docs/MOLLIE.md)
   handledById                 String?
   handledAt                   DateTime?
   processedAt                 DateTime?

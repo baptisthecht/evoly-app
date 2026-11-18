@@ -16,6 +16,7 @@ import { formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
+import { createMollieRefund, refundStatusFromMollie } from "./molliePayments";
 import {
   cancelReservation,
   findOrderIdByToken,
@@ -121,6 +122,7 @@ async function feesToWithhold(
     totalMinor: number;
     applicationFeeMinor: number;
     paymentFeeMinor: number | null;
+    paymentProvider?: "STRIPE" | "MOLLIE" | null;
   },
   grossMinor: number,
 ): Promise<number> {
@@ -134,7 +136,13 @@ async function feesToWithhold(
     grossMinor,
     orderTotalMinor: order.totalMinor,
     applicationFeeMinor: order.applicationFeeMinor,
-    paymentFeeMinor: order.paymentFeeMinor ?? estimateBankFee(order.totalMinor),
+    paymentFeeMinor:
+      order.paymentFeeMinor ??
+      estimateBankFee(
+        order.totalMinor,
+        "card_eea_standard",
+        order.paymentProvider === "MOLLIE" ? "MOLLIE" : "STRIPE",
+      ),
     alreadyWithheldMinor: already._sum.feesWithheldMinor ?? 0,
   });
 }
@@ -285,48 +293,74 @@ export async function processRefund(
   }
   const amount = refund.amountMinor + extra - extraWithheld;
   let outcome: "SUCCEEDED" | "PROCESSING" | "FAILED" = "SUCCEEDED";
-  // RG-POS-08 : une vente sur place en espèces se rembourse en espèces, hors d'Evoly ; aucun appel à Stripe
+  // RG-POS-08 : une vente sur place en espèces se rembourse en espèces, hors d'Evoly ; aucun appel au prestataire
   if (amount > 0 && refund.order.boxOfficeMode !== "CASH") {
-    const s = stripe();
-    const account = await db.stripeAccount.findUnique({
-      where: { organizationId: refund.order.organizationId },
-      select: { stripeAccountId: true },
-    });
     try {
-      if (!s || !account || !refund.order.stripePaymentIntentId)
-        throw new Error("paiement introuvable ou Stripe indisponible");
-      const r = await s.refunds.create(
-        {
-          payment_intent: refund.order.stripePaymentIntentId,
-          amount,
-          refund_application_fee: REFUND_APPLICATION_FEE, // la commission d'Evoly n'est pas rendue (options comprises)
-          reason: "requested_by_customer",
+      if (refund.order.molliePaymentId) {
+        // Mollie (docs/MOLLIE.md) : sur le solde de l'organisateur ; Mollie ne rend jamais la commission d'Evoly
+        const r = await createMollieRefund({
+          orderId: refund.orderId,
+          amountMinor: amount,
+          description: `Remboursement ${refund.order.reference}`,
           metadata: {
             refundId: refund.id,
             orderId: refund.orderId,
             reason: refund.reason,
           },
-        },
-        {
-          stripeAccount: account.stripeAccountId,
           idempotencyKey: `refund:${refund.id}`,
-        },
-      );
-      outcome =
-        r.status === "succeeded"
-          ? "SUCCEEDED"
-          : r.status === "failed" || r.status === "canceled"
-            ? "FAILED"
-            : "PROCESSING";
-      await db.refund.update({
-        where: { id: refund.id },
-        data: {
-          stripeRefundId: r.id,
-          status: outcome,
-          failureReason:
-            outcome === "FAILED" ? (r.failure_reason ?? "échec Stripe") : null,
-        },
-      });
+        });
+        outcome = refundStatusFromMollie(r.status);
+        await db.refund.update({
+          where: { id: refund.id },
+          data: {
+            mollieRefundId: r.id,
+            status: outcome,
+            failureReason: outcome === "FAILED" ? "échec Mollie" : null,
+          },
+        });
+      } else {
+        const s = stripe();
+        const account = await db.stripeAccount.findUnique({
+          where: { organizationId: refund.order.organizationId },
+          select: { stripeAccountId: true },
+        });
+        if (!s || !account || !refund.order.stripePaymentIntentId)
+          throw new Error("paiement introuvable ou Stripe indisponible");
+        const r = await s.refunds.create(
+          {
+            payment_intent: refund.order.stripePaymentIntentId,
+            amount,
+            refund_application_fee: REFUND_APPLICATION_FEE, // la commission d'Evoly n'est pas rendue (options comprises)
+            reason: "requested_by_customer",
+            metadata: {
+              refundId: refund.id,
+              orderId: refund.orderId,
+              reason: refund.reason,
+            },
+          },
+          {
+            stripeAccount: account.stripeAccountId,
+            idempotencyKey: `refund:${refund.id}`,
+          },
+        );
+        outcome =
+          r.status === "succeeded"
+            ? "SUCCEEDED"
+            : r.status === "failed" || r.status === "canceled"
+              ? "FAILED"
+              : "PROCESSING";
+        await db.refund.update({
+          where: { id: refund.id },
+          data: {
+            stripeRefundId: r.id,
+            status: outcome,
+            failureReason:
+              outcome === "FAILED"
+                ? (r.failure_reason ?? "échec Stripe")
+                : null,
+          },
+        });
+      }
     } catch (err) {
       outcome = "FAILED";
       // RG-REF-03 et RG-REF-06 : l'organisateur est alerté (onglet Commandes) et peut relancer

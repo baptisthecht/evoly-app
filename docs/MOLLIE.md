@@ -67,6 +67,18 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
   donc remboursée aussitôt après, sans billet ; les limites par acheteur se vérifient par l'adresse e-mail avant le
   paiement, et l'empreinte est gardée pour les commandes suivantes.
 
+## Remboursements et revente par Mollie (lot 4)
+
+- **Remboursements** (demande de l'acheteur, organisateur, annulation d'un événement, options) : sur le paiement Mollie
+  de la commande, pris sur le solde de l'organisateur. La commission d'Evoly n'est pas rendue, comme avant. L'état suit
+  le webhook du paiement ; un remboursement en attente d'un solde suffisant chez Mollie reste « en cours ».
+- **Revente** : le vendeur est remboursé sur son paiement d'origine (Mollie, ou Stripe pour une commande payée avant le
+  passage, tant que Stripe le permet), moins la commission, les frais du paiement de l'acheteur et, s'il avait payé par
+  Mollie, les frais du remboursement (0,25 €, à confirmer avec Mollie) : l'organisateur reste neutre (RG-FEE-51).
+- **Frais estimés** selon le prestataire de chaque paiement (grille Mollie relevée le 18 novembre 2026), tant que les
+  frais réels manquent (lot 5).
+- **Moyens non remboursables** : cartes cadeaux, bons et paysafecard ; une place payée ainsi ne se revend pas.
+
 ## Lots
 
 1. **Fondations** : client Mollie, chiffrement des jetons, compte Mollie de l'organisateur en base, variables

@@ -26,7 +26,10 @@ import { db } from "@/lib/db";
 import { PublicShell } from "@/components/public/PublicShell";
 import { buttonClass } from "@/components/ui/Button";
 import { findOrderIdByToken } from "@/server/checkout";
-import { syncPaymentFromMollie } from "@/server/molliePayments";
+import {
+  paymentAccountFor,
+  syncPaymentFromMollie,
+} from "@/server/molliePayments";
 import { getBuyerOrder, syncPaymentFromStripe } from "@/server/orders";
 import { getPublicOrganization } from "@/server/publicEvents";
 import { withEventTheme } from "@/server/brand";
@@ -200,12 +203,23 @@ export default async function BuyerTicketsPage({
         orderTotalMinor: order.totalMinor,
         applicationFeeMinor: order.applicationFeeMinor,
         paymentFeeMinor:
-          order.paymentFeeMinor ?? estimateBankFee(order.totalMinor),
+          order.paymentFeeMinor ??
+          estimateBankFee(
+            order.totalMinor,
+            "card_eea_standard",
+            order.paymentProvider === "MOLLIE" ? "MOLLIE" : "STRIPE",
+          ),
         alreadyWithheldMinor: refundsList
           .filter((r) => r.status !== "REJECTED")
           .reduce((n, r) => n + r.feesWithheldMinor, 0),
       }
     : null;
+  // revente : l'acheteur paie par le prestataire actuel de l'organisateur, le vendeur est remboursé par le sien
+  const resaleProviders = {
+    buyer:
+      (await paymentAccountFor(order.organizationId))?.provider ?? "STRIPE",
+    seller: order.paymentProvider,
+  } as const;
   const holdActive =
     order.status === "PENDING" &&
     !!order.holdExpiresAt &&
@@ -451,6 +465,7 @@ export default async function BuyerTicketsPage({
                       currency={order.currency}
                       faceValueMinor={tk.faceValueMinor}
                       terms={quotes.get(tk.id)!.terms}
+                      feeProviders={resaleProviders}
                       canResell={quotes.get(tk.id)!.blockers.length === 0}
                       listing={(() => {
                         const l = openListings.find(

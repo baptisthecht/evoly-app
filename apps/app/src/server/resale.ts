@@ -12,6 +12,7 @@ import {
   parseMajorToMinor,
   refundRuleOf,
   resaleAmounts,
+  resaleBankFee,
   resaleBlockers,
   resaleCutoff,
   resaleLinkCode,
@@ -23,7 +24,7 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
-import { paymentAccountFor } from "./molliePayments";
+import { createMollieRefund, paymentAccountFor } from "./molliePayments";
 import {
   findOrderIdByToken,
   orderAccessToken,
@@ -532,43 +533,67 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
         terms?: Parameters<typeof resaleAmounts>[1];
       } | null
     )?.terms ?? (await termsFor(order.organizationId, order.currency));
+  const seller = listing.sellerOrder;
+  // RG-FEE-51 : frais du paiement de l'acheteur, et du remboursement du vendeur quand il avait payé par Mollie
   const amounts = resaleAmounts(
     listing.priceMinor,
     terms,
-    order.paymentFeeMinor ?? estimateBankFee(listing.priceMinor),
+    resaleBankFee(
+      listing.priceMinor,
+      {
+        buyer: order.paymentProvider === "MOLLIE" ? "MOLLIE" : "STRIPE",
+        seller: seller.paymentProvider,
+      },
+      order.paymentFeeMinor,
+    ),
   );
-  const seller = listing.sellerOrder;
   const locale = toLocale(seller.buyerLocale); // e-mails de revente dans les 7 langues
   if (amounts.sellerRefundMinor > 0) {
-    const s = stripe();
-    const account = await db.stripeAccount.findUnique({
-      where: { organizationId: order.organizationId },
-      select: { stripeAccountId: true },
-    });
     try {
-      if (!s || !account || !seller.stripePaymentIntentId)
+      // vendeur payé par Mollie (docs/MOLLIE.md) : remboursement partiel de son paiement Mollie
+      const mollieRefund = seller.molliePaymentId
+        ? await createMollieRefund({
+            orderId: seller.id,
+            amountMinor: amounts.sellerRefundMinor,
+            description: `Revente ${seller.reference}`,
+            metadata: { resaleListingId: listing.id, buyerOrderId },
+            idempotencyKey: `resale:${listing.id}:seller-refund`,
+          })
+        : null;
+      const s = stripe();
+      const account = mollieRefund
+        ? null
+        : await db.stripeAccount.findUnique({
+            where: { organizationId: order.organizationId },
+            select: { stripeAccountId: true },
+          });
+      if (!mollieRefund && (!s || !account || !seller.stripePaymentIntentId))
         throw new Error(
           "paiement d'origine introuvable ou Stripe indisponible",
         );
-      const refund = await s.refunds.create(
-        {
-          payment_intent: seller.stripePaymentIntentId,
-          amount: amounts.sellerRefundMinor,
-          refund_application_fee: false,
-          reason: "requested_by_customer",
-          metadata: { resaleListingId: listing.id, buyerOrderId },
-        },
-        {
-          stripeAccount: account.stripeAccountId,
-          idempotencyKey: `resale:${listing.id}:seller-refund`,
-        },
-      );
+      const refund =
+        mollieRefund ??
+        (await s!.refunds.create(
+          {
+            payment_intent: seller.stripePaymentIntentId!,
+            amount: amounts.sellerRefundMinor,
+            refund_application_fee: false,
+            reason: "requested_by_customer",
+            metadata: { resaleListingId: listing.id, buyerOrderId },
+          },
+          {
+            stripeAccount: account!.stripeAccountId,
+            idempotencyKey: `resale:${listing.id}:seller-refund`,
+          },
+        ));
       await db.$transaction([
         db.resaleListing.update({
           where: { id: listing.id },
           data: {
             sellerRefundMinor: amounts.sellerRefundMinor,
-            sellerStripeRefundId: refund.id,
+            ...(mollieRefund
+              ? { sellerMollieRefundId: refund.id }
+              : { sellerStripeRefundId: refund.id }),
           },
         }),
         db.order.update({

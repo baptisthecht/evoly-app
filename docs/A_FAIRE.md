@@ -25,7 +25,11 @@ plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Bran
   retour et par le webhook, réservation prolongée à 15 minutes, carte bloquée et paiement tardif remboursés chez Mollie,
   ventes payantes ouvertes avec un compte Mollie prêt (publication, tarifs, revente). Règles : `docs/MOLLIE.md`. Au
   déploiement : migration `20261118140000_mollie_paiements`.
-- Lots 4 à 7 : remboursements et revente, finances, offre Pro, bascule ; puis la boutique.
+- Lot 4, remboursements et revente : fait. Remboursements sur le paiement Mollie (état suivi par le webhook), vendeur
+  d'une revente remboursé sur son paiement d'origine moins la commission et les frais (paiement de l'acheteur,
+  remboursement chez Mollie), frais estimés selon le prestataire. Au déploiement : migration
+  `20261118150000_mollie_remboursements`.
+- Lots 5 à 7 : finances, offre Pro, bascule ; puis la boutique.
 - À faire par le porteur : application Connect « Evoly » (adresse de retour `https://app.evoly.me/api/mollie/oauth`),
   clés `MOLLIE_API_KEY`, `MOLLIE_CLIENT_ID` et `MOLLIE_CLIENT_SECRET` dans le `.env`, un deuxième compte Mollie de test
   pour jouer l'organisateur.

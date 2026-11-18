@@ -1,7 +1,8 @@
 "use client";
 
 import {
-  estimateBankFee,
+  resaleBankFee,
+  type FeeProvider,
   parseMajorToMinor,
   resaleAmounts,
   type FeeTerms,
@@ -25,6 +26,7 @@ export function ResaleControl({
   currency,
   faceValueMinor,
   terms,
+  feeProviders = { buyer: "STRIPE", seller: null },
   listing,
   canResell,
 }: {
@@ -33,6 +35,8 @@ export function ResaleControl({
   currency: string;
   faceValueMinor: number;
   terms: FeeTerms;
+  /** Prestataires du paiement de l'acheteur (celui de l'organisateur) et du paiement d'origine (docs/MOLLIE.md). */
+  feeProviders?: { buyer: FeeProvider; seller: FeeProvider | null };
   listing: {
     id: string;
     status: string;
@@ -115,7 +119,7 @@ export function ResaleControl({
   const minor = parseMajorToMinor(price);
   const amounts =
     minor != null && minor <= faceValueMinor
-      ? resaleAmounts(minor, terms, estimateBankFee(minor))
+      ? resaleAmounts(minor, terms, resaleBankFee(minor, feeProviders))
       : null;
   return (
     <div className="grid w-full min-w-0 gap-3 rounded-md bg-surface-sunken p-3 text-left text-sm">

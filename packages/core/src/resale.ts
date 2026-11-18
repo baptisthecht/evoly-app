@@ -93,12 +93,18 @@ export function resaleAmounts(
   };
 }
 
-/** Moyens de paiement dont Stripe ne permet pas le remboursement (ou seulement hors ligne, par virement manuel). */
+/**
+ * Moyens de paiement qui ne se remboursent pas (ou seulement hors ligne, par virement manuel) : chez Stripe, et chez
+ * Mollie les cartes cadeaux, bons et paysafecard.
+ */
 const NON_REFUNDABLE_METHODS = new Set([
   "multibanco",
   "oxxo",
   "boleto",
   "konbini",
+  "giftcard",
+  "voucher",
+  "paysafecard",
 ]);
 /** Délai au-delà duquel un remboursement n'est plus garanti par les réseaux de paiement (180 jours pour la plupart). */
 const REFUND_WINDOW_DAYS = 175;
