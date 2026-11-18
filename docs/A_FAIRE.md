@@ -61,8 +61,6 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
   génération (date affichée par `ops/apple-client-secret.mjs`, à noter ici à chaque génération) ; le certificat Apple
   Wallet (`APPLE_PASS_CERT_PEM`) expire au bout d'un an (`openssl x509 -enddate -noout -in pass.pem`). Les renouveler
   un mois avant, puis `ops/deploy.sh`.
-- 18 novembre 2026 : installer node-forge 1.4.3 (14 jours après sa publication) et retirer les 4 exclusions de
-  `pnpm audit` (`package.json`, `docs/SECURITE.md`).
 - picomatch : dès qu'une version corrige l'avis GHSA-fc5q-39xc-vjpf et a 14 jours, l'installer (dépendance indirecte,
   `pnpm-lock.yaml`) et retirer son exclusion de `pnpm audit` (`package.json`, `docs/SECURITE.md`).
 - Arrêter les tâches planifiées de l'ancienne installation (adresse 51.75.16.245), qui appellent toutes les 5 minutes des adresses qui n'existent plus et exposent un secret dans les journaux de Caddy.
