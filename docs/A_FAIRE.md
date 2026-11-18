@@ -9,6 +9,22 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
   de l'annonce (remplacer les titres classés « Faible ») ; le 31 mars 2027, fin de l'offre de lancement : retirer le
   titre « 3 mois de Pro offerts ».
 
+## Passage à Mollie
+
+Stripe a refusé Evoly Solutions le 18 novembre 2026 (décision définitive) : Evoly passe à Mollie Connect pour
+plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Branche `mollie`, un commit par lot.
+
+- Lot 1, fondations : fait (client Mollie, chiffrement des jetons, compte Mollie de l'organisateur en base). Au
+  déploiement : migration `20261118120000_mollie_comptes`.
+- Lots 2 à 7 : organisateurs, paiement des billets, remboursements et revente, finances, offre Pro, bascule ; puis la
+  boutique.
+- À faire par le porteur : application Connect « Evoly » (adresse de retour `https://app.evoly.me/api/mollie/oauth`),
+  clés `MOLLIE_API_KEY`, `MOLLIE_CLIENT_ID` et `MOLLIE_CLIENT_SECRET` dans le `.env`, un deuxième compte Mollie de test
+  pour jouer l'organisateur.
+- Questions à Mollie : responsabilité des remboursements (art. 7 des conditions Connect), modèle de la mention
+  obligatoire (art. 8), réserve sur les comptes des organisateurs, associations de fait, frais de remboursement, de
+  litige et de Connect.
+
 ## Lots de novembre (décidés le 16 novembre 2026)
 
 - Lot 1, bloquer une personne : fait. Onglet « Personnes bloquées » des commandes, « Bloquer cet acheteur » sur la
@@ -41,19 +57,13 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
 - Le compte rattache les commandes passées avec la même adresse normalisée.
 - À trancher : place du compte dans le parcours d'achat (avant le choix des billets ou au paiement), et ce que le compte affiche (billets, revente, factures).
 
-## Stripe en mode réel
+## Stripe : fin du compte
 
-- Fait le 28 octobre 2026 : compte de la plateforme activé (cartes, Bancontact, Link, transferts actifs ; Cartes Bancaires
-  en cours d'activation par Stripe), « Connecter mon compte Stripe » fonctionne. Diagnostic : `ops/stripe-status.sh`.
-- Après l'inscription Stripe d'un organisateur : vérifier la livraison de `account.updated` (réponse 200) sur la
-  destination « comptes connectés », et « Paiements activés » dans Evoly.
-- Compléter le profil Stripe (Paramètres, Entreprise) : description de l'activité (vide), un seul e-mail de support
-  (`contact@` dans Stripe, `hello@` sur le site), adresse de support.
-- Ne jamais tester en mode réel avec sa propre carte : les conditions de Stripe l'interdisent. Un achat de test remboursé
-  laisse aussi un solde négatif (-0,30 € de frais conservés le 28 octobre 2026). Les essais se font en mode test ; en mode
-  réel, surveiller les premières vraies ventes et les livraisons des deux webhooks (réponse 200).
-- Régler un solde minimum dans les virements, pour couvrir les remboursements d'abonnements Pro sans solde négatif.
-- Plus tard : remplacer la clé secrète à accès complet par une clé restreinte aux opérations qu'Evoly appelle (liste établie le 26 octobre 2026), après un essai complet.
+- Compte de la plateforme activé le 28 octobre 2026, refusé par Stripe le 18 novembre 2026 (voir « Passage à Mollie »).
+- Relever dans le Dashboard Stripe la date d'arrêt des paiements et les fonds retenus ; exporter paiements, clients,
+  comptes connectés et virements tant que le Dashboard est accessible. Diagnostic : `ops/stripe-status.sh`.
+- Commandes déjà payées par Stripe : leurs remboursements passent par Stripe tant que le compte le permet, ensuite à
+  la main. Stripe disparaît du code au lot 7 du passage à Mollie.
 
 ## Sécurité et exploitation
 

@@ -285,6 +285,7 @@ model Organization {
 
   subscription        Subscription?
   stripeAccount       StripeAccount?
+  mollieAccount       MollieAccount?
   venuePartner        VenuePartner?         @relation("VenueOwner") // programme « Lieu partenaire » (section 9.32)
   referredByVenueId   String? // organisateur inscrit par le lien d'un lieu partenaire (RG-LIEU-02)
   referredByVenue     VenuePartner?         @relation("VenueReferrals", fields: [referredByVenueId], references: [id], onDelete: SetNull)
@@ -349,6 +350,38 @@ model StripeAccount {
   updatedAt        DateTime            @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+enum MollieOnboardingStatus {
+  NEEDS_DATA // informations à donner à Mollie
+  IN_REVIEW // vérification en cours chez Mollie
+  COMPLETED
+}
+
+// Compte Mollie de l'organisateur, relié à Evoly par OAuth (Mollie Connect pour plateformes, docs/MOLLIE.md). Les
+// paiements sont créés sur ce compte, avec la commission d'Evoly en frais d'application ; Mollie y prélève ses frais.
+model MollieAccount {
+  id                    String                 @id @default(cuid())
+  organizationId        String                 @unique
+  mollieOrganizationId  String                 @unique // org_… : un compte Mollie ne sert qu'une organisation
+  testmode              Boolean                @default(false) // relié en mode test : chaque appel porte testmode
+  profileId             String? // pfl_… : profil (site) qui reçoit les paiements
+  profileStatus         String? // unverified, verified, blocked
+  methods               String[] // moyens de paiement activés sur le profil (bancontact, creditcard, applepay…)
+  onboardingStatus      MollieOnboardingStatus @default(NEEDS_DATA)
+  canReceivePayments    Boolean                @default(false)
+  canReceiveSettlements Boolean                @default(false)
+  refreshToken          String // chiffré (lib/seal.ts) ; n'expire pas
+  accessToken           String? // chiffré ; valable une heure
+  accessTokenExpiresAt  DateTime?
+  scopes                String[]
+  disconnectedAt        DateTime? // autorisation retirée : à relier de nouveau
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([onboardingStatus]) // comptes à relire tant que Mollie n'a pas fini
 }
 
 // Personnalisation de marque (effective en Pro, conservée si rétrogradation)

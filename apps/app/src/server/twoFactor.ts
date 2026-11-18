@@ -1,10 +1,7 @@
 import "server-only";
 import {
-  createCipheriv,
-  createDecipheriv,
   createHash,
   createHmac,
-  randomBytes,
   randomInt,
   timingSafeEqual,
 } from "node:crypto";
@@ -13,6 +10,7 @@ import { cookies } from "next/headers";
 import * as OTPAuth from "otpauth";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { sealer } from "@/lib/seal";
 import { audit } from "./audit";
 import { hit } from "./rateLimit";
 
@@ -20,22 +18,9 @@ import { hit } from "./rateLimit";
  * Double authentification TOTP (US-AUTH-06, obligatoire pour le back-office) : secret chiffré (AES-256-GCM),
  * 8 codes de secours hachés à usage unique, validation liée à la session (cookie signé, 12 heures).
  */
-const aesKey = () =>
-  createHash("sha256").update(`2fa:${env().BETTER_AUTH_SECRET}`).digest();
-export function encryptSecret(plain: string): string {
-  const iv = randomBytes(12);
-  const c = createCipheriv("aes-256-gcm", aesKey(), iv);
-  const ct = Buffer.concat([c.update(plain, "utf8"), c.final()]);
-  return Buffer.concat([iv, c.getAuthTag(), ct]).toString("base64url");
-}
-export function decryptSecret(blob: string): string {
-  const raw = Buffer.from(blob, "base64url");
-  const d = createDecipheriv("aes-256-gcm", aesKey(), raw.subarray(0, 12));
-  d.setAuthTag(raw.subarray(12, 28));
-  return Buffer.concat([d.update(raw.subarray(28)), d.final()]).toString(
-    "utf8",
-  );
-}
+const secrets = sealer("2fa");
+export const encryptSecret = (plain: string): string => secrets.seal(plain);
+export const decryptSecret = (blob: string): string => secrets.open(blob);
 export const totpFor = (secret: string, label: string) =>
   new OTPAuth.TOTP({
     issuer: "Evoly",

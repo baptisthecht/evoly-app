@@ -1,11 +1,5 @@
 import "server-only";
-import {
-  createCipheriv,
-  createDecipheriv,
-  createHash,
-  randomBytes,
-  randomInt,
-} from "node:crypto";
+import { randomInt } from "node:crypto";
 import { CoreError, zonedLocalToUtc } from "@evoly/core";
 import type { ProspectMailbox } from "@evoly/db";
 import { ImapFlow } from "imapflow";
@@ -15,6 +9,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { safeError } from "@/lib/redact";
+import { sealer } from "@/lib/seal";
 import { checkAddress } from "./emailCheck";
 import { csvSafe } from "@/lib/csv";
 
@@ -102,24 +97,9 @@ export function rampSchedule(
     }));
 }
 
-const key = () =>
-  createHash("sha256")
-    .update(`prospection:${env().BETTER_AUTH_SECRET}`)
-    .digest();
-export function sealPassword(plain: string) {
-  const iv = randomBytes(12);
-  const c = createCipheriv("aes-256-gcm", key(), iv);
-  const ct = Buffer.concat([c.update(plain, "utf8"), c.final()]);
-  return Buffer.concat([iv, c.getAuthTag(), ct]).toString("base64url");
-}
-export function openPassword(blob: string) {
-  const raw = Buffer.from(blob, "base64url");
-  const d = createDecipheriv("aes-256-gcm", key(), raw.subarray(0, 12));
-  d.setAuthTag(raw.subarray(12, 28));
-  return Buffer.concat([d.update(raw.subarray(28)), d.final()]).toString(
-    "utf8",
-  );
-}
+const passwords = sealer("prospection");
+export const sealPassword = (plain: string) => passwords.seal(plain);
+export const openPassword = (blob: string) => passwords.open(blob);
 
 const transports = new Map<string, { at: number; t: Transporter }>();
 function transportFor(box: ProspectMailbox) {

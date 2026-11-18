@@ -18,6 +18,10 @@ const schema = z.object({
   STRIPE_WEBHOOK_SECRET_PLATFORM: z.string().optional(),
   STRIPE_WEBHOOK_SECRET_CONNECT: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+  MOLLIE_API_KEY: z.string().optional(), // compte Mollie d'Evoly (offre Pro) : test_… en développement, live_… en production
+  MOLLIE_CLIENT_ID: z.string().optional(), // application Mollie Connect (app_…) : comptes Mollie des organisateurs
+  MOLLIE_CLIENT_SECRET: z.string().optional(),
+  MOLLIE_TESTMODE: z.enum(["true", "false"]).default("false"), // organisateurs reliés en mode test (développement)
   ORDER_TOKEN_SECRET: z.string().min(32).optional(), // liens magiques des commandes ; BETTER_AUTH_SECRET à défaut
   // prospection (back-office) : espacement entre deux e-mails d'une même boîte ; les boîtes se configurent dans le back-office
   PROSPECTION_DELAY_SECONDS: z
