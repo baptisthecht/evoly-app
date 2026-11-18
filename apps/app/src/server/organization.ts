@@ -5,6 +5,7 @@ import {
   CoreError,
   effectiveEnd,
   isValidTimeZone,
+  renewsWithMollie,
 } from "@evoly/core";
 import { db } from "@/lib/db";
 import { LAUNCH_COUNTRIES } from "@/lib/countries";
@@ -157,14 +158,17 @@ export async function deletionBlockers(
       status: true,
       stripeSubscriptionId: true,
       cancelAtPeriodEnd: true,
+      billingProvider: true,
+      mollieMandateId: true,
     },
   });
   if (
-    sub?.stripeSubscriptionId &&
-    ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID", "INCOMPLETE"].includes(
-      sub.status,
-    ) &&
-    !sub.cancelAtPeriodEnd
+    (sub?.stripeSubscriptionId &&
+      ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID", "INCOMPLETE"].includes(
+        sub.status,
+      ) &&
+      !sub.cancelAtPeriodEnd) ||
+    renewsWithMollie(sub) // abonnement payé par Mollie et toujours prélevé (docs/MOLLIE.md, lot 6)
   )
     blockers.push("ACTIVE_SUBSCRIPTION");
   return blockers;

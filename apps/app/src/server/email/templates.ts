@@ -991,6 +991,16 @@ export function refundEmail(o: {
   };
 }
 
+/** Valeurs des e-mails d'abonnement (facture, rappel de renouvellement), déjà mises en forme dans la langue de l'organisation. */
+export interface SubVars {
+  number?: string;
+  amount?: string;
+  nextDate?: string;
+  nextAmount?: string;
+  method?: string | null;
+}
+type SubText = string | ((v: SubVars) => string);
+
 const SUB_COPY = {
   fr: {
     STARTED: {
@@ -1003,11 +1013,26 @@ const SUB_COPY = {
     },
     PAYMENT_FAILED: {
       subject: "Le paiement de votre abonnement Pro a échoué",
-      body: "Stripe va réessayer automatiquement. Mettez à jour votre moyen de paiement pour éviter le retour en Free, qui interviendra 7 jours après le premier échec.",
+      body: "Une nouvelle tentative aura lieu automatiquement. Pour éviter le retour en Free, 7 jours après le premier échec, réglez ou changez de moyen de paiement depuis la page Abonnement.",
     },
     ENDED: {
       subject: "Votre organisation est repassée en Free",
       body: "Rien n’est supprimé : vos événements, vos réglages de marque et vos paliers de prix sont conservés. La commission est de nouveau plafonnée à 2,50 €, la marque Evoly s’affiche, les paliers des événements publiés restent appliqués sans modification possible, et les membres autres que le propriétaire n’ont plus accès. Tout revient en repassant en Pro.",
+    },
+    PRO_ENDING: {
+      subject: "Votre Pro se termine dans 3 jours",
+      body: "Pour garder Pro, abonnez-vous depuis la page Abonnement : votre première période payée commencera à la fin de celle-ci. Sinon, votre organisation repassera en Free, sans rien perdre.",
+    },
+    INVOICE: {
+      subject: (v: SubVars) => `Votre facture Evoly Pro ${v.number}`,
+      body: (v: SubVars) =>
+        `Merci pour votre paiement de ${v.amount}. Votre facture est jointe à cet e-mail ; elle reste disponible sur la page Abonnement.${v.nextDate ? ` Prochain paiement le ${v.nextDate} : ${v.nextAmount}${v.method ? ` (${v.method})` : ""}.` : ""}`,
+    },
+    RENEWAL_NOTICE: {
+      subject: (v: SubVars) =>
+        `Votre abonnement Pro sera renouvelé le ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `${v.nextAmount} seront prélevés le ${v.nextDate}${v.method ? ` (${v.method})` : ""}. Pour changer de périodicité ou résilier, rendez-vous sur la page Abonnement avant cette date.`,
     },
     cta: "Gérer mon abonnement",
     hello: (n: string) => `Bonjour ${n},`,
@@ -1023,11 +1048,25 @@ const SUB_COPY = {
     },
     PAYMENT_FAILED: {
       subject: "Your Pro subscription payment failed",
-      body: "Stripe will retry automatically. Update your payment method to avoid returning to Free, which happens 7 days after the first failure.",
+      body: "We’ll try again automatically. To avoid returning to Free, 7 days after the first failure, pay or change your payment method from the Billing page.",
     },
     ENDED: {
       subject: "Your organisation is back on Free",
       body: "Nothing is deleted: your events, branding settings and price tiers are kept. The fee is capped at €2.50 again, the Evoly brand shows, tiers on published events keep applying but can't be edited, and members other than the owner lose access. Everything comes back when you return to Pro.",
+    },
+    PRO_ENDING: {
+      subject: "Your Pro ends in 3 days",
+      body: "To keep Pro, subscribe from the Billing page: your first paid period will start when this one ends. Otherwise your organisation returns to Free, without losing anything.",
+    },
+    INVOICE: {
+      subject: (v: SubVars) => `Your Evoly Pro invoice ${v.number}`,
+      body: (v: SubVars) =>
+        `Thank you for your payment of ${v.amount}. Your invoice is attached to this email and stays available on the Billing page.${v.nextDate ? ` Next payment on ${v.nextDate}: ${v.nextAmount}${v.method ? ` (${v.method})` : ""}.` : ""}`,
+    },
+    RENEWAL_NOTICE: {
+      subject: (v: SubVars) => `Your Pro subscription renews on ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `${v.nextAmount} will be charged on ${v.nextDate}${v.method ? ` (${v.method})` : ""}. To switch billing period or cancel, go to the Billing page before that date.`,
     },
     cta: "Manage my subscription",
     hello: (n: string) => `Hi ${n},`,
@@ -1043,11 +1082,25 @@ const SUB_COPY = {
     },
     PAYMENT_FAILED: {
       subject: "El pago de tu suscripción Pro ha fallado",
-      body: "Stripe lo volverá a intentar automáticamente. Actualiza tu método de pago para no volver a Free, lo que ocurre 7 días después del primer fallo.",
+      body: "Lo volveremos a intentar automáticamente. Para no volver a Free, 7 días después del primer fallo, paga o cambia tu método de pago desde la página Suscripción.",
     },
     ENDED: {
       subject: "Tu organización ha vuelto a Free",
       body: "No se elimina nada: tus eventos, tu configuración de marca y tus tramos de precio se conservan. La comisión vuelve a tener un máximo de 2,50 €, se muestra la marca Evoly, los tramos de los eventos publicados siguen aplicándose pero no se pueden modificar, y los miembros distintos del propietario pierden el acceso. Todo vuelve al pasar de nuevo a Pro.",
+    },
+    PRO_ENDING: {
+      subject: "Tu Pro termina dentro de 3 días",
+      body: "Para seguir en Pro, suscríbete desde la página Suscripción: tu primer periodo de pago empezará cuando termine este. Si no, tu organización volverá a Free, sin perder nada.",
+    },
+    INVOICE: {
+      subject: (v: SubVars) => `Tu factura de Evoly Pro ${v.number}`,
+      body: (v: SubVars) =>
+        `Gracias por tu pago de ${v.amount}. Tu factura va adjunta a este correo y sigue disponible en la página Suscripción.${v.nextDate ? ` Próximo pago el ${v.nextDate}: ${v.nextAmount}${v.method ? ` (${v.method})` : ""}.` : ""}`,
+    },
+    RENEWAL_NOTICE: {
+      subject: (v: SubVars) => `Tu suscripción Pro se renueva el ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Se cobrarán ${v.nextAmount} el ${v.nextDate}${v.method ? ` (${v.method})` : ""}. Para cambiar de periodicidad o cancelar, ve a la página Suscripción antes de esa fecha.`,
     },
     cta: "Gestionar mi suscripción",
     hello: (n: string) => `Hola, ${n}:`,
@@ -1063,11 +1116,25 @@ const SUB_COPY = {
     },
     PAYMENT_FAILED: {
       subject: "Die Zahlung Ihres Pro-Abos ist fehlgeschlagen",
-      body: "Stripe versucht es automatisch erneut. Aktualisieren Sie Ihr Zahlungsmittel, um nicht zu Free zurückzukehren, was 7 Tage nach dem ersten Fehlschlag geschieht.",
+      body: "Wir versuchen es automatisch erneut. Um nicht 7 Tage nach dem ersten Fehlschlag zu Free zurückzukehren, bezahlen Sie oder ändern Sie Ihr Zahlungsmittel auf der Seite Abo.",
     },
     ENDED: {
       subject: "Ihre Organisation ist wieder im Free-Tarif",
       body: "Es wird nichts gelöscht: Ihre Veranstaltungen, Markeneinstellungen und Preisstufen bleiben erhalten. Die Gebühr ist wieder auf 2,50 € begrenzt, die Marke Evoly wird angezeigt, Preisstufen veröffentlichter Veranstaltungen gelten weiter, sind aber nicht mehr änderbar, und Mitglieder außer dem Inhaber verlieren den Zugang. Alles kommt zurück, wenn Sie wieder zu Pro wechseln.",
+    },
+    PRO_ENDING: {
+      subject: "Ihr Pro endet in 3 Tagen",
+      body: "Um Pro zu behalten, schließen Sie auf der Seite Abo ein Abo ab: Ihr erster bezahlter Zeitraum beginnt, wenn dieser endet. Andernfalls kehrt Ihre Organisation zu Free zurück, ohne dass etwas verloren geht.",
+    },
+    INVOICE: {
+      subject: (v: SubVars) => `Ihre Rechnung für Evoly Pro ${v.number}`,
+      body: (v: SubVars) =>
+        `Vielen Dank für Ihre Zahlung von ${v.amount}. Die Rechnung ist dieser E-Mail beigefügt und bleibt auf der Seite Abo verfügbar.${v.nextDate ? ` Nächste Zahlung am ${v.nextDate}: ${v.nextAmount}${v.method ? ` (${v.method})` : ""}.` : ""}`,
+    },
+    RENEWAL_NOTICE: {
+      subject: (v: SubVars) => `Ihr Pro-Abo verlängert sich am ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Am ${v.nextDate} werden ${v.nextAmount} eingezogen${v.method ? ` (${v.method})` : ""}. Um den Abrechnungszeitraum zu wechseln oder zu kündigen, besuchen Sie vor diesem Datum die Seite Abo.`,
     },
     cta: "Mein Abo verwalten",
     hello: (n: string) => `Hallo ${n},`,
@@ -1083,11 +1150,26 @@ const SUB_COPY = {
     },
     PAYMENT_FAILED: {
       subject: "Il pagamento del tuo abbonamento Pro non è riuscito",
-      body: "Stripe riproverà automaticamente. Aggiorna il metodo di pagamento per evitare il ritorno a Free, che avviene 7 giorni dopo il primo errore.",
+      body: "Riproveremo automaticamente. Per evitare il ritorno a Free, 7 giorni dopo il primo errore, paga o cambia metodo di pagamento dalla pagina Abbonamento.",
     },
     ENDED: {
       subject: "La tua organizzazione è tornata a Free",
       body: "Non viene eliminato nulla: eventi, impostazioni del brand e fasce di prezzo vengono conservati. La commissione torna ad avere un tetto di 2,50 €, compare il brand Evoly, le fasce degli eventi pubblicati restano applicate ma non sono più modificabili, e i membri diversi dal proprietario perdono l’accesso. Tutto torna ripassando a Pro.",
+    },
+    PRO_ENDING: {
+      subject: "Il tuo Pro termina tra 3 giorni",
+      body: "Per restare in Pro, abbonati dalla pagina Abbonamento: il tuo primo periodo a pagamento inizierà alla fine di questo. Altrimenti la tua organizzazione tornerà a Free, senza perdere nulla.",
+    },
+    INVOICE: {
+      subject: (v: SubVars) => `La tua fattura Evoly Pro ${v.number}`,
+      body: (v: SubVars) =>
+        `Grazie per il pagamento di ${v.amount}. La fattura è allegata a questa e-mail e resta disponibile nella pagina Abbonamento.${v.nextDate ? ` Prossimo pagamento il ${v.nextDate}: ${v.nextAmount}${v.method ? ` (${v.method})` : ""}.` : ""}`,
+    },
+    RENEWAL_NOTICE: {
+      subject: (v: SubVars) =>
+        `Il tuo abbonamento Pro si rinnova il ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Il ${v.nextDate} verranno addebitati ${v.nextAmount}${v.method ? ` (${v.method})` : ""}. Per cambiare periodicità o disdire, vai alla pagina Abbonamento prima di quella data.`,
     },
     cta: "Gestisci il mio abbonamento",
     hello: (n: string) => `Ciao ${n},`,
@@ -1103,11 +1185,25 @@ const SUB_COPY = {
     },
     PAYMENT_FAILED: {
       subject: "O pagamento da sua subscrição Pro falhou",
-      body: "A Stripe vai tentar de novo automaticamente. Atualize o seu meio de pagamento para não regressar ao Free, o que acontece 7 dias depois da primeira falha.",
+      body: "Vamos tentar de novo automaticamente. Para evitar o regresso ao Free, 7 dias depois da primeira falha, pague ou mude de meio de pagamento na página Subscrição.",
     },
     ENDED: {
       subject: "A sua organização voltou ao Free",
       body: "Nada é eliminado: os seus eventos, as definições da marca e os escalões de preço são mantidos. A comissão volta a ter um máximo de 2,50 €, a marca Evoly aparece, os escalões dos eventos publicados continuam a aplicar-se mas já não podem ser alterados, e os membros que não sejam o proprietário perdem o acesso. Tudo volta ao passar de novo a Pro.",
+    },
+    PRO_ENDING: {
+      subject: "O seu Pro termina daqui a 3 dias",
+      body: "Para manter o Pro, subscreva na página Subscrição: o seu primeiro período pago começará quando este terminar. Caso contrário, a sua organização regressa ao Free, sem perder nada.",
+    },
+    INVOICE: {
+      subject: (v: SubVars) => `A sua fatura Evoly Pro ${v.number}`,
+      body: (v: SubVars) =>
+        `Obrigado pelo seu pagamento de ${v.amount}. A fatura vai em anexo a este e-mail e continua disponível na página Subscrição.${v.nextDate ? ` Próximo pagamento a ${v.nextDate}: ${v.nextAmount}${v.method ? ` (${v.method})` : ""}.` : ""}`,
+    },
+    RENEWAL_NOTICE: {
+      subject: (v: SubVars) => `A sua subscrição Pro renova-se a ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Serão cobrados ${v.nextAmount} a ${v.nextDate}${v.method ? ` (${v.method})` : ""}. Para mudar a periodicidade ou cancelar, vá à página Subscrição antes dessa data.`,
     },
     cta: "Gerir a minha subscrição",
     hello: (n: string) => `Olá ${n},`,
@@ -1123,11 +1219,26 @@ const SUB_COPY = {
     },
     PAYMENT_FAILED: {
       subject: "De betaling van je Pro-abonnement is mislukt",
-      body: "Stripe probeert het automatisch opnieuw. Werk je betaalmethode bij om niet terug te vallen naar Free, wat 7 dagen na de eerste mislukte betaling gebeurt.",
+      body: "We proberen het automatisch opnieuw. Om 7 dagen na de eerste mislukte betaling niet terug te vallen naar Free, betaal je of wijzig je je betaalmethode via de pagina Abonnement.",
     },
     ENDED: {
       subject: "Je organisatie zit weer in Free",
       body: "Er wordt niets verwijderd: je evenementen, merkinstellingen en prijsniveaus blijven bewaard. De commissie heeft weer een plafond van € 2,50, het merk Evoly wordt getoond, prijsniveaus van gepubliceerde evenementen blijven gelden maar zijn niet meer te wijzigen, en leden behalve de eigenaar verliezen hun toegang. Alles komt terug als je opnieuw overstapt naar Pro.",
+    },
+    PRO_ENDING: {
+      subject: "Je Pro eindigt over 3 dagen",
+      body: "Om Pro te houden, neem je een abonnement via de pagina Abonnement: je eerste betaalde periode begint wanneer deze eindigt. Anders valt je organisatie terug naar Free, zonder iets te verliezen.",
+    },
+    INVOICE: {
+      subject: (v: SubVars) => `Je factuur voor Evoly Pro ${v.number}`,
+      body: (v: SubVars) =>
+        `Bedankt voor je betaling van ${v.amount}. De factuur zit als bijlage bij deze e-mail en blijft beschikbaar op de pagina Abonnement.${v.nextDate ? ` Volgende betaling op ${v.nextDate}: ${v.nextAmount}${v.method ? ` (${v.method})` : ""}.` : ""}`,
+    },
+    RENEWAL_NOTICE: {
+      subject: (v: SubVars) =>
+        `Je Pro-abonnement wordt verlengd op ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Op ${v.nextDate} wordt ${v.nextAmount} afgeschreven${v.method ? ` (${v.method})` : ""}. Wil je van periode wisselen of opzeggen, ga dan vóór die datum naar de pagina Abonnement.`,
     },
     cta: "Mijn abonnement beheren",
     hello: (n: string) => `Hallo ${n},`,
@@ -1135,15 +1246,29 @@ const SUB_COPY = {
 } as const;
 
 /** E-mails de l'abonnement Pro (RG-SUB-03, RG-SUB-06, RG-SUB-08). */
+export type SubscriptionEmailKind =
+  | "STARTED"
+  | "TRIAL_ENDING"
+  | "PRO_ENDING"
+  | "PAYMENT_FAILED"
+  | "ENDED"
+  | "INVOICE"
+  | "RENEWAL_NOTICE";
+
 export function subscriptionEmail(o: {
-  kind: "STARTED" | "TRIAL_ENDING" | "PAYMENT_FAILED" | "ENDED";
+  kind: SubscriptionEmailKind;
   locale: Locale;
   organizationName: string;
   firstName: string;
   url: string;
+  vars?: SubVars;
 }): RenderedEmail {
   const c = pick(SUB_COPY, o.locale);
-  const k = c[o.kind];
+  const text = (t: SubText) => (typeof t === "string" ? t : t(o.vars ?? {}));
+  const k = {
+    subject: text(c[o.kind].subject),
+    body: text(c[o.kind].body),
+  };
   const u = escapeHtml(o.url);
   const html = `<!doctype html><html><body style="margin:0;background:${palette.creme};font-family:Poppins,Arial,sans-serif;color:${palette.charbon}">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${palette.creme};padding:32px 16px"><tr><td align="center">

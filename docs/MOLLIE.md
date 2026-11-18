@@ -24,7 +24,7 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
 | Revente                  | remboursement partiel du paiement d'origine du vendeur                  | idem                                                                                                                                                          |
 | Virements                | `payouts`, `balance`                                                    | règlements (`settlements`) et solde (`balances`)                                                                                                              |
 | Litiges                  | `charge.dispute.*`                                                      | rétrofacturations, signalées par le webhook du paiement                                                                                                       |
-| Offre Pro                | Stripe Billing (Checkout, portail, factures)                            | client, mandat et abonnement Mollie sur le compte d'Evoly ; gestion de l'abonnement et factures dans Evoly                                                    |
+| Offre Pro                | Stripe Billing (Checkout, portail, factures)                            | client et mandat Mollie sur le compte d'Evoly, renouvellements prélevés par Evoly ; gestion de l'abonnement et factures dans Evoly                            |
 | Apple Pay, Google Pay    | domaines de paiement déclarés sur chaque compte                         | rien à déclarer avec la page de paiement de Mollie (Apple Pay demande les cartes activées sur le profil)                                                      |
 | Reversements aux lieux   | virements Stripe de la plateforme vers le compte du lieu                | à trancher au lot 5 : virement bancaire par Evoly, ou transferts entre soldes Connect (à activer par Mollie, accord de chaque lieu, 1 000 € par mois au plus) |
 
@@ -92,6 +92,37 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
 - **Reversements aux lieux partenaires** : à trancher par le porteur (virement bancaire par Evoly, ou transferts entre
   soldes Connect, à faire activer par Mollie, avec l'accord de chaque lieu et 1 000 € par mois au plus). D'ici là, ils
   restent sur Stripe pour les lieux qui y ont un compte.
+
+## Offre Pro payée par Mollie (lot 6)
+
+- **Compte d'Evoly** (`MOLLIE_API_KEY`) : un client Mollie par organisation, créé au premier paiement. Evoly tient les
+  périodes et prélève lui-même chaque renouvellement sur le mandat (paiements « récurrents »), plutôt que l'API des
+  abonnements de Mollie : passage au mensuel ou à l'annuel, résiliation, nouvelles tentatives et dates restent dans
+  Evoly, sans écart avec Mollie.
+- **Essai** de 14 jours sans carte, une fois par organisation (ni après un abonnement payé). À sa fin, sans abonnement,
+  retour en Free sans rien perdre ; prévenu 3 jours avant, comme un Pro offert.
+- **Premier paiement** sur la page de Mollie (carte, Bancontact, et les autres moyens qui créent un mandat) : il paie
+  la première période, qui commence à la fin de ce qui court encore (essai, Pro offert, ancien abonnement Stripe), et
+  crée le mandat des renouvellements (carte, ou prélèvement SEPA après Bancontact). Validé au retour sur la page
+  Abonnement et par le webhook `/api/webhooks/mollie/pro`.
+- **Renouvellement** prélevé au plus tôt la veille de l'échéance par la tâche horaire, à la périodicité choisie pour la
+  suite (sans prorata). Échec : impayé, propriétaire prévenu à chaque échec, nouvelle tentative 3 jours puis 6 jours
+  après ; au bout de 7 jours sans paiement, l'abonnement prend fin (retour en Free, rien n'est supprimé).
+  L'organisateur peut régler la période impayée sur la page de Mollie, avec un nouveau moyen de paiement.
+- **Préavis du prélèvement** : la facture de chaque paiement annonce la date et le montant du suivant ; un rappel part
+  7 jours avant un renouvellement annuel ou un changement de périodicité.
+- **Changer de moyen de paiement** : carte enregistrée sur la page de Mollie sans paiement (0 €, seulement pour une
+  carte chez Mollie). **Résilier** : plus aucun prélèvement, Pro jusqu'à l'échéance ; reprise possible d'ici là.
+- **Factures** émises par Evoly à chaque paiement reçu : numéro de la série sans trou des relevés de commissions
+  (EVO-année-numéro), TVA de la commission (RG-FEE-30), client figé au jour de l'émission, PDF dans la langue de
+  l'organisation, joint à l'e-mail et téléchargeable depuis la page Abonnement. Paiement contesté : la période
+  redevient due ; l'avoir reste à faire à la main.
+- **Anciens abonnés Stripe** : ils gardent Pro jusqu'à la fin de leur période ; la page Abonnement les invite à
+  reprendre par Mollie. Le premier paiement Mollie démarre à la fin de la période Stripe, et l'abonnement Stripe est
+  arrêté en fin de période ; ce que Stripe envoie ensuite ne change plus l'offre.
+- **Administration** : prolonger l'essai d'un abonné Mollie recule son prochain prélèvement ; lui attribuer une autre
+  offre exige de cocher la résiliation (Evoly cesse de prélever). Un parrainage recule aussi le prochain prélèvement
+  d'un mois.
 
 ## Lots
 

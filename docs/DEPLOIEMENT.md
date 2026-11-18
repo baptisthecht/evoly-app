@@ -82,7 +82,10 @@ y crée les paiements avec sa commission en frais d'application.
 
 - **Application Connect** : Mollie › Développeurs › Vos applications › créer « Evoly », adresse de retour
   `https://app.evoly.me/api/mollie/oauth`. Renseigner `MOLLIE_CLIENT_ID` (`app_…`) et `MOLLIE_CLIENT_SECRET`.
-- **Compte d'Evoly** (offre Pro) : `MOLLIE_API_KEY`, `live_…` en production, `test_…` en recette.
+- **Compte d'Evoly** (offre Pro) : `MOLLIE_API_KEY`, `live_…` en production, `test_…` en recette. Cartes, Bancontact et
+  prélèvement SEPA activés sur le profil d'Evoly (les renouvellements après Bancontact passent par le prélèvement SEPA).
+  Webhook des paiements Pro : `https://app.evoly.me/api/webhooks/mollie/pro`, donné à chaque paiement, rien à
+  configurer. Les renouvellements, relances et préavis partent de la tâche horaire `maintenance`.
 - **Mode test** : `MOLLIE_TESTMODE=true` en recette seulement (organisateurs reliés en mode test), jamais en production.
 - **Webhook** : `https://app.evoly.me/api/webhooks/mollie`, donné par Evoly à chaque paiement, rien à configurer chez
   Mollie. Mollie n'envoie que l'identifiant du paiement, relu chez Mollie avant tout changement.

@@ -1,3 +1,4 @@
+import { renewsWithMollie } from "@evoly/core";
 import { formatDateTime, formatMoney } from "@evoly/i18n";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -34,6 +35,8 @@ const RISK: Record<string, string> = {
 const ERREURS: Record<string, string> = {
   PLAN_MANAGED_BY_STRIPE:
     "Cette organisation a un abonnement Stripe en cours : cochez « Résilier l'abonnement Stripe en cours » pour lui attribuer une autre offre (s'il n'existe plus chez Stripe, il sera simplement retiré).",
+  PLAN_MANAGED_BY_MOLLIE:
+    "Cette organisation a un abonnement Mollie en cours : cochez « Résilier l'abonnement Mollie en cours » pour lui attribuer une autre offre (Evoly cessera de prélever).",
   STRIPE_UNAVAILABLE:
     "Stripe n'est pas configuré sur ce serveur : l'abonnement ne peut pas être modifié.",
   TRIAL_DAYS_INVALID: "Le nombre de jours doit être compris entre 1 et 90.",
@@ -132,6 +135,9 @@ export default async function OrganizationSheetPage({
                       ? `période jusqu’au ${formatDateTime(sub.currentPeriodEnd, org.timezone, "fr", "short")}`
                       : null,
                     sub.stripeSubscriptionId ? "abonnement Stripe" : null,
+                    sub.billingProvider === "MOLLIE"
+                      ? `abonnement Mollie${sub.cancelAtPeriodEnd ? " résilié" : ""}`
+                      : null,
                   ]
                     .filter(Boolean)
                     .join(" · ")
@@ -144,6 +150,14 @@ export default async function OrganizationSheetPage({
                 : "non connecté",
             ],
             ["Abonnement Stripe", sub?.stripeSubscriptionId ?? "aucun"],
+            [
+              "Abonnement Mollie",
+              sub?.mollieCustomerId
+                ? [sub.mollieCustomerId, sub.paymentMethodLabel]
+                    .filter(Boolean)
+                    .join(" · ")
+                : "aucun",
+            ],
           ].map(([k, v]) => (
             <div key={k} className={card}>
               <p className="text-xs font-bold text-ink-muted">{k}</p>
@@ -235,14 +249,16 @@ export default async function OrganizationSheetPage({
                 aria-label="Jusqu’au"
                 className={input}
               />
-              {sub?.stripeSubscriptionId ? (
+              {sub?.stripeSubscriptionId || renewsWithMollie(sub) ? (
                 <label className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     name="resilierStripe"
                     className="size-5"
                   />
-                  Résilier l’abonnement Stripe en cours
+                  {sub?.stripeSubscriptionId
+                    ? "Résilier l’abonnement Stripe en cours"
+                    : "Résilier l’abonnement Mollie en cours"}
                 </label>
               ) : null}
               <button type="submit" className={btn}>

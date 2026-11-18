@@ -4,10 +4,10 @@ import {
   CoreError,
   daysBeforeDowngrade,
   effectivePlan,
+  PAST_DUE_GRACE_DAYS,
   subscriptionStatusFromStripe,
   trialEligible,
 } from "@evoly/core";
-import type { Locale } from "@evoly/i18n";
 import { toLocale } from "@evoly/i18n";
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
@@ -15,37 +15,40 @@ import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
-import { sendEmail } from "./email/send";
-import { subscriptionEmail } from "./email/templates";
-import { safeError } from "@/lib/redact";
+import {
+  proBillingProvider,
+  proBillingView,
+  scheduleIntervalSwitch,
+} from "./proBilling";
+import {
+  billingUrl,
+  notifyOwner,
+  subscriptionOwner as owner,
+} from "./subscriptionMail";
 
-const billingUrl = (slug: string) =>
-  `${env().NEXT_PUBLIC_APP_URL}/o/${slug}/billing`;
-
-async function owner(organizationId: string) {
-  const m = await db.organizationMember.findFirst({
-    where: { organizationId, role: { systemKey: "OWNER" } },
-    include: { user: { select: { email: true, name: true } } },
-  });
-  return m?.user ?? null;
-}
-
-/** Page Abonnement (section 9.21) : offre, statut, prix, droit à l'essai, délai avant rétrogradation. */
+/**
+ * Page Abonnement (section 9.21) : offre, statut, prix, droit à l'essai, délai avant rétrogradation. Prestataire de
+ * l'offre Pro : Mollie dès que la clé d'Evoly est configurée (docs/MOLLIE.md, lot 6), Stripe avant ; un abonnement
+ * Stripe en cours est signalé pour être repris par Mollie à la fin de sa période.
+ */
 export async function billingState(ctx: OrgContext, now = new Date()) {
-  const [sub, terms] = await Promise.all([
+  const [sub, terms, trialDays] = await Promise.all([
     db.subscription.findUnique({
       where: { organizationId: ctx.organization.id },
     }),
     db.planCurrencyTerms.findMany({
       where: { currency: ctx.organization.currency },
     }),
+    db.plan.findUnique({ where: { id: "pro" }, select: { trialDays: true } }),
   ]);
   const pro = terms.find((t) => t.planId === "pro");
   const free = terms.find((t) => t.planId === "free");
+  const provider = proBillingProvider();
+  const mollie = provider === "MOLLIE";
   return {
     plan: effectivePlan(sub, now),
     sub,
-    trialEligible: trialEligible(sub),
+    trialEligible: trialEligible(sub) && (trialDays?.trialDays ?? 14) > 0,
     daysBeforeDowngrade: sub ? daysBeforeDowngrade(sub, now) : null,
     currency: ctx.organization.currency,
     prices: {
@@ -54,6 +57,15 @@ export async function billingState(ctx: OrgContext, now = new Date()) {
     },
     caps: { free: free?.feeCapMinor ?? 100, pro: pro?.feeCapMinor ?? 70 },
     stripeReady: !!stripe(),
+    provider,
+    /** abonnement payé par Mollie (renouvelé, résilié ou impayé) */
+    mollieBilled: sub?.billingProvider === "MOLLIE" && !!sub.mollieMandateId,
+    /** ancien abonnement Stripe encore en cours : à reprendre par Mollie */
+    legacyStripe:
+      mollie &&
+      !!sub?.stripeSubscriptionId &&
+      ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"].includes(sub.status),
+    ...(await proBillingView(ctx.organization.id, now)),
   };
 }
 
@@ -180,34 +192,6 @@ export async function openPortal(ctx: OrgContext): Promise<string> {
   return portal.url;
 }
 
-async function notifyOwner(
-  organizationId: string,
-  kind: "STARTED" | "TRIAL_ENDING" | "PAYMENT_FAILED" | "ENDED",
-) {
-  const org = await db.organization.findUniqueOrThrow({
-    where: { id: organizationId },
-    select: { name: true, slug: true, locale: true },
-  });
-  const who = await owner(organizationId);
-  if (!who) return;
-  const mail = subscriptionEmail({
-    kind,
-    locale: toLocale(org.locale),
-    organizationName: org.name,
-    firstName: who.name.split(" ")[0] ?? who.name,
-    url: billingUrl(org.slug),
-  });
-  await sendEmail({
-    ...mail,
-    to: who.email,
-    template: `subscription.${kind.toLowerCase()}`,
-    category: "SERVICE",
-    organizationId,
-  }).catch((err) =>
-    console.error("e-mail d'abonnement", organizationId, safeError(err)),
-  );
-}
-
 type StripeSubscriptionLike = Pick<
   Stripe.Subscription,
   | "id"
@@ -257,6 +241,8 @@ export async function syncSubscription(
     where: { organizationId },
   });
   const status = subscriptionStatusFromStripe(sub.status);
+  // abonnement repris par Mollie (docs/MOLLIE.md, lot 6) : ce que Stripe envoie encore ne réécrit plus l'offre
+  if (existing?.billingProvider === "MOLLIE") return false;
   // abonnement qui n'est plus celui de l'organisation (résilié par le back-office, remplacé) : sa fin ne réécrit jamais l'offre
   if (
     existing &&
@@ -312,26 +298,54 @@ export async function syncSubscription(
   return true;
 }
 
-/** Rétrogradations dues au temps (impayé au-delà de 7 jours, fin de période résiliée), sans événement Stripe. */
+/**
+ * Rétrogradations dues au temps (impayé au-delà de 7 jours, fin de période résiliée), sans événement Stripe : le
+ * propriétaire est prévenu une seule fois par retour en Free, dans le jour qui suit (tâche lancée chaque minute ; avant
+ * le 18 novembre 2026, l'e-mail repartait à chaque passage pendant une heure).
+ */
 export async function applyTimedDowngrades(now = new Date()): Promise<number> {
+  const since = new Date(now.getTime() - 86_400_000);
   const candidates = await db.subscription.findMany({
     where: {
       planId: "pro",
       OR: [
-        { status: { in: ["PAST_DUE", "UNPAID"] } },
-        { status: "CANCELED", currentPeriodEnd: { lte: now } },
+        {
+          status: { in: ["PAST_DUE", "UNPAID"] },
+          pastDueSince: {
+            lte: new Date(now.getTime() - PAST_DUE_GRACE_DAYS * 86_400_000),
+            gt: new Date(since.getTime() - PAST_DUE_GRACE_DAYS * 86_400_000),
+          },
+        },
+        { status: "CANCELED", currentPeriodEnd: { lte: now, gt: since } },
       ],
     },
   });
   let n = 0;
   for (const s of candidates) {
+    if (effectivePlan(s, now) !== "free") continue;
+    const endedAt =
+      s.status === "CANCELED"
+        ? s.currentPeriodEnd!
+        : new Date(
+            s.pastDueSince!.getTime() + PAST_DUE_GRACE_DAYS * 86_400_000,
+          );
+    const marker = `${s.id}:${endedAt.toISOString()}`;
     if (
-      effectivePlan(s, now) === "free" &&
-      effectivePlan(s, new Date(now.getTime() - 3_600_000)) !== "free"
-    ) {
-      n += 1;
-      await notifyOwner(s.organizationId, "ENDED");
-    }
+      await db.auditLog.findFirst({
+        where: { action: "subscription.ended_notified", targetId: marker },
+        select: { id: true },
+      })
+    )
+      continue;
+    await audit({
+      action: "subscription.ended_notified",
+      organizationId: s.organizationId,
+      actorType: "SYSTEM",
+      targetType: "Subscription",
+      targetId: marker,
+    });
+    await notifyOwner(s.organizationId, "ENDED");
+    n += 1;
   }
   return n;
 }
@@ -356,21 +370,28 @@ export async function trialEnding(sub: { id: string }) {
 }
 
 /**
- * RG-SUB-03 : Pro attribué par Evoly sans Stripe (offre de lancement, parrainage, geste commercial) : le propriétaire
- * est prévenu 3 jours avant la fin, une seule fois par période, comme pour la fin d'un essai. Tâche lancée chaque heure.
+ * RG-SUB-03 : Pro attribué par Evoly sans Stripe (offre de lancement, parrainage, geste commercial) ou essai sans carte
+ * (Mollie, docs/MOLLIE.md) : le propriétaire est prévenu 3 jours avant la fin, une seule fois par période, avec
+ * l'invitation à s'abonner. Un abonnement payé (Stripe ou Mollie) n'est pas concerné. Tâche lancée chaque heure.
  */
 export async function notifyGrantedProEnding(now = new Date()) {
   const soon = await db.subscription.findMany({
     where: {
       planId: "pro",
-      status: "ACTIVE",
+      status: { in: ["ACTIVE", "TRIALING"] },
       stripeSubscriptionId: null,
+      billingProvider: null,
       currentPeriodEnd: {
         gt: now,
         lte: new Date(now.getTime() + 3 * 86_400_000),
       },
     },
-    select: { id: true, organizationId: true, currentPeriodEnd: true },
+    select: {
+      id: true,
+      organizationId: true,
+      currentPeriodEnd: true,
+      status: true,
+    },
     orderBy: [{ currentPeriodEnd: "asc" }, { id: "asc" }],
   });
   let sent = 0;
@@ -386,15 +407,21 @@ export async function notifyGrantedProEnding(now = new Date()) {
       })
     )
       continue;
-    await notifyOwner(s.organizationId, "TRIAL_ENDING");
+    await notifyOwner(s.organizationId, "PRO_ENDING");
     await notify(
       s.organizationId,
       "TRIAL_ENDING",
-      {
-        title: "Fin de votre Pro offert",
-        body: "Votre Pro offert se termine dans 3 jours : vous repasserez en Free, sans rien perdre.",
-        link: "/billing",
-      },
+      s.status === "TRIALING"
+        ? {
+            title: "Fin de votre essai Pro",
+            body: "Votre essai Pro se termine dans 3 jours : abonnez-vous pour garder Pro, sinon vous repasserez en Free, sans rien perdre.",
+            link: "/billing",
+          }
+        : {
+            title: "Fin de votre Pro offert",
+            body: "Votre Pro offert se termine dans 3 jours : abonnez-vous pour le garder, sinon vous repasserez en Free, sans rien perdre.",
+            link: "/billing",
+          },
       { email: false },
     );
     await audit({
@@ -486,6 +513,23 @@ async function proPriceId(currency: string, interval: "MONTH" | "YEAR") {
       ? env().STRIPE_PRICE_PRO_MONTH
       : env().STRIPE_PRICE_PRO_YEAR) ?? null
   );
+}
+
+/**
+ * RG-SUB-05 : mensuel ou annuel. Abonnement payé par Mollie : au prochain renouvellement, sans prorata (docs/MOLLIE.md,
+ * lot 6) ; ancien abonnement Stripe : tout de suite, prorata calculé par Stripe.
+ */
+export async function changeInterval(
+  ctx: OrgContext,
+  interval: "MONTH" | "YEAR",
+) {
+  const sub = await db.subscription.findUnique({
+    where: { organizationId: ctx.organization.id },
+    select: { billingProvider: true },
+  });
+  if (sub?.billingProvider === "MOLLIE")
+    return scheduleIntervalSwitch(ctx, interval);
+  return switchInterval(ctx, interval);
 }
 
 /** RG-SUB-05 : passage du mensuel à l'annuel (ou l'inverse) depuis l'app, crédit au prorata calculé par Stripe. */

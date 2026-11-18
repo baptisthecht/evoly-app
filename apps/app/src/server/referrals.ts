@@ -132,6 +132,26 @@ export async function qualifyReferral(
     });
     how = "STRIPE_CREDIT";
   }
+  // abonnement payé par Mollie (docs/MOLLIE.md, lot 6) : le prochain prélèvement recule d'un mois, l'abonnement continue
+  if (
+    how === "PRO_DAYS" &&
+    sub?.billingProvider === "MOLLIE" &&
+    sub.mollieMandateId &&
+    (sub.status === "ACTIVE" || sub.status === "PAST_DUE")
+  ) {
+    const from =
+      sub.currentPeriodEnd && sub.currentPeriodEnd > now
+        ? sub.currentPeriodEnd
+        : now;
+    await db.subscription.update({
+      where: { organizationId: r.referrerOrgId },
+      data: {
+        currentPeriodEnd: new Date(from.getTime() + REWARD_DAYS * 86_400_000),
+        renewalNoticeFor: null,
+      },
+    });
+    how = "MOLLIE_DAYS";
+  }
   if (how === "PRO_DAYS") {
     const from =
       sub &&

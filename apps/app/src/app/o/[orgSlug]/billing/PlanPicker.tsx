@@ -3,26 +3,39 @@
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
-import { FormError, SubmitButton } from "@/components/forms";
+import { FormError, SubmitButton, useActionForm } from "@/components/forms";
 import { cn } from "@/components/ui/cn";
 import { checkoutAction, portalAction } from "./actions";
 
-/** Free : choix mensuel ou annuel, puis Stripe Checkout (RG-SUB-02). */
+/**
+ * Passer en Pro : choix mensuel ou annuel. Avec Mollie (docs/MOLLIE.md, lot 6) : essai de 14 jours sans carte, ou
+ * abonnement payé sur la page de Mollie, dont la première période commence à la fin de ce qui court encore (startsOn).
+ * Avant Mollie : Stripe Checkout, essai compris (RG-SUB-02).
+ */
 export function PlanPicker({
   orgSlug,
   prices,
   currency,
   trial,
+  provider,
+  startsOn,
+  cta,
 }: {
   orgSlug: string;
   prices: { MONTH: number; YEAR: number };
   currency: string;
   trial: boolean;
+  /** prestataire de l'offre Pro ; sans lui, le parcours d'avant Mollie (Stripe Checkout) */
+  provider?: "MOLLIE" | "STRIPE" | null;
+  /** date (mise en forme) du début de la première période payée, si elle ne commence pas tout de suite */
+  startsOn?: string | null;
+  /** libellé du bouton d'abonnement (« Passer en Pro », « S'abonner ») */
+  cta?: string;
 }) {
   const t = useTranslations("billing");
   const locale = useLocale() as Locale;
   const [interval, setInterval] = useState<"MONTH" | "YEAR">("YEAR");
-  const [state, action] = useActionState(
+  const { state, pending, formProps } = useActionForm(
     checkoutAction.bind(null, orgSlug),
     null,
   );
@@ -32,8 +45,9 @@ export function PlanPicker({
   const saving = Math.round(
     ((prices.MONTH * 12 - prices.YEAR) * 100) / (prices.MONTH * 12),
   );
+  const mollie = provider === "MOLLIE";
   return (
-    <form action={action} className="grid gap-4">
+    <form {...formProps} className="grid gap-4">
       <div
         className="grid gap-3 sm:grid-cols-2"
         role="radiogroup"
@@ -78,19 +92,66 @@ export function PlanPicker({
         ))}
       </div>
       <FormError state={state} />
-      <SubmitButton
-        variant="primary"
-        className="w-full sm:w-auto sm:justify-self-start"
-      >
-        {trial ? t("startTrial") : t("upgrade")}
-      </SubmitButton>
-      <p className="text-xs text-ink-muted">
-        {trial ? t("trialTerms") : t("upgradeTerms")}
-      </p>
+      {mollie && trial ? (
+        <>
+          <SubmitButton
+            variant="primary"
+            name="mode"
+            value="trial"
+            pending={pending}
+            className="w-full sm:w-auto sm:justify-self-start"
+          >
+            {t("startTrial")}
+          </SubmitButton>
+          <p className="text-xs text-ink-muted">{t("trialTermsNoCard")}</p>
+          <div className="grid gap-2 border-t border-line pt-4">
+            <SubmitButton
+              variant="secondary"
+              name="mode"
+              value="pay"
+              pending={pending}
+              className="w-full sm:w-auto sm:justify-self-start"
+            >
+              {t("subscribeNow")}
+            </SubmitButton>
+            <p className="text-xs text-ink-muted">{t("subscribeTerms")}</p>
+          </div>
+        </>
+      ) : mollie ? (
+        <>
+          <SubmitButton
+            variant="primary"
+            name="mode"
+            value="pay"
+            pending={pending}
+            className="w-full sm:w-auto sm:justify-self-start"
+          >
+            {cta ?? t("upgrade")}
+          </SubmitButton>
+          <p className="text-xs text-ink-muted">
+            {startsOn ? `${t("subscribeFrom", { date: startsOn })} ` : ""}
+            {t("subscribeTerms")}
+          </p>
+        </>
+      ) : (
+        <>
+          <SubmitButton
+            variant="primary"
+            pending={pending}
+            className="w-full sm:w-auto sm:justify-self-start"
+          >
+            {trial ? t("startTrial") : t("upgrade")}
+          </SubmitButton>
+          <p className="text-xs text-ink-muted">
+            {trial ? t("trialTerms") : t("upgradeTerms")}
+          </p>
+        </>
+      )}
     </form>
   );
 }
 
+/** Ancien abonnement Stripe : portail client Stripe. */
 export function ManageSubscription({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations("billing");
   const [state, action] = useActionState(

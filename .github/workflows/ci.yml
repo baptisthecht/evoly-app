@@ -93,6 +93,10 @@ jobs:
       - run: pnpm --filter @evoly/app build
       - name: Parcours complets
         working-directory: apps/app
+        env:
+          # compte Mollie d'Evoly factice : l'essai Pro sans carte et la gestion de l'abonnement (docs/MOLLIE.md, lot 6) ;
+          # aucun parcours n'appelle Mollie
+          MOLLIE_API_KEY: test_cle_factice_e2e
         run: |
           npx playwright install --with-deps chromium
           (npx next start -p 3001 &) && npx wait-on -t 60000 http://localhost:3001/api/health

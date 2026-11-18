@@ -225,11 +225,91 @@ model Subscription {
   cancelAtPeriodEnd    Boolean            @default(false)
   canceledAt           DateTime?
   pastDueSince         DateTime? // point de départ de la relance avant rétrogradation
+  // Abonnement payé par Mollie (docs/MOLLIE.md, lot 6) : Evoly tient les périodes et prélève chaque renouvellement sur le
+  // mandat, avec le compte Mollie d'Evoly. Vide : Free, essai sans carte, offre attribuée par Evoly, ou ancien abonnement Stripe.
+  billingProvider      PaymentProvider?
+  mollieCustomerId     String?            @unique // cst_… : client Mollie de l'organisation, sur le compte d'Evoly
+  mollieMandateId      String? // mdt_… : mandat des renouvellements (carte, ou prélèvement SEPA après un paiement Bancontact)
+  paymentMethodLabel   String? // moyen affiché : « Visa •••• 4242 », « BE68 •••• 0123 »
+  nextInterval         BillingInterval? // périodicité choisie pour le prochain renouvellement, sans prorata
+  renewalNoticeFor     DateTime? // fin de période pour laquelle le rappel de renouvellement est parti
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  plan         Plan         @relation(fields: [planId], references: [id])
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan                  @relation(fields: [planId], references: [id])
+  payments     SubscriptionPayment[]
+}
+
+enum SubscriptionPaymentKind {
+  FIRST // premier paiement sur la page de Mollie : crée le mandat et paie la première période
+  SETTLE // règlement d’une période impayée sur la page de Mollie, avec un nouveau mandat
+  RENEWAL // renouvellement prélevé par Evoly sur le mandat, sans le client
+  MANDATE // changement de moyen de paiement : carte enregistrée sans paiement (0 €), aucune période
+}
+
+enum SubscriptionPaymentStatus {
+  OPEN // créé, en attente du client (ou de la réponse de Mollie)
+  PENDING // en cours de traitement chez Mollie (prélèvement SEPA : quelques jours)
+  PAID
+  FAILED // échoué, annulé ou expiré
+  CHARGED_BACK // payé puis contesté par le client auprès de sa banque
+}
+
+// Paiement de l'offre Pro sur le compte Mollie d'Evoly (docs/MOLLIE.md, lot 6)
+model SubscriptionPayment {
+  id              String                    @id @default(cuid())
+  organizationId  String
+  subscriptionId  String
+  molliePaymentId String?                   @unique // tr_… ; vide le temps de l'appel à Mollie
+  kind            SubscriptionPaymentKind
+  status          SubscriptionPaymentStatus @default(OPEN)
+  interval        BillingInterval?
+  amountMinor     Int
+  currency        String                    @db.Char(3)
+  periodStart     DateTime? // période payée (aucune pour un changement de moyen de paiement)
+  periodEnd       DateTime?
+  attempt         Int                       @default(1) // tentative de prélèvement de cette période (RG-SUB-06)
+  renewalKey      String?                   @unique // renouvellement : abonnement, début de période et tentative ; jamais deux fois
+  method          String? // creditcard, bancontact, directdebit…
+  checkoutUrl     String?
+  failureReason   String?
+  paidAt          DateTime?
+  failedAt        DateTime?
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  invoice      ProInvoice?
+
+  @@index([subscriptionId, createdAt])
+  @@index([status])
+}
+
+// Facture de l'offre Pro, émise par Evoly à chaque paiement reçu (docs/MOLLIE.md, lot 6) : numéro de la même série sans
+// trou que les relevés de commissions, client figé au jour de l'émission
+model ProInvoice {
+  id             String          @id @default(cuid())
+  organizationId String
+  paymentId      String          @unique
+  number         String          @unique
+  issuedAt       DateTime
+  interval       BillingInterval
+  periodStart    DateTime
+  periodEnd      DateTime
+  currency       String          @db.Char(3)
+  totalMinor     Int
+  vatRateBps     Int?
+  vatMinor       Int             @default(0)
+  vatMention     String? // BE_VAT, REVERSE_CHARGE, OSS, OUTSIDE_EU
+  method         String? // moyen du paiement : creditcard, bancontact, directdebit…
+  customer       Json // nom, adresse, pays et numéro de TVA du client au jour de l'émission
+  createdAt      DateTime        @default(now())
+
+  organization Organization        @relation(fields: [organizationId], references: [id])
+  payment      SubscriptionPayment @relation(fields: [paymentId], references: [id])
+
+  @@index([organizationId, issuedAt])
 }
 
 // =============================================================================
@@ -284,6 +364,7 @@ model Organization {
   deletedAt          DateTime?
 
   subscription        Subscription?
+  proInvoices         ProInvoice[]
   stripeAccount       StripeAccount?
   mollieAccount       MollieAccount?
   venuePartner        VenuePartner?         @relation("VenueOwner") // programme « Lieu partenaire » (section 9.32)

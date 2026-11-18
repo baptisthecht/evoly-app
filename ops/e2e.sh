@@ -11,6 +11,7 @@ export NEXT_PUBLIC_BASE_DOMAIN=localhost:3001 NEXT_PUBLIC_SITE_URL=http://localh
 export ORDER_TOKEN_SECRET=ci-order-token-secret-0123456789abcdef CRON_SECRET=ci-cron-secret-0123456789abcdef
 export AUTH_GOOGLE_ID=evoly-test.apps.googleusercontent.com AUTH_GOOGLE_SECRET=secret-de-test
 export MOLLIE_CLIENT_ID=app_e2e_evoly MOLLIE_CLIENT_SECRET=secret-de-test # application Mollie factice (docs/MOLLIE.md)
+export MOLLIE_API_KEY=test_cle_factice_e2e # compte Mollie d'Evoly factice (offre Pro, lot 6) : aucun parcours n'appelle Mollie
 export APPLE_PASS_TYPE_ID=pass.me.evoly.test APPLE_TEAM_ID=TEAM123456
 export GOOGLE_WALLET_ISSUER_ID=3388000000012345678 GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL=wallet@evoly-test.iam.gserviceaccount.com
 export EMAIL_OUTBOX_DIR=/tmp/evoly-outbox NEXT_TELEMETRY_DISABLED=1

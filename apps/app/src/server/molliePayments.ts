@@ -56,11 +56,13 @@ export async function paymentAccountFor(
 }
 
 /** Adresse du webhook Mollie ; aucune en local (Mollie refuse une adresse qui n'est pas publique). */
-export function mollieWebhookUrl(): string | undefined {
+export function mollieWebhookUrl(
+  path = "/api/webhooks/mollie",
+): string | undefined {
   const app = env().NEXT_PUBLIC_APP_URL;
   if (!app.startsWith("https://") || /\/\/(localhost|127\.0\.0\.1)\b/.test(app))
     return undefined;
-  return `${app}/api/webhooks/mollie`;
+  return `${app}${path}`;
 }
 
 /**

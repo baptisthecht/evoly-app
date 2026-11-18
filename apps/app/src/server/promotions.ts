@@ -198,7 +198,11 @@ export async function promotionStats(
           where: {
             organizationId: { in: orgIds },
             planId: "pro",
-            stripeSubscriptionId: { not: null },
+            // abonnement payé : Stripe, ou Mollie (docs/MOLLIE.md, lot 6)
+            OR: [
+              { stripeSubscriptionId: { not: null } },
+              { billingProvider: "MOLLIE", mollieMandateId: { not: null } },
+            ],
             status: { in: ["TRIALING", "ACTIVE", "PAST_DUE"] },
           },
           select: { organizationId: true },

@@ -191,6 +191,59 @@ describe("passage à l'offre Pro (RG-SUB-02)", () => {
     ).toBe("MONTH");
   });
 
+  it("avec Mollie : essai sans carte, ou abonnement tout de suite ; le bouton choisi part avec la période (docs/MOLLIE.md, lot 6)", async () => {
+    actions.checkoutAction.mockResolvedValue({
+      ok: false,
+      error: "MOLLIE_UNAVAILABLE",
+    });
+    render(
+      <Fr>
+        <PlanPicker
+          orgSlug="club"
+          prices={prices}
+          currency="EUR"
+          trial
+          provider="MOLLIE"
+        />
+      </Fr>,
+    );
+    expect(screen.getByText(b.trialTermsNoCard!)).toBeTruthy();
+    expect(screen.getByText(b.subscribeTerms!)).toBeTruthy();
+    expect(screen.queryByText(b.trialTerms!)).toBeNull(); // plus de carte exigée pour l'essai
+    await act(
+      async () =>
+        void fireEvent.click(
+          screen.getByRole("button", { name: b.subscribeNow }),
+        ),
+    );
+    await waitFor(() => expect(actions.checkoutAction).toHaveBeenCalled());
+    const data = actions.checkoutAction.mock.calls[0]!.at(-1) as FormData;
+    expect(data.get("mode")).toBe("pay");
+    expect(data.get("interval")).toBe("YEAR");
+    expect(await screen.findByRole("alert")).toBeTruthy();
+  });
+
+  it("avec Mollie, sans essai : un seul bouton, et la date où commencera la première période", () => {
+    const { container } = render(
+      <Fr>
+        <PlanPicker
+          orgSlug="club"
+          prices={prices}
+          currency="EUR"
+          trial={false}
+          provider="MOLLIE"
+          startsOn="2 décembre 2026"
+          cta={b.subscribe}
+        />
+      </Fr>,
+    );
+    expect(screen.queryByRole("button", { name: b.startTrial })).toBeNull();
+    expect(screen.getByRole("button", { name: b.subscribe })).toBeTruthy();
+    expect(norm(container.textContent ?? "")).toContain(
+      "Votre première période commencera le 2 décembre 2026",
+    );
+  });
+
   it("gestion de l'abonnement : ouverte chez Stripe ; refus affiché", async () => {
     actions.portalAction.mockResolvedValue({
       ok: false,

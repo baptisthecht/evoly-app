@@ -851,7 +851,8 @@ export async function issueStatement(
   }
 }
 
-const clean = (s: string) =>
+/** Texte affichable par les polices standard des PDF (relevés, factures Pro) : espaces fines remplacées, le reste retiré. */
+export const clean = (s: string) =>
   s
     .replace(/[\u202f\u00a0\u2009]/g, " ")
     .replace(

@@ -7,6 +7,7 @@ import {
   ratePercent,
   type RiskSignal,
   riskSignals,
+  renewsWithMollie,
 } from "@evoly/core";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -541,6 +542,34 @@ export async function extendTrial(
     });
     await log(st, "platform.stripe_subscription_missing", id, {});
   }
+  // abonnement payé par Mollie (docs/MOLLIE.md, lot 6) : le prochain prélèvement recule d'autant, l'abonnement continue
+  // (résilié, il le reste ; impayé, la période est remise à jour)
+  if (
+    sub?.billingProvider === "MOLLIE" &&
+    sub.mollieMandateId &&
+    (sub.status === "ACTIVE" || sub.status === "PAST_DUE")
+  ) {
+    const from =
+      sub.currentPeriodEnd && sub.currentPeriodEnd > now
+        ? sub.currentPeriodEnd
+        : now;
+    const until = new Date(from.getTime() + days * 86_400_000);
+    await db.subscription.update({
+      where: { organizationId: id },
+      data: {
+        currentPeriodEnd: until,
+        status: "ACTIVE",
+        pastDueSince: null,
+        renewalNoticeFor: null,
+      },
+    });
+    await log(st, "platform.trial_extended", id, {
+      days,
+      until: until.toISOString(),
+      mollie: true,
+    });
+    return;
+  }
   const paid =
     sub &&
     (sub.planId === "pro" || sub.planId === "partner") &&
@@ -581,6 +610,7 @@ export async function extendTrial(
     update: {
       ...data,
       stripeSubscriptionId: null,
+      billingProvider: null, // offre désormais gérée par Evoly : aucun prélèvement Mollie
       cancelAtPeriodEnd: false,
       pastDueSince: null,
     },
@@ -598,6 +628,7 @@ export async function assignPlan(
   id: string,
   planId: "pro" | "free" | "partner",
   until: Date | null,
+  /** resilierStripe : résilier l'abonnement payant en cours, chez Stripe ou chez Mollie */
   opts: { resilierStripe?: boolean } = {},
   now = new Date(),
 ) {
@@ -608,6 +639,11 @@ export async function assignPlan(
   const sub = await db.subscription.findUnique({
     where: { organizationId: id },
   });
+  // abonnement payé par Mollie (docs/MOLLIE.md, lot 6) : même règle, jamais remplacé en silence ; résilié, Evoly cesse
+  // simplement de prélever (plus de mandat retenu)
+  const mollieResilie = renewsWithMollie(sub);
+  if (mollieResilie && !opts.resilierStripe)
+    throw new CoreError("PLAN_MANAGED_BY_MOLLIE");
   let stripeResilie = false;
   if (sub?.stripeSubscriptionId && STRIPE_LIVE.includes(sub.status)) {
     // abonnement payant en cours : jamais remplacé en silence ; l'administrateur doit demander sa résiliation explicitement
@@ -623,10 +659,15 @@ export async function assignPlan(
   // Stripe, et les notifications de cet ancien abonnement réécriraient l'offre) ; à sa date de fin, retour en Free
   const clean = {
     stripeSubscriptionId: null,
+    billingProvider: null,
+    mollieMandateId: null,
+    paymentMethodLabel: null,
+    nextInterval: null,
+    renewalNoticeFor: null,
     cancelAtPeriodEnd: false,
     pastDueSince: null,
     trialEndsAt: null,
-    ...(sub?.stripeSubscriptionId ? { canceledAt: now } : {}),
+    ...(sub?.stripeSubscriptionId || mollieResilie ? { canceledAt: now } : {}),
   };
   const data =
     planId === "free"
@@ -641,6 +682,7 @@ export async function assignPlan(
     planId,
     until: until?.toISOString() ?? null,
     stripeResilie,
+    mollieResilie,
   });
 }
 

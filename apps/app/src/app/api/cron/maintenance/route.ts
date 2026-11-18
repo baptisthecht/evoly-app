@@ -3,13 +3,15 @@ import { notifyGrantedProEnding } from "@/server/billing";
 import { aggregateDailyStats, purgeExpiredTokens } from "@/server/maintenance";
 import { syncMollieAccounts } from "@/server/mollieConnect";
 import { notifyFailedSettlements } from "@/server/mollieFinances";
+import { runProBilling } from "@/server/proBilling";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
  * Toutes les heures (section 11) : jetons, invitations et redirections expirés ; agrégats quotidiens des événements ;
- * comptes Mollie relus (docs/MOLLIE.md : Mollie n'envoie pas d'événement pour l'inscription).
+ * comptes Mollie relus (docs/MOLLIE.md : Mollie n'envoie pas d'événement pour l'inscription) ; offre Pro payée par
+ * Mollie : renouvellements prélevés au plus tôt la veille de l'échéance, relances, fins et préavis (lot 6).
  */
 export async function GET(req: Request) {
   const secret = env().CRON_SECRET;
@@ -21,5 +23,6 @@ export async function GET(req: Request) {
     grantedProEnding: await notifyGrantedProEnding(),
     mollieAccounts: await syncMollieAccounts(),
     mollieFailedSettlements: await notifyFailedSettlements(),
+    proBilling: await runProBilling(),
   });
 }

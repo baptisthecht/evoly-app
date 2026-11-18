@@ -99,7 +99,17 @@ function all(locale: (typeof LOCALES)[number]) {
           [],
         ] as const,
     ),
-    ...(["STARTED", "TRIAL_ENDING", "PAYMENT_FAILED", "ENDED"] as const).map(
+    ...(
+      [
+        "STARTED",
+        "TRIAL_ENDING",
+        "PRO_ENDING",
+        "PAYMENT_FAILED",
+        "ENDED",
+        "INVOICE",
+        "RENEWAL_NOTICE",
+      ] as const
+    ).map(
       (kind) =>
         [
           `abonnement ${kind}`,
@@ -109,6 +119,14 @@ function all(locale: (typeof LOCALES)[number]) {
             organizationName: "Club de Mouscron",
             firstName: "Camille",
             url: URL,
+            // facture et préavis du prélèvement (docs/MOLLIE.md, lot 6)
+            vars: {
+              number: "EVO-2026-000042",
+              amount: "295,80 €",
+              nextDate: "18 novembre 2027",
+              nextAmount: "295,80 €",
+              method: "BE68 •••• 7034",
+            },
           }),
           [URL],
         ] as const,

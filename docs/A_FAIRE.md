@@ -33,8 +33,17 @@ plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Bran
   échoué signalé, frais estimés d'après la grille Mollie. Au déploiement : migration `20261118160000_mollie_finances`.
   Restent : frais réels de chaque paiement (transactions du solde Mollie) ; reversements aux lieux partenaires, à
   trancher (virement par Evoly, ou transferts entre soldes Connect à faire activer par Mollie).
-- Lots 6 et 7 : offre Pro, bascule (textes encore « Stripe » de l'accueil et de la liste de contrôle d'un événement,
-  textes légaux, retrait de Stripe) ; puis la boutique.
+- Lot 6, offre Pro : fait. Essai de 14 jours sans carte, abonnement payé sur la page de Mollie (carte, Bancontact…)
+  qui crée le mandat, renouvellements prélevés par Evoly la veille de l'échéance (carte, ou prélèvement SEPA après
+  Bancontact), passage au mensuel ou à l'annuel au renouvellement sans prorata, résiliation et reprise, changement de
+  carte, règlement d'une période impayée, nouvelles tentatives à 3 et 6 jours puis fin à 7 jours, facture numérotée
+  (série des relevés) envoyée à chaque paiement, préavis 7 jours avant un renouvellement annuel. Anciens abonnés
+  Stripe : Pro gardé jusqu'à la fin de leur période, invités à reprendre par Mollie (l'abonnement Stripe s'arrête
+  alors sans renouvellement). Corrigé au passage : l'e-mail « repassée en Free » partait chaque minute pendant une
+  heure. Au déploiement : migration `20261118170000_mollie_offre_pro`, clé `MOLLIE_API_KEY` du compte d'Evoly. Restent :
+  avoirs pour un paiement Pro remboursé ou contesté (à faire dans Mollie et à la main en attendant).
+- Lot 7 : bascule (textes encore « Stripe » de l'accueil et de la liste de contrôle d'un événement, textes légaux,
+  retrait de Stripe) ; puis la boutique.
 - À faire par le porteur : application Connect « Evoly » (adresse de retour `https://app.evoly.me/api/mollie/oauth`),
   clés `MOLLIE_API_KEY`, `MOLLIE_CLIENT_ID` et `MOLLIE_CLIENT_SECRET` dans le `.env`, un deuxième compte Mollie de test
   pour jouer l'organisateur.
