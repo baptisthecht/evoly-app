@@ -54,15 +54,11 @@ export default async function PayPage({
                 lines: r.lines,
                 options: r.options ?? [],
                 questions: r.questions,
-                stripeAccountId: r.stripeAccountId,
                 mollie: r.mollie,
                 seats: await reservationSeats(r.orderId),
               }}
               organizationName={org.brand?.displayName ?? org.name}
               requirePhone={event.requireBuyerPhone}
-              publishableKey={
-                process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null
-              }
             />
           </>
         ) : (

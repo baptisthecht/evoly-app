@@ -32,7 +32,6 @@ import {
 import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
 import {
   MOLLIE_HOLD_MS,
   paymentAccountFor,
@@ -145,34 +144,7 @@ async function releaseExpiredInTx(tx: Tx, eventId: string, now: Date) {
     }
     await tx.order.update({ where: { id: o.id }, data: { status: "EXPIRED" } });
   }
-  return expired.map((o) => ({
-    id: o.id,
-    paymentIntentId: o.stripePaymentIntentId,
-  }));
-}
-
-/** Annule les intentions de paiement des réservations libérées, pour éviter un paiement tardif. */
-async function cancelPaymentIntents(
-  organizationId: string,
-  intents: Array<{ paymentIntentId: string | null }>,
-) {
-  const s = stripe();
-  const ids = intents
-    .map((i) => i.paymentIntentId)
-    .filter((x): x is string => !!x);
-  if (!s || ids.length === 0) return;
-  const account = await db.stripeAccount.findUnique({
-    where: { organizationId },
-    select: { stripeAccountId: true },
-  });
-  if (!account) return;
-  await Promise.all(
-    ids.map((id) =>
-      s.paymentIntents
-        .cancel(id, {}, { stripeAccount: account.stripeAccountId })
-        .catch(() => null),
-    ),
-  );
+  return expired.map((o) => o.id);
 }
 
 /** Tâche planifiée : libère toutes les réservations expirées, événement par événement. */
@@ -192,7 +164,6 @@ export async function releaseExpiredHolds(now = new Date()): Promise<number> {
       TX_OPTIONS,
     );
     count += released.length;
-    await cancelPaymentIntents(e.organizationId, released);
   }
   return count;
 }
@@ -228,8 +199,7 @@ export interface Reservation {
     order: PublicQuestion[];
     perLine: Record<string, PublicQuestion[]>;
   };
-  stripeAccountId: string | null;
-  /** Paiement sur la page de Mollie (compte Mollie prêt) plutôt que par le formulaire de Stripe (docs/MOLLIE.md). */
+  /** Compte Mollie de l'organisation prêt : paiement sur la page de Mollie (docs/MOLLIE.md). */
   mollie: boolean;
   /** Règle de remboursement affichée avant l'achat (RG-REF-11), avec le mode figé sur la commande. */
   refund: RefundRule;
@@ -605,7 +575,6 @@ export async function reserveOrder(
     },
     TX_OPTIONS,
   );
-  await cancelPaymentIntents(event.organizationId, released);
   const pay =
     order.totalMinor > 0 ? await paymentAccountFor(event.organizationId) : null;
   return {
@@ -643,7 +612,6 @@ export async function reserveOrder(
         ticketTypeId: i.ticketTypeId,
       })),
     ),
-    stripeAccountId: pay?.provider === "STRIPE" ? pay.stripeAccountId : null,
     mollie: pay?.provider === "MOLLIE",
     refund: refundRuleOf(event, order.refundFeeMode),
   };
@@ -720,7 +688,6 @@ export async function reservationByToken(
         ticketTypeId: i.ticketTypeId,
       })),
     ),
-    stripeAccountId: pay?.provider === "STRIPE" ? pay.stripeAccountId : null,
     mollie: pay?.provider === "MOLLIE",
     refund: refundRuleOf(order.event, order.refundFeeMode),
   };
@@ -731,14 +698,10 @@ export async function cancelReservation(token: string): Promise<void> {
   if (!orderId) return;
   const order = await db.order.findUnique({
     where: { id: orderId },
-    select: {
-      eventId: true,
-      organizationId: true,
-      stripePaymentIntentId: true,
-    },
+    select: { eventId: true },
   });
   if (!order) return;
-  const done = await db.$transaction(async (tx) => {
+  await db.$transaction(async (tx) => {
     await lockEvent(tx, order.eventId);
     const o = await tx.order.findUniqueOrThrow({
       where: { id: orderId },
@@ -769,10 +732,6 @@ export async function cancelReservation(token: string): Promise<void> {
     });
     return true;
   }, TX_OPTIONS);
-  if (done)
-    await cancelPaymentIntents(order.organizationId, [
-      { paymentIntentId: order.stripePaymentIntentId },
-    ]);
 }
 
 export type PublicQuestion = Awaited<
@@ -798,10 +757,7 @@ export interface BuyerInput {
   >;
 }
 
-export type SubmitResult =
-  | { kind: "PAID" }
-  | { kind: "PAYMENT"; clientSecret: string; stripeAccountId: string }
-  | { kind: "REDIRECT"; url: string }; // page de paiement de Mollie
+export type SubmitResult = { kind: "PAID" } | { kind: "REDIRECT"; url: string }; // page de paiement de Mollie
 
 /** Étape 3 et 4 du déroulé (section 9.11) : coordonnées, puis paiement ou validation immédiate si gratuit. */
 export async function submitBuyer(
@@ -918,94 +874,38 @@ export async function submitBuyer(
     return { kind: "PAID" };
   }
   const pay = await paymentAccountFor(order.organizationId);
-  if (pay?.provider === "MOLLIE") {
-    // page de paiement de Mollie (docs/MOLLIE.md), retour sur la page des billets de ce site
-    if (!opts.returnUrl) throw new CoreError("PAYMENTS_UNAVAILABLE");
-    // un paiement par carte vaut 15 minutes chez Mollie : la réservation, et l'annonce revendue, tiennent jusque-là
-    const until = new Date(now.getTime() + MOLLIE_HOLD_MS);
-    if (order.holdExpiresAt < until) {
-      await db.order.update({
-        where: { id: orderId },
-        data: { holdExpiresAt: until },
+  if (!pay) throw new CoreError("PAYMENTS_UNAVAILABLE");
+  // page de paiement de Mollie (docs/MOLLIE.md), retour sur la page des billets de ce site
+  if (!opts.returnUrl) throw new CoreError("PAYMENTS_UNAVAILABLE");
+  // un paiement par carte vaut 15 minutes chez Mollie : la réservation, et l'annonce revendue, tiennent jusque-là
+  const until = new Date(now.getTime() + MOLLIE_HOLD_MS);
+  if (order.holdExpiresAt < until) {
+    await db.order.update({
+      where: { id: orderId },
+      data: { holdExpiresAt: until },
+    });
+    if (order.resaleListingId)
+      await db.resaleListing.updateMany({
+        where: { id: order.resaleListingId, status: "RESERVED" },
+        data: { reservedUntil: until },
       });
-      if (order.resaleListingId)
-        await db.resaleListing.updateMany({
-          where: { id: order.resaleListingId, status: "RESERVED" },
-          data: { reservedUntil: until },
-        });
-    }
-    const org = await db.organization.findUniqueOrThrow({
-      where: { id: order.organizationId },
-      select: { country: true },
-    });
-    const started = await startMolliePayment({
-      account: pay.account,
-      order,
-      title: order.event.title,
-      country: org.country,
-      returnUrl: opts.returnUrl,
-    });
-    if (started.kind === "PAID") {
-      await syncPaymentFromMollie(orderId);
-      return { kind: "PAID" };
-    }
-    return started;
   }
-  const s = stripe();
-  if (!s || pay?.provider !== "STRIPE")
-    throw new CoreError("PAYMENTS_UNAVAILABLE");
-  const account = { stripeAccountId: pay.stripeAccountId };
-  const options = { stripeAccount: account.stripeAccountId };
-  if (order.stripePaymentIntentId) {
-    const existing = await s.paymentIntents.retrieve(
-      order.stripePaymentIntentId,
-      {},
-      options,
-    );
-    if (existing.status === "succeeded") return { kind: "PAID" };
-    if (existing.status !== "canceled" && existing.client_secret) {
-      await s.paymentIntents.update(
-        existing.id,
-        { receipt_email: buyer.email },
-        options,
-      );
-      return {
-        kind: "PAYMENT",
-        clientSecret: existing.client_secret,
-        stripeAccountId: account.stripeAccountId,
-      };
-    }
-  }
-  // RG-PAY-02 : charge directe sur le compte de l'organisateur, commission en frais d'application
-  const intent = await s.paymentIntents.create(
-    {
-      amount: order.totalMinor,
-      currency: order.currency.toLowerCase(),
-      application_fee_amount: order.applicationFeeMinor,
-      automatic_payment_methods: { enabled: true },
-      receipt_email: buyer.email,
-      description: `${order.event.title} · ${order.reference}`,
-      metadata: {
-        orderId: order.id,
-        reference: order.reference,
-        eventId: order.eventId,
-        organizationId: order.organizationId,
-      },
-    },
-    {
-      ...options,
-      idempotencyKey: `order:${order.id}:payment-intent:${order.stripePaymentIntentId ?? "1"}`,
-    },
-  );
-  await db.order.update({
-    where: { id: orderId },
-    data: { stripePaymentIntentId: intent.id },
+  const org = await db.organization.findUniqueOrThrow({
+    where: { id: order.organizationId },
+    select: { country: true },
   });
-  return {
-    kind: "PAYMENT",
-    clientSecret: intent.client_secret!,
-    stripeAccountId: account.stripeAccountId,
-  };
+  const started = await startMolliePayment({
+    account: pay.account,
+    order,
+    title: order.event.title,
+    country: org.country,
+    returnUrl: opts.returnUrl,
+  });
+  if (started.kind === "PAID") {
+    await syncPaymentFromMollie(orderId);
+    return { kind: "PAID" };
+  }
+  return started;
 }
 
 export type FinalizeOutcome =
@@ -1157,11 +1057,8 @@ export async function moveIncludedOptions(
 export async function finalizeOrder(
   orderId: string,
   payment?: {
-    /** Stripe (ancien prestataire) */
-    paymentIntentId?: string;
-    chargeId?: string | null;
-    /** Mollie (docs/MOLLIE.md) : empreinte de la carte connue au paiement */
-    molliePaymentId?: string;
+    /** paiement Mollie (docs/MOLLIE.md) ; empreinte de la carte connue au paiement */
+    molliePaymentId: string;
     cardFingerprint?: string | null;
     amountMinor: number;
     currency: string;
@@ -1419,14 +1316,7 @@ export async function finalizeOrder(
                   ? { cardFingerprint: payment.cardFingerprint }
                   : {}),
               }
-            : payment
-              ? {
-                  stripePaymentIntentId: payment.paymentIntentId,
-                  stripeChargeId: payment.chargeId ?? null,
-                  paymentMethodType: payment.paymentMethodType ?? null,
-                  paymentProvider: "STRIPE" as const,
-                }
-              : {}),
+            : {}),
         },
       });
       return "PAID" as const;
@@ -1448,11 +1338,9 @@ export async function finalizeOrder(
  * Mollie, la commission n'est pas rendue au remboursement : elle revient à l'organisateur sur son relevé mensuel.
  */
 export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
-  const s = stripe();
   const order = await db.order.findUnique({
     where: { id: orderId },
     select: {
-      stripePaymentIntentId: true,
       molliePaymentId: true,
       organizationId: true,
       totalMinor: true,
@@ -1463,27 +1351,8 @@ export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
       organization: { select: { name: true } },
     },
   });
-  if (!order) return;
-  if (order.molliePaymentId) await refundMollieInFull(orderId, "unfulfilled");
-  else {
-    const account = await db.stripeAccount.findUnique({
-      where: { organizationId: order.organizationId },
-      select: { stripeAccountId: true },
-    });
-    if (!s || !order.stripePaymentIntentId || !account) return;
-    await s.refunds.create(
-      {
-        payment_intent: order.stripePaymentIntentId,
-        refund_application_fee: true,
-        reason: "requested_by_customer",
-        metadata: { orderId, cause: "SOLD_OUT_AFTER_HOLD_EXPIRY" },
-      },
-      {
-        stripeAccount: account.stripeAccountId,
-        idempotencyKey: `order:${orderId}:unfulfilled-refund`,
-      },
-    );
-  }
+  if (!order?.molliePaymentId) return;
+  await refundMollieInFull(orderId, "unfulfilled");
   await db.order.update({
     where: { id: orderId },
     data: { status: "REFUNDED", refundedMinor: order.totalMinor },
@@ -1513,15 +1382,13 @@ export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
 }
 
 /**
- * RG-BLK-02, filet de sécurité : un paiement confirmé directement depuis le navigateur échappe à la vérification de la
- * carte faite avant le débit (confirmOrderPayment). Il est relu ici avant de valider la commande, seulement si
- * l'organisation a bloqué au moins une carte : carte bloquée, paiement remboursé en entier, places libérées, aucun
- * billet émis. Renvoie vrai si la commande ne doit pas être validée.
+ * RG-BLK-02 : la carte est connue au paiement (empreinte donnée par Mollie). Vérifiée avant de valider la commande,
+ * seulement si l'organisation a bloqué au moins une carte : carte bloquée, paiement remboursé en entier, places
+ * libérées, aucun billet émis. Renvoie vrai si la commande ne doit pas être validée.
  */
 export async function refundBlockedCardPayment(
   orderId: string,
-  /** Stripe : la charge, dont l'empreinte est lue ; Mollie : l'empreinte, connue au paiement. */
-  proof: string | { cardFingerprint: string | null },
+  proof: { cardFingerprint: string | null },
 ): Promise<boolean> {
   const order = await db.order.findUnique({
     where: { id: orderId },
@@ -1531,13 +1398,12 @@ export async function refundBlockedCardPayment(
       eventId: true,
       organizationId: true,
       totalMinor: true,
-      stripePaymentIntentId: true,
       molliePaymentId: true,
     },
   });
   if (
     !order ||
-    (!order.stripePaymentIntentId && !order.molliePaymentId) ||
+    !order.molliePaymentId ||
     !["PENDING", "EXPIRED", "FAILED"].includes(order.status) ||
     !(await db.blockedCard.findFirst({
       where: { organizationId: order.organizationId },
@@ -1545,32 +1411,9 @@ export async function refundBlockedCardPayment(
     }))
   )
     return false;
-  let fingerprint: string | null;
-  if (typeof proof === "string") {
-    const s = stripe();
-    const account = await db.stripeAccount.findUnique({
-      where: { organizationId: order.organizationId },
-      select: { stripeAccountId: true },
-    });
-    if (!s || !account || !order.stripePaymentIntentId) return false;
-    const options = { stripeAccount: account.stripeAccountId };
-    const charge = await s.charges.retrieve(proof, {}, options);
-    fingerprint = charge.payment_method_details?.card?.fingerprint ?? null;
-    if (!(await isCardBlocked(order.organizationId, fingerprint))) return false;
-    await s.refunds.create(
-      {
-        payment_intent: order.stripePaymentIntentId,
-        refund_application_fee: true,
-        reason: "requested_by_customer",
-        metadata: { orderId, cause: "BUYER_BLOCKED" },
-      },
-      { ...options, idempotencyKey: `order:${orderId}:blocked-refund` },
-    );
-  } else {
-    fingerprint = proof.cardFingerprint;
-    if (!(await isCardBlocked(order.organizationId, fingerprint))) return false;
-    await refundMollieInFull(orderId, "blocked");
-  }
+  const fingerprint = proof.cardFingerprint;
+  if (!(await isCardBlocked(order.organizationId, fingerprint))) return false;
+  await refundMollieInFull(orderId, "blocked");
   await db.$transaction(async (tx) => {
     await lockEvent(tx, order.eventId);
     const o = await tx.order.findUniqueOrThrow({
@@ -1759,103 +1602,4 @@ export async function changeReservationSeats(
     );
   }, TX_OPTIONS);
   return reservationSeats(orderId);
-}
-
-/** Refus de la banque : un message clair dans la langue de l'acheteur (le message de Stripe, côté serveur, est en anglais). */
-function cardFailure(err: unknown): CoreError {
-  const e = err as {
-    type?: unknown;
-    code?: unknown;
-    decline_code?: unknown;
-  } | null;
-  if (!e || typeof e.type !== "string" || !e.type.startsWith("Stripe"))
-    throw err;
-  const why = String(e.decline_code ?? e.code ?? "");
-  if (/insufficient_funds/.test(why))
-    return new CoreError("CARD_INSUFFICIENT_FUNDS");
-  if (/expired_card/.test(why)) return new CoreError("CARD_EXPIRED");
-  if (/incorrect_cvc|invalid_cvc/.test(why))
-    return new CoreError("CARD_INCORRECT_CVC");
-  if (e.type === "StripeCardError") return new CoreError("CARD_DECLINED");
-  return new CoreError("STRIPE_UNAVAILABLE");
-}
-
-/**
- * Paiement confirmé par le serveur, à partir du jeton de confirmation créé par le
- * navigateur (rien n'est encore débité) : l'empreinte de la carte est lue d'abord,
- * pour les limites par acheteur (une même carte, même avec d'autres adresses),
- * puis le paiement est confirmé. Validation bancaire (3D Secure, Bancontact) :
- * présentée ensuite par le navigateur. L'empreinte n'est jamais un numéro de carte.
- */
-export async function confirmOrderPayment(
-  token: string,
-  confirmationTokenId: string,
-  returnUrl: string,
-): Promise<{ kind: "DONE" } | { kind: "ACTION"; clientSecret: string }> {
-  if (!/^ctoken_[A-Za-z0-9]{8,120}$/.test(confirmationTokenId))
-    throw new CoreError("PAYMENT_INVALID");
-  const orderId = await findOrderIdByToken(token);
-  if (!orderId) throw new CoreError("ORDER_NOT_FOUND");
-  const order = await db.order.findUniqueOrThrow({
-    where: { id: orderId },
-    include: { items: true },
-  });
-  if (order.status !== "PENDING" || !order.stripePaymentIntentId)
-    throw new CoreError("PAYMENT_INVALID");
-  const account = await db.stripeAccount.findUnique({
-    where: { organizationId: order.organizationId },
-    select: { stripeAccountId: true },
-  });
-  const s = stripe();
-  if (!s || !account) throw new CoreError("STRIPE_NOT_CONFIGURED");
-  const options = { stripeAccount: account.stripeAccountId };
-  const ct = await s.confirmationTokens
-    .retrieve(confirmationTokenId, {}, options)
-    .catch((e: unknown) => {
-      throw cardFailure(e);
-    });
-  const fingerprint = ct.payment_method_preview?.card?.fingerprint ?? null;
-  // RG-BLK-02 : carte (ou adresse) bloquée par l'organisation : refus avant le débit, paiement annulé, places libérées
-  if (
-    await isBlocked(order.organizationId, {
-      email: order.buyerEmail,
-      fingerprint,
-    })
-  ) {
-    await cancelReservation(token);
-    throw new CoreError(BUYER_BLOCKED);
-  }
-  if (fingerprint) {
-    await db.order.update({
-      where: { id: order.id },
-      data: { cardFingerprint: fingerprint },
-    });
-    if (order.source === "ONLINE")
-      await checkBuyerLimits({
-        orderId: order.id,
-        eventId: order.eventId,
-        key: fingerprint,
-        by: "card",
-        items: order.items.map((i) => ({
-          ticketTypeId: i.ticketTypeId,
-          quantity: i.quantity,
-        })),
-        promoCodeId: order.promoCodeId,
-        presaleCodeId: order.presaleCodeId,
-      });
-  }
-  const intent = await s.paymentIntents
-    .confirm(
-      order.stripePaymentIntentId,
-      { confirmation_token: confirmationTokenId, return_url: returnUrl },
-      options,
-    )
-    .catch((e: unknown) => {
-      throw cardFailure(e);
-    });
-  if (intent.status === "requires_action" && intent.client_secret)
-    return { kind: "ACTION", clientSecret: intent.client_secret };
-  if (intent.status === "succeeded" || intent.status === "processing")
-    return { kind: "DONE" };
-  throw new CoreError("CARD_DECLINED");
 }

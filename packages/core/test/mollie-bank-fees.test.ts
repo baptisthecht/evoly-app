@@ -6,25 +6,20 @@ import {
 } from "../src/bankFees";
 import { originalPaymentRefundable } from "../src/resale";
 
-describe("frais bancaires selon le prestataire (docs/MOLLIE.md)", () => {
-  it("grille Mollie : cartes 1,8 % + 0,25 €, Bancontact 0,39 €, iDEAL 0,32 € ; la grille Stripe reste celle par défaut", () => {
-    expect(estimateBankFee(2000, "card_eea_standard", "MOLLIE")).toBe(61);
-    expect(estimateBankFee(2000, "bancontact", "MOLLIE")).toBe(39);
-    expect(estimateBankFee(2000, "ideal_wero", "MOLLIE")).toBe(32);
-    expect(estimateBankFee(2000)).toBe(55);
-    expect(estimateBankFee(0, "bancontact", "MOLLIE")).toBe(0);
+describe("frais bancaires de Mollie (docs/MOLLIE.md)", () => {
+  it("grille Mollie : cartes 1,8 % + 0,25 €, Bancontact 0,39 €, iDEAL 0,32 € ; carte européenne par défaut", () => {
+    expect(estimateBankFee(2000, "card_eea_standard")).toBe(61);
+    expect(estimateBankFee(2000, "bancontact")).toBe(39);
+    expect(estimateBankFee(2000, "ideal_wero")).toBe(32);
+    expect(estimateBankFee(2000)).toBe(61);
+    expect(estimateBankFee(0, "bancontact")).toBe(0);
   });
 
-  it("revente : frais du paiement de l'acheteur, plus ceux du remboursement quand le vendeur avait payé par Mollie (RG-FEE-51)", () => {
-    expect(resaleBankFee(2000, { buyer: "MOLLIE", seller: "MOLLIE" })).toBe(
-      61 + MOLLIE_REFUND_FEE_MINOR,
-    );
-    expect(resaleBankFee(2000, { buyer: "MOLLIE", seller: "STRIPE" })).toBe(61);
-    expect(resaleBankFee(2000, { buyer: "MOLLIE", seller: "MOLLIE" }, 40)).toBe(
-      40 + MOLLIE_REFUND_FEE_MINOR,
-    );
-    expect(resaleBankFee(2000, { buyer: "STRIPE", seller: null })).toBe(55);
-    expect(resaleBankFee(0, { buyer: "MOLLIE", seller: "MOLLIE" })).toBe(0);
+  it("revente : frais du paiement de l'acheteur, plus ceux du remboursement quand le vendeur avait payé en ligne (RG-FEE-51)", () => {
+    expect(resaleBankFee(2000, true)).toBe(61 + MOLLIE_REFUND_FEE_MINOR);
+    expect(resaleBankFee(2000, false)).toBe(61);
+    expect(resaleBankFee(2000, true, 40)).toBe(40 + MOLLIE_REFUND_FEE_MINOR);
+    expect(resaleBankFee(0, true)).toBe(0);
   });
 
   it("revente : un paiement d'origine par carte cadeau ou bon ne se rembourse pas ; Bancontact, oui", () => {
@@ -53,18 +48,12 @@ describe("frais bancaires selon le prestataire (docs/MOLLIE.md)", () => {
   });
 });
 
-describe("estimations affichées selon le prestataire (docs/MOLLIE.md)", () => {
-  it("aide au prix et totaux des finances : grille Mollie pour un organisateur ou une commande Mollie", async () => {
+describe("estimations affichées avec la grille de Mollie (docs/MOLLIE.md)", () => {
+  it("aide au prix et totaux des finances : grille Mollie", async () => {
     const { EUR_TERMS, netForGross, ticketCommission } =
       await import("../src/fees");
     const { financeTotals } = await import("../src/finance");
     const terms = EUR_TERMS.free;
-    const mollie = { ...terms, bankFeeProvider: "MOLLIE" as const };
-    expect(netForGross(2000, mollie)).toBe(
-      2000 -
-        ticketCommission(2000, terms) -
-        estimateBankFee(2000, "card_eea_standard", "MOLLIE"),
-    );
     expect(netForGross(2000, terms)).toBe(
       2000 - ticketCommission(2000, terms) - estimateBankFee(2000),
     );
@@ -77,9 +66,6 @@ describe("estimations affichées selon le prestataire (docs/MOLLIE.md)", () => {
       paymentFeeMinor: null,
       tickets: 1,
     };
-    expect(
-      financeTotals([{ ...order, paymentProvider: "MOLLIE" }]).bankFeeMinor,
-    ).toBe(61);
-    expect(financeTotals([order]).bankFeeMinor).toBe(55);
+    expect(financeTotals([order]).bankFeeMinor).toBe(61);
   });
 });

@@ -26,11 +26,8 @@ import { db } from "@/lib/db";
 import { PublicShell } from "@/components/public/PublicShell";
 import { buttonClass } from "@/components/ui/Button";
 import { findOrderIdByToken } from "@/server/checkout";
-import {
-  paymentAccountFor,
-  syncPaymentFromMollie,
-} from "@/server/molliePayments";
-import { getBuyerOrder, syncPaymentFromStripe } from "@/server/orders";
+import { syncPaymentFromMollie } from "@/server/molliePayments";
+import { getBuyerOrder } from "@/server/orders";
 import { getPublicOrganization } from "@/server/publicEvents";
 import { withEventTheme } from "@/server/brand";
 import { siteGate } from "@/server/siteGuard";
@@ -62,10 +59,6 @@ export default async function BuyerTicketsPage({
   if (!site || !orderId) notFound();
   let order = await getBuyerOrder(orderId);
   if (order.organizationId !== site.id) notFound();
-  if (order.status === "PENDING" && order.stripePaymentIntentId) {
-    await syncPaymentFromStripe(orderId).catch(() => null);
-    order = await getBuyerOrder(orderId);
-  }
   // retour de la page de paiement de Mollie (docs/MOLLIE.md) : paiement relu, commande validée s'il est payé
   let mollieStatus: string | null = null;
   if (order.status === "PENDING" && order.molliePaymentId) {
@@ -78,9 +71,7 @@ export default async function BuyerTicketsPage({
     !!order.molliePaymentId &&
     ["canceled", "expired", "failed"].includes(mollieStatus ?? "");
   const confirming =
-    order.status === "PENDING" &&
-    (!!order.stripePaymentIntentId ||
-      (!!order.molliePaymentId && !mollieFailed));
+    order.status === "PENDING" && !!order.molliePaymentId && !mollieFailed;
   // billets d'un événement : son style propre (Pro), comme sa page et ses billets en PDF
   const org = withEventTheme(site, order.event);
   const t = await getTranslations("orders");
@@ -204,22 +195,12 @@ export default async function BuyerTicketsPage({
         applicationFeeMinor: order.applicationFeeMinor,
         paymentFeeMinor:
           order.paymentFeeMinor ??
-          estimateBankFee(
-            order.totalMinor,
-            "card_eea_standard",
-            order.paymentProvider === "MOLLIE" ? "MOLLIE" : "STRIPE",
-          ),
+          estimateBankFee(order.totalMinor, "card_eea_standard"),
         alreadyWithheldMinor: refundsList
           .filter((r) => r.status !== "REJECTED")
           .reduce((n, r) => n + r.feesWithheldMinor, 0),
       }
     : null;
-  // revente : l'acheteur paie par le prestataire actuel de l'organisateur, le vendeur est remboursé par le sien
-  const resaleProviders = {
-    buyer:
-      (await paymentAccountFor(order.organizationId))?.provider ?? "STRIPE",
-    seller: order.paymentProvider,
-  } as const;
   const holdActive =
     order.status === "PENDING" &&
     !!order.holdExpiresAt &&
@@ -465,7 +446,7 @@ export default async function BuyerTicketsPage({
                       currency={order.currency}
                       faceValueMinor={tk.faceValueMinor}
                       terms={quotes.get(tk.id)!.terms}
-                      feeProviders={resaleProviders}
+                      sellerPaidOnline={!!order.molliePaymentId}
                       canResell={quotes.get(tk.id)!.blockers.length === 0}
                       listing={(() => {
                         const l = openListings.find(

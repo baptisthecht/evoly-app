@@ -58,15 +58,15 @@ TILES = [
     ('Et aussi', 'Les prix dynamiques, le plan de salle, les ambassadeurs, et les options comme le vestiaire ou les jetons boissons.'),
 ]
 EVOLY_FEE = '0,29 € + 2 %, plafonnée à 2,50 € en Free ou 1 € en Pro'
-STRIPE_FEE = 'Frais de Stripe au coût réel, en plus de la commission'
-FAQ_SUB = ('Evoly impose-t-il un abonnement ?', 'Non : l’offre Free est sans abonnement ni engagement. L’offre Pro plafonne la commission à 1 € par billet et ajoute des fonctions avancées, avec 14 jours d’essai gratuit.')
+MOLLIE_FEE = 'Frais de Mollie au coût réel, selon le moyen de paiement, en plus de la commission'
+FAQ_SUB = ('Evoly impose-t-il un abonnement ?', 'Non : l’offre Free est sans abonnement ni engagement. L’offre Pro plafonne la commission à 1 € par billet et ajoute des fonctions avancées, avec 14 jours d’essai gratuit, sans carte bancaire. À la fin de l’essai, abonnez-vous au mois ou à l’année pour garder Pro, par carte ou Bancontact sur la page sécurisée de Mollie ; sinon, vous repassez en Free sans rien perdre. L’abonnement est résiliable à tout moment, avec effet à la fin de la période payée.')
 CMP_LINKS = [('eventbrite', 'Evoly ou Eventbrite'), ('weezevent', 'Evoly ou Weezevent'), ('billetweb', 'Evoly ou Billetweb')]
 
 def _duel(other):
     name, chip, big, sub, small = other
     return ('<div class="cmp-duel">'
             '<div class="cmp-card cmp-card--evoly"><div class="cmp-card__head"><span class="cmp-card__name">Evoly</span><span class="cmp-chip">Revente incluse</span></div>'
-            '<span class="cmp-card__big">0,29 € + 2 %</span><span>plafonnée à 1 € par billet en Pro, 2,50 € en Free</span><span class="cmp-card__small">Frais de Stripe au coût réel, en plus</span></div>'
+            '<span class="cmp-card__big">0,29 € + 2 %</span><span>plafonnée à 1 € par billet en Pro, 2,50 € en Free</span><span class="cmp-card__small">Frais de Mollie au coût réel, en plus</span></div>'
             '<span class="cmp-vs" aria-hidden="true">VS</span>'
             f'<div class="cmp-card cmp-card--other"><div class="cmp-card__head"><span class="cmp-card__name">{name}</span><span class="cmp-chip">{chip}</span></div>'
             f'<span class="cmp-card__big">{big}</span><span>{sub}</span><span class="cmp-card__small">{small}</span></div></div>')
@@ -86,7 +86,7 @@ def _calculator():
     ticks_y = ''.join(f'<text x="40" y="{210 - v * 15 + 4:g}" text-anchor="end" data-y="{v}">{v} €</text>' for v in (0, 4, 8, 12))
     grid = ''.join(f'<line x1="48" y1="{210 - v * 15:g}" x2="548" y2="{210 - v * 15:g}" class="cmp-chart__grid"/>' for v in (4, 8, 12))
     return ('<section class="cmp-sec" aria-labelledby="cmp-calc-t"><h2 id="cmp-calc-t" class="cmp-h2">Combien économisez-vous ?</h2>'
-            '<p class="cmp-lede">Frais de plateforme par billet, hors frais de paiement des deux côtés : Stripe au coût réel chez Evoly, frais de traitement chez Eventbrite.</p>'
+            '<p class="cmp-lede">Frais de plateforme par billet, hors frais de paiement des deux côtés : Mollie au coût réel chez Evoly, frais de traitement chez Eventbrite.</p>'
             '<div class="cmp-calc" data-cmp-calc><div class="cmp-calc__panel">'
             '<div><div class="cmp-calc__row"><label for="cmp-prix">Prix du billet</label><strong class="cmp-calc__price" data-out="price">30 €</strong></div>'
             '<input id="cmp-prix" type="range" min="5" max="200" step="1" value="30" data-in="price"></div>'
@@ -179,20 +179,20 @@ def _switch(de, name):
 CMP_PAGES = {
     'weezevent': comparison('weezevent', 'Weezevent', ('Weezevent', 'Revente sur mesure', '2,5 %', 'par billet, minimum 0,99 €', 'Frais bancaires inclus'),
         [('La revente est incluse', 'Vos participants revendent leur place en un lien, jamais au-dessus du prix d’achat. Chez Weezevent, la revente sécurisée fait partie des services sur mesure.', ICO_RESALE), CARD_PAY, CARD_SCAN],
-        [('Tarifs publics', [('Commission par billet', EVOLY_FEE, '2,5 %, minimum 0,99 €'), ('Frais de paiement', STRIPE_FEE, 'Inclus'), ('Billets gratuits', '0 €', 'Gratuits'), ('Versement des recettes', 'Sur votre compte Stripe, au fil des ventes', 'Tous les 15 jours')]),
+        [('Tarifs publics', [('Commission par billet', EVOLY_FEE, '2,5 %, minimum 0,99 €'), ('Frais de paiement', MOLLIE_FEE, 'Inclus'), ('Billets gratuits', '0 €', 'Gratuits'), ('Versement des recettes', 'Sur votre compte Mollie, au fil des ventes', 'Tous les 15 jours')]),
          ('Revente', [('Revente sécurisée', f'<span class="cmp-ok">{ICO_OK}Incluse</span>', 'Parmi les services sur mesure')])],
         'Tarifs publics relevés sur weezevent.com le 18 octobre 2026, pour une vente en ligne en euros.',
         'Si vous vendez surtout des billets à petit prix, la commission de Weezevent, frais bancaires compris, revient souvent moins cher. Pour un festival qui veut le paiement sans espèces sur place, Weezevent propose aussi une solution complète. Evoly fait la différence sur tout ce qui est inclus d’office, sans service sur mesure à demander.',
         'Deux billetteries en ligne sans abonnement obligatoire. Voici ce qui les distingue, tarifs publics à l’appui.', _switch('de ', 'Weezevent')),
     'billetweb': comparison('billetweb', 'Billetweb', ('Billetweb', 'Commission la plus basse', '0,29 € + 1 %', 'par billet acheté', 'Annoncés comme tout compris'),
         [CARD_RESALE, CARD_PAY, CARD_SCAN],
-        [('Tarifs publics', [('Commission par billet', EVOLY_FEE, '0,29 € + 1 %'), ('Frais de paiement', STRIPE_FEE, 'Annoncés comme compris : « et c’est tout »'), ('Billets gratuits', '0 €', 'Gratuits')])],
+        [('Tarifs publics', [('Commission par billet', EVOLY_FEE, '0,29 € + 1 %'), ('Frais de paiement', MOLLIE_FEE, 'Annoncés comme compris : « et c’est tout »'), ('Billets gratuits', '0 €', 'Gratuits')])],
         'Tarif public relevé sur billetweb.fr le 18 octobre 2026.',
         'Si votre priorité absolue est la commission la plus basse, Billetweb est très compétitif. Evoly s’adresse aux organisateurs qui veulent une billetterie moderne, avec la revente, la liste d’attente, le paiement en un geste et le contrôle des entrées hors ligne inclus d’office.',
         'Deux billetteries en ligne sans abonnement obligatoire. Voici ce qui les distingue, tarifs publics à l’appui.', _switch('de ', 'Billetweb')),
     'eventbrite': comparison('eventbrite', 'Eventbrite', ('Eventbrite', 'Place de marché connue', '3,5 % + 0,49 €', 'par billet en Essentials, 5,5 % + 0,99 € en Professional', 'Frais de traitement des paiements possibles en plus'),
         [('Une commission plafonnée', 'Une commission plafonnée : 2,50 € maximum par billet en Free, 1 € en Pro. Chez Eventbrite, les frais suivent le prix du billet.', ICO_CAP), CARD_RESALE, CARD_SCAN],
-        [('Tarifs publics', [('Commission par billet', EVOLY_FEE, 'Essentials : 3,5 % + 0,49 € · Professional : 5,5 % + 0,99 €'), ('Billet à 20 €', '0,69 €', '1,19 € à 2,09 €'), ('Billet à 50 €', '1 € en Pro, 1,29 € en Free', '2,24 € à 3,74 €'), ('Billet à 100 €', '1 € en Pro, 2,29 € en Free', '3,99 € à 6,49 €'), ('Frais de paiement', STRIPE_FEE, 'Frais de traitement des paiements possibles en plus')])],
+        [('Tarifs publics', [('Commission par billet', EVOLY_FEE, 'Essentials : 3,5 % + 0,49 € · Professional : 5,5 % + 0,99 €'), ('Billet à 20 €', '0,69 €', '1,19 € à 2,09 €'), ('Billet à 50 €', '1 € en Pro, 1,29 € en Free', '2,24 € à 3,74 €'), ('Billet à 100 €', '1 € en Pro, 2,29 € en Free', '3,99 € à 6,49 €'), ('Frais de paiement', MOLLIE_FEE, 'Frais de traitement des paiements possibles en plus')])],
         'Grille publique d’Eventbrite pour la France (offres Essentials et Professional), relevée sur eventbrite.fr le 18 octobre 2026. Frais de plateforme seuls, hors frais de paiement des deux côtés : <a href="https://www.eventbrite.fr/organizer/compare-packages/" target="_blank" rel="noopener nofollow">voir la grille d’Eventbrite</a>.',
         'Eventbrite est une place de marché très connue, où un large public découvre des événements. Si votre priorité est d’être trouvé par des gens qui ne vous connaissent pas encore, c’est un vrai atout. Si vous vendez surtout à votre propre public, vos frais et votre marque comptent davantage.',
         'Deux billetteries en libre-service, deux façons de facturer. Voici les différences, chiffres à l’appui.', _switch('d’', 'Eventbrite'), calculator=True),
@@ -205,7 +205,7 @@ PAGES = {
         'crumb': 'Ouverture des ventes',
         'faq': [
             ('Que voient les visiteurs avant la publication ?', 'Au choix : rien, ils sont redirigés vers la page de votre organisation, ou une page d’annonce floutée avec votre texte et un décompte. Le titre, la description et l’affiche ne sont jamais révélés.'),
-            ('La prévente privée est-elle incluse dans l’offre gratuite ?', 'Non, elle fait partie de l’offre Pro, que vous pouvez essayer gratuitement pendant 14 jours. La publication programmée, le décompte et « Prévenez-moi » sont inclus dans toutes les offres.'),
+            ('La prévente privée est-elle incluse dans l’offre gratuite ?', 'Non, elle fait partie de l’offre Pro, que vous pouvez essayer gratuitement pendant 14 jours, sans carte bancaire. La publication programmée, le décompte et « Prévenez-moi » sont inclus dans toutes les offres.'),
             ('Comment les acheteurs utilisent-ils un code de prévente ?', 'Ils le saisissent sur la page de l’événement, ou cliquent sur le lien personnel que vous leur envoyez : l’achat s’ouvre aussitôt, même si l’événement n’est pas encore public.'),
         ],
         'main_class': 'page spaced',
@@ -223,7 +223,7 @@ PAGES = {
         'desc': 'Prévente, tarif normal, tarif du jour J : faites évoluer automatiquement le prix de vos billets selon la date d’achat ou le nombre de places vendues.',
         'crumb': 'Prix dynamiques',
         'faq': [
-            ('Les prix dynamiques sont-ils inclus dans l’offre gratuite ?', 'Non, ils font partie de l’offre Pro, que vous pouvez essayer gratuitement pendant 14 jours.'),
+            ('Les prix dynamiques sont-ils inclus dans l’offre gratuite ?', 'Non, ils font partie de l’offre Pro, que vous pouvez essayer gratuitement pendant 14 jours, sans carte bancaire.'),
             ('Quel prix paie un participant ?', 'Celui du palier en vigueur au moment de sa commande : la page de vente affiche toujours le prix actuel.'),
         ],
         'main_class': 'page spaced',
@@ -291,7 +291,7 @@ PAGES = {
         'crumb': 'Associations',
         'faq': [
             ('Faut-il être une association pour utiliser Evoly ?', 'Non : Evoly s’adresse à tous les organisateurs. Les associations y trouvent une offre sans abonnement et sans commission sur les billets gratuits.'),
-            ('Comment l’argent arrive-t-il sur le compte de l’association ?', 'Les paiements passent par Stripe : les recettes sont versées sur le compte bancaire de l’association, via son propre compte Stripe.'),
+            ('Comment l’argent arrive-t-il sur le compte de l’association ?', 'Les paiements passent par Mollie : les recettes sont versées sur le compte bancaire de l’association, via son propre compte Mollie.'),
         ],
         'main': lambda p: (
             hero('la billetterie des <span class="script">associations</span>.', 'Soirée, gala, tournoi ou spectacle de fin d’année : créez votre billetterie en quelques minutes, sans abonnement et sans carte bancaire.', 'Créer la billetterie de mon association')
@@ -305,7 +305,7 @@ PAGES = {
             ]))
             + block('Quels sont les frais ?', '<div class="pg__table" role="region" aria-label="Commission Evoly selon le prix du billet" tabindex="0"><table><thead><tr><th scope="col">Prix du billet</th><th scope="col">Commission Evoly</th></tr></thead><tbody>'
                     '<tr><td>Billet gratuit</td><td>0 €</td></tr><tr><td>5 €</td><td>0,39 €</td></tr><tr><td>10 €</td><td>0,49 €</td></tr><tr><td>20 €</td><td>0,69 €</td></tr></tbody></table></div>'
-                    '<p class="pg__note">Offre Free, sans abonnement. Commission hors frais de paiement : les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly.</p>', dark=True)
+                    '<p class="pg__note">Offre Free, sans abonnement. Commission hors frais de paiement : les frais de Mollie s’appliquent au coût réel, selon le moyen de paiement, sans marge d’Evoly.</p>', dark=True)
             + block('Questions fréquentes', faq(p['faq']))
             + cta('Mettez votre prochain événement en ligne en quelques minutes.', 'Gratuit, sans engagement et sans carte bancaire.', 'Commencer gratuitement')
         ),

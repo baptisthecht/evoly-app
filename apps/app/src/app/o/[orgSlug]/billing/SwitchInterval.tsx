@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { switchIntervalAction } from "./actions";
 
-/** RG-SUB-05 : passage du mensuel à l'annuel ou l'inverse, sans passer par le portail Stripe. */
+/** RG-SUB-05 : passage du mensuel à l'annuel ou l'inverse, au prochain renouvellement. */
 export function SwitchInterval({
   orgSlug,
   target,

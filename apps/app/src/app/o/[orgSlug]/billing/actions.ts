@@ -3,11 +3,10 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { changeInterval, openPortal, startCheckout } from "@/server/billing";
 import {
   cancelProSubscription,
-  proBillingProvider,
   resumeProSubscription,
+  scheduleIntervalSwitch,
   startPaymentMethodChange,
   startProCheckout,
   startProTrial,
@@ -15,9 +14,8 @@ import {
 import { runOrgAction, type ActionState } from "@/server/guard";
 
 /**
- * Section 9.21 : passer en Pro, mensuel ou annuel. Avec Mollie (docs/MOLLIE.md, lot 6) : essai de 14 jours sans carte
- * (bouton « trial »), ou paiement sur la page de Mollie, qui crée le mandat des renouvellements (ou règle une période
- * impayée). Avant Mollie : Stripe Checkout, essai compris.
+ * Section 9.21 : passer en Pro, mensuel ou annuel (docs/MOLLIE.md, lot 6) : essai de 14 jours sans carte (bouton
+ * « trial »), ou paiement sur la page de Mollie, qui crée le mandat des renouvellements (ou règle une période impayée).
  */
 export async function checkoutAction(
   orgSlug: string,
@@ -34,27 +32,10 @@ export async function checkoutAction(
       write: false,
     },
     async (d, ctx) => {
-      if (proBillingProvider() === "STRIPE")
-        return startCheckout(ctx, d.interval);
       if (!trial) return startProCheckout(ctx, d.interval);
       await startProTrial(ctx, d.interval);
       return `/o/${orgSlug}/billing?essai=ok`;
     },
-  );
-  if (r?.ok) redirect(r.data);
-  return r;
-}
-
-/** Portail client Stripe (ancien abonnement) : périodicité, moyen de paiement, factures, résiliation. */
-export async function portalAction(
-  orgSlug: string,
-  _: ActionState,
-): Promise<ActionState> {
-  const r = await runOrgAction(
-    orgSlug,
-    {},
-    { schema: z.object({}), permission: "BILLING_MANAGE", write: false },
-    (_d, ctx) => openPortal(ctx),
   );
   if (r?.ok) redirect(r.data);
   return r;
@@ -109,10 +90,7 @@ export async function resumeAction(
   return r;
 }
 
-/**
- * RG-SUB-05 : passage du mensuel à l'annuel ou l'inverse. Mollie : au prochain renouvellement, sans prorata ; ancien
- * abonnement Stripe : tout de suite, prorata calculé par Stripe.
- */
+/** RG-SUB-05 : passage du mensuel à l'annuel ou l'inverse, au prochain renouvellement, sans prorata. */
 export async function switchIntervalAction(
   orgSlug: string,
   interval: "MONTH" | "YEAR",
@@ -125,7 +103,7 @@ export async function switchIntervalAction(
       permission: "BILLING_MANAGE",
     },
     async (d, ctx) => {
-      await changeInterval(ctx, d.interval);
+      await scheduleIntervalSwitch(ctx, d.interval);
     },
   );
   if (r?.ok) revalidatePath(`/o/${orgSlug}/billing`);

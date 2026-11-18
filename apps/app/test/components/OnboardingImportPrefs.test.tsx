@@ -208,9 +208,10 @@ const prefLabels = {
 };
 const rows = [
   { type: "ORDER_PAID", label: "Commande payée", inApp: true, email: true },
+  // notification qui n'est jamais envoyée par e-mail (pas importante, RG-NTF-02)
   {
-    type: "STRIPE_ACTION_REQUIRED",
-    label: "Action Stripe",
+    type: "SALES_MILESTONE",
+    label: "Palier de ventes atteint",
     inApp: true,
     email: null,
   },
@@ -220,7 +221,9 @@ describe("préférences de notification", () => {
     prefs.savePreferencesAction.mockResolvedValue({ ok: true });
     render(<PreferencesForm orgSlug="club" rows={rows} labels={prefLabels} />);
     expect(
-      screen.queryByRole("checkbox", { name: "Action Stripe : Par e-mail" }),
+      screen.queryByRole("checkbox", {
+        name: "Palier de ventes atteint : Par e-mail",
+      }),
     ).toBeNull();
     fireEvent.click(
       screen.getByRole("checkbox", {
@@ -256,7 +259,7 @@ describe("préférences de notification", () => {
     expect(await screen.findByRole("status")).toBeTruthy();
     fireEvent.click(
       screen.getByRole("checkbox", {
-        name: "Action Stripe : Dans l'application",
+        name: "Palier de ventes atteint : Dans l'application",
       }),
     );
     expect(screen.queryByRole("status")).toBeNull();

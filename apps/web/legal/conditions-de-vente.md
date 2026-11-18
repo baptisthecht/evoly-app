@@ -4,7 +4,9 @@ Les billets sont vendus par l'organisateur de l'événement, dont le nom figure 
 
 ## 2. Prix et paiement
 
-Le prix indiqué est le prix final, toutes taxes et tous frais compris : vous payez exactement ce qui est annoncé, quel que soit le moyen de paiement. Le paiement est traité par Stripe, prestataire de services de paiement, et encaissé directement par l'organisateur. Vos données bancaires ne sont jamais conservées par Evoly.
+Le prix indiqué est le prix final, toutes taxes et tous frais compris : vous payez exactement ce qui est annoncé, quel que soit le moyen de paiement. Le paiement est traité par Mollie, prestataire de services de paiement, sur sa page de paiement sécurisée (carte bancaire, Bancontact, Apple Pay et d'autres moyens selon le pays), et encaissé directement par l'organisateur, sur son compte Mollie. Vos données bancaires ne sont jamais conservées par Evoly.
+
+Les services de paiement sont fournis par Mollie B.V., Keizersgracht 126, 1015 CW Amsterdam, Pays-Bas (KvK 30204462), établissement de monnaie électronique et de paiement agréé et contrôlé par De Nederlandsche Bank (numéro F0038).
 
 ## 3. Billets
 

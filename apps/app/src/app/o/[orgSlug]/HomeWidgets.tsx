@@ -315,7 +315,7 @@ export async function LiveOrders({
   );
 }
 
-const TodoIcon = ({ kind }: { kind: "stripe" | "cover" | "draft" }) => (
+const TodoIcon = ({ kind }: { kind: "mollie" | "cover" | "draft" }) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 24 24"
@@ -324,7 +324,7 @@ const TodoIcon = ({ kind }: { kind: "stripe" | "cover" | "draft" }) => (
     strokeWidth={2}
     className="size-4 shrink-0 text-warning"
   >
-    {kind === "stripe" ? (
+    {kind === "mollie" ? (
       <>
         <rect x="3" y="6" width="18" height="13" rx="2" />
         <path d="M3 10h18" />
@@ -344,7 +344,7 @@ const TodoIcon = ({ kind }: { kind: "stripe" | "cover" | "draft" }) => (
   </svg>
 );
 
-/** Ce qu'il reste à faire : Stripe, les images manquantes, les brouillons oubliés. */
+/** Ce qu'il reste à faire : relier Mollie, les images manquantes, les brouillons oubliés. */
 export async function TodoList({
   todo,
   base,
@@ -356,13 +356,13 @@ export async function TodoList({
 }) {
   const t = await getTranslations("dashboard");
   const items = [
-    ...(todo.stripe && canPay
+    ...(todo.mollie && canPay
       ? [
           {
             href: `${base}/settings/payments`,
-            label: t("todoStripe"),
-            action: t("todoActionStripe"),
-            kind: "stripe" as const,
+            label: t("todoMollie"),
+            action: t("todoActionMollie"),
+            kind: "mollie" as const,
           },
         ]
       : []),

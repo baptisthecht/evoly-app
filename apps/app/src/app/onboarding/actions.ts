@@ -13,7 +13,6 @@ import {
 import { createOrganization } from "@/server/onboarding";
 import { hit } from "@/server/rateLimit";
 import { getSession } from "@/server/session";
-import { stripeOnboardingUrl } from "@/server/stripeConnect";
 import { startMollieConnection } from "@/server/mollieConnect";
 import {
   subdomainAvailability,
@@ -90,21 +89,6 @@ export async function createOrganizationAction(
     throw e;
   }
   redirect(`/onboarding/payments?org=${slug}`);
-}
-
-/** Onboarding Stripe (étape 2), réservé aux membres qui gèrent l'encaissement. */
-export async function connectStripeAction(
-  orgSlug: string,
-  _: ActionState,
-): Promise<ActionState> {
-  const result = await runOrgAction(
-    orgSlug,
-    {},
-    { schema: z.object({}), permission: "PAYMENTS_MANAGE" },
-    (_data, ctx) => stripeOnboardingUrl(ctx),
-  );
-  if (result?.ok) redirect(result.data);
-  return result;
 }
 
 const connectMollieSchema = z.object({

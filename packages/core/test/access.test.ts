@@ -4,8 +4,7 @@ const SUB_DEFAULTS = {
   currentPeriodEnd: null,
   pastDueSince: null,
   trialEndsAt: null,
-  stripeSubscriptionId: "sub_stripe",
-}; // par défaut un abonnement Stripe
+};
 import {
   can,
   canCreateOrganization,

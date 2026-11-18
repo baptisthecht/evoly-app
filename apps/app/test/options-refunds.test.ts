@@ -1,30 +1,62 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-// Stripe simulé : chaque remboursement demandé est capturé, pour vérifier le montant exact rendu à l'acheteur
-const appels: { amount: number; refund_application_fee: boolean }[] = [];
-const fake = {
-  refunds: {
-    create: async (params: {
-      amount: number;
-      refund_application_fee: boolean;
-    }) => (
-      appels.push(params),
-      { id: `re_${Math.random().toString(36).slice(2)}`, status: "succeeded" }
-    ),
-  },
-};
-vi.mock("@/lib/stripe", () => ({ stripe: () => fake }));
-
-const { db } = await import("@/lib/db");
-const { finalizeOrder, reserveOrder } = await import("@/server/checkout");
-const { findOrgContext } = await import("@/server/context");
-const { createOption, redeemOption, setOptionsRefundAfterStart } =
-  await import("@/server/options");
-const { approveRefund, cancelEvent, refundOptions, refundTickets } =
-  await import("@/server/refunds");
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { db } from "@/lib/db";
+import { finalizeOrder, reserveOrder } from "@/server/checkout";
+import { findOrgContext } from "@/server/context";
+import { saveMollieAuthorization } from "@/server/mollieAccounts";
+import {
+  createOption,
+  redeemOption,
+  setOptionsRefundAfterStart,
+} from "@/server/options";
+import {
+  approveRefund,
+  cancelEvent,
+  refundOptions,
+  refundTickets,
+} from "@/server/refunds";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 const DAY = 86_400_000;
+
+// Mollie simulé : chaque remboursement demandé est capturé, pour vérifier le montant exact rendu à l'acheteur, et
+// effectué aussitôt
+const appels: { paiement: string; montant: number; corps: unknown }[] = [];
+beforeEach(() => {
+  appels.length = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: string | URL, init: RequestInit = {}) => {
+      const url = new URL(String(input));
+      const m = /^\/v2\/payments\/([^/]+)\/refunds$/.exec(url.pathname);
+      if (init.method !== "POST" || !m)
+        return new Response(
+          JSON.stringify({
+            status: 404,
+            title: "Not Found",
+            detail: url.pathname,
+          }),
+          { status: 404 },
+        );
+      const corps = JSON.parse(String(init.body)) as {
+        amount: { currency: string; value: string };
+      };
+      appels.push({
+        paiement: m[1]!,
+        montant: Math.round(Number(corps.amount.value) * 100),
+        corps,
+      });
+      return new Response(
+        JSON.stringify({
+          id: `re_${rid()}`,
+          status: "refunded",
+          amount: corps.amount,
+        }),
+        { status: 201 },
+      );
+    }),
+  );
+});
+afterEach(() => vi.unstubAllGlobals());
 
 async function setup() {
   const id = rid();
@@ -60,12 +92,26 @@ async function setup() {
   await db.subscription.create({
     data: { organizationId: org.id, planId: "pro", status: "ACTIVE" },
   });
-  await db.stripeAccount.create({
+  const compte = await saveMollieAuthorization({
+    organizationId: org.id,
+    mollieOrganizationId: `org_${id}`,
+    tokens: {
+      access_token: "access_mollie",
+      refresh_token: "refresh_mollie",
+      expires_in: 3600,
+      token_type: "bearer",
+      scope: "payments.read payments.write refunds.read refunds.write",
+    },
+    testmode: false,
+  });
+  await db.mollieAccount.update({
+    where: { id: compte.id },
     data: {
-      organizationId: org.id,
-      stripeAccountId: `acct_${id}`,
-      country: "BE",
-      defaultCurrency: "EUR",
+      profileId: `pfl_${id}`,
+      profileStatus: "verified",
+      methods: ["bancontact", "creditcard"],
+      onboardingStatus: "COMPLETED",
+      canReceivePayments: true,
     },
   });
   const event = await db.event.create({
@@ -104,7 +150,7 @@ async function setup() {
   return { ctx, event, type: event.ticketTypes[0]!, jeton, vestiaire };
 }
 type S = Awaited<ReturnType<typeof setup>>;
-/** Achat réel payé par carte : 2 billets à 10 €, 3 jetons à 3 €, 1 vestiaire à 2 € (total 31 €). */
+/** Achat réel payé par carte chez Mollie : 2 billets à 10 €, 3 jetons à 3 €, 1 vestiaire à 2 € (total 31 €). */
 async function acheter(s: S, billets = 2) {
   const r = await reserveOrder({
     eventId: s.event.id,
@@ -121,10 +167,16 @@ async function acheter(s: S, billets = 2) {
       buyerEmail: `a.${rid()}@exemple.be`,
       buyerFirstName: "Alex",
       buyerLastName: "Martin",
-      stripePaymentIntentId: `pi_${rid()}`,
     },
   });
-  expect(await finalizeOrder(r.orderId)).toBe("PAID");
+  expect(
+    await finalizeOrder(r.orderId, {
+      molliePaymentId: `tr_${rid()}`,
+      amountMinor: r.totalMinor,
+      currency: "EUR",
+      paymentMethodType: "creditcard",
+    }),
+  ).toBe("PAID");
   const order = await db.order.findUniqueOrThrow({
     where: { id: r.orderId },
     include: { tickets: true, options: true },
@@ -140,10 +192,6 @@ const etat = (id: string) =>
   });
 
 describe("remboursement des options (RG-OPT-07)", () => {
-  beforeEach(() => {
-    appels.length = 0;
-  });
-
   it("tous les billets remboursés : les options non retirées le sont avec eux, jamais celles servies au bar ; montant exact rendu ; commission non rendue", async () => {
     const s = await setup();
     const a = await acheter(s);
@@ -160,12 +208,18 @@ describe("remboursement des options (RG-OPT-07)", () => {
         null,
       ),
     ).toBe("SUCCEEDED");
+    // le jeton servi n'est pas rendu ; rien d'autre n'est demandé à Mollie, qui ne rend jamais la commission d'Evoly
     expect(appels).toEqual([
-      expect.objectContaining({
-        amount: 2000 + 2 * 300 + 200,
-        refund_application_fee: false,
-      }),
-    ]); // le jeton servi n'est pas rendu
+      {
+        paiement: a.order.molliePaymentId,
+        montant: 2000 + 2 * 300 + 200,
+        corps: {
+          amount: { currency: "EUR", value: "28.00" },
+          description: expect.any(String),
+          metadata: expect.objectContaining({ orderId: a.order.id }),
+        },
+      },
+    ]);
     expect(await etat(a.jeton.id)).toEqual({
       quantity: 3,
       redeemed: 1,
@@ -199,7 +253,7 @@ describe("remboursement des options (RG-OPT-07)", () => {
       "OTHER",
       null,
     );
-    expect(appels.map((c) => c.amount)).toEqual([1000]);
+    expect(appels.map((c) => c.montant)).toEqual([1000]);
     expect([
       (await etat(a.jeton.id)).refunded,
       (await etat(a.vestiaire.id)).refunded,
@@ -221,7 +275,7 @@ describe("remboursement des options (RG-OPT-07)", () => {
         null,
       ),
     ).toBe("SUCCEEDED");
-    expect(appels.map((c) => c.amount)).toEqual([600]);
+    expect(appels.map((c) => c.montant)).toEqual([600]);
     expect(await etat(a.jeton.id)).toEqual({
       quantity: 3,
       redeemed: 1,
@@ -265,7 +319,7 @@ describe("remboursement des options (RG-OPT-07)", () => {
         null,
       ),
     ).toBe("SUCCEEDED");
-    expect(appels.map((c) => c.amount)).toEqual([600, 200]);
+    expect(appels.map((c) => c.montant)).toEqual([600, 200]);
     expect(
       (await db.order.findUniqueOrThrow({ where: { id: a.order.id } }))
         .refundedMinor,
@@ -277,7 +331,7 @@ describe("remboursement des options (RG-OPT-07)", () => {
     const a = await acheter(s);
     const b = await acheter(s, 1);
     await cancelEvent(s.ctx, s.event.id, "Salle indisponible", s.event.title);
-    expect(appels.map((c) => c.amount).sort((x, y) => x - y)).toEqual([
+    expect(appels.map((c) => c.montant).sort((x, y) => x - y)).toEqual([
       2100, 3100,
     ]); // 1 billet + 11 € d'options ; 2 billets + 11 € d'options
     for (const o of [a, b]) {
@@ -312,7 +366,7 @@ describe("remboursement des options (RG-OPT-07)", () => {
       staffName: "Vestiaire",
     }); // servi entre la demande et l'approbation
     await approveRefund(s.ctx, demande.id, null);
-    expect(appels.map((c) => c.amount)).toEqual([2000 + 3 * 300]); // le vestiaire servi n'est pas rendu
+    expect(appels.map((c) => c.montant)).toEqual([2000 + 3 * 300]); // le vestiaire servi n'est pas rendu
     expect(await etat(a.vestiaire.id)).toEqual({
       quantity: 1,
       redeemed: 1,

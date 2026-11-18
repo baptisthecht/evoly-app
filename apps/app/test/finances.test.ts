@@ -85,11 +85,10 @@ async function setup() {
       },
     });
     await finalizeOrder(r.orderId, {
-      paymentIntentId: `pi_${id}_${qty}`,
+      molliePaymentId: `tr_${id}${qty}`,
       amountMinor: 2400 * qty,
-      currency: "eur",
-      chargeId: `ch_${id}_${qty}`,
-      paymentMethodType: "card",
+      currency: "EUR",
+      paymentMethodType: "creditcard",
     });
     orders.push(r.orderId);
   }

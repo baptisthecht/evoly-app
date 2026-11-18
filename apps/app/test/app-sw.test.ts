@@ -68,7 +68,7 @@ describe("service worker de l'app installable", () => {
       await sw.navigate("https://app.evoly.me/api/health"),
     ).toBeUndefined();
     expect(
-      await sw.navigate("https://checkout.stripe.com/pay"),
+      await sw.navigate("https://www.mollie.com/checkout/select-method/abc"),
     ).toBeUndefined();
     expect(
       await sw.navigate("https://app.evoly.me/_next/static/app.js", "no-cors"),

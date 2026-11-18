@@ -23,14 +23,8 @@ export default async function TicketsPage({
   const ctx = await requireOrgContext(orgSlug);
   const event = await getEventWithTickets(ctx, eventId);
   const plans = await getPlans();
-  // frais bancaires estimés selon le prestataire de l'organisateur : Mollie, sauf ancien compte Stripe qui encaisse seul
-  const terms = {
-    ...(plans[ctx.plan].terms[event.currency] ?? plans[ctx.plan].terms.EUR!),
-    bankFeeProvider:
-      ctx.stripe?.chargesEnabled && !ctx.mollie?.ready
-        ? ("STRIPE" as const)
-        : ("MOLLIE" as const),
-  };
+  const terms =
+    plans[ctx.plan].terms[event.currency] ?? plans[ctx.plan].terms.EUR!;
   const tz = event.timezone;
   const local = (d: Date | null) => (d ? utcToZonedLocal(d, tz) : "");
   const eventDay = utcToZonedLocal(event.startsAt, tz).slice(0, 10);

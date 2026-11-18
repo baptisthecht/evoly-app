@@ -281,8 +281,11 @@ export function priceOrder(
   };
 }
 
-/** Montant minimum d'un paiement accepté par Stripe, par devise (RG-BUY-05). Valeurs usuelles, à tenir à jour. */
-export const STRIPE_MINIMUM_CHARGE: Readonly<Record<string, Minor>> = {
+/**
+ * Montant minimum d'une commande payée en ligne, par devise (RG-BUY-05) : les frais du paiement et la commission doivent
+ * y tenir. Valeurs usuelles, à tenir à jour.
+ */
+export const MINIMUM_CHARGE: Readonly<Record<string, Minor>> = {
   EUR: 50,
   GBP: 30,
   CHF: 50,
@@ -300,5 +303,5 @@ export function meetsMinimumCharge(
   currency: string,
 ): boolean {
   if (totalMinor === 0) return true;
-  return totalMinor >= (STRIPE_MINIMUM_CHARGE[currency] ?? 50);
+  return totalMinor >= (MINIMUM_CHARGE[currency] ?? 50);
 }

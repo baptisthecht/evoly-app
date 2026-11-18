@@ -29,30 +29,21 @@ import { syncMollieChargebacks } from "./mollieFinances";
 /** Durée de vie d'un paiement par carte chez Mollie : la réservation tient au moins jusque-là. */
 export const MOLLIE_HOLD_MS = 15 * 60_000;
 
-export type PaymentAccount =
-  | { provider: "MOLLIE"; account: MollieAccount }
-  | { provider: "STRIPE"; stripeAccountId: string }
-  | null;
+export type PaymentAccount = {
+  provider: "MOLLIE";
+  account: MollieAccount;
+} | null;
 
-/**
- * Compte qui encaisse les billets d'une organisation : son compte Mollie s'il est prêt, sinon son ancien compte Stripe
- * s'il encaisse encore (jusqu'au retrait de Stripe), sinon aucun.
- */
+/** Compte qui encaisse les billets d'une organisation : son compte Mollie s'il est prêt, sinon aucun. */
 export async function paymentAccountFor(
   organizationId: string,
 ): Promise<PaymentAccount> {
-  const [mollie, stripe] = await Promise.all([
-    db.mollieAccount.findUnique({ where: { organizationId } }),
-    db.stripeAccount.findUnique({
-      where: { organizationId },
-      select: { stripeAccountId: true, chargesEnabled: true },
-    }),
-  ]);
-  if (mollie && mollieReady(mollie))
-    return { provider: "MOLLIE", account: mollie };
-  if (stripe?.chargesEnabled)
-    return { provider: "STRIPE", stripeAccountId: stripe.stripeAccountId };
-  return null;
+  const mollie = await db.mollieAccount.findUnique({
+    where: { organizationId },
+  });
+  return mollie && mollieReady(mollie)
+    ? { provider: "MOLLIE", account: mollie }
+    : null;
 }
 
 /** Adresse du webhook Mollie ; aucune en local (Mollie refuse une adresse qui n'est pas publique). */
@@ -192,6 +183,19 @@ export async function syncPaymentFromMollie(
       cardFingerprint: payment.details?.cardFingerprint ?? null,
     });
   }
+  // réservation annulée pendant que l'acheteur payait chez Mollie (sélection changée dans un autre onglet, événement
+  // annulé, acheteur bloqué) : aucun billet, le paiement reçu est remboursé en entier, une seule fois
+  if (payment.status === "paid" && order.status === "CANCELLED") {
+    await refundMollieInFull(orderId, "cancelled");
+    await db.order.updateMany({
+      where: { id: orderId, status: "CANCELLED" },
+      data: {
+        status: "REFUNDED",
+        refundedMinor: fromMollieAmount(payment.amount),
+        paymentMethodType: payment.method,
+      },
+    });
+  }
   return payment.status;
 }
 
@@ -250,12 +254,13 @@ export async function createMollieRefund(input: {
 }
 
 /**
- * Remboursement intégral d'un paiement Mollie (paiement tardif sans place, carte bloquée). Mollie ne rend jamais la
- * commission d'Evoly : elle revient à l'organisateur sur son relevé mensuel (docs/MOLLIE.md).
+ * Remboursement intégral d'un paiement Mollie (paiement tardif sans place, carte bloquée, réservation annulée pendant le
+ * paiement). Mollie ne rend jamais la commission d'Evoly : elle revient à l'organisateur sur son relevé mensuel
+ * (docs/MOLLIE.md).
  */
 export async function refundMollieInFull(
   orderId: string,
-  cause: "unfulfilled" | "blocked",
+  cause: "unfulfilled" | "blocked" | "cancelled",
 ): Promise<void> {
   const order = await db.order.findUniqueOrThrow({
     where: { id: orderId },

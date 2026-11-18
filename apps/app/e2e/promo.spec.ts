@@ -13,10 +13,10 @@ test("code de gratuité sur un billet payant nominatif, titulaire modifiable, PD
   page,
 }) => {
   const { id, slug } = await organizer(page);
-  // compte Stripe actif simulé : un tarif payant peut être publié
+  // compte Mollie prêt simulé : un tarif payant peut être publié
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
   sql(
-    `insert into "StripeAccount" (id, "organizationId", "stripeAccountId", country, "defaultCurrency", status, "chargesEnabled", "payoutsEnabled", "detailsSubmitted", "updatedAt") values ('sa_${id}', '${orgId}', 'acct_test_${id}', 'BE', 'EUR', 'ACTIVE', true, true, true, now())`,
+    `insert into "MollieAccount" (id, "organizationId", "mollieOrganizationId", testmode, "profileId", "profileStatus", methods, "onboardingStatus", "canReceivePayments", "canReceiveSettlements", "refreshToken", scopes, "updatedAt") values ('ma_${id}', '${orgId}', 'org_e2e_${id}', true, 'pfl_e2e_${id}', 'verified', '{creditcard,bancontact}', 'COMPLETED', true, true, 'e2e', '{}', now())`,
   );
 
   await page.goto(appUrl(`/o/${slug}/events/new`));

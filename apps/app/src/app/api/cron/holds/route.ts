@@ -2,7 +2,6 @@ import { env } from "@/lib/env";
 import { releaseExpiredHolds } from "@/server/checkout";
 import { expireResaleListings } from "@/server/resale";
 import { applyTimedDowngrades } from "@/server/billing";
-import { fillMissingStripeFees } from "@/server/orders";
 import { dispatchWaitlist } from "@/server/waitlist";
 
 export const runtime = "nodejs";
@@ -19,6 +18,5 @@ export async function GET(req: Request) {
     waitlist: await dispatchWaitlist(), // section 9.30 : places libérées proposées aux inscrits
     expiredListings: await expireResaleListings(),
     downgraded: await applyTimedDowngrades(),
-    stripeFees: await fillMissingStripeFees(),
   });
 }

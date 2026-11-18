@@ -15,17 +15,11 @@ import {
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import fr from "../../../../packages/i18n/messages/fr.json";
-import {
-  ManageSubscription,
-  PlanPicker,
-} from "@/app/o/[orgSlug]/billing/PlanPicker";
+import { PlanPicker } from "@/app/o/[orgSlug]/billing/PlanPicker";
 import { PriceFields } from "@/app/o/[orgSlug]/events/[eventId]/tickets/PriceFields";
 import { Fr } from "./intl";
 
-const actions = vi.hoisted(() => ({
-  checkoutAction: vi.fn(),
-  portalAction: vi.fn(),
-}));
+const actions = vi.hoisted(() => ({ checkoutAction: vi.fn() }));
 vi.mock("@/app/o/[orgSlug]/billing/actions", () => actions);
 const all = fr as unknown as Record<string, Record<string, string>>;
 const tk = all.tickets!;
@@ -121,6 +115,17 @@ describe("prix d'un tarif : ce que touche l'organisateur et ce que paie le parti
 
 describe("passage à l'offre Pro (RG-SUB-02)", () => {
   const prices = { MONTH: 2_900, YEAR: 29_000 };
+  const sent = () => actions.checkoutAction.mock.calls[0]!.at(-1) as FormData;
+  const choose = (interval: "MONTH" | "YEAR") =>
+    fireEvent.click(
+      screen
+        .getAllByRole("radio")
+        .find((r) => (r as HTMLInputElement).value === interval)!,
+    );
+  // le bouton cliqué part avec le formulaire (name et value), comme dans un envoi natif
+  const click = async (name: string) =>
+    act(async () => void fireEvent.click(screen.getByRole("button", { name })));
+
   it("année proposée par défaut, avec son économie", () => {
     const { container } = render(
       <Fr>
@@ -147,6 +152,7 @@ describe("passage à l'offre Pro (RG-SUB-02)", () => {
       </Fr>,
     );
     expect(screen.getByRole("button", { name: b.startTrial })).toBeTruthy();
+    expect(screen.getByText(b.trialTermsNoCard!)).toBeTruthy(); // essai sans carte
     a.unmount();
     render(
       <Fr>
@@ -159,6 +165,23 @@ describe("passage à l'offre Pro (RG-SUB-02)", () => {
       </Fr>,
     );
     expect(screen.getByRole("button", { name: b.upgrade })).toBeTruthy();
+    expect(screen.getByText(b.subscribeTerms!)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: b.startTrial })).toBeNull();
+  });
+
+  it("essai de 14 jours sans carte : le choix de l'essai part avec la période choisie", async () => {
+    render(
+      <Fr>
+        <PlanPicker orgSlug="club" prices={prices} currency="EUR" trial />
+      </Fr>,
+    );
+    choose("MONTH");
+    await click(b.startTrial!);
+    await waitFor(() => expect(actions.checkoutAction).toHaveBeenCalled());
+    expect([sent().get("mode"), sent().get("interval")]).toEqual([
+      "trial",
+      "MONTH",
+    ]);
   });
 
   it("la période choisie part vers le paiement", async () => {
@@ -172,58 +195,39 @@ describe("passage à l'offre Pro (RG-SUB-02)", () => {
         />
       </Fr>,
     );
-    fireEvent.click(
-      screen
-        .getAllByRole("radio")
-        .find((r) => (r as HTMLInputElement).value === "MONTH")!,
-    );
-    await act(
-      async () =>
-        void fireEvent.submit(
-          screen.getByRole("button", { name: b.upgrade }).closest("form")!,
-        ),
-    );
+    choose("MONTH");
+    await click(b.upgrade!);
     await waitFor(() => expect(actions.checkoutAction).toHaveBeenCalled());
-    expect(
-      (actions.checkoutAction.mock.calls[0]!.at(-1) as FormData).get(
-        "interval",
-      ),
-    ).toBe("MONTH");
+    expect([sent().get("mode"), sent().get("interval")]).toEqual([
+      "pay",
+      "MONTH",
+    ]);
   });
 
-  it("avec Mollie : essai sans carte, ou abonnement tout de suite ; le bouton choisi part avec la période (docs/MOLLIE.md, lot 6)", async () => {
+  it("essai sans carte, ou abonnement tout de suite ; le bouton choisi part avec la période, un refus est affiché (docs/MOLLIE.md, lot 6)", async () => {
     actions.checkoutAction.mockResolvedValue({
       ok: false,
       error: "MOLLIE_UNAVAILABLE",
     });
     render(
       <Fr>
-        <PlanPicker
-          orgSlug="club"
-          prices={prices}
-          currency="EUR"
-          trial
-          provider="MOLLIE"
-        />
+        <PlanPicker orgSlug="club" prices={prices} currency="EUR" trial />
       </Fr>,
     );
     expect(screen.getByText(b.trialTermsNoCard!)).toBeTruthy();
     expect(screen.getByText(b.subscribeTerms!)).toBeTruthy();
-    expect(screen.queryByText(b.trialTerms!)).toBeNull(); // plus de carte exigée pour l'essai
-    await act(
-      async () =>
-        void fireEvent.click(
-          screen.getByRole("button", { name: b.subscribeNow }),
-        ),
-    );
+    await click(b.subscribeNow!);
     await waitFor(() => expect(actions.checkoutAction).toHaveBeenCalled());
-    const data = actions.checkoutAction.mock.calls[0]!.at(-1) as FormData;
-    expect(data.get("mode")).toBe("pay");
-    expect(data.get("interval")).toBe("YEAR");
-    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect([sent().get("mode"), sent().get("interval")]).toEqual([
+      "pay",
+      "YEAR",
+    ]);
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      all.formErrors!.MOLLIE_UNAVAILABLE,
+    );
   });
 
-  it("avec Mollie, pendant une période en cours : un seul bouton, rien à payer avant le premier prélèvement, vérification remboursée", () => {
+  it("pendant une période en cours : un seul bouton, rien à payer avant le premier prélèvement, vérification remboursée", () => {
     const { container } = render(
       <Fr>
         <PlanPicker
@@ -231,7 +235,6 @@ describe("passage à l'offre Pro (RG-SUB-02)", () => {
           prices={prices}
           currency="EUR"
           trial={false}
-          provider="MOLLIE"
           startsOn="2 décembre 2026"
           cta={b.subscribe}
         />
@@ -244,25 +247,6 @@ describe("passage à l'offre Pro (RG-SUB-02)", () => {
     expect(text).toContain(
       "paiement de vérification de 0,02 €, remboursé aussitôt",
     );
-  });
-
-  it("gestion de l'abonnement : ouverte chez Stripe ; refus affiché", async () => {
-    actions.portalAction.mockResolvedValue({
-      ok: false,
-      error: "STRIPE_UNAVAILABLE",
-    });
-    render(
-      <Fr>
-        <ManageSubscription orgSlug="club" />
-      </Fr>,
-    );
-    await act(
-      async () =>
-        void fireEvent.submit(
-          screen.getByRole("button", { name: b.manage }).closest("form")!,
-        ),
-    );
-    await waitFor(() => expect(actions.portalAction).toHaveBeenCalled());
-    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(text).not.toContain(norm(b.subscribeTerms!));
   });
 });

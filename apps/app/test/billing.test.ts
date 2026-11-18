@@ -1,9 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { trialEligible } from "@evoly/core";
 import { db } from "@/lib/db";
-import { invoiceFailed, invoicePaid, syncSubscription } from "@/server/billing";
+import { applyTimedDowngrades } from "@/server/billing";
 import { reserveOrder } from "@/server/checkout";
-import { findOrgContext } from "@/server/context";
+import { findOrgContext, type OrgContext } from "@/server/context";
+import { startProTrial } from "@/server/proBilling";
+
+// clé Mollie d'Evoly (offre Pro, docs/MOLLIE.md, lot 6), posée avant les imports ; l'essai sans carte n'appelle pas Mollie
+vi.hoisted(() => {
+  process.env.MOLLIE_API_KEY = "test_essai_evoly";
+});
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 const DAY = 86_400_000;
@@ -92,38 +98,27 @@ async function setup() {
         },
       })
     ).applicationFeeMinor;
-  const stripeSub = (
-    status: string,
-    extra: Partial<{
-      periodEnd: number;
-      cancelAtPeriodEnd: boolean;
-      cancelAt: number;
-    }> = {},
-  ) => ({
-    id: `sub_${id}`,
-    status: status as "trialing",
-    metadata: { organizationId: org.id },
-    customer: `cus_${id}`,
-    trial_end: Math.floor((Date.now() + 14 * DAY) / 1000),
-    cancel_at_period_end: extra.cancelAtPeriodEnd ?? false,
-    cancel_at: extra.cancelAt ?? null,
-    canceled_at: null,
-    items: {
-      data: [
-        {
-          current_period_start: Math.floor(Date.now() / 1000),
-          current_period_end:
-            extra.periodEnd ?? Math.floor((Date.now() + 14 * DAY) / 1000),
-          price: { recurring: { interval: "year" } },
-        },
-      ],
-    },
-  });
-  return { id, org, owner, admin, fee, stripeSub };
+  /** Abonnement payé par Mollie (mandat de prélèvement), dans l'état voulu : celui qu'y laisse la tâche horaire. */
+  const mollieBilled = (data: Record<string, unknown>) =>
+    db.subscription.upsert({
+      where: { organizationId: org.id },
+      create: {
+        organizationId: org.id,
+        planId: "pro",
+        status: "ACTIVE",
+        interval: "MONTH",
+        billingProvider: "MOLLIE",
+        mollieCustomerId: `cst_${id}`,
+        mollieMandateId: `mdt_${id}`,
+        ...data,
+      },
+      update: data,
+    });
+  return { org, owner, admin, fee, mollieBilled };
 }
 
-describe("abonnement Pro (RG-SUB-01 à 08)", () => {
-  it("essai démarré par webhook : plafond Pro pour les nouvelles commandes, un seul essai, e-mail au propriétaire", async () => {
+describe("abonnement Pro géré par Evoly : essai, impayé, retour en Free (RG-SUB-02, RG-SUB-06 à 08)", () => {
+  it("essai sans carte : plafond Pro pour les nouvelles commandes, un seul essai, e-mail au propriétaire", async () => {
     const s = await setup();
     expect(await s.fee()).toBe(129); // Free : 0,29 € + 2 % de 50 € = 1,29 €
     expect(
@@ -133,7 +128,11 @@ describe("abonnement Pro (RG-SUB-01 à 08)", () => {
         }),
       ),
     ).toBe(true);
-    expect(await syncSubscription(s.stripeSub("trialing"))).toBe(true);
+    const ctx: OrgContext = {
+      ...(await findOrgContext(s.owner.id, s.org.slug))!,
+      user: { id: s.owner.id, name: s.owner.name, email: s.owner.email },
+    };
+    await startProTrial(ctx, "YEAR");
     const sub = await db.subscription.findUniqueOrThrow({
       where: { organizationId: s.org.id },
     });
@@ -141,10 +140,13 @@ describe("abonnement Pro (RG-SUB-01 à 08)", () => {
       planId: "pro",
       status: "TRIALING",
       interval: "YEAR",
-      stripeSubscriptionId: `sub_${s.id}`,
+      billingProvider: null, // rien à payer pendant l'essai
     });
     expect(await s.fee()).toBe(100); // RG-SUB-07 : plafond Pro à 1 €
     expect(trialEligible(sub)).toBe(false);
+    await expect(startProTrial(ctx, "YEAR")).rejects.toMatchObject({
+      code: "ALREADY_SUBSCRIBED",
+    });
     expect(
       await db.emailMessage.count({
         where: {
@@ -156,36 +158,21 @@ describe("abonnement Pro (RG-SUB-01 à 08)", () => {
     ).toBe(1);
   });
 
-  it("résiliation par date de fin (cancel_at, portail Stripe récent) : reconnue comme programmée, accès jusqu'à cette date", async () => {
-    const s = await setup();
-    const trialEnd = Math.floor((Date.now() + 14 * DAY) / 1000);
-    await syncSubscription(s.stripeSub("trialing", { cancelAt: trialEnd }));
-    const sub = await db.subscription.findUniqueOrThrow({
-      where: { organizationId: s.org.id },
-    });
-    expect(sub).toMatchObject({ status: "TRIALING", cancelAtPeriodEnd: true });
-    expect(sub.currentPeriodEnd?.getTime()).toBe(trialEnd * 1000);
-    // date de fin antérieure à la fin de période : c'est elle qui compte
-    const earlier = Math.floor((Date.now() + 3 * DAY) / 1000);
-    await syncSubscription(s.stripeSub("trialing", { cancelAt: earlier }));
-    expect(
-      (
-        await db.subscription.findUniqueOrThrow({
-          where: { organizationId: s.org.id },
-        })
-      ).currentPeriodEnd?.getTime(),
-    ).toBe(earlier * 1000);
-  });
-
   it("retour en Free : membres suspendus sans rien supprimer, rétablis au retour en Pro (RG-SUB-08)", async () => {
     const s = await setup();
-    await syncSubscription(s.stripeSub("active"));
+    const now = new Date();
+    await s.mollieBilled({
+      currentPeriodStart: new Date(now.getTime() - 20 * DAY),
+      currentPeriodEnd: new Date(now.getTime() + 10 * DAY),
+    });
     expect(await findOrgContext(s.admin.id, s.org.slug)).not.toBeNull();
-    await syncSubscription(
-      s.stripeSub("canceled", {
-        periodEnd: Math.floor((Date.now() - DAY) / 1000),
-      }),
-    );
+    // résilié, échéance passée : la tâche horaire a terminé l'abonnement
+    await s.mollieBilled({
+      status: "CANCELED",
+      cancelAtPeriodEnd: true,
+      canceledAt: new Date(now.getTime() - 5 * DAY),
+      currentPeriodEnd: new Date(now.getTime() - 3_600_000),
+    });
     expect(await findOrgContext(s.admin.id, s.org.slug)).toBeNull();
     expect(await findOrgContext(s.owner.id, s.org.slug)).not.toBeNull();
     expect(
@@ -193,44 +180,36 @@ describe("abonnement Pro (RG-SUB-01 à 08)", () => {
         where: { organizationId: s.org.id },
       }),
     ).toBe(2);
+    await applyTimedDowngrades(now);
+    await applyTimedDowngrades(new Date(now.getTime() + 60_000)); // tâche lancée chaque minute
     expect(
       await db.emailMessage.count({
         where: { organizationId: s.org.id, template: "subscription.ended" },
       }),
     ).toBe(1);
-    await syncSubscription(s.stripeSub("active"));
+    // abonné de nouveau : nouvelle période payée
+    await s.mollieBilled({
+      status: "ACTIVE",
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+      currentPeriodStart: now,
+      currentPeriodEnd: new Date(now.getTime() + 30 * DAY),
+    });
     expect(await findOrgContext(s.admin.id, s.org.slug)).not.toBeNull();
   });
 
-  it("impayé : reste Pro pendant 7 jours, e-mail à chaque échec, rétabli au paiement (RG-SUB-06)", async () => {
+  it("impayé : plafond Pro pendant 7 jours, puis commission Free (RG-SUB-06)", async () => {
     const s = await setup();
-    await syncSubscription(s.stripeSub("active"));
-    await invoiceFailed(`sub_${s.id}`);
-    let sub = await db.subscription.findUniqueOrThrow({
-      where: { organizationId: s.org.id },
+    const now = Date.now();
+    await s.mollieBilled({
+      status: "PAST_DUE",
+      pastDueSince: new Date(now - 2 * DAY),
+      currentPeriodStart: new Date(now - 2 * DAY),
+      currentPeriodEnd: new Date(now + 28 * DAY),
     });
-    expect(sub.status).toBe("PAST_DUE");
-    expect(sub.pastDueSince).not.toBeNull();
     expect(await s.fee()).toBe(100);
-    await invoiceFailed(`sub_${s.id}`);
-    expect(
-      await db.emailMessage.count({
-        where: {
-          organizationId: s.org.id,
-          template: "subscription.payment_failed",
-        },
-      }),
-    ).toBe(2);
-    await db.subscription.update({
-      where: { id: sub.id },
-      data: { pastDueSince: new Date(Date.now() - 8 * DAY) },
-    });
+    await s.mollieBilled({ pastDueSince: new Date(now - 8 * DAY) });
     expect(await s.fee()).toBe(129); // au-delà de 7 jours : commission Free
-    await invoicePaid(`sub_${s.id}`);
-    sub = await db.subscription.findUniqueOrThrow({
-      where: { organizationId: s.org.id },
-    });
-    expect(sub).toMatchObject({ status: "ACTIVE", pastDueSince: null });
   });
 });
 

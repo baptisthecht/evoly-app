@@ -80,7 +80,7 @@ describe("réservation : récapitulatif par jeton", () => {
     expect(view).toMatchObject({
       isFree: true,
       totalMinor: 0,
-      stripeAccountId: null,
+      mollie: false,
     });
     expect(view!.lines).toEqual([
       expect.objectContaining({

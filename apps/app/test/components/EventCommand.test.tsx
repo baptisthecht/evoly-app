@@ -40,15 +40,17 @@ describe("commandes d'un événement", () => {
     ).toEqual(["club", "e1", "delete"]);
   });
 
-  it("publication refusée par le serveur : l'erreur s'affiche", async () => {
+  it("publication refusée par le serveur (compte Mollie pas prêt) : l'erreur s'affiche", async () => {
     events.eventCommandAction.mockResolvedValue({
       ok: false,
-      error: "PUBLISH_STRIPE_REQUIRED",
+      error: "PUBLISH_MOLLIE_REQUIRED",
     });
     draw("publish");
     fireEvent.submit(
       screen.getByRole("button", { name: t.command_publish }).closest("form")!,
     );
-    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      fr.formErrors.PUBLISH_MOLLIE_REQUIRED,
+    );
   });
 });

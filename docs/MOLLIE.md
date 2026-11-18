@@ -1,7 +1,6 @@
-# Passage à Mollie
+# Paiements avec Mollie
 
-Stripe a refusé Evoly Solutions le 18 novembre 2026, après réexamen : la décision est définitive. Evoly passe à **Mollie
-Connect pour plateformes**, sur le même modèle qu'avec Stripe :
+Evoly encaisse avec **Mollie Connect pour plateformes** :
 
 - chaque organisateur encaisse sur **son propre compte Mollie**, relié à Evoly par OAuth ; Mollie le vérifie et y
   prélève ses frais ;
@@ -9,24 +8,8 @@ Connect pour plateformes**, sur le même modèle qu'avec Stripe :
   solde d'Evoly ;
 - le **compte Mollie d'Evoly** encaisse l'offre Pro.
 
-Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, portée ensuite), un commit par lot.
-
-## Correspondances
-
-| Besoin                   | Stripe (avant)                                                          | Mollie                                                                                                                                                        |
-| ------------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Compte de l'organisateur | compte connecté (Accounts v2, tableau de bord complet, pertes à Stripe) | compte Mollie de l'organisateur, relié par OAuth                                                                                                              |
-| Inscription              | lien d'inscription Stripe                                               | autorisation OAuth (création du compte ou connexion), puis profil de site et moyens de paiement créés par l'API                                               |
-| État du compte           | `account.updated`, `charges_enabled`                                    | API Onboarding (`canReceivePayments`, `canReceiveSettlements`), relue régulièrement : Mollie n'envoie pas d'événement                                         |
-| Paiement d'une commande  | PaymentIntent, formulaire intégré à la page                             | paiement Mollie sur le profil de l'organisateur, page de paiement de Mollie (redirection), commission en `applicationFee`                                     |
-| Confirmation             | webhook signé `payment_intent.succeeded`, page de retour                | webhook Mollie (identifiant seul, état relu à l'API), page de retour                                                                                          |
-| Remboursement            | `refunds.create`, commission gardée                                     | remboursement Mollie sur le solde de l'organisateur ; Mollie ne rend jamais la commission                                                                     |
-| Revente                  | remboursement partiel du paiement d'origine du vendeur                  | idem                                                                                                                                                          |
-| Virements                | `payouts`, `balance`                                                    | règlements (`settlements`) et solde (`balances`)                                                                                                              |
-| Litiges                  | `charge.dispute.*`                                                      | rétrofacturations, signalées par le webhook du paiement                                                                                                       |
-| Offre Pro                | Stripe Billing (Checkout, portail, factures)                            | client et mandat Mollie sur le compte d'Evoly, renouvellements prélevés par Evoly ; gestion de l'abonnement et factures dans Evoly                            |
-| Apple Pay, Google Pay    | domaines de paiement déclarés sur chaque compte                         | rien à déclarer avec la page de paiement de Mollie (Apple Pay demande les cartes activées sur le profil)                                                      |
-| Reversements aux lieux   | virements Stripe de la plateforme vers le compte du lieu                | à trancher au lot 5 : virement bancaire par Evoly, ou transferts entre soldes Connect (à activer par Mollie, accord de chaque lieu, 1 000 € par mois au plus) |
+Mollie est le seul prestataire de paiement d'Evoly (voir « Historique » en fin de document). Le portage s'est fait sur
+la branche `mollie`, partie de `main`, un commit par lot ; la boutique (branche `boutique`) passe ensuite à Mollie.
 
 ## Choix techniques
 
@@ -36,22 +19,20 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
 - **Jetons OAuth chiffrés en base** (AES-256-GCM, `apps/app/src/lib/seal.ts`, une clé par usage dérivée de
   `BETTER_AUTH_SECRET`). Le jeton d'accès vaut une heure : il est renouvelé 5 minutes avant son expiration. Le jeton de
   renouvellement n'expire pas ; refusé par Mollie (autorisation retirée), le compte est marqué à relier de nouveau.
-- **Coexistence** : les champs Mollie s'ajoutent à ceux de Stripe, aucune donnée n'est perdue. Chaque commande garde
-  son prestataire. Un organisateur relié à Mollie paie par Mollie ; Stripe ne sert plus qu'aux commandes déjà payées par
-  lui, jusqu'à son retrait au dernier lot.
 - **Page de paiement de Mollie** : cartes, Bancontact et Apple Pay sans déclaration de domaine. L'empreinte de la carte
   n'est connue qu'après le paiement : une carte bloquée est remboursée aussitôt, comme un paiement arrivé en retard.
   Les composants intégrés de Mollie pourront venir ensuite.
 - **Webhooks classiques** (identifiant seul, état relu à l'API), recommandés par Mollie pour les paiements. Mollie
-  relance 10 fois en 26 heures tant qu'Evoly ne répond pas 200 : la table des événements Stripe et sa relance ne sont
-  pas reprises.
+  relance 10 fois en 26 heures tant qu'Evoly ne répond pas 200 : Evoly ne garde ni journal des événements reçus ni file
+  de relance.
 - **Mode test** : `MOLLIE_TESTMODE=true` relie les organisateurs en mode test ; chaque appel fait pour eux porte alors
   `testmode`. Le compte d'Evoly suit sa clé (`test_…` ou `live_…`).
 
 ## Paiement des billets par Mollie (lot 3)
 
-- **Compte qui encaisse** : le compte Mollie de l'organisateur dès qu'il est prêt (`mollieReady`), sinon son ancien
-  compte Stripe tant qu'il encaisse ; chaque commande garde son prestataire (`Order.paymentProvider`).
+- **Compte qui encaisse** : le compte Mollie de l'organisateur, dès qu'il est prêt (`mollieReady`) ; sans compte prêt,
+  aucune vente payante (publication, tarifs payants, revente). Chaque commande payée en ligne garde son paiement Mollie
+  (`Order.molliePaymentId`).
 - **Parcours** : coordonnées de l'acheteur, puis la page de paiement de Mollie (cartes, Bancontact, Apple Pay), retour
   sur la page des billets du site visité. Un paiement encore ouvert est repris ; annulé, expiré ou refusé, un nouveau
   est créé, et la page des billets propose de réessayer tant que les places sont réservées.
@@ -61,8 +42,9 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
   rien à configurer chez Mollie ; absente en local, où seul le retour de l'acheteur valide la commande), toujours après
   relecture du paiement chez Mollie, montant et devise vérifiés.
 - **Commission** : transmise en frais d'application, ramenée au plafond de Mollie (montant moins 0,35 et 6 %) sur une
-  très petite commande. Mollie ne la rend jamais : pour un paiement tardif sans place ou une carte bloquée, elle revient
-  à l'organisateur sur son relevé mensuel (lot 5).
+  très petite commande. Mollie ne la rend jamais : pour un paiement tardif sans place ou une carte bloquée, elle doit
+  revenir à l'organisateur, en avoir sur son relevé mensuel (point à valider n° 3) ; ce n'est pas encore fait (la
+  commande n'entre simplement pas dans le relevé).
 - **Carte de l'acheteur** : son empreinte n'est connue qu'après le paiement. Une carte bloquée par l'organisation est
   donc remboursée aussitôt après, sans billet ; les limites par acheteur se vérifient par l'adresse e-mail avant le
   paiement, et l'empreinte est gardée pour les commandes suivantes.
@@ -70,13 +52,14 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
 ## Remboursements et revente par Mollie (lot 4)
 
 - **Remboursements** (demande de l'acheteur, organisateur, annulation d'un événement, options) : sur le paiement Mollie
-  de la commande, pris sur le solde de l'organisateur. La commission d'Evoly n'est pas rendue, comme avant. L'état suit
-  le webhook du paiement ; un remboursement en attente d'un solde suffisant chez Mollie reste « en cours ».
-- **Revente** : le vendeur est remboursé sur son paiement d'origine (Mollie, ou Stripe pour une commande payée avant le
-  passage, tant que Stripe le permet), moins la commission, les frais du paiement de l'acheteur et, s'il avait payé par
-  Mollie, les frais du remboursement (0,25 €, à confirmer avec Mollie) : l'organisateur reste neutre (RG-FEE-51).
-- **Frais estimés** selon le prestataire de chaque paiement (grille Mollie relevée le 18 novembre 2026), tant que les
-  frais réels manquent (lot 5).
+  de la commande, pris sur le solde de l'organisateur. La commission d'Evoly n'est pas rendue. L'état suit le webhook
+  du paiement ; un remboursement en attente d'un solde suffisant chez Mollie reste « en cours ». Sans paiement Mollie,
+  le remboursement échoue (« paiement en ligne introuvable »), sauf une vente sur place en espèces, remboursée en
+  espèces hors d'Evoly.
+- **Revente** : le vendeur est remboursé sur son paiement Mollie d'origine, moins la commission, les frais du paiement
+  de l'acheteur et les frais du remboursement (0,25 €, à confirmer avec Mollie) : l'organisateur reste neutre
+  (RG-FEE-51).
+- **Frais estimés** d'après la grille Mollie relevée le 18 novembre 2026, tant que les frais réels manquent (lot 5).
 - **Moyens non remboursables** : cartes cadeaux, bons et paysafecard ; une place payée ainsi ne se revend pas.
 
 ## Finances avec Mollie (lot 5)
@@ -87,11 +70,12 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
   chaque nouvelle prévient l'organisateur (et par e-mail) ; annulée par Mollie, elle passe « gagnée ». La réponse se
   fait dans Mollie.
 - **Versement échoué** vers la banque de l'organisateur : signalé une seule fois par la tâche horaire.
-- **Frais estimés** d'après la grille Mollie (aide au prix des tarifs, totaux des Finances) pour un organisateur relié à
-  Mollie, ou sans compte ; les frais réels de chaque paiement (transactions du solde Mollie) restent à brancher.
-- **Reversements aux lieux partenaires** : à trancher par le porteur (virement bancaire par Evoly, ou transferts entre
-  soldes Connect, à faire activer par Mollie, avec l'accord de chaque lieu et 1 000 € par mois au plus). D'ici là, ils
-  restent sur Stripe pour les lieux qui y ont un compte.
+- **Frais estimés** d'après la grille Mollie (aide au prix des tarifs, totaux des Finances, remboursements « moins les
+  frais », revente) ; les frais réels de chaque paiement (transactions du solde Mollie) restent à brancher.
+- **Reversements aux lieux partenaires** : en pause (décision du 18 novembre 2026), en attendant la réponse de Mollie
+  sur les transferts entre soldes Connect (à faire activer par Mollie, avec l'accord de chaque lieu et 1 000 € par
+  mois au plus) ; autre voie possible : un virement bancaire par Evoly. D'ici là, rien n'est versé, ni chaque mois ni à
+  la demande (plus de bouton « Verser maintenant ») : la part reste due au lieu et s'affiche comme reversement à venir.
 
 ## Offre Pro payée par Mollie (lot 6)
 
@@ -124,14 +108,13 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
   (EVO-année-numéro), TVA de la commission (RG-FEE-30), client figé au jour de l'émission, PDF dans la langue de
   l'organisation, joint à l'e-mail et téléchargeable depuis la page Abonnement. Paiement contesté : la période
   redevient due ; l'avoir reste à faire à la main.
-- **Anciens abonnés Stripe** : ils gardent Pro jusqu'à la fin de leur période ; la page Abonnement les invite à
-  reprendre par Mollie. Le premier paiement Mollie démarre à la fin de la période Stripe, et l'abonnement Stripe est
-  arrêté en fin de période ; ce que Stripe envoie ensuite ne change plus l'offre.
 - **Administration** : prolonger l'essai d'un abonné Mollie recule son prochain prélèvement ; lui attribuer une autre
   offre exige de cocher la résiliation (Evoly cesse de prélever). Un parrainage recule aussi le prochain prélèvement
   d'un mois.
 
 ## Lots
+
+Tous faits (19 novembre 2026) :
 
 1. **Fondations** : client Mollie, chiffrement des jetons, compte Mollie de l'organisateur en base, variables
    d'environnement.
@@ -141,18 +124,19 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
    QR), achat d'une revente.
 4. **Remboursements et revente** : tous les remboursements, règlement du vendeur, annulation d'un événement,
    remboursements en attente de solde.
-5. **Finances** : solde, règlements, rétrofacturations, frais réels, grille d'estimation Mollie, reversements aux lieux
-   partenaires.
-6. **Offre Pro** : abonnement Mollie (mensuel ou annuel, essai), gestion dans Evoly, factures.
-7. **Bascule** : Mollie par défaut, textes légaux, documentation, retrait de Stripe.
+5. **Finances** : solde, règlements, rétrofacturations, grille d'estimation Mollie ; frais réels encore à brancher,
+   reversements aux lieux partenaires en pause.
+6. **Offre Pro** : abonnement Mollie (mensuel ou annuel, essai), gestion dans Evoly, factures ; abonnement pris pendant
+   une période en cours sans paiement immédiat.
+7. **Bascule** : Mollie seul prestataire, textes légaux, site vitrine, documentation, tests ; retrait de l'ancien
+   prestataire, sans rétrocompatibilité (voir « Historique »).
 
 Puis la boutique (branche `boutique`) passe à Mollie.
 
 ## Points à valider par le porteur
 
 1. **Responsabilité** (conditions Connect, art. 7) : Evoly répond des remboursements que Mollie ne peut pas récupérer
-   sur le solde de l'organisateur. Chez Stripe, les pertes étaient pour Stripe. À voir avec Mollie : règlements différés
-   après l'événement pour la billetterie.
+   sur le solde de l'organisateur. À voir avec Mollie : règlements différés après l'événement pour la billetterie.
 2. **Mention obligatoire** (art. 8) : avant d'inscrire un organisateur, et dans tout le marketing, indiquer que les
    services de paiement sont fournis par Mollie B.V. (Keizersgracht 126, 1015 CW Amsterdam, KvK 30204462, établissement
    de monnaie électronique et de paiement agréé et contrôlé par De Nederlandsche Bank, numéro F0038), avec le modèle de
@@ -162,6 +146,8 @@ Puis la boutique (branche `boutique`) passe à Mollie.
 4. **Réserve** : Mollie peut retenir une réserve sur les comptes des organisateurs (billetterie, livraison différée).
 5. **Particuliers et associations de fait** : à vérifier avec Mollie, qui ne les accepte peut-être pas.
 6. **Tarifs à confirmer** : frais de remboursement (0,25 € selon des sites tiers), litiges, coût éventuel de Connect.
+7. **Reversements aux lieux partenaires** : transferts entre soldes Connect (réponse de Mollie attendue) ou virement
+   bancaire par Evoly.
 
 ## À faire par le porteur
 
@@ -172,3 +158,25 @@ Puis la boutique (branche `boutique`) passe à Mollie.
   production), `MOLLIE_CLIENT_ID`, `MOLLIE_CLIENT_SECRET`.
 - **Un deuxième compte Mollie, de test**, pour jouer l'organisateur : Mollie refuse les frais d'application sur
   l'organisation propriétaire de l'application.
+
+## Historique
+
+Evoly encaissait d'abord avec Stripe (Connect pour les comptes des organisateurs, Billing pour l'offre Pro). Stripe a
+refusé Evoly Solutions le 18 novembre 2026, après réexamen, de façon définitive : Evoly est passé à Mollie Connect pour
+plateformes, sur le même modèle, en sept lots. Aucun organisateur n'avait relié Stripe : le lot 7 l'a retiré du code, de
+la base (migration `20261119100000_mollie_retrait_stripe`), des textes, du site et des tests, sans rétrocompatibilité.
+
+| Besoin                   | Stripe (avant)                                                          | Mollie                                                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Compte de l'organisateur | compte connecté (Accounts v2, tableau de bord complet, pertes à Stripe) | compte Mollie de l'organisateur, relié par OAuth                                                                                   |
+| Inscription              | lien d'inscription Stripe                                               | autorisation OAuth (création du compte ou connexion), puis profil de site et moyens de paiement créés par l'API                    |
+| État du compte           | `account.updated`, `charges_enabled`                                    | API Onboarding (`canReceivePayments`, `canReceiveSettlements`), relue régulièrement : Mollie n'envoie pas d'événement              |
+| Paiement d'une commande  | PaymentIntent, formulaire intégré à la page                             | paiement Mollie sur le profil de l'organisateur, page de paiement de Mollie (redirection), commission en `applicationFee`          |
+| Confirmation             | webhook signé `payment_intent.succeeded`, page de retour                | webhook Mollie (identifiant seul, état relu à l'API), page de retour                                                               |
+| Remboursement            | `refunds.create`, commission gardée                                     | remboursement Mollie sur le solde de l'organisateur ; Mollie ne rend jamais la commission                                          |
+| Revente                  | remboursement partiel du paiement d'origine du vendeur                  | idem                                                                                                                               |
+| Virements                | `payouts`, `balance`                                                    | règlements (`settlements`) et solde (`balances`)                                                                                   |
+| Litiges                  | `charge.dispute.*`                                                      | rétrofacturations, signalées par le webhook du paiement                                                                            |
+| Offre Pro                | Stripe Billing (Checkout, portail, factures)                            | client et mandat Mollie sur le compte d'Evoly, renouvellements prélevés par Evoly ; gestion de l'abonnement et factures dans Evoly |
+| Apple Pay, Google Pay    | domaines de paiement déclarés sur chaque compte                         | rien à déclarer avec la page de paiement de Mollie (Apple Pay demande les cartes activées sur le profil)                           |
+| Reversements aux lieux   | virements Stripe de la plateforme vers le compte du lieu                | en pause depuis le 18 novembre 2026 : transferts entre soldes Connect (réponse de Mollie attendue) ou virement bancaire par Evoly  |

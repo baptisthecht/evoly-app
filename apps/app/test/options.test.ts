@@ -245,7 +245,7 @@ describe("options et consommations prépayées (section 9.29)", () => {
       },
     });
     expect(await finalizeOrder(r.orderId)).toBe("PAID");
-    await afterOrderPaid(r.orderId); // comme après la confirmation du paiement par Stripe
+    await afterOrderPaid(r.orderId); // comme après la validation d'un paiement Mollie
     const msg = await db.emailMessage.findFirst({
       where: { toEmail: email },
       orderBy: { queuedAt: "desc" },

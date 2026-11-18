@@ -156,21 +156,13 @@ export async function deletionBlockers(
     where: { organizationId },
     select: {
       status: true,
-      stripeSubscriptionId: true,
       cancelAtPeriodEnd: true,
       billingProvider: true,
       mollieMandateId: true,
     },
   });
-  if (
-    (sub?.stripeSubscriptionId &&
-      ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID", "INCOMPLETE"].includes(
-        sub.status,
-      ) &&
-      !sub.cancelAtPeriodEnd) ||
-    renewsWithMollie(sub) // abonnement payé par Mollie et toujours prélevé (docs/MOLLIE.md, lot 6)
-  )
-    blockers.push("ACTIVE_SUBSCRIPTION");
+  // abonnement payé par Mollie et toujours prélevé (docs/MOLLIE.md, lot 6)
+  if (renewsWithMollie(sub)) blockers.push("ACTIVE_SUBSCRIPTION");
   return blockers;
 }
 

@@ -11,11 +11,9 @@ vi.mock("next/headers", () => ({
   }),
   headers: async () => new Headers(),
 }));
-// Stripe absent : seul Mollie encaisse (docs/MOLLIE.md)
-vi.mock("@/lib/stripe", () => ({ stripe: () => null }));
 
 const { db } = await import("@/lib/db");
-const { reserveOrder, reservationByToken, submitBuyer } =
+const { cancelReservation, reserveOrder, reservationByToken, submitBuyer } =
   await import("@/server/checkout");
 const { saveMollieAuthorization } = await import("@/server/mollieAccounts");
 const { paymentAccountFor, syncPaymentFromMollie } =
@@ -193,51 +191,32 @@ const paid = (
 });
 
 describe("paiement des billets par Mollie : compte qui encaisse", () => {
-  it("Mollie prêt l'emporte ; à défaut, l'ancien compte Stripe s'il encaisse encore ; sinon aucun", async () => {
+  it("compte Mollie prêt : il encaisse ; pas encore prêt, ou aucun compte : aucun", async () => {
     const ready = await setup();
-    expect((await paymentAccountFor(ready.org.id))?.provider).toBe("MOLLIE");
+    expect(await paymentAccountFor(ready.org.id)).toMatchObject({
+      provider: "MOLLIE",
+      account: { organizationId: ready.org.id, profileId: `pfl_${ready.id}` },
+    });
     const notReady = await setup({ ready: false });
     expect(await paymentAccountFor(notReady.org.id)).toBeNull();
-    await db.stripeAccount.create({
-      data: {
-        organizationId: notReady.org.id,
-        stripeAccountId: `acct_${notReady.id}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-      },
+    await db.mollieAccount.delete({
+      where: { organizationId: notReady.org.id },
     });
-    expect(await paymentAccountFor(notReady.org.id)).toEqual({
-      provider: "STRIPE",
-      stripeAccountId: `acct_${notReady.id}`,
-    });
-    await db.stripeAccount.create({
-      data: {
-        organizationId: ready.org.id,
-        stripeAccountId: `acct_${ready.id}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-      },
-    });
-    expect((await paymentAccountFor(ready.org.id))?.provider).toBe("MOLLIE");
+    expect(await paymentAccountFor(notReady.org.id)).toBeNull();
   });
 
-  it("publication d'un événement payant : un compte Mollie prêt suffit", async () => {
+  it("publication d'un événement payant : un compte Mollie prêt est nécessaire, et suffit", async () => {
     const s = await setup();
     const ctx = (mollieReady: boolean) =>
       ({
         organization: { id: s.org.id },
-        stripe: null,
         mollie: mollieReady ? { ready: true } : null,
       }) as never;
     expect(await eventPublicationBlockers(ctx(true), s.event.id)).not.toContain(
-      "STRIPE_REQUIRED",
+      "MOLLIE_REQUIRED",
     );
     expect(await eventPublicationBlockers(ctx(false), s.event.id)).toContain(
-      "STRIPE_REQUIRED",
+      "MOLLIE_REQUIRED",
     );
   });
 });
@@ -248,7 +227,6 @@ describe("paiement des billets par Mollie : création du paiement", () => {
     const before = Date.now();
     const { r, res, paymentId, create } = await reserveAndStart(s);
     expect(r.mollie).toBe(true);
-    expect(r.stripeAccountId).toBeNull();
     expect(res).toEqual({ kind: "REDIRECT", url: checkout(paymentId).href });
     const body = JSON.parse(create.body);
     const order = await db.order.findUniqueOrThrow({
@@ -510,6 +488,74 @@ describe("paiement des billets par Mollie : validation", () => {
       amount: { value: "30.00" },
       metadata: { cause: "unfulfilled" },
     });
+    expect(
+      await db.order.findUniqueOrThrow({ where: { id: r.orderId } }),
+    ).toMatchObject({ status: "REFUNDED", refundedMinor: 3000 });
+  });
+
+  it("réservation annulée pendant le paiement chez Mollie, puis payée : remboursée en entier une seule fois, aucun billet, aucune place prise", async () => {
+    const s = await setup();
+    const { r, paymentId } = await reserveAndStart(s);
+    // « Changer la sélection » dans un autre onglet, ou événement annulé : réservation annulée, places libérées
+    await cancelReservation(r.token);
+    expect(
+      (await db.order.findUniqueOrThrow({ where: { id: r.orderId } })).status,
+    ).toBe("CANCELLED");
+    // l'acheteur termine quand même son paiement chez Mollie, qui appelle le webhook
+    const relu = () =>
+      mollie(
+        {
+          method: "GET",
+          path: `/v2/payments/${paymentId}`,
+          body: paid(paymentId),
+        },
+        {
+          method: "POST",
+          path: `/v2/payments/${paymentId}/refunds`,
+          status: 201,
+          body: { id: `re_${rid()}`, status: "pending" },
+        },
+      );
+    const refunds = () =>
+      calls.filter(
+        (c) => c.method === "POST" && c.url.pathname.endsWith("/refunds"),
+      );
+    relu();
+    expect(
+      (
+        await webhook(
+          new Request("http://localhost/api/webhooks/mollie", {
+            method: "POST",
+            body: new URLSearchParams({ id: paymentId }),
+          }),
+        )
+      ).status,
+    ).toBe(200);
+    expect(refunds()).toHaveLength(1);
+    expect(JSON.parse(refunds()[0]!.body)).toMatchObject({
+      amount: { currency: "EUR", value: "30.00" },
+      metadata: { orderId: r.orderId, cause: "cancelled" },
+    });
+    expect(refunds()[0]!.headers.get("idempotency-key")).toBe(
+      `order:${r.orderId}:cancelled-refund`,
+    );
+    expect(
+      await db.order.findUniqueOrThrow({ where: { id: r.orderId } }),
+    ).toMatchObject({
+      status: "REFUNDED",
+      totalMinor: 3000,
+      refundedMinor: 3000,
+      paymentMethodType: "creditcard",
+    });
+    expect(await db.ticket.count({ where: { orderId: r.orderId } })).toBe(0);
+    expect(
+      await db.ticketType.findUniqueOrThrow({ where: { id: s.ticketTypeId } }),
+    ).toMatchObject({ quantitySold: 0, quantityHeld: 0 });
+    // relu une seconde fois (Mollie rappelle le webhook quand le remboursement avance) : aucun second remboursement
+    vi.unstubAllGlobals();
+    relu();
+    expect(await syncPaymentFromMollie(r.orderId)).toBe("paid");
+    expect(refunds()).toHaveLength(1);
     expect(
       await db.order.findUniqueOrThrow({ where: { id: r.orderId } }),
     ).toMatchObject({ status: "REFUNDED", refundedMinor: 3000 });

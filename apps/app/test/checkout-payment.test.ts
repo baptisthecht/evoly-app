@@ -1,66 +1,50 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
-import {
-  confirmOrderPayment,
-  finalizeOrder,
-  reserveOrder,
-  submitBuyer,
-} from "@/server/checkout";
+import { finalizeOrder, reserveOrder, submitBuyer } from "@/server/checkout";
+import { saveMollieAuthorization } from "@/server/mollieAccounts";
+import { syncPaymentFromMollie } from "@/server/molliePayments";
 
-// commandes payantes : montant minimum, paiement indisponible, création du paiement Stripe, confirmation
-const fake = vi.hoisted(() => ({
-  available: true,
-  created: [] as Array<Record<string, unknown>>,
-  // jeton de confirmation : empreinte de la carte saisie (aucune pour Bancontact)
-  fingerprint: null as string | null,
-  confirmed: [] as Array<Record<string, unknown>>,
-  confirmResult: { status: "succeeded" } as Record<string, unknown>,
-  confirmError: null as unknown,
-}));
-vi.mock("@/lib/stripe", () => ({
-  stripe: () =>
-    fake.available
-      ? {
-          paymentIntents: {
-            // identifiant unique : la base de test garde les commandes d'un passage à l'autre
-            create: async (
-              p: Record<string, unknown>,
-              o: Record<string, unknown>,
-            ) => {
-              const id = `pi_${Math.random().toString(36).slice(2, 12)}`;
-              fake.created.push({ ...p, account: o?.stripeAccount, id });
-              return {
-                id,
-                client_secret: `cs_${id}`,
-                status: "requires_payment_method",
-              };
-            },
-            retrieve: async (id: string) => ({
-              id,
-              client_secret: `cs_${id}`,
-              status: "requires_payment_method",
-            }),
-            confirm: async (
-              id: string,
-              p: Record<string, unknown>,
-              o: Record<string, unknown>,
-            ) => {
-              if (fake.confirmError) throw fake.confirmError;
-              fake.confirmed.push({ id, ...p, account: o?.stripeAccount });
-              return { id, client_secret: `cs_${id}`, ...fake.confirmResult };
-            },
-          },
-          confirmationTokens: {
-            retrieve: async (id: string) => ({
-              id,
-              payment_method_preview: fake.fingerprint
-                ? { type: "card", card: { fingerprint: fake.fingerprint } }
-                : { type: "bancontact" },
-            }),
-          },
-        }
-      : null,
-}));
+// commandes payantes : montant minimum, paiement indisponible, paiement par Mollie (création, validation)
+type Route = { method: string; path: string; status?: number; body?: unknown };
+const calls: Array<{ method: string; path: string; body: string }> = [];
+
+/** Mollie répond selon la méthode et le chemin ; chaque réponse ne sert qu'une fois, dans l'ordre donné. */
+function mollie(...routes: Route[]) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: string | URL, init: RequestInit = {}) => {
+      const url = new URL(String(input));
+      const method = init.method ?? "GET";
+      calls.push({
+        method,
+        path: url.pathname,
+        body: typeof init.body === "string" ? init.body : "",
+      });
+      const i = routes.findIndex(
+        (r) => r.method === method && r.path === url.pathname,
+      );
+      if (i < 0)
+        return new Response(
+          JSON.stringify({
+            status: 404,
+            title: "Not Found",
+            detail: url.pathname,
+          }),
+          { status: 404 },
+        );
+      const [r] = routes.splice(i, 1);
+      return new Response(
+        r!.body === undefined ? null : JSON.stringify(r!.body),
+        { status: r!.status ?? 200 },
+      );
+    }),
+  );
+}
+beforeEach(() => {
+  calls.length = 0;
+});
+afterEach(() => vi.unstubAllGlobals());
+
 const rid = () => Math.random().toString(36).slice(2, 10);
 const days = (n: number) => new Date(Date.now() + n * 86_400_000);
 const buyer = (email: string) => ({
@@ -69,9 +53,13 @@ const buyer = (email: string) => ({
   email,
   marketingOptIn: false,
 });
+const returnUrl = (token: string) => ({
+  returnUrl: `https://club.evoly.me/billets/${token}`,
+});
+
 async function setup(o: {
   priceMinor: number;
-  stripe?: boolean;
+  mollie?: boolean;
   tier?: boolean;
 }) {
   const id = rid();
@@ -86,19 +74,30 @@ async function setup(o: {
       locale: "fr",
     },
   });
-  if (o.stripe)
-    await db.stripeAccount.create({
+  if (o.mollie) {
+    const account = await saveMollieAuthorization({
+      organizationId: org.id,
+      mollieOrganizationId: `org_${id}`,
+      tokens: {
+        access_token: "access_mollie",
+        refresh_token: "refresh_mollie",
+        expires_in: 3600,
+        token_type: "bearer",
+        scope: "payments.read payments.write",
+      },
+      testmode: false,
+    });
+    await db.mollieAccount.update({
+      where: { id: account.id },
       data: {
-        organizationId: org.id,
-        stripeAccountId: `acct_${id}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-        payoutsEnabled: true,
-        detailsSubmitted: true,
+        profileId: `pfl_${id}`,
+        profileStatus: "verified",
+        methods: ["bancontact", "creditcard"],
+        onboardingStatus: "COMPLETED",
+        canReceivePayments: true,
       },
     });
+  }
   const event = await db.event.create({
     data: {
       organizationId: org.id,
@@ -135,19 +134,11 @@ async function setup(o: {
         },
       })
     : null;
-  return { org, event, ticketTypeId, tier, account: `acct_${id}` };
+  return { org, event, ticketTypeId, tier };
 }
-beforeEach(() => {
-  fake.available = true;
-  fake.created = [];
-  fake.fingerprint = null;
-  fake.confirmed = [];
-  fake.confirmResult = { status: "succeeded" };
-  fake.confirmError = null;
-});
 
 describe("commandes payantes", () => {
-  it("montant minimum : une commande sous le minimum des paiements par carte est refusée", async () => {
+  it("montant minimum : une commande sous le minimum d'un paiement en ligne est refusée", async () => {
     const { event, ticketTypeId } = await setup({ priceMinor: 20 });
     await expect(
       reserveOrder({
@@ -160,22 +151,29 @@ describe("commandes payantes", () => {
     });
   });
 
-  it("paiements indisponibles : sans compte Stripe actif, la commande payante est refusée", async () => {
+  it("paiements indisponibles : sans compte Mollie prêt, la commande payante est refusée, sans appel à Mollie", async () => {
     const { event, ticketTypeId } = await setup({ priceMinor: 1500 });
     const r = await reserveOrder({
       eventId: event.id,
       lines: [{ ticketTypeId, quantity: 1 }],
       locale: "fr",
     });
+    mollie();
     await expect(
-      submitBuyer(r.token, buyer("lea@exemple.be")),
+      submitBuyer(
+        r.token,
+        buyer("lea@exemple.be"),
+        undefined,
+        returnUrl(r.token),
+      ),
     ).rejects.toMatchObject({ code: "PAYMENTS_UNAVAILABLE" });
+    expect(calls).toHaveLength(0);
   });
 
-  it("création du paiement : montant et commission demandés à Stripe, paiement rattaché à la commande ; confirmation : payée, billets comptés", async () => {
-    const { event, ticketTypeId, tier, account } = await setup({
+  it("paiement par Mollie : montant demandé, paiement rattaché à la commande ; validé : payée, billets et palier de prix comptés, une seule fois", async () => {
+    const { event, ticketTypeId, tier } = await setup({
       priceMinor: 1500,
-      stripe: true,
+      mollie: true,
       tier: true,
     });
     const r = await reserveOrder({
@@ -183,30 +181,54 @@ describe("commandes payantes", () => {
       lines: [{ ticketTypeId, quantity: 2 }],
       locale: "fr",
     });
-    const result = await submitBuyer(r.token, buyer("lea@exemple.be"));
-    const order = await db.order.findFirstOrThrow({
-      where: { eventId: event.id },
+    const paymentId = `tr_${rid()}`;
+    const checkout = `https://www.mollie.com/checkout/select-method/${paymentId}`;
+    mollie({
+      method: "POST",
+      path: "/v2/payments",
+      status: 201,
+      body: {
+        id: paymentId,
+        status: "open",
+        amount: { currency: "EUR", value: "30.00" },
+        _links: { checkout: { href: checkout } },
+      },
     });
-    const intent = fake.created[0]!.id as string;
-    expect(order.stripePaymentIntentId).toBe(intent);
-    expect(result).toMatchObject({
-      kind: "PAYMENT",
-      clientSecret: `cs_${intent}`,
-      stripeAccountId: account,
-    });
-    expect(fake.created[0]).toMatchObject({
-      amount: order.totalMinor,
-      application_fee_amount: order.applicationFeeMinor,
-      account,
-    });
-    // confirmation du paiement (webhook de Stripe)
     expect(
-      await finalizeOrder(order.id, {
-        paymentIntentId: intent,
-        amountMinor: order.totalMinor,
-        currency: "EUR",
-      }),
-    ).toBe("PAID");
+      await submitBuyer(
+        r.token,
+        buyer("lea@exemple.be"),
+        undefined,
+        returnUrl(r.token),
+      ),
+    ).toEqual({ kind: "REDIRECT", url: checkout });
+    // détail de la demande (profil, commission en frais d'application) : mollie-payments.test.ts
+    expect(JSON.parse(calls[0]!.body)).toMatchObject({
+      amount: { currency: "EUR", value: "30.00" },
+    });
+    const order = await db.order.findUniqueOrThrow({
+      where: { id: r.orderId },
+    });
+    expect(order).toMatchObject({
+      molliePaymentId: paymentId,
+      status: "PENDING",
+      totalMinor: 3000,
+    });
+    // paiement relu chez Mollie (retour de l'acheteur ou webhook)
+    vi.unstubAllGlobals();
+    mollie({
+      method: "GET",
+      path: `/v2/payments/${paymentId}`,
+      body: {
+        id: paymentId,
+        status: "paid",
+        amount: { currency: "EUR", value: "30.00" },
+        method: "creditcard",
+        details: { cardFingerprint: "fp_carte_lea" },
+        _links: {},
+      },
+    });
+    expect(await syncPaymentFromMollie(r.orderId)).toBe("paid");
     expect(
       (await db.order.findUniqueOrThrow({ where: { id: order.id } })).status,
     ).toBe("PAID");
@@ -217,102 +239,18 @@ describe("commandes payantes", () => {
     ).toBe(2);
     const t = await db.priceTier.findUniqueOrThrow({ where: { id: tier!.id } });
     expect([t.quantitySold, t.quantityHeld]).toEqual([2, 0]);
-    // une seconde confirmation du même paiement ne compte rien deux fois
+    // une seconde validation du même paiement ne compte rien deux fois
     expect(
       await finalizeOrder(order.id, {
-        paymentIntentId: intent,
+        molliePaymentId: paymentId,
         amountMinor: order.totalMinor,
         currency: "EUR",
       }),
     ).toBe("ALREADY_PAID");
     expect(await db.ticket.count({ where: { orderId: order.id } })).toBe(2);
-  });
-});
-
-describe("paiement confirmé par le serveur : empreinte de la carte lue avant tout débit", () => {
-  const pay = async (
-    eventId: string,
-    ticketTypeId: string,
-    email: string,
-    quantity = 1,
-  ) => {
-    const r = await reserveOrder({
-      eventId,
-      lines: [{ ticketTypeId, quantity }],
-      locale: "fr",
-    });
-    await submitBuyer(r.token, buyer(email));
-    return r.token;
-  };
-  const ret = "https://club.evoly.me/mes-billets";
-
-  it("même carte, autres adresses : limite par personne atteinte, refus avant tout débit ; l'empreinte est gardée", async () => {
-    const { event, ticketTypeId, account } = await setup({
-      priceMinor: 1500,
-      stripe: true,
-    });
-    await db.event.update({
-      where: { id: event.id },
-      data: { maxTicketsPerBuyer: 2 },
-    });
-    fake.fingerprint = "fp_carte_lea";
-    const first = await pay(event.id, ticketTypeId, "lea@exemple.be", 2);
-    expect(await confirmOrderPayment(first, "ctoken_premier1", ret)).toEqual({
-      kind: "DONE",
-    });
-    expect(fake.confirmed[0]).toMatchObject({
-      confirmation_token: "ctoken_premier1",
-      return_url: ret,
-      account,
-    });
-    const second = await pay(
-      event.id,
-      ticketTypeId,
-      "autre.adresse@exemple.be",
-      1,
-    );
-    await expect(
-      confirmOrderPayment(second, "ctoken_second22", ret),
-    ).rejects.toMatchObject({ code: "BUYER_LIMIT_REACHED" });
-    expect(fake.confirmed).toHaveLength(1); // rien n'a été débité
-    const kept = await db.order.findMany({
-      where: { eventId: event.id },
-      select: { cardFingerprint: true },
-    });
-    expect(kept.map((o) => o.cardFingerprint)).toEqual([
-      "fp_carte_lea",
-      "fp_carte_lea",
-    ]);
-  });
-
-  it("validation bancaire demandée : le navigateur la présente ; refus de la banque : message clair ; Bancontact : sans empreinte", async () => {
-    const { event, ticketTypeId } = await setup({
-      priceMinor: 1500,
-      stripe: true,
-    });
-    fake.fingerprint = "fp_carte_tom";
-    fake.confirmResult = { status: "requires_action" };
-    const t1 = await pay(event.id, ticketTypeId, "tom@exemple.be");
-    const r1 = await confirmOrderPayment(t1, "ctoken_securise1", ret);
-    expect(r1).toMatchObject({ kind: "ACTION" });
-    fake.confirmError = {
-      type: "StripeCardError",
-      code: "card_declined",
-      decline_code: "insufficient_funds",
-    };
-    const t2 = await pay(event.id, ticketTypeId, "nora@exemple.be");
-    await expect(
-      confirmOrderPayment(t2, "ctoken_refuse12", ret),
-    ).rejects.toMatchObject({ code: "CARD_INSUFFICIENT_FUNDS" });
-    fake.confirmError = null;
-    fake.fingerprint = null;
-    fake.confirmResult = { status: "succeeded" };
-    const t3 = await pay(event.id, ticketTypeId, "ines@exemple.be");
-    expect(await confirmOrderPayment(t3, "ctoken_bancont1", ret)).toEqual({
-      kind: "DONE",
-    });
-    await expect(
-      confirmOrderPayment(t3, "pas-un-jeton", ret),
-    ).rejects.toMatchObject({ code: "PAYMENT_INVALID" });
+    expect(
+      (await db.ticketType.findUniqueOrThrow({ where: { id: ticketTypeId } }))
+        .quantitySold,
+    ).toBe(2);
   });
 });

@@ -52,7 +52,7 @@ describe("règles du catalogue", () => {
       publicationBlockers({
         activeTicketTypes: 1,
         hasPaidTicketTypes: true,
-        stripeChargesEnabled: true,
+        mollieReady: true,
         startsAt: later,
         now,
       }),
@@ -61,16 +61,16 @@ describe("règles du catalogue", () => {
       publicationBlockers({
         activeTicketTypes: 0,
         hasPaidTicketTypes: true,
-        stripeChargesEnabled: false,
+        mollieReady: false,
         startsAt: now,
         now,
       }),
-    ).toEqual(["NO_TICKET_TYPE", "STRIPE_REQUIRED", "IN_THE_PAST"]);
+    ).toEqual(["NO_TICKET_TYPE", "MOLLIE_REQUIRED", "IN_THE_PAST"]);
     expect(
       publicationBlockers({
         activeTicketTypes: 2,
         hasPaidTicketTypes: false,
-        stripeChargesEnabled: false,
+        mollieReady: false,
         startsAt: later,
         now,
       }),

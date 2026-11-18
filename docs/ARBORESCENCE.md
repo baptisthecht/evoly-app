@@ -15,7 +15,7 @@ Décidée le 28 octobre 2026. Trois niveaux : la barre latérale, les onglets de
 | Marque         | Votre marque · Page de l'organisation · Adresse et domaines · E-mails           |
 | Équipe         | Membres · Rôles (matrice des droits)                                            |
 | Abonnement     | Offre (comparaison dans une fenêtre) · Parrainage · Lieu partenaire             |
-| Paramètres     | Général · Paiements (Stripe et vos frais) · Avancé (supprimer l'organisation)   |
+| Paramètres     | Général · Paiements (Mollie et vos frais) · Avancé (supprimer l'organisation)   |
 
 Le compte personnel (profil, sécurité, préférences de notifications) a sa propre page, « Mon compte ».
 
@@ -45,7 +45,7 @@ Le compte personnel (profil, sécurité, préférences de notifications) a sa pr
 ## Accueil vivant
 
 Prochain événement (affiche, compte à rebours, jauge), dernières commandes en direct, recette des 30 derniers jours,
-remplissage de chaque événement, « À faire » (Stripe pas connecté, événement sans image, brouillon oublié).
+remplissage de chaque événement, « À faire » (Mollie pas relié, événement sans image, brouillon oublié).
 
 ## Plus tard (pages à revoir)
 

@@ -157,7 +157,7 @@ describe("administration : recherche, suspension, réactivation", () => {
 
   it("suspension puis réactivation inscrites à l'historique ; seule une organisation suspendue se réactive", async () => {
     const { org, staff } = await setup();
-    await suspendOrganization(staff, org.id, "Fraude signalée par Stripe");
+    await suspendOrganization(staff, org.id, "Fraude signalée par Mollie");
     expect(
       (await db.organization.findUniqueOrThrow({ where: { id: org.id } }))
         .status,

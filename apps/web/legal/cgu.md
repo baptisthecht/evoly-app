@@ -9,7 +9,7 @@ L'Organisateur crée un compte personnel, confirme son adresse e-mail et crée u
 ## 3. Offres
 
 - **Free** : 0 €, sans carte bancaire.
-- **Pro** : 29 € par mois ou 295,80 € par an, toutes taxes comprises, avec un essai de 14 jours (carte bancaire requise).
+- **Pro** : 29 € par mois ou 295,80 € par an, toutes taxes comprises, avec un essai gratuit de 14 jours, sans carte bancaire, une fois par organisation.
 
 Le détail des fonctionnalités de chaque offre figure sur la page Abonnement de l'app. Evoly peut faire évoluer ses offres en prévenant l'Organisateur au moins 30 jours à l'avance.
 
@@ -19,7 +19,9 @@ Pour chaque billet payant vendu, Evoly perçoit une commission de 0,29 € plus 
 
 ## 5. Paiements et frais bancaires
 
-Les paiements des participants sont encaissés directement sur le compte Stripe de l'Organisateur. Evoly n'encaisse ni ne détient les fonds des ventes. Les frais bancaires de Stripe sont facturés au coût réel, selon la grille de Stripe, et déduits des ventes de l'Organisateur ; Evoly ne prend aucune marge sur ces frais. L'Organisateur accepte les conditions de service de Stripe et reste seul responsable de son compte Stripe (vérifications d'identité, litiges, virements).
+Les paiements des participants sont encaissés directement sur le compte Mollie de l'Organisateur, qu'il crée ou relie depuis Evoly ; les participants paient sur la page de paiement sécurisée de Mollie. Evoly n'encaisse ni ne détient les fonds des ventes : ils sont crédités sur le solde Mollie de l'Organisateur, puis versés par Mollie sur son compte bancaire. Les frais bancaires sont ceux de Mollie : ils dépendent du moyen de paiement, sont facturés au coût réel, selon la grille de Mollie, et déduits des ventes de l'Organisateur ; Evoly ne prend aucune marge sur ces frais. Les remboursements sont effectués depuis le solde Mollie de l'Organisateur. L'Organisateur accepte les conditions d'utilisation de Mollie et reste seul responsable de son compte Mollie (vérifications d'identité, litiges, virements).
+
+Les services de paiement sont fournis par Mollie B.V., Keizersgracht 126, 1015 CW Amsterdam, Pays-Bas (KvK 30204462), établissement de monnaie électronique et de paiement agréé et contrôlé par De Nederlandsche Bank (numéro F0038).
 
 ## 6. Facturation
 
@@ -27,8 +29,11 @@ Evoly émet chaque mois, par organisation et par devise, un relevé des commissi
 
 ## 7. Abonnement Pro
 
-- L'essai de 14 jours démarre avec l'enregistrement d'une carte bancaire. Sans résiliation avant la fin de l'essai, l'abonnement démarre automatiquement.
-- L'abonnement se renouvelle automatiquement. Il est résiliable à tout moment depuis la page Abonnement ; la résiliation prend effet à la fin de la période payée, sans remboursement au prorata.
+- L'essai gratuit de 14 jours est accordé une fois par organisation, sans carte bancaire. À la fin de l'essai, l'Organisateur s'abonne pour garder l'offre Pro ; à défaut, l'organisation repasse en Free, sans rien perdre.
+- L'abonnement, mensuel ou annuel, se paie sur la page de paiement sécurisée de Mollie, par carte bancaire ou Bancontact. Il se renouvelle ensuite automatiquement : par carte, ou par prélèvement SEPA après un paiement par Bancontact.
+- Lorsque l'Organisateur s'abonne pendant une période en cours (essai, période d'offre Pro gratuite, offre de lancement), rien n'est prélevé avant la fin de cette période, hormis un paiement de vérification de 0,02 €, remboursé aussitôt ; le premier prélèvement a lieu à la fin de la période en cours.
+- Le passage du mensuel à l'annuel, ou de l'annuel au mensuel, s'applique au renouvellement suivant, sans prorata.
+- L'abonnement est résiliable à tout moment depuis la page Abonnement ; la résiliation prend effet à la fin de la période payée, sans remboursement au prorata.
 - En cas d'impayé, l'organisation reste en Pro pendant 7 jours, puis repasse en Free.
 - Au retour en Free, aucune donnée n'est supprimée ; certaines fonctionnalités sont désactivées jusqu'au retour en Pro.
 

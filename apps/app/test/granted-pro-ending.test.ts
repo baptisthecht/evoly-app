@@ -9,7 +9,8 @@ async function orgWith(sub: {
   planId: string;
   status: string;
   currentPeriodEnd: Date;
-  stripeSubscriptionId?: string | null;
+  billingProvider?: "MOLLIE" | null;
+  mollieMandateId?: string | null;
 }) {
   const u = await db.user.create({
     data: {
@@ -42,7 +43,6 @@ describe("fin d'un Pro offert : propriétaire prévenu 3 jours avant (RG-SUB-03)
       planId: "pro",
       status: "ACTIVE",
       currentPeriodEnd: new Date(now.getTime() + 2 * day),
-      stripeSubscriptionId: null,
     });
     await notifyGrantedProEnding(now);
     await notifyGrantedProEnding(new Date(now.getTime() + 3_600_000));
@@ -54,29 +54,28 @@ describe("fin d'un Pro offert : propriétaire prévenu 3 jours avant (RG-SUB-03)
     ).toBe(1);
   });
 
-  it("abonnement payé par Stripe, Pro qui ne finit pas bientôt, ou Free : rien", async () => {
+  it("abonnement payé par Mollie, Pro qui ne finit pas bientôt, ou Free : rien", async () => {
     const now = new Date();
-    const stripe = await orgWith({
+    const mollie = await orgWith({
       planId: "pro",
       status: "ACTIVE",
-      currentPeriodEnd: new Date(now.getTime() + 2 * day),
-      stripeSubscriptionId: `sub_${rid()}`,
+      currentPeriodEnd: new Date(now.getTime() + 2 * day), // renouvelé par prélèvement à l'échéance
+      billingProvider: "MOLLIE",
+      mollieMandateId: `mdt_${rid()}`,
     });
     const later = await orgWith({
       planId: "pro",
       status: "ACTIVE",
       currentPeriodEnd: new Date(now.getTime() + 20 * day),
-      stripeSubscriptionId: null,
     });
     const ended = await orgWith({
       planId: "pro",
       status: "ACTIVE",
       currentPeriodEnd: new Date(now.getTime() - day),
-      stripeSubscriptionId: null,
     });
     await notifyGrantedProEnding(now);
     expect([
-      await notified(stripe),
+      await notified(mollie),
       await notified(later),
       await notified(ended),
     ]).toEqual([0, 0, 0]);

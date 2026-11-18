@@ -8,6 +8,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { SettingsRow } from "@/components/ui/Controls";
 import { db } from "@/lib/db";
 import { LAUNCH_COUNTRIES } from "@/lib/countries";
+import { MOLLIE_TONE, mollieState } from "@/lib/mollieState";
 import { canonicalOrgUrl } from "@/server/canonical";
 import { requireOrgContext } from "@/server/context";
 import { deletionBlockers, hasSales } from "@/server/organization";
@@ -31,6 +32,7 @@ export default async function SettingsPage({
   const ctx = await requireOrgContext(orgSlug);
   const t = await getTranslations("settings");
   const ts = await getTranslations("orgSettings");
+  const tm = await getTranslations("mollie");
   const locale = (await getLocale()) as Locale;
   const [org, locked, currencies, url] = await Promise.all([
     db.organization.findUniqueOrThrow({ where: { id: ctx.organization.id } }),
@@ -48,12 +50,7 @@ export default async function SettingsPage({
   ]);
   const owner = canOwnerOnly(ctx.membership, "ORGANIZATION_DELETE");
   const blockers = owner ? await deletionBlockers(org.id) : [];
-  const stripeTone =
-    ctx.stripe?.status === "ACTIVE"
-      ? "success"
-      : ctx.stripe
-        ? "warning"
-        : "neutral";
+  const payments = mollieState(ctx.mollie);
   // Avancé : supprimer l'organisation (le propriétaire seulement)
   // refonte A3 (maquette « Réglages de l'événement ») : des rangées, le titre et l'explication à gauche
   if (tab === "advanced")
@@ -114,8 +111,8 @@ export default async function SettingsPage({
         </SettingsRow>
         <SettingsRow title={t("payments")} description={t("paymentsSummary")}>
           <div className="flex flex-wrap items-center gap-3">
-            <Badge tone={stripeTone} dot>
-              {t(`stripeStatus_${ctx.stripe?.status ?? "NONE"}`)}
+            <Badge tone={MOLLIE_TONE[payments]} dot>
+              {tm(`status_${payments}`)}
             </Badge>
             <ButtonLink
               href={`/o/${orgSlug}/settings/payments`}

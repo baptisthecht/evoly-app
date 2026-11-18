@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
 import {
   blockBuyer,
@@ -7,78 +7,80 @@ import {
   listBlockedBuyers,
   unblockBuyer,
 } from "@/server/blockedBuyers";
-import {
-  confirmOrderPayment,
-  finalizeOrder,
-  reserveOrder,
-  submitBuyer,
-} from "@/server/checkout";
+import { reserveOrder, submitBuyer } from "@/server/checkout";
 import { findOrgContext, type OrgContext } from "@/server/context";
-import { completeOrder } from "@/server/orders";
+import { saveMollieAuthorization } from "@/server/mollieAccounts";
+import { syncPaymentFromMollie } from "@/server/molliePayments";
 import { createListing, reserveResale } from "@/server/resale";
 import { joinWaitlist } from "@/server/waitlist";
 
-// personnes bloquées (lot « bloquer une personne ») : adresse et carte refusées avant le débit, nom en simple alerte,
-// liste propre à chaque organisation, revente et liste d'attente comprises, déblocage
-const fake = vi.hoisted(() => ({
-  fingerprint: null as string | null,
-  chargeFingerprint: null as string | null,
-  confirmed: [] as string[],
-  cancelled: [] as string[],
-  refunds: [] as Array<Record<string, unknown>>,
-}));
-vi.mock("@/lib/stripe", () => ({
-  stripe: () => ({
-    paymentIntents: {
-      create: async () => {
-        const id = `pi_${Math.random().toString(36).slice(2, 12)}`;
-        return {
-          id,
-          client_secret: `cs_${id}`,
-          status: "requires_payment_method",
-        };
-      },
-      retrieve: async (id: string) => ({
-        id,
-        client_secret: `cs_${id}`,
-        status: "requires_payment_method",
-      }),
-      confirm: async (id: string) => {
-        fake.confirmed.push(id);
-        return { id, client_secret: `cs_${id}`, status: "succeeded" };
-      },
-      cancel: async (id: string) => {
-        fake.cancelled.push(id);
-        return { id, status: "canceled" };
-      },
-    },
-    confirmationTokens: {
-      retrieve: async (id: string) => ({
-        id,
-        payment_method_preview: fake.fingerprint
-          ? { type: "card", card: { fingerprint: fake.fingerprint } }
-          : { type: "bancontact" },
-      }),
-    },
-    charges: {
-      retrieve: async (id: string) => ({
-        id,
-        payment_method_details: fake.chargeFingerprint
-          ? { type: "card", card: { fingerprint: fake.chargeFingerprint } }
-          : { type: "bancontact" },
-        balance_transaction: null,
-      }),
-    },
-    refunds: {
-      create: async (p: Record<string, unknown>) => {
-        fake.refunds.push(p);
-        return { id: `re_${fake.refunds.length}`, status: "succeeded" };
-      },
-    },
-  }),
-}));
+// personnes bloquées (lot « bloquer une personne ») : adresse refusée avant le paiement, carte reconnue au paiement et
+// remboursée, nom en simple alerte, liste propre à chaque organisation, revente et liste d'attente comprises, déblocage
 
 const rid = () => Math.random().toString(36).slice(2, 10);
+
+/**
+ * Mollie simulé : chaque paiement créé est payé avec la carte choisie par le test (empreinte rendue par Mollie quand le
+ * paiement est relu) ; chaque remboursement demandé est capturé.
+ */
+const fake = {
+  card: null as string | null,
+  payments: new Map<string, unknown>(),
+  refunds: [] as Array<Record<string, unknown>>,
+};
+beforeEach(() => {
+  fake.card = null;
+  fake.payments.clear();
+  fake.refunds = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: string | URL, init: RequestInit = {}) => {
+      const { pathname } = new URL(String(input));
+      const sent =
+        typeof init.body === "string"
+          ? (JSON.parse(init.body) as Record<string, unknown>)
+          : {};
+      const reply = (body: unknown, status = 200) =>
+        new Response(JSON.stringify(body), { status });
+      if (init.method === "POST" && pathname === "/v2/payments") {
+        const id = `tr_${rid()}`;
+        fake.payments.set(id, sent.amount);
+        return reply(
+          {
+            id,
+            status: "open",
+            amount: sent.amount,
+            _links: {
+              checkout: { href: `https://www.mollie.com/checkout/${id}` },
+            },
+          },
+          201,
+        );
+      }
+      const refund = /^\/v2\/payments\/(\w+)\/refunds$/.exec(pathname);
+      if (init.method === "POST" && refund) {
+        fake.refunds.push({ paymentId: refund[1], ...sent });
+        return reply(
+          { id: `re_${rid()}`, status: "pending", amount: sent.amount },
+          201,
+        );
+      }
+      const payment = /^\/v2\/payments\/(\w+)$/.exec(pathname);
+      if (payment && fake.payments.has(payment[1]!))
+        return reply({
+          id: payment[1],
+          status: "paid",
+          amount: fake.payments.get(payment[1]!),
+          method: "creditcard",
+          details: fake.card ? { cardFingerprint: fake.card } : null,
+          _links: {},
+        });
+      return reply({ status: 404, title: "Not Found", detail: pathname }, 404);
+    }),
+  );
+});
+afterEach(() => vi.unstubAllGlobals());
+
 const ret = "https://club.evoly.me/mes-billets";
 const buyer = (email: string, firstName = "Léa", lastName = "Martin") => ({
   firstName,
@@ -87,7 +89,7 @@ const buyer = (email: string, firstName = "Léa", lastName = "Martin") => ({
   marketingOptIn: false,
 });
 
-/** Une organisation (propriétaire connecté), un événement publié, un tarif ; payant avec un compte Stripe actif. */
+/** Une organisation (propriétaire connecté), un événement publié, un tarif ; payant avec un compte Mollie prêt. */
 async function setup(priceMinor = 0, quantity = 100) {
   const id = rid();
   const owner = await db.user.create({
@@ -123,19 +125,30 @@ async function setup(priceMinor = 0, quantity = 100) {
     ...(await findOrgContext(owner.id, org.slug))!,
     user: { id: owner.id, name: "Camille", email: owner.email },
   };
-  if (priceMinor > 0)
-    await db.stripeAccount.create({
+  if (priceMinor > 0) {
+    const account = await saveMollieAuthorization({
+      organizationId: org.id,
+      mollieOrganizationId: `org_${id}`,
+      tokens: {
+        access_token: "access_mollie",
+        refresh_token: "refresh_mollie",
+        expires_in: 3600,
+        token_type: "bearer",
+        scope: "payments.read payments.write refunds.read refunds.write",
+      },
+      testmode: false,
+    });
+    await db.mollieAccount.update({
+      where: { id: account.id },
       data: {
-        organizationId: org.id,
-        stripeAccountId: `acct_${id}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-        payoutsEnabled: true,
-        detailsSubmitted: true,
+        profileId: `pfl_${id}`,
+        profileStatus: "verified",
+        methods: ["bancontact", "creditcard"],
+        onboardingStatus: "COMPLETED",
+        canReceivePayments: true,
       },
     });
+  }
   const event = await db.event.create({
     data: {
       organizationId: org.id,
@@ -175,13 +188,12 @@ const held = async (ticketTypeId: string) =>
   (await db.ticketType.findUniqueOrThrow({ where: { id: ticketTypeId } }))
     .quantityHeld;
 
-beforeEach(() => {
-  fake.fingerprint = null;
-  fake.chargeFingerprint = null;
-  fake.confirmed = [];
-  fake.cancelled = [];
-  fake.refunds = [];
-});
+/** Commande payante : coordonnées, puis départ vers la page de paiement de Mollie. */
+const startPayment = async (token: string, who: ReturnType<typeof buyer>) => {
+  expect(
+    await submitBuyer(token, who, undefined, { returnUrl: ret }),
+  ).toMatchObject({ kind: "REDIRECT" });
+};
 
 describe("adresse bloquée (RG-BLK-01, RG-BLK-04)", () => {
   it("bloquée malgré ses variantes (casse, points Gmail, suffixe « + ») : message neutre, réservation libérée", async () => {
@@ -229,25 +241,23 @@ describe("adresse bloquée (RG-BLK-01, RG-BLK-04)", () => {
 });
 
 describe("carte bloquée (RG-BLK-02)", () => {
-  it("refusée avant le débit, même avec une autre adresse : paiement annulé, places libérées", async () => {
+  it("carte reprise de sa commande ; reconnue au paiement suivant, même avec une autre adresse : remboursée en entier chez Mollie, places libérées, aucun billet ; une autre carte passe", async () => {
     const s = await setup(1500);
-    // première commande de la personne, payée avec sa carte
-    fake.fingerprint = "fp_carte_mauvaise";
+    // première commande de la personne, payée avec sa carte (empreinte donnée par Mollie au paiement)
     const first = await reserve(s.event.id, s.ticketTypeId);
-    await submitBuyer(first.token, buyer("mauvais@exemple.be", "Marc", "Noir"));
-    expect(
-      await confirmOrderPayment(first.token, "ctoken_premier1", ret),
-    ).toEqual({ kind: "DONE" });
+    await startPayment(
+      first.token,
+      buyer("mauvais@exemple.be", "Marc", "Noir"),
+    );
+    fake.card = "fp_carte_mauvaise";
+    expect(await syncPaymentFromMollie(first.orderId)).toBe("paid");
     const paid = await db.order.findUniqueOrThrow({
       where: { id: first.orderId },
     });
-    expect(
-      await finalizeOrder(paid.id, {
-        paymentIntentId: paid.stripePaymentIntentId!,
-        amountMinor: paid.totalMinor,
-        currency: "EUR",
-      }),
-    ).toBe("PAID");
+    expect(paid).toMatchObject({
+      status: "PAID",
+      cardFingerprint: "fp_carte_mauvaise",
+    });
     // « Bloquer cet acheteur » depuis sa commande : adresse, nom et carte repris
     expect(await blockPreview(s.ctx, paid.id)).toMatchObject({
       email: "mauvais@exemple.be",
@@ -265,82 +275,41 @@ describe("carte bloquée (RG-BLK-02)", () => {
       }),
     ).toMatchObject({ cards: 1 });
     expect((await blockPreview(s.ctx, paid.id)).alreadyBlocked).toBe(true);
-    // nouvelle tentative, autre adresse et autre nom, même carte
+    // nouvelle tentative, autre adresse et autre nom, même carte : l'empreinte n'est connue qu'après le paiement
     const again = await reserve(s.event.id, s.ticketTypeId);
-    await submitBuyer(again.token, buyer("autre.adresse@exemple.be"));
-    const intent = (
-      await db.order.findUniqueOrThrow({ where: { id: again.orderId } })
-    ).stripePaymentIntentId!;
-    await expect(
-      confirmOrderPayment(again.token, "ctoken_second22", ret),
-    ).rejects.toMatchObject({ code: "BUYER_BLOCKED" });
-    expect(fake.confirmed).toHaveLength(1); // rien n'a été débité la seconde fois
-    expect(fake.cancelled).toContain(intent);
-    expect(
-      (await db.order.findUniqueOrThrow({ where: { id: again.orderId } }))
-        .status,
-    ).toBe("CANCELLED");
-    expect(await held(s.ticketTypeId)).toBe(0);
-  });
-
-  it("filet de sécurité : un paiement confirmé sans la vérification est remboursé en entier, aucun billet émis", async () => {
-    const s = await setup(1500);
-    await db.blockedBuyer.create({
-      data: {
-        organizationId: s.org.id,
-        email: "vol@exemple.be",
-        emailKey: "vol@exemple.be",
-        cards: {
-          create: { organizationId: s.org.id, fingerprint: "fp_carte_volee" },
-        },
-      },
+    await startPayment(again.token, buyer("autre.adresse@exemple.be"));
+    await syncPaymentFromMollie(again.orderId);
+    const refused = await db.order.findUniqueOrThrow({
+      where: { id: again.orderId },
     });
-    const r = await reserve(s.event.id, s.ticketTypeId);
-    await submitBuyer(r.token, buyer("propre@exemple.be"));
-    const order = await db.order.findUniqueOrThrow({
-      where: { id: r.orderId },
-    });
-    fake.chargeFingerprint = "fp_carte_volee";
-    expect(
-      await completeOrder(order.id, {
-        paymentIntentId: order.stripePaymentIntentId!,
-        amountMinor: order.totalMinor,
-        currency: "eur",
-        chargeId: `ch_${s.id}`,
-        paymentMethodType: "card",
-      }),
-    ).toBe("IGNORED");
     expect(fake.refunds).toEqual([
       expect.objectContaining({
-        payment_intent: order.stripePaymentIntentId,
-        refund_application_fee: true,
+        paymentId: refused.molliePaymentId,
+        amount: { currency: "EUR", value: "15.00" },
+        metadata: { orderId: again.orderId, cause: "blocked" },
       }),
     ]);
-    expect(
-      await db.order.findUniqueOrThrow({ where: { id: order.id } }),
-    ).toMatchObject({
+    expect(refused).toMatchObject({
       status: "REFUNDED",
-      refundedMinor: order.totalMinor,
-      cardFingerprint: "fp_carte_volee",
+      refundedMinor: 1500,
+      cardFingerprint: "fp_carte_mauvaise",
     });
-    expect(await db.ticket.count({ where: { orderId: order.id } })).toBe(0);
+    expect(await db.ticket.count({ where: { orderId: again.orderId } })).toBe(
+      0,
+    );
     expect(await held(s.ticketTypeId)).toBe(0);
-    // carte propre : la commande est validée normalement
+    // une autre carte : la commande est validée normalement
     const ok = await reserve(s.event.id, s.ticketTypeId);
-    await submitBuyer(ok.token, buyer("propre@exemple.be"));
-    const okOrder = await db.order.findUniqueOrThrow({
-      where: { id: ok.orderId },
-    });
-    fake.chargeFingerprint = "fp_carte_propre";
+    await startPayment(ok.token, buyer("autre.adresse@exemple.be"));
+    fake.card = "fp_carte_propre";
+    await syncPaymentFromMollie(ok.orderId);
     expect(
-      await completeOrder(okOrder.id, {
-        paymentIntentId: okOrder.stripePaymentIntentId!,
-        amountMinor: okOrder.totalMinor,
-        currency: "eur",
-        chargeId: `ch_ok_${s.id}`,
-        paymentMethodType: "card",
-      }),
+      (await db.order.findUniqueOrThrow({ where: { id: ok.orderId } })).status,
     ).toBe("PAID");
+    expect(fake.refunds).toHaveLength(1);
+    expect(
+      await db.ticketType.findUniqueOrThrow({ where: { id: s.ticketTypeId } }),
+    ).toMatchObject({ quantitySold: 2, quantityHeld: 0 });
   });
 });
 

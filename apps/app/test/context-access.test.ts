@@ -40,7 +40,6 @@ async function org(
           planId: pro ? "pro" : "free",
           status: pro ? "ACTIVE" : "NONE",
           currency: "EUR",
-          stripeSubscriptionId: pro ? `sub_${id}` : null,
         },
       },
     },
@@ -162,29 +161,57 @@ describe("accès à une organisation (RG-ARC-07, RG-SUB-08)", () => {
     ).toBeNull();
   });
 
-  it("compte Stripe : état transmis, exigences en attente listées ; sans compte, rien", async () => {
+  it("compte Mollie : état transmis, inscription à compléter et son lien ; prêt une fois vérifié ; déconnecté : signalé ; sans compte, rien", async () => {
     const o = await org({ plan: "pro" });
     const own = await user();
     await join(o.id, own.id, "OWNER");
-    expect((await findOrgContext(own.id, o.slug))!.stripe).toBeNull();
-    await db.stripeAccount.create({
+    expect((await findOrgContext(own.id, o.slug))!.mollie).toBeNull();
+    const onboardingUrl = "https://my.mollie.com/dashboard/onboarding";
+    await db.mollieAccount.create({
       data: {
         organizationId: o.id,
-        stripeAccountId: `acct_${rid()}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "RESTRICTED",
-        chargesEnabled: false,
-        payoutsEnabled: false,
-        detailsSubmitted: true,
-        requirementsDue: ["individual.id_number"],
+        mollieOrganizationId: `org_${rid()}`,
+        refreshToken: "jeton-chiffre",
+        profileId: `pfl_${rid()}`,
+        profileStatus: "unverified",
+        methods: ["bancontact", "creditcard"],
+        onboardingStatus: "NEEDS_DATA",
+        onboardingUrl,
       },
     });
-    expect((await findOrgContext(own.id, o.slug))!.stripe).toEqual({
-      status: "RESTRICTED",
-      chargesEnabled: false,
-      payoutsEnabled: false,
-      requirementsDue: ["individual.id_number"],
+    expect((await findOrgContext(own.id, o.slug))!.mollie).toEqual({
+      ready: false,
+      disconnected: false,
+      onboardingStatus: "NEEDS_DATA",
+      canReceivePayments: false,
+      canReceiveSettlements: false,
+      profileStatus: "unverified",
+      methods: ["bancontact", "creditcard"],
+      onboardingUrl,
+      testmode: false,
+    });
+    await db.mollieAccount.update({
+      where: { organizationId: o.id },
+      data: {
+        onboardingStatus: "COMPLETED",
+        canReceivePayments: true,
+        canReceiveSettlements: true,
+        profileStatus: "verified",
+      },
+    });
+    expect((await findOrgContext(own.id, o.slug))!.mollie).toMatchObject({
+      ready: true,
+      disconnected: false,
+      onboardingStatus: "COMPLETED",
+    });
+    // autorisation retirée chez Mollie : à relier, plus prêt
+    await db.mollieAccount.update({
+      where: { organizationId: o.id },
+      data: { disconnectedAt: new Date() },
+    });
+    expect((await findOrgContext(own.id, o.slug))!.mollie).toMatchObject({
+      ready: false,
+      disconnected: true,
     });
   });
 });

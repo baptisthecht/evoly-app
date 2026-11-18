@@ -139,7 +139,7 @@ describe("back-office Evoly (section 9.24)", () => {
     ).resolves.toBeTruthy();
   });
 
-  it("essai prolongé, offre attribuée jusqu'à une date, refus si l'abonnement est géré par Stripe", async () => {
+  it("essai prolongé, offre attribuée jusqu'à une date, refus si l'abonnement est payé par Mollie", async () => {
     const s = await setup();
     await extendTrial(s.st, s.org.id, 10);
     const first = (await sub(s.org.id))!;
@@ -158,10 +158,15 @@ describe("back-office Evoly (section 9.24)", () => {
     );
     await db.subscription.update({
       where: { organizationId: s.org.id },
-      data: { stripeSubscriptionId: `sub_${s.id}`, status: "ACTIVE" },
+      data: {
+        status: "ACTIVE",
+        billingProvider: "MOLLIE",
+        mollieCustomerId: `cst_${s.id}`,
+        mollieMandateId: `mdt_${s.id}`,
+      },
     });
     await expect(assignPlan(s.st, s.org.id, "free", null)).rejects.toThrow(
-      "PLAN_MANAGED_BY_STRIPE",
+      "PLAN_MANAGED_BY_MOLLIE",
     );
   });
 

@@ -28,11 +28,7 @@ export function FeePreview({
       </p>
     );
   const commission = ticketCommission(minor, terms);
-  const bank = estimateBankFee(
-    minor,
-    "card_eea_standard",
-    terms.bankFeeProvider,
-  );
+  const bank = estimateBankFee(minor, "card_eea_standard");
   const f = (v: number) => formatMoney(v, terms.currency, locale);
   return (
     <div

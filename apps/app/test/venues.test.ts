@@ -256,7 +256,7 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     ).toBe(0); // vente en espèces, sans commission
   });
 
-  it("versements : sous le seuil, reporté ; sans compte Stripe, gardé ; puis versé au bon montant ; « Verser maintenant » dès 1 €, une fois par jour ; seuil réglé par le lieu", async () => {
+  it("versements : sous le seuil, reporté ; en pause tant qu'aucun moyen de versement n'est branché, solde gardé ; branché, versé au bon montant ; « Verser maintenant » dès 1 €, une fois par jour ; seuil réglé par le lieu", async () => {
     const { lieu, orga, v } = await lieuEtOrganisateur();
     const ev = await evenement(orga.ctx, true, "100");
     await acheter(ev, 10);
@@ -264,21 +264,21 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     expect(solde).toBeGreaterThan(0);
     expect(solde).toBeLessThan(2000); // sous le seuil de 20 €
     const virements: Array<{
+      organizationId: string;
       amount: number;
       currency: string;
-      destination: string;
     }> = [];
     const transfer = async (p: {
+      organizationId: string;
       amount: number;
       currency: string;
-      destination: string;
       idempotencyKey: string;
-    }) => (virements.push(p), { id: `tr_${rid()}` });
-    const pour = async () =>
-      (await monthlyVenuePayouts(new Date(), transfer)).results.find(
+    }) => (virements.push(p), { id: `vir_${rid()}` });
+    const pour = async (versement?: typeof transfer) =>
+      (await monthlyVenuePayouts(new Date(), versement)).results.find(
         (r) => r.id === v.id,
       )!;
-    expect((await pour()).status).toBe("CARRIED_OVER");
+    expect((await pour(transfer)).status).toBe("CARRIED_OVER");
     await expect(
       setVenueThreshold(lieu.ctx, { enabled: true, amount: "0,5" }),
     ).rejects.toMatchObject({ code: "VENUE_THRESHOLD_INVALID" });
@@ -287,23 +287,28 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
         .thresholdMinor,
     ).toBe(3500);
     await setVenueThreshold(lieu.ctx, { enabled: false, amount: "" });
-    expect((await pour()).status).toBe("NO_STRIPE");
-    expect(await venueBalance(v.id)).toBe(solde);
-    const acct = `acct_${rid()}`;
-    await db.stripeAccount.create({
-      data: {
-        organizationId: lieu.org.id,
-        stripeAccountId: acct,
-        country: "BE",
-        defaultCurrency: "EUR",
-      },
+    // reversements en pause (décision du 18 novembre 2026) : rien n'est versé, le solde reste dû au lieu
+    expect(await pour()).toEqual({
+      id: v.id,
+      status: "PAUSED",
+      balanceMinor: solde,
     });
-    expect(await pour()).toMatchObject({ status: "PAID", balanceMinor: solde });
-    expect(virements.filter((t) => t.destination === acct)).toEqual([
+    await expect(payVenueNow(lieu.ctx)).rejects.toMatchObject({
+      code: "VENUE_PAYOUTS_PAUSED",
+    });
+    expect(await venueBalance(v.id)).toBe(solde);
+    expect(
+      await db.venuePayout.count({ where: { venuePartnerId: v.id } }),
+    ).toBe(0);
+    expect(await pour(transfer)).toMatchObject({
+      status: "PAID",
+      balanceMinor: solde,
+    });
+    expect(virements.filter((t) => t.organizationId === lieu.org.id)).toEqual([
       expect.objectContaining({
+        organizationId: lieu.org.id,
         amount: solde,
         currency: "eur",
-        destination: acct,
       }),
     ]);
     expect(await venueBalance(v.id)).toBe(0);
@@ -353,15 +358,7 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
     const ev = await evenement(orga.ctx, true, "100");
     await acheter(ev, 10);
     await setVenueThreshold(lieu.ctx, { enabled: false, amount: "" });
-    await db.stripeAccount.create({
-      data: {
-        organizationId: lieu.org.id,
-        stripeAccountId: `acct_${rid()}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-      },
-    });
-    const transfer = async () => ({ id: `tr_${rid()}` });
+    const transfer = async () => ({ id: `vir_${rid()}` });
     const releves = () =>
       db.emailMessage.count({
         where: { organizationId: lieu.org.id, template: "venue.payout" },
@@ -417,19 +414,11 @@ describe("lieux partenaires (section 9.32, décisions du 19 octobre 2026)", () =
       country: "BE",
     });
     await setVenueThreshold(lieu.ctx, { enabled: false, amount: "" });
-    await db.stripeAccount.create({
-      data: {
-        organizationId: lieu.org.id,
-        stripeAccountId: `acct_${rid()}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-      },
-    });
     const orga = await organisation("Orga");
     await attachVenueReferral(orga.org.id, v.code);
     const ev = await evenement(orga.ctx, true, "100");
     await acheter(ev, 10);
-    const transfer = async () => ({ id: `tr_${rid()}` });
+    const transfer = async () => ({ id: `vir_${rid()}` });
     const run = async () =>
       (await monthlyVenuePayouts(new Date(), transfer)).results.find(
         (r) => r.id === v.id,

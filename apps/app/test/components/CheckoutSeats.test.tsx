@@ -23,17 +23,6 @@ const completed = vi.hoisted(() => vi.fn());
 vi.mock("@/components/public/embedEvents", () => ({
   notifyOrderCompleted: completed,
 }));
-vi.mock("@/components/public/StripePayment", () => ({
-  StripePayment: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
-  PaymentFields: () => null,
-  PayButton: ({ label, onPay }: { label: string; onPay: () => void }) => (
-    <button type="button" onClick={onPay}>
-      {label}
-    </button>
-  ),
-}));
 
 const reservation = (over: Partial<ReservationView> = {}): ReservationView => ({
   options: [],
@@ -56,7 +45,6 @@ const reservation = (over: Partial<ReservationView> = {}): ReservationView => ({
       nominative: false,
     },
   ],
-  stripeAccountId: null,
   questions: { order: [], perLine: {} },
   ...over,
 });
@@ -65,7 +53,6 @@ const draw = (
   r: ReservationView,
   props: Partial<{
     requirePhone: boolean;
-    publishableKey: string | null;
     onCancel: () => void;
   }> = {},
 ) =>
@@ -75,7 +62,6 @@ const draw = (
         reservation={r}
         organizationName="Club test"
         requirePhone={props.requirePhone ?? false}
-        publishableKey={props.publishableKey ?? null}
         onCancel={props.onCancel ?? vi.fn()}
       />
     </Fr>,
@@ -163,7 +149,6 @@ const drawSeats = (allowChoice: boolean) =>
         reservation={seated()}
         organizationName="Club test"
         requirePhone={false}
-        publishableKey={null}
         onCancel={vi.fn()}
         {...({
           seatMap: seatMap(allowChoice),

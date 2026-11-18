@@ -11,8 +11,6 @@ vi.mock("next/headers", () => ({
   }),
   headers: async () => new Headers(),
 }));
-// Stripe absent : seul Mollie encaisse et rembourse (docs/MOLLIE.md)
-vi.mock("@/lib/stripe", () => ({ stripe: () => null }));
 
 const { db } = await import("@/lib/db");
 const { finalizeOrder, reserveOrder, submitBuyer } =
@@ -241,6 +239,78 @@ describe("remboursements par Mollie (docs/MOLLIE.md, lot 4)", () => {
     ).toBe("SUCCEEDED");
   });
 
+  it("état relu par le webhook : en file d'attente chez Mollie, toujours en cours ; échoué, avec sa raison ; remboursement fait directement chez Mollie ignoré (RG-REF-03)", async () => {
+    const s = await setup();
+    const created = (id: string) => ({
+      method: "POST",
+      path: `/v2/payments/${s.molliePaymentId}/refunds`,
+      status: 201,
+      body: {
+        id,
+        status: "pending",
+        amount: { currency: "EUR", value: "20.00" },
+      },
+    });
+    mollie(created(`re_file_${s.id}`), created(`re_echec_${s.id}`));
+    for (const t of s.tickets)
+      expect(await refundTickets(s.ctx, s.orderId, [t.id], "OTHER", null)).toBe(
+        "PROCESSING",
+      );
+    vi.unstubAllGlobals();
+    const relu = (id: string, status: string, value = "20.00") => ({
+      id,
+      status,
+      amount: { currency: "EUR", value },
+    });
+    mollie(
+      {
+        method: "GET",
+        path: `/v2/payments/${s.molliePaymentId}`,
+        body: {
+          id: s.molliePaymentId,
+          status: "paid",
+          amount: { currency: "EUR", value: "40.00" },
+          _links: {},
+        },
+      },
+      {
+        method: "GET",
+        path: `/v2/payments/${s.molliePaymentId}/refunds`,
+        body: {
+          count: 3,
+          _embedded: {
+            refunds: [
+              relu(`re_file_${s.id}`, "queued"),
+              relu(`re_echec_${s.id}`, "failed"),
+              relu(`re_direct_${s.id}`, "refunded", "5.00"),
+            ],
+          },
+          _links: { next: null },
+        },
+      },
+    );
+    await syncPaymentFromMollie(s.orderId);
+    // le remboursement fait directement chez Mollie, inconnu d'Evoly, n'est pas repris
+    expect(
+      await db.refund.findMany({
+        where: { orderId: s.orderId },
+        select: { mollieRefundId: true, status: true, failureReason: true },
+        orderBy: { mollieRefundId: "asc" },
+      }),
+    ).toEqual([
+      {
+        mollieRefundId: `re_echec_${s.id}`,
+        status: "FAILED",
+        failureReason: "échec Mollie",
+      },
+      {
+        mollieRefundId: `re_file_${s.id}`,
+        status: "PROCESSING",
+        failureReason: null,
+      },
+    ]);
+  });
+
   it("Mollie refuse le remboursement : échec enregistré, relançable par l'organisateur", async () => {
     const s = await setup();
     mollie({
@@ -333,8 +403,7 @@ describe("remboursements par Mollie (docs/MOLLIE.md, lot 4)", () => {
           terms: Parameters<typeof resaleAmounts>[1];
         }
       ).terms,
-      estimateBankFee(2000, "card_eea_standard", "MOLLIE") +
-        MOLLIE_REFUND_FEE_MINOR,
+      estimateBankFee(2000, "card_eea_standard") + MOLLIE_REFUND_FEE_MINOR,
     ).sellerRefundMinor;
     const value = `${Math.floor(expected / 100)}.${String(expected % 100).padStart(2, "0")}`;
     expect(JSON.parse(sellerRefund.body)).toMatchObject({

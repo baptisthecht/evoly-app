@@ -2,13 +2,11 @@ import "server-only";
 import { effectivePlan, humanCode } from "@evoly/core";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
 import { sendEmail } from "./email/send";
 
 export const REFERRAL_COOKIE = "evoly_ref";
 const REWARD_DAYS = 30;
-const REWARD_CREDIT_MINOR = 2900; // un mois de Pro
 
 const ownerOf = async (organizationId: string) =>
   (
@@ -84,7 +82,8 @@ export async function attachReferral(
 
 /**
  * Première vente payante de l'organisation parrainée : un mois de Pro au parrain (RG-PAR-01 : serveur uniquement,
- * une seule fois). Abonnement Stripe actif : crédit de 29 € sur la prochaine facture ; sinon 30 jours de Pro ajoutés.
+ * une seule fois) : abonnement payé par Mollie, le prochain prélèvement recule de 30 jours ; sinon 30 jours de Pro
+ * ajoutés.
  */
 export async function qualifyReferral(
   referredOrganizationId: string,
@@ -107,34 +106,8 @@ export async function qualifyReferral(
   if (r.referrerOrg.status !== "ACTIVE") return false;
   const sub = r.referrerOrg.subscription;
   let how = "PRO_DAYS";
-  // abonnement Stripe en cours : crédit sur la prochaine facture ; Stripe indisponible : récompense reportée à la vente
-  // suivante (jamais perdue, jamais donnée deux fois), sans toucher à l'abonnement géré par Stripe
-  if (
-    sub?.stripeSubscriptionId &&
-    ["ACTIVE", "TRIALING", "PAST_DUE"].includes(sub.status)
-  ) {
-    const s = stripe();
-    if (!s || !sub.stripeCustomerId) {
-      await db.referral.update({
-        where: { id: r.id },
-        data: { status: "SIGNED_UP", qualifiedAt: null },
-      });
-      console.error(
-        "parrainage : crédit Stripe impossible pour l'instant, récompense reportée",
-        r.id,
-      );
-      return false;
-    }
-    await s.customers.createBalanceTransaction(sub.stripeCustomerId, {
-      amount: -REWARD_CREDIT_MINOR,
-      currency: "eur",
-      description: `Parrainage Evoly : ${r.referredOrg?.name ?? "organisation parrainée"}`,
-    });
-    how = "STRIPE_CREDIT";
-  }
   // abonnement payé par Mollie (docs/MOLLIE.md, lot 6) : le prochain prélèvement recule d'un mois, l'abonnement continue
   if (
-    how === "PRO_DAYS" &&
     sub?.billingProvider === "MOLLIE" &&
     sub.mollieMandateId &&
     (sub.status === "ACTIVE" || sub.status === "PAST_DUE")
@@ -168,8 +141,7 @@ export async function qualifyReferral(
       !(
         sub?.planId === "pro" &&
         sub.status === "ACTIVE" &&
-        !sub.currentPeriodEnd &&
-        !sub.stripeSubscriptionId
+        !sub.currentPeriodEnd
       ) &&
       !(sub && effectivePlan(sub, now) === "partner")
     )
@@ -182,14 +154,11 @@ export async function qualifyReferral(
           currentPeriodEnd: until,
           cancelAtPeriodEnd: true,
         },
-        // ici, jamais un abonnement Stripe en cours (crédit ci-dessus) : un abonnement Stripe terminé reçoit aussi ses jours,
-        // gérés par Evoly (avant : rien n'était ajouté, mais le parrain recevait l'e-mail « un mois de Pro offert »)
         update: {
           planId: "pro",
           status: "CANCELED",
           currentPeriodEnd: until,
           cancelAtPeriodEnd: true,
-          stripeSubscriptionId: null,
         },
       });
   }
@@ -216,8 +185,8 @@ export async function qualifyReferral(
       category: "SERVICE",
       organizationId: r.referrerOrgId,
       subject: "Un mois de Pro offert grâce à votre parrainage",
-      text: `Bonne nouvelle : ${r.referredOrg?.name ?? "l'organisation que vous avez parrainée"} a réalisé sa première vente. ${how === "STRIPE_CREDIT" ? "Un crédit d'un mois de Pro est appliqué à votre prochaine facture." : "Votre organisation profite d'un mois de Pro supplémentaire."}\n\nMerci !\nEvoly`,
-      html: `<p>Bonne nouvelle : <strong>${(r.referredOrg?.name ?? "l'organisation que vous avez parrainée").replace(/</g, "&lt;")}</strong> a réalisé sa première vente.</p><p>${how === "STRIPE_CREDIT" ? "Un crédit d'un mois de Pro est appliqué à votre prochaine facture." : "Votre organisation profite d'un mois de Pro supplémentaire."}</p><p>Merci !<br>Evoly</p>`,
+      text: `Bonne nouvelle : ${r.referredOrg?.name ?? "l'organisation que vous avez parrainée"} a réalisé sa première vente. Votre organisation profite d'un mois de Pro supplémentaire.\n\nMerci !\nEvoly`,
+      html: `<p>Bonne nouvelle : <strong>${(r.referredOrg?.name ?? "l'organisation que vous avez parrainée").replace(/</g, "&lt;")}</strong> a réalisé sa première vente.</p><p>Votre organisation profite d'un mois de Pro supplémentaire.</p><p>Merci !<br>Evoly</p>`,
     }).catch(() => undefined);
   return true;
 }

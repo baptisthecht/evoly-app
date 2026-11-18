@@ -82,7 +82,7 @@ async function evenement(orgId: string, title: string) {
     include: { ticketTypes: true },
   });
 }
-/** Achat réel : panier avec options, puis confirmation du paiement par le même chemin qu'après Stripe. */
+/** Achat réel : panier avec options, puis validation par le même chemin qu'après un paiement Mollie. */
 async function achat(
   ev: { id: string; ticketTypes: { id: string }[] },
   options: { optionId: string; quantity: number }[],

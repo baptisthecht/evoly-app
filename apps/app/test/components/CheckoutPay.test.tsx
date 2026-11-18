@@ -14,7 +14,6 @@ import { Fr } from "./intl";
 
 const actions = vi.hoisted(() => ({
   submitBuyerAction: vi.fn(),
-  confirmPaymentAction: vi.fn(),
   cancelReservationAction: vi.fn(),
   changeSeatsAction: vi.fn(),
 }));
@@ -23,38 +22,13 @@ const completed = vi.hoisted(() => vi.fn());
 vi.mock("@/components/public/embedEvents", () => ({
   notifyOrderCompleted: completed,
 }));
-const stripe = vi.hoisted(() => ({
-  elements: { submit: vi.fn() },
-  client: { createConfirmationToken: vi.fn(), handleNextAction: vi.fn() },
-}));
-vi.mock("@/components/public/StripePayment", () => ({
-  StripePayment: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
-  PaymentFields: () => null,
-  PayButton: ({
-    label,
-    busy,
-    onPay,
-  }: {
-    label: string;
-    busy: boolean;
-    onPay: (s: unknown, e: unknown) => void;
-  }) => (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={() => onPay(stripe.client, stripe.elements)}
-    >
-      {label}
-    </button>
-  ),
-}));
 vi.mock("@/components/public/SeatMapPicker", () => ({
   SeatMapPicker: () => null,
 }));
 
 const c = (fr as unknown as Record<string, Record<string, string>>).checkout!;
+const molliePage = "https://www.mollie.com/checkout/select-method/abc";
+// organisateur dont le compte Mollie est prêt : paiement sur la page de Mollie
 const reservation: ReservationView = {
   options: [],
   token: "jeton",
@@ -76,32 +50,15 @@ const reservation: ReservationView = {
       nominative: false,
     },
   ],
-  stripeAccountId: "acct_club",
+  mollie: true,
   questions: { order: [], perLine: {} },
 };
 const assign = vi.fn();
 beforeEach(() => {
-  for (const f of [
-    ...Object.values(actions),
-    completed,
-    assign,
-    stripe.elements.submit,
-    stripe.client.createConfirmationToken,
-    stripe.client.handleNextAction,
-  ])
-    f.mockReset();
-  stripe.elements.submit.mockResolvedValue({});
-  stripe.client.createConfirmationToken.mockResolvedValue({
-    confirmationToken: { id: "ctoken_abc" },
-  });
-  stripe.client.handleNextAction.mockResolvedValue({});
-  actions.confirmPaymentAction.mockResolvedValue({
-    ok: true,
-    data: { kind: "DONE" },
-  });
+  for (const f of [...Object.values(actions), completed, assign]) f.mockReset();
   actions.submitBuyerAction.mockResolvedValue({
     ok: true,
-    data: { kind: "PAY", clientSecret: "pi_secret_123" },
+    data: { kind: "REDIRECT", url: molliePage },
   });
   vi.stubGlobal("location", {
     ...window.location,
@@ -111,14 +68,13 @@ beforeEach(() => {
   });
 });
 afterEach(() => vi.unstubAllGlobals());
-const draw = () =>
+const draw = (r: ReservationView = reservation) =>
   render(
     <Fr>
       <CheckoutPanel
-        reservation={reservation}
+        reservation={r}
         organizationName="Club"
         requirePhone={false}
-        publishableKey="pk_test_123"
         onCancel={vi.fn()}
       />
     </Fr>,
@@ -143,72 +99,54 @@ const fill = async () => {
 const payButton = () =>
   screen.getByRole("button", {
     name: (n) => n.startsWith(c.pay!.split("{")[0]!.trim()),
-  });
+  }) as HTMLButtonElement;
 const pay = async () => act(async () => void fireEvent.click(payButton()));
 
-describe("paiement par carte (RG-BUY-04 à 06)", () => {
-  it("réussi : carte vérifiée, coordonnées envoyées, paiement confirmé chez Stripe sans quitter la page, puis les billets", async () => {
+describe("paiement par Mollie (RG-BUY-04 à 06, docs/MOLLIE.md)", () => {
+  it("réussi : coordonnées envoyées, puis la page de paiement de Mollie ; la commande n'est annoncée terminée qu'au retour", async () => {
     draw();
+    expect(screen.getByText(c.mollieNotice!)).toBeTruthy();
     await fill();
     await pay();
-    await waitFor(() => expect(assign).toHaveBeenCalledWith("/billets/jeton"));
-    expect(stripe.elements.submit).toHaveBeenCalled();
+    await waitFor(() => expect(assign).toHaveBeenCalledWith(molliePage));
     expect(actions.submitBuyerAction).toHaveBeenCalledWith(
       "jeton",
-      expect.objectContaining({ email: "lea@exemple.be" }),
+      expect.objectContaining({
+        firstName: "Léa",
+        lastName: "Martin",
+        email: "lea@exemple.be",
+      }),
     );
-    const args = stripe.client.createConfirmationToken.mock.calls[0]![0] as {
-      params: {
-        return_url: string;
-        payment_method_data: {
-          billing_details: { name: string; email: string };
-        };
-      };
-    };
-    expect([
-      args.params.return_url,
-      args.params.payment_method_data.billing_details,
-    ]).toEqual([
-      "https://club.evoly.me/billets/jeton",
-      { name: "Léa Martin", email: "lea@exemple.be" },
-    ]);
-    // le serveur lit l'empreinte de la carte, puis confirme : rien n'est confirmé depuis le navigateur
-    expect(actions.confirmPaymentAction).toHaveBeenCalledWith(
-      "jeton",
-      "ctoken_abc",
-      "/billets/jeton",
-    );
-    expect(stripe.client.handleNextAction).not.toHaveBeenCalled();
-    expect(completed).toHaveBeenCalledWith(1, 2_500, "EUR");
+    // pas encore payée : la page des billets, au retour de Mollie, prévient la page d'origine (RG-EMB-07)
+    expect(completed).not.toHaveBeenCalled();
   });
 
-  it("carte incomplète : erreur affichée, aucune commande envoyée", async () => {
-    stripe.elements.submit.mockResolvedValue({
-      error: { message: "Le numéro de carte est incomplet." },
-    });
-    draw();
-    await fill();
-    await pay();
-    expect(
-      await screen.findByText("Le numéro de carte est incomplet."),
-    ).toBeTruthy();
-    expect(actions.submitBuyerAction).not.toHaveBeenCalled();
-  });
-
-  it("coordonnées refusées : expliqué, Stripe jamais sollicité", async () => {
+  it("commande entièrement couverte par une réduction : confirmée sans passer par Mollie, puis les billets", async () => {
     actions.submitBuyerAction.mockResolvedValue({
-      ok: false,
-      error: "INCONNUE",
+      ok: true,
+      data: { kind: "PAID" },
     });
-    draw();
+    draw({
+      ...reservation,
+      totalMinor: 0,
+      isFree: true,
+      discountMinor: 2_500,
+      promoCode: "OFFERT",
+    });
+    expect(screen.queryByText(c.mollieNotice!)).toBeNull();
     await fill();
-    await pay();
-    expect(await screen.findByText(c.error_UNKNOWN!)).toBeTruthy();
-    expect(stripe.client.createConfirmationToken).not.toHaveBeenCalled();
-    expect(assign).not.toHaveBeenCalled();
+    await act(
+      async () =>
+        void fireEvent.click(
+          screen.getByRole("button", { name: c.confirmFree }),
+        ),
+    );
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/billets/jeton"));
+    expect(assign).toHaveBeenCalledTimes(1); // jamais la page de Mollie
+    expect(completed).toHaveBeenCalledWith(1, 0, "EUR");
   });
 
-  it("commande entièrement couverte par une réduction : validée sans paiement", async () => {
+  it("déjà payée chez Mollie (paiement terminé entre-temps) : pas de second paiement, les billets", async () => {
     actions.submitBuyerAction.mockResolvedValue({
       ok: true,
       data: { kind: "PAID" },
@@ -217,111 +155,83 @@ describe("paiement par carte (RG-BUY-04 à 06)", () => {
     await fill();
     await pay();
     await waitFor(() => expect(assign).toHaveBeenCalledWith("/billets/jeton"));
-    expect(stripe.client.createConfirmationToken).not.toHaveBeenCalled();
+    expect(assign).toHaveBeenCalledTimes(1);
+    expect(completed).toHaveBeenCalledWith(1, 2_500, "EUR");
   });
 
-  it("paiement refusé par Stripe : le motif s'affiche, l'acheteur reste sur le panier", async () => {
-    actions.confirmPaymentAction.mockResolvedValue({
+  it("coordonnées refusées : le motif s'affiche, l'acheteur reste sur le panier et peut réessayer", async () => {
+    actions.submitBuyerAction.mockResolvedValue({
       ok: false,
-      error: "CARD_DECLINED",
+      error: "HOLD_EXPIRED",
     });
     draw();
     await fill();
     await pay();
-    expect(await screen.findByText(c.error_CARD_DECLINED!)).toBeTruthy();
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      c.error_HOLD_EXPIRED,
+    );
     expect(assign).not.toHaveBeenCalled();
-    expect((payButton() as HTMLButtonElement).disabled).toBe(false); // l'acheteur peut réessayer
+    expect(payButton().disabled).toBe(false);
+    expect(
+      (document.getElementById("buyer-email") as HTMLInputElement).value,
+    ).toBe("lea@exemple.be"); // formulaire toujours rempli (RG-BUY-06)
+    actions.submitBuyerAction.mockResolvedValue({
+      ok: true,
+      data: { kind: "REDIRECT", url: molliePage },
+    });
+    await pay();
+    await waitFor(() => expect(assign).toHaveBeenCalledWith(molliePage));
+  });
+
+  it("réponse inattendue ou refus inconnu : message générique, rien n'est ouvert", async () => {
+    actions.submitBuyerAction.mockResolvedValue({
+      ok: true,
+      data: { kind: "AUTRE" },
+    });
+    draw();
+    await fill();
+    await pay();
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      c.error_UNKNOWN,
+    );
+    expect(payButton().disabled).toBe(false);
+    actions.submitBuyerAction.mockResolvedValue({
+      ok: false,
+      error: "INCONNUE",
+    });
+    await pay();
+    await waitFor(() =>
+      expect(actions.submitBuyerAction).toHaveBeenCalledTimes(2),
+    );
+    expect(screen.getByRole("alert").textContent).toBe(c.error_UNKNOWN);
+    expect(assign).not.toHaveBeenCalled();
   });
 
   it("formulaire incomplet : le paiement ne démarre pas", async () => {
     draw();
     await pay();
-    expect(stripe.elements.submit).not.toHaveBeenCalled();
     expect(actions.submitBuyerAction).not.toHaveBeenCalled();
-  });
-
-  it("validation bancaire demandée (3D Secure) : présentée, puis les billets", async () => {
-    actions.confirmPaymentAction.mockResolvedValue({
-      ok: true,
-      data: { kind: "ACTION", clientSecret: "pi_secret_3ds" },
-    });
-    draw();
-    await fill();
-    await pay();
-    await waitFor(() => expect(assign).toHaveBeenCalledWith("/billets/jeton"));
-    expect(stripe.client.handleNextAction).toHaveBeenCalledWith({
-      clientSecret: "pi_secret_3ds",
-    });
-  });
-
-  it("carte mal saisie : signalée avant d'appeler le serveur", async () => {
-    stripe.client.createConfirmationToken.mockResolvedValue({
-      error: { message: "Numéro de carte incomplet." },
-    });
-    draw();
-    await fill();
-    await pay();
-    expect(await screen.findByText("Numéro de carte incomplet.")).toBeTruthy();
-    expect(actions.confirmPaymentAction).not.toHaveBeenCalled();
-    expect((payButton() as HTMLButtonElement).disabled).toBe(false);
-  });
-});
-
-describe("paiement par Mollie (docs/MOLLIE.md)", () => {
-  const drawMollie = () =>
-    render(
-      <Fr>
-        <CheckoutPanel
-          reservation={{ ...reservation, stripeAccountId: null, mollie: true }}
-          organizationName="Club"
-          requirePhone={false}
-          publishableKey="pk_test_123"
-          onCancel={vi.fn()}
-        />
-      </Fr>,
-    );
-
-  it("coordonnées envoyées, puis la page de paiement de Mollie ; ni formulaire ni appel de Stripe", async () => {
-    actions.submitBuyerAction.mockResolvedValue({
-      ok: true,
-      data: {
-        kind: "REDIRECT",
-        url: "https://www.mollie.com/checkout/select-method/abc",
-      },
-    });
-    drawMollie();
-    expect(screen.getByText(c.mollieNotice!)).toBeTruthy();
-    await fill();
-    await pay();
-    await waitFor(() =>
-      expect(assign).toHaveBeenCalledWith(
-        "https://www.mollie.com/checkout/select-method/abc",
-      ),
-    );
-    expect(actions.submitBuyerAction).toHaveBeenCalledWith(
-      "jeton",
-      expect.objectContaining({ email: "lea@exemple.be" }),
-    );
-    expect(stripe.elements.submit).not.toHaveBeenCalled();
-    expect(stripe.client.createConfirmationToken).not.toHaveBeenCalled();
-  });
-
-  it("coordonnées refusées : expliqué, l'acheteur reste sur la page ; déjà payée : les billets", async () => {
-    actions.submitBuyerAction.mockResolvedValue({
-      ok: false,
-      error: "HOLD_EXPIRED",
-    });
-    drawMollie();
-    await fill();
-    await pay();
-    expect(await screen.findByRole("alert")).toBeTruthy();
     expect(assign).not.toHaveBeenCalled();
-    expect((payButton() as HTMLButtonElement).disabled).toBe(false);
-    actions.submitBuyerAction.mockResolvedValue({
-      ok: true,
-      data: { kind: "PAID" },
-    });
+  });
+
+  it("pendant l'envoi : bouton inactif qui annonce le traitement, un second clic n'envoie rien", async () => {
+    let finish: (v: unknown) => void = () => undefined;
+    actions.submitBuyerAction.mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    draw();
+    await fill();
     await pay();
-    await waitFor(() => expect(assign).toHaveBeenCalledWith("/billets/jeton"));
+    const busy = screen.getByRole("button", { name: c.processing });
+    expect((busy as HTMLButtonElement).disabled).toBe(true);
+    await act(async () => void fireEvent.click(busy));
+    expect(actions.submitBuyerAction).toHaveBeenCalledTimes(1);
+    await act(
+      async () =>
+        void finish({ ok: true, data: { kind: "REDIRECT", url: molliePage } }),
+    );
+    await waitFor(() => expect(assign).toHaveBeenCalledWith(molliePage));
   });
 });

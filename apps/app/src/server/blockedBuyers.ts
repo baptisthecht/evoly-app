@@ -12,7 +12,7 @@ type Tx = Prisma.TransactionClient | typeof db;
  * Personnes bloquées par une organisation (lot « bloquer une personne »). Liste propre à chaque organisation, jamais
  * partagée : une personne bloquée par une organisation commande librement chez les autres.
  * RG-BLK-01 : adresse e-mail bloquée, comparée normalisée (buyerEmailKey : casse, points Gmail, suffixes « + »).
- * RG-BLK-02 : carte bloquée, par son empreinte (Stripe), refusée avant le débit.
+ * RG-BLK-02 : carte bloquée, reconnue par son empreinte (Mollie) au paiement : commande refusée, paiement remboursé.
  * RG-BLK-03 : prénom et nom identiques : la commande passe, signalée, et l'organisation est prévenue (homonymes).
  * RG-BLK-04 : l'acheteur bloqué lit un message neutre, sans motif (code BUYER_BLOCKED).
  * RG-BLK-05 : le blocage vaut aussi pour la revente et la liste d'attente.

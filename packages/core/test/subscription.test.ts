@@ -6,7 +6,6 @@ import {
   firstPeriodStart,
   nextRenewalAttempt,
   renewsWithMollie,
-  subscriptionStatusFromStripe,
   trialEligible,
   yearlySavings,
 } from "../src";
@@ -15,38 +14,17 @@ const SUB_DEFAULTS = {
   currentPeriodEnd: null,
   pastDueSince: null,
   trialEndsAt: null,
-  stripeSubscriptionId: "sub_stripe",
-}; // par défaut un abonnement Stripe
+};
 
 describe("abonnement Pro (section 3.5)", () => {
-  it("statuts Stripe", () => {
-    expect(subscriptionStatusFromStripe("trialing")).toBe("TRIALING");
-    expect(subscriptionStatusFromStripe("active")).toBe("ACTIVE");
-    expect(subscriptionStatusFromStripe("past_due")).toBe("PAST_DUE");
-    expect(subscriptionStatusFromStripe("unpaid")).toBe("UNPAID");
-    expect(subscriptionStatusFromStripe("incomplete")).toBe("INCOMPLETE");
-    expect(subscriptionStatusFromStripe("incomplete_expired")).toBe("CANCELED");
-    expect(subscriptionStatusFromStripe("canceled")).toBe("CANCELED");
-  });
   it("un seul essai par organisation (RG-SUB-02)", () => {
     expect(trialEligible(null)).toBe(true);
-    expect(
-      trialEligible({ trialEndsAt: null, stripeSubscriptionId: null }),
-    ).toBe(true);
-    expect(
-      trialEligible({ trialEndsAt: new Date(), stripeSubscriptionId: null }),
-    ).toBe(false);
-    expect(
-      trialEligible({ trialEndsAt: null, stripeSubscriptionId: "sub_1" }),
-    ).toBe(false);
+    expect(trialEligible({ trialEndsAt: null })).toBe(true);
+    expect(trialEligible({ trialEndsAt: new Date() })).toBe(false);
     // déjà abonné par Mollie (mandat), même résilié depuis : plus d'essai
-    expect(
-      trialEligible({
-        trialEndsAt: null,
-        stripeSubscriptionId: null,
-        mollieMandateId: "mdt_1",
-      }),
-    ).toBe(false);
+    expect(trialEligible({ trialEndsAt: null, mollieMandateId: "mdt_1" })).toBe(
+      false,
+    );
   });
 
   describe("abonnement payé par Mollie (docs/MOLLIE.md, lot 6)", () => {
@@ -118,7 +96,7 @@ describe("abonnement Pro (section 3.5)", () => {
       expect(renewsWithMollie(null)).toBe(false);
     });
 
-    it("première période payée : à la fin de l'essai, du Pro offert ou de l'ancien abonnement Stripe ; sinon tout de suite", () => {
+    it("première période payée : à la fin de l'essai ou du Pro offert ; sinon tout de suite", () => {
       const now = new Date("2026-11-18T12:00:00Z");
       const later = new Date("2026-11-25T12:00:00Z");
       const local = {
@@ -126,7 +104,6 @@ describe("abonnement Pro (section 3.5)", () => {
         currentPeriodEnd: null,
         pastDueSince: null,
         trialEndsAt: null,
-        stripeSubscriptionId: null,
       };
       expect(firstPeriodStart(null, now)).toEqual(now);
       // essai sans carte
@@ -165,30 +142,6 @@ describe("abonnement Pro (section 3.5)", () => {
           now,
         ),
       ).toEqual(later);
-      // ancien abonnement Stripe : à la fin de sa période ; impayé chez Stripe : tout de suite
-      expect(
-        firstPeriodStart(
-          {
-            ...local,
-            stripeSubscriptionId: "sub_1",
-            status: "ACTIVE",
-            currentPeriodEnd: later,
-          },
-          now,
-        ),
-      ).toEqual(later);
-      expect(
-        firstPeriodStart(
-          {
-            ...local,
-            stripeSubscriptionId: "sub_1",
-            status: "PAST_DUE",
-            pastDueSince: now,
-            currentPeriodEnd: later,
-          },
-          now,
-        ),
-      ).toEqual(now);
       // offre Partenaire : jamais de période payée calée dessus
       expect(
         firstPeriodStart(

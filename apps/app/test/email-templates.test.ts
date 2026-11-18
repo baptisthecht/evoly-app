@@ -102,7 +102,6 @@ function all(locale: (typeof LOCALES)[number]) {
     ...(
       [
         "STARTED",
-        "TRIAL_ENDING",
         "PRO_ENDING",
         "PAYMENT_FAILED",
         "ENDED",

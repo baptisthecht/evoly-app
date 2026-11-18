@@ -15,15 +15,10 @@ const actions = vi.hoisted(() => ({
   acceptSelfBillingAction: vi.fn(),
   activateVenueAction: vi.fn(),
   venueHallAction: vi.fn(),
-  venuePayNowAction: vi.fn(),
   venueThresholdAction: vi.fn(),
 }));
 vi.mock("@/app/o/[orgSlug]/billing/venueActions", () => actions);
-const all = fr as unknown as Record<string, Record<string, string>>;
-const t =
-  all[
-    Object.keys(all).find((k) => all[k]?.selfBillingAccept && all[k]?.payNow)!
-  ]!;
+const t = (fr as unknown as Record<string, Record<string, string>>).venue!;
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
 const money = (v: number) => formatMoney(v, "EUR", "fr");
 type Venue = NonNullable<Parameters<typeof VenueCard>[0]["venue"]>;
@@ -117,14 +112,18 @@ describe("salle partenaire (section 9.32)", () => {
     );
   });
 
-  it("solde affiché ; reversement immédiat confirmé", async () => {
+  it("solde affiché ; reversements en pause : annoncés, aucun versement à la demande", () => {
     const { container } = draw(
       venue({ selfBillingAcceptedAt: "2026-10-02T10:00:00Z" }),
     );
     expect(norm(container.textContent!)).toContain(norm(money(12_345)));
-    await submit(t.payNow!);
-    await waitFor(() => expect(actions.venuePayNowAction).toHaveBeenCalled());
-    expect(await screen.findByText(t.paid!)).toBeTruthy();
+    expect(norm(container.textContent!)).toContain(norm(t.payoutsPaused!));
+    // seuls boutons : copier le lien, enregistrer la salle, enregistrer le seuil
+    expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual([
+      t.copyLink,
+      t.save,
+      t.save,
+    ]);
   });
 
   it("coordonnées de la salle et seuil automatique : préremplis, puis envoyés", async () => {
@@ -163,9 +162,10 @@ describe("salle partenaire (section 9.32)", () => {
   });
 
   it("sans le droit de gérer : tout est consultable, aucune action possible", () => {
-    draw(venue(), false);
-    for (const name of [t.selfBillingAccept, t.payNow, t.save])
+    const { container } = draw(venue(), false);
+    for (const name of [t.selfBillingAccept, t.save])
       expect(screen.queryByRole("button", { name })).toBeNull();
+    expect(norm(container.textContent!)).toContain(norm(t.payoutsPaused!));
     expect(screen.getAllByRole("link", { name: t.invoice })).toHaveLength(1);
   });
 });

@@ -59,8 +59,8 @@ export default async function EventOverview({
       href: `/o/${orgSlug}/events/${eventId}/tickets`,
     },
     {
-      key: "STRIPE_REQUIRED",
-      done: !blockers.includes("STRIPE_REQUIRED"),
+      key: "MOLLIE_REQUIRED",
+      done: !blockers.includes("MOLLIE_REQUIRED"),
       href: `/o/${orgSlug}/settings/payments`,
     },
     {

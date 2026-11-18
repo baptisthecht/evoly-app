@@ -41,10 +41,8 @@ export interface SubscriptionInput {
   status: SubscriptionStatus;
   currentPeriodEnd: Date | null;
   pastDueSince: Date | null;
-  /** fin de l'essai : pour une offre attribuée par Evoly (sans abonnement Stripe), elle fait foi */
+  /** fin de l'essai, qui fait foi comme la fin de période : Evoly tient les dates de toutes les offres */
   trialEndsAt: Date | null;
-  /** abonnement Stripe : Stripe met lui-même fin à l'essai ou à la période ; null : offre attribuée par Evoly, dont les dates font foi */
-  stripeSubscriptionId: string | null;
 }
 
 /** Délai d'impayé avant rétrogradation (RG-SUB-06). */
@@ -60,15 +58,14 @@ export function effectivePlan(
 ): PlanId {
   if (!sub || (sub.planId !== "pro" && sub.planId !== "partner")) return "free";
   const paid: PlanId = sub.planId; // Pro, ou Partenaire (mêmes règles de période)
-  // offre attribuée par Evoly (aucun abonnement Stripe, champ lu et vide) : à sa date de fin, retour en Free
-  const local = sub.stripeSubscriptionId === null;
+  // Evoly tient les dates (essai, offre attribuée, période payée par Mollie) : à la date de fin, retour en Free
   const over = (d: Date | null | undefined) =>
     !!d && d.getTime() <= now.getTime();
   switch (sub.status) {
     case "TRIALING":
-      return local && over(sub.trialEndsAt) ? "free" : paid;
+      return over(sub.trialEndsAt) ? "free" : paid;
     case "ACTIVE":
-      return local && over(sub.currentPeriodEnd) ? "free" : paid;
+      return over(sub.currentPeriodEnd) ? "free" : paid;
     case "PAST_DUE":
       if (!sub.pastDueSince) return paid;
       return now.getTime() - sub.pastDueSince.getTime() <

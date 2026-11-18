@@ -80,9 +80,6 @@ export default async function ResaleListingPage({
               label={t("buy", { price })}
               organizationName={org.brand?.displayName ?? org.name}
               requirePhone={e.requireBuyerPhone}
-              publishableKey={
-                process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null
-              }
             />
           ) : (
             <p className="rounded-md bg-surface-sunken px-4 py-3 text-sm">

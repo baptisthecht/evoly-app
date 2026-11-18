@@ -256,7 +256,7 @@ export async function cashReport(
     );
 }
 
-/** Espèces à remettre par caisse et par appareil (RG-POS-07) : ventes en espèces, nettes des remboursements ; le QR code passe par Stripe. */
+/** Espèces à remettre par caisse et par appareil (RG-POS-07) : ventes en espèces, nettes des remboursements ; le QR code passe par Mollie. */
 export function cashHandOver(rows: CashRow[]) {
   const out: { label: string; device: string | null; amountMinor: number }[] =
     [];

@@ -215,7 +215,7 @@ async function orgWithActivity() {
 
   const ctx = {
     organization: { id: org.id },
-    stripe: null,
+    mollie: null,
   } as unknown as OrgContext;
   return { ctx, at, gala, concert, dated, stale, anonymous };
 }
@@ -275,17 +275,20 @@ describe("accueil de l'organisation (refonte A3, docs/DECISIONS.md)", () => {
     expect([day(s.at(-1)), day(s.at(-3))]).toEqual([4000, 1500]);
     expect(home.revenue.reduce((n, r) => n + r.totalMinor, 0)).toBe(5500);
 
-    // à faire : Stripe à connecter, image manquante d'un événement en vente, brouillon oublié depuis 10 jours
+    // à faire : compte Mollie à relier, image manquante d'un événement en vente, brouillon oublié depuis 10 jours
     expect(home.todo).toEqual({
-      stripe: true,
+      mollie: true,
       noCover: [{ id: s.gala.id, title: "Gala" }],
       drafts: [{ id: s.stale.id, title: "Vieux brouillon", days: 10 }],
     });
-    const active = {
-      ...s.ctx,
-      stripe: { status: "ACTIVE" },
-    } as unknown as OrgContext;
-    expect((await homeOverview(active, now)).todo.stripe).toBe(false);
+    // relié mais pas encore prêt (inscription en cours chez Mollie) : toujours à faire ; prêt : plus rien
+    const withMollie = (ready: boolean) =>
+      ({
+        ...s.ctx,
+        mollie: { ready, onboardingStatus: ready ? "COMPLETED" : "IN_REVIEW" },
+      }) as unknown as OrgContext;
+    expect((await homeOverview(withMollie(false), now)).todo.mollie).toBe(true);
+    expect((await homeOverview(withMollie(true), now)).todo.mollie).toBe(false);
   });
 
   it("indicateurs : recette nette et billets sur 30 jours avec l'écart à la période précédente, événements en vente, brouillons", async () => {

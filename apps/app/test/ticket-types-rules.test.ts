@@ -34,7 +34,6 @@ async function setup(resaleAllowed: boolean) {
           planId: "pro",
           status: "ACTIVE",
           currency: "EUR",
-          stripeSubscriptionId: `sub_${id}`,
         },
       },
       members: { create: { userId: user.id, roleId: owner.id } },

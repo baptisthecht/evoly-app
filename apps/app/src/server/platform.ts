@@ -13,7 +13,6 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
 import { sendEmail } from "./email/send";
 import { sendOrderConfirmation } from "./orders";
@@ -177,13 +176,13 @@ export async function platformSearch(q: string) {
 
 const COUNTED = ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"] as const;
 
-/** Fiche organisation : offre, abonnement, Stripe, événements, volumes, remboursements, litiges, journal d'audit. */
+/** Fiche organisation : offre, abonnement, compte Mollie, événements, volumes, remboursements, litiges, journal d'audit. */
 export async function organizationSheet(id: string, now = new Date()) {
   const org = await db.organization.findUnique({
     where: { id },
     include: {
       subscription: true,
-      stripeAccount: true,
+      mollieAccount: true,
       featureFlags: true,
       _count: { select: { members: true, events: true } },
     },
@@ -219,23 +218,16 @@ export async function organizationSheet(id: string, now = new Date()) {
         status: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] },
       },
     }),
-    org.stripeAccount
+    org.mollieAccount
       ? db.dispute.count({
-          where: { accountId: org.stripeAccount.stripeAccountId },
+          where: { accountId: org.mollieAccount.mollieOrganizationId },
         })
       : 0,
-    org.stripeAccount
+    org.mollieAccount
       ? db.dispute.count({
           where: {
-            accountId: org.stripeAccount.stripeAccountId,
-            status: {
-              in: [
-                "NEEDS_RESPONSE",
-                "WARNING_NEEDS_RESPONSE",
-                "UNDER_REVIEW",
-                "WARNING_UNDER_REVIEW",
-              ],
-            },
+            accountId: org.mollieAccount.mollieOrganizationId,
+            status: { in: ["NEEDS_RESPONSE", "UNDER_REVIEW"] },
           },
         })
       : 0,
@@ -358,9 +350,9 @@ export async function platformDashboard(now = new Date()) {
     }),
     db.dispute.groupBy({ by: ["accountId"], _count: { _all: true } }),
   ]);
-  const accounts = await db.stripeAccount.findMany({
-    where: { stripeAccountId: { in: disputesBy.map((d) => d.accountId) } },
-    select: { stripeAccountId: true, organizationId: true },
+  const accounts = await db.mollieAccount.findMany({
+    where: { mollieOrganizationId: { in: disputesBy.map((d) => d.accountId) } },
+    select: { mollieOrganizationId: true, organizationId: true },
   });
   const paid = new Map(paidBy.map((r) => [r.organizationId, r._count._all]));
   const refunded = new Map(
@@ -369,8 +361,8 @@ export async function platformDashboard(now = new Date()) {
   const disputesOf = new Map(
     accounts.map((a) => [
       a.organizationId,
-      disputesBy.find((d) => d.accountId === a.stripeAccountId)?._count._all ??
-        0,
+      disputesBy.find((d) => d.accountId === a.mollieOrganizationId)?._count
+        ._all ?? 0,
     ]),
   );
   const candidates = new Set<string>([
@@ -478,21 +470,10 @@ export async function reactivateOrganization(st: Staff, id: string) {
   await log(st, "platform.organization_reactivated", id);
 }
 
-/** Prolonge l'essai en cours (et chez Stripe s'il y a un abonnement), ou ouvre un essai Pro géré par Evoly. */
-/** Abonnement Stripe actif ou en essai : c'est Stripe qui gère l'offre. */
-const STRIPE_LIVE = ["TRIALING", "ACTIVE", "PAST_DUE", "UNPAID"];
-/** Stripe ne connaît pas l'abonnement : supprimé chez Stripe, ou créé dans l'autre mode (test ou réel). */
-const stripeMissing = (err: unknown) =>
-  (err as { code?: string } | null)?.code === "resource_missing";
-const stripeError = (err: unknown) =>
-  new CoreError(
-    `STRIPE_${String((err as { code?: string } | null)?.code ?? "ERROR").toUpperCase()}`,
-  );
-
 /**
- * Prolonger l'essai Pro. Abonnement Stripe : prolongé chez Stripe, qui reste la référence (s'il n'existe plus chez Stripe,
- * il est retiré et l'offre continue sans lui). Offre gérée par Evoly : la fin en cours recule (essai ou offre datée), sans
- * changer de formule ; en Free, un essai Pro commence, qui expire vraiment ; une offre sans limite n'a rien à prolonger.
+ * Prolonger l'essai Pro. Abonnement payé par Mollie : le prochain prélèvement recule d'autant. Offre gérée par Evoly : la
+ * fin en cours recule (essai ou offre datée), sans changer de formule ; en Free, un essai Pro commence, qui expire
+ * vraiment ; une offre sans limite n'a rien à prolonger.
  */
 export async function extendTrial(
   st: Staff,
@@ -502,46 +483,9 @@ export async function extendTrial(
 ) {
   if (!Number.isInteger(days) || days < 1 || days > 90)
     throw new CoreError("TRIAL_DAYS_INVALID");
-  let sub = await db.subscription.findUnique({ where: { organizationId: id } });
-  if (sub?.stripeSubscriptionId && STRIPE_LIVE.includes(sub.status)) {
-    const s = stripe();
-    if (!s) throw new CoreError("STRIPE_UNAVAILABLE");
-    const base =
-      sub.status === "TRIALING" && sub.trialEndsAt && sub.trialEndsAt > now
-        ? sub.trialEndsAt
-        : now;
-    const trialEnd = Math.floor((base.getTime() + days * 86_400_000) / 1000); // Stripe compte en secondes : la base garde la même date
-    const updated = await s.subscriptions
-      .update(sub.stripeSubscriptionId, {
-        trial_end: trialEnd,
-        proration_behavior: "none",
-      })
-      .then(
-        () => true,
-        (err) => {
-          if (stripeMissing(err)) return false;
-          throw stripeError(err);
-        },
-      );
-    if (updated) {
-      await db.subscription.update({
-        where: { organizationId: id },
-        data: { trialEndsAt: new Date(trialEnd * 1000) },
-      });
-      await log(st, "platform.trial_extended", id, {
-        days,
-        until: new Date(trialEnd * 1000).toISOString(),
-        stripe: true,
-      });
-      return;
-    }
-    // disparu chez Stripe : retiré, l'offre est désormais gérée par Evoly
-    sub = await db.subscription.update({
-      where: { organizationId: id },
-      data: { stripeSubscriptionId: null, cancelAtPeriodEnd: false },
-    });
-    await log(st, "platform.stripe_subscription_missing", id, {});
-  }
+  const sub = await db.subscription.findUnique({
+    where: { organizationId: id },
+  });
   // abonnement payé par Mollie (docs/MOLLIE.md, lot 6) : le prochain prélèvement recule d'autant, l'abonnement continue
   // (résilié, il le reste ; impayé, la période est remise à jour)
   if (
@@ -573,7 +517,7 @@ export async function extendTrial(
   const paid =
     sub &&
     (sub.planId === "pro" || sub.planId === "partner") &&
-    effectivePlan({ ...sub, stripeSubscriptionId: null }, now) !== "free"
+    effectivePlan(sub, now) !== "free"
       ? sub
       : null;
   if (paid && paid.status === "ACTIVE" && !paid.currentPeriodEnd)
@@ -609,7 +553,6 @@ export async function extendTrial(
     },
     update: {
       ...data,
-      stripeSubscriptionId: null,
       billingProvider: null, // offre désormais gérée par Evoly : aucun prélèvement Mollie
       cancelAtPeriodEnd: false,
       pastDueSince: null,
@@ -621,15 +564,14 @@ export async function extendTrial(
   });
 }
 
-/** Offre attribuée par Evoly (sans abonnement Stripe) : Pro jusqu'à une date, ou sans limite ; ou retour en Free. */
 /** Offre attribuée par un administrateur : Free, Pro offert, ou Partenaire (Pro sans commission), avec date de fin facultative. */
 export async function assignPlan(
   st: Staff,
   id: string,
   planId: "pro" | "free" | "partner",
   until: Date | null,
-  /** resilierStripe : résilier l'abonnement payant en cours, chez Stripe ou chez Mollie */
-  opts: { resilierStripe?: boolean } = {},
+  /** resilier : résilier l'abonnement payé par Mollie en cours (Evoly cesse de prélever) */
+  opts: { resilier?: boolean } = {},
   now = new Date(),
 ) {
   if (until && Number.isNaN(until.getTime()))
@@ -642,23 +584,10 @@ export async function assignPlan(
   // abonnement payé par Mollie (docs/MOLLIE.md, lot 6) : même règle, jamais remplacé en silence ; résilié, Evoly cesse
   // simplement de prélever (plus de mandat retenu)
   const mollieResilie = renewsWithMollie(sub);
-  if (mollieResilie && !opts.resilierStripe)
+  if (mollieResilie && !opts.resilier)
     throw new CoreError("PLAN_MANAGED_BY_MOLLIE");
-  let stripeResilie = false;
-  if (sub?.stripeSubscriptionId && STRIPE_LIVE.includes(sub.status)) {
-    // abonnement payant en cours : jamais remplacé en silence ; l'administrateur doit demander sa résiliation explicitement
-    if (!opts.resilierStripe) throw new CoreError("PLAN_MANAGED_BY_STRIPE");
-    const s = stripe();
-    if (!s) throw new CoreError("STRIPE_UNAVAILABLE");
-    await s.subscriptions.cancel(sub.stripeSubscriptionId).catch((err) => {
-      if (!stripeMissing(err)) throw stripeError(err); // introuvable chez Stripe : déjà terminé, rien à résilier
-    });
-    stripeResilie = true;
-  }
-  // l'offre est désormais gérée par Evoly : plus aucun lien Stripe ni ancien essai (sinon ses actions passeraient encore par
-  // Stripe, et les notifications de cet ancien abonnement réécriraient l'offre) ; à sa date de fin, retour en Free
+  // l'offre est désormais gérée par Evoly : plus aucun mandat ni ancien essai ; à sa date de fin, retour en Free
   const clean = {
-    stripeSubscriptionId: null,
     billingProvider: null,
     mollieMandateId: null,
     paymentMethodLabel: null,
@@ -667,7 +596,7 @@ export async function assignPlan(
     cancelAtPeriodEnd: false,
     pastDueSince: null,
     trialEndsAt: null,
-    ...(sub?.stripeSubscriptionId || mollieResilie ? { canceledAt: now } : {}),
+    ...(mollieResilie ? { canceledAt: now } : {}),
   };
   const data =
     planId === "free"
@@ -681,7 +610,6 @@ export async function assignPlan(
   await log(st, "platform.plan_assigned", id, {
     planId,
     until: until?.toISOString() ?? null,
-    stripeResilie,
     mollieResilie,
   });
 }

@@ -15,11 +15,6 @@ vi.mock("next/headers", () => ({
   }),
   headers: async () => new Headers(),
 }));
-// ancien abonnement Stripe : seul l'arrêt en fin de période est attendu
-const stripeFake = vi.hoisted(() => ({
-  subscriptions: { update: vi.fn(async (_id: string, _data: unknown) => ({})) },
-}));
-vi.mock("@/lib/stripe", () => ({ stripe: () => stripeFake }));
 
 const { db } = await import("@/lib/db");
 const { createOrganization } = await import("@/server/onboarding");
@@ -35,8 +30,7 @@ const {
   startProTrial,
 } = await import("@/server/proBilling");
 const { proInvoicePdf } = await import("@/server/proInvoices");
-const { applyTimedDowngrades, billingState, syncSubscription } =
-  await import("@/server/billing");
+const { applyTimedDowngrades, billingState } = await import("@/server/billing");
 const { POST: webhook } = await import("@/app/api/webhooks/mollie/pro/route");
 const { addBillingInterval, effectivePlan } = await import("@evoly/core");
 
@@ -418,7 +412,7 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
     });
   });
 
-  it("renouvellement : prélevé sur le mandat la veille de l'échéance, au choix d'annuel fait entre-temps, sans prorata ; échec : impayé, propriétaire prévenu, nouvelle tentative 3 jours plus tard", async () => {
+  it("renouvellement : prélevé sur le mandat la veille de l'échéance, au choix d'annuel fait entre-temps, sans prorata ; échec : impayé, propriétaire prévenu à chaque échec, nouvelle tentative 3 jours plus tard", async () => {
     await alone();
     const o = await organizer();
     const now = new Date();
@@ -520,7 +514,8 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
       0,
     );
 
-    // 3 jours après l'échec : nouvelle tentative, payée
+    // 3 jours après l'échec : nouvelle tentative, refusée elle aussi ; propriétaire prévenu de nouveau (RG-SUB-06 : à
+    // chaque échec), toujours Pro, le délai de 7 jours court depuis le premier échec
     vi.unstubAllGlobals();
     mollie({
       method: "POST",
@@ -528,23 +523,53 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
       status: 201,
       body: {
         id: `tr_renouvB${o.id}`,
-        status: "paid",
+        status: "failed",
         amount: eur("295.80"),
         method: "directdebit",
-        paidAt: now.toISOString(),
+        details: { bankReasonCode: "AM04", bankReason: "Insufficient funds" },
         _links: {},
       },
     });
     const later = new Date(now.getTime() + 3 * DAY + 60_000);
     expect((await runProBilling(later)).retried).toBe(1);
     sub = await subOf(o);
+    expect(sub.status).toBe("PAST_DUE");
+    expect(sub.pastDueSince).toEqual(now);
+    expect(effectivePlan(sub, later)).toBe("pro");
+    expect(
+      await db.emailMessage.count({
+        where: {
+          organizationId: o.org.id,
+          template: "subscription.payment_failed",
+        },
+      }),
+    ).toBe(2);
+
+    // 3 jours plus tard : dernière tentative, payée ; l'abonnement est de nouveau à jour
+    vi.unstubAllGlobals();
+    mollie({
+      method: "POST",
+      path: "/v2/payments",
+      status: 201,
+      body: {
+        id: `tr_renouvC${o.id}`,
+        status: "paid",
+        amount: eur("295.80"),
+        method: "directdebit",
+        paidAt: later.toISOString(),
+        _links: {},
+      },
+    });
+    const last = new Date(later.getTime() + 3 * DAY + 60_000);
+    expect((await runProBilling(last)).retried).toBe(1);
+    sub = await subOf(o);
     expect(sub).toMatchObject({ status: "ACTIVE", pastDueSince: null });
-    const second = await db.subscriptionPayment.findFirstOrThrow({
-      where: { organizationId: o.org.id, kind: "RENEWAL", attempt: 2 },
+    const third = await db.subscriptionPayment.findFirstOrThrow({
+      where: { organizationId: o.org.id, kind: "RENEWAL", attempt: 3 },
       include: { invoice: true },
     });
-    expect(second.status).toBe("PAID");
-    expect(second.invoice?.totalMinor).toBe(29580);
+    expect(third.status).toBe("PAID");
+    expect(third.invoice?.totalMinor).toBe(29580);
   });
 
   it("impayé depuis 7 jours sans paiement en cours : abonnement terminé au terme du délai, propriétaire prévenu une seule fois du retour en Free", async () => {
@@ -685,112 +710,6 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
     expect(
       await db.proInvoice.count({ where: { organizationId: o.org.id } }),
     ).toBe(0);
-  });
-
-  it("ancien abonné Stripe : première période Mollie à la fin de la période Stripe, abonnement Stripe arrêté sans renouvellement, ses messages n'écrasent plus l'offre", async () => {
-    const o = await organizer();
-    const now = new Date();
-    const stripeEnd = new Date(now.getTime() + 10 * DAY);
-    await db.subscription.update({
-      where: { organizationId: o.org.id },
-      data: {
-        planId: "pro",
-        status: "ACTIVE",
-        interval: "MONTH",
-        stripeCustomerId: `cus_${o.id}`,
-        stripeSubscriptionId: `sub_${o.id}`,
-        currentPeriodStart: new Date(now.getTime() - 20 * DAY),
-        currentPeriodEnd: stripeEnd,
-      },
-    });
-    expect((await billingState(o.ctx)).legacyStripe).toBe(true);
-    mollie(
-      {
-        method: "POST",
-        path: "/v2/customers",
-        status: 201,
-        body: { id: `cst_${o.id}` },
-      },
-      {
-        method: "POST",
-        path: "/v2/payments",
-        status: 201,
-        body: {
-          id: `tr_reprise${o.id}`,
-          status: "open",
-          amount: eur("29.00"),
-          _links: { checkout: { href: "https://www.mollie.com/checkout/x" } },
-        },
-      },
-    );
-    await startProCheckout(o.ctx, "MONTH", now);
-    vi.unstubAllGlobals();
-    mollie(
-      {
-        method: "GET",
-        path: `/v2/payments/tr_reprise${o.id}`,
-        body: {
-          id: `tr_reprise${o.id}`,
-          status: "paid",
-          amount: eur("29.00"),
-          method: "creditcard",
-          mandateId: `mdt_${o.id}`,
-          customerId: `cst_${o.id}`,
-          _links: {},
-        },
-      },
-      {
-        method: "GET",
-        path: `/v2/customers/cst_${o.id}/mandates/mdt_${o.id}`,
-        body: {
-          id: `mdt_${o.id}`,
-          method: "creditcard",
-          status: "valid",
-          details: { cardLabel: "Visa", cardNumber: "4242" },
-        },
-      },
-    );
-    await handleProWebhook(`tr_reprise${o.id}`, now);
-    const sub = await subOf(o);
-    expect(sub).toMatchObject({
-      billingProvider: "MOLLIE",
-      stripeSubscriptionId: null,
-      status: "ACTIVE",
-      paymentMethodLabel: "Visa •••• 4242",
-    });
-    expect(sub.currentPeriodStart).toEqual(stripeEnd);
-    expect(sub.currentPeriodEnd).toEqual(
-      addBillingInterval(stripeEnd, "MONTH"),
-    );
-    expect(stripeFake.subscriptions.update).toHaveBeenCalledWith(
-      `sub_${o.id}`,
-      { cancel_at_period_end: true },
-    );
-    // Stripe annonce encore l'ancien abonnement : l'offre ne bouge plus
-    expect(
-      await syncSubscription({
-        id: `sub_${o.id}`,
-        status: "active",
-        metadata: { organizationId: o.org.id },
-        trial_end: null,
-        cancel_at_period_end: true,
-        canceled_at: null,
-        customer: `cus_${o.id}`,
-        items: {
-          data: [
-            {
-              current_period_start: Math.floor(now.getTime() / 1000),
-              current_period_end: Math.floor(stripeEnd.getTime() / 1000),
-              price: { recurring: { interval: "month" } },
-            },
-          ],
-        },
-      }),
-    ).toBe(false);
-    expect(await subOf(o)).toMatchObject({
-      billingProvider: "MOLLIE",
-      stripeSubscriptionId: null,
-    });
   });
 
   it("webhook des paiements Pro : identifiant manquant refusé, paiement inconnu de Mollie ignoré sans relance", async () => {

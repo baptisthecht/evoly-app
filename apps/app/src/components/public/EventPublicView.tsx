@@ -206,9 +206,6 @@ export async function EventPublicView({
                         eventId: event.id,
                         organizationName: org.brand?.displayName ?? org.name,
                         requirePhone: event.requireBuyerPhone,
-                        publishableKey:
-                          process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
-                          null,
                       }
                 }
                 seatMap={seatMap}

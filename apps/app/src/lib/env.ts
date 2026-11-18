@@ -14,10 +14,6 @@ const schema = z.object({
   AUTH_GOOGLE_SECRET: z.string().optional(),
   AUTH_APPLE_ID: z.string().optional(),
   AUTH_APPLE_SECRET: z.string().optional(),
-  STRIPE_SECRET_KEY: z.string().optional(),
-  STRIPE_WEBHOOK_SECRET_PLATFORM: z.string().optional(),
-  STRIPE_WEBHOOK_SECRET_CONNECT: z.string().optional(),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   MOLLIE_API_KEY: z.string().optional(), // compte Mollie d'Evoly (offre Pro) : test_… en développement, live_… en production
   MOLLIE_CLIENT_ID: z.string().optional(), // application Mollie Connect (app_…) : comptes Mollie des organisateurs
   MOLLIE_CLIENT_SECRET: z.string().optional(),
@@ -39,9 +35,6 @@ const schema = z.object({
   ANTHROPIC_API_KEY: z.string().optional(), // plan de salle d'après une photo (facultatif)
   ANTHROPIC_MODEL: z.string().default("claude-sonnet-5-5"),
   CUSTOM_DOMAIN_TARGET: z.string().optional(), // cible CNAME des domaines personnalisés ; à défaut domains.<NEXT_PUBLIC_BASE_DOMAIN>
-  STRIPE_PRICE_PRO_MONTH: z.string().optional(), // abonnement Pro (compte Stripe d’Evoly) ; à défaut, prix de la base
-  STRIPE_PRICE_PRO_YEAR: z.string().optional(),
-  STRIPE_TAX_ENABLED: z.enum(["true", "false"]).default("false"),
   EVOLY_LEGAL_ADDRESS: z
     .string()
     .default("Rue du Bilemont 376, 7700 Mouscron, Belgique"),

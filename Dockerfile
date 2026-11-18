@@ -30,7 +30,6 @@ ARG NEXT_PUBLIC_APP_URL
 ARG NEXT_PUBLIC_BASE_DOMAIN
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_SHORT_LINK_BASE
-ARG NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 RUN test -n "$NEXT_PUBLIC_APP_URL" && test -n "$NEXT_PUBLIC_BASE_DOMAIN" || (echo "NEXT_PUBLIC_APP_URL et NEXT_PUBLIC_BASE_DOMAIN sont requis à la construction" && exit 1)
 RUN export DATABASE_URL=postgresql://construction:construction@localhost:5432/construction \
       BETTER_AUTH_SECRET=construction-uniquement-0123456789abcdef-0123456789 \

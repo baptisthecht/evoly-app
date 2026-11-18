@@ -70,11 +70,11 @@ describe("offres attribuées à la création d'une organisation (docs/OFFRES.md)
     const p = await offer({ durationValue: 30, durationUnit: "DAY" });
     const org = await create((await user()).id);
     const sub = await planOf(org.id);
-    expect([sub.planId, sub.status, sub.stripeSubscriptionId]).toEqual([
+    expect([sub.planId, sub.status, sub.billingProvider]).toEqual([
       "pro",
       "ACTIVE",
       null,
-    ]);
+    ]); // gérée par Evoly : aucun prélèvement
     expect(
       Math.round((sub.currentPeriodEnd!.getTime() - Date.now()) / day),
     ).toBe(30);

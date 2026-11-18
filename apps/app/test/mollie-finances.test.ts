@@ -11,7 +11,6 @@ vi.mock("next/headers", () => ({
   }),
   headers: async () => new Headers(),
 }));
-vi.mock("@/lib/stripe", () => ({ stripe: () => null }));
 
 const { db } = await import("@/lib/db");
 const { createOrganization } = await import("@/server/onboarding");
@@ -110,7 +109,7 @@ async function organizer() {
 }
 
 describe("finances avec Mollie (docs/MOLLIE.md, lot 5)", () => {
-  it("solde et derniers versements lus chez Mollie, statuts comme ceux de Stripe ; Mollie indisponible : rien d'inventé", async () => {
+  it("solde et derniers versements lus chez Mollie, statuts ramenés à ceux des Finances ; Mollie indisponible : rien d'inventé", async () => {
     const o = await organizer();
     mollie(
       {
@@ -186,7 +185,7 @@ describe("finances avec Mollie (docs/MOLLIE.md, lot 5)", () => {
     });
   });
 
-  it("sans compte : pas relié ; ancien compte Stripe seul : vu comme Stripe", async () => {
+  it("sans compte Mollie, ou compte déconnecté : pas relié, sans appel à Mollie", async () => {
     const id = rid();
     const org = await db.organization.create({
       data: {
@@ -199,26 +198,26 @@ describe("finances avec Mollie (docs/MOLLIE.md, lot 5)", () => {
       },
     });
     const ctx = { organization: { id: org.id, currency: "EUR" } } as never;
+    mollie();
     expect(await paymentsOverview(ctx)).toEqual({
       connected: false,
       provider: null,
     });
-    await db.stripeAccount.create({
-      data: {
-        organizationId: org.id,
-        stripeAccountId: `acct_${id}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-      },
+    const account = await saveMollieAuthorization({
+      organizationId: org.id,
+      mollieOrganizationId: `org_${id}`,
+      tokens,
+      testmode: false,
     });
-    expect(await paymentsOverview(ctx)).toMatchObject({
-      connected: true,
-      provider: "STRIPE",
-      ready: true,
-      dashboardUrl: "https://dashboard.stripe.com/",
+    await db.mollieAccount.update({
+      where: { id: account.id },
+      data: { disconnectedAt: new Date() },
     });
+    expect(await paymentsOverview(ctx)).toEqual({
+      connected: false,
+      provider: null,
+    });
+    expect(calls).toHaveLength(0);
   });
 
   it("rétrofacturation reçue sur un paiement : copiée comme litige, rattachée à la commande, signalée une fois ; annulée par Mollie : gagnée", async () => {
@@ -302,7 +301,6 @@ describe("finances avec Mollie (docs/MOLLIE.md, lot 5)", () => {
       currency: "EUR",
       reason: "Paiement contesté",
       status: "NEEDS_RESPONSE",
-      stripeDisputeId: null,
     });
     const notes = () =>
       db.notification.count({

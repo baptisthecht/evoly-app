@@ -198,7 +198,7 @@ describe("vente sur place en espèces (section 9.27)", () => {
         buyerLastName: "Martin",
       },
     });
-    expect(await finalizeOrder(q.orderId)).toBe("PAID"); // comme après la confirmation du paiement par Stripe
+    expect(await finalizeOrder(q.orderId)).toBe("PAID"); // comme après la validation du paiement par Mollie
     expect(await qrSaleStatus(caisse, q.orderId)).toEqual({
       status: "PAID",
       tickets: 1,
@@ -213,7 +213,7 @@ describe("vente sur place en espèces (section 9.27)", () => {
     ).toBe("CHECKED_IN");
   });
 
-  it("remboursement d'une vente en espèces depuis le tableau de bord, sans Stripe (RG-POS-08)", async () => {
+  it("remboursement d'une vente en espèces depuis le tableau de bord, sans passer par Mollie (RG-POS-08)", async () => {
     const s = await setup();
     const caisse = await s.lien({ canSell: true });
     const v = await sellCash(caisse, {
@@ -302,7 +302,7 @@ describe("vente sur place en espèces (section 9.27)", () => {
       lines: [{ ticketTypeId: tarif.id, quantity: 1 }],
       deviceId: "aaaa-1111",
     });
-    expect(await finalizeOrder(qr.orderId)).toBe("PAID"); // comme après la confirmation du paiement par Stripe : billets créés
+    expect(await finalizeOrder(qr.orderId)).toBe("PAID"); // comme après la validation du paiement par Mollie : billets créés
     // remboursements en espèces (RG-POS-08) : un billet sur deux au bar, toute une vente à l'entrée
     await db.order.update({
       where: { id: double.orderId },
@@ -339,7 +339,7 @@ describe("vente sur place en espèces (section 9.27)", () => {
       }, // la vente remboursée en entier n'y figure plus
     ]);
     expect(cashHandOver(rows)).toEqual([
-      { label: "Bar", device: "1111", amountMinor: 2 * prix }, // le QR code passe par Stripe : rien à remettre
+      { label: "Bar", device: "1111", amountMinor: 2 * prix }, // le QR code passe par Mollie : rien à remettre
       { label: "Bar", device: "2222", amountMinor: prix },
       { label: "Entrée", device: "3333", amountMinor: prix },
     ]);

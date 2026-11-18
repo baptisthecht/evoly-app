@@ -67,7 +67,7 @@ async function setup() {
       status: "ACTIVE",
     },
   });
-  // contexte reconstruit comme au début de chaque requête (compte Stripe et offre compris)
+  // contexte reconstruit comme au début de chaque requête (compte Mollie et offre compris)
   const fresh = async () => ({
     ...(await findOrgContext(owner.id, org.slug))!,
     user: { id: owner.id, name: owner.name ?? "", email: owner.email },
@@ -76,6 +76,21 @@ async function setup() {
 }
 const audits = (organizationId: string, action: string) =>
   db.auditLog.count({ where: { organizationId, action } });
+/** Compte Mollie relié et prêt à encaisser : profil vérifié, moyens de paiement activés. */
+const connectMollie = (organizationId: string) =>
+  db.mollieAccount.create({
+    data: {
+      organizationId,
+      mollieOrganizationId: `org_${rid()}`,
+      refreshToken: "jeton-chiffre",
+      profileId: `pfl_${rid()}`,
+      profileStatus: "verified",
+      methods: ["bancontact", "creditcard"],
+      onboardingStatus: "COMPLETED",
+      canReceivePayments: true,
+      canReceiveSettlements: true,
+    },
+  });
 
 describe("prix saisis (RG-TKT-02)", () => {
   it("virgule ou point, devises sans centimes, saisie invalide refusée", () => {
@@ -89,7 +104,7 @@ describe("prix saisis (RG-TKT-02)", () => {
 });
 
 describe("vie d'un événement (RG-EVT-01, RG-EVT-07, RG-EVT-08)", () => {
-  it("création, publication bloquée sans Stripe pour un tarif payant, publication, pause et reprise, réglages", async () => {
+  it("création, publication bloquée sans compte Mollie prêt pour un tarif payant, publication, pause et reprise, réglages", async () => {
     const s = await setup();
     const e = await createEvent(s.ctx, essentials, {
       name: "Entrée",
@@ -105,24 +120,13 @@ describe("vie d'un événement (RG-EVT-01, RG-EVT-07, RG-EVT-08)", () => {
         quantity: 200,
       }),
     ]);
-    // tarif payant sans compte Stripe prêt : publication bloquée, avec la raison
+    // tarif payant sans compte Mollie prêt : publication bloquée, avec la raison
     const blockers = await eventPublicationBlockers(s.ctx, e.id);
-    expect(blockers.length).toBeGreaterThan(0);
+    expect(blockers).toEqual(["MOLLIE_REQUIRED"]);
     await expect(publishEvent(s.ctx, e.id)).rejects.toMatchObject({
-      code: `PUBLISH_${blockers[0]}`,
+      code: "PUBLISH_MOLLIE_REQUIRED",
     });
-    await db.stripeAccount.create({
-      data: {
-        organizationId: s.org.id,
-        stripeAccountId: `acct_${rid()}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-        payoutsEnabled: true,
-        detailsSubmitted: true,
-      },
-    });
+    await connectMollie(s.org.id);
     s.ctx = await s.fresh();
     expect(await eventPublicationBlockers(s.ctx, e.id)).toEqual([]);
     await publishEvent(s.ctx, e.id);
@@ -163,18 +167,7 @@ describe("vie d'un événement (RG-EVT-01, RG-EVT-07, RG-EVT-08)", () => {
 
   it("duplication en brouillon sans les ventes ; seul un brouillon sans commande se supprime", async () => {
     const s = await setup();
-    await db.stripeAccount.create({
-      data: {
-        organizationId: s.org.id,
-        stripeAccountId: `acct_${rid()}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-        payoutsEnabled: true,
-        detailsSubmitted: true,
-      },
-    });
+    await connectMollie(s.org.id);
     s.ctx = await s.fresh();
     const e = await createEvent(s.ctx, essentials, {
       name: "Entrée",
@@ -306,18 +299,7 @@ describe("tarifs (RG-TKT-04, RG-TKT-06)", () => {
       ["Dernière minute", 3500],
     ]);
     // une vente sur l'entrée gratuite : ce tarif ne se supprime plus ; le tarif VIP, sans vente, si
-    await db.stripeAccount.create({
-      data: {
-        organizationId: s.org.id,
-        stripeAccountId: `acct_${rid()}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-        payoutsEnabled: true,
-        detailsSubmitted: true,
-      },
-    });
+    await connectMollie(s.org.id);
     s.ctx = await s.fresh();
     await publishEvent(s.ctx, e.id);
     const entree = (await getEventWithTickets(s.ctx, e.id)).ticketTypes.find(

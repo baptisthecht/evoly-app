@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ticketCommission } from "@evoly/core";
 import { db } from "@/lib/db";
 import {
@@ -8,6 +8,7 @@ import {
   reserveOrder,
   submitBuyer,
 } from "@/server/checkout";
+import { saveMollieAuthorization } from "@/server/mollieAccounts";
 import { afterOrderPaid } from "@/server/orders";
 import { getPlans } from "@/server/plans";
 import {
@@ -27,7 +28,9 @@ const buyerB = (id: string) => ({
   marketingOptIn: false,
 });
 
-/** Événement publié et un billet acheté par Léa : gratuit (priceMinor 0) ou payé (paiement simulé). */
+afterEach(() => vi.unstubAllGlobals());
+
+/** Événement publié et un billet acheté par Léa : gratuit (priceMinor 0) ou payé par Mollie (paiement relu, simulé). */
 async function setup(priceMinor: number, opts: { nominative?: boolean } = {}) {
   const id = rid();
   const org = await db.organization.create({
@@ -41,19 +44,30 @@ async function setup(priceMinor: number, opts: { nominative?: boolean } = {}) {
       locale: "fr",
     },
   });
-  if (priceMinor > 0)
-    await db.stripeAccount.create({
+  if (priceMinor > 0) {
+    const account = await saveMollieAuthorization({
+      organizationId: org.id,
+      mollieOrganizationId: `org_${id}`,
+      tokens: {
+        access_token: "access_mollie",
+        refresh_token: "refresh_mollie",
+        expires_in: 3600,
+        token_type: "bearer",
+        scope: "payments.read payments.write refunds.read refunds.write",
+      },
+      testmode: false,
+    });
+    await db.mollieAccount.update({
+      where: { id: account.id },
       data: {
-        organizationId: org.id,
-        stripeAccountId: `acct_${id}`,
-        country: "BE",
-        defaultCurrency: "EUR",
-        status: "ACTIVE",
-        chargesEnabled: true,
-        payoutsEnabled: true,
-        detailsSubmitted: true,
+        profileId: `pfl_${id}`,
+        profileStatus: "verified",
+        methods: ["bancontact", "creditcard"],
+        onboardingStatus: "COMPLETED",
+        canReceivePayments: true,
       },
     });
+  }
   const startsAt = new Date(Date.now() + 3 * 86_400_000);
   const event = await db.event.create({
     data: {
@@ -104,11 +118,10 @@ async function setup(priceMinor: number, opts: { nominative?: boolean } = {}) {
     });
     expect(
       await finalizeOrder(r.orderId, {
-        paymentIntentId: `pi_${id}`,
+        molliePaymentId: `tr_${id}`,
         amountMinor: priceMinor,
-        currency: "eur",
-        chargeId: `ch_${id}`,
-        paymentMethodType: "card",
+        currency: "EUR",
+        paymentMethodType: "creditcard",
       }),
     ).toBe("PAID");
   }
@@ -237,8 +250,24 @@ describe("achat d'une place en revente (section 9.13)", () => {
     ).toBe("CANCELLED");
   });
 
-  it("revente payante : commission sur le prix de revente ; sans Stripe, l'annonce passe FAILED et l'acheteur garde son billet (RG-RSL-06)", async () => {
+  it("revente payante : commission sur le prix de revente ; remboursement du vendeur refusé par Mollie, l'annonce passe FAILED et l'acheteur garde son billet (RG-RSL-06)", async () => {
     const s = await setup(2400);
+    // Mollie refuse le remboursement partiel du paiement du vendeur (solde de l'organisateur insuffisant)
+    const calls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: string | URL) => {
+        calls.push(new URL(String(input)).pathname);
+        return new Response(
+          JSON.stringify({
+            status: 422,
+            title: "Unprocessable Entity",
+            detail: "The refund amount is higher than the balance",
+          }),
+          { status: 422 },
+        );
+      }),
+    );
     const listing = await createListing(s.sellerToken, s.ticket.id, "20");
     const r = await reserveResale(listing.linkCode, "fr");
     const order = await db.order.findUniqueOrThrow({
@@ -262,17 +291,19 @@ describe("achat d'une place en revente (section 9.13)", () => {
     });
     expect(
       await finalizeOrder(r.orderId, {
-        paymentIntentId: `pi_b_${s.id}`,
+        molliePaymentId: `tr_b${s.id}`,
         amountMinor: 2000,
-        currency: "eur",
-        chargeId: null,
-        paymentMethodType: "card",
+        currency: "EUR",
+        paymentMethodType: "creditcard",
       }),
     ).toBe("PAID");
     await afterOrderPaid(r.orderId);
-    expect(
-      await db.resaleListing.findUniqueOrThrow({ where: { id: listing.id } }),
-    ).toMatchObject({ status: "FAILED", sellerRefundMinor: null });
+    expect(calls).toEqual([`/v2/payments/tr_${s.id}/refunds`]); // le paiement d'origine du vendeur
+    const failed = await db.resaleListing.findUniqueOrThrow({
+      where: { id: listing.id },
+    });
+    expect(failed).toMatchObject({ status: "FAILED", sellerRefundMinor: null });
+    expect(failed.failureReason).toContain("higher than the balance");
     expect(
       (await db.ticket.findFirstOrThrow({ where: { orderId: r.orderId } }))
         .status,

@@ -49,7 +49,6 @@ async function proOrgWithOwner() {
           planId: "pro",
           status: "ACTIVE",
           currency: "EUR",
-          stripeSubscriptionId: `sub_${id}`,
         },
       },
       members: { create: { userId: owner.id, roleId: role.id } },

@@ -5,7 +5,6 @@ import {
   checkRefundRequest,
   CoreError,
   EVENT_TRANSITIONS,
-  REFUND_APPLICATION_FEE,
   refundAmount,
   buyerBearsRefundFees,
   estimateBankFee,
@@ -14,7 +13,6 @@ import {
 } from "@evoly/core";
 import { formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { db } from "@/lib/db";
-import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
 import { createMollieRefund, refundStatusFromMollie } from "./molliePayments";
 import {
@@ -112,8 +110,8 @@ async function mailBuyer(
 
 /**
  * Remboursement à coût neutre (RG-REF-09, RG-REF-10) : frais retenus sur un remboursement demandé par l'acheteur quand
- * la commande a été passée en mode « moins les frais » : frais de paiement (réels, ou estimés tant que Stripe ne les a
- * pas transmis) et commission d'Evoly, au prorata du montant, jamais plus que ce qui reste à retenir sur la commande.
+ * la commande a été passée en mode « moins les frais » : frais de paiement (réels, ou estimés tant
+ * qu'ils ne sont pas connus) et commission d'Evoly, au prorata du montant, jamais plus que ce qui reste à retenir sur la commande.
  */
 async function feesToWithhold(
   order: {
@@ -122,7 +120,6 @@ async function feesToWithhold(
     totalMinor: number;
     applicationFeeMinor: number;
     paymentFeeMinor: number | null;
-    paymentProvider?: "STRIPE" | "MOLLIE" | null;
   },
   grossMinor: number,
 ): Promise<number> {
@@ -138,18 +135,15 @@ async function feesToWithhold(
     applicationFeeMinor: order.applicationFeeMinor,
     paymentFeeMinor:
       order.paymentFeeMinor ??
-      estimateBankFee(
-        order.totalMinor,
-        "card_eea_standard",
-        order.paymentProvider === "MOLLIE" ? "MOLLIE" : "STRIPE",
-      ),
+      estimateBankFee(order.totalMinor, "card_eea_standard"),
     alreadyWithheldMinor: already._sum.feesWithheldMinor ?? 0,
   });
 }
 
 /**
  * Envoi d'un remboursement accepté (RG-REF-02, RG-REF-03) : billets désactivés dès l'envoi, place remise en vente
- * (sauf annulation), remboursement Stripe sans restitution de la commission (RG-FEE-40). Échec : statut FAILED, relançable.
+ * (sauf annulation), remboursement Mollie sur le solde de l'organisateur, sans restitution de la commission (RG-FEE-40).
+ * Échec : statut FAILED, relançable.
  */
 export async function processRefund(
   refundId: string,
@@ -296,71 +290,29 @@ export async function processRefund(
   // RG-POS-08 : une vente sur place en espèces se rembourse en espèces, hors d'Evoly ; aucun appel au prestataire
   if (amount > 0 && refund.order.boxOfficeMode !== "CASH") {
     try {
-      if (refund.order.molliePaymentId) {
-        // Mollie (docs/MOLLIE.md) : sur le solde de l'organisateur ; Mollie ne rend jamais la commission d'Evoly
-        const r = await createMollieRefund({
+      if (!refund.order.molliePaymentId)
+        throw new Error("paiement en ligne introuvable");
+      // Mollie (docs/MOLLIE.md) : sur le solde de l'organisateur ; Mollie ne rend jamais la commission d'Evoly
+      const r = await createMollieRefund({
+        orderId: refund.orderId,
+        amountMinor: amount,
+        description: `Remboursement ${refund.order.reference}`,
+        metadata: {
+          refundId: refund.id,
           orderId: refund.orderId,
-          amountMinor: amount,
-          description: `Remboursement ${refund.order.reference}`,
-          metadata: {
-            refundId: refund.id,
-            orderId: refund.orderId,
-            reason: refund.reason,
-          },
-          idempotencyKey: `refund:${refund.id}`,
-        });
-        outcome = refundStatusFromMollie(r.status);
-        await db.refund.update({
-          where: { id: refund.id },
-          data: {
-            mollieRefundId: r.id,
-            status: outcome,
-            failureReason: outcome === "FAILED" ? "échec Mollie" : null,
-          },
-        });
-      } else {
-        const s = stripe();
-        const account = await db.stripeAccount.findUnique({
-          where: { organizationId: refund.order.organizationId },
-          select: { stripeAccountId: true },
-        });
-        if (!s || !account || !refund.order.stripePaymentIntentId)
-          throw new Error("paiement introuvable ou Stripe indisponible");
-        const r = await s.refunds.create(
-          {
-            payment_intent: refund.order.stripePaymentIntentId,
-            amount,
-            refund_application_fee: REFUND_APPLICATION_FEE, // la commission d'Evoly n'est pas rendue (options comprises)
-            reason: "requested_by_customer",
-            metadata: {
-              refundId: refund.id,
-              orderId: refund.orderId,
-              reason: refund.reason,
-            },
-          },
-          {
-            stripeAccount: account.stripeAccountId,
-            idempotencyKey: `refund:${refund.id}`,
-          },
-        );
-        outcome =
-          r.status === "succeeded"
-            ? "SUCCEEDED"
-            : r.status === "failed" || r.status === "canceled"
-              ? "FAILED"
-              : "PROCESSING";
-        await db.refund.update({
-          where: { id: refund.id },
-          data: {
-            stripeRefundId: r.id,
-            status: outcome,
-            failureReason:
-              outcome === "FAILED"
-                ? (r.failure_reason ?? "échec Stripe")
-                : null,
-          },
-        });
-      }
+          reason: refund.reason,
+        },
+        idempotencyKey: `refund:${refund.id}`,
+      });
+      outcome = refundStatusFromMollie(r.status);
+      await db.refund.update({
+        where: { id: refund.id },
+        data: {
+          mollieRefundId: r.id,
+          status: outcome,
+          failureReason: outcome === "FAILED" ? "échec Mollie" : null,
+        },
+      });
     } catch (err) {
       outcome = "FAILED";
       // RG-REF-03 et RG-REF-06 : l'organisateur est alerté (onglet Commandes) et peut relancer
@@ -536,7 +488,7 @@ export async function rejectRefund(
   await mailBuyer(refund.orderId, "REJECTED", 0, 0, responseMessage);
 }
 
-/** RG-REF-03 : relance d'un remboursement dont l'envoi à Stripe a échoué. */
+/** RG-REF-03 : relance d'un remboursement dont l'envoi à Mollie a échoué. */
 export async function retryRefund(ctx: OrgContext, refundId: string) {
   const refund = await ownRefund(ctx, refundId);
   if (refund.status !== "FAILED") throw new CoreError("REFUND_NOT_FAILED");
@@ -757,29 +709,4 @@ export async function cancelEvent(
     await mailBuyer(o.id, "CANCELLED", amount, o.tickets.length, reason);
   }
   return { orders: orders.length, refunded };
-}
-
-/** État des remboursements Stripe reçu par webhook (`charge.refund.updated`). */
-export async function syncStripeRefund(
-  stripeRefundId: string,
-  status: string,
-  failureReason?: string | null,
-) {
-  const refund = await db.refund.findUnique({ where: { stripeRefundId } });
-  if (!refund) return false;
-  const next =
-    status === "succeeded"
-      ? "SUCCEEDED"
-      : status === "failed" || status === "canceled"
-        ? "FAILED"
-        : "PROCESSING";
-  await db.refund.update({
-    where: { id: refund.id },
-    data: {
-      status: next,
-      failureReason:
-        next === "FAILED" ? (failureReason ?? "échec Stripe") : null,
-    },
-  });
-  return true;
 }

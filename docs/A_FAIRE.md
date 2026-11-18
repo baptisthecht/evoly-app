@@ -11,8 +11,8 @@ Points en attente, par ordre d'urgence. Les tests restants à écrire sont list�
 
 ## Passage à Mollie
 
-Stripe a refusé Evoly Solutions le 18 novembre 2026 (décision définitive) : Evoly passe à Mollie Connect pour
-plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Branche `mollie`, un commit par lot.
+Depuis le 18 novembre 2026, Evoly encaisse avec Mollie Connect pour plateformes. Règles, historique et points à
+valider : `docs/MOLLIE.md`. Branche `mollie`, un commit par lot.
 
 - Lot 1, fondations : fait (client Mollie, chiffrement des jetons, compte Mollie de l'organisateur en base). Au
   déploiement : migration `20261118120000_mollie_comptes`.
@@ -27,28 +27,35 @@ plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Bran
   déploiement : migration `20261118140000_mollie_paiements`.
 - Lot 4, remboursements et revente : fait. Remboursements sur le paiement Mollie (état suivi par le webhook), vendeur
   d'une revente remboursé sur son paiement d'origine moins la commission et les frais (paiement de l'acheteur,
-  remboursement chez Mollie), frais estimés selon le prestataire. Au déploiement : migration
+  remboursement chez Mollie), frais estimés d'après la grille de Mollie. Au déploiement : migration
   `20261118150000_mollie_remboursements`.
 - Lot 5, finances : fait. Solde et versements lus chez Mollie, rétrofacturations copiées comme litiges, versement
   échoué signalé, frais estimés d'après la grille Mollie. Au déploiement : migration `20261118160000_mollie_finances`.
-  Restent : frais réels de chaque paiement (transactions du solde Mollie) ; reversements aux lieux partenaires, à
-  trancher (virement par Evoly, ou transferts entre soldes Connect à faire activer par Mollie).
+  Restent : frais réels de chaque paiement (transactions du solde Mollie) ; reversements aux lieux partenaires, en
+  pause (point ouvert ci-dessous).
 - Lot 6, offre Pro : fait. Essai de 14 jours sans carte, abonnement payé sur la page de Mollie (carte, Bancontact…)
   qui crée le mandat, renouvellements prélevés par Evoly la veille de l'échéance (carte, ou prélèvement SEPA après
   Bancontact), passage au mensuel ou à l'annuel au renouvellement sans prorata, résiliation et reprise, changement de
   carte, règlement d'une période impayée, nouvelles tentatives à 3 et 6 jours puis fin à 7 jours, facture numérotée
-  (série des relevés) envoyée à chaque paiement, préavis 7 jours avant un renouvellement annuel. Anciens abonnés
-  Stripe : Pro gardé jusqu'à la fin de leur période, invités à reprendre par Mollie (l'abonnement Stripe s'arrête
-  alors sans renouvellement). Corrigé au passage : l'e-mail « repassée en Free » partait chaque minute pendant une
-  heure. Au déploiement : migration `20261118170000_mollie_offre_pro`, clé `MOLLIE_API_KEY` du compte d'Evoly. Restent :
-  avoirs pour un paiement Pro remboursé ou contesté (à faire dans Mollie et à la main en attendant).
+  (série des relevés) envoyée à chaque paiement, préavis 7 jours avant un renouvellement annuel. Corrigé au passage :
+  l'e-mail « repassée en Free » partait chaque minute pendant une heure. Au déploiement : migration
+  `20261118170000_mollie_offre_pro`, clé `MOLLIE_API_KEY` du compte d'Evoly. Restent : avoirs pour un paiement Pro
+  remboursé ou contesté (à faire dans Mollie et à la main en attendant).
 - Lot 6, suite (décidé le 18 novembre 2026, après l'essai en mode test) : abonnement pris pendant une période en cours
   (essai, Pro offert, offre de lancement) sans paiement immédiat. Le moyen de paiement est enregistré par un paiement
   de vérification de 0,02 € remboursé aussitôt ; le premier prélèvement a lieu à la fin de la période, avec un e-mail
   de confirmation et un rappel 7 jours avant. Au déploiement : migration
   `20261119090000_mollie_pro_sans_paiement_immediat`.
-- Lot 7 : bascule (textes encore « Stripe » de l'accueil et de la liste de contrôle d'un événement, textes légaux,
-  retrait de Stripe) ; puis la boutique.
+- Lot 7, bascule : fait (code, base, textes, site, tests). Mollie est le seul prestataire ; l'ancien est retiré sans
+  rétrocompatibilité (aucun organisateur ne l'avait relié) ; reversements aux lieux partenaires en pause. Au
+  déploiement : migration `20261119100000_mollie_retrait_stripe`, puis, une seule fois, la liste « Après le
+  déploiement du lot 7 » de `docs/DEPLOIEMENT.md` (noms exacts) : retirer du `.env` du serveur les variables de
+  l'ancien prestataire ; réinstaller la crontab (`crontab ops/crontab`, la tâche `webhooks` n'existe plus) ; supprimer
+  la sonde « webhooks » dans Healthchecks.io ; supprimer les destinations de webhooks chez l'ancien prestataire si le
+  compte existe encore ; supprimer ses trois secrets GitHub des parcours complets. Ensuite, la boutique passe à Mollie.
+- Reversements aux lieux partenaires (décision ouverte) : en pause depuis le 18 novembre 2026 ; la part de chaque lieu
+  reste due. À trancher quand Mollie aura répondu sur les transferts entre soldes Connect (activation par Mollie,
+  accord de chaque lieu, 1 000 € par mois au plus), sinon virement bancaire par Evoly.
 - Fait par le porteur le 18 novembre 2026 : applications Connect de production et de développement, clés dans le
   `.env` local, prélèvement SEPA activé, deuxième organisation Mollie de test reliée, achat de billet et offre Pro
   essayés en mode test. Connect pour plateformes en cours d'activation à la demande du support de Mollie. Reste avant
@@ -90,14 +97,6 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
 - Le compte rattache les commandes passées avec la même adresse normalisée.
 - À trancher : place du compte dans le parcours d'achat (avant le choix des billets ou au paiement), et ce que le compte affiche (billets, revente, factures).
 
-## Stripe : fin du compte
-
-- Compte de la plateforme activé le 28 octobre 2026, refusé par Stripe le 18 novembre 2026 (voir « Passage à Mollie »).
-- Relever dans le Dashboard Stripe la date d'arrêt des paiements et les fonds retenus ; exporter paiements, clients,
-  comptes connectés et virements tant que le Dashboard est accessible. Diagnostic : `ops/stripe-status.sh`.
-- Commandes déjà payées par Stripe : leurs remboursements passent par Stripe tant que le compte le permet, ensuite à
-  la main. Stripe disparaît du code au lot 7 du passage à Mollie.
-
 ## Sécurité et exploitation
 
 - Renouvellements Apple : le secret de la connexion avec Apple (`AUTH_APPLE_SECRET`) expire 180 jours après sa
@@ -124,16 +123,15 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
 
 ## Parcours complets encore absents (voir `test.md`)
 
-- Paiements Stripe de bout en bout en mode test : panier payant, 3-D Secure, refus de la carte, paiement sur place par
-  carte, remboursement réel, webhooks, souscription Pro (Checkout et portail), ouverture d'un compte Stripe Connect.
-  Demande des clés Stripe de test dans les secrets de la CI.
+- Paiements par Mollie de bout en bout en mode test : panier payant, page de paiement et retour, refus de la carte,
+  paiement sur place par carte, remboursement réel, webhooks, abonnement Pro, liaison complète d'un compte Mollie.
 - Ambassadeurs (vente par le lien d'un ambassadeur, classement) et prévente (code, code épuisé, lien `?prevente=CODE`).
 
 ## Déjà fait (novembre 2026)
 
 Déploiement du 7 novembre : refonte A3 du tableau de bord et du téléphone ; vitrine de l'organisateur, limites d'achat
 et empreinte de la carte (migrations) ; node-forge 1.4.2, plus aucune faille connue dans les dépendances ; boutons et
-formulaires sûrs avant le chargement du JavaScript (« Ouvrir le scanner », « Connecter mon compte Stripe », connexion
+formulaires sûrs avant le chargement du JavaScript (« Ouvrir le scanner », connexion du compte de paiement, connexion
 avec Google ou Apple, « Retrouver mes billets », « Prévenez-moi »). Vérifié en ligne : santé, pages de l'app, du
 scanner et du site vitrine, règle de sécurité des formulaires, tâches planifiées fermées sans leur secret.
 
@@ -146,7 +144,7 @@ commande en onglets ; réglages d'un événement en deux colonnes.
 
 ## Décisions prises
 
-- Avertissement de fin d'un Pro offert : 3 jours avant (comme les essais Stripe).
+- Avertissement de fin d'un Pro offert : 3 jours avant (comme la fin d'un essai).
 - Pas d'offre pour les organisations créées avant sa mise en ligne (il n'y en a pas).
 
 ## Mesure

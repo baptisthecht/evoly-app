@@ -170,7 +170,6 @@ const buy = () =>
         label="Acheter cette place"
         organizationName="Club"
         requirePhone={false}
-        publishableKey={null}
       />
     </Fr>,
   );

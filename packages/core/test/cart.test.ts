@@ -383,7 +383,7 @@ describe("chiffrage d'une commande (RG-BUY-03)", () => {
       ),
     ).toThrow();
   });
-  it("minimum de paiement Stripe (RG-BUY-05)", () => {
+  it("minimum d'une commande payée en ligne (RG-BUY-05)", () => {
     expect(meetsMinimumCharge(0, "EUR")).toBe(true);
     expect(meetsMinimumCharge(49, "EUR")).toBe(false);
     expect(meetsMinimumCharge(50, "EUR")).toBe(true);

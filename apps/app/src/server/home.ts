@@ -172,7 +172,7 @@ export async function homeOverview(ctx: OrgContext, now = new Date()) {
     /** Les événements à venir, le prochain en vente exclu (il a son bandeau). */
     fill: fill.filter((_, i) => i !== nextIndex),
     todo: {
-      stripe: !ctx.stripe || ctx.stripe.status !== "ACTIVE",
+      mollie: !ctx.mollie?.ready,
       noCover,
       drafts: drafts.map((d) => ({
         id: d.id,

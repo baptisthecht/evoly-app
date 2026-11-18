@@ -31,7 +31,6 @@ export default defineConfig({
         "src/app/o/[orgSlug]/events/[eventId]/settings/EventSettingsSection.tsx", // réglages en parties : parcours complets
         "src/app/o/[orgSlug]/HomeWidgets.tsx", // accueil vivant : composants serveur asynchrones, parcours complets
         "src/app/(auth)/SocialButtons.tsx",
-        "src/app/o/[orgSlug]/StripeBanner.tsx",
         "src/app/onboarding/Steps.tsx",
         "src/components/LocaleSwitch.tsx",
         "src/components/public/DisabledSite.tsx",

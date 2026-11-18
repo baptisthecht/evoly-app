@@ -1,27 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+import { effectivePlan } from "@evoly/core";
+import { db } from "@/lib/db";
+import { assignPlan, extendTrial } from "@/server/platform";
 
-// Stripe simulé, capable de répondre « abonnement introuvable » ou de refuser
-const state: { fail: string | null } = { fail: null };
-const calls: { method: string; args: unknown[] }[] = [];
-const answer =
-  (method: string) =>
-  async (...args: unknown[]) => {
-    calls.push({ method, args });
-    if (state.fail)
-      throw Object.assign(new Error("Stripe"), { code: state.fail });
-    return {
-      id: args[0],
-      status: method === "cancel" ? "canceled" : "trialing",
-    };
-  };
-const fake = {
-  subscriptions: { cancel: answer("cancel"), update: answer("update") },
-};
-vi.mock("@/lib/stripe", () => ({ stripe: () => fake }));
-
-const { db } = await import("@/lib/db");
-const { effectivePlan } = await import("@evoly/core");
-const { assignPlan, extendTrial } = await import("@/server/platform");
 type Staff = Parameters<typeof assignPlan>[0];
 
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -66,54 +47,53 @@ const abonnement = (id: string) =>
   db.subscription.findUniqueOrThrow({ where: { organizationId: id } });
 
 describe("back-office : offres attribuées (pour offrir le Pro aux premiers clients)", () => {
-  beforeEach(() => {
-    calls.length = 0;
-    state.fail = null;
-  });
-
-  it("le cas de la fiche : Partenaire sans limite lié à un abonnement Stripe disparu ; prolonger retire le lien et dit qu'il n'y a rien à prolonger", async () => {
-    const { st, org } = await organisation({
-      planId: "partner",
-      stripeSubscriptionId: `sub_${rid()}`,
-      trialEndsAt: new Date(Date.now() + 280 * DAY),
-    });
-    state.fail = "resource_missing";
+  it("le cas de la fiche : Partenaire sans limite avec une date d'essai d'avant ; prolonger dit qu'il n'y a rien à prolonger, sans rien changer", async () => {
+    const trialEndsAt = new Date(Date.now() + 280 * DAY);
+    const { st, org } = await organisation({ planId: "partner", trialEndsAt });
     await expect(extendTrial(st, org.id, 14)).rejects.toMatchObject({
       code: "PLAN_UNLIMITED",
     });
-    expect(calls.map((c) => c.method)).toEqual(["update"]);
-    const sub = await abonnement(org.id);
-    expect([sub.planId, sub.status, sub.stripeSubscriptionId]).toEqual([
-      "partner",
-      "ACTIVE",
-      null,
-    ]); // lien retiré, formule intacte
-    calls.length = 0;
-    await expect(extendTrial(st, org.id, 14)).rejects.toMatchObject({
-      code: "PLAN_UNLIMITED",
-    });
-    expect(calls).toEqual([]); // plus jamais d'appel à Stripe
-  });
-
-  it("offrir le Pro jusqu'à une date malgré un abonnement disparu : attribué, sans mélange, puis Free à sa date ; dates passées et invalides refusées", async () => {
-    const { st, org } = await organisation({
-      stripeSubscriptionId: `sub_${rid()}`,
-      trialEndsAt: new Date(Date.now() + 280 * DAY),
-    });
-    const until = new Date(Date.now() + 90 * DAY);
-    await expect(assignPlan(st, org.id, "pro", until)).rejects.toMatchObject({
-      code: "PLAN_MANAGED_BY_STRIPE",
-    }); // jamais en silence
-    state.fail = "resource_missing";
-    await assignPlan(st, org.id, "pro", until, { resilierStripe: true });
     const sub = await abonnement(org.id);
     expect([
       sub.planId,
       sub.status,
-      sub.stripeSubscriptionId,
+      sub.currentPeriodEnd,
+      sub.trialEndsAt?.getTime(),
+    ]).toEqual(["partner", "ACTIVE", null, trialEndsAt.getTime()]); // formule intacte
+  });
+
+  it("offrir le Pro jusqu'à une date à un abonné Mollie : résiliation explicite exigée, puis attribué sans mélange, et Free à sa date ; dates passées et invalides refusées", async () => {
+    const { st, org } = await organisation({
+      billingProvider: "MOLLIE",
+      mollieCustomerId: `cst_${rid()}`,
+      mollieMandateId: `mdt_${rid()}`,
+      paymentMethodLabel: "Visa •••• 4242",
+      interval: "MONTH",
+      currentPeriodEnd: new Date(Date.now() + 20 * DAY),
+      trialEndsAt: new Date(Date.now() - 280 * DAY),
+    });
+    const until = new Date(Date.now() + 90 * DAY);
+    await expect(assignPlan(st, org.id, "pro", until)).rejects.toMatchObject({
+      code: "PLAN_MANAGED_BY_MOLLIE",
+    }); // jamais en silence
+    expect(await abonnement(org.id)).toMatchObject({
+      billingProvider: "MOLLIE",
+      mollieMandateId: expect.stringMatching(/^mdt_/),
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+    }); // refusé : rien n'est modifié, Evoly prélève toujours
+    await assignPlan(st, org.id, "pro", until, { resilier: true });
+    const sub = await abonnement(org.id);
+    expect([
+      sub.planId,
+      sub.status,
+      sub.billingProvider,
+      sub.mollieMandateId,
+      sub.paymentMethodLabel,
       sub.trialEndsAt,
       sub.currentPeriodEnd?.getTime(),
-    ]).toEqual(["pro", "ACTIVE", null, null, until.getTime()]);
+    ]).toEqual(["pro", "ACTIVE", null, null, null, null, until.getTime()]); // plus aucun prélèvement
+    expect(sub.canceledAt).not.toBeNull();
     expect(effectivePlan(sub, new Date(Date.now() + 89 * DAY))).toBe("pro");
     expect(effectivePlan(sub, new Date(Date.now() + 91 * DAY))).toBe("free"); // à sa date, retour en Free
     await expect(
@@ -150,24 +130,5 @@ describe("back-office : offres attribuées (pour offrir le Pro aux premiers clie
     expect((await abonnement(org.id)).trialEndsAt?.getTime()).toBe(
       later.getTime() + 5 * DAY,
     );
-    expect(calls).toEqual([]);
-  });
-
-  it("un vrai refus de Stripe est affiché, et rien n'est modifié", async () => {
-    const subId = `sub_${rid()}`;
-    const { st, org } = await organisation({ stripeSubscriptionId: subId });
-    state.fail = "api_error";
-    await expect(extendTrial(st, org.id, 14)).rejects.toMatchObject({
-      code: "STRIPE_API_ERROR",
-    });
-    await expect(
-      assignPlan(st, org.id, "partner", null, { resilierStripe: true }),
-    ).rejects.toMatchObject({ code: "STRIPE_API_ERROR" });
-    const sub = await abonnement(org.id);
-    expect([sub.planId, sub.status, sub.stripeSubscriptionId]).toEqual([
-      "pro",
-      "ACTIVE",
-      subId,
-    ]);
   });
 });

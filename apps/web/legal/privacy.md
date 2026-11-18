@@ -13,7 +13,7 @@ Contact pour vos données : hello@evoly.me.
 | ----------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Compte organisateur                 | Nom, e-mail, mot de passe haché, organisation                                                | Exécution du contrat                                              |
 | Connexion avec Google ou Apple      | Nom, adresse e-mail, photo de profil, identifiant du compte (voir la section 3)              | Exécution du contrat                                              |
-| Commande et billets                 | Identité, e-mail, téléphone si demandé, réponses aux questions, paiement (traité par Stripe) | Exécution du contrat                                              |
+| Commande et billets                 | Identité, e-mail, téléphone si demandé, réponses aux questions, paiement (traité par Mollie) | Exécution du contrat                                              |
 | Contrôle des entrées                | Passages, horodatage, appareil                                                               | Exécution du contrat                                              |
 | Billets vendus par un réseau        | Nom, e-mail, téléphone, réservation, place, code-barres, importés par l'organisateur         | Exécution du contrat (Evoly sous-traitant)                        |
 | Contacts venus d'un réseau          | Nom, e-mail, provenance du consentement (réseau, fichier, date)                              | Consentement (fichier du réseau ou attestation de l'organisateur) |
@@ -76,7 +76,7 @@ L'utilisation et le transfert à toute autre application des informations reçue
 
 | Sous-traitant              | Service                                                                                                               | Localisation                                                |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Stripe                     | Paiements, prévention de la fraude                                                                                    | Union européenne, États-Unis (clauses contractuelles types) |
+| Mollie B.V.                | Traitement des paiements des billets et de l'abonnement Pro                                                           | Union européenne (Amsterdam, Pays-Bas)                      |
 | Resend                     | Envoi des e-mails                                                                                                     | États-Unis (clauses contractuelles types)                   |
 | Anthropic                  | Lecture d’une photo de plan de salle envoyée par un organisateur (fonction facultative), sans conservation de l’image | États-Unis (clauses contractuelles types)                   |
 | Cloudflare                 | Réseau, certificats, stockage des images (R2)                                                                         | Union européenne, États-Unis (clauses contractuelles types) |

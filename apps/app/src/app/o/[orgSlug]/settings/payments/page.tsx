@@ -7,6 +7,7 @@ import { Badge, Banner } from "@/components/ui/Card";
 import { SettingsRow } from "@/components/ui/Controls";
 import { db } from "@/lib/db";
 import { mollieConnectConfigured } from "@/lib/mollie";
+import { MOLLIE_TONE, mollieState } from "@/lib/mollieState";
 import { safeError } from "@/lib/redact";
 import {
   findOrgContext,
@@ -21,32 +22,6 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("settings");
   return { title: t("payments") };
 }
-
-type MollieState =
-  "none" | "disconnected" | "needsData" | "inReview" | "pending" | "ready";
-
-function mollieState(m: OrgContext["mollie"]): MollieState {
-  if (!m) return "none";
-  if (m.disconnected) return "disconnected";
-  if (m.ready) return "ready";
-  if (m.onboardingStatus === "NEEDS_DATA") return "needsData";
-  if (m.onboardingStatus === "IN_REVIEW") return "inReview";
-  return "pending";
-}
-const MOLLIE_TONE = {
-  none: "neutral",
-  disconnected: "danger",
-  needsData: "warning",
-  inReview: "warning",
-  pending: "warning",
-  ready: "success",
-} as const;
-const STRIPE_TONE = (status: string) =>
-  status === "ACTIVE"
-    ? "success"
-    : status === "PENDING"
-      ? "warning"
-      : ("danger" as const);
 
 /** Relecture chez Mollie à l'ouverture de la page, au plus une fois par minute, tant que le compte n'est pas prêt. */
 async function refreshMollie(ctx: OrgContext, orgSlug: string) {
@@ -168,29 +143,6 @@ export default async function PaymentsPage({
             </div>
           )}
         </SettingsRow>
-        {/* compte Stripe d'avant le passage à Mollie : affiché tant qu'il existe, plus de nouvelle liaison */}
-        {ctx.stripe ? (
-          <SettingsRow
-            title="Stripe"
-            description={t(`stripeExplain_${ctx.stripe.status}`)}
-          >
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge tone={STRIPE_TONE(ctx.stripe.status)} dot>
-                {t(`stripeStatus_${ctx.stripe.status}`)}
-              </Badge>
-              {manage ? (
-                <a
-                  href="https://dashboard.stripe.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className={buttonClass("secondary")}
-                >
-                  {t("openStripeDashboard")}
-                </a>
-              ) : null}
-            </div>
-          </SettingsRow>
-        ) : null}
         {/* RG-REF-09 : remboursement demandé par l'acheteur, valeur proposée aux nouveaux événements */}
         <SettingsRow
           title={t("refundDefaultTitle")}

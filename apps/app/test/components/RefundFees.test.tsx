@@ -32,13 +32,6 @@ vi.mock("@/app/site/[sub]/[eventSlug]/actions", () => actions);
 vi.mock("@/app/o/[orgSlug]/events/actions", () => actions);
 vi.mock("@/app/o/[orgSlug]/settings/actions", () => actions);
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
-vi.mock("@/components/public/StripePayment", () => ({
-  StripePayment: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
-  PaymentFields: () => null,
-  PayButton: () => null,
-}));
 vi.mock("@/components/public/SeatMapPicker", () => ({
   SeatMapPicker: () => null,
 }));
@@ -195,7 +188,7 @@ describe("règle de remboursement avant l'achat (page de l'événement, tunnel d
           nominative: false,
         },
       ],
-      stripeAccountId: null,
+      mollie: true, // paiement sur la page de Mollie
       questions: { order: [], perLine: {} },
       refund: rule({ feeMode: "MINUS_FEES" }),
       ...over,
@@ -207,7 +200,6 @@ describe("règle de remboursement avant l'achat (page de l'événement, tunnel d
             reservation={r}
             organizationName="Club"
             requirePhone={false}
-            publishableKey={null}
             onCancel={vi.fn()}
           />
         </Fr>,

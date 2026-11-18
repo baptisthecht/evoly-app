@@ -12,7 +12,6 @@ import {
   PromoRejected,
   cancelReservation,
   reserveOrder,
-  confirmOrderPayment,
   submitBuyer,
   updateTicketHolder,
   type PublicQuestion,
@@ -79,8 +78,7 @@ export interface ReservationView {
     nominative: boolean;
     holderEmail?: boolean;
   }>;
-  stripeAccountId: string | null;
-  /** Paiement sur la page de Mollie (docs/MOLLIE.md) plutôt que par le formulaire de Stripe. */
+  /** Compte Mollie de l'organisation prêt : paiement sur la page de Mollie (docs/MOLLIE.md). */
   mollie?: boolean;
   /** US-QST-01 : questions de la commande et de chaque ligne. */
   questions: {
@@ -234,7 +232,6 @@ export async function reserveAction(
         lines: r.lines,
         options: r.options ?? [],
         questions: r.questions,
-        stripeAccountId: r.stripeAccountId,
         mollie: r.mollie,
         seats: held,
       },
@@ -269,7 +266,7 @@ export async function submitBuyerAction(
 
 /**
  * Site visité (sous-domaine ou domaine personnalisé), construit d'après la requête, jamais reçu tel quel du
- * navigateur : retour après la banque (Stripe) ou après la page de paiement de Mollie.
+ * navigateur : retour après la page de paiement de Mollie.
  */
 async function siteOrigin(): Promise<string | null> {
   const h = await headers();
@@ -283,38 +280,6 @@ async function siteOrigin(): Promise<string | null> {
       ? forwarded
       : new URL(env().NEXT_PUBLIC_APP_URL).protocol.replace(":", "");
   return `${proto}://${host}`;
-}
-
-/**
- * Paiement par carte confirmé par le serveur (jeton de confirmation de Stripe) :
- * limites par carte vérifiées avant tout débit. Retour après la banque : le site
- * visité, construit ici (jamais reçu tel quel du navigateur), et le chemin des billets.
- */
-export async function confirmPaymentAction(
-  token: string,
-  confirmationTokenId: string,
-  path: string,
-): Promise<
-  Result<{ kind: "DONE" } | { kind: "ACTION"; clientSecret: string }>
-> {
-  if ((await hit(`checkout:confirm:${token.slice(0, 16)}`, 600)) > 15)
-    return { ok: false, error: "RATE_LIMITED" };
-  if (!/^\/[A-Za-z0-9/_\-.?=&%]*$/.test(path) || path.startsWith("//"))
-    return { ok: false, error: "PAYMENT_INVALID" };
-  const origin = await siteOrigin();
-  if (!origin) return { ok: false, error: "PAYMENT_INVALID" };
-  try {
-    return {
-      ok: true,
-      data: await confirmOrderPayment(
-        token,
-        confirmationTokenId,
-        `${origin}${path}`,
-      ),
-    };
-  } catch (err) {
-    return failure(err);
-  }
 }
 
 export async function cancelReservationAction(token: string): Promise<void> {
@@ -458,7 +423,6 @@ export async function reserveResaleAction(
         lines: r.lines,
         options: [], // achat d'une place en revente : pas d'options
         questions: r.questions,
-        stripeAccountId: r.stripeAccountId,
         mollie: r.mollie,
       },
     };

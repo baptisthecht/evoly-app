@@ -5,43 +5,14 @@ import {
   type SubscriptionStatus,
 } from "./plans";
 
-/** Statut Stripe d'un abonnement vers le statut Evoly (RG-SUB-02, RG-SUB-04, RG-SUB-06). */
-export function subscriptionStatusFromStripe(
-  status: string,
-): SubscriptionStatus {
-  switch (status) {
-    case "trialing":
-      return "TRIALING";
-    case "active":
-      return "ACTIVE";
-    case "past_due":
-      return "PAST_DUE";
-    case "unpaid":
-      return "UNPAID";
-    case "incomplete":
-      return "INCOMPLETE";
-    default:
-      return "CANCELED"; // canceled, incomplete_expired, paused
-  }
-}
-
-/** RG-SUB-02 : un essai de 14 jours par organisation, jamais deux, ni après un abonnement payé (Stripe ou Mollie). */
+/** RG-SUB-02 : un essai de 14 jours par organisation, jamais deux, ni après un abonnement payé. */
 export function trialEligible(
   sub:
-    | {
-        trialEndsAt: Date | null;
-        stripeSubscriptionId: string | null;
-        mollieMandateId?: string | null;
-      }
+    | { trialEndsAt: Date | null; mollieMandateId?: string | null }
     | null
     | undefined,
 ): boolean {
-  return (
-    !sub ||
-    (sub.trialEndsAt == null &&
-      sub.stripeSubscriptionId == null &&
-      !sub.mollieMandateId)
-  );
+  return !sub || (sub.trialEndsAt == null && !sub.mollieMandateId);
 }
 
 export type BillingInterval = "MONTH" | "YEAR";
@@ -114,8 +85,8 @@ export function renewsWithMollie(
 }
 
 /**
- * Début de la première période payée par Mollie : à la fin de ce qui court encore (essai, Pro offert daté, ancien
- * abonnement Stripe ou période résiliée), pour ne rien perdre ; tout de suite en Free ou si un paiement est en retard.
+ * Début de la première période payée par Mollie : à la fin de ce qui court encore (essai, Pro offert daté ou période
+ * résiliée), pour ne rien perdre ; tout de suite en Free ou si un paiement est en retard.
  */
 export function firstPeriodStart(
   sub: SubscriptionInput | null | undefined,

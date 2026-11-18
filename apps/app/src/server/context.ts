@@ -38,12 +38,6 @@ export interface OrgContext {
   suspended?: boolean;
   /** Consultation par le support d'Evoly : lecture seule, journalisée. */
   supportView?: boolean;
-  stripe: {
-    status: string;
-    chargesEnabled: boolean;
-    payoutsEnabled: boolean;
-    requirementsDue: string[];
-  } | null;
   /** Compte Mollie de l'organisateur (docs/MOLLIE.md) ; `ready` : il peut recevoir des paiements de billets. */
   mollie: {
     ready: boolean;
@@ -82,7 +76,6 @@ export async function findOrgContext(
           organization: {
             include: {
               subscription: true,
-              stripeAccount: true,
               mollieAccount: true,
             },
           },
@@ -93,7 +86,6 @@ export async function findOrgContext(
         where: { slug: orgSlug, deletedAt: null },
         include: {
           subscription: true,
-          stripeAccount: true,
           mollieAccount: true,
         },
       })
@@ -146,7 +138,6 @@ export async function findOrgContext(
       });
     }
   }
-  const sa = o.stripeAccount;
   const ma = o.mollieAccount;
   // RG-SUB-08 : en Free, seuls les propriétaires accèdent ; les autres membres sont suspendus sans perdre leur rôle
   if (
@@ -179,16 +170,6 @@ export async function findOrgContext(
     readOnly,
     suspended: o.status === "SUSPENDED",
     supportView: !!opts.supportView,
-    stripe: sa
-      ? {
-          status: sa.status,
-          chargesEnabled: sa.chargesEnabled,
-          payoutsEnabled: sa.payoutsEnabled,
-          requirementsDue: Array.isArray(sa.requirementsDue)
-            ? (sa.requirementsDue as string[])
-            : [],
-        }
-      : null,
     mollie: ma
       ? {
           ready: mollieReady(ma),

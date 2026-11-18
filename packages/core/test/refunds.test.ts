@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   buyerBearsRefundFees,
   checkRefundRequest,
-  REFUND_APPLICATION_FEE,
   refundAmount,
   refundFeesWithheld,
   refundRuleOf,
@@ -109,9 +108,6 @@ describe("montants", () => {
         { faceValueMinor: 2400, status: "REFUNDED" },
       ]),
     ).toBe(4800);
-  });
-  it("commission toujours conservée (RG-FEE-40)", () => {
-    expect(REFUND_APPLICATION_FEE).toBe(false);
   });
 });
 

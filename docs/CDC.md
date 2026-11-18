@@ -26,7 +26,7 @@
 9. [Parcours et fonctionnalités](#9-parcours-et-fonctionnalités)
 10. [Catalogue des e-mails](#10-catalogue-des-e-mails)
 11. [Tâches planifiées](#11-tâches-planifiées)
-12. [Webhooks Stripe](#12-webhooks-stripe)
+12. [Webhooks Mollie](#12-webhooks-mollie)
 13. [Sécurité](#13-sécurité)
 14. [Qualité et tests](#14-qualité-et-tests)
 15. [Reprise de la v1](#15-reprise-de-la-v1)
@@ -49,18 +49,18 @@ Ce cahier des charges décrit l'intégralité du produit Evoly côté organisate
 
 ### 1.2 Ce qui change par rapport à la v1
 
-| Sujet                    | v1                                                                                          | v2                                                                                   |
-| ------------------------ | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Commission               | 5 % (Free) ou 2,5 % (Pro) au-delà d'un quota mensuel de billets offerts                     | 0,15 € + 1,5 % par billet payant, plafonnée à 1 € (Free) ou 0,70 € (Pro), sans quota |
-| Frais bancaires          | Payés par Evoly (charges de destination)                                                    | Payés par l'organisateur, au coût réel, prélevés directement par Stripe              |
-| Qui paie                 | Commission affichée à l'acheteur                                                            | Tout est inclus dans le prix du billet : l'acheteur paie le prix affiché             |
-| Argent des organisateurs | Solde interne, réserve de 20 %, virements manuels                                           | Aucun solde interne : Stripe verse directement l'organisateur                        |
-| Revente                  | Argent versé à l'organisateur, vendeur non remboursé, prix jusqu'à 2 fois le prix d'origine | Nouvelle commande pour l'acheteur, vendeur remboursé, prix plafonné au prix payé     |
-| Prix dynamiques          | Absents                                                                                     | Paliers automatiques par date ou par quantité (Pro)                                  |
-| Membres et rôles         | Toutes offres                                                                               | Pro                                                                                  |
-| International            | Français et euros codés en dur                                                              | Langues et devises dès la conception                                                 |
-| Design                   | Aucun design system                                                                         | Design system repris de la charte Evoly                                              |
-| Slogan                   | « La billetterie honnête »                                                                  | « Ton prochain souvenir t'attend »                                                   |
+| Sujet                    | v1                                                                                          | v2                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Commission               | 5 % (Free) ou 2,5 % (Pro) au-delà d'un quota mensuel de billets offerts                     | 0,29 € + 2 % par billet payant, plafonnée à 2,50 € (Free) ou 1 € (Pro), sans quota |
+| Frais bancaires          | Payés par Evoly (charges de destination)                                                    | Payés par l'organisateur, au coût réel, prélevés directement par Mollie            |
+| Qui paie                 | Commission affichée à l'acheteur                                                            | Tout est inclus dans le prix du billet : l'acheteur paie le prix affiché           |
+| Argent des organisateurs | Solde interne, réserve de 20 %, virements manuels                                           | Aucun solde interne : Mollie verse directement l'organisateur                      |
+| Revente                  | Argent versé à l'organisateur, vendeur non remboursé, prix jusqu'à 2 fois le prix d'origine | Nouvelle commande pour l'acheteur, vendeur remboursé, prix plafonné au prix payé   |
+| Prix dynamiques          | Absents                                                                                     | Paliers automatiques par date ou par quantité (Pro)                                |
+| Membres et rôles         | Toutes offres                                                                               | Pro                                                                                |
+| International            | Français et euros codés en dur                                                              | Langues et devises dès la conception                                               |
+| Design                   | Aucun design system                                                                         | Design system repris de la charte Evoly                                            |
+| Slogan                   | « La billetterie honnête »                                                                  | « Ton prochain souvenir t'attend »                                                 |
 
 ### 1.3 Conventions
 
@@ -68,7 +68,7 @@ Ce cahier des charges décrit l'intégralité du produit Evoly côté organisate
 - **Règles de gestion** : numérotées `RG-DOMAINE-NN` (exemple : `RG-PAY-03`). Elles sont normatives.
 - **User stories** : `US-DOMAINE-NN`, au format « En tant que…, je peux… ».
 - **⚠** signale une décision encore à valider. La liste complète est en section 17. En attendant, la valeur indiquée est celle à implémenter.
-- **Vocabulaire** : organisateur (client d'Evoly), participant ou acheteur (achète des billets), tarif (type de billet), palier (prix dynamique d'un tarif), commande, billet, revente, commission (part d'Evoly), frais bancaires (part de Stripe).
+- **Vocabulaire** : organisateur (client d'Evoly), participant ou acheteur (achète des billets), tarif (type de billet), palier (prix dynamique d'un tarif), commande, billet, revente, commission (part d'Evoly), frais bancaires (part de Mollie).
 - **Montants** : sauf mention contraire, exprimés en euros, prix tout compris pour l'acheteur.
 
 ---
@@ -77,7 +77,7 @@ Ce cahier des charges décrit l'intégralité du produit Evoly côté organisate
 
 ### 2.1 Le produit
 
-Evoly est une billetterie en ligne en libre-service. Un organisateur crée son événement en une minute, le vend sur sa propre page, encaisse sur son propre compte Stripe et contrôle les entrées avec un téléphone. Les participants achètent en un tap, avec Apple Pay, Google Pay, leur carte ou le moyen de paiement local de leur pays.
+Evoly est une billetterie en ligne en libre-service. Un organisateur crée son événement en une minute, le vend sur sa propre page, encaisse sur son propre compte Mollie et contrôle les entrées avec un téléphone. Les participants achètent en un tap, avec Apple Pay, Google Pay, leur carte ou le moyen de paiement local de leur pays.
 
 ### 2.2 Promesse
 
@@ -127,10 +127,10 @@ Le détail des conditions par pays (devise, part fixe de la commission, moyens d
 |                              | Free                              | Pro                                                              |
 | ---------------------------- | --------------------------------- | ---------------------------------------------------------------- |
 | Abonnement                   | 0 €, sans carte bancaire          | 29 € par mois, ou 295,80 € par an (soit 24,65 € par mois, −15 %) |
-| Essai                        | -                                 | 14 jours, carte bancaire requise                                 |
+| Essai                        | -                                 | 14 jours, sans carte bancaire                                    |
 | Billets gratuits             | 0 %, sans limite                  | 0 %, sans limite                                                 |
-| Commission par billet payant | 0,15 € + 1,5 %, plafonnée à 1 €   | 0,15 € + 1,5 %, plafonnée à 0,70 €                               |
-| Frais bancaires              | Au coût réel, prélevés par Stripe | Au coût réel, prélevés par Stripe                                |
+| Commission par billet payant | 0,29 € + 2 %, plafonnée à 2,50 €  | 0,29 € + 2 %, plafonnée à 1 €                                    |
+| Frais bancaires              | Au coût réel, prélevés par Mollie | Au coût réel, prélevés par Mollie                                |
 
 Les paramètres sont stockés en base (`Plan`, `PlanCurrencyTerms`) et modifiables sans redéploiement.
 
@@ -142,29 +142,29 @@ Les paramètres sont stockés en base (`Plan`, `PlanCurrencyTerms`) et modifiabl
 - **RG-FEE-02** : le prix payé est le prix effectif du billet pour l'acheteur, après palier et après code promo.
 - **RG-FEE-03** : un billet gratuit (prix payé égal à 0) ne génère aucune commission, quel que soit le volume.
 - **RG-FEE-04** : l'offre prise en compte est celle de l'organisation au moment où la commande est réservée. Les conditions appliquées sont figées dans la commande (`Order.feeSnapshot`).
-- **RG-FEE-05** : la part fixe et le plafond sont définis par devise (`PlanCurrencyTerms`). En euros : part fixe 0,15 €, plafond 1 € (Free) et 0,70 € (Pro), taux 1,5 %.
-- **RG-FEE-06** : la commission de la commande est la somme des commissions de ses billets. Elle est prélevée par Stripe comme frais d'application sur le paiement.
+- **RG-FEE-05** : la part fixe et le plafond sont définis par devise (`PlanCurrencyTerms`). En euros (grille d'octobre 2026) : part fixe 0,29 €, plafond 2,50 € (Free) et 1 € (Pro), taux 2 %.
+- **RG-FEE-06** : la commission de la commande est la somme des commissions de ses billets. Elle est transmise à Mollie en frais d'application (`applicationFee`) sur le paiement, et Mollie la verse sur le solde d'Evoly. Sur une très petite commande, elle est ramenée au plafond de Mollie (montant du paiement moins 0,35 € et 6 % de ce montant) ; la commande garde la commission réellement prise.
 - **RG-FEE-07** : il n'existe plus de quota de billets offerts. Aucun compteur mensuel.
 
 Exemples (euros) :
 
-| Prix du billet | Commission Free                                         | Commission Pro                                          |
-| -------------- | ------------------------------------------------------- | ------------------------------------------------------- |
-| 1,00           | 0,17                                                    | 0,17                                                    |
-| 5,00           | 0,23                                                    | 0,23                                                    |
-| 10,00          | 0,30                                                    | 0,30                                                    |
-| 20,00          | 0,45                                                    | 0,45                                                    |
-| 30,00          | 0,60                                                    | 0,60                                                    |
-| 37,00          | 0,71                                                    | 0,70 (plafond atteint dès 36,34 €, commission arrondie) |
-| 50,00          | 0,90                                                    | 0,70                                                    |
-| 57,00          | 1,00 (plafond atteint dès 56,34 €, commission arrondie) | 0,70                                                    |
-| 100,00         | 1,00                                                    | 0,70                                                    |
+| Prix du billet | Commission Free                                          | Commission Pro                                          |
+| -------------- | -------------------------------------------------------- | ------------------------------------------------------- |
+| 1,00           | 0,31                                                     | 0,31                                                    |
+| 5,00           | 0,39                                                     | 0,39                                                    |
+| 10,00          | 0,49                                                     | 0,49                                                    |
+| 20,00          | 0,69                                                     | 0,69                                                    |
+| 30,00          | 0,89                                                     | 0,89                                                    |
+| 37,00          | 1,03                                                     | 1,00 (plafond atteint dès 35,25 €, commission arrondie) |
+| 50,00          | 1,29                                                     | 1,00                                                    |
+| 100,00         | 2,29                                                     | 1,00                                                    |
+| 120,00         | 2,50 (plafond atteint dès 110,25 €, commission arrondie) | 1,00                                                    |
 
 ### 3.3 Frais bancaires
 
-- **RG-FEE-10** : les paiements sont des charges directes sur le compte Stripe de l'organisateur. Stripe y prélève ses frais selon sa propre grille, au coût réel. Evoly ne touche aucune marge sur ces frais.
-- **RG-FEE-11** : les frais dépendent du moyen de paiement et du pays du compte Stripe. Repères pour un compte belge (grille Stripe relevée en septembre 2026) : carte européenne standard 1,5 % + 0,25 € ; carte premium 2,8 % + 0,25 € ; carte internationale 3,15 % + 0,25 € et 2 % en cas de conversion ; Bancontact 0,35 € ; iDEAL | Wero 0,29 €.
-- **RG-FEE-12** : les frais réels de chaque paiement sont récupérés auprès de Stripe après le paiement et enregistrés (`Order.paymentFeeMinor`) pour les statistiques et les relevés.
+- **RG-FEE-10** : les paiements sont créés sur le compte Mollie de l'organisateur, qui les encaisse. Mollie y prélève ses frais selon sa propre grille, au coût réel. Evoly ne touche aucune marge sur ces frais.
+- **RG-FEE-11** : les frais dépendent du moyen de paiement et du pays du compte Mollie. Repères pour un compte belge (grille Mollie relevée le 18 novembre 2026, celle des estimations d'Evoly) : carte européenne de particulier 1,8 % + 0,25 € ; carte professionnelle européenne 2,9 % + 0,25 € ; carte hors Europe 3,25 % + 0,25 € ; Bancontact 0,39 € ; iDEAL 0,32 €. Un remboursement coûterait 0,25 € (selon des sources tierces, à confirmer avec Mollie).
+- **RG-FEE-12** : les frais réels de chaque paiement sont relevés chez Mollie après le paiement (transactions du solde de l'organisateur) et enregistrés (`Order.paymentFeeMinor`) pour les statistiques et les relevés. Tant qu'ils ne le sont pas, les frais sont estimés d'après la grille de Mollie (RG-FEE-11), et signalés comme tels.
 - **RG-FEE-13** : le prix payé par l'acheteur est le même quel que soit le moyen de paiement. Aucun surcoût selon le moyen de paiement (interdit dans l'Union européenne pour les cartes des particuliers).
 
 ### 3.4 Qui paie
@@ -173,19 +173,19 @@ Exemples (euros) :
 - **RG-FEE-21** : l'organisateur voit, pour chaque tarif, une estimation de ce qu'il touche par billet (prix − commission − frais d'une carte européenne standard) et, dans ses statistiques, les montants réels.
 - **RG-FEE-22** : la possibilité de faire payer des frais de service à l'acheteur est hors périmètre v2 (P2). Si elle est ajoutée, le prix affiché dès le premier écran devra inclure ces frais, et leur montant devra être identique quel que soit le moyen de paiement.
 
-Exemple : billet à 30 € payé par carte européenne standard, offre Free. Commission 0,60 € ; frais Stripe 0,70 € ; l'organisateur touche 28,70 €. Payé par Bancontact : frais Stripe 0,35 €, l'organisateur touche 29,05 €.
+Exemple : billet à 30 € payé par carte européenne standard, offre Free. Commission 0,89 € ; frais de Mollie 0,79 € ; l'organisateur touche 28,32 €. Payé par Bancontact : frais de Mollie 0,39 €, l'organisateur touche 28,72 €.
 
 ### 3.5 Abonnement Pro
 
-- **RG-SUB-01** : l'abonnement Pro est vendu par Evoly via Stripe Billing, sur le compte Stripe d'Evoly (pas sur le compte de l'organisateur).
-- **RG-SUB-02** : essai de 14 jours avec carte bancaire requise. Sans résiliation avant la fin de l'essai, l'abonnement démarre automatiquement (mensuel ou annuel selon le choix fait au départ).
-- **RG-SUB-03** : un e-mail prévient l'organisateur 3 jours avant la fin de l'essai.
-- **RG-SUB-04** : résiliation possible à tout moment depuis l'espace de facturation. Elle prend effet à la fin de la période payée, sans remboursement au prorata. L'organisation repasse alors en Free.
-- **RG-SUB-05** : passage du mensuel à l'annuel possible à tout moment, avec le crédit au prorata calculé par Stripe.
-- **RG-SUB-06** : paiement échoué : nouvelles tentatives automatiques de Stripe, e-mail d'alerte à chaque échec, bandeau dans l'app. Au-delà de 7 jours d'impayé, rétrogradation automatique en Free.
-- **RG-SUB-07** : le passage en Pro prend effet immédiatement pour les nouvelles commandes (plafond à 0,70 €). Les commandes déjà réservées gardent leurs conditions.
+- **RG-SUB-01** : l'abonnement Pro est vendu par Evoly sur son propre compte Mollie (pas sur le compte de l'organisateur), avec un client Mollie par organisation, créé au premier paiement. Evoly tient les périodes et prélève chaque renouvellement sur le mandat de l'organisation (paiements récurrents), sans l'API des abonnements de Mollie.
+- **RG-SUB-02** : essai de 14 jours sans carte bancaire, une seule fois par organisation (jamais après un abonnement payé) ; à sa fin, sans abonnement, retour en Free sans rien perdre. S'abonner sans période en cours : la première période (mensuelle ou annuelle) commence tout de suite et se paie sur la page de Mollie (carte, Bancontact…), qui crée le mandat des renouvellements (carte, ou prélèvement SEPA après Bancontact). S'abonner pendant une période en cours (essai, Pro offert, offre de lancement) : rien à payer avant sa fin ; la page de Mollie demande seulement un paiement de vérification de 0,02 €, remboursé aussitôt et jamais facturé, qui enregistre le moyen de paiement ; le premier prélèvement a lieu à la fin de la période, comme un renouvellement, annoncé par un e-mail de confirmation puis un rappel 7 jours avant. Payée après la fin de la période, la vérification déclenche le premier prélèvement tout de suite.
+- **RG-SUB-03** : un e-mail prévient le propriétaire 3 jours avant la fin d'un essai ou d'un Pro offert sans abonnement, avec l'invitation à s'abonner.
+- **RG-SUB-04** : résiliation possible à tout moment depuis l'espace de facturation : plus aucun prélèvement. Elle prend effet à la fin de la période payée, sans remboursement au prorata ; l'organisation repasse alors en Free. L'abonnement peut être repris d'ici là, sans paiement.
+- **RG-SUB-05** : passage du mensuel à l'annuel (ou l'inverse) possible à tout moment : il prend effet au prochain renouvellement, sans prorata ; revenir au choix en cours annule le changement. Un rappel part 7 jours avant le prélèvement d'un renouvellement annuel ou d'un changement de périodicité ; la facture de chaque paiement annonce la date et le montant du suivant.
+- **RG-SUB-06** : renouvellement prélevé au plus tôt la veille de l'échéance. Paiement échoué : abonnement impayé, e-mail d'alerte à chaque échec, bandeau dans l'app ; Evoly retente le prélèvement 3 jours puis 6 jours après le premier échec, et l'organisateur peut régler la période impayée sur la page de Mollie, avec un nouveau moyen de paiement. Un paiement contesté auprès de la banque rend sa période de nouveau due. Au-delà de 7 jours d'impayé, l'abonnement prend fin : rétrogradation automatique en Free.
+- **RG-SUB-07** : le passage en Pro prend effet immédiatement pour les nouvelles commandes (plafond à 1 €). Les commandes déjà réservées gardent leurs conditions.
 - **RG-SUB-08** : effets de la rétrogradation en Free (aucune donnée n'est supprimée) :
-  - plafond de commission à 1 € pour les nouvelles commandes ;
+  - plafond de commission à 2,50 € pour les nouvelles commandes ;
   - domaines personnalisés désactivés (réactivés sans reconfiguration en cas de retour en Pro) ; sous-domaines d'événement redirigés vers le sous-domaine de l'organisation ;
   - marque masquée (thème Evoly), réglages conservés ;
   - automatisations d'e-mails arrêtées, campagnes programmées annulées avec notification ;
@@ -201,7 +201,7 @@ Exemple : billet à 30 € payé par carte européenne standard, offre Free. Com
 
 ### 3.7 Remboursements et commission
 
-- **RG-FEE-40** : Evoly conserve toujours sa commission sur les billets remboursés, y compris lors d'une annulation d'événement. Stripe ne restitue pas non plus ses frais de traitement.
+- **RG-FEE-40** : Evoly conserve toujours sa commission sur les billets remboursés, y compris lors d'une annulation d'événement : Mollie ne rend jamais les frais d'application. Les frais de Mollie de la vente d'origine ne sont pas restitués non plus.
 - **RG-FEE-41** : cette règle est écrite dans les conditions d'utilisation des organisateurs et rappelée au moment de rembourser.
 
 ### 3.8 Revente
@@ -210,7 +210,7 @@ Exemple : billet à 30 € payé par carte européenne standard, offre Free. Com
 - **RG-FEE-51** : ces frais sont supportés par le vendeur : ils sont déduits du montant qui lui est rendu. L'organisateur reste neutre et l'acheteur paie exactement le prix affiché de la revente.
 - **RG-FEE-52** : la commission et les frais bancaires de la vente d'origine ne sont pas restitués.
 
-Exemple : billet acheté 30 €, revendu 30 € et payé par carte européenne standard, offre Free. Commission de revente 0,60 € ; frais Stripe 0,70 € ; le vendeur récupère 28,70 € ; l'organisateur n'y gagne ni n'y perd.
+Exemple : billet acheté 30 €, revendu 30 € et payé par carte européenne standard, offre Free. Commission de revente 0,89 € ; frais de Mollie du paiement de l'acheteur 0,79 € ; le vendeur récupère 28,32 €, moins les frais du remboursement chez Mollie quand il avait payé en ligne (0,25 €, à confirmer avec Mollie), soit 28,07 € ; l'organisateur n'y gagne ni n'y perd.
 
 ### 3.9 Cohérence avec le site
 
@@ -220,44 +220,44 @@ Le simulateur du site compare les frais d'Evoly (commission + frais d'une carte 
 
 ## 4. Offres et fonctionnalités
 
-| Fonctionnalité                                                        | Free      | Pro    | Priorité |
-| --------------------------------------------------------------------- | --------- | ------ | -------- |
-| Événements et tarifs illimités                                        | Oui       | Oui    | P0       |
-| Billets gratuits à 0 %, sans limite                                   | Oui       | Oui    | P0       |
-| Commission plafonnée                                                  | 1 €       | 0,70 € | P0       |
-| Frais bancaires au coût réel                                          | Oui       | Oui    | P0       |
-| Paiement Apple Pay, Google Pay, cartes et moyens locaux               | Oui       | Oui    | P0       |
-| Page de vente sur `mon-asso.evoly.me`                                 | Oui       | Oui    | P0       |
-| Revente entre participants par lien                                   | Oui       | Oui    | P0       |
-| Section Revente sur la page de vente                                  | Oui       | Oui    | P0       |
-| Statistiques en direct                                                | Oui       | Oui    | P0       |
-| Scanner, liens bénévoles sans compte, mode hors ligne                 | Oui       | Oui    | P0       |
-| E-mails transactionnels                                               | Oui       | Oui    | P0       |
-| Codes promo                                                           | Oui       | Oui    | P0       |
-| Questions à l'achat, billets nominatifs                               | Oui       | Oui    | P0       |
-| Remboursements et politique par événement                             | Oui       | Oui    | P0       |
-| Relevés et factures de commission                                     | Oui       | Oui    | P0       |
-| Billets offerts                                                       | Oui       | Oui    | P1       |
-| Apple Wallet et Google Wallet                                         | Oui       | Oui    | P1       |
-| Prix dynamiques (paliers par date ou quantité)                        | -         | Oui    | P0       |
-| Rappels automatiques J-7, J-1, jour J                                 | -         | Oui    | P0       |
-| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | -         | Oui    | P0       |
-| Couleurs et logo                                                      | -         | Oui    | P0       |
-| Aucune mention d'Evoly                                                | -         | Oui    | P0       |
-| Domaine personnalisé avec SSL                                         | -         | Oui    | P0       |
-| Sous-domaine dédié par événement                                      | -         | Oui    | P1       |
-| Membres, rôles système et rôles personnalisés                         | -         | Oui    | P0       |
-| Plusieurs organisations sur un compte                                 | Une seule | Oui    | P0       |
-| Plan de salle et placement numéroté                                   | -         | Oui    | P2 ⚠     |
-| Parrainage                                                            | Oui       | Oui    | P2       |
-| Espace participant avec compte                                        | Oui       | Oui    | P2       |
-| Billetterie intégrable au site de l'organisateur                      | Non       | Oui    | P1       |
-| Vente sur place : paiement par QR code et espèces                     | Oui       | Oui    | P1       |
-| Vente sur place : sans contact sur le téléphone de l'équipe           | Non       | Oui    | P1       |
-| Ambassadeurs et classement des ventes                                 | Non       | Oui    | P1       |
-| Options et consommations prépayées                                    | Non       | Oui    | P1       |
-| Liste d'attente                                                       | Oui       | Oui    | P1       |
-| Tables et forfaits                                                    | Non       | Oui    | P1       |
+| Fonctionnalité                                                        | Free      | Pro | Priorité |
+| --------------------------------------------------------------------- | --------- | --- | -------- |
+| Événements et tarifs illimités                                        | Oui       | Oui | P0       |
+| Billets gratuits à 0 %, sans limite                                   | Oui       | Oui | P0       |
+| Commission plafonnée                                                  | 2,50 €    | 1 € | P0       |
+| Frais bancaires au coût réel                                          | Oui       | Oui | P0       |
+| Paiement Apple Pay, Google Pay, cartes et moyens locaux               | Oui       | Oui | P0       |
+| Page de vente sur `mon-asso.evoly.me`                                 | Oui       | Oui | P0       |
+| Revente entre participants par lien                                   | Oui       | Oui | P0       |
+| Section Revente sur la page de vente                                  | Oui       | Oui | P0       |
+| Statistiques en direct                                                | Oui       | Oui | P0       |
+| Scanner, liens bénévoles sans compte, mode hors ligne                 | Oui       | Oui | P0       |
+| E-mails transactionnels                                               | Oui       | Oui | P0       |
+| Codes promo                                                           | Oui       | Oui | P0       |
+| Questions à l'achat, billets nominatifs                               | Oui       | Oui | P0       |
+| Remboursements et politique par événement                             | Oui       | Oui | P0       |
+| Relevés et factures de commission                                     | Oui       | Oui | P0       |
+| Billets offerts                                                       | Oui       | Oui | P1       |
+| Apple Wallet et Google Wallet                                         | Oui       | Oui | P1       |
+| Prix dynamiques (paliers par date ou quantité)                        | -         | Oui | P0       |
+| Rappels automatiques J-7, J-1, jour J                                 | -         | Oui | P0       |
+| E-mail après l'événement, campagnes ciblées, statistiques d'ouverture | -         | Oui | P0       |
+| Couleurs et logo                                                      | -         | Oui | P0       |
+| Aucune mention d'Evoly                                                | -         | Oui | P0       |
+| Domaine personnalisé avec SSL                                         | -         | Oui | P0       |
+| Sous-domaine dédié par événement                                      | -         | Oui | P1       |
+| Membres, rôles système et rôles personnalisés                         | -         | Oui | P0       |
+| Plusieurs organisations sur un compte                                 | Une seule | Oui | P0       |
+| Plan de salle et placement numéroté                                   | -         | Oui | P2 ⚠     |
+| Parrainage                                                            | Oui       | Oui | P2       |
+| Espace participant avec compte                                        | Oui       | Oui | P2       |
+| Billetterie intégrable au site de l'organisateur                      | Non       | Oui | P1       |
+| Vente sur place : paiement par QR code et espèces                     | Oui       | Oui | P1       |
+| Vente sur place : sans contact sur le téléphone de l'équipe           | Non       | Oui | P1       |
+| Ambassadeurs et classement des ventes                                 | Non       | Oui | P1       |
+| Options et consommations prépayées                                    | Non       | Oui | P1       |
+| Liste d'attente                                                       | Oui       | Oui | P1       |
+| Tables et forfaits                                                    | Non       | Oui | P1       |
 
 Le contrôle d'accès aux fonctionnalités passe par une fonction unique `hasFeature(organisation, fonctionnalité)` qui lit `Plan.features` et l'état de l'abonnement (voir section 6.4).
 
@@ -269,17 +269,17 @@ Le contrôle d'accès aux fonctionnalités passe par une fonction unique `hasFea
 
 - Comptes (e-mail et mot de passe, Google, Apple), vérification d'e-mail, réinitialisation, onboarding.
 - Organisations, sous-domaine Evoly, membres et rôles (Pro), plusieurs organisations (Pro).
-- Compte Stripe de l'organisateur (onboarding, statuts, lien vers son tableau de bord Stripe).
+- Compte Mollie de l'organisateur (liaison par OAuth, états, lien vers son tableau de bord Mollie).
 - Événements : assistant en 3 étapes avec sauvegarde automatique, gestion, publication, annulation, duplication.
 - Tarifs, prix dynamiques (Pro), questions à l'achat, billets nominatifs, codes promo.
 - Page de vente publique, section Revente, page d'organisation.
-- Achat avec réservation temporaire du stock, paiement Stripe (Payment Element), commandes gratuites.
+- Achat avec réservation temporaire du stock, paiement sur la page de paiement de Mollie, commandes gratuites.
 - Confirmation, e-mail avec billets, PDF, lien magique, « retrouver mes billets ».
 - Revente par lien et sur la page de vente.
 - Remboursements (demande, validation, traitement), annulation d'événement avec remboursements automatiques.
 - Scanner (repris de la v1 et corrigé) : liens bénévoles, connexion membre, mode hors ligne, statistiques.
 - Statistiques en direct (organisation et événement), exports CSV.
-- Finances : ventes, commissions, frais Stripe, net, virements Stripe, relevés mensuels.
+- Finances : ventes, commissions, frais de Mollie, net, versements de Mollie, relevés mensuels.
 - Pro : abonnement, essai, marque, domaine personnalisé, rappels, e-mail après l'événement, campagnes.
 - Notifications dans l'app et par e-mail.
 - Français et anglais, euros.
@@ -359,7 +359,7 @@ evoly/
 | Framework        | Next.js 16 (App Router), React 19, TypeScript en mode strict                                       |
 | Base de données  | PostgreSQL 16 ou plus, Prisma 7 avec l'adaptateur PostgreSQL                                       |
 | Authentification | Better Auth (adaptateur Prisma, sessions en base, limitation des tentatives en base)               |
-| Paiements        | Stripe Connect (comptes des organisateurs), Stripe Billing (abonnement Pro)                        |
+| Paiements        | Mollie Connect pour plateformes (comptes des organisateurs), compte Mollie d'Evoly (offre Pro)     |
 | E-mails          | Resend et React Email                                                                              |
 | Fichiers         | Cloudflare R2 (images d'événements, logos, PDF)                                                    |
 | Tâches de fond   | File de tâches sur PostgreSQL ⚠ (par exemple pg-boss), déclenchée par un planificateur             |
@@ -376,7 +376,7 @@ evoly/
 - **RG-ARC-02** : l'app n'effectue aucun calcul d'argent en dehors de `packages/core`. Il n'existe qu'une seule implémentation de chaque règle.
 - **RG-ARC-03** : chaque action serveur et chaque route d'API suit le même ordre : validation Zod, authentification, autorisation (`can(utilisateur, organisation, permission)`), contrôle de l'offre (`hasFeature`), vérification que la ressource appartient à l'organisation, puis exécution dans une transaction.
 - **RG-ARC-04** : les montants, prix et remises ne sont jamais acceptés depuis le navigateur. Ils sont recalculés côté serveur.
-- **RG-ARC-05** : tout traitement déclenché par Stripe est idempotent (`StripeWebhookEvent`).
+- **RG-ARC-05** : tout traitement déclenché par Mollie est idempotent : le webhook ne porte que l'identifiant du paiement, relu chez Mollie avant tout changement ; une commande n'est validée qu'une fois (RG-BUY-07), l'état d'un paiement Pro n'est appliqué qu'une fois, et les appels qui créent un paiement ou un remboursement chez Mollie portent une clé d'idempotence.
 - **RG-ARC-06** : les envois d'e-mails, PDF, statistiques et appels externes non bloquants passent par la file de tâches, avec reprise automatique.
 - **RG-ARC-07** : les requêtes sont toujours filtrées par organisation. Aucune route ne retrouve une ressource par un identifiant seul sans vérifier son organisation.
 
@@ -385,19 +385,19 @@ evoly/
 - **RG-DOM-01** : le middleware lit l'hôte de la requête et oriente vers la bonne route interne : site, app, scanner, sous-domaine d'organisation, sous-domaine d'événement, domaine personnalisé, redirection d'un ancien sous-domaine (`HostRedirect`, 301 pendant 6 mois). Le proxy d'entrée envoie `evoly.me/e/*` et `evoly.me/r/*` vers `apps/app`, le reste de `evoly.me` restant servi par `apps/web`.
 - **RG-DOM-02** : sous-domaines réservés : `app`, `api`, `www`, `scanner`, `admin`, `mail`, `support`, `blog`, `help`, `docs`, `status`, `evoly`, `auth`, `login`, `register`, `static`, `cdn`, `r`, `e`.
 - **RG-DOM-03** : les certificats des domaines personnalisés sont émis automatiquement à la demande par le proxy d'entrée, uniquement pour les domaines présents en base et actifs.
-- **RG-DOM-04** : chaque hôte qui affiche un paiement (sous-domaines et domaines personnalisés) est déclaré comme domaine de paiement sur le compte Stripe de l'organisateur, pour qu'Apple Pay et Google Pay s'affichent (`StripeAccount.paymentDomains`).
+- **RG-DOM-04** : le paiement se fait sur la page de paiement de Mollie, quel que soit l'hôte de la page de vente (sous-domaine ou domaine personnalisé) : aucun domaine de paiement n'est à déclarer, pas même pour Apple Pay (que Mollie n'active qu'avec les cartes sur le profil de l'organisateur).
 - **RG-DOM-05** : un domaine inconnu ou désactivé affiche une page d'erreur Evoly avec un lien vers l'adresse par défaut de l'organisation.
 - **RG-DOM-06** : l'URL canonique d'un événement est celle de son domaine le plus spécifique actif (domaine personnalisé, puis sous-domaine d'événement, puis sous-domaine d'organisation).
 
 ### 6.6 Paiements
 
-- **RG-PAY-01** : chaque organisateur a son propre compte Stripe connecté, configuré pour que Stripe lui facture directement ses frais (option « Stripe gère les tarifs »). Evoly ne paie ni les frais de traitement ni les frais Connect de ce compte.
-- **RG-PAY-02** : les paiements de billets sont des charges directes sur le compte de l'organisateur, avec la commission Evoly en frais d'application (`application_fee_amount`). L'organisateur est le vendeur des billets.
-- **RG-PAY-03** : l'acheteur paie avec le Payment Element de Stripe, moyens de paiement automatiques activés. Les moyens proposés dépendent du pays, de la devise et des réglages du compte de l'organisateur.
-- **RG-PAY-04** : les virements vers la banque de l'organisateur sont faits par Stripe selon le calendrier du compte. Evoly affiche le solde et les virements en lecture, sans jamais les déclencher.
-- **RG-PAY-05** : remboursements, litiges et contestations sont traités sur le compte de l'organisateur. Evoly en est notifiée et les affiche.
-- **RG-PAY-06** : l'abonnement Pro est encaissé sur le compte Stripe d'Evoly (Stripe Billing, portail client).
-- **RG-PAY-07** : les webhooks de la plateforme et des comptes connectés sont reçus sur deux points d'entrée signés distincts.
+- **RG-PAY-01** : chaque organisateur a son propre compte Mollie, qu'il crée ou relie depuis Evoly par une autorisation OAuth (Mollie Connect pour plateformes). Mollie le vérifie et lui facture directement ses frais ; Evoly ne paie pas les frais de traitement de ce compte. À la liaison, Evoly crée le profil de site de l'organisateur (sa page publique) et y demande les cartes, Bancontact et Apple Pay. Le compte est prêt à encaisser quand il est relié, que Mollie a accepté l'inscription et vérifié le profil, et qu'au moins un moyen de paiement est actif (en mode test, dès qu'un moyen de paiement est actif). Mollie n'envoyant pas d'événement pour l'inscription, Evoly relit l'état du compte chaque heure tant qu'il n'est pas prêt (une fois par jour ensuite) et à l'ouverture de la page Paiements des Paramètres ; une autorisation retirée chez Mollie rend le compte à relier, et l'organisateur en est prévenu.
+- **RG-PAY-02** : les paiements de billets sont créés sur le compte Mollie de l'organisateur (son profil de site), avec la commission Evoly en frais d'application (`applicationFee`, RG-FEE-06). L'organisateur est le vendeur des billets.
+- **RG-PAY-03** : l'acheteur paie sur la page de paiement de Mollie (redirection), qui propose les moyens de paiement actifs sur le profil de l'organisateur et gère l'authentification forte ; il revient ensuite sur la page de ses billets, sur le site qu'il visitait.
+- **RG-PAY-04** : les virements vers la banque de l'organisateur sont faits par Mollie (règlements), selon les réglages de son compte Mollie. Evoly affiche le solde et les derniers versements en lecture, sans jamais les déclencher.
+- **RG-PAY-05** : les remboursements sont pris sur le solde Mollie de l'organisateur ; les rétrofacturations (contestations) arrivent sur son compte Mollie, où il y répond. Evoly les apprend par le webhook du paiement et les affiche.
+- **RG-PAY-06** : l'abonnement Pro est encaissé sur le compte Mollie d'Evoly : premier paiement sur la page de Mollie, renouvellements prélevés par Evoly sur le mandat ; changement de périodicité, de moyen de paiement, résiliation et factures se gèrent dans Evoly (RG-SUB-01 à 06).
+- **RG-PAY-07** : Mollie appelle deux points d'entrée, dont l'adresse est donnée à chaque paiement (rien à configurer chez Mollie) : un pour les paiements des billets (comptes des organisateurs), un pour ceux de l'offre Pro (compte d'Evoly). Ils ne reçoivent que l'identifiant du paiement, toujours relu chez Mollie avant tout changement (section 12).
 
 ### 6.7 Tâches de fond
 
@@ -423,7 +423,7 @@ La liste complète est en section 11. Principes : planificateur unique, verrou p
 
 ### 6.11 Environnements et déploiement
 
-- Trois environnements : développement, préproduction (Stripe en mode test), production.
+- Trois environnements : développement, préproduction (Mollie en mode test), production.
 - Migrations appliquées par `prisma migrate deploy` avant le démarrage de chaque version. Jamais de `db push` en production.
 - Activation progressive des nouveautés par `FeatureFlag`.
 - Sauvegardes chiffrées de la base toutes les 24 heures au minimum, conservées 30 jours ; restauration testée chaque trimestre. Objectifs : perte de données maximale 1 heure (journal de transactions archivé), remise en service en moins de 4 heures.
@@ -431,7 +431,7 @@ La liste complète est en section 11. Principes : planificateur unique, verrou p
 ### 6.12 Observabilité
 
 - Sentry sur les trois apps, avec suppression des données personnelles.
-- Journaux structurés, métriques (commandes, paiements, erreurs Stripe, file de tâches, délivrabilité), surveillance de disponibilité des pages publiques et du point d'entrée des webhooks.
+- Journaux structurés, métriques (commandes, paiements, erreurs de Mollie, file de tâches, délivrabilité), surveillance de disponibilité des pages publiques et du point d'entrée des webhooks.
 - Alertes : taux d'erreur de paiement, webhooks en échec, file de tâches bloquée, certificat en échec.
 
 ---
@@ -460,7 +460,7 @@ Repris de la charte Evoly et du site. Il est implémenté une seule fois dans `p
 
 - **Langues** : français et anglais au lancement ⚠, néerlandais en P1, allemand et espagnol en P2. Toutes les chaînes passent par `packages/i18n`.
 - **Langue affichée** : pour l'organisateur, celle de son compte ; pour l'acheteur, celle de son navigateur si elle est disponible, sinon celle de l'événement. Choix mémorisé.
-- **Devises** : euro au lancement ⚠. Le modèle accepte toute devise gérée par Stripe ; la devise d'un événement est celle de l'organisation, figée à la première vente.
+- **Devises** : euro au lancement ⚠. Le modèle accepte toute devise gérée par Mollie ; la devise d'un événement est celle de l'organisation, figée à la première vente.
 - **RG-I18N-01** : les montants sont stockés en unités mineures avec leur devise et formatés selon la langue affichée.
 - **RG-I18N-02** : les dates sont stockées en UTC et affichées dans le fuseau de l'événement, avec le fuseau indiqué quand il diffère de celui de l'acheteur.
 - **RG-I18N-03** : les e-mails partent dans la langue de l'acheteur (`Order.buyerLocale`).
@@ -474,7 +474,7 @@ Repris de la charte Evoly et du site. Il est implémenté une seule fois dans `p
 ### 7.5 Performance
 
 - Pages publiques : premier affichage utile en moins de 2,5 secondes sur un réseau mobile moyen, score Lighthouse Performance d'au moins 90.
-- Paiement : moins de 500 ms côté serveur pour créer une réservation, hors appel Stripe.
+- Paiement : moins de 500 ms côté serveur pour créer une réservation, hors appel à Mollie.
 - Tenue en charge : 2 000 achats en 5 minutes sur un même événement sans survente ni erreur.
 
 ### 7.6 Retour haptique
@@ -485,7 +485,7 @@ Repris de la charte Evoly et du site. Il est implémenté une seule fois dans `p
 
 - Données hébergées dans l'Union européenne.
 - Evoly est responsable de traitement pour les comptes des organisateurs ; elle agit comme sous-traitant de l'organisateur pour les données des participants. Un accord de sous-traitance est annexé aux conditions d'utilisation.
-- Liste des sous-traitants publiée (Stripe, Resend, Cloudflare, hébergeur, Sentry).
+- Liste des sous-traitants publiée (Mollie, Resend, Cloudflare, hébergeur, Sentry).
 - **RG-RGPD-01** : consentement marketing recueilli par une case non cochée lors de l'achat, horodaté, avec sa source (`Contact`).
 - **RG-RGPD-02** : droit d'accès, de rectification, d'effacement et d'export traités sous 30 jours. Les données comptables (commandes) sont anonymisées plutôt que supprimées pendant la durée légale de conservation.
 - **RG-RGPD-03** : aucune donnée personnelle dans les journaux techniques et les outils de suivi d'erreurs.
@@ -514,7 +514,7 @@ Repris de la charte Evoly et du site. Il est implémenté une seule fois dans `p
 - Montants en unités mineures, devises ISO 4217, taux en points de base, dates en UTC.
 - Jetons secrets (liens magiques, invitations, réinitialisations) stockés sous forme de hachage.
 - Contenu des QR codes aléatoire, d'au moins 128 bits ; code court de 8 caractères pour la saisie manuelle.
-- Stripe est la source de vérité pour l'argent ; la base en garde une copie pour l'affichage et les relevés.
+- Mollie est la source de vérité pour l'argent (paiements, remboursements, soldes, versements) ; la base en garde une copie pour l'affichage et les relevés. Les périodes de l'abonnement Pro sont tenues par Evoly.
 - Toute donnée métier est rattachée à une organisation, directement ou via son événement.
 
 ### 8.2 Carte des entités principales
@@ -525,7 +525,7 @@ erDiagram
   Organization ||--o{ OrganizationMember : "a"
   Role ||--o{ OrganizationMember : "attribue"
   Organization ||--|| Subscription : "a"
-  Organization ||--o| StripeAccount : "encaisse via"
+  Organization ||--o| MollieAccount : "encaisse via"
   Organization ||--o| OrganizationBrand : "personnalise"
   Organization ||--o{ Event : "organise"
   Event ||--o{ TicketType : "propose"
@@ -552,14 +552,14 @@ erDiagram
 | Domaine                   | Modèles                                                                                                                            |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Comptes                   | `User`, `Account`, `Session`, `Verification`, `RateLimit`                                                                          |
-| Offres et abonnement      | `Plan`, `PlanCurrencyTerms`, `Subscription`                                                                                        |
-| Organisations             | `Organization`, `StripeAccount`, `OrganizationBrand`, `Role`, `OrganizationMember`, `Invitation`, `Venue`                          |
+| Offres et abonnement      | `Plan`, `PlanCurrencyTerms`, `Subscription`, `SubscriptionPayment`, `ProInvoice`                                                   |
+| Organisations             | `Organization`, `MollieAccount`, `OrganizationBrand`, `Role`, `OrganizationMember`, `Invitation`, `Venue`                          |
 | Événements                | `Event`, `EventTranslation`, `TicketType`, `TicketTypeTranslation`, `PriceTier`, `CheckoutQuestion`, `QuestionAnswer`, `PromoCode` |
 | Plan de salle (P2)        | `SeatingMap`, `SeatingCategory`, `SeatingRow`, `Seat`                                                                              |
 | Ventes                    | `Order`, `OrderItem`, `Ticket`, `WalletPass`                                                                                       |
 | Revente et remboursements | `ResaleListing`, `Refund`, `RefundItem`                                                                                            |
 | Contrôle d'accès          | `ScannerLink`, `CheckIn`                                                                                                           |
-| Finances                  | `CommissionStatement`, `Dispute`, `StripeWebhookEvent`, `EventDailyStat`                                                           |
+| Finances                  | `CommissionStatement`, `Dispute`, `EventDailyStat`                                                                                 |
 | Domaines                  | `CustomDomain`, `HostRedirect`                                                                                                     |
 | Marketing                 | `Contact`, `EmailTemplate`, `EmailAutomation`, `EmailCampaign`, `EmailMessage`, `EmailSuppression`                                 |
 | Divers                    | `Notification`, `Referral`, `AuditLog`, `FeatureFlag`                                                                              |
@@ -579,7 +579,7 @@ DRAFT → supprimé (logiquement) si aucune commande
 **Commande** (`OrderStatus`)
 
 ```
-PENDING → PAID            paiement confirmé (webhook) ou commande gratuite
+PENDING → PAID            paiement confirmé (retour de l'acheteur ou webhook) ou commande gratuite
 PENDING → EXPIRED         réservation expirée
 PENDING → FAILED          paiement refusé définitivement
 PAID → PARTIALLY_REFUNDED → REFUNDED
@@ -662,19 +662,19 @@ REQUESTED → REJECTED
 **User stories**
 
 - US-ONB-01 : en tant que nouvel utilisateur, je suis guidé pour créer mon organisation en trois étapes.
-- US-ONB-02 : en tant que nouvel utilisateur, je peux reporter la connexion de mon compte Stripe.
+- US-ONB-02 : en tant que nouvel utilisateur, je peux reporter la liaison de mon compte Mollie.
 
 **Étapes**
 
 1. **Organisation** : nom (obligatoire), adresse de la page (`[sous-domaine].evoly.me`, générée depuis le nom, modifiable, disponibilité vérifiée en direct), pays (détermine la devise et la langue par défaut), type (particulier, association, entreprise, organisme public).
-2. **Encaissement** : bouton « Connecter mon compte Stripe » (onboarding hébergé par Stripe) ou « Plus tard ».
+2. **Encaissement** : téléphone de l'organisation au format international (exigé par Mollie), puis « Créer mon compte Mollie » ou « J'ai déjà un compte Mollie » (autorisation chez Mollie, retour dans Evoly), ou « Plus tard ».
 3. **Premier événement** : lancement direct de l'assistant de création (section 9.5), ou accès au tableau de bord.
 
 **Règles**
 
 - RG-ONB-01 : l'utilisateur devient propriétaire (`OWNER`) de l'organisation créée.
 - RG-ONB-02 : l'organisation démarre en Free (`Subscription.status = NONE`), ou en essai Pro si l'inscription vient de `?plan=pro`.
-- RG-ONB-03 : sans compte Stripe actif, l'organisateur peut créer et publier des événements gratuits, mais ne peut pas publier de tarif payant. Un bandeau le lui rappelle.
+- RG-ONB-03 : sans compte Mollie prêt à encaisser (RG-PAY-01), l'organisateur peut créer et publier des événements gratuits, mais ne peut pas publier de tarif payant. Un bandeau le lui rappelle.
 - RG-ONB-04 : l'onboarding reprend à l'étape en cours s'il est interrompu.
 
 ### 9.3 Organisations, membres et rôles (P0)
@@ -751,7 +751,7 @@ Paramètres
 
 - RG-STAT-01 : mise à jour en moins de 5 secondes (RG-RT-01).
 - RG-STAT-02 : événements en brouillon exclus des chiffres de l'organisation.
-- RG-STAT-03 : le net définitif utilise les frais Stripe réels ; tant qu'ils ne sont pas connus, le net affiché est une estimation signalée comme telle.
+- RG-STAT-03 : le net définitif utilise les frais réels relevés chez Mollie (RG-FEE-12) ; tant qu'ils ne sont pas connus, le net affiché est une estimation signalée comme telle.
 - RG-STAT-04 : exports CSV des commandes, des billets et des participants (réponses aux questions comprises), réservés à la permission `CONTACTS_EXPORT`. Chaque export est journalisé.
 - RG-STAT-05 : les chiffres respectent les permissions : sans `FINANCE_VIEW`, les montants sont masqués.
 
@@ -794,7 +794,7 @@ Paramètres
 **Règles**
 
 - RG-EVT-01 : sauvegarde automatique toutes les secondes d'inactivité, avec indicateur « Enregistré ». Reprise à l'étape en cours.
-- RG-EVT-02 : publication impossible sans au moins un tarif actif. Publication d'un tarif payant impossible sans compte Stripe actif.
+- RG-EVT-02 : publication impossible sans au moins un tarif actif. Publication d'un tarif payant impossible sans compte Mollie prêt à encaisser.
 - RG-EVT-03 : un brouillon n'est jamais accessible publiquement (page 404).
 - RG-EVT-04 : événement complet (plus aucun billet disponible) : la page affiche « Complet » et met en avant la section Revente si elle contient des places.
 - RG-EVT-05 : changement de date, d'heure ou de lieu d'un événement publié : e-mail automatique aux acheteurs, avec l'ancienne et la nouvelle valeur, et possibilité de demander un remboursement pendant 14 jours ⚠ (motif `EVENT_CHANGED`, à partir de `Event.lastMajorChangeAt`).
@@ -910,22 +910,22 @@ Pied de page : organisateur, conditions, « Billetterie propulsée par Evoly » 
 1. L'acheteur choisit ses quantités (et son siège en P2) et saisit un éventuel code promo.
 2. « Continuer » crée la réservation : commande `PENDING`, quantités réservées, prix figés, compte à rebours de 10 minutes affiché.
 3. Formulaire sur la même page : prénom, nom, e-mail (avec détection des fautes courantes de domaine), téléphone si l'organisateur l'exige ⚠ (`Event.requireBuyerPhone`), titulaires des billets nominatifs, questions, case non cochée « Recevoir les actualités de [organisation] », mention d'acceptation des conditions.
-4. Paiement dans le Payment Element (moyens automatiques), avec l'intention de paiement créée sur le compte de l'organisateur et la commission en frais d'application.
-5. Confirmation affichée dès le retour de Stripe ; la commande passe `PAID` à réception du webhook.
+4. Paiement sur la page de paiement de Mollie : le paiement est créé sur le compte Mollie de l'organisateur, avec la commission en frais d'application ; la réservation est prolongée à 15 minutes, durée d'un paiement par carte chez Mollie. Un paiement encore ouvert est repris ; annulé, expiré ou refusé, un nouveau est créé.
+5. Retour sur la page des billets du site visité : le paiement est relu chez Mollie, et la commande passe `PAID` dès qu'il est payé, au retour de l'acheteur ou à réception du webhook.
 
 **Règles**
 
 - RG-BUY-01 : la réservation est atomique : elle vérifie et incrémente les quantités réservées du tarif, du palier et de la jauge dans une seule transaction avec condition, pour rendre la survente impossible.
-- RG-BUY-02 : à expiration, les quantités sont libérées et la commande passe `EXPIRED` (tâche toutes les minutes, et vérification à chaque lecture). Si un paiement arrive après l'expiration et que les places sont toujours disponibles, la commande est honorée ; sinon, le paiement est remboursé intégralement et l'acheteur est prévenu.
+- RG-BUY-02 : à expiration, les quantités sont libérées et la commande passe `EXPIRED` (tâche toutes les minutes, et vérification à chaque lecture). Si un paiement arrive après l'expiration et que les places sont toujours disponibles, la commande est honorée ; sinon, le paiement est remboursé intégralement chez Mollie et l'acheteur est prévenu.
 - RG-BUY-03 : les montants, remises et commissions sont calculés côté serveur par `packages/core` (RG-ARC-02, RG-ARC-04).
-- RG-BUY-04 : commande gratuite (tous les prix à 0 ou code de gratuité) : aucune intention de paiement, validation immédiate, mêmes contrôles de disponibilité et de code promo.
-- RG-BUY-05 : total minimum d'une commande payante : le minimum accepté par Stripe dans la devise.
-- RG-BUY-06 : paiement refusé : message clair sur la même page, réservation conservée jusqu'à son expiration, formulaire toujours rempli. Authentification forte (3D Secure) gérée par le Payment Element.
-- RG-BUY-07 : validation de la commande à réception de `payment_intent.succeeded`, une seule fois (RG-ARC-05) : statut `PAID`, quantités réservées converties en vendues, billets créés avec leurs codes, contact mis à jour, compteur du code promo incrémenté, frais Stripe réels récupérés, e-mail de confirmation mis en file, notification, statistiques.
-- RG-BUY-08 : la page de confirmation interroge l'état de la commande tant que le webhook n'est pas arrivé (« Paiement en cours de confirmation »).
+- RG-BUY-04 : commande gratuite (tous les prix à 0 ou code de gratuité) : aucun paiement, validation immédiate, mêmes contrôles de disponibilité et de code promo.
+- RG-BUY-05 : total minimum d'une commande payante, par devise (0,50 € en euros) : les frais du paiement et la commission doivent y tenir (`MINIMUM_CHARGE`).
+- RG-BUY-06 : paiement refusé, abandonné ou expiré chez Mollie : au retour, la page des billets le dit clairement et propose de réessayer tant que la réservation tient. Authentification forte (3-D Secure) gérée par la page de paiement de Mollie.
+- RG-BUY-07 : validation de la commande quand le paiement, relu chez Mollie (retour de l'acheteur ou webhook), est payé, du montant et dans la devise de la commande ; une seule fois (RG-ARC-05) : statut `PAID`, quantités réservées converties en vendues, billets créés avec leurs codes, moyen de paiement et empreinte de la carte enregistrés, contact mis à jour, compteur du code promo incrémenté, e-mail de confirmation mis en file, notification, statistiques.
+- RG-BUY-08 : au retour de Mollie, la page des billets relit le paiement ; tant qu'il n'est pas confirmé, elle affiche « Paiement en cours de confirmation » et se rafraîchit d'elle-même.
 - RG-BUY-09 : nombre maximum de billets par commande (10 par défaut, `Event.maxTicketsPerOrder`) ; limite facultative par adresse e-mail et par événement (P1, `Event.maxTicketsPerBuyer`).
 - RG-BUY-10 : limitation du nombre de réservations par IP et par appareil ; protection anti-robots activable sur les événements à forte demande (P1).
-- RG-BUY-11 : moyens de paiement mis en avant par pays : Apple Pay et Google Pay partout ; Bancontact (Belgique), iDEAL | Wero (Pays-Bas), Cartes Bancaires (France), TWINT (Suisse), BLIK (Pologne), Swish (Suède), MB WAY (Portugal), Bizum (Espagne) ; PayPal, Klarna et Revolut Pay selon l'activation du compte de l'organisateur. Le guide de connexion Stripe recommande à l'organisateur d'activer les moyens de son pays.
+- RG-BUY-11 : moyens de paiement mis en avant par pays : Apple Pay et Google Pay partout ; Bancontact (Belgique), iDEAL | Wero (Pays-Bas), Cartes Bancaires (France), TWINT (Suisse), BLIK (Pologne), Swish (Suède), MB WAY (Portugal), Bizum (Espagne) ; PayPal, Klarna et Revolut Pay selon l'activation du compte de l'organisateur. La page de paiement de Mollie propose les moyens actifs sur le profil de l'organisateur : Evoly y demande les cartes, Bancontact et Apple Pay à la liaison du compte ; les autres moyens de son pays s'activent dans son compte Mollie, selon ce que Mollie propose.
 
 ### 9.12 Après l'achat (P0)
 
@@ -970,9 +970,9 @@ Pied de page : organisateur, conditions, « Billetterie propulsée par Evoly » 
 
 1. L'acheteur ouvre le lien ou choisit une place dans la section Revente.
 2. L'annonce est réservée 10 minutes (`RESERVED`) ; les autres visiteurs la voient indisponible.
-3. L'acheteur paie comme pour un achat classique ; le paiement est une charge directe sur le compte de l'organisateur, avec la commission de revente.
+3. L'acheteur paie comme pour un achat classique, sur la page de paiement de Mollie (au départ vers Mollie, la réservation de l'annonce est prolongée à 15 minutes) ; le paiement est créé sur le compte Mollie de l'organisateur, avec la commission de revente en frais d'application.
 4. À la confirmation du paiement, dans une seule transaction : l'ancien billet passe `VOID` (motif `RESOLD`), une commande `RESALE` est créée pour l'acheteur avec un nouveau billet et un nouveau code, l'annonce passe `SOLD`.
-5. Le remboursement partiel du vendeur est envoyé à Stripe sur sa commande d'origine, du montant calculé en 2 de la mise en revente, ajusté avec les frais Stripe réels du paiement de l'acheteur.
+5. Le remboursement partiel du vendeur est fait sur le paiement Mollie de sa commande d'origine, du montant calculé en 2 de la mise en revente : prix moins la commission de revente, les frais du paiement de l'acheteur (réels, ou estimés d'après la grille de Mollie) et les frais du remboursement chez Mollie (RG-FEE-51).
 6. E-mails : billets à l'acheteur, confirmation et montant remboursé au vendeur. Notification `RESALE_SOLD` à l'organisateur.
 
 **Règles**
@@ -1004,14 +1004,14 @@ Pied de page : organisateur, conditions, « Billetterie propulsée par Evoly » 
 
 - RG-REF-01 : la demande est possible selon la politique : jamais (non remboursable), jusqu'à la date limite, sur demande (étudiée par l'organisateur), toujours. Une demande hors délai est acceptée comme demande mais marquée « Hors délai ».
 - RG-REF-02 : un remboursement porte sur des billets précis ; le montant est le prix payé pour ces billets.
-- RG-REF-03 : les billets concernés passent `REFUNDED` dès l'envoi du remboursement à Stripe, pour qu'ils ne puissent plus être utilisés. En cas d'échec de Stripe, l'organisateur est alerté et peut relancer.
+- RG-REF-03 : les billets concernés passent `REFUNDED` dès l'envoi du remboursement à Mollie, pour qu'ils ne puissent plus être utilisés. L'état du remboursement suit ensuite le webhook du paiement. En cas d'échec chez Mollie, l'organisateur est alerté et peut relancer.
 - RG-REF-04 : un billet scanné ne peut être remboursé que par l'organisateur.
-- RG-REF-05 : commission Evoly et frais Stripe non restitués (RG-FEE-40), mention faite avant validation.
-- RG-REF-06 : les remboursements sont prélevés sur le solde Stripe de l'organisateur. Si le solde est insuffisant, Stripe applique ses propres règles (débit du compte bancaire) ; Evoly affiche l'erreur éventuelle.
+- RG-REF-05 : commission Evoly et frais de Mollie non restitués (RG-FEE-40), mention faite avant validation.
+- RG-REF-06 : les remboursements sont pris sur le solde Mollie de l'organisateur. Si le solde est insuffisant, Mollie met le remboursement en attente, et il reste « en cours » dans Evoly jusqu'à ce que Mollie l'effectue ; un refus de Mollie s'affiche en échec, que l'organisateur peut relancer.
 - RG-REF-07 : annulation d'un événement : double confirmation avec un motif ; puis, automatiquement, toutes les commandes payées sont remboursées intégralement, les annonces de revente sont retirées, les campagnes et automatisations sont annulées, un e-mail est envoyé à tous les acheteurs, et la page affiche l'annulation.
 - RG-REF-08 : chaque remboursement est journalisé (`AuditLog`) avec son auteur.
 - RG-REF-09 : remboursement à coût neutre (décidé le 16 novembre 2026) : réglage par événement, « Remboursement intégral » (par défaut, comportement d'origine) ou « Remboursement moins les frais », avec une valeur par défaut au niveau de l'organisation (Paramètres, Paiements), reprise à la création de l'événement. Le réglage est figé sur la commande à la réservation : la règle affichée avant l'achat est celle qui s'applique. Il ne vaut que pour un remboursement demandé par l'acheteur pour son propre motif (demande, politique de l'événement) ; toujours 100 % : annulation de l'événement, changement de date ou de lieu, remboursement ou annulation à l'initiative de l'organisateur.
-- RG-REF-10 : en mode « moins les frais », l'acheteur récupère le prix payé moins les frais de paiement (réels, ou estimés tant que Stripe ne les a pas transmis) et la commission d'Evoly, au prorata en cas de remboursement partiel ; le total retenu sur une commande ne dépasse jamais ces frais. Evoly garde sa commission (RG-FEE-40, comme en mode intégral). Commande gratuite : rien à retenir. Les frais retenus sont notés sur le remboursement et affichés à l'organisateur.
+- RG-REF-10 : en mode « moins les frais », l'acheteur récupère le prix payé moins les frais de paiement (réels, ou estimés d'après la grille de Mollie tant qu'ils ne sont pas relevés) et la commission d'Evoly, au prorata en cas de remboursement partiel ; le total retenu sur une commande ne dépasse jamais ces frais. Evoly garde sa commission (RG-FEE-40, comme en mode intégral). Commande gratuite : rien à retenir. Les frais retenus sont notés sur le remboursement et affichés à l'organisateur.
 - RG-REF-11 : transparence : la règle est affichée avant l'achat (page de l'événement, tunnel d'achat), rappelée dans l'e-mail de confirmation, et la demande de remboursement montre le montant exact rendu (et les frais retenus).
 
 ### 9.15 Commandes et billets offerts
@@ -1027,7 +1027,7 @@ Pied de page : organisateur, conditions, « Billetterie propulsée par Evoly » 
 **User stories**
 
 - US-FIN-01 : en tant qu'organisateur, je vois mes ventes, les commissions Evoly, les frais bancaires et ce que je touche, par période et par événement.
-- US-FIN-02 : en tant qu'organisateur, je vois mes virements Stripe et j'accède à mon tableau de bord Stripe.
+- US-FIN-02 : en tant qu'organisateur, je vois mes versements Mollie et j'accède à mon tableau de bord Mollie.
 - US-FIN-03 : en tant qu'organisateur, je télécharge mes relevés mensuels de commissions.
 
 **Page Finances**
@@ -1035,15 +1035,15 @@ Pied de page : organisateur, conditions, « Billetterie propulsée par Evoly » 
 - Filtres : période, événement, devise.
 - Totaux : ventes brutes, remboursements, commissions Evoly, frais bancaires, net.
 - Tableau par événement.
-- Solde Stripe disponible et à venir, liste des virements (lus via l'API Stripe), lien de connexion au tableau de bord Stripe.
+- Solde Mollie disponible et en attente, dix derniers versements (lus via l'API Mollie), lien vers le tableau de bord de Mollie. Mollie indisponible ou compte à relier : la page le dit, sans rien inventer.
 - Relevés mensuels : liste, PDF, statut.
 - Exports CSV (détail par commande et par billet).
 
 **Règles**
 
 - RG-FIN-01 : aucun solde interne, aucun virement déclenché par Evoly (RG-PAY-04).
-- RG-FIN-02 : état du compte Stripe affiché en permanence (actif, action requise, restreint) avec le lien de mise en conformité.
-- RG-FIN-03 : les litiges (contestations) ouverts sont listés avec leur échéance et un lien vers Stripe (`Dispute`).
+- RG-FIN-02 : état du compte Mollie affiché en permanence (prêt, informations à donner, vérification ou activation en cours, bloqué, plus relié) avec le lien pour le compléter chez Mollie ou le relier. Un versement échoué vers la banque de l'organisateur lui est signalé une fois.
+- RG-FIN-03 : les rétrofacturations (contestations) signalées par Mollie sont copiées comme litiges (`Dispute`), rattachées à leur commande et listées tant qu'elles sont ouvertes, avec un lien vers le tableau de bord de Mollie, où l'organisateur y répond ; chaque nouvelle le prévient ; annulée par Mollie, elle passe « gagnée ».
 
 ### 9.17 Entrées et scanner (P0)
 
@@ -1159,7 +1159,7 @@ Retour automatique au scan après 1,5 seconde.
 1. L'organisateur saisit le domaine (par exemple `tickets.monsite.com`) et choisit sa portée : organisation ou événement.
 2. Evoly affiche l'enregistrement DNS à créer (CNAME vers la cible Evoly), avec des boutons de copie et des guides par registraire (OVH, Cloudflare, Gandi, Combell, One.com, Namecheap, GoDaddy).
 3. Vérification automatique toutes les 10 minutes pendant 48 heures, puis arrêt et notification ; bouton « Vérifier maintenant » à tout moment.
-4. Une fois le DNS vérifié : certificat émis automatiquement, domaine déclaré à Stripe pour Apple Pay et Google Pay, statut `ACTIVE`.
+4. Une fois le DNS vérifié : certificat émis automatiquement, statut `ACTIVE`. Rien à déclarer pour le paiement, qui se fait sur la page de Mollie (RG-DOM-04).
 
 - RG-CDM-01 : 10 domaines personnalisés au maximum par organisation.
 - RG-CDM-02 : renouvellement automatique des certificats ; un échec prévient l'organisateur.
@@ -1169,15 +1169,16 @@ Retour automatique au scan après 1,5 seconde.
 ### 9.20 Notifications (P0)
 
 - Cloche dans l'en-tête avec compteur, liste paginée, lien vers l'élément concerné, « tout marquer comme lu ».
-- Types : nouvelle commande (regroupées par heure au-delà de 10), palier de jauge (50 %, 80 %, complet), demande de remboursement, revente conclue, nouveau membre, action requise sur le compte Stripe, échec de paiement de l'abonnement, fin d'essai proche, domaine actif ou en erreur, événement annulé, campagne envoyée, litige ouvert.
+- Types : nouvelle commande (regroupées par heure au-delà de 10), palier de jauge (50 %, 80 %, complet), demande de remboursement, revente conclue, nouveau membre, action requise sur le compte Mollie (informations demandées, compte plus relié), virement de Mollie échoué, échec de paiement de l'abonnement, fin d'essai proche, domaine actif ou en erreur, événement annulé, campagne envoyée, litige ouvert.
 - RG-NTF-01 : une notification est visible par les membres ayant la permission concernée.
-- RG-NTF-02 : les notifications importantes (Stripe, abonnement, litige, remboursement demandé) sont aussi envoyées par e-mail au propriétaire et aux administrateurs. Préférences par membre en P1.
+- RG-NTF-02 : les notifications importantes (compte Mollie, virement échoué, abonnement, litige, remboursement demandé) sont aussi envoyées par e-mail au propriétaire et aux administrateurs. Préférences par membre en P1.
 
 ### 9.21 Page Abonnement (P0)
 
 - Offre actuelle et statut (Free, essai, actif, impayé), date de renouvellement ou de fin d'essai, montant.
-- Free : bouton « Essayer Pro 14 jours » (Stripe Checkout, carte requise, choix mensuel ou annuel).
-- Pro : changer de périodicité, modifier le moyen de paiement, télécharger les factures, résilier (effet en fin de période), via le portail client Stripe.
+- Free : bouton « Essayer Pro 14 jours » (sans carte bancaire, une fois par organisation), ou abonnement tout de suite, mensuel ou annuel, payé sur la page de Mollie.
+- Essai ou Pro offert : s'abonner sans rien payer avant la fin de la période en cours (vérification de 0,02 € remboursée, RG-SUB-02).
+- Pro : changer de périodicité (au prochain renouvellement), changer de moyen de paiement (carte enregistrée sur la page de Mollie, sans paiement), télécharger les factures émises par Evoly, résilier (effet en fin de période) ou reprendre avant l'échéance, régler une période impayée sur la page de Mollie. Tout se fait dans Evoly.
 - Rappel de ce que la rétrogradation change (RG-SUB-08) avant toute résiliation.
 
 ### 9.22 Parrainage (P2)
@@ -1193,13 +1194,13 @@ Retour automatique au scan après 1,5 seconde.
 
 - Accès réservé aux comptes `platformRole` SUPPORT ou ADMIN, avec double authentification obligatoire.
 - Recherche : organisations, utilisateurs, événements, commandes, billets, annonces de revente.
-- Fiche organisation : offre, abonnement, compte Stripe, événements, volumes, remboursements, litiges, journal d'audit.
+- Fiche organisation : offre, abonnement, compte Mollie, événements, volumes, remboursements, litiges, journal d'audit.
 - Actions (ADMIN) : suspendre ou réactiver une organisation, prolonger un essai, attribuer une offre, renvoyer des e-mails, traiter une revente en échec, activer une fonctionnalité (`FeatureFlag`).
 - Consultation en lecture seule de l'app d'un organisateur, journalisée.
 - Tableau de bord : volume de ventes, commissions, organisations actives, abonnements, taux de litiges et de remboursements.
 - Signaux de risque : nouvelle organisation avec un événement à prix élevé, taux de litiges anormal, nombreux remboursements.
 - RG-ADM-01 : accès complet à la base (pgAdmin, `app.<domaine>/pgadmin`) réservé aux administrateurs de la plateforme : Caddy vérifie d'abord auprès de l'app la session administrateur et la double authentification, puis vient la connexion pgAdmin ; pgAdmin n'est jamais exposé directement.
-- RG-ADM-02 : le back-office n'écrase jamais un abonnement Stripe en cours : attribuer une offre exige d'en demander explicitement la résiliation ; les jours Pro offerts à un abonné Stripe passent par Stripe ; les notifications d'un abonnement qui n'est plus celui de l'organisation ne réécrivent pas l'offre ; une erreur s'affiche en clair sur la fiche, jamais la page d'erreur.
+- RG-ADM-02 : le back-office n'écrase jamais un abonnement payé par Mollie en cours : attribuer une offre exige d'en demander explicitement la résiliation (Evoly cesse alors de prélever) ; prolonger l'essai d'un abonné Mollie recule d'autant son prochain prélèvement, sans arrêter l'abonnement ; une erreur s'affiche en clair sur la fiche, jamais la page d'erreur.
 
 ### 9.25 Site vitrine et documents légaux
 
@@ -1264,14 +1265,14 @@ Pages publiques : `evoly.me/cgu`, `evoly.me/privacy`, `evoly.me/legal`, `evoly.m
 **Modes de paiement**
 
 1. **QR code** (premier livrable) : le téléphone de l'équipe affiche le QR code de paiement de la commande ; le client paie sur son téléphone ; l'écran de l'équipe confirme et valide l'entrée.
-2. **Sans contact sur le téléphone de l'équipe** (second livrable) : paiement « Tap to Pay » de Stripe Terminal ; le client approche sa carte, son téléphone ou sa montre. ⚠ Exige l'application mobile native d'Evoly (iOS et Android) : Tap to Pay ne fonctionne pas dans une application web. Apple doit accorder l'autorisation « Tap to Pay on iPhone » ; modèles et versions minimales de téléphone selon Stripe ; pays couverts à vérifier pour la Belgique, la France, la Suisse et le Royaume-Uni.
+2. **Sans contact sur le téléphone de l'équipe** (second livrable) : paiement « Tap to Pay » ; le client approche sa carte, son téléphone ou sa montre. ⚠ Offre de Mollie à vérifier (Tap to Pay pour une plateforme Connect, pays couverts). Exige l'application mobile native d'Evoly (iOS et Android) : Tap to Pay ne fonctionne pas dans une application web. Apple doit accorder l'autorisation « Tap to Pay on iPhone » ; modèles et versions minimales de téléphone selon le prestataire ; pays couverts à vérifier pour la Belgique, la France, la Suisse et le Royaume-Uni.
 3. **Espèces** : vente enregistrée sans paiement en ligne, pour le rapport de caisse.
 
 **Règles de gestion**
 
 - RG-POS-01 : la vente sur place puise dans le même stock que la vente en ligne, dans la même transaction : aucune survente (section 8.5).
 - RG-POS-02 : réservée aux membres qui ont la permission « Vendre sur place » (annexe B).
-- RG-POS-03 : commission identique à la vente en ligne (section 6) ; frais bancaires de Stripe au coût réel, selon le mode de paiement ; aucune commission sur les ventes en espèces.
+- RG-POS-03 : commission identique à la vente en ligne (section 6) ; frais bancaires de Mollie au coût réel, selon le mode de paiement ; aucune commission sur les ventes en espèces.
 - RG-POS-04 : un billet vendu sur place est marqué entré au moment de la vente, sauf si l'équipe choisit de l'envoyer au client pour plus tard.
 - RG-POS-05 : l'e-mail du client est facultatif ; s'il est donné, le billet et le reçu lui sont envoyés.
 - RG-POS-06 : un encaissement par carte ou par QR code exige le réseau ; le scan des billets reste possible hors ligne.
@@ -1393,7 +1394,7 @@ Beaucoup de lieux (salles de fêtes, salles de concert, clubs) accueillent des o
 - RG-LIEU-03 : le lieu reçoit 20 % de la commission d'Evoly sur les ventes des événements organisés dans sa salle, sans limite de durée ; jamais un surcoût pour l'organisateur ni pour l'acheteur (décision n° 21, section 17).
 - RG-LIEU-04 : remboursements et annulations sont déduits de la part du lieu, comme de la commission d'Evoly.
 - RG-LIEU-05 : le lieu ne voit que des totaux (nombre de billets, part due), jamais les acheteurs ni le détail des ventes d'un organisateur ; l'organisateur est informé de son rattachement et de ce que le lieu voit.
-- RG-LIEU-06 : la part est versée chaque mois sur le compte Stripe du lieu, avec un relevé ; le lieu règle son seuil de versement (activable, montant au choix, 20 € par défaut) : en dessous, la part est reportée au mois suivant ; un bouton « Verser maintenant » verse le solde dès 1 €, une fois par jour au plus.
+- RG-LIEU-06 : la part est versée chaque mois au lieu, avec un relevé ; le lieu règle son seuil de versement (activable, montant au choix, 20 € par défaut) : en dessous, la part est reportée au mois suivant ; un bouton « Verser maintenant » verse le solde dès 1 €, une fois par jour au plus. ⚠ Reversements en pause (décision du 18 novembre 2026), en attendant la réponse de Mollie sur les transferts entre comptes Connect (à faire activer par Mollie, avec l'accord de chaque lieu, 1 000 € par mois au plus ; autre voie : un virement bancaire par Evoly) : rien n'est versé, ni chaque mois ni à la demande (bouton « Verser maintenant » retiré d'ici là) ; la part reste due au lieu et s'affiche comme reversement à venir.
 - RG-LIEU-07 : décidé au mieux le 20 octobre 2026, sans expert-comptable (à faire confirmer, par exemple auprès du SPF Finances) : autofacturation ; le lieu donne son accord une fois ; Evoly établit à chaque versement la facture en son nom et pour son compte, numérotée pour ce lieu (AF-code-0001), réputée acceptée sauf contestation dans les 15 jours ; la part versée est TVA comprise (21 % de TVA belge à l'intérieur si le lieu est assujetti, sinon aucune), de sorte qu'Evoly, sous la franchise, ne paie jamais plus que la part ; programme réservé aux lieux situés en Belgique (ailleurs, Evoly devrait autoliquider la TVA belge) ; aucun versement sans l'accord et les informations de facturation du lieu.
 - RG-LIEU-08 : base retenue : les ventes des événements organisés dans la salle ; le rattachement se fait donc par événement, et un organisateur peut travailler avec plusieurs lieux.
 
@@ -1418,7 +1419,7 @@ Beaucoup d'organisateurs posent des chaises non numérotées. Evoly vend pourtan
 - RG-ETIQ-06 : deux fichiers pour ne jamais changer de papier en cours d'impression : « Étiquettes » (planches) et « Guide de pose » (papier normal : mode d'emploi, plan de pose, nombre de chaises par rang et au total, feuille de route feuille par feuille avec un mini-plan qui surligne le rang, panneaux de rang deux par feuille A4, panneaux de zone en A4 ronds ou rectangulaires). Sur les planches qui ont une marge, un repère « Feuille 3/12 · Rang C » évite de mélanger les feuilles.
 - RG-ETIQ-07 : sol : le panneau de zone se colle aux murs et aux portes ; pour le sol, le guide conseille un support adapté (vinyle antidérapant, plastification) : jamais un autocollant de papier au sol.
 - RG-ETIQ-08 : mots fixes (Rang, Place, Zone, Table, Réservé…) dans la langue de l'événement, parmi les 7 langues.
-- RG-ETIQ-09 (plus tard, impression à la demande) : « Commander l'impression » : Evoly imprime et expédie dans une enveloppe A4. Prix par étiquette (proposition : 0,10 €), frais d'envoi selon le pays et minimum de commande ; date limite avant l'événement (proposition : 7 jours en Belgique, 10 vers la France) ; paiement par Stripe ; suivi dans le back-office (imprimée, envoyée, numéro de suivi) et e-mails à l'organisateur. Prérequis : conditions générales (livraison, produit personnalisé exclu du droit de rétractation, réimpressions) et avis de l'expert-comptable sur la TVA. Ensuite : un imprimeur en ligne qui expédie directement, avec des supports durables (vinyle de sol).
+- RG-ETIQ-09 (plus tard, impression à la demande) : « Commander l'impression » : Evoly imprime et expédie dans une enveloppe A4. Prix par étiquette (proposition : 0,10 €), frais d'envoi selon le pays et minimum de commande ; date limite avant l'événement (proposition : 7 jours en Belgique, 10 vers la France) ; paiement par Mollie ; suivi dans le back-office (imprimée, envoyée, numéro de suivi) et e-mails à l'organisateur. Prérequis : conditions générales (livraison, produit personnalisé exclu du droit de rétractation, réimpressions) et avis de l'expert-comptable sur la TVA. Ensuite : un imprimeur en ligne qui expédie directement, avec des supports durables (vinyle de sol).
 
 ### 9.34 Personnes bloquées (P1)
 
@@ -1431,7 +1432,7 @@ Décidé le 16 novembre 2026. Un organisateur empêche une personne malveillante
 **Règles de gestion**
 
 - RG-BLK-01 : blocage par adresse e-mail, comparée normalisée (`buyerEmailKey` : casse, points Gmail, suffixes « + » des grands fournisseurs) : refus dès la saisie des coordonnées, la réservation est libérée.
-- RG-BLK-02 : blocage par carte, d'après son empreinte Stripe (jamais un numéro de carte) : lue avant le débit (`confirmOrderPayment`), une carte bloquée est refusée, l'intention de paiement est annulée et les places libérées. Filet de sécurité : un paiement confirmé sans cette vérification est relu à sa réception ; carte bloquée, il est remboursé en entier et aucun billet n'est émis.
+- RG-BLK-02 : blocage par carte, d'après son empreinte donnée par Mollie (jamais un numéro de carte). La page de paiement de Mollie ne la fait connaître qu'après le paiement : elle est vérifiée avant de valider la commande ; carte bloquée, le paiement est remboursé en entier chez Mollie, les places sont libérées et aucun billet n'est émis.
 - RG-BLK-03 : prénom et nom identiques (casse, accents et espaces ignorés) : simple alerte, jamais un blocage (homonymes). La commande passe, porte la pastille « Signalé » (tableau des commandes et fiche) et l'organisation reçoit la notification « Commande signalée ».
 - RG-BLK-04 : la personne bloquée lit un message neutre, sans motif : « Cette commande ne peut pas aboutir. Contactez l'organisateur. »
 - RG-BLK-05 : le blocage vaut aussi pour l'achat d'une place en revente et pour l'inscription à la liste d'attente. RGPD : motif, auteur et date visibles par l'organisation seule ; déblocage à tout moment ; blocages et déblocages au journal d'audit, sans adresse ni motif.
@@ -1446,9 +1447,13 @@ Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la
 | `account.reset_password`                 | Utilisateur                     | Demande de réinitialisation                            | T    |
 | `org.invitation`                         | Invité                          | Invitation d'un membre                                 | T    |
 | `org.ownership_transferred`              | Ancien et nouveau propriétaires | Transfert de propriété                                 | T    |
-| `stripe.action_required`                 | Propriétaire, administrateurs   | Compte Stripe restreint ou documents demandés          | T    |
+| `mollie.action_required`                 | Propriétaire, administrateurs   | Informations demandées par Mollie, compte plus relié   | T    |
 | `subscription.trial_started`             | Propriétaire                    | Début de l'essai Pro                                   | T    |
-| `subscription.trial_ending`              | Propriétaire                    | 3 jours avant la fin de l'essai                        | T    |
+| `subscription.trial_ending`              | Propriétaire                    | 3 jours avant la fin de l'essai ou d'un Pro offert     | T    |
+| `subscription.scheduled`                 | Propriétaire                    | Abonnement pris pendant une période en cours           | T    |
+| `subscription.first_charge`              | Propriétaire                    | 7 jours avant le premier prélèvement                   | T    |
+| `subscription.renewal_notice`            | Propriétaire                    | Préavis 7 jours avant un renouvellement (RG-SUB-05)    | T    |
+| `subscription.invoice`                   | Propriétaire                    | Paiement reçu (facture en PDF jointe)                  | T    |
 | `subscription.payment_failed`            | Propriétaire                    | Chaque échec de paiement                               | T    |
 | `subscription.downgraded`                | Propriétaire                    | Retour en Free                                         | T    |
 | `statement.issued`                       | Propriétaire                    | Relevé mensuel disponible                              | T    |
@@ -1473,59 +1478,58 @@ Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la
 | `automation.last_tickets`                | Contacts consentants            | Moins de 10 % de la jauge (Pro)                        | M    |
 | `campaign`                               | Segment choisi                  | Campagne (Pro)                                         | M    |
 
-Les factures de l'abonnement Pro sont envoyées par Stripe.
+Les factures de l'abonnement Pro sont émises par Evoly à chaque paiement reçu : numéro de la série sans trou des relevés de commissions, TVA comme pour la commission (RG-FEE-30), PDF dans la langue de l'organisation, joint à l'e-mail et téléchargeable depuis la page Abonnement.
 
 ---
 
 ## 11. Tâches planifiées
 
-| Tâche                             | Fréquence             | Rôle                                                                            |
-| --------------------------------- | --------------------- | ------------------------------------------------------------------------------- |
-| Libérer les réservations expirées | Chaque minute         | Commandes `PENDING` expirées → `EXPIRED`, quantités et sièges libérés           |
-| Libérer les annonces réservées    | Chaque minute         | Annonces `RESERVED` expirées → `ACTIVE`                                         |
-| Clore la revente                  | Toutes les 5 minutes  | Annonces ouvertes après la fin de la revente → `EXPIRED`, vendeurs prévenus     |
-| Terminer les événements           | Toutes les 15 minutes | Événements passés → `ENDED`                                                     |
-| Automatisations d'e-mails         | Toutes les 5 minutes  | Rappels, après l'événement, dernières places                                    |
-| Campagnes programmées             | Chaque minute         | Envoi par lots                                                                  |
-| Vérifier les domaines             | Toutes les 10 minutes | DNS des domaines en attente (48 heures maximum)                                 |
-| Surveiller les certificats        | Quotidienne           | Échéances et échecs de renouvellement                                           |
-| Rétrograder les impayés           | Quotidienne           | Abonnements impayés depuis plus de 7 jours → Free                               |
-| Relevés de commissions            | Le 1er du mois        | Génération, PDF, envoi                                                          |
-| Agrégats quotidiens               | Toutes les heures     | Recalcul de `EventDailyStat`                                                    |
-| Réconciliation Stripe             | Toutes les heures     | Frais réels manquants, paiements sans commande, remboursements non synchronisés |
-| Relancer les webhooks en échec    | Toutes les 5 minutes  | Retraitement de `StripeWebhookEvent` en échec                                   |
-| Expirer invitations et jetons     | Toutes les heures     | Invitations, liens de réinitialisation, jetons                                  |
-| Nettoyer les redirections         | Quotidienne           | `HostRedirect` expirées                                                         |
-| Conservation des données          | Mensuelle             | Anonymisation au-delà des durées légales                                        |
+| Tâche                             | Fréquence             | Rôle                                                                         |
+| --------------------------------- | --------------------- | ---------------------------------------------------------------------------- |
+| Libérer les réservations expirées | Chaque minute         | Commandes `PENDING` expirées → `EXPIRED`, quantités et sièges libérés        |
+| Libérer les annonces réservées    | Chaque minute         | Annonces `RESERVED` expirées → `ACTIVE`                                      |
+| Clore la revente                  | Toutes les 5 minutes  | Annonces ouvertes après la fin de la revente → `EXPIRED`, vendeurs prévenus  |
+| Terminer les événements           | Toutes les 15 minutes | Événements passés → `ENDED`                                                  |
+| Automatisations d'e-mails         | Toutes les 5 minutes  | Rappels, après l'événement, dernières places                                 |
+| Campagnes programmées             | Chaque minute         | Envoi par lots                                                               |
+| Vérifier les domaines             | Toutes les 10 minutes | DNS des domaines en attente (48 heures maximum)                              |
+| Surveiller les certificats        | Quotidienne           | Échéances et échecs de renouvellement                                        |
+| Rétrograder les impayés           | Quotidienne           | Abonnements impayés depuis plus de 7 jours → Free                            |
+| Relevés de commissions            | Le 1er du mois        | Génération, PDF, envoi                                                       |
+| Agrégats quotidiens               | Toutes les heures     | Recalcul de `EventDailyStat`                                                 |
+| Relire les comptes Mollie         | Toutes les heures     | Comptes pas prêts relus (les autres chaque jour), versement échoué signalé   |
+| Prélever l'offre Pro              | Toutes les heures     | Renouvellements la veille de l'échéance, relances, fins d'abonnement         |
+| Préavis et factures Pro           | Toutes les heures     | Préavis, vérifications à rembourser, factures manquantes, fin d'essai proche |
+| Expirer invitations et jetons     | Toutes les heures     | Invitations, liens de réinitialisation, jetons                               |
+| Nettoyer les redirections         | Quotidienne           | `HostRedirect` expirées                                                      |
+| Conservation des données          | Mensuelle             | Anonymisation au-delà des durées légales                                     |
 
 ---
 
-## 12. Webhooks Stripe
+## 12. Webhooks Mollie
 
-**Point d'entrée de la plateforme** (compte Evoly)
+Mollie n'envoie que l'identifiant du paiement : Evoly relit toujours le paiement chez Mollie avant tout changement. L'adresse du webhook est donnée par Evoly à chaque paiement, rien n'est à configurer chez Mollie ; en local, sans adresse publique, il n'y en a pas, et seul le retour sur Evoly (page des billets, page Abonnement) relit le paiement.
 
-| Événement                                               | Traitement                                                          |
-| ------------------------------------------------------- | ------------------------------------------------------------------- |
-| `checkout.session.completed`                            | Démarrage de l'essai ou de l'abonnement Pro                         |
-| `customer.subscription.created`, `.updated`, `.deleted` | Synchronisation de `Subscription`, effets de RG-SUB-07 et RG-SUB-08 |
-| `customer.subscription.trial_will_end`                  | E-mail `subscription.trial_ending`                                  |
-| `invoice.paid`                                          | Abonnement actif, fin de l'impayé                                   |
-| `invoice.payment_failed`                                | Statut impayé, e-mail, bandeau                                      |
+**Paiements des billets** (`/api/webhooks/mollie`, comptes des organisateurs ; paiement relu avec le jeton de l'organisateur)
 
-**Point d'entrée Connect** (comptes des organisateurs)
+| État relu chez Mollie                      | Traitement                                                                                                                                                           |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Payé                                       | Validation d'une commande (RG-BUY-07) ou d'une revente (section 9.13) ; carte bloquée (RG-BLK-02) ou paiement tardif sans place (RG-BUY-02) : remboursement intégral |
+| Annulé, expiré, refusé                     | Rien n'est validé ; la page des billets propose de réessayer tant que la réservation tient (RG-BUY-06)                                                               |
+| Remboursement changé (commande déjà payée) | Synchronisation de `Refund` (RG-REF-03, RG-REF-06)                                                                                                                   |
+| Rétrofacturation reçue                     | Copie dans `Dispute`, notification, affichage dans Finances ; annulée par Mollie : gagnée (RG-FIN-03)                                                                |
 
-| Événement                                       | Traitement                                                            |
-| ----------------------------------------------- | --------------------------------------------------------------------- |
-| `account.updated`                               | Synchronisation de `StripeAccount` (statut, exigences)                |
-| `account.application.deauthorized`              | Compte déconnecté : ventes payantes bloquées, propriétaire prévenu    |
-| `payment_intent.succeeded`                      | Validation d'une commande (RG-BUY-07) ou d'une revente (section 9.13) |
-| `payment_intent.payment_failed`                 | Échec enregistré, réservation conservée jusqu'à expiration            |
-| `payment_intent.canceled`                       | Réservation libérée                                                   |
-| `charge.refunded`, `refund.updated`             | Synchronisation de `Refund`                                           |
-| `charge.dispute.created`, `.updated`, `.closed` | Synchronisation de `Dispute`, notification, affichage dans Finances   |
-| `payout.paid`, `payout.failed`                  | Affichage dans Finances, notification en cas d'échec                  |
+**Paiements de l'offre Pro** (`/api/webhooks/mollie/pro`, compte d'Evoly)
 
-**Règles** : signature vérifiée ; enregistrement dans `StripeWebhookEvent` avant traitement ; traitement idempotent ; vérification que l'événement concerne bien le compte connecté attendu ; réponse rapide à Stripe et traitement lourd en file de tâches.
+| État relu chez Mollie  | Traitement                                                                                                                                                                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Payé                   | Premier paiement : période payée et mandat enregistré ; vérification : moyen de paiement enregistré, premier prélèvement programmé, vérification remboursée ; renouvellement ou période impayée réglée : abonnement à jour ; facture émise |
+| Annulé, expiré, refusé | Renouvellement : impayé, e-mail, nouvelle tentative (RG-SUB-06) ; premier paiement ou changement de carte : rien ne change                                                                                                                 |
+| Rétrofacturation reçue | Période couverte de nouveau due (RG-SUB-06)                                                                                                                                                                                                |
+
+**Sans webhook** : l'état du compte Mollie d'un organisateur (Mollie n'envoie pas d'événement pour l'inscription) et ses versements sont relus par la tâche horaire, qui signale un versement échoué (section 11).
+
+**Règles** : identifiant seul, état toujours relu chez Mollie (rien à signer ni à vérifier dans la requête) ; traitement idempotent (RG-ARC-05) ; identifiant inconnu : réponse 200 sans rien faire ; identifiant manquant : 400 ; erreur pendant le traitement : 500, et Mollie relance (10 fois en 26 heures).
 
 ---
 
@@ -1536,13 +1540,13 @@ Les factures de l'abonnement Pro sont envoyées par Stripe.
 - **Authentification** : Argon2id, vérification d'e-mail, limitation des tentatives (RG-AUTH-05), sessions révocables, double authentification pour les propriétaires et administrateurs (P1) et obligatoire pour le back-office.
 - **Autorisation** : fonction unique `can()` et contrôle d'appartenance de chaque ressource à l'organisation (RG-ARC-03, RG-ARC-07). Une matrice de tests couvre chaque action serveur, pour chaque rôle, y compris les accès à une autre organisation.
 - **Actions serveur** : toute action exportée est considérée comme publique. Aucune action sensible sans contrôle, même si elle n'est appelée que depuis l'interface.
-- **Argent** : montants recalculés côté serveur, webhooks signés et idempotents, jamais de confiance dans un identifiant de code promo, de prix ou de palier transmis par le navigateur.
+- **Argent** : montants recalculés côté serveur, webhooks idempotents dont l'état est toujours relu chez Mollie, jamais de confiance dans un identifiant de code promo, de prix ou de palier transmis par le navigateur.
 - **Jetons** : aléatoires d'au moins 128 bits, stockés hachés quand ils donnent accès à des données (liens magiques, invitations, réinitialisations), avec expiration.
 - **QR codes et scanner** : codes aléatoires, point d'entrée limité en débit, lien bénévole limité à un événement et à une durée.
 - **Fichiers** : type et taille contrôlés, images réencodées, SVG nettoyés, noms non devinables.
 - **Web** : politique de sécurité du contenu, en-têtes de sécurité, cookies `HttpOnly`, `Secure`, `SameSite`, protection contre les requêtes intersites, contrôle de l'origine des actions serveur.
 - **Débit** : limitation par IP, par compte et par ressource sur la connexion, la réservation, « retrouver mes billets », le scan et les exports.
-- **Secrets** : jamais dans le dépôt, rotation documentée, clés Stripe restreintes quand c'est possible.
+- **Secrets** : jamais dans le dépôt, rotation documentée ; jetons OAuth des comptes Mollie des organisateurs chiffrés en base (AES-256-GCM, clé dérivée de `BETTER_AUTH_SECRET`).
 - **Journal d'audit** : publication, annulation, remboursement, revente, changement de rôle, export, modification de marque ou de domaine, actions du back-office.
 - **Dépendances** : mises à jour mensuelles, analyse automatique des vulnérabilités dans la CI.
 - **Avant le lancement** : test d'intrusion externe sur l'app, la billetterie et le scanner.
@@ -1569,7 +1573,7 @@ Les factures de l'abonnement Pro sont envoyées par Stripe.
 ### 14.1 Tests obligatoires
 
 - **Logique** (`packages/core`, Vitest) : commission et plafonds, prix effectif avec paliers, codes promo, disponibilités, montants de revente, remboursements partiels, arrondis, devises. Couverture visée de 95 % sur ce paquet. Les cas de l'annexe C sont des tests à part entière.
-- **Intégration** (base réelle, Stripe en mode test) : réservation et paiement, commande gratuite, expiration, paiement tardif, webhooks rejoués, revente de bout en bout, remboursements, annulation d'événement, abonnement Pro et rétrogradation.
+- **Intégration** (base réelle, réponses de l'API de Mollie simulées) : réservation et paiement, commande gratuite, expiration, paiement tardif, webhooks rejoués, revente de bout en bout, remboursements, annulation d'événement, abonnement Pro et rétrogradation.
 - **Concurrence** : 200 réservations simultanées sur les 100 dernières places, sans survente ; deux scans simultanés du même billet, une seule validation ; deux achats simultanés de la même annonce de revente, un seul aboutit.
 - **Autorisations** : matrice rôles × actions, et tentatives d'accès entre organisations.
 - **Parcours complets** (Playwright) : inscription, création et publication d'un événement, achat (carte, commande gratuite, code promo), billets, revente, remboursement, scan en ligne et hors ligne.
@@ -1580,7 +1584,7 @@ Les factures de l'abonnement Pro sont envoyées par Stripe.
 
 - Aucune fonctionnalité ne passe en production sans ses tests et sans ses textes dans les deux langues du lancement.
 - La CI bloque la fusion si le typage, le lint, les tests ou la construction échouent.
-- Tout calcul d'argent affiché dans l'interface est identique à celui enregistré en base et à celui transmis à Stripe.
+- Tout calcul d'argent affiché dans l'interface est identique à celui enregistré en base et à celui transmis à Mollie.
 
 ---
 
@@ -1611,7 +1615,7 @@ La v1 ne contient que des données de test : **scénario A retenu**.
 | v1                                                                      | v2                                                                                                                                                                               |
 | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `User`, `Account`, `Session`                                            | Repris (`avatarUrl` → `image`)                                                                                                                                                   |
-| `Organization`                                                          | `Organization` + `Subscription` (champs d'abonnement) + `StripeAccount` (compte connecté) ; `ticketsSoldThisMonth`, `quotaResetAt`, soldes supprimés                             |
+| `Organization`                                                          | `Organization` + `Subscription` (champs d'abonnement) ; compte de l'ancien prestataire de paiement non repris ; `ticketsSoldThisMonth`, `quotaResetAt`, soldes supprimés         |
 | `Plan`                                                                  | `Plan` + `PlanCurrencyTerms` avec les nouvelles valeurs                                                                                                                          |
 | `Role`, `OrganizationMember`, `Invitation`                              | Repris, permissions converties vers la nouvelle liste, invitations en attente réémises                                                                                           |
 | `OrganizationBrand`                                                     | Repris (`brandName` → `displayName`, `fromName` → `emailFromName`)                                                                                                               |
@@ -1629,8 +1633,8 @@ La v1 ne contient que des données de test : **scénario A retenu**.
 
 **Points complémentaires**
 
-- **Réconciliation financière de la v1** : sans objet, aucune vente réelle n'ayant eu lieu. Vérifier seulement que le compte Stripe de test de la v1 est vidé et désactivé.
-- **Comptes Stripe** : les comptes de test de la v1 ne sont pas repris. Chaque organisateur connecte un compte neuf, configuré selon RG-PAY-01.
+- **Réconciliation financière de la v1** : sans objet, aucune vente réelle n'ayant eu lieu. Vérifier seulement que le compte de test de la v1 chez l'ancien prestataire de paiement est vidé et désactivé.
+- **Comptes de paiement** : les comptes de test de la v1, chez l'ancien prestataire de paiement, ne sont pas repris. Chaque organisateur relie son compte Mollie, selon RG-PAY-01.
 
 ---
 
@@ -1639,7 +1643,7 @@ La v1 ne contient que des données de test : **scénario A retenu**.
 1. **Cadrage** : validation des décisions de la section 17, maquettes des écrans clés (assistant, page de vente, achat, tableau de bord, scanner), choix techniques ⚠.
 2. **Socle** : monorepo, design system, traductions, comptes, organisations, rôles, contrôle des offres, journal d'audit, file de tâches, e-mails, CI.
 3. **Événements** : assistant, gestion, tarifs, paliers, questions, codes promo.
-4. **Vente** : compte Stripe de l'organisateur, page de vente, sous-domaines, réservation, paiement, webhooks, confirmation, billets, PDF, lien magique.
+4. **Vente** : compte Mollie de l'organisateur, page de vente, sous-domaines, réservation, paiement, webhooks, confirmation, billets, PDF, lien magique.
 5. **Opérations** : scanner, statistiques en direct, commandes, remboursements, annulation, finances, relevés.
 6. **Revente** : annonces, lien, section de la page de vente, remboursement du vendeur.
 7. **Pro** : abonnement et essai, marque, domaines personnalisés, rappels, campagnes, membres et rôles, plusieurs organisations.
@@ -1677,7 +1681,7 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 | 16  | Authentification                                                                            | ✅ Better Auth : Auth.js v5 est toujours en bêta en septembre 2026, Better Auth est stable et reprend le projet Auth.js                                                                                                                                                                                                     |
 | 17  | Moyens de paiement mis en avant au lancement                                                | Ceux de RG-BUY-11                                                                                                                                                                                                                                                                                                           |
 | 18  | Données de production v1                                                                    | ✅ Aucune donnée réelle : scénario A                                                                                                                                                                                                                                                                                        |
-| 19  | Comptes Stripe v1                                                                           | ✅ Sans objet (comptes de test non repris)                                                                                                                                                                                                                                                                                  |
+| 19  | Comptes de paiement v1 (ancien prestataire)                                                 | ✅ Sans objet (comptes de test non repris)                                                                                                                                                                                                                                                                                  |
 | 20  | Réponses de la FAQ du site (versements, essai, résiliation, domaine, annulation, HelloAsso) | À relire avec les règles de ce document                                                                                                                                                                                                                                                                                     |
 | 21  | Lieux partenaires (section 9.32) : nom, part du lieu, base, durée, seuil de versement       | Validé le 19 octobre 2026 : nom « Lieu partenaire » ; 20 % de la commission d'Evoly ; seulement les ventes des événements organisés dans la salle ; sans limite de durée ; seuil de versement réglé par le lieu (activable, montant au choix, 20 € par défaut) et bouton « Verser maintenant » (dès 1 €, une fois par jour) |
 
@@ -1699,9 +1703,10 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 - **Jauge** : nombre maximum de billets d'un événement, tous tarifs confondus.
 - **Réservation** : blocage temporaire des places pendant le paiement.
 - **Valeur faciale** : prix réellement payé pour un billet ; plafond de sa revente.
-- **Commission** : part d'Evoly, perçue en frais d'application Stripe.
-- **Frais bancaires** : frais de Stripe, prélevés sur le compte de l'organisateur.
-- **Charge directe** : paiement créé directement sur le compte Stripe de l'organisateur.
+- **Commission** : part d'Evoly, perçue en frais d'application Mollie (`applicationFee`).
+- **Frais bancaires** : frais de Mollie, prélevés sur le compte de l'organisateur.
+- **Compte Mollie de l'organisateur** : son compte de paiement chez Mollie, relié à Evoly par OAuth (Mollie Connect pour plateformes) ; les paiements de ses billets y sont créés et encaissés.
+- **Mandat** : autorisation de prélèvement enregistrée chez Mollie par le premier paiement de l'offre Pro, ou par la vérification de 0,02 € (carte, ou prélèvement SEPA après Bancontact) ; Evoly y prélève les renouvellements.
 - **Lien magique** : lien personnel qui donne accès aux billets d'une commande sans compte.
 - **Lien bénévole** : lien temporaire qui donne accès au scanner d'un événement sans compte.
 - **Code court** : code de 8 caractères d'un billet, pour la saisie manuelle.
@@ -1790,55 +1795,61 @@ function discounted(priceMinor: number, promo): number {
   return Math.max(0, priceMinor - promo.amountOffMinor);
 }
 
-// RG-FEE-51 : montant rendu au vendeur (frais supportés par le vendeur)
+// RG-FEE-51 : montant rendu au vendeur (frais supportés par le vendeur). Les frais bancaires de la revente sont ceux
+// du paiement de l'acheteur (réels, ou estimés d'après la grille de Mollie), plus ceux du remboursement chez Mollie
+// quand le vendeur avait payé en ligne.
 function sellerRefund(
   resalePriceMinor: number,
   resaleCommissionMinor: number,
-  resaleStripeFeeMinor: number,
+  resaleBankFeeMinor: number,
 ): number {
   return Math.max(
     0,
-    resalePriceMinor - resaleCommissionMinor - resaleStripeFeeMinor,
+    resalePriceMinor - resaleCommissionMinor - resaleBankFeeMinor,
   );
 }
 ```
 
 **Cas de test attendus** (euros, conditions EUR)
 
-| Cas                                                                        | Entrée                  | Résultat attendu          |
-| -------------------------------------------------------------------------- | ----------------------- | ------------------------- |
-| Commission Free                                                            | 3 000                   | 60                        |
-| Commission Free, arrondi                                                   | 500                     | 23 (15 + 7,5)             |
-| Commission Free, plafond                                                   | 5 700                   | 100                       |
-| Commission Pro, plafond                                                    | 3 700                   | 70                        |
-| Commission Pro, sous le plafond                                            | 3 600                   | 69                        |
-| Billet gratuit                                                             | 0                       | 0                         |
-| Remise 50 % sur 3 000, commission Free                                     | 1 500                   | commission 38 (15 + 22,5) |
-| Remise fixe 500 sur 400                                                    | 400                     | prix 0, commission 0      |
-| Paliers : prévente (quota 100, 100 vendus), normal (jusqu'au 1er novembre) | le 20 octobre           | prix du palier normal     |
-| Paliers : aucun palier applicable                                          | après le dernier palier | prix de base              |
-| Revente 3 000, carte standard (frais 70), Free                             | commission 60           | vendeur 2 870             |
-| Organisateur, billet 3 000, carte standard, Free                           | commission 60, frais 70 | net 2 870                 |
-| Organisateur, billet 3 000, Bancontact, Free                               | commission 60, frais 35 | net 2 905                 |
+| Cas                                                                        | Entrée                  | Résultat attendu        |
+| -------------------------------------------------------------------------- | ----------------------- | ----------------------- |
+| Commission Free                                                            | 3 000                   | 89                      |
+| Commission Free, arrondi                                                   | 1 525                   | 60 (29 + 30,5)          |
+| Commission Free, plafond                                                   | 12 000                  | 250                     |
+| Commission Pro, plafond                                                    | 3 700                   | 100                     |
+| Commission Pro, sous le plafond                                            | 3 524                   | 99                      |
+| Billet gratuit                                                             | 0                       | 0                       |
+| Remise 50 % sur 3 000, commission Free                                     | 1 500                   | commission 59 (29 + 30) |
+| Remise fixe 500 sur 400                                                    | 400                     | prix 0, commission 0    |
+| Paliers : prévente (quota 100, 100 vendus), normal (jusqu'au 1er novembre) | le 20 octobre           | prix du palier normal   |
+| Paliers : aucun palier applicable                                          | après le dernier palier | prix de base            |
+| Frais estimés, carte européenne standard (1,8 % + 25)                      | 3 000                   | 79                      |
+| Frais estimés, Bancontact                                                  | 3 000                   | 39                      |
+| Revente 3 000, carte standard (frais 79), Free                             | commission 89           | vendeur 2 832           |
+| Frais d'une revente 2 000 par carte, vendeur ayant payé en ligne           | 61 + 25 (remboursement) | frais 86                |
+| Organisateur, billet 3 000, carte standard, Free                           | commission 89, frais 79 | net 2 832               |
+| Organisateur, billet 3 000, Bancontact, Free                               | commission 89, frais 39 | net 2 872               |
+| Aide au prix : 2 000 voulus, carte standard, Free                          | commission 72, frais 63 | prix 2 135              |
 
 ---
 
 ## Annexe D - Liens et textes de référence
 
-| Élément                     | Valeur                                                   |
-| --------------------------- | -------------------------------------------------------- |
-| Slogan                      | Ton prochain souvenir t'attend.                          |
-| Éditeur                     | Evoly Solutions                                          |
-| Inscription                 | `https://app.evoly.me/register`                          |
-| Inscription avec essai Pro  | `https://app.evoly.me/register?plan=pro`                 |
-| Connexion                   | `https://app.evoly.me/login`                             |
-| Conditions d'utilisation    | `https://evoly.me/cgu`                                   |
-| Confidentialité             | `https://evoly.me/privacy`                               |
-| Mentions légales            | `https://evoly.me/legal`                                 |
-| Cookies                     | `https://evoly.me/cookies`                               |
-| Contact                     | `hello@evoly.me`                                         |
-| Grille Stripe de référence  | `https://stripe.com/fr-be/pricing/local-payment-methods` |
-| Tarification Stripe Connect | `https://stripe.com/fr/connect/pricing`                  |
+| Élément                    | Valeur                                   |
+| -------------------------- | ---------------------------------------- |
+| Slogan                     | Ton prochain souvenir t'attend.          |
+| Éditeur                    | Evoly Solutions                          |
+| Inscription                | `https://app.evoly.me/register`          |
+| Inscription avec essai Pro | `https://app.evoly.me/register?plan=pro` |
+| Connexion                  | `https://app.evoly.me/login`             |
+| Conditions d'utilisation   | `https://evoly.me/cgu`                   |
+| Confidentialité            | `https://evoly.me/privacy`               |
+| Mentions légales           | `https://evoly.me/legal`                 |
+| Cookies                    | `https://evoly.me/cookies`               |
+| Contact                    | `hello@evoly.me`                         |
+| Grille Mollie de référence | `https://www.mollie.com/be/pricing`      |
+| Tableau de bord Mollie     | `https://my.mollie.com/dashboard`        |
 
 ---
 
@@ -1848,8 +1859,8 @@ function sellerRefund(
 | --------------------------------------------------------- | ---------------------------------------------- |
 | Quota mensuel de billets offerts, remise à zéro mensuelle | Supprimé                                       |
 | Commission à 5 % ou 2,5 %                                 | Remplacée (section 3.2)                        |
-| Réserve de 20 % pendant 30 jours                          | Supprimée (Stripe gère les risques du compte)  |
-| Solde interne et virements manuels                        | Supprimés (virements Stripe)                   |
+| Réserve de 20 % pendant 30 jours                          | Supprimée (réserve éventuelle chez Mollie)     |
+| Solde interne et virements manuels                        | Supprimés (versements de Mollie)               |
 | Commission affichée à l'acheteur                          | Supprimée (prix tout compris)                  |
 | Revente plafonnée à 2 fois le prix                        | Remplacée par le plafond à la valeur faciale   |
 | Revente payée à l'organisateur                            | Remplacée par le remboursement du vendeur      |

@@ -15,13 +15,11 @@ export function ResaleBuy({
   label,
   organizationName,
   requirePhone,
-  publishableKey,
 }: {
   linkCode: string;
   label: string;
   organizationName: string;
   requirePhone: boolean;
-  publishableKey: string | null;
 }) {
   const t = useTranslations("resale");
   const tc = useTranslations("checkout");
@@ -34,7 +32,6 @@ export function ResaleBuy({
         reservation={reservation}
         organizationName={organizationName}
         requirePhone={requirePhone}
-        publishableKey={publishableKey}
         onCancel={() => setReservation(null)}
       />
     );

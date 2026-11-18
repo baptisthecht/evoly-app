@@ -16,7 +16,6 @@ import { Prisma } from "@evoly/db";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
 import type { OrgContext } from "./context";
 import { sendEmail } from "./email/send";
 import { notify } from "./notifications";
@@ -302,82 +301,9 @@ export async function financeOverview(
   };
 }
 
-/** US-FIN-02, RG-FIN-02 : état du compte, soldes et virements lus chez Stripe (jamais déclenchés par Evoly, RG-FIN-01). */
-export async function stripeOverview(ctx: OrgContext) {
-  const account = await db.stripeAccount.findUnique({
-    where: { organizationId: ctx.organization.id },
-  });
-  if (!account) return { connected: false as const };
-  const s = stripe();
-  let balance: {
-    available: Array<{ amount: number; currency: string }>;
-    pending: Array<{ amount: number; currency: string }>;
-  } | null = null;
-  let payouts: Array<{
-    id: string;
-    amount: number;
-    currency: string;
-    status: string;
-    arrivalDate: Date;
-  }> | null = null;
-  let unavailable = !s;
-  if (s) {
-    try {
-      const opts = { stripeAccount: account.stripeAccountId };
-      const [b, p] = await Promise.all([
-        s.balance.retrieve({}, opts),
-        s.payouts.list({ limit: 10 }, opts),
-      ]);
-      const map = (list: Array<{ amount: number; currency: string }>) =>
-        list.map((x) => ({
-          amount: x.amount,
-          currency: x.currency.toUpperCase(),
-        }));
-      balance = { available: map(b.available), pending: map(b.pending) };
-      payouts = p.data.map((x) => ({
-        id: x.id,
-        amount: x.amount,
-        currency: x.currency.toUpperCase(),
-        status: x.status,
-        arrivalDate: new Date(x.arrival_date * 1000),
-      }));
-    } catch {
-      unavailable = true;
-    }
-  }
-  const disputes = await db.dispute.findMany({
-    where: {
-      accountId: account.stripeAccountId,
-      status: {
-        in: [
-          "NEEDS_RESPONSE",
-          "WARNING_NEEDS_RESPONSE",
-          "UNDER_REVIEW",
-          "WARNING_UNDER_REVIEW",
-        ],
-      },
-    },
-    include: { order: { select: { id: true, reference: true } } },
-    orderBy: { evidenceDueBy: "asc" },
-  });
-  return {
-    connected: true as const,
-    status: account.status,
-    chargesEnabled: account.chargesEnabled,
-    payoutsEnabled: account.payoutsEnabled,
-    requirementsDue: Array.isArray(account.requirementsDue)
-      ? account.requirementsDue.length
-      : 0,
-    balance,
-    payouts,
-    unavailable,
-    disputes,
-  };
-}
-
 /**
- * Compte qui encaisse, vu des Finances (docs/MOLLIE.md, lot 5) : le compte Mollie dès qu'il est relié, sinon l'ancien
- * compte Stripe. Même forme pour les deux, avec le tableau de bord du prestataire.
+ * US-FIN-02, RG-FIN-02 : compte Mollie vu des Finances (docs/MOLLIE.md, lot 5) : état, solde, versements et litiges lus
+ * chez Mollie (jamais déclenchés par Evoly, RG-FIN-01), avec le lien vers le tableau de bord de Mollie.
  */
 export async function paymentsOverview(ctx: OrgContext) {
   const mollie = await db.mollieAccount.findUnique({
@@ -409,85 +335,7 @@ export async function paymentsOverview(ctx: OrgContext) {
       dashboardUrl: "https://my.mollie.com/dashboard",
     };
   }
-  const s = await stripeOverview(ctx);
-  if (!s.connected) return { connected: false as const, provider: null };
-  return {
-    ...s,
-    provider: "STRIPE" as const,
-    ready: s.status === "ACTIVE" && s.requirementsDue === 0,
-    restricted: s.status === "RESTRICTED" || s.status === "DISABLED",
-    actionRequired: s.status !== "ACTIVE" || s.requirementsDue > 0,
-    dashboardUrl: "https://dashboard.stripe.com/",
-  };
-}
-
-const DISPUTE_STATUS: Record<
-  string,
-  | "WARNING_NEEDS_RESPONSE"
-  | "WARNING_UNDER_REVIEW"
-  | "WARNING_CLOSED"
-  | "NEEDS_RESPONSE"
-  | "UNDER_REVIEW"
-  | "WON"
-  | "LOST"
-> = {
-  warning_needs_response: "WARNING_NEEDS_RESPONSE",
-  warning_under_review: "WARNING_UNDER_REVIEW",
-  warning_closed: "WARNING_CLOSED",
-  needs_response: "NEEDS_RESPONSE",
-  under_review: "UNDER_REVIEW",
-  won: "WON",
-  lost: "LOST",
-  prevented: "WON",
-};
-
-/** RG-FIN-03 : copie locale d'un litige reçu par webhook, rattaché à sa commande. */
-export async function upsertDispute(d: {
-  id: string;
-  charge: string;
-  account: string;
-  amount: number;
-  currency: string;
-  reason: string;
-  status: string;
-  dueBy: number | null;
-}) {
-  const order = await db.order.findFirst({
-    where: { stripeChargeId: d.charge },
-    select: { id: true },
-  });
-  const data = {
-    stripeChargeId: d.charge,
-    accountId: d.account,
-    amountMinor: d.amount,
-    currency: d.currency.toUpperCase(),
-    reason: d.reason,
-    status: DISPUTE_STATUS[d.status] ?? "NEEDS_RESPONSE",
-    evidenceDueBy: d.dueBy ? new Date(d.dueBy * 1000) : null,
-    orderId: order?.id ?? null,
-  };
-  const existed = await db.dispute.findUnique({
-    where: { stripeDisputeId: d.id },
-    select: { id: true },
-  });
-  await db.dispute.upsert({
-    where: { stripeDisputeId: d.id },
-    create: { stripeDisputeId: d.id, ...data },
-    update: data,
-  });
-  // RG-FIN-03 et section 9.20 : litige ouvert signalé (et envoyé par e-mail, RG-NTF-02)
-  const org = existed
-    ? null
-    : await db.stripeAccount.findUnique({
-        where: { stripeAccountId: d.account },
-        select: { organizationId: true },
-      });
-  if (org)
-    await notify(org.organizationId, "DISPUTE_OPENED", {
-      title: "Litige ouvert",
-      body: `Un acheteur conteste un paiement de ${(d.amount / 100).toFixed(2).replace(".", ",")} ${d.currency.toUpperCase()}. Répondez dans Stripe avant l'échéance.`,
-      link: "/finances",
-    });
+  return { connected: false as const, provider: null };
 }
 
 /** Mois ayant des commissions, avec leur relevé s'il est émis (le mois en cours reste ouvert). */
@@ -638,7 +486,7 @@ const STATEMENT_LABELS: Record<
     ofOptions: "dont options",
     noVat: "Numéro de TVA : à compléter",
     footer:
-      "Commissions Evoly prélevées sur les ventes de billets, selon les conditions de l’offre en vigueur à la date de chaque vente. Montants débités par Stripe lors de chaque vente : rien à payer.",
+      "Commissions Evoly prélevées sur les ventes de billets, selon les conditions de l’offre en vigueur à la date de chaque vente. Montants retenus par Mollie sur chaque paiement : rien à payer.",
   },
   en: {
     title: "Commission statement",
@@ -656,7 +504,7 @@ const STATEMENT_LABELS: Record<
     ofOptions: "of which add-ons",
     noVat: "VAT number: to be completed",
     footer:
-      "Evoly fees taken on ticket sales, under the plan terms in force on the date of each sale. Amounts collected by Stripe on each sale: nothing to pay.",
+      "Evoly fees taken on ticket sales, under the plan terms in force on the date of each sale. Amounts withheld by Mollie on each payment: nothing to pay.",
   },
   es: {
     title: "Extracto de comisiones",
@@ -674,7 +522,7 @@ const STATEMENT_LABELS: Record<
     ofOptions: "de ello, opciones",
     noVat: "Número de IVA: pendiente de completar",
     footer:
-      "Comisiones de Evoly cobradas sobre la venta de entradas, según las condiciones del plan vigentes en la fecha de cada venta. Importes cobrados por Stripe en cada venta: no hay nada que pagar.",
+      "Comisiones de Evoly cobradas sobre la venta de entradas, según las condiciones del plan vigentes en la fecha de cada venta. Importes retenidos por Mollie en cada pago: no hay nada que pagar.",
   },
   de: {
     title: "Gebührenabrechnung",
@@ -692,7 +540,7 @@ const STATEMENT_LABELS: Record<
     ofOptions: "davon Optionen",
     noVat: "USt-IdNr.: noch zu ergänzen",
     footer:
-      "Evoly-Gebühren, die beim Ticketverkauf einbehalten werden, gemäß den am Tag jedes Verkaufs geltenden Tarifbedingungen. Von Stripe bei jedem Verkauf eingezogene Beträge: nichts zu zahlen.",
+      "Evoly-Gebühren, die beim Ticketverkauf einbehalten werden, gemäß den am Tag jedes Verkaufs geltenden Tarifbedingungen. Von Mollie bei jeder Zahlung einbehaltene Beträge: nichts zu zahlen.",
   },
   it: {
     title: "Rendiconto delle commissioni",
@@ -710,7 +558,7 @@ const STATEMENT_LABELS: Record<
     ofOptions: "di cui opzioni",
     noVat: "Partita IVA: da completare",
     footer:
-      "Commissioni Evoly trattenute sulle vendite di biglietti, secondo le condizioni del piano in vigore alla data di ogni vendita. Importi riscossi da Stripe a ogni vendita: nulla da pagare.",
+      "Commissioni Evoly trattenute sulle vendite di biglietti, secondo le condizioni del piano in vigore alla data di ogni vendita. Importi trattenuti da Mollie a ogni pagamento: nulla da pagare.",
   },
   pt: {
     title: "Extrato de comissões",
@@ -728,7 +576,7 @@ const STATEMENT_LABELS: Record<
     ofOptions: "dos quais opções",
     noVat: "Número de IVA: a completar",
     footer:
-      "Comissões Evoly cobradas sobre as vendas de bilhetes, segundo as condições do plano em vigor na data de cada venda. Montantes cobrados pela Stripe em cada venda: nada a pagar.",
+      "Comissões Evoly cobradas sobre as vendas de bilhetes, segundo as condições do plano em vigor na data de cada venda. Montantes retidos pela Mollie em cada pagamento: nada a pagar.",
   },
   nl: {
     title: "Commissie-overzicht",
@@ -746,7 +594,7 @@ const STATEMENT_LABELS: Record<
     ofOptions: "waarvan opties",
     noVat: "Btw-nummer: nog in te vullen",
     footer:
-      "Commissies van Evoly ingehouden op de ticketverkoop, volgens de abonnementsvoorwaarden die gelden op de datum van elke verkoop. Bedragen die Stripe bij elke verkoop int: niets te betalen.",
+      "Commissies van Evoly ingehouden op de ticketverkoop, volgens de abonnementsvoorwaarden die gelden op de datum van elke verkoop. Bedragen die Mollie bij elke betaling inhoudt: niets te betalen.",
   },
 };
 

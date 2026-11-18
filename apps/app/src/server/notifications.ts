@@ -12,7 +12,6 @@ const PERMISSION: Record<NotificationType, Permission> = {
   REFUND_REQUESTED: "REFUNDS_MANAGE",
   RESALE_SOLD: "ORDERS_VIEW",
   MEMBER_JOINED: "MEMBERS_MANAGE",
-  STRIPE_ACTION_REQUIRED: "PAYMENTS_MANAGE",
   SUBSCRIPTION_PAYMENT_FAILED: "BILLING_MANAGE",
   TRIAL_ENDING: "BILLING_MANAGE",
   DOMAIN_ACTIVE: "DOMAINS_MANAGE",
@@ -27,7 +26,6 @@ const PERMISSION: Record<NotificationType, Permission> = {
 };
 /** RG-NTF-02 : notifications importantes, aussi envoyées par e-mail au propriétaire et aux administrateurs. */
 const IMPORTANT = new Set<NotificationType>([
-  "STRIPE_ACTION_REQUIRED",
   "MOLLIE_ACTION_REQUIRED",
   "SUBSCRIPTION_PAYMENT_FAILED",
   "DISPUTE_OPENED",

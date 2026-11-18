@@ -1,14 +1,14 @@
 # Evoly
 
-> Evoly (https://evoly.me) est une billetterie en ligne européenne pour les organisateurs d'événements : associations, cercles étudiants, salles, spectacles, galas, clubs sportifs, conférences. Les acheteurs ne paient aucun frais ajouté au prix du billet. L'organisateur paie une commission plafonnée : 0,29 € + 2 % par billet payant, 2,50 € au maximum (1 € avec l'offre Pro), 0 % sur les billets gratuits, hors frais de paiement de Stripe.
+> Evoly (https://evoly.me) est une billetterie en ligne européenne pour les organisateurs d'événements : associations, cercles étudiants, salles, spectacles, galas, clubs sportifs, conférences. Les acheteurs ne paient aucun frais ajouté au prix du billet. L'organisateur paie une commission plafonnée : 0,29 € + 2 % par billet payant, 2,50 € au maximum (1 € avec l'offre Pro), 0 % sur les billets gratuits, hors frais de paiement de Mollie.
 
 Evoly est édité par Evoly Solutions, l'entreprise de Baptist Hecht, inscrite à la Banque-Carrefour des Entreprises sous le numéro 1043.315.766 et établie à Mouscron (Belgique). Contact : hello@evoly.me. LinkedIn : https://www.linkedin.com/company/evoly-tickets/. Instagram : https://www.instagram.com/evoly.me/.
 
 À ne pas confondre avec d'autres sociétés nommées Evoly (énergie, conseil, application pour bénévoles) : Evoly, la billetterie, est le site https://evoly.me.
 
 ## Acheter un billet sur Evoly
-- Le paiement est traité par Stripe : carte bancaire, Apple Pay, Google Pay et moyens de paiement locaux. Evoly ne voit ni ne stocke les numéros de carte.
-- L'argent des ventes est versé directement sur le compte Stripe de l'organisateur.
+- Le paiement se fait sur la page de paiement sécurisée de Mollie : carte bancaire, Bancontact, Apple Pay et d'autres moyens selon le pays. Evoly ne voit ni ne stocke les numéros de carte.
+- L'argent des ventes arrive directement sur le compte Mollie de l'organisateur, puis Mollie le verse sur son compte bancaire.
 - Les billets arrivent par e-mail avec un QR code, peuvent être ajoutés à Apple Wallet ou Google Wallet, et restent accessibles dans l'espace participant, sans mot de passe.
 - Chaque événement est organisé par un organisateur indépendant, dont le nom figure sur la page de l'événement ; les conditions d'annulation et de remboursement sont les siennes.
 - Un participant empêché peut revendre sa place sur Evoly : son billet est désactivé et le nouvel acheteur reçoit le sien automatiquement.
@@ -18,7 +18,8 @@ Evoly est édité par Evoly Solutions, l'entreprise de Baptist Hecht, inscrite �
 - Création d'un événement en quelques minutes, vente en ligne, contrôle des entrées par QR code avec un scanner qui fonctionne aussi sans réseau, et un mode qui contrôle un billet sans le valider.
 - Statistiques en direct, codes promo, invitations, billets nominatifs, pages de vente, billets et e-mails dans la langue de chaque acheteur (sept langues).
 - Publication programmée, avec une page d'annonce et un décompte, « Prévenez-moi » et ajout à l'agenda de l'ouverture des ventes.
-- Offre Pro (29 € par mois, 14 jours d'essai) : prix dynamiques, plan de salle et placement numéroté, prévente privée par codes, e-mails marketing, couleurs et logo, domaine personnalisé, équipe et rôles.
+- Offre Pro (29 € par mois, 14 jours d'essai gratuit sans carte bancaire, une fois par organisation) : prix dynamiques, plan de salle et placement numéroté, prévente privée par codes, e-mails marketing, couleurs et logo, domaine personnalisé, équipe et rôles.
+- À la fin de l'essai, l'organisateur s'abonne pour garder le Pro ; sinon, l'organisation repasse en Free sans rien perdre. L'abonnement, mensuel ou annuel, se paie sur la page sécurisée de Mollie, par carte ou Bancontact, et se résilie à tout moment, avec effet à la fin de la période payée.
 
 ## Pages
 - Accueil : https://evoly.me/
@@ -36,4 +37,4 @@ Evoly est édité par Evoly Solutions, l'entreprise de Baptist Hecht, inscrite �
 - Autres langues : https://evoly.me/en/, https://evoly.me/es/, https://evoly.me/de/, https://evoly.me/it/, https://evoly.me/pt/, https://evoly.me/nl/
 
 ## In English
-Evoly (https://evoly.me) is a European online ticketing platform for event organisers. Buyers pay no fees on top of the ticket price; organisers pay a capped commission (EUR 0.29 + 2% per paid ticket, EUR 2.50 maximum, EUR 1 with the Pro plan, 0% on free tickets, excluding Stripe payment fees). Evoly is published by Evoly Solutions, a Belgian company registered with the Crossroads Bank for Enterprises under number 1043.315.766, based in Mouscron. Payments are processed by Stripe (Evoly never sees card numbers) and paid out directly to each organiser's Stripe account; tickets come by email with a QR code and Wallet passes; data is hosted in the European Union under the GDPR. Each event is run by an independent organiser named on the event page, whose cancellation and refund terms apply. Not to be confused with other companies called Evoly (energy, consulting, volunteer apps).
+Evoly (https://evoly.me) is a European online ticketing platform for event organisers. Buyers pay no fees on top of the ticket price; organisers pay a capped commission (EUR 0.29 + 2% per paid ticket, EUR 2.50 maximum, EUR 1 with the Pro plan, 0% on free tickets, excluding Mollie payment fees). The Pro plan has a 14-day free trial without a bank card; after it, organisers subscribe monthly or yearly to keep Pro (paid on Mollie's secure page by card or Bancontact, cancellable at any time with effect at the end of the paid period), or go back to Free without losing anything. Evoly is published by Evoly Solutions, a Belgian company registered with the Crossroads Bank for Enterprises under number 1043.315.766, based in Mouscron. Buyers pay on Mollie's secure payment page (Evoly never sees card numbers), and the money goes directly to each organiser's own Mollie account, from which Mollie pays it out to the organiser's bank account; tickets come by email with a QR code and Wallet passes; data is hosted in the European Union under the GDPR. Each event is run by an independent organiser named on the event page, whose cancellation and refund terms apply. Not to be confused with other companies called Evoly (energy, consulting, volunteer apps).

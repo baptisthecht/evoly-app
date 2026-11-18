@@ -77,15 +77,16 @@ export function canEditTierPrice(tier: {
 export function publicationBlockers(input: {
   activeTicketTypes: number;
   hasPaidTicketTypes: boolean;
-  stripeChargesEnabled: boolean;
+  /** compte Mollie relié et prêt à encaisser */
+  mollieReady: boolean;
   startsAt: Date;
   now: Date;
-}): Array<"NO_TICKET_TYPE" | "STRIPE_REQUIRED" | "IN_THE_PAST"> {
-  const blockers: Array<"NO_TICKET_TYPE" | "STRIPE_REQUIRED" | "IN_THE_PAST"> =
+}): Array<"NO_TICKET_TYPE" | "MOLLIE_REQUIRED" | "IN_THE_PAST"> {
+  const blockers: Array<"NO_TICKET_TYPE" | "MOLLIE_REQUIRED" | "IN_THE_PAST"> =
     [];
   if (input.activeTicketTypes === 0) blockers.push("NO_TICKET_TYPE");
-  if (input.hasPaidTicketTypes && !input.stripeChargesEnabled)
-    blockers.push("STRIPE_REQUIRED");
+  if (input.hasPaidTicketTypes && !input.mollieReady)
+    blockers.push("MOLLIE_REQUIRED");
   if (input.startsAt.getTime() <= input.now.getTime())
     blockers.push("IN_THE_PAST");
   return blockers;

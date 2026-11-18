@@ -4,7 +4,6 @@ import { formatDate, formatMoney, type Locale } from "@evoly/i18n";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
 import { sendEmail } from "./email/send";
 import type { OrgContext } from "./context";
 
@@ -227,24 +226,21 @@ export async function venueSummary(ctx: OrgContext) {
   };
 }
 
+/**
+ * Versement d'un reversement au lieu. Aucun n'est branché pour l'instant (décision du 18 novembre 2026) : les
+ * reversements sont en pause, en attendant la réponse de Mollie sur les transferts entre comptes Connect.
+ */
 type Transfer = (p: {
+  organizationId: string;
   amount: number;
   currency: string;
-  destination: string;
   idempotencyKey: string;
 }) => Promise<{ id: string }>;
-const stripeTransfer: Transfer = async (p) => {
-  const s = stripe();
-  if (!s) throw new Error("Stripe indisponible");
-  return s.transfers.create(
-    { amount: p.amount, currency: p.currency, destination: p.destination },
-    { idempotencyKey: p.idempotencyKey },
-  );
-};
 
 /**
- * RG-LIEU-06 : versement du solde sur le compte Stripe du lieu. Chaque mois : sous le seuil (s'il est activé), la part est
- * reportée. À la demande (« Verser maintenant ») : dès 1 €, une fois par jour au plus.
+ * RG-LIEU-06 : versement du solde au lieu. Chaque mois : sous le seuil (s'il est activé), la part est reportée. À la
+ * demande (« Verser maintenant ») : dès 1 €, une fois par jour au plus. Sans moyen de versement branché, rien n'est
+ * versé : le solde reste dû au lieu et s'affiche comme reversement à venir.
  */
 export async function payVenue(
   venuePartnerId: string,
@@ -286,20 +282,16 @@ export async function payVenue(
     if (opts.manual) throw new CoreError("VENUE_BILLING_INFO");
     return { status: "INFO_MISSING" as const, balanceMinor: balance };
   }
-  const account = await db.stripeAccount.findUnique({
-    where: { organizationId: venue.organizationId },
-    select: { stripeAccountId: true },
-  });
-  if (!account) {
-    if (opts.manual) throw new CoreError("VENUE_NO_STRIPE");
-    return { status: "NO_STRIPE" as const, balanceMinor: balance };
+  if (!opts.transfer) {
+    if (opts.manual) throw new CoreError("VENUE_PAYOUTS_PAUSED");
+    return { status: "PAUSED" as const, balanceMinor: balance };
   }
   const currency = venue.organization.currency.toLowerCase();
   try {
-    const t = await (opts.transfer ?? stripeTransfer)({
+    await opts.transfer({
+      organizationId: venue.organizationId,
       amount: balance,
       currency,
-      destination: account.stripeAccountId,
       idempotencyKey: `venue-${venue.id}-${now.toISOString().slice(0, 10)}-${balance}`,
     });
     // RG-LIEU-07 : facture d'autofacturation, numérotée pour ce lieu, TVA comprise dans le montant versé
@@ -317,7 +309,6 @@ export async function payVenue(
           currency: venue.organization.currency,
           manual: opts.manual,
           status: "PAID",
-          stripeTransferId: t.id,
           createdAt: now,
           invoiceNumber: `AF-${venue.code}-${String(invoiceSeq).padStart(4, "0")}`,
           netMinor: vat.netMinor,
@@ -412,11 +403,11 @@ async function mailVenuePayout(payoutId: string) {
       ? `Lieu partenaire : ${amount} versés sur votre compte`
       : `Partner venue: ${amount} paid to your account`,
     text: fr
-      ? `Bonjour ${owner.name},\n\nNous venons de verser ${amount} sur votre compte Stripe : votre part de la commission d'Evoly sur les événements organisés dans votre salle. La facture d'autofacturation est jointe ; le détail par mois est sur la page Abonnement.\n\nEvoly`
-      : `Hi ${owner.name},\n\nWe have just paid ${amount} to your Stripe account: your share of Evoly's commission on the events held at your venue. The self-billed invoice is attached; the monthly breakdown is on the Billing page.\n\nEvoly`,
+      ? `Bonjour ${owner.name},\n\nNous venons de vous verser ${amount} : votre part de la commission d'Evoly sur les événements organisés dans votre salle. La facture d'autofacturation est jointe ; le détail par mois est sur la page Abonnement.\n\nEvoly`
+      : `Hi ${owner.name},\n\nWe have just paid you ${amount}: your share of Evoly's commission on the events held at your venue. The self-billed invoice is attached; the monthly breakdown is on the Billing page.\n\nEvoly`,
     html: fr
-      ? `<p>Bonjour ${owner.name},</p><p>Nous venons de verser <strong>${amount}</strong> sur votre compte Stripe : votre part de la commission d'Evoly sur les événements organisés dans votre salle.</p><p>La facture d'autofacturation est jointe ; le détail par mois est sur la page Abonnement.</p><p>Evoly</p>`
-      : `<p>Hi ${owner.name},</p><p>We have just paid <strong>${amount}</strong> to your Stripe account: your share of Evoly's commission on the events held at your venue.</p><p>The self-billed invoice is attached; the monthly breakdown is on the Billing page.</p><p>Evoly</p>`,
+      ? `<p>Bonjour ${owner.name},</p><p>Nous venons de vous verser <strong>${amount}</strong> : votre part de la commission d'Evoly sur les événements organisés dans votre salle.</p><p>La facture d'autofacturation est jointe ; le détail par mois est sur la page Abonnement.</p><p>Evoly</p>`
+      : `<p>Hi ${owner.name},</p><p>We have just paid you <strong>${amount}</strong>: your share of Evoly's commission on the events held at your venue.</p><p>The self-billed invoice is attached; the monthly breakdown is on the Billing page.</p><p>Evoly</p>`,
     ...(invoice
       ? {
           attachments: [
@@ -508,8 +499,7 @@ const PDF_TEXT = {
     NOT_REGISTERED: "Fournisseur non assujetti à la TVA : TVA non applicable.",
     terms: (date: string) =>
       `Facture établie par le client, Evoly, au nom et pour le compte du fournisseur (autofacturation), selon l'accord du ${date}. Elle est réputée acceptée sauf contestation dans les 15 jours.`,
-    paid: (date: string) =>
-      `Montant versé sur le compte Stripe du fournisseur le ${date}.`,
+    paid: (date: string) => `Montant versé au fournisseur le ${date}.`,
   },
   en: {
     title: "Invoice",
@@ -529,8 +519,7 @@ const PDF_TEXT = {
     NOT_REGISTERED: "Supplier not registered for VAT: VAT not applicable.",
     terms: (date: string) =>
       `Invoice issued by the customer, Evoly, in the name and on behalf of the supplier (self-billing), under the agreement of ${date}. It is deemed accepted unless disputed within 15 days.`,
-    paid: (date: string) =>
-      `Amount paid to the supplier's Stripe account on ${date}.`,
+    paid: (date: string) => `Amount paid to the supplier on ${date}.`,
   },
 };
 const ink = rgb(0x22 / 255, 0x22 / 255, 0x22 / 255);

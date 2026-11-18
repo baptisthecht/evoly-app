@@ -308,7 +308,7 @@ export default async function OrderDetailPage({
                   <dd className="text-right tabular-nums">
                     {money(order.applicationFeeMinor)}
                   </dd>
-                  <dt className="text-ink-muted">{t("stripeFees")}</dt>
+                  <dt className="text-ink-muted">{t("paymentFees")}</dt>
                   <dd className="text-right tabular-nums">
                     {order.paymentFeeMinor != null
                       ? money(order.paymentFeeMinor)

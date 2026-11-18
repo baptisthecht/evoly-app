@@ -49,7 +49,6 @@ async function setup() {
           planId: "pro",
           status: "ACTIVE",
           currency: "EUR",
-          stripeSubscriptionId: `sub_${id}`,
         },
       },
       members: { create: { userId: owner.id, roleId: ownerRole.id } },

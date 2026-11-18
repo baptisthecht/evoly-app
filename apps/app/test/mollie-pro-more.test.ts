@@ -15,13 +15,6 @@ vi.mock("next/headers", () => ({
   }),
   headers: async () => new Headers(),
 }));
-const stripeFake = vi.hoisted(() => ({
-  subscriptions: {
-    update: vi.fn(async (_id: string, _data: unknown) => ({})),
-    cancel: vi.fn(async (_id: string) => ({})),
-  },
-}));
-vi.mock("@/lib/stripe", () => ({ stripe: () => stripeFake }));
 
 const { db } = await import("@/lib/db");
 const { createOrganization } = await import("@/server/onboarding");
@@ -36,7 +29,7 @@ const {
   startProCheckout,
 } = await import("@/server/proBilling");
 const { issueProInvoice, proInvoicePdf } = await import("@/server/proInvoices");
-const { billingState, changeInterval, notifyGrantedProEnding } =
+const { billingState, notifyGrantedProEnding } =
   await import("@/server/billing");
 const { assignPlan, extendTrial } = await import("@/server/platform");
 const { qualifyReferral } = await import("@/server/referrals");
@@ -817,9 +810,7 @@ describe("offre Pro payée par Mollie : cas particuliers (docs/MOLLIE.md, lot 6)
     await expect(
       assignPlan(st, late.org.id, "partner", null),
     ).rejects.toMatchObject({ code: "PLAN_MANAGED_BY_MOLLIE" });
-    await assignPlan(st, late.org.id, "partner", null, {
-      resilierStripe: true,
-    });
+    await assignPlan(st, late.org.id, "partner", null, { resilier: true });
     expect(await subOf(late)).toMatchObject({
       planId: "partner",
       billingProvider: null,
@@ -865,7 +856,7 @@ describe("offre Pro payée par Mollie : cas particuliers (docs/MOLLIE.md, lot 6)
     // mensuel ou annuel : au prochain renouvellement pour un abonné Mollie
     const yearly = await organizer();
     await billed(yearly);
-    await changeInterval(yearly.ctx, "YEAR");
+    await scheduleIntervalSwitch(yearly.ctx, "YEAR");
     expect((await subOf(yearly)).nextInterval).toBe("YEAR");
 
     // essai sans carte qui se termine dans 2 jours : invitation à s'abonner, une fois

@@ -1,17 +1,17 @@
-import { describe, expect, it } from "vitest";
-import type Stripe from "stripe";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db";
 import { safeError } from "@/lib/redact";
-import { reserveOrder } from "@/server/checkout";
+import { saveMollieAuthorization } from "@/server/mollieAccounts";
+import { notifyFailedSettlements } from "@/server/mollieFinances";
 import {
   notificationPreferences,
   notify,
   saveNotificationPreferences,
   unreadCount,
 } from "@/server/notifications";
-import { handleConnectEvent } from "@/server/stripeConnectEvents";
 
 const rid = () => Math.random().toString(36).slice(2, 10);
+afterEach(() => vi.unstubAllGlobals());
 
 async function setup() {
   const id = rid();
@@ -43,26 +43,10 @@ async function setup() {
     });
     users[k] = u.id;
   }
-  const account = `acct_${id}`;
-  await db.stripeAccount.create({
-    data: {
-      organizationId: org.id,
-      stripeAccountId: account,
-      country: "BE",
-      defaultCurrency: "EUR",
-    },
-  });
-  return { id, org, users, account };
+  return { id, org, users };
 }
-const event = (type: string, object: object, account?: string) =>
-  ({
-    id: `evt_${rid()}`,
-    type,
-    account,
-    data: { object },
-  }) as unknown as Stripe.Event;
 
-describe("virements, paiements annulés, préférences de notification et journaux (sections 9.20, 11 et 12, RG-RGPD-03)", () => {
+describe("virements, préférences de notification et journaux (sections 9.20, 11 et 12, RG-RGPD-03)", () => {
   it("journaux : adresses e-mail et numéros masqués", () => {
     const msg = safeError(
       new Error("Échec de l'envoi à lea@exemple.be (+32 470 12 34 56)"),
@@ -72,24 +56,75 @@ describe("virements, paiements annulés, préférences de notification et journa
     expect(msg).toContain("[numéro]");
   });
 
-  it("virement échoué : notifié à qui voit les finances, et par e-mail au propriétaire et aux administrateurs", async () => {
+  it("virement échoué chez Mollie : notifié à qui voit les finances, et par e-mail au propriétaire et aux administrateurs ; virement réussi : rien", async () => {
+    // seuls les comptes de ce test comptent
+    await db.mollieAccount.updateMany({
+      where: { disconnectedAt: null },
+      data: { disconnectedAt: new Date() },
+    });
     const s = await setup();
-    expect(
-      await handleConnectEvent(
-        event(
-          "payout.failed",
-          { amount: 12345, currency: "eur", failure_message: "Compte fermé" },
-          s.account,
-        ),
-      ),
-    ).toBe("PROCESSED");
+    const account = await saveMollieAuthorization({
+      organizationId: s.org.id,
+      mollieOrganizationId: `org_${s.id}`,
+      tokens: {
+        access_token: "access_mollie",
+        refresh_token: "refresh_mollie",
+        expires_in: 3600,
+        token_type: "bearer",
+        scope: "balances.read settlements.read",
+      },
+      testmode: false,
+    });
+    await db.mollieAccount.update({
+      where: { id: account.id },
+      data: { canReceiveSettlements: true },
+    });
+    // derniers versements du compte chez Mollie : un réussi, un échoué
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: string | URL) => {
+        const url = new URL(String(input));
+        if (url.pathname !== "/v2/settlements")
+          return new Response(
+            JSON.stringify({
+              status: 404,
+              title: "Not Found",
+              detail: url.pathname,
+            }),
+            { status: 404 },
+          );
+        return new Response(
+          JSON.stringify({
+            count: 2,
+            _embedded: {
+              settlements: [
+                {
+                  id: `stl_ok_${s.id}`,
+                  status: "paidout",
+                  amount: { currency: "EUR", value: "1.00" },
+                  createdAt: "2026-11-10T10:00:00Z",
+                },
+                {
+                  id: `stl_ko_${s.id}`,
+                  status: "failed",
+                  amount: { currency: "EUR", value: "123.45" },
+                  createdAt: "2026-11-18T10:00:00Z",
+                },
+              ],
+            },
+            _links: { next: null },
+          }),
+        );
+      }),
+    );
+    expect(await notifyFailedSettlements()).toBe(1);
     expect(await unreadCount(s.org.id, s.users.OWNER!)).toBe(1);
     expect(await unreadCount(s.org.id, s.users.ADMIN!)).toBe(1);
     expect(await unreadCount(s.org.id, s.users.SCANNER!)).toBe(0);
     const n = await db.notification.findFirstOrThrow({
       where: { organizationId: s.org.id, type: "PAYOUT_FAILED" },
     });
-    expect(n.body).toContain("123,45 EUR");
+    expect(n.body).toContain("123,45");
     expect(
       await db.emailMessage.count({
         where: {
@@ -98,11 +133,6 @@ describe("virements, paiements annulés, préférences de notification et journa
         },
       }),
     ).toBe(2);
-    expect(
-      await handleConnectEvent(
-        event("payout.paid", { amount: 100, currency: "eur" }, s.account),
-      ),
-    ).toBe("PROCESSED");
   });
 
   it("préférences : un type coupé dans l'app n'est plus créé, un e-mail coupé n'est plus envoyé", async () => {
@@ -148,50 +178,5 @@ describe("virements, paiements annulés, préférences de notification et journa
         (p) => p.type === "PAYOUT_FAILED",
       ),
     ).toBe(false);
-  });
-
-  it("paiement annulé : la réservation est libérée aussitôt", async () => {
-    const s = await setup();
-    const ev = await db.event.create({
-      data: {
-        organizationId: s.org.id,
-        slug: `gala-${s.id}`,
-        publicCode: s.id.toUpperCase().slice(0, 8),
-        title: "Gala",
-        currency: "EUR",
-        timezone: "Europe/Brussels",
-        startsAt: new Date(Date.now() + 30 * 86_400_000),
-        status: "PUBLISHED",
-        visibility: "PUBLIC",
-        ticketTypes: {
-          create: [
-            {
-              name: "Entrée",
-              priceMinor: 0,
-              currency: "EUR",
-              quantity: 10,
-              sortOrder: 0,
-            },
-          ],
-        },
-      },
-      include: { ticketTypes: true },
-    });
-    const r = await reserveOrder({
-      eventId: ev.id,
-      lines: [{ ticketTypeId: ev.ticketTypes[0]!.id, quantity: 1 }],
-      locale: "fr",
-    });
-    expect(
-      await handleConnectEvent(
-        event(
-          "payment_intent.canceled",
-          { metadata: { orderId: r.orderId } },
-          s.account,
-        ),
-      ),
-    ).toBe("PROCESSED");
-    const o = await db.order.findUniqueOrThrow({ where: { id: r.orderId } });
-    expect(o.holdExpiresAt!.getTime()).toBeLessThanOrEqual(Date.now());
   });
 });

@@ -18,7 +18,7 @@ import { ReferralCard } from "./ReferralCard";
 import { VenueCard } from "./VenueCard";
 import { referringVenueName, venueSummary } from "@/server/venues";
 import { getPlans } from "@/server/plans";
-import { ManageSubscription, PlanPicker } from "./PlanPicker";
+import { PlanPicker } from "./PlanPicker";
 import { SwitchInterval } from "./SwitchInterval";
 import { CheckIcon } from "@/components/ui/icons";
 
@@ -39,21 +39,20 @@ const COMPARED: PlanFeature[] = [
   "EVENT_SUBDOMAINS",
 ];
 
-/** Section 9.21 : offre actuelle, statut, essai, portail client, rappel des effets d'un retour en Free. */
+/** Section 9.21 : offre actuelle, statut, essai, abonnement payé par Mollie, rappel des effets d'un retour en Free. */
 export default async function BillingPage({
   params,
   searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
   searchParams: Promise<{
-    checkout?: string;
     tab?: string;
     mollie?: string;
     essai?: string;
   }>;
 }) {
   const { orgSlug } = await params;
-  const { checkout, tab, mollie: returned, essai } = await searchParams;
+  const { tab, mollie: returned, essai } = await searchParams;
   const view =
     tab === "referral" ? "referral" : tab === "venue" ? "venue" : "offer";
   const ctx = await requireOrgContext(orgSlug);
@@ -80,10 +79,8 @@ export default async function BillingPage({
       : sub.cancelAtPeriodEnd || sub.status === "CANCELED"
         ? "ENDING"
         : sub.status;
-  const mollie = state.provider === "MOLLIE";
   // Pro sans abonnement payé : essai sans carte, ou Pro offert par Evoly (daté ou sans fin)
-  const unpaidPro =
-    isPro && !!sub && !sub.stripeSubscriptionId && !state.mollieBilled;
+  const unpaidPro = isPro && !!sub && !state.mollieBilled;
   const upcoming = sub?.nextInterval ?? sub?.interval ?? "MONTH";
   const statusLine =
     status === "TRIALING" && unpaidPro && sub?.trialEndsAt
@@ -217,22 +214,11 @@ export default async function BillingPage({
       sub?.status === "ACTIVE" &&
       !sub.currentPeriodEnd ? null : (
       <div className="grid gap-4">
-        {state.legacyStripe && sub ? (
-          <p className="rounded-[10px] bg-surface-sunken px-3.5 py-3 text-sm">
-            {t("legacyStripe", {
-              date: fmt(sub.currentPeriodEnd ?? sub.trialEndsAt ?? now),
-            })}
-          </p>
-        ) : null}
-        {state.legacyStripe && state.stripeReady ? (
-          <ManageSubscription orgSlug={orgSlug} />
-        ) : null}
         <PlanPicker
           orgSlug={orgSlug}
           prices={state.prices}
           currency={state.currency}
           trial={state.trialEligible && !isPro}
-          provider="MOLLIE"
           startsOn={startsAt ? fmt(startsAt) : null}
           cta={isPro ? t("subscribe") : t("upgrade")}
         />
@@ -240,22 +226,6 @@ export default async function BillingPage({
     );
   return (
     <div className="grid gap-6">
-      {checkout === "success" ? (
-        <p
-          className="rounded-[10px] bg-success-soft px-3.5 py-3 text-success"
-          role="status"
-        >
-          {t("checkoutSuccess")}
-        </p>
-      ) : null}
-      {checkout === "cancel" ? (
-        <p
-          className="rounded-[10px] bg-surface-sunken px-3.5 py-3"
-          role="status"
-        >
-          {t("checkoutCancel")}
-        </p>
-      ) : null}
       {essai === "ok" ? (
         <p
           className="rounded-[10px] bg-success-soft px-3.5 py-3 text-success"
@@ -331,40 +301,8 @@ export default async function BillingPage({
                 ? `${t("partnerBody")}${sub?.currentPeriodEnd ? ` ${t("partnerUntil", { date: formatDate(sub.currentPeriodEnd, tz, locale) })}` : ""}`
                 : statusLine}
             </p>
-            {isPartner ? null : manage && mollie ? (
+            {isPartner ? null : manage ? (
               mollieOffer
-            ) : manage ? (
-              isPro && sub?.stripeCustomerId ? (
-                <div className="grid gap-4">
-                  <ManageSubscription orgSlug={orgSlug} />
-                  {sub.status === "TRIALING" || sub.status === "ACTIVE" ? (
-                    <SwitchInterval
-                      orgSlug={orgSlug}
-                      target={sub.interval === "YEAR" ? "MONTH" : "YEAR"}
-                      label={
-                        sub.interval === "YEAR"
-                          ? t("switchToMonth", {
-                              price: money(state.prices.MONTH),
-                            })
-                          : t("switchToYear", {
-                              price: money(state.prices.YEAR),
-                            })
-                      }
-                      done={t("switchDone")}
-                      error={t("switchError")}
-                    />
-                  ) : null}
-                  {downgradeInfo}
-                </div>
-              ) : (
-                <PlanPicker
-                  orgSlug={orgSlug}
-                  prices={state.prices}
-                  currency={state.currency}
-                  trial={state.trialEligible}
-                  provider={state.provider}
-                />
-              )
             ) : (
               <p className="text-sm text-ink-muted">{t("ownerOnly")}</p>
             )}

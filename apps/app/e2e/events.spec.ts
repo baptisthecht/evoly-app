@@ -34,7 +34,7 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
   await expect(page.getByRole("heading", { name: title }).last()).toBeVisible();
   await expect(page.getByText("Fosse")).toBeVisible();
 
-  // publication : le billet gratuit ne demande pas Stripe
+  // publication : le billet gratuit ne demande pas de compte Mollie
   await page.goto(eventPath);
   await page.getByRole("button", { name: "Publier" }).click();
   // le statut à côté du titre (sur téléphone, la pastille « En vente » est masquée, comme la maquette)
@@ -65,7 +65,7 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
   await page.goto(appUrl(`/e/${code}`));
   await expect(page).toHaveURL(siteUrl(slug, `/${eventSlug}`));
 
-  // RG-EVT-02 : pas de tarif payant sur un événement en vente sans Stripe
+  // RG-EVT-02 : pas de tarif payant sur un événement en vente sans compte Mollie prêt
   await page.goto(`${eventPath}/tickets`);
   // refonte A3 (maquette « Tarifs ») : « Nouveau tarif » ouvre la fenêtre ; le net perçu est sous le prix, comme à la
   // création de l'événement, une seule fois (plus dans « Plus d'options »)
@@ -81,12 +81,12 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
   await dialog.getByRole("button", { name: "Créer le tarif" }).click();
   await expect(
     page.getByText(
-      "Connectez un compte Stripe actif pour vendre des billets payants.",
+      "Reliez un compte Mollie prêt pour vendre des billets payants.",
     ),
   ).toBeVisible();
 });
 
-test("tarif payant sur un brouillon : publication bloquée tant que Stripe n'est pas actif", async ({
+test("tarif payant sur un brouillon : publication bloquée tant que Mollie n'est pas prêt", async ({
   page,
 }) => {
   const { id, slug } = await organizer(page);
@@ -102,9 +102,7 @@ test("tarif payant sur un brouillon : publication bloquée tant que Stripe n'est
   await page.getByLabel(/^Prix/).fill("24,50");
   await page.getByRole("button", { name: "Créer le brouillon" }).click();
   await page.waitForURL(new RegExp(`/o/${slug}/events/c[a-z0-9]{20,}$`));
-  await expect(
-    page.getByRole("link", { name: "Connecter Stripe" }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Relier Mollie" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Publier" })).toHaveCount(0);
 });
 
@@ -161,13 +159,13 @@ test("prix dynamiques : réservés au Pro, puis prix de prévente sur la page pu
     page.getByText("Prévente, tarif normal, dernière minute"),
   ).toBeVisible();
 
-  // passage en Pro (abonnement actif) et compte Stripe actif, simulés en base
+  // passage en Pro (abonnement actif) et compte Mollie prêt, simulés en base
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
   sql(
     `update "Subscription" set "planId" = 'pro', status = 'ACTIVE' where "organizationId" = '${orgId}'`,
   );
   sql(
-    `insert into "StripeAccount" (id, "organizationId", "stripeAccountId", country, "defaultCurrency", status, "chargesEnabled", "payoutsEnabled", "detailsSubmitted", "updatedAt") values ('sa_${id}', '${orgId}', 'acct_test_${id}', 'BE', 'EUR', 'ACTIVE', true, true, true, now())`,
+    `insert into "MollieAccount" (id, "organizationId", "mollieOrganizationId", testmode, "profileId", "profileStatus", methods, "onboardingStatus", "canReceivePayments", "canReceiveSettlements", "refreshToken", scopes, "updatedAt") values ('ma_${id}', '${orgId}', 'org_e2e_${id}', true, 'pfl_e2e_${id}', 'verified', '{creditcard,bancontact}', 'COMPLETED', true, true, 'e2e', '{}', now())`,
   );
 
   await page.reload();

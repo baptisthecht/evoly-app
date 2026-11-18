@@ -72,12 +72,6 @@ export function refundAmount(
 }
 
 /**
- * Commission rendue à l'organisateur lors d'un remboursement : jamais (RG-FEE-40, décision validée),
- * y compris lors d'une annulation d'événement. Le remboursement Stripe se fait sans restituer les frais d'application.
- */
-export const REFUND_APPLICATION_FEE = false;
-
-/**
  * Remboursement à coût neutre (lot du 16 novembre 2026) : réglage par événement, valeur par défaut au niveau de
  * l'organisation, figé sur la commande à la réservation (la règle affichée avant l'achat est celle qui s'applique).
  * FULL : l'acheteur récupère le prix payé en entier, les frais restent à la charge de l'organisateur.
@@ -108,7 +102,7 @@ export function refundFeesWithheld(i: {
   grossMinor: Minor;
   orderTotalMinor: Minor;
   applicationFeeMinor: Minor;
-  /** Frais de paiement réels, ou estimés tant que Stripe ne les a pas transmis. */
+  /** Frais de paiement réels, ou estimés tant qu'ils ne sont pas connus. */
   paymentFeeMinor: Minor;
   /** Frais déjà retenus par les remboursements précédents de la commande. */
   alreadyWithheldMinor?: Minor;

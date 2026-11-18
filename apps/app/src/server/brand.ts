@@ -14,7 +14,6 @@ import { env } from "@/lib/env";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { deletePublicFile, putPublicFile } from "./storage";
-import { ensurePaymentDomains } from "./stripeConnect";
 import { BRAND_FONTS, BRAND_RADII, isBrandFont } from "@evoly/ui";
 import { Prisma } from "@evoly/db";
 
@@ -481,7 +480,6 @@ export async function changeOrganizationSubdomain(
     targetId: ctx.organization.id,
     metadata: { from: org.subdomain, to: available.value },
   });
-  await ensurePaymentDomains(ctx.organization.id).catch(() => undefined);
 }
 
 /** US-BRD-05 (Pro) : sous-domaine dédié à un événement, unique sur toute la plateforme. */
@@ -510,6 +508,5 @@ export async function setEventSubdomain(
     where: { id: event.id },
     data: { subdomain: available.value },
   });
-  await ensurePaymentDomains(ctx.organization.id).catch(() => undefined);
   return available.value;
 }

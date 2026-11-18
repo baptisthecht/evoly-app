@@ -34,7 +34,7 @@ Polices : Archivo Black, Archivo 300/700, Poppins 400/500/600, Yellowtail.
 - Simulateur : bloc « calculateur » dans `app.js`.
   - Commission : 0,15 € + 1,5 % par billet, plafonnée à 1 € en Free et 0,70 € en Pro.
   - Abonnement Pro : 29 € par mois.
-  - Frais bancaires : carte européenne, 1,5 % + 0,25 €.
+  - Frais bancaires : ceux de Mollie, non comptés par le simulateur (commission seule) ; grille de référence de l'app, `MOLLIE_REFERENCE_EUR` dans `packages/core/src/bankFees.ts` (carte européenne : 1,8 % + 0,25 €).
   - Tarifs des 9 concurrents : liste `RIVALS`, relevés en septembre 2026.
 
 Au build, la typographie française est ajoutée automatiquement : espaces insécables avant ?, !, :, % et €, et pas de coupure dans « e-mail », « J-7 » ou les formules de prix.
@@ -49,4 +49,4 @@ Au build, la typographie française est ajoutée automatiquement : espaces insé
 
 - Les réponses de la FAQ : versements, fin de l'essai Pro, résiliation, domaine personnalisé, annulation d'un événement, comparaison avec HelloAsso.
 - Qui paie les frais sur une revente : le vendeur ou l'acheteur.
-- Les moyens de paiement réellement activés dans Stripe.
+- Les moyens de paiement réellement activés dans Mollie : Evoly demande les cartes, Bancontact et Apple Pay sur le profil Mollie de chaque organisateur, alors que la page cite aussi Google Pay, PayPal, Klarna, TWINT, etc.

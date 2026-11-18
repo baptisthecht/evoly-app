@@ -1,4 +1,4 @@
-import { estimateBankFee, type FeeProvider } from "./bankFees";
+import { estimateBankFee } from "./bankFees";
 import { applyBps, assertNonNegative, type Bps, type Minor } from "./money";
 
 /** Conditions de commission d'une offre dans une devise (PlanCurrencyTerms + Plan.feeRateBps). */
@@ -8,13 +8,11 @@ export interface FeeTerms {
   fixedMinor: Minor;
   rateBps: Bps;
   capMinor: Minor;
-  /** Prestataire de l'organisateur, pour estimer ses frais bancaires (docs/MOLLIE.md) ; Stripe à défaut. */
-  bankFeeProvider?: FeeProvider;
 }
 
 /**
  * Conditions de référence en euros (grille d'octobre 2026) : 0,29 € + 2 % par billet payant, plafonnée à 2,50 € en Free
- * et à 1 € en Pro. Frais de paiement Stripe en sus, à la charge de l'organisateur : l'acheteur paie le prix affiché.
+ * et à 1 € en Pro. Frais de paiement de Mollie en sus, à la charge de l'organisateur : l'acheteur paie le prix affiché.
  */
 export const EUR_TERMS: Readonly<Record<"free" | "pro" | "partner", FeeTerms>> =
   {
@@ -104,7 +102,7 @@ export function netForGross(grossMinor: Minor, terms: FeeTerms): Minor {
   return (
     grossMinor -
     ticketCommission(grossMinor, terms) -
-    estimateBankFee(grossMinor, "card_eea_standard", terms.bankFeeProvider)
+    estimateBankFee(grossMinor, "card_eea_standard")
   );
 }
 

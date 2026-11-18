@@ -1007,10 +1007,6 @@ const SUB_COPY = {
       subject: "Bienvenue dans Evoly Pro",
       body: "Votre organisation est passée en Pro : commission plafonnée à 1 € par billet, prix dynamiques, marque personnalisée et équipe. Vous pouvez gérer votre abonnement à tout moment.",
     },
-    TRIAL_ENDING: {
-      subject: "Votre essai Pro se termine dans 3 jours",
-      body: "Sans action de votre part, votre abonnement démarrera automatiquement à la fin de l’essai. Vous pouvez changer de formule ou résilier depuis la page Abonnement.",
-    },
     PAYMENT_FAILED: {
       subject: "Le paiement de votre abonnement Pro a échoué",
       body: "Une nouvelle tentative aura lieu automatiquement. Pour éviter le retour en Free, 7 jours après le premier échec, réglez ou changez de moyen de paiement depuis la page Abonnement.",
@@ -1052,10 +1048,6 @@ const SUB_COPY = {
       subject: "Welcome to Evoly Pro",
       body: "Your organisation is now on Pro: fee capped at €1 per ticket, dynamic pricing, custom branding and team. You can manage your subscription at any time.",
     },
-    TRIAL_ENDING: {
-      subject: "Your Pro trial ends in 3 days",
-      body: "If you do nothing, your subscription starts automatically when the trial ends. You can switch plans or cancel from the Billing page.",
-    },
     PAYMENT_FAILED: {
       subject: "Your Pro subscription payment failed",
       body: "We’ll try again automatically. To avoid returning to Free, 7 days after the first failure, pay or change your payment method from the Billing page.",
@@ -1095,10 +1087,6 @@ const SUB_COPY = {
     STARTED: {
       subject: "Te damos la bienvenida a Evoly Pro",
       body: "Tu organización ya está en Pro: comisión con un máximo de 1 € por entrada, precios dinámicos, marca propia y equipo. Puedes gestionar tu suscripción en cualquier momento.",
-    },
-    TRIAL_ENDING: {
-      subject: "Tu prueba Pro termina dentro de 3 días",
-      body: "Si no haces nada, la suscripción empieza automáticamente al final de la prueba. Puedes cambiar de plan o cancelar desde la página Suscripción.",
     },
     PAYMENT_FAILED: {
       subject: "El pago de tu suscripción Pro ha fallado",
@@ -1140,10 +1128,6 @@ const SUB_COPY = {
       subject: "Willkommen bei Evoly Pro",
       body: "Ihre Organisation ist jetzt im Pro-Tarif: Gebühr höchstens 1 € pro Ticket, dynamische Preise, eigene Marke und Team. Sie können Ihr Abo jederzeit verwalten.",
     },
-    TRIAL_ENDING: {
-      subject: "Ihr Pro-Test endet in 3 Tagen",
-      body: "Wenn Sie nichts tun, startet Ihr Abo am Ende des Tests automatisch. Sie können den Tarif auf der Seite Abo wechseln oder kündigen.",
-    },
     PAYMENT_FAILED: {
       subject: "Die Zahlung Ihres Pro-Abos ist fehlgeschlagen",
       body: "Wir versuchen es automatisch erneut. Um nicht 7 Tage nach dem ersten Fehlschlag zu Free zurückzukehren, bezahlen Sie oder ändern Sie Ihr Zahlungsmittel auf der Seite Abo.",
@@ -1183,10 +1167,6 @@ const SUB_COPY = {
     STARTED: {
       subject: "Benvenuto in Evoly Pro",
       body: "La tua organizzazione è ora in Pro: commissione con un tetto di 1 € a biglietto, prezzi dinamici, brand personalizzato e team. Puoi gestire l’abbonamento in qualsiasi momento.",
-    },
-    TRIAL_ENDING: {
-      subject: "La tua prova Pro termina tra 3 giorni",
-      body: "Se non fai nulla, l’abbonamento parte automaticamente alla fine della prova. Puoi cambiare piano o disdire dalla pagina Abbonamento.",
     },
     PAYMENT_FAILED: {
       subject: "Il pagamento del tuo abbonamento Pro non è riuscito",
@@ -1229,10 +1209,6 @@ const SUB_COPY = {
       subject: "Bem-vindo ao Evoly Pro",
       body: "A sua organização está agora no Pro: comissão com um máximo de 1 € por bilhete, preços dinâmicos, marca própria e equipa. Pode gerir a sua subscrição a qualquer momento.",
     },
-    TRIAL_ENDING: {
-      subject: "O seu teste Pro termina daqui a 3 dias",
-      body: "Se não fizer nada, a subscrição começa automaticamente no fim do teste. Pode mudar de plano ou cancelar na página Subscrição.",
-    },
     PAYMENT_FAILED: {
       subject: "O pagamento da sua subscrição Pro falhou",
       body: "Vamos tentar de novo automaticamente. Para evitar o regresso ao Free, 7 dias depois da primeira falha, pague ou mude de meio de pagamento na página Subscrição.",
@@ -1272,10 +1248,6 @@ const SUB_COPY = {
     STARTED: {
       subject: "Welkom bij Evoly Pro",
       body: "Je organisatie zit nu in Pro: commissie met een plafond van € 1 per ticket, dynamische prijzen, eigen merk en team. Je kunt je abonnement op elk moment beheren.",
-    },
-    TRIAL_ENDING: {
-      subject: "Je Pro-proefperiode eindigt over 3 dagen",
-      body: "Als je niets doet, start het abonnement automatisch aan het einde van de proefperiode. Je kunt van abonnement wisselen of opzeggen via de pagina Abonnement.",
     },
     PAYMENT_FAILED: {
       subject: "De betaling van je Pro-abonnement is mislukt",
@@ -1318,7 +1290,6 @@ const SUB_COPY = {
 /** E-mails de l'abonnement Pro (RG-SUB-03, RG-SUB-06, RG-SUB-08). */
 export type SubscriptionEmailKind =
   | "STARTED"
-  | "TRIAL_ENDING"
   | "PRO_ENDING"
   | "PAYMENT_FAILED"
   | "ENDED"

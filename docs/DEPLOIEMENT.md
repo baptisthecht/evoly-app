@@ -44,55 +44,37 @@ Tous les enregistrements pointent vers l'adresse IPv4 du serveur (enregistrement
 
 Aucun certificat wildcard n'est nécessaire : Caddy obtient chaque certificat à la première visite, uniquement pour un domaine que l'app reconnaît (`/api/domains/allowed`).
 
-## 3. Stripe
+## 3. Mollie (Connect pour plateformes)
 
-Stripe a refusé Evoly le 18 novembre 2026 : les paiements passent à Mollie (section « Mollie » plus bas, `docs/MOLLIE.md`).
-Cette section sert jusqu'au retrait de Stripe.
+Fonctionnement et règles : `docs/MOLLIE.md`. Chaque organisateur relie son propre compte Mollie à Evoly (OAuth) ; Evoly
+y crée les paiements avec sa commission en frais d'application. Le compte Mollie d'Evoly encaisse l'offre Pro.
 
-**Compte de la plateforme (Connect)**
-
-- Activer Connect, comptes « Standard » avec tableau de bord complet, pays de lancement.
-- Clés : `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
-
-**Webhook des comptes connectés** → `https://app.evoly.me/api/webhooks/stripe/connect` (`STRIPE_WEBHOOK_SECRET_CONNECT`), événements :
-`account.updated`, `account.application.deauthorized`, `charge.updated` (frais Stripe réels, dès que Stripe a créé la transaction du paiement), `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refund.updated`, `refund.updated`, `refund.failed`, `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`.
-
-**Webhook de la plateforme** → `https://app.evoly.me/api/webhooks/stripe/platform` (`STRIPE_WEBHOOK_SECRET_PLATFORM`), événements :
-`checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.trial_will_end`, `invoice.paid`, `invoice.payment_failed`.
-
-**Passage du mode test au mode réel.** Remplacer les quatre valeurs Stripe du `.env` (clés `pk_live_` et `sk_live_`,
-secrets des deux destinations réelles), recréer en mode réel le produit « Evoly Pro » et ses deux prix, redéployer, puis
-lancer une fois `ops/stripe-live-reset.sql` : les comptes connectés, clients et abonnements créés en mode test n'existent
-pas en mode réel ; leurs liens sont retirés et les organisateurs reconnectent leur compte Stripe.
-
-**Abonnement Pro**
-
-- Créer le produit « Evoly Pro » avec deux prix TTC (29 € par mois, 295,80 € par an), et renseigner `STRIPE_PRICE_PRO_MONTH` et `STRIPE_PRICE_PRO_YEAR`.
-- Portail client : changement de périodicité avec prorata, résiliation en fin de période, factures, mise à jour du moyen de paiement.
-- TVA de l'abonnement : décider avec l'expert-comptable, puis `STRIPE_TAX_ENABLED`.
-
-Les domaines Apple Pay et Google Pay sont déclarés automatiquement sur le compte de chaque organisateur (sous-domaine, sous-domaines d'événement, domaines personnalisés actifs).
-
-**Comptes des organisateurs (Accounts v2).** Evoly crée les comptes connectés avec l'API Accounts v2, recommandée par Stripe pour les nouvelles plateformes : tableau de bord Stripe complet, frais facturés et pertes assumées par Stripe, cartes et Bancontact. L'ancien réglage « prise en charge d'Accounts v1 » n'est pas nécessaire. Le statut des comptes arrive par l'événement v1 `account.updated`, que Stripe envoie aussi pour les comptes v2, sur la destination « comptes connectés ». Choisir la même version d'API que la bibliothèque Stripe du projet pour les deux destinations (`2026-08-26.dahlia` actuellement).
-
-## Mollie (Connect pour plateformes)
-
-Passage depuis Stripe : `docs/MOLLIE.md`. Chaque organisateur relie son propre compte Mollie à Evoly (OAuth) ; Evoly
-y crée les paiements avec sa commission en frais d'application.
-
+- **Connect pour plateformes** : à faire activer sur le compte Mollie d'Evoly par le support de Mollie.
 - **Application Connect** : Mollie › Développeurs › Vos applications › créer « Evoly », adresse de retour
-  `https://app.evoly.me/api/mollie/oauth`. Renseigner `MOLLIE_CLIENT_ID` (`app_…`) et `MOLLIE_CLIENT_SECRET`.
+  `https://app.evoly.me/api/mollie/oauth`. Renseigner `MOLLIE_CLIENT_ID` (`app_…`) et `MOLLIE_CLIENT_SECRET`. Sans
+  elles, Paramètres, Encaissement indique que Mollie n'est pas configuré.
 - **Compte d'Evoly** (offre Pro) : `MOLLIE_API_KEY`, `live_…` en production, `test_…` en recette. Cartes, Bancontact et
   prélèvement SEPA activés sur le profil d'Evoly (les renouvellements après Bancontact passent par le prélèvement SEPA).
   Webhook des paiements Pro : `https://app.evoly.me/api/webhooks/mollie/pro`, donné à chaque paiement, rien à
   configurer. Les renouvellements, relances et préavis partent de la tâche horaire `maintenance`.
+- **Factures et relevés** : `EVOLY_LEGAL_ADDRESS` et `EVOLY_VAT_NUMBER` (adresse complète et numéro de TVA d'Evoly),
+  repris sur les factures de l'offre Pro et les relevés de commissions.
 - **Mode test** : `MOLLIE_TESTMODE=true` en recette seulement (organisateurs reliés en mode test), jamais en production.
+  Pour jouer l'organisateur, un deuxième compte Mollie : Mollie refuse les frais d'application sur l'organisation
+  propriétaire de l'application.
 - **Webhook** : `https://app.evoly.me/api/webhooks/mollie`, donné par Evoly à chaque paiement, rien à configurer chez
-  Mollie. Mollie n'envoie que l'identifiant du paiement, relu chez Mollie avant tout changement.
+  Mollie. Mollie n'envoie que l'identifiant du paiement, relu chez Mollie avant tout changement ; Mollie relance tant
+  qu'Evoly ne répond pas 200 (10 fois en 26 heures).
+- **Moyens de paiement des organisateurs** : à la liaison, Evoly crée le profil de site de l'organisateur et y demande
+  les cartes, Bancontact et Apple Pay. Aucun domaine à déclarer pour Apple Pay : le paiement se fait sur la page de
+  Mollie.
 - **État des comptes** : Mollie n'envoie pas d'événement pour l'inscription d'un organisateur ; la tâche horaire
-  `maintenance` relit les comptes pas encore prêts, et les autres une fois par jour.
+  `maintenance` relit les comptes pas encore prêts, et les autres une fois par jour. Elle signale aussi un versement
+  échoué vers la banque d'un organisateur.
 - **Jetons OAuth** chiffrés en base avec une clé dérivée de `BETTER_AUTH_SECRET` : changer ce secret oblige chaque
   organisateur à relier de nouveau son compte Mollie (comme pour la double authentification).
+- **Reversements aux lieux partenaires** : en pause (décision du 18 novembre 2026). La tâche mensuelle `venues` ne
+  verse rien : la part de chaque lieu reste due.
 
 ## 4. E-mails (Resend)
 
@@ -146,7 +128,7 @@ ops/first-start.sh
 crontab ops/crontab
 ```
 
-Le premier démarrage construit l'image, crée la **migration initiale** de la base (à versionner ensuite : `git add packages/db/prisma/migrations && git commit && git push`), applique les contraintes SQL et les données de départ (offres, rôles), puis démarre l'app. La crontab programme les 7 tâches planifiées et la sauvegarde quotidienne (heures en UTC).
+Le premier démarrage construit l'image, crée la **migration initiale** de la base (à versionner ensuite : `git add packages/db/prisma/migrations && git commit && git push`), applique les contraintes SQL et les données de départ (offres, rôles), puis démarre l'app. La crontab programme les 13 tâches planifiées et la sauvegarde quotidienne (heures en UTC).
 
 **Premier administrateur du back-office** :
 
@@ -163,6 +145,19 @@ ops/deploy.sh
 ```
 
 Récupère le code, reconstruit l'image, applique les migrations, redémarre l'app (coupure de quelques secondes) et vérifie qu'elle répond. À éviter pendant un événement (scanner, ouverture des ventes).
+
+### Après le déploiement du lot 7
+
+Le lot 7 du passage à Mollie (`docs/MOLLIE.md`) retire l'ancien prestataire de paiement, Stripe, du code et de la base
+(migration `20261119100000_mollie_retrait_stripe`, appliquée par `ops/deploy.sh`). Ensuite, une seule fois :
+
+1. Retirer du `.env` du serveur les variables `STRIPE_*` et `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, qui ne servent plus.
+2. Réinstaller la crontab, en tant qu'evoly : `crontab ops/crontab` (la tâche `webhooks` n'existe plus).
+3. Healthchecks.io : supprimer la sonde « webhooks » (relance des webhooks), qui ne recevra plus rien.
+4. Si le compte Stripe existe encore : supprimer ses deux destinations de webhooks
+   (`/api/webhooks/stripe/connect` et `/api/webhooks/stripe/platform`), dont les adresses n'existent plus.
+5. GitHub, Settings › Secrets and variables › Actions : supprimer les secrets `E2E_STRIPE_PUBLISHABLE_KEY`,
+   `E2E_STRIPE_ACCOUNT` et `E2E_STRIPE_SECRET_KEY`.
 
 ## 10. Sauvegardes et restauration
 
@@ -187,10 +182,10 @@ Récupère le code, reconstruit l'image, applique les migrations, redémarre l'a
 ## 13. Vérifications après déploiement
 
 - `GET https://app.evoly.me/api/health` répond `{"status":"ok"}`.
-- Inscription, confirmation de l'e-mail, création d'une organisation, connexion de Stripe (mode test d'abord).
-- Événement payant publié, achat par carte de test, e-mail avec PDF et fichier d'agenda, scan du billet sur `scanner.evoly.me`.
+- Inscription, confirmation de l'e-mail, création d'une organisation, liaison d'un compte Mollie (mode test d'abord, avec un deuxième compte Mollie) jusqu'à l'état « Prêt ».
+- Événement payant publié, achat par carte de test sur la page de paiement de Mollie, retour sur la page des billets, e-mail avec PDF et fichier d'agenda, scan du billet sur `scanner.evoly.me`.
 - Remboursement depuis le détail de la commande, puis webhook reçu (statut « Remboursé »).
-- Essai Pro par Stripe Checkout, puis webhook reçu (offre Pro active).
+- Essai Pro sans carte, puis abonnement pendant l'essai : vérification de 0,02 € sur la page de Mollie, remboursée, et e-mail annonçant le premier prélèvement. Depuis Free : abonnement payé sur la page de Mollie, retour sur la page Abonnement, webhook reçu (offre Pro active), facture envoyée.
 - Domaine personnalisé de test : CNAME, vérification, certificat émis, page servie.
 - Campagne de test à soi-même, puis statistiques de délivrabilité remontées par Resend.
 - Tâches planifiées : chaque adresse répond 200 avec le secret, 401 sans.

@@ -255,11 +255,11 @@ PRO_LIST = plan_items(['Tout le contenu de l’offre Free', 'Commission plafonn�
 
 # ------------------------------------------------------------------ FAQ (brouillon à valider)
 FAQ = [
-    ('Comment fonctionne la commission ?', 'Evoly prélève 0,29 € + 2 % par billet payant, plafonnée à 2,50 € par billet en Free et à 1 € en Pro. Les frais de paiement de Stripe s’ajoutent, au coût réel et sans marge. Tout est déduit automatiquement de vos ventes : vos participants ne paient aucun frais en plus. Les billets gratuits restent à 0 %.'),
+    ('Comment fonctionne la commission ?', 'Evoly prélève 0,29 € + 2 % par billet payant, plafonnée à 2,50 € par billet en Free et à 1 € en Pro. Les frais de paiement de Mollie, qui dépendent du moyen de paiement, s’ajoutent au coût réel et sans marge. Tout est déduit automatiquement de vos ventes : vos participants ne paient aucun frais en plus. Les billets gratuits restent à 0 %.'),
     ('Comment fonctionne la revente de billets ?', 'Un participant qui ne peut plus venir génère un lien de revente et le partage où il le souhaite. Sa place apparaît aussi dans la section « Revente » de votre page de vente. Dès que le premier acheteur a payé, l’ancien billet est désactivé et le nouveau lui est envoyé par e-mail. La revente est incluse dans toutes les offres.'),
-    ('Quand est-ce que je reçois mon argent ?', 'Les paiements passent par Stripe. Les recettes de vos ventes sont versées sur votre compte bancaire via votre compte Stripe, selon son calendrier de versement.'),
+    ('Quand est-ce que je reçois mon argent ?', 'Les paiements passent par Mollie. Les recettes de vos ventes arrivent sur votre propre compte Mollie, que vous créez ou reliez depuis Evoly, puis Mollie les verse sur votre compte bancaire, selon son calendrier de versement.'),
     ('Comment fonctionne le check-in QR ?', 'Chaque billet porte un QR code. Le jour J, vous scannez les entrées avec le scanner intégré, installable sur mobile, qui vibre à chaque scan. Vos bénévoles reçoivent un lien temporaire et scannent sans créer de compte. La saisie manuelle des codes et les statistiques sont incluses.'),
-    ('Que se passe-t-il si j’annule un événement ?', 'Vous annulez depuis votre espace et vos participants sont prévenus par e-mail. Les billets payés sont remboursés via Stripe.'),
+    ('Que se passe-t-il si j’annule un événement ?', 'Vous annulez depuis votre espace et vos participants sont prévenus par e-mail. Les billets payés sont remboursés depuis votre solde Mollie.'),
     ('Quelle différence avec HelloAsso ?', 'HelloAsso est réservé aux associations et se finance grâce à une contribution volontaire proposée à vos participants au moment du paiement. Evoly s’adresse à tous les organisateurs, partout, avec une commission simple, plafonnée et incluse dans le prix.'),
 ]
 FAQ_HTML = ''.join(f'<details class="qa"><summary><span>{q}</span><span class="qa__plus" aria-hidden="true">{icon("i-plus", 24, 24)}</span></summary><div class="qa__a"><p>{a}</p></div></details>' for q, a in FAQ)
@@ -338,7 +338,7 @@ BODY = f'''
         <p class="lede hero__lede">Créez votre événement en quelques minutes. Vos participants paient avec Apple Pay, Google Pay ou leur carte bancaire, sans frais supplémentaires.</p>
         <div class="hero__ctas"><a class="btn btn--pink" href="{REGISTER}" {EXT}>Créer mon premier événement</a><a class="link" href="#economies">Calculer ce que je perçois</a></div>
         <ul class="trust" aria-label="Garanties">
-          <li>{CHECK}Paiement sécurisé par Stripe</li><li>{CHECK}Données hébergées en UE</li><li>{CHECK}Conforme au RGPD</li><li>{CHECK}Gratuit, sans engagement</li>
+          <li>{CHECK}Paiement sécurisé par Mollie</li><li>{CHECK}Données hébergées en UE</li><li>{CHECK}Conforme au RGPD</li><li>{CHECK}Gratuit, sans engagement</li>
         </ul>
       </div>
       <div class="hero__visual">
@@ -390,7 +390,7 @@ BODY = f'''
         <div class="stub stub--pro" data-k="pro"><span class="stub__best">meilleur choix</span><p class="stub__name">Evoly Pro</p><p class="stub__rule">0,29 € + 2 % par billet, 1 € maximum, plus 29 € d’abonnement</p><p class="stub__amt"><b>207 €</b><span>de commission et d’abonnement</span></p><p class="stub__split">dont <b id="calc-comm-pro">178 €</b> de commission et 29 € d’abonnement</p><div class="stub__bar" aria-hidden="true"><i></i></div></div>
       </div>
     </div>
-    <p class="calc__note">Commission Evoly hors frais de paiement : les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Abonnement Pro compté pour un mois. Vos participants ne paient jamais de frais en plus.</p>
+    <p class="calc__note">Commission Evoly hors frais de paiement : les frais de Mollie s’appliquent au coût réel, selon le moyen de paiement, sans marge d’Evoly. Abonnement Pro compté pour un mois. Vos participants ne paient jamais de frais en plus.</p>
     <p class="vh" id="calc-live" aria-live="polite"></p>
   </section>
 
@@ -580,13 +580,13 @@ BODY = f'''
       </article>
       <article class="plan plan--pro" aria-labelledby="plan-pro">
         <span class="plan__badge">Le plus complet</span>
-        <div class="plan__main"><h3 class="plan__name" id="plan-pro">Pro</h3><p class="plan__price"><b class="pro-price">29 €</b><span>par mois</span></p><p class="plan__billed pro-billed">Facturé chaque mois</p><p class="plan__sub">Essai gratuit de 14 jours, carte bancaire requise</p></div>
+        <div class="plan__main"><h3 class="plan__name" id="plan-pro">Pro</h3><p class="plan__price"><b class="pro-price">29 €</b><span>par mois</span></p><p class="plan__billed pro-billed">Facturé chaque mois</p><p class="plan__sub">Essai gratuit de 14 jours, sans carte bancaire</p></div>
         <div class="tcard__perf" aria-hidden="true"><i></i></div>
         <ul class="plan__list">{PRO_LIST}</ul>
         <a class="btn plan__cta" href="{REGISTER_PRO}" {EXT}>Essayer Pro 14 jours</a>
       </article>
     </div>
-    <p class="pricing__note">Commission hors frais de paiement. Les frais de Stripe s’appliquent au coût réel, sans marge d’Evoly. Tout est déduit automatiquement de vos ventes : vos participants ne paient rien de plus.</p>
+    <p class="pricing__note">Commission hors frais de paiement. Les frais de Mollie s’appliquent au coût réel, selon le moyen de paiement, sans marge d’Evoly. Tout est déduit automatiquement de vos ventes : vos participants ne paient rien de plus.</p>
     <div class="waves" aria-hidden="true"></div>
   </section>
 

@@ -15,7 +15,7 @@ import {
   TodoList,
   UpcomingTable,
 } from "./HomeWidgets";
-import { StripeBanner } from "./StripeBanner";
+import { MollieBanner } from "./MollieBanner";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -83,7 +83,7 @@ export default async function OrgHome({
   // refonte A3 (maquette UIUX/propositions-a3.html, option 2) : 24 px entre les blocs, comme sur la maquette
   return (
     <div className="grid gap-6">
-      <StripeBanner ctx={ctx} />
+      <MollieBanner ctx={ctx} />
 
       <StatRow
         label={t("kpisLabel")}

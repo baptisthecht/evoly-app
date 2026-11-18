@@ -10,7 +10,7 @@ export async function audit(entry: {
   action: string;
   organizationId?: string | null;
   actorUserId?: string | null;
-  actorType?: "USER" | "SYSTEM" | "SCANNER" | "ADMIN" | "STRIPE";
+  actorType?: "USER" | "SYSTEM" | "SCANNER" | "ADMIN";
   targetType?: string;
   targetId?: string;
   metadata?: Record<string, Json>;

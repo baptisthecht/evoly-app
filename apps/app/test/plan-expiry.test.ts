@@ -5,12 +5,12 @@ import { findOrgContext } from "@/server/context";
 const rid = () => Math.random().toString(36).slice(2, 10);
 const day = 86_400_000;
 
-/** Une organisation dont le propriétaire a l'abonnement donné. */
+/** Une organisation dont le propriétaire a l'abonnement donné (payé par Mollie s'il a un mandat). */
 async function orgWith(sub: {
   status: "ACTIVE" | "TRIALING";
   currentPeriodEnd?: Date | null;
   trialEndsAt?: Date | null;
-  stripeSubscriptionId: string | null;
+  mollieMandateId?: string;
 }) {
   const id = rid();
   const user = await db.user.create({
@@ -37,7 +37,13 @@ async function orgWith(sub: {
           status: sub.status,
           currentPeriodEnd: sub.currentPeriodEnd ?? null,
           trialEndsAt: sub.trialEndsAt ?? null,
-          stripeSubscriptionId: sub.stripeSubscriptionId,
+          ...(sub.mollieMandateId
+            ? {
+                billingProvider: "MOLLIE" as const,
+                mollieCustomerId: `cst_${id}`,
+                mollieMandateId: sub.mollieMandateId,
+              }
+            : {}),
         },
       },
       members: { create: { userId: user.id, roleId: owner.id } },
@@ -51,7 +57,6 @@ describe("offre effective dans l'espace organisateur : une offre attribuée par 
     const ctx = await orgWith({
       status: "ACTIVE",
       currentPeriodEnd: new Date(Date.now() - day),
-      stripeSubscriptionId: null,
     });
     expect(ctx.plan).toBe("free");
   });
@@ -60,7 +65,6 @@ describe("offre effective dans l'espace organisateur : une offre attribuée par 
     const ctx = await orgWith({
       status: "TRIALING",
       trialEndsAt: new Date(Date.now() - day),
-      stripeSubscriptionId: null,
     });
     expect(ctx.plan).toBe("free");
   });
@@ -69,17 +73,22 @@ describe("offre effective dans l'espace organisateur : une offre attribuée par 
     const ctx = await orgWith({
       status: "ACTIVE",
       currentPeriodEnd: new Date(Date.now() + 30 * day),
-      stripeSubscriptionId: null,
     });
     expect(ctx.plan).toBe("pro");
   });
 
-  it("abonnement Stripe dont le renouvellement n'est pas encore arrivé : reste Pro, c'est Stripe qui y met fin", async () => {
-    const ctx = await orgWith({
+  it("abonnement payé par Mollie : Pro jusqu'à l'échéance, que le renouvellement (prélevé la veille) recule ; les dates font foi comme pour une offre d'Evoly", async () => {
+    const renewing = await orgWith({
+      status: "ACTIVE",
+      currentPeriodEnd: new Date(Date.now() + 12 * 3_600_000),
+      mollieMandateId: `mdt_${rid()}`,
+    });
+    expect(renewing.plan).toBe("pro");
+    const lapsed = await orgWith({
       status: "ACTIVE",
       currentPeriodEnd: new Date(Date.now() - 3_600_000),
-      stripeSubscriptionId: `sub_${rid()}`,
+      mollieMandateId: `mdt_${rid()}`,
     });
-    expect(ctx.plan).toBe("pro");
+    expect(lapsed.plan).toBe("free");
   });
 });

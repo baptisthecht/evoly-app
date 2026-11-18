@@ -13,7 +13,7 @@
 //   seul leur hachage (SHA-256) est stocké. Le jeton en clair n'existe que dans l'e-mail.
 // - Multi-organisation : toute donnée métier est rattachée à une organisation,
 //   directement ou via son événement. Chaque requête filtre sur l'organisation.
-// - Stripe est la source de vérité pour l'argent (paiements, frais, virements,
+// - Mollie est la source de vérité pour l'argent (paiements, frais, versements,
 //   remboursements). La base garde des copies pour l'affichage et les relevés.
 //
 // Contraintes à ajouter en SQL dans la migration (non exprimables en Prisma)
@@ -179,16 +179,14 @@ model Plan {
 // Conditions d'une offre dans une devise donnée.
 // EUR : Free = 15 / 100 / 0 / 0 ; Pro = 15 / 70 / 2900 / 29580.
 model PlanCurrencyTerms {
-  id                   String  @id @default(cuid())
-  planId               String
-  currency             String  @db.Char(3)
-  feeFixedMinor        Int // part fixe de la commission par billet payant : 29 = 0,29 €
-  feeCapMinor          Int // plafond de la commission par billet : 250 (Free), 100 (Pro), en euros
-  monthlyPriceMinor    Int // prix de l'abonnement mensuel
-  yearlyPriceMinor     Int // prix de l'abonnement annuel (−15 %)
-  pricesIncludeTax     Boolean @default(true) // ⚠ à valider avec le comptable
-  stripePriceIdMonthly String?
-  stripePriceIdYearly  String?
+  id                String  @id @default(cuid())
+  planId            String
+  currency          String  @db.Char(3)
+  feeFixedMinor     Int // part fixe de la commission par billet payant : 29 = 0,29 €
+  feeCapMinor       Int // plafond de la commission par billet : 250 (Free), 100 (Pro), en euros
+  monthlyPriceMinor Int // prix de l'abonnement mensuel
+  yearlyPriceMinor  Int // prix de l'abonnement annuel (−15 %)
+  pricesIncludeTax  Boolean @default(true) // ⚠ à valider avec le comptable
 
   plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
@@ -196,7 +194,7 @@ model PlanCurrencyTerms {
 }
 
 enum SubscriptionStatus {
-  NONE // offre Free, aucun abonnement Stripe
+  NONE // offre Free, aucun abonnement
   TRIALING
   ACTIVE
   PAST_DUE
@@ -211,30 +209,28 @@ enum BillingInterval {
 }
 
 model Subscription {
-  id                   String             @id @default(cuid())
-  organizationId       String             @unique
-  planId               String             @default("free")
-  status               SubscriptionStatus @default(NONE)
-  interval             BillingInterval?
-  currency             String             @default("EUR") @db.Char(3)
-  stripeCustomerId     String?            @unique
-  stripeSubscriptionId String?            @unique
-  trialEndsAt          DateTime?
-  currentPeriodStart   DateTime?
-  currentPeriodEnd     DateTime?
-  cancelAtPeriodEnd    Boolean            @default(false)
-  canceledAt           DateTime?
-  pastDueSince         DateTime? // point de départ de la relance avant rétrogradation
+  id                 String             @id @default(cuid())
+  organizationId     String             @unique
+  planId             String             @default("free")
+  status             SubscriptionStatus @default(NONE)
+  interval           BillingInterval?
+  currency           String             @default("EUR") @db.Char(3)
+  trialEndsAt        DateTime?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean            @default(false)
+  canceledAt         DateTime?
+  pastDueSince       DateTime? // point de départ de la relance avant rétrogradation
   // Abonnement payé par Mollie (docs/MOLLIE.md, lot 6) : Evoly tient les périodes et prélève chaque renouvellement sur le
-  // mandat, avec le compte Mollie d'Evoly. Vide : Free, essai sans carte, offre attribuée par Evoly, ou ancien abonnement Stripe.
-  billingProvider      PaymentProvider?
-  mollieCustomerId     String?            @unique // cst_… : client Mollie de l'organisation, sur le compte d'Evoly
-  mollieMandateId      String? // mdt_… : mandat des renouvellements (carte, ou prélèvement SEPA après un paiement Bancontact)
-  paymentMethodLabel   String? // moyen affiché : « Visa •••• 4242 », « BE68 •••• 0123 »
-  nextInterval         BillingInterval? // périodicité choisie pour le prochain renouvellement, sans prorata
-  renewalNoticeFor     DateTime? // fin de période pour laquelle le rappel de renouvellement est parti
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  // mandat, avec le compte Mollie d'Evoly. Vide : Free, essai sans carte ou offre attribuée par Evoly.
+  billingProvider    PaymentProvider?
+  mollieCustomerId   String?            @unique // cst_… : client Mollie de l'organisation, sur le compte d'Evoly
+  mollieMandateId    String? // mdt_… : mandat des renouvellements (carte, ou prélèvement SEPA après un paiement Bancontact)
+  paymentMethodLabel String? // moyen affiché : « Visa •••• 4242 », « BE68 •••• 0123 »
+  nextInterval       BillingInterval? // périodicité choisie pour le prochain renouvellement, sans prorata
+  renewalNoticeFor   DateTime? // fin de période pour laquelle le rappel de renouvellement est parti
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
   organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   plan         Plan                  @relation(fields: [planId], references: [id])
@@ -368,7 +364,6 @@ model Organization {
 
   subscription        Subscription?
   proInvoices         ProInvoice[]
-  stripeAccount       StripeAccount?
   mollieAccount       MollieAccount?
   venuePartner        VenuePartner?         @relation("VenueOwner") // programme « Lieu partenaire » (section 9.32)
   referredByVenueId   String? // organisateur inscrit par le lien d'un lieu partenaire (RG-LIEU-02)
@@ -406,39 +401,8 @@ model Organization {
   @@index([referredByVenueId]) // organisateurs parrainés par un lieu
 }
 
-enum StripeAccountStatus {
-  PENDING // onboarding commencé, pas terminé
-  ACTIVE // paiements et virements activés
-  RESTRICTED // action requise, paiements bloqués
-  RESTRICTED_SOON // documents à fournir bientôt
-  DISABLED
-}
-
-// Compte Stripe connecté de l'organisateur. Les paiements sont des charges
-// directes sur ce compte : Stripe y prélève ses frais, Evoly perçoit sa
-// commission en frais d'application.
-model StripeAccount {
-  id               String              @id @default(cuid())
-  organizationId   String              @unique
-  stripeAccountId  String              @unique // acct_…
-  country          String              @db.Char(2)
-  defaultCurrency  String              @db.Char(3)
-  status           StripeAccountStatus @default(PENDING)
-  chargesEnabled   Boolean             @default(false)
-  payoutsEnabled   Boolean             @default(false)
-  detailsSubmitted Boolean             @default(false)
-  requirementsDue  Json? // liste renvoyée par Stripe
-  disabledReason   String?
-  paymentDomains   String[] // hôtes déclarés comme domaines de paiement sur ce compte
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-}
-
-// Prestataire d'un paiement en ligne : Stripe jusqu'au 18 novembre 2026, puis Mollie (docs/MOLLIE.md)
+// Prestataire d'un paiement en ligne (docs/MOLLIE.md)
 enum PaymentProvider {
-  STRIPE
   MOLLIE
 }
 
@@ -507,7 +471,7 @@ enum Permission {
   BRAND_EDIT
   DOMAINS_MANAGE
   BILLING_MANAGE // abonnement Pro
-  PAYMENTS_MANAGE // compte Stripe
+  PAYMENTS_MANAGE // compte Mollie
   FINANCE_VIEW
   MEMBERS_MANAGE
   ROLES_MANAGE
@@ -1154,7 +1118,7 @@ model Order {
   status                OrderStatus      @default(PENDING)
   buyerEmail            String
   buyerEmailKey         String? // adresse normalisée (casse, points et suffixes « + » des messageries courantes) : limites par acheteur
-  cardFingerprint       String? // empreinte de la carte (Stripe), lue avant le paiement : limites par acheteur même avec plusieurs adresses ; jamais un numéro de carte
+  cardFingerprint       String? // empreinte de la carte (Mollie), lue au paiement : limites par acheteur même avec plusieurs adresses ; jamais un numéro de carte
   buyerFirstName        String
   buyerLastName         String
   buyerPhone            String?
@@ -1168,16 +1132,14 @@ model Order {
   discountMinor         Int              @default(0)
   totalMinor            Int // payé par l'acheteur, frais inclus
   applicationFeeMinor   Int              @default(0) // commission Evoly
-  paymentFeeMinor       Int? // frais Stripe réels, connus après paiement
-  netMinor              Int? // totalMinor − commission − frais Stripe
+  paymentFeeMinor       Int? // frais de paiement réels, connus après paiement
+  netMinor              Int? // totalMinor − commission − frais de paiement
   refundedMinor         Int              @default(0)
   feeSnapshot           Json // offre, taux, fixe, plafond appliqués
   promoCodeId           String?
   presaleCodeId         String? // prévente privée (RG-PRV-02)
   presaleCode           PresaleCode?     @relation(fields: [presaleCodeId], references: [id], onDelete: SetNull)
   resaleListingId       String?          @unique // commande issue d'une revente
-  stripePaymentIntentId String?          @unique
-  stripeChargeId        String?          @unique
   paymentProvider       PaymentProvider? // prestataire du paiement en ligne (docs/MOLLIE.md) ; vide : gratuit ou espèces
   molliePaymentId       String?          @unique // tr_… : paiement Mollie sur le compte de l'organisateur
   paymentMethodType     String? // card, bancontact, ideal…
@@ -1358,7 +1320,6 @@ model ResaleListing {
   soldAt               DateTime?
   cancelledAt          DateTime?
   sellerRefundMinor    Int? // montant rendu au vendeur
-  sellerStripeRefundId String?      @unique
   sellerMollieRefundId String?      @unique // re_… : remboursement Mollie du vendeur (docs/MOLLIE.md)
   failureReason        String?
   createdAt            DateTime     @default(now())
@@ -1381,7 +1342,7 @@ enum RefundStatus {
   REQUESTED // demande de l'acheteur en attente
   APPROVED
   REJECTED
-  PROCESSING // envoyé à Stripe
+  PROCESSING // envoyé à Mollie
   SUCCEEDED
   FAILED
 }
@@ -1414,7 +1375,6 @@ model Refund {
   feesWithheldMinor           Int             @default(0) // frais retenus (remboursement moins les frais)
   applicationFeeRefundedMinor Int             @default(0)
   isOutOfDeadline             Boolean         @default(false)
-  stripeRefundId              String?         @unique
   mollieRefundId              String?         @unique // re_… : remboursement Mollie (docs/MOLLIE.md)
   handledById                 String?
   handledAt                   DateTime?
@@ -1566,23 +1526,18 @@ model CommissionStatement {
 }
 
 enum DisputeStatus {
-  WARNING_NEEDS_RESPONSE
-  WARNING_UNDER_REVIEW
-  WARNING_CLOSED
   NEEDS_RESPONSE
   UNDER_REVIEW
   WON
   LOST
 }
 
-// Contestations de paiement, copiées depuis Stripe pour l'affichage et le suivi des risques
+// Contestations de paiement (rétrofacturations Mollie), copiées pour l'affichage et le suivi des risques
 model Dispute {
   id                 String        @id @default(cuid())
   orderId            String?
-  stripeDisputeId    String?       @unique
-  stripeChargeId     String?
   mollieChargebackId String?       @unique // chb_… : rétrofacturation Mollie (docs/MOLLIE.md)
-  accountId          String // compte connecté concerné (acct_… chez Stripe, org_… chez Mollie)
+  accountId          String // compte Mollie concerné (org_…)
   amountMinor        Int
   currency           String        @db.Char(3)
   reason             String
@@ -1594,27 +1549,6 @@ model Dispute {
   order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
 
   @@index([accountId, status])
-}
-
-enum WebhookStatus {
-  RECEIVED
-  PROCESSED
-  FAILED
-  IGNORED
-}
-
-// Idempotence des webhooks Stripe : chaque événement n'est traité qu'une fois
-model StripeWebhookEvent {
-  id          String        @id // identifiant de l'événement Stripe (evt_…)
-  type        String
-  accountId   String? // compte connecté concerné
-  status      WebhookStatus @default(RECEIVED)
-  attempts    Int           @default(0)
-  lastError   String?
-  receivedAt  DateTime      @default(now())
-  processedAt DateTime?
-
-  @@index([type, receivedAt])
 }
 
 // Agrégats quotidiens pour les graphiques (recalculables)
@@ -1658,22 +1592,21 @@ enum CertificateStatus {
 }
 
 model CustomDomain {
-  id                 String            @id @default(cuid())
-  organizationId     String
-  domain             String            @unique // tickets.monsite.com
-  scope              DomainScope       @default(ORGANIZATION)
-  eventId            String?
-  status             DomainStatus      @default(PENDING_DNS)
-  certificateStatus  CertificateStatus @default(PENDING)
-  dnsTarget          String // valeur CNAME attendue
-  verificationToken  String
-  applePayRegistered Boolean           @default(false) // domaine déclaré à Stripe
-  lastCheckedAt      DateTime?
-  verifiedAt         DateTime?
-  checksStoppedAt    DateTime? // arrêt des vérifications automatiques après 48 h
-  lastError          String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  id                String            @id @default(cuid())
+  organizationId    String
+  domain            String            @unique // tickets.monsite.com
+  scope             DomainScope       @default(ORGANIZATION)
+  eventId           String?
+  status            DomainStatus      @default(PENDING_DNS)
+  certificateStatus CertificateStatus @default(PENDING)
+  dnsTarget         String // valeur CNAME attendue
+  verificationToken String
+  lastCheckedAt     DateTime?
+  verifiedAt        DateTime?
+  checksStoppedAt   DateTime? // arrêt des vérifications automatiques après 48 h
+  lastError         String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   event        Event?       @relation(fields: [eventId], references: [id], onDelete: SetNull)
@@ -1914,7 +1847,6 @@ enum NotificationType {
   REFUND_REQUESTED
   RESALE_SOLD
   MEMBER_JOINED
-  STRIPE_ACTION_REQUIRED
   SUBSCRIPTION_PAYMENT_FAILED
   TRIAL_ENDING
   DOMAIN_ACTIVE
@@ -1923,7 +1855,7 @@ enum NotificationType {
   CAMPAIGN_SENT
   DISPUTE_OPENED
   EVENT_PUBLISHED // événement programmé devenu public
-  PAYOUT_FAILED // virement Stripe vers la banque de l'organisateur échoué
+  PAYOUT_FAILED // versement de Mollie vers la banque de l'organisateur échoué
   BUYER_FLAGGED // commande passée sous le nom d'une personne bloquée
   MOLLIE_ACTION_REQUIRED // Mollie attend des informations, ou le compte Mollie n'est plus relié
 }
@@ -1976,7 +1908,6 @@ enum ActorType {
   SYSTEM
   SCANNER
   ADMIN
-  STRIPE
 }
 
 // Journal d'audit des actions sensibles (argent, droits, publication…)
@@ -2352,21 +2283,20 @@ model VenuePartner {
 
 /// Versement de sa part à un lieu partenaire (RG-LIEU-06).
 model VenuePayout {
-  id               String       @id @default(cuid())
-  venuePartnerId   String
-  amountMinor      Int
-  currency         String
-  manual           Boolean      @default(false)
-  status           String // PAID ou FAILED
-  stripeTransferId String?
-  error            String?
-  invoiceNumber    String?      @unique // facture d'autofacturation (RG-LIEU-07)
-  netMinor         Int?
-  vatMinor         Int?
-  vatRateBps       Int?
-  vatMention       String? // BE_VAT, FRANCHISE ou NOT_REGISTERED
-  createdAt        DateTime     @default(now())
-  venuePartner     VenuePartner @relation(fields: [venuePartnerId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  venuePartnerId String
+  amountMinor    Int
+  currency       String
+  manual         Boolean      @default(false)
+  status         String // PAID ou FAILED
+  error          String?
+  invoiceNumber  String?      @unique // facture d'autofacturation (RG-LIEU-07)
+  netMinor       Int?
+  vatMinor       Int?
+  vatRateBps     Int?
+  vatMention     String? // BE_VAT, FRANCHISE ou NOT_REGISTERED
+  createdAt      DateTime     @default(now())
+  venuePartner   VenuePartner @relation(fields: [venuePartnerId], references: [id], onDelete: Cascade)
 
   @@index([venuePartnerId, createdAt])
 }
@@ -2593,7 +2523,7 @@ model BlockedBuyer {
   @@index([organizationId, createdAt])
 }
 
-/// Empreinte d'une carte bloquée (Stripe) : jamais un numéro de carte.
+/// Empreinte d'une carte bloquée (Mollie) : jamais un numéro de carte.
 model BlockedCard {
   id             String   @id @default(cuid())
   blockedBuyerId String

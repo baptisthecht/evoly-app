@@ -12,7 +12,7 @@ const code = (secret: string, label: string) =>
     secret: OTPAuth.Secret.fromBase32(secret),
   }).generate();
 
-test("back-office : offre Partenaire d'une organisation abonnée chez Stripe (message, pas de plantage), jours Pro offerts toujours là après rechargement (RG-ADM-02)", async ({
+test("back-office : offre Partenaire d'une organisation abonnée par Mollie (message, pas de plantage), jours Pro offerts toujours là après rechargement (RG-ADM-02)", async ({
   page,
 }) => {
   const { id, slug } = await organizer(page);
@@ -29,18 +29,18 @@ test("back-office : offre Partenaire d'une organisation abonnée chez Stripe (me
     .click();
   await expect(page.getByTestId("recovery-codes").locator("li")).toHaveCount(8);
 
-  // abonnement payant en cours chez Stripe : l'attribution d'une offre est refusée avec un message, sans plantage
+  // abonnement payé par Mollie en cours : l'attribution d'une offre est refusée avec un message, sans plantage
   sql(
-    `update "Subscription" set "planId" = 'pro', status = 'ACTIVE', "stripeSubscriptionId" = 'sub_e2e_${id}', "stripeCustomerId" = 'cus_e2e_${id}' where "organizationId" = '${orgId}'`,
+    `update "Subscription" set "planId" = 'pro', status = 'ACTIVE', interval = 'MONTH', "billingProvider" = 'MOLLIE', "mollieCustomerId" = 'cst_e2e_${id}', "mollieMandateId" = 'mdt_e2e_${id}', "currentPeriodEnd" = now() + interval '20 days' where "organizationId" = '${orgId}'`,
   );
   await page.goto(appUrl(`/admin/organisations/${orgId}`));
   await page.getByLabel("Offre attribuée").selectOption("partner");
   await page.getByRole("button", { name: "Attribuer l’offre" }).click();
   await expect(
-    page.getByRole("alert").filter({ hasText: "abonnement Stripe en cours" }),
+    page.getByRole("alert").filter({ hasText: "abonnement Mollie en cours" }),
   ).toBeVisible(); // et non la page d'erreur
   await expect(
-    page.getByLabel("Résilier l’abonnement Stripe en cours"),
+    page.getByLabel("Résilier l’abonnement Mollie en cours"),
   ).toBeVisible();
   expect(
     sql(
@@ -48,9 +48,9 @@ test("back-office : offre Partenaire d'une organisation abonnée chez Stripe (me
     ),
   ).toBe("pro");
 
-  // sans abonnement Stripe : les jours Pro offerts restent après rechargement
+  // sans abonnement payé : les jours Pro offerts restent après rechargement
   sql(
-    `update "Subscription" set "planId" = 'free', status = 'NONE', "stripeSubscriptionId" = null, "stripeCustomerId" = null, "trialEndsAt" = null, "currentPeriodEnd" = null where "organizationId" = '${orgId}'`,
+    `update "Subscription" set "planId" = 'free', status = 'NONE', interval = null, "billingProvider" = null, "mollieCustomerId" = null, "mollieMandateId" = null, "trialEndsAt" = null, "currentPeriodEnd" = null where "organizationId" = '${orgId}'`,
   );
   await page.goto(appUrl(`/admin/organisations/${orgId}`));
   await page.getByLabel("Jours d’essai").fill("14");

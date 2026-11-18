@@ -10,7 +10,6 @@ import {
   acceptSelfBillingAction,
   activateVenueAction,
   venueHallAction,
-  venuePayNowAction,
   venueThresholdAction,
 } from "./venueActions";
 
@@ -60,7 +59,6 @@ export function VenueCard({
     venueThresholdAction.bind(null, orgSlug),
     null,
   );
-  const payNow = useActionForm(venuePayNowAction.bind(null, orgSlug), null);
   const hall = useActionForm(venueHallAction.bind(null, orgSlug), null);
   const accept = useActionForm(
     acceptSelfBillingAction.bind(null, orgSlug),
@@ -131,22 +129,8 @@ export function VenueCard({
             {money(venue.balanceMinor)}
           </span>
         </p>
-        {manage ? (
-          <form {...payNow.formProps} className="grid gap-2">
-            <FormError state={payNow.state} />
-            <div>
-              <SubmitButton pending={payNow.pending}>
-                {t("payNow")}
-              </SubmitButton>
-            </div>
-            <p className="text-[12.5px] text-ink-muted">{t("payNowHint")}</p>
-            {payNow.state?.ok ? (
-              <p role="status" className="text-sm font-semibold">
-                {t("paid")}
-              </p>
-            ) : null}
-          </form>
-        ) : null}
+        {/* reversements en pause (décision du 18 novembre 2026) : le solde reste dû au lieu */}
+        <p className="text-[12.5px] text-ink-muted">{t("payoutsPaused")}</p>
       </div>
       {manage ? (
         <form {...hall.formProps} className="grid gap-3" noValidate>

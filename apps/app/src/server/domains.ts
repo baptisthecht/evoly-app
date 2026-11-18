@@ -12,7 +12,6 @@ import { env } from "@/lib/env";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { sendEmail } from "./email/send";
-import { ensurePaymentDomains } from "./stripeConnect";
 
 export const MAX_CUSTOM_DOMAINS = 10; // RG-CDM-01
 const CHECK_WINDOW_MS = 48 * 3_600_000;
@@ -103,8 +102,8 @@ export async function removeCustomDomain(ctx: OrgContext, id: string) {
 }
 
 /**
- * Étapes 3 et 4 : vérification du CNAME. Réussite → ACTIVE, certificat à la demande par le proxy d'entrée,
- * domaine déclaré à Stripe. Échec : erreur enregistrée ; au-delà de 48 heures, vérifications arrêtées et propriétaire prévenu.
+ * Étapes 3 et 4 : vérification du CNAME. Réussite → ACTIVE, certificat à la demande par le proxy d'entrée.
+ * Échec : erreur enregistrée ; au-delà de 48 heures, vérifications arrêtées et propriétaire prévenu.
  */
 export async function verifyCustomDomain(
   id: string,
@@ -138,7 +137,6 @@ export async function verifyCustomDomain(
         checksStoppedAt: null,
       },
     });
-    await ensurePaymentDomains(d.organizationId).catch(() => undefined); // RG-DOM-04
     if (d.status !== "ACTIVE")
       await notify(d.organizationId, "DOMAIN_ACTIVE", {
         title: d.domain,

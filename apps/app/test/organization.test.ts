@@ -63,7 +63,9 @@ async function setup(
         organizationId: org.id,
         planId: "pro",
         status: "ACTIVE",
-        stripeSubscriptionId: `sub_${id}`,
+        billingProvider: "MOLLIE",
+        mollieCustomerId: `cst_${id}`,
+        mollieMandateId: `mdt_${id}`,
         cancelAtPeriodEnd: opts.subscription === "canceling",
         currentPeriodEnd: new Date(Date.now() + 20 * 86_400_000),
       },
@@ -148,7 +150,7 @@ describe("paramètres et suppression de l'organisation (section 9.3)", () => {
     ).rejects.toThrow("COUNTRY_NOT_SUPPORTED");
   });
 
-  it("suppression bloquée par des participants à venir ou un abonnement qui se renouvelle", async () => {
+  it("suppression bloquée par des participants à venir ou un abonnement payé par Mollie qui se renouvelle", async () => {
     expect(
       await deletionBlockers((await setup({ withTickets: true })).org.id),
     ).toEqual(["UPCOMING_SALES"]);

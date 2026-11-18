@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 case "${1:-}" in
-  holds|campaigns|emails|domains|automations|statements|certificates|publications|webhooks|maintenance|retention|prospection) ;;
+  holds|campaigns|emails|domains|automations|statements|certificates|publications|maintenance|retention|prospection|wallet|venues) ;;
   *) echo "Tâche inconnue : ${1:-(aucune)}"; exit 2 ;;
 esac
 # shellcheck source=ops/healthchecks.sh

@@ -4,13 +4,7 @@ import { applyTimedDowngrades } from "@/server/billing";
 import { finalizeOrder, reserveOrder } from "@/server/checkout";
 import { findOrgContext } from "@/server/context";
 import { sendTicketsLookup } from "@/server/orders";
-import {
-  refundTickets,
-  rejectRefund,
-  syncStripeRefund,
-} from "@/server/refunds";
-import { accountStatus } from "@/server/stripeConnect";
-import { handleConnectEvent } from "@/server/stripeConnectEvents";
+import { refundTickets, rejectRefund } from "@/server/refunds";
 
 const DAY = 86_400_000;
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -94,129 +88,7 @@ async function setup() {
   return { owner, org, ctx, paid };
 }
 
-describe("compte Stripe de l'organisateur (RG-PAY-01)", () => {
-  const req = (r: Record<string, unknown> = {}) =>
-    ({
-      currently_due: [],
-      eventually_due: [],
-      disabled_reason: null,
-      ...r,
-    }) as never;
-  it("état : désactivé, actif, à compléter bientôt, en attente, restreint", () => {
-    expect(
-      accountStatus({
-        charges_enabled: false,
-        payouts_enabled: false,
-        details_submitted: true,
-        requirements: req({ disabled_reason: "rejected.fraud" }),
-      }),
-    ).toBe("DISABLED");
-    expect(
-      accountStatus({
-        charges_enabled: true,
-        payouts_enabled: true,
-        details_submitted: true,
-        requirements: req(),
-      }),
-    ).toBe("ACTIVE");
-    expect(
-      accountStatus({
-        charges_enabled: true,
-        payouts_enabled: true,
-        details_submitted: true,
-        requirements: req({ eventually_due: ["individual.id_number"] }),
-      }),
-    ).toBe("RESTRICTED_SOON");
-    expect(
-      accountStatus({
-        charges_enabled: false,
-        payouts_enabled: false,
-        details_submitted: false,
-        requirements: req(),
-      }),
-    ).toBe("PENDING");
-    expect(
-      accountStatus({
-        charges_enabled: false,
-        payouts_enabled: false,
-        details_submitted: true,
-        requirements: req({ currently_due: ["external_account"] }),
-      }),
-    ).toBe("RESTRICTED");
-  });
-
-  it("notification « compte mis à jour » : état et autorisations enregistrés", async () => {
-    const s = await setup();
-    const acct = `acct_${rid()}`;
-    await db.stripeAccount.create({
-      data: {
-        organizationId: s.org.id,
-        stripeAccountId: acct,
-        country: "BE",
-        defaultCurrency: "EUR",
-      },
-    });
-    const account = {
-      id: acct,
-      charges_enabled: true,
-      payouts_enabled: true,
-      details_submitted: true,
-      requirements: {
-        currently_due: [],
-        eventually_due: [],
-        disabled_reason: null,
-      },
-    };
-    expect(
-      await handleConnectEvent({
-        id: `evt_${rid()}`,
-        type: "account.updated",
-        data: { object: account },
-      } as never),
-    ).toBe("PROCESSED");
-    expect(
-      await db.stripeAccount.findUniqueOrThrow({
-        where: { stripeAccountId: acct },
-      }),
-    ).toMatchObject({
-      status: "ACTIVE",
-      chargesEnabled: true,
-      payoutsEnabled: true,
-      detailsSubmitted: true,
-    });
-  });
-});
-
 describe("remboursements (RG-REF-03)", () => {
-  it("état final renvoyé par Stripe : réussi, échoué avec sa raison, en cours ; remboursement inconnu ignoré", async () => {
-    const s = await setup();
-    const o = await s.paid();
-    await refundTickets(s.ctx, o.id, [o.tickets[0]!.id], "OTHER", null);
-    const refund = await db.refund.findFirstOrThrow({
-      where: { orderId: o.id },
-    });
-    const re = `re_${rid()}`;
-    await db.refund.update({
-      where: { id: refund.id },
-      data: { stripeRefundId: re, status: "PROCESSING" },
-    });
-    expect(await syncStripeRefund(re, "pending")).toBe(true);
-    expect(
-      (await db.refund.findUniqueOrThrow({ where: { id: refund.id } })).status,
-    ).toBe("PROCESSING");
-    expect(await syncStripeRefund(re, "failed", "insufficient_funds")).toBe(
-      true,
-    );
-    expect(
-      await db.refund.findUniqueOrThrow({ where: { id: refund.id } }),
-    ).toMatchObject({ status: "FAILED", failureReason: "insufficient_funds" });
-    expect(await syncStripeRefund(re, "succeeded")).toBe(true);
-    expect(
-      await db.refund.findUniqueOrThrow({ where: { id: refund.id } }),
-    ).toMatchObject({ status: "SUCCEEDED", failureReason: null });
-    expect(await syncStripeRefund("re_inconnu", "succeeded")).toBe(false);
-  });
-
   it("demande refusée par l'organisateur, avec sa réponse ; jamais deux fois", async () => {
     const s = await setup();
     const o = await s.paid();

@@ -31,7 +31,7 @@ describe("revente : remboursabilité du paiement d'origine (RG-RSL-05)", () => {
   it("cas refusés", () => {
     expect(
       originalPaymentRefundable(
-        { ...paid, paymentMethodType: "multibanco" },
+        { ...paid, paymentMethodType: "paysafecard" },
         2400,
         now,
       ),

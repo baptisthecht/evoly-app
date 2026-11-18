@@ -22,7 +22,6 @@ import { formatMoney, type Locale, toLocale } from "@evoly/i18n";
 import { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
-import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
 import { createMollieRefund, paymentAccountFor } from "./molliePayments";
 import {
@@ -131,7 +130,7 @@ export async function createListing(
   if (priceMinor == null) throw new CoreError("INVALID_PRICE");
   const check = checkResalePrice(priceMinor, q.faceValueMinor);
   if (check !== "OK") throw new CoreError(`RESALE_${check}`);
-  // compte qui encaisse : Mollie s'il est prêt, sinon l'ancien compte Stripe (docs/MOLLIE.md)
+  // compte qui encaisse : Mollie, s'il est prêt (docs/MOLLIE.md)
   if (
     priceMinor > 0 &&
     !(await paymentAccountFor(q.ticket.event.organizationId))
@@ -492,7 +491,6 @@ export async function reserveResale(
       unitPriceMinor: i.unitPriceMinor,
       nominative: false,
     })),
-    stripeAccountId: pay?.provider === "STRIPE" ? pay.stripeAccountId : null,
     mollie: pay?.provider === "MOLLIE",
     questions: { order: [], perLine: {} }, // revente : pas de questions (réponses d'origine conservées sur la commande du vendeur)
     refund: refundRuleOf(result.listing.event, result.order.refundFeeMode),
@@ -501,7 +499,8 @@ export async function reserveResale(
 
 /**
  * Après la validation d'une commande de revente (étapes 5 et 6) : remboursement partiel du vendeur sur sa commande
- * d'origine, ajusté avec les frais Stripe réels du paiement de l'acheteur ; e-mail au vendeur ; notification à l'organisateur.
+ * d'origine (paiement Mollie), ajusté avec les frais du paiement de l'acheteur ; e-mail au vendeur ; notification à
+ * l'organisateur.
  * RG-RSL-06 : si le remboursement échoue, l'annonce passe FAILED et le cas est signalé ; l'acheteur garde son billet.
  */
 export async function settleResale(buyerOrderId: string): Promise<void> {
@@ -534,66 +533,35 @@ export async function settleResale(buyerOrderId: string): Promise<void> {
       } | null
     )?.terms ?? (await termsFor(order.organizationId, order.currency));
   const seller = listing.sellerOrder;
-  // RG-FEE-51 : frais du paiement de l'acheteur, et du remboursement du vendeur quand il avait payé par Mollie
+  // RG-FEE-51 : frais du paiement de l'acheteur, et du remboursement du vendeur quand il avait payé en ligne
   const amounts = resaleAmounts(
     listing.priceMinor,
     terms,
     resaleBankFee(
       listing.priceMinor,
-      {
-        buyer: order.paymentProvider === "MOLLIE" ? "MOLLIE" : "STRIPE",
-        seller: seller.paymentProvider,
-      },
+      !!seller.molliePaymentId,
       order.paymentFeeMinor,
     ),
   );
   const locale = toLocale(seller.buyerLocale); // e-mails de revente dans les 7 langues
   if (amounts.sellerRefundMinor > 0) {
     try {
-      // vendeur payé par Mollie (docs/MOLLIE.md) : remboursement partiel de son paiement Mollie
-      const mollieRefund = seller.molliePaymentId
-        ? await createMollieRefund({
-            orderId: seller.id,
-            amountMinor: amounts.sellerRefundMinor,
-            description: `Revente ${seller.reference}`,
-            metadata: { resaleListingId: listing.id, buyerOrderId },
-            idempotencyKey: `resale:${listing.id}:seller-refund`,
-          })
-        : null;
-      const s = stripe();
-      const account = mollieRefund
-        ? null
-        : await db.stripeAccount.findUnique({
-            where: { organizationId: order.organizationId },
-            select: { stripeAccountId: true },
-          });
-      if (!mollieRefund && (!s || !account || !seller.stripePaymentIntentId))
-        throw new Error(
-          "paiement d'origine introuvable ou Stripe indisponible",
-        );
-      const refund =
-        mollieRefund ??
-        (await s!.refunds.create(
-          {
-            payment_intent: seller.stripePaymentIntentId!,
-            amount: amounts.sellerRefundMinor,
-            refund_application_fee: false,
-            reason: "requested_by_customer",
-            metadata: { resaleListingId: listing.id, buyerOrderId },
-          },
-          {
-            stripeAccount: account!.stripeAccountId,
-            idempotencyKey: `resale:${listing.id}:seller-refund`,
-          },
-        ));
+      // remboursement partiel du paiement Mollie du vendeur (docs/MOLLIE.md)
+      if (!seller.molliePaymentId)
+        throw new Error("paiement d'origine introuvable");
+      const refund = await createMollieRefund({
+        orderId: seller.id,
+        amountMinor: amounts.sellerRefundMinor,
+        description: `Revente ${seller.reference}`,
+        metadata: { resaleListingId: listing.id, buyerOrderId },
+        idempotencyKey: `resale:${listing.id}:seller-refund`,
+      });
       await db.$transaction([
         db.resaleListing.update({
           where: { id: listing.id },
           data: {
             sellerRefundMinor: amounts.sellerRefundMinor,
-            ...(mollieRefund
-              ? { sellerMollieRefundId: refund.id }
-              : { sellerStripeRefundId: refund.id }),
+            sellerMollieRefundId: refund.id,
           },
         }),
         db.order.update({

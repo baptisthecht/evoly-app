@@ -70,7 +70,7 @@ export async function assignPlanAction(id: string, form: FormData) {
           : "pro",
       until ? new Date(`${until}T23:59:59Z`) : null,
       {
-        resilierStripe: form.get("resilierStripe") === "on",
+        resilier: form.get("resilier") === "on",
       },
     ),
   );

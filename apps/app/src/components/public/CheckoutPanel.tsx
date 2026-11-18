@@ -4,13 +4,11 @@ import { answerFor } from "@evoly/core";
 import { QuestionField } from "./QuestionField";
 
 import { formatMoney, type Locale } from "@evoly/i18n";
-import type { Stripe, StripeElements } from "@stripe/stripe-js";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import {
   cancelReservationAction,
   changeSeatsAction,
-  confirmPaymentAction,
   submitBuyerAction,
   type ReservationView,
 } from "@/app/site/[sub]/[eventSlug]/actions";
@@ -18,7 +16,6 @@ import type { PublicSeatMap } from "@/server/seating";
 import { SeatMapPicker } from "./SeatMapPicker";
 import { Button } from "../ui/Button";
 import { Field, Input } from "../ui/Field";
-import { PayButton, PaymentFields, StripePayment } from "./StripePayment";
 import { notifyOrderCompleted } from "./embedEvents";
 import { RefundRuleText } from "./RefundRuleText";
 
@@ -66,7 +63,6 @@ export function CheckoutPanel({
   friendName = null,
   organizationName,
   requirePhone,
-  publishableKey,
   onCancel,
 }: {
   reservation: ReservationView;
@@ -74,7 +70,6 @@ export function CheckoutPanel({
   friendName?: string | null;
   organizationName: string;
   requirePhone: boolean;
-  publishableKey: string | null;
   onCancel: () => void;
 }) {
   const t = useTranslations("checkout");
@@ -235,64 +230,6 @@ export function CheckoutPanel({
     setBusy(false);
   };
 
-  const pay = async (stripe: Stripe, elements: StripeElements) => {
-    if (!validate()) return;
-    setBusy(true);
-    setMessage(null);
-    const check = await elements.submit();
-    if (check.error) {
-      setMessage(check.error.message ?? t("error_UNKNOWN"));
-      return setBusy(false);
-    }
-    const res = await submitBuyerAction(reservation.token, payload());
-    if (!res.ok) {
-      setMessage(explain(res.error));
-      return setBusy(false);
-    }
-    if (res.data.kind === "PAID") return done();
-    // l'organisateur encaisse désormais par Mollie : sa page de paiement prend le relais
-    if (res.data.kind === "REDIRECT")
-      return window.location.assign(res.data.url);
-    // jeton de confirmation : rien n'est débité ; le serveur lit l'empreinte de la carte (limites par
-    // acheteur), puis confirme le paiement ; validation bancaire (3D Secure, Bancontact) présentée ensuite
-    const created = await stripe.createConfirmationToken({
-      elements,
-      params: {
-        return_url: `${window.location.origin}${ticketsHref}`,
-        payment_method_data: {
-          billing_details: {
-            name: `${buyer.firstName} ${buyer.lastName}`.trim(),
-            email: buyer.email.trim(),
-          },
-        },
-      },
-    });
-    if (created.error || !created.confirmationToken) {
-      // RG-BUY-06 : message clair, réservation et formulaire conservés
-      setMessage(created.error?.message ?? t("error_UNKNOWN"));
-      return setBusy(false);
-    }
-    const confirmed = await confirmPaymentAction(
-      reservation.token,
-      created.confirmationToken.id,
-      ticketsHref,
-    );
-    if (!confirmed.ok) {
-      setMessage(explain(confirmed.error));
-      return setBusy(false);
-    }
-    if (confirmed.data.kind === "ACTION") {
-      const { error } = await stripe.handleNextAction({
-        clientSecret: confirmed.data.clientSecret,
-      });
-      if (error) {
-        setMessage(error.message ?? t("error_UNKNOWN"));
-        return setBusy(false);
-      }
-    }
-    done();
-  };
-
   // docs/MOLLIE.md : paiement sur la page de Mollie, retour sur la page des billets, validée au retour ou par le webhook
   const payWithMollie = async () => {
     if (!validate()) return;
@@ -328,11 +265,6 @@ export function CheckoutPanel({
   const minutes = Math.floor(left / 60_000);
   const seconds = Math.floor((left % 60_000) / 1000);
   const viaMollie = !reservation.isFree && !!reservation.mollie;
-  const canPay =
-    !reservation.isFree &&
-    !reservation.mollie &&
-    publishableKey &&
-    reservation.stripeAccountId;
   const form = (
     <div className="grid gap-4">
       <div className="grid grid-cols-2 gap-3">
@@ -532,7 +464,6 @@ export function CheckoutPanel({
         />
         {t("marketing", { organization: organizationName })}
       </label>
-      {canPay ? <PaymentFields /> : null}
       {message ? (
         <p
           role="alert"
@@ -602,16 +533,6 @@ export function CheckoutPanel({
             {t("mollieNotice")}
           </p>
         </div>
-      ) : canPay ? (
-        <PayButton
-          label={
-            busy
-              ? t("processing")
-              : t("pay", { amount: money(reservation.totalMinor) })
-          }
-          busy={busy}
-          onPay={pay}
-        />
       ) : (
         <p className="rounded-md bg-surface-sunken px-4 py-3 text-sm">
           {t("paymentsUnavailable")}
@@ -687,19 +608,7 @@ export function CheckoutPanel({
           </span>
         </li>
       </ul>
-      {canPay ? (
-        <StripePayment
-          publishableKey={publishableKey!}
-          stripeAccountId={reservation.stripeAccountId!}
-          amountMinor={reservation.totalMinor}
-          currency={reservation.currency}
-          locale={locale}
-        >
-          {form}
-        </StripePayment>
-      ) : (
-        form
-      )}
+      {form}
       <button
         type="button"
         className="justify-self-center text-sm font-semibold underline underline-offset-4"

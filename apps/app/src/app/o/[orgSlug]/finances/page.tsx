@@ -33,8 +33,8 @@ const PERIODS: Period[] = [
 /**
  * Section 9.16, refonte A3 (maquette UIUX/pages-a3-suite.html, « Finances ») : les totaux se lisent comme un calcul
  * (ventes brutes, moins les remboursements, les commissions et les frais bancaires, égale le net), l'état du compte
- * Stripe, le tableau par événement avec sa ligne de total. La période et l'export sont dans la bande du titre. Ensuite,
- * hors maquette : options, compte Stripe et relevés, litiges.
+ * Mollie, le tableau par événement avec sa ligne de total. La période et l'export sont dans la bande du titre. Ensuite,
+ * hors maquette : options, compte Mollie et relevés, litiges.
  */
 export default async function FinancesPage({
   params,
@@ -80,10 +80,6 @@ export default async function FinancesPage({
     signDisplay: "exceptZero",
   });
   const minus = (v: number) => (v ? `\u2212${money(v)}` : money(0));
-  // docs/MOLLIE.md : textes de Mollie sans compte (nouvelles liaisons) ou avec un compte Mollie, de Stripe sinon
-  const viaMollie = pay.provider !== "STRIPE";
-  const tp = (stripeKey: string, mollieKey: string) =>
-    t(viaMollie ? mollieKey : stripeKey);
   return (
     <div className="grid gap-6">
       {!pay.connected ? (
@@ -99,9 +95,7 @@ export default async function FinancesPage({
           href={`/o/${orgSlug}/settings/payments`}
           className="flex items-center justify-between gap-3 rounded-[10px] bg-warning-soft px-3.5 py-2.5 text-[13.5px] font-medium text-warning"
         >
-          {pay.restricted
-            ? tp("stripeRestricted", "mollieRestricted")
-            : tp("stripeActionRequired", "mollieActionRequired")}
+          {pay.restricted ? t("mollieRestricted") : t("mollieActionRequired")}
           <ArrowRightIcon className="size-4 shrink-0" />
         </Link>
       ) : null}
@@ -155,7 +149,7 @@ export default async function FinancesPage({
       </StatRow>
 
       {pay.connected && pay.ready ? (
-        // l'état du compte Stripe (« .status ») : la coche verte, la phrase, « Ouvrir Stripe » à droite
+        // l'état du compte Mollie (« .status ») : la coche verte, la phrase, « Ouvrir Mollie » à droite
         <p className="flex items-center gap-2 text-[13.5px]">
           <svg
             aria-hidden="true"
@@ -167,19 +161,15 @@ export default async function FinancesPage({
           >
             <path d="m5 12 5 5 9-10" />
           </svg>
-          <b className="font-semibold">
-            {tp("stripeActiveLead", "mollieActiveLead")}
-          </b>
-          <span className="text-ink-muted">
-            {tp("stripeActiveHint", "mollieActiveHint")}
-          </span>
+          <b className="font-semibold">{t("mollieActiveLead")}</b>
+          <span className="text-ink-muted">{t("mollieActiveHint")}</span>
           <a
             href={pay.dashboardUrl}
             target="_blank"
             rel="noreferrer"
             className="ml-auto text-[13px] font-medium whitespace-nowrap underline underline-offset-[3px]"
           >
-            {tp("openStripeShort", "openMollieShort")}
+            {t("openMollieShort")}
           </a>
         </p>
       ) : null}
@@ -247,11 +237,11 @@ export default async function FinancesPage({
           />
         )}
         <p className="mt-2.5 text-[12.5px] text-ink-muted">
-          {tp("footnote", "footnoteMollie")}
+          {t("footnoteMollie")}
         </p>
       </section>
 
-      {/* hors maquette, dans le même style : les options vendues, le compte Stripe, les relevés, les litiges */}
+      {/* hors maquette, dans le même style : les options vendues, le compte Mollie, les relevés, les litiges */}
       {overview.options.rows.length ? (
         <section aria-labelledby="options-title">
           <SectionTitle
@@ -333,11 +323,8 @@ export default async function FinancesPage({
       ) : null}
 
       <div className="grid gap-8 lg:grid-cols-2 lg:gap-9">
-        <section aria-labelledby="stripe-title" className="min-w-0">
-          <SectionTitle
-            id="stripe-title"
-            title={tp("stripeTitle", "mollieTitle")}
-          />
+        <section aria-labelledby="mollie-title" className="min-w-0">
+          <SectionTitle id="mollie-title" title={t("mollieTitle")} />
           {pay.connected && pay.balance ? (
             <dl className="grid grid-cols-2 border-b border-line pb-3">
               {[
@@ -359,7 +346,7 @@ export default async function FinancesPage({
           ) : (
             <p className="border-b border-line py-[9px] text-ink-muted">
               {pay.connected
-                ? tp("stripeUnavailable", "mollieUnavailable")
+                ? t("mollieUnavailable")
                 : t("mollieNotConnectedShort")}
             </p>
           )}
@@ -388,7 +375,7 @@ export default async function FinancesPage({
             </ul>
           ) : null}
           <p className="mt-2.5 text-[12.5px] text-ink-muted">
-            {tp("noInternalBalance", "noInternalBalanceMollie")}
+            {t("noInternalBalanceMollie")}
           </p>
         </section>
 
@@ -441,11 +428,8 @@ export default async function FinancesPage({
             id="disputes-title"
             title={t("disputesTitle")}
             link={{
-              href:
-                pay.provider === "STRIPE"
-                  ? "https://dashboard.stripe.com/disputes"
-                  : pay.dashboardUrl,
-              label: tp("answerDisputes", "answerDisputesMollie"),
+              href: pay.dashboardUrl,
+              label: t("answerDisputesMollie"),
             }}
           />
           <ul role="list">

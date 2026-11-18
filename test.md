@@ -63,7 +63,6 @@ toute régression : `apps/app/vitest.config.ts` (serveur) et `apps/app/vitest.co
 | `components/shell/OrgNav.tsx`                                        |                         13 |                           6 |        0.0 % |          0.0 % |
 | `components/scanner/SellPanel.tsx`                                   |                         11 |                          20 |       89.7 % |         82.0 % |
 | `app/o/[orgSlug]/events/[eventId]/tickets/ComplimentaryForm.tsx`     |                         11 |                          12 |        0.0 % |          0.0 % |
-| `components/public/StripePayment.tsx`                                |                         11 |                           8 |        0.0 % |          0.0 % |
 | `app/o/[orgSlug]/settings/SettingsClient.tsx`                        |                         10 |                          10 |       50.0 % |         47.4 % |
 | `app/o/[orgSlug]/orders/[orderId]/OrderActions.tsx`                  |                         10 |                           7 |       86.8 % |         84.8 % |
 | `app/o/[orgSlug]/events/[eventId]/ambassadors/AmbassadorForm.tsx`    |                         10 |                           2 |        0.0 % |          0.0 % |
@@ -77,7 +76,6 @@ toute régression : `apps/app/vitest.config.ts` (serveur) et `apps/app/vitest.co
 | `app/(auth)/forgot-password/ForgotForm.tsx`                          |                          6 |                           2 |        0.0 % |          0.0 % |
 | `app/site/[sub]/payer/[token]/PayAtVenue.tsx`                        |                          6 |                           2 |        0.0 % |          0.0 % |
 | `app/o/[orgSlug]/events/[eventId]/embed/EmbedForms.tsx`              |                          6 |                           0 |        0.0 % |        100.0 % |
-| `app/o/[orgSlug]/StripeBanner.tsx`                                   |                          5 |                          12 |        0.0 % |          0.0 % |
 | `app/o/[orgSlug]/events/[eventId]/EventCommands.tsx`                 |                          5 |                           7 |        0.0 % |          0.0 % |
 | `app/onboarding/Steps.tsx`                                           |                          5 |                           6 |        0.0 % |          0.0 % |
 | `app/o/[orgSlug]/billing/SwitchInterval.tsx`                         |                          5 |                           4 |        0.0 % |          0.0 % |
@@ -97,7 +95,6 @@ toute régression : `apps/app/vitest.config.ts` (serveur) et `apps/app/vitest.co
 | `app/2fa/VerifyForm.tsx`                                             |                          3 |                           2 |        0.0 % |          0.0 % |
 | `app/o/[orgSlug]/events/[eventId]/options/OptionsRefundPolicy.tsx`   |                          3 |                           2 |        0.0 % |          0.0 % |
 | `app/o/[orgSlug]/events/[eventId]/tickets/QuestionsManager.tsx`      |                          3 |                           2 |       91.7 % |         97.0 % |
-| `app/onboarding/payments/ConnectStripe.tsx`                          |                          3 |                           2 |        0.0 % |          0.0 % |
 | `components/events/StatusBadge.tsx`                                  |                          3 |                           0 |        0.0 % |        100.0 % |
 | `app/o/[orgSlug]/events/[eventId]/settings/SettingsForm.tsx`         |                          2 |                           7 |       94.9 % |         85.4 % |
 | `app/o/[orgSlug]/events/[eventId]/settings/EventPresale.tsx`         |                          2 |                           5 |       95.5 % |         92.2 % |
@@ -133,8 +130,8 @@ toute régression : `apps/app/vitest.config.ts` (serveur) et `apps/app/vitest.co
 
 ### Comportements à tester en priorité
 
-- Embranchements d'erreur des appels à Stripe (indisponible, refus, délais) dans la facturation, les remboursements, la
-  revente et les virements.
+- Embranchements d'erreur des appels à Mollie (indisponible, refus, délais) dans l'offre Pro, les remboursements, la
+  revente et les finances.
 - Embranchements restants de la liste d'attente, du parrainage et de l'authentification (cas limites des jetons).
 - Cas d'erreur des tâches planifiées (relances, rappels, nettoyage) quand une étape échoue au milieu.
 
@@ -189,7 +186,6 @@ toute régression : `apps/app/vitest.config.ts` (serveur) et `apps/app/vitest.co
 | `server/alerts.ts`               |                          3 |                           3 |       88.9 % |         82.3 % |
 | `server/botProtection.ts`        |                          3 |                           2 |       90.3 % |         93.5 % |
 | `server/onboarding.ts`           |                          3 |                           1 |       88.0 % |         87.5 % |
-| `server/stripeConnect.ts`        |                          2 |                           6 |       97.0 % |         89.5 % |
 | `server/promos.ts`               |                          2 |                           5 |       95.7 % |         90.0 % |
 | `server/publication.ts`          |                          2 |                           5 |       94.1 % |         84.8 % |
 | `server/storage.ts`              |                          2 |                           3 |       94.9 % |         90.9 % |
@@ -204,7 +200,6 @@ toute régression : `apps/app/vitest.config.ts` (serveur) et `apps/app/vitest.co
 | `lib/pwa.ts`                     |                          1 |                           0 |        0.0 % |        100.0 % |
 | `server/wallet/push.ts`          |                          1 |                           0 |       95.2 % |        100.0 % |
 | `server/email/templates.ts`      |                          0 |                          36 |      100.0 % |         78.0 % |
-| `server/stripeConnectEvents.ts`  |                          0 |                          12 |      100.0 % |         76.5 % |
 | `server/seatLabels.ts`           |                          0 |                           7 |      100.0 % |         87.9 % |
 | `server/wallet/ticket.ts`        |                          0 |                           5 |      100.0 % |         77.3 % |
 | `lib/auth.ts`                    |                          0 |                           3 |      100.0 % |         62.5 % |
@@ -214,7 +209,6 @@ toute régression : `apps/app/vitest.config.ts` (serveur) et `apps/app/vitest.co
 | `server/ordersAdmin.ts`          |                          0 |                           2 |      100.0 % |         94.9 % |
 | `server/plans.ts`                |                          0 |                           2 |      100.0 % |         85.7 % |
 | `server/seo.ts`                  |                          0 |                           2 |      100.0 % |         85.7 % |
-| `lib/stripe.ts`                  |                          0 |                           1 |      100.0 % |         75.0 % |
 | `server/canonical.ts`            |                          0 |                           1 |      100.0 % |         95.0 % |
 | `server/context.ts`              |                          0 |                           1 |      100.0 % |         97.6 % |
 | `server/guard.ts`                |                          0 |                           1 |      100.0 % |         96.9 % |
@@ -224,11 +218,12 @@ toute régression : `apps/app/vitest.config.ts` (serveur) et `apps/app/vitest.co
 
 ### Parcours fonctionnels encore absents
 
-- Paiement par carte de bout en bout avec Stripe en mode test : panier payant, 3-D Secure, refus de la carte, paiement
-  sur place par carte depuis le QR code.
-- Remboursement réel par Stripe, et réception des webhooks Stripe (paiement, remboursement, litige, compte connecté).
-- Souscription à l'offre Pro par Stripe Checkout, et portail de facturation.
-- Ouverture d'un compte Stripe Connect par l'organisateur.
+- Paiement par carte de bout en bout avec Mollie en mode test : panier payant, page de paiement de Mollie et retour,
+  3-D Secure, refus de la carte, paiement sur place par carte depuis le QR code.
+- Remboursement réel par Mollie, et réception des webhooks Mollie (paiement, remboursement, rétrofacturation).
+- Abonnement à l'offre Pro sur la page de Mollie en mode test (premier paiement, vérification pendant l'essai,
+  changement de carte).
+- Liaison complète d'un compte Mollie par l'organisateur, jusqu'au retour de l'autorisation chez Mollie.
 - Ambassadeurs : vente par le lien d'un ambassadeur et classement.
 - Prévente : achat avec un code, code épuisé, lien `?prevente=CODE`.
 

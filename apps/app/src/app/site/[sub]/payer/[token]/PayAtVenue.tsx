@@ -10,7 +10,6 @@ export function PayAtVenue(props: {
   reservation: ReservationView;
   organizationName: string;
   requirePhone: boolean;
-  publishableKey: string | null;
 }) {
   const t = useTranslations("public");
   const [cancelled, setCancelled] = useState(false);
@@ -22,7 +21,6 @@ export function PayAtVenue(props: {
       friendName={null}
       organizationName={props.organizationName}
       requirePhone={props.requirePhone}
-      publishableKey={props.publishableKey}
       onCancel={() => setCancelled(true)}
     />
   );

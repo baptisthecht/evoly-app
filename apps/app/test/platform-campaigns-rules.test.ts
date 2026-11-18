@@ -83,7 +83,7 @@ const campaign = (o: Record<string, unknown> = {}) => ({
 });
 
 describe("administration : essai et offre", () => {
-  it("essai : de 1 à 90 jours seulement ; offre : date invalide ou passée refusée ; abonnement Stripe en cours : résiliation explicite exigée", async () => {
+  it("essai : de 1 à 90 jours seulement ; offre : date invalide ou passée refusée ; abonnement payé par Mollie en cours : résiliation explicite exigée", async () => {
     const { org, staff } = await setup();
     for (const days of [0, 91, 1.5])
       await expect(extendTrial(staff, org.id, days)).rejects.toEqual(
@@ -97,13 +97,14 @@ describe("administration : essai et offre", () => {
     ).rejects.toEqual(refused("PLAN_UNTIL_PAST"));
     const paying = await setup({
       sub: {
-        stripeSubscriptionId: `sub_${rid()}`,
-        stripeCustomerId: `cus_${rid()}`,
+        billingProvider: "MOLLIE",
+        mollieCustomerId: `cst_${rid()}`,
+        mollieMandateId: `mdt_${rid()}`,
       },
     });
     await expect(
       assignPlan(paying.staff, paying.org.id, "partner", null),
-    ).rejects.toEqual(refused("PLAN_MANAGED_BY_STRIPE"));
+    ).rejects.toEqual(refused("PLAN_MANAGED_BY_MOLLIE"));
   });
 });
 

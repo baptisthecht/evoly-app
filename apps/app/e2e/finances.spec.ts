@@ -20,7 +20,7 @@ test("finances : totaux, exports CSV et relevé mensuel en PDF", async ({
     2,
     `lea.${id}@exemple.be`,
   );
-  // commande payée simulée : 48 € dont 1,02 € de commission et 0,97 € de frais Stripe réels, payée le mois dernier
+  // commande payée simulée : 48 € dont 1,02 € de commission et 0,97 € de frais de paiement réels, payée le mois dernier
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
   sql(
     `update "Order" set "totalMinor" = 4800, "subtotalMinor" = 4800, "applicationFeeMinor" = 102, "paymentFeeMinor" = 97, "netMinor" = 4601, "paidAt" = date_trunc('month', now()) - interval '3 days' where "organizationId" = '${orgId}'`,

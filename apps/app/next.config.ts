@@ -4,7 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
-// Politique de contenu : scripts, cadres et connexions limités à l'app et à Stripe ; jamais intégrée dans un autre site.
+// Politique de contenu : scripts, cadres et connexions limités à l'app ; jamais intégrée dans un autre site.
 // « unsafe-inline » reste nécessaire aux scripts de démarrage de Next.js (pas de nonce) ; en production seulement
 // (le mode développement exige en plus « unsafe-eval »).
 const csp = buildCsp();
@@ -13,11 +13,10 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
-  // caméra autorisée pour l'app elle-même : le scanner des entrées en a besoin ; paiement pour Stripe (Apple Pay, Google Pay)
+  // caméra autorisée pour l'app elle-même : le scanner des entrées en a besoin ; le paiement se fait sur la page de Mollie
   {
     key: "Permissions-Policy",
-    value:
-      'camera=(self), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")',
+    value: "camera=(self), microphone=(), geolocation=(), payment=()",
   },
   // HTTPS obligatoire (ignoré par les navigateurs en HTTP, donc sans effet en développement)
   {

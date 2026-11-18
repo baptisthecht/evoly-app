@@ -33,12 +33,8 @@ const RISK: Record<string, string> = {
 
 /** Section 9.24 : fiche organisation et actions du back-office. */
 const ERREURS: Record<string, string> = {
-  PLAN_MANAGED_BY_STRIPE:
-    "Cette organisation a un abonnement Stripe en cours : cochez « Résilier l'abonnement Stripe en cours » pour lui attribuer une autre offre (s'il n'existe plus chez Stripe, il sera simplement retiré).",
   PLAN_MANAGED_BY_MOLLIE:
     "Cette organisation a un abonnement Mollie en cours : cochez « Résilier l'abonnement Mollie en cours » pour lui attribuer une autre offre (Evoly cessera de prélever).",
-  STRIPE_UNAVAILABLE:
-    "Stripe n'est pas configuré sur ce serveur : l'abonnement ne peut pas être modifié.",
   TRIAL_DAYS_INVALID: "Le nombre de jours doit être compris entre 1 et 90.",
   PLAN_UNTIL_PAST: "La date de fin doit être dans le futur.",
   PLAN_UNTIL_INVALID: "La date de fin n'est pas valide.",
@@ -46,10 +42,7 @@ const ERREURS: Record<string, string> = {
     "Cette organisation a déjà son offre sans limite de durée : il n'y a rien à prolonger. Pour la limiter, attribuez l'offre avec une date de fin.",
 };
 const erreurEnClair = (code: string) =>
-  ERREURS[code] ??
-  (code.startsWith("STRIPE_")
-    ? `Stripe a refusé la modification (${code}).`
-    : `Action impossible (${code}).`);
+  ERREURS[code] ?? `Action impossible (${code}).`;
 
 export default async function OrganizationSheetPage({
   params,
@@ -134,7 +127,6 @@ export default async function OrganizationSheetPage({
                     sub.currentPeriodEnd
                       ? `période jusqu’au ${formatDateTime(sub.currentPeriodEnd, org.timezone, "fr", "short")}`
                       : null,
-                    sub.stripeSubscriptionId ? "abonnement Stripe" : null,
                     sub.billingProvider === "MOLLIE"
                       ? `abonnement Mollie${sub.cancelAtPeriodEnd ? " résilié" : ""}`
                       : null,
@@ -144,12 +136,19 @@ export default async function OrganizationSheetPage({
                 : "free",
             ],
             [
-              "Stripe",
-              org.stripeAccount
-                ? `${org.stripeAccount.status} · ${org.stripeAccount.stripeAccountId}`
-                : "non connecté",
+              "Mollie",
+              org.mollieAccount
+                ? [
+                    org.mollieAccount.mollieOrganizationId,
+                    org.mollieAccount.disconnectedAt
+                      ? "déconnecté"
+                      : org.mollieAccount.onboardingStatus,
+                    org.mollieAccount.testmode ? "mode test" : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")
+                : "non relié",
             ],
-            ["Abonnement Stripe", sub?.stripeSubscriptionId ?? "aucun"],
             [
               "Abonnement Mollie",
               sub?.mollieCustomerId
@@ -249,16 +248,10 @@ export default async function OrganizationSheetPage({
                 aria-label="Jusqu’au"
                 className={input}
               />
-              {sub?.stripeSubscriptionId || renewsWithMollie(sub) ? (
+              {renewsWithMollie(sub) ? (
                 <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    name="resilierStripe"
-                    className="size-5"
-                  />
-                  {sub?.stripeSubscriptionId
-                    ? "Résilier l’abonnement Stripe en cours"
-                    : "Résilier l’abonnement Mollie en cours"}
+                  <input type="checkbox" name="resilier" className="size-5" />
+                  Résilier l’abonnement Mollie en cours
                 </label>
               ) : null}
               <button type="submit" className={btn}>

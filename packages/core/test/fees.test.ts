@@ -112,16 +112,16 @@ describe("saisie des prix", () => {
 });
 
 describe("aide au prix : ce que l'organisateur veut toucher → prix de vente", () => {
-  it("20 € voulus en Free : 21,29 € (0,72 € de commission, 0,57 € de frais de paiement)", () => {
-    expect(grossForNet(2000, free)).toBe(2129);
-    expect(netForGross(2129, free)).toBe(2000);
-    expect(netForGross(2128, free)).toBe(1999); // c'est bien le plus petit prix qui convient
+  it("20 € voulus en Free : 21,35 € (0,72 € de commission, 0,63 € de frais de paiement)", () => {
+    expect(grossForNet(2000, free)).toBe(2135);
+    expect(netForGross(2135, free)).toBe(2000);
+    expect(netForGross(2134, free)).toBe(1999); // c'est bien le plus petit prix qui convient
   });
-  it("plafonds atteints : 50 € en Pro → 52,03 € ; 150 € en Free → 155,08 €", () => {
-    expect(grossForNet(5000, pro)).toBe(5203);
-    expect(netForGross(5203, pro)).toBe(5000);
-    expect(grossForNet(15000, free)).toBe(15508);
-    expect(netForGross(15508, free)).toBe(15000);
+  it("plafonds atteints : 50 € en Pro → 52,19 € ; 150 € en Free → 155,55 €", () => {
+    expect(grossForNet(5000, pro)).toBe(5219);
+    expect(netForGross(5219, pro)).toBe(5000);
+    expect(grossForNet(15000, free)).toBe(15555);
+    expect(netForGross(15555, free)).toBe(15000);
   });
   it("billet gratuit : aucun frais", () => {
     expect(grossForNet(0, free)).toBe(0);
@@ -134,8 +134,8 @@ describe("aide au prix : ce que l'organisateur veut toucher → prix de vente", 
       expect(netForGross(g - 1, free)).toBeLessThan(net);
     }
   });
-  it("prix ronds proposés : 21,29 € → 21 € et 22 € ; 12,30 € → 12 € et 12,50 €", () => {
-    expect(roundedPriceOptions(2129)).toEqual([2100, 2200]);
+  it("prix ronds proposés : 21,35 € → 21 € et 22 € ; 12,30 € → 12 € et 12,50 €", () => {
+    expect(roundedPriceOptions(2135)).toEqual([2100, 2200]);
     expect(roundedPriceOptions(1230)).toEqual([1200, 1250]);
     expect(roundedPriceOptions(2000)).toEqual([]);
   });

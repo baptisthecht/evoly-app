@@ -19,7 +19,8 @@ const day = 86_400_000;
 async function org(sub?: {
   status: "ACTIVE";
   currentPeriodEnd?: Date | null;
-  stripeSubscriptionId: string | null;
+  billingProvider?: "MOLLIE" | null;
+  mollieMandateId?: string | null;
 }) {
   const id = rid();
   return db.organization.create({
@@ -45,7 +46,9 @@ describe("image d'aperçu : marque et mention Evoly selon l'offre effective (RG-
     const pro = (await getPlans()).pro.features;
     const o = await org({
       status: "ACTIVE",
-      stripeSubscriptionId: `sub_${rid()}`,
+      currentPeriodEnd: new Date(Date.now() + 20 * day),
+      billingProvider: "MOLLIE",
+      mollieMandateId: `mdt_${rid()}`,
     });
     expect(await hasFeatureForOrg(o.id, true)).toEqual({
       branded: hasFeature(pro, "BRANDING"),
@@ -64,7 +67,6 @@ describe("image d'aperçu : marque et mention Evoly selon l'offre effective (RG-
     const ended = await org({
       status: "ACTIVE",
       currentPeriodEnd: new Date(Date.now() - day),
-      stripeSubscriptionId: null,
     });
     expect(await hasFeatureForOrg(ended.id, true)).toEqual(expected);
   });

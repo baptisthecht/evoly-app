@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { estimateBankFee } from "@evoly/core";
 import { db } from "@/lib/db";
 import {
   finalizeOrder,
@@ -8,35 +9,63 @@ import {
 import { findOrgContext, type OrgContext } from "@/server/context";
 import { orderConfirmationEmail } from "@/server/email/templates";
 import { createEvent } from "@/server/events";
+import { saveMollieAuthorization } from "@/server/mollieAccounts";
 import { setRefundFeeDefault } from "@/server/organization";
 import { cancelEvent, refundTickets, requestRefund } from "@/server/refunds";
 
 // remboursement à coût neutre (RG-REF-09 à RG-REF-11) : intégral, ou moins les frais de paiement et la commission,
 // seulement quand l'acheteur demande pour son propre motif ; figé sur la commande à la réservation
-const fake = vi.hoisted(() => ({
-  refunds: [] as Array<Record<string, unknown>>,
-}));
-vi.mock("@/lib/stripe", () => ({
-  stripe: () => ({
-    refunds: {
-      create: async (p: Record<string, unknown>) => {
-        fake.refunds.push(p);
-        return {
-          id: `re_${Math.random().toString(36).slice(2, 10)}`,
-          status: "succeeded",
-        };
-      },
-    },
-    paymentIntents: {
-      cancel: async (id: string) => ({ id, status: "canceled" }),
-    },
-  }),
-}));
 
 const rid = () => Math.random().toString(36).slice(2, 10);
+
+/** Mollie simulé : chaque remboursement demandé sur un paiement est capturé (montant exact rendu à l'acheteur), et effectué aussitôt. */
+const fake = {
+  refunds: [] as Array<{
+    paymentId: string;
+    amountMinor: number;
+    body: Record<string, unknown>;
+  }>,
+};
+beforeEach(() => {
+  fake.refunds = [];
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: string | URL, init: RequestInit = {}) => {
+      const url = new URL(String(input));
+      const m = /^\/v2\/payments\/([^/]+)\/refunds$/.exec(url.pathname);
+      if (init.method !== "POST" || !m)
+        return new Response(
+          JSON.stringify({
+            status: 404,
+            title: "Not Found",
+            detail: url.pathname,
+          }),
+          { status: 404 },
+        );
+      const body = JSON.parse(String(init.body)) as {
+        amount: { currency: string; value: string };
+      };
+      fake.refunds.push({
+        paymentId: m[1]!,
+        amountMinor: Math.round(Number(body.amount.value) * 100),
+        body,
+      });
+      return new Response(
+        JSON.stringify({
+          id: `re_${rid()}`,
+          status: "refunded",
+          amount: body.amount,
+        }),
+        { status: 201 },
+      );
+    }),
+  );
+});
+afterEach(() => vi.unstubAllGlobals());
+
 type Mode = "FULL" | "MINUS_FEES";
 
-/** Organisation (propriétaire), compte Stripe actif, événement payant « toujours remboursable », 2 billets à 20 €. */
+/** Organisation (propriétaire), compte Mollie prêt, événement payant « toujours remboursable », 2 billets à 20 €. */
 async function setup(mode: Mode, opts: { quantity?: number } = {}) {
   const id = rid();
   const owner = await db.user.create({
@@ -72,16 +101,26 @@ async function setup(mode: Mode, opts: { quantity?: number } = {}) {
     ...(await findOrgContext(owner.id, org.slug))!,
     user: { id: owner.id, name: "Camille", email: owner.email },
   };
-  await db.stripeAccount.create({
+  const account = await saveMollieAuthorization({
+    organizationId: org.id,
+    mollieOrganizationId: `org_${id}`,
+    tokens: {
+      access_token: "access_mollie",
+      refresh_token: "refresh_mollie",
+      expires_in: 3600,
+      token_type: "bearer",
+      scope: "payments.read payments.write refunds.read refunds.write",
+    },
+    testmode: false,
+  });
+  await db.mollieAccount.update({
+    where: { id: account.id },
     data: {
-      organizationId: org.id,
-      stripeAccountId: `acct_${id}`,
-      country: "BE",
-      defaultCurrency: "EUR",
-      status: "ACTIVE",
-      chargesEnabled: true,
-      payoutsEnabled: true,
-      detailsSubmitted: true,
+      profileId: `pfl_${id}`,
+      profileStatus: "verified",
+      methods: ["bancontact", "creditcard"],
+      onboardingStatus: "COMPLETED",
+      canReceivePayments: true,
     },
   });
   const event = await db.event.create({
@@ -110,7 +149,7 @@ async function setup(mode: Mode, opts: { quantity?: number } = {}) {
   return { id, org, ctx, event, ticketTypeId: event.ticketTypes[0]!.id };
 }
 
-/** Achat payé (paiement simulé), frais de paiement réels relevés : 0,80 €. */
+/** Achat payé par Mollie (paiement relu, simulé), frais de paiement réels relevés : 0,80 €. */
 async function buy(
   s: Awaited<ReturnType<typeof setup>>,
   quantity = 2,
@@ -131,11 +170,10 @@ async function buy(
   });
   expect(
     await finalizeOrder(r.orderId, {
-      paymentIntentId: `pi_${rid()}`,
+      molliePaymentId: `tr_${rid()}`,
       amountMinor: r.totalMinor,
-      currency: "eur",
-      chargeId: `ch_${rid()}`,
-      paymentMethodType: "card",
+      currency: "EUR",
+      paymentMethodType: "creditcard",
     }),
   ).toBe("PAID");
   const order = await db.order.update({
@@ -160,10 +198,6 @@ const refundOf = (orderId: string) =>
     orderBy: { createdAt: "desc" },
   });
 
-beforeEach(() => {
-  fake.refunds = [];
-});
-
 describe("remboursement demandé par l'acheteur (RG-REF-09, RG-REF-10)", () => {
   it("intégral : l'acheteur récupère 100 %, Evoly garde sa commission (comportement d'avant)", async () => {
     const s = await setup("FULL");
@@ -178,10 +212,18 @@ describe("remboursement demandé par l'acheteur (RG-REF-09, RG-REF-10)", () => {
       feesWithheldMinor: 0,
       status: "SUCCEEDED",
     });
-    expect(fake.refunds[0]).toMatchObject({
-      amount: 4_000,
-      refund_application_fee: false,
-    });
+    // sur le paiement Mollie de la commande ; rien d'autre n'est demandé : Mollie ne rend jamais la commission d'Evoly
+    expect(fake.refunds).toEqual([
+      {
+        paymentId: b.order.molliePaymentId,
+        amountMinor: 4_000,
+        body: {
+          amount: { currency: "EUR", value: "40.00" },
+          description: expect.any(String),
+          metadata: expect.objectContaining({ orderId: b.order.id }),
+        },
+      },
+    ]);
   });
 
   it("moins les frais, commande entière : prix payé moins les frais de paiement et la commission", async () => {
@@ -197,10 +239,9 @@ describe("remboursement demandé par l'acheteur (RG-REF-09, RG-REF-10)", () => {
       amountMinor: 4_000 - b.fees,
       feesWithheldMinor: b.fees,
     });
-    expect(fake.refunds[0]).toMatchObject({
-      amount: 4_000 - b.fees,
-      refund_application_fee: false, // Evoly garde sa commission
-    });
+    expect(fake.refunds).toEqual([
+      expect.objectContaining({ amountMinor: 4_000 - b.fees }), // Evoly garde sa commission
+    ]);
     // coût neutre pour l'organisateur : remboursé exactement ce qu'il a touché ; commande remboursée en entier
     expect(
       await db.order.findUniqueOrThrow({ where: { id: b.order.id } }),
@@ -217,13 +258,13 @@ describe("remboursement demandé par l'acheteur (RG-REF-09, RG-REF-10)", () => {
     await requestRefund(b.r.token, [b.tickets[1]!.id], null);
     const second = await refundOf(b.order.id);
     expect(first.feesWithheldMinor + second.feesWithheldMinor).toBe(b.fees);
-    expect(fake.refunds.map((r) => r.amount)).toEqual([
+    expect(fake.refunds.map((r) => r.amountMinor)).toEqual([
       first.amountMinor,
       second.amountMinor,
     ]);
   });
 
-  it("frais de paiement pas encore transmis par Stripe : estimés, comme dans les finances", async () => {
+  it("frais de paiement réels pas encore connus : estimés d'après la grille Mollie, comme dans les finances", async () => {
     const s = await setup("MINUS_FEES");
     const b = await buy(s, 2, null);
     await requestRefund(
@@ -232,8 +273,8 @@ describe("remboursement demandé par l'acheteur (RG-REF-09, RG-REF-10)", () => {
       null,
     );
     const refund = await refundOf(b.order.id);
-    expect(refund.feesWithheldMinor).toBeGreaterThan(
-      b.order.applicationFeeMinor,
+    expect(refund.feesWithheldMinor).toBe(
+      b.order.applicationFeeMinor + estimateBankFee(4_000),
     );
     expect(refund.amountMinor + refund.feesWithheldMinor).toBe(4_000);
   });
@@ -295,7 +336,9 @@ describe("toujours 100 %, quel que soit le réglage : ce n'est pas le fait de l'
       amountMinor: 4_000,
       feesWithheldMinor: 0,
     });
-    expect(fake.refunds[0]).toMatchObject({ amount: 4_000 });
+    expect(fake.refunds).toEqual([
+      expect.objectContaining({ amountMinor: 4_000 }),
+    ]);
   });
 
   it("commande annulée ou acheteur retiré à l'initiative de l'organisateur", async () => {

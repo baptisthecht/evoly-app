@@ -113,12 +113,12 @@ describe("tarifs : règles refusées", () => {
     ).rejects.toEqual(refused("SALES_END_BEFORE_START"));
   });
 
-  it("événement terminé : verrouillé ; publié sans Stripe : un tarif payant est refusé, un tarif gratuit accepté", async () => {
+  it("événement terminé : verrouillé ; publié sans compte Mollie prêt : un tarif payant est refusé, un tarif gratuit accepté", async () => {
     const { ctx, event } = await setup();
     await publishEvent(ctx, event.id);
     await expect(
       createTicketType(ctx, event.id, { ...base, price: "12" }),
-    ).rejects.toEqual(refused("PUBLISH_STRIPE_REQUIRED"));
+    ).rejects.toEqual(refused("PUBLISH_MOLLIE_REQUIRED"));
     await expect(createTicketType(ctx, event.id, base)).resolves.toBeTruthy();
     await db.event.update({
       where: { id: event.id },

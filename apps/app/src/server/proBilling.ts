@@ -26,7 +26,6 @@ import {
   type MolliePayment,
 } from "@/lib/mollie";
 import { safeError } from "@/lib/redact";
-import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
 import type { OrgContext } from "./context";
 import { mollieWebhookUrl } from "./molliePayments";
@@ -87,10 +86,9 @@ const SETUP_PAID: Prisma.SubscriptionPaymentWhereInput = {
   status: "PAID",
 };
 
-/** Prestataire de l'offre Pro : Mollie dès que la clé d'Evoly est configurée, Stripe avant (jusqu'au lot 7). */
-export function proBillingProvider(): "MOLLIE" | "STRIPE" | null {
-  if (evolyMollie()) return "MOLLIE";
-  return stripe() ? "STRIPE" : null;
+/** Prestataire de l'offre Pro : Mollie, dès que la clé d'Evoly est configurée. */
+export function proBillingProvider(): "MOLLIE" | null {
+  return evolyMollie() ? "MOLLIE" : null;
 }
 
 /** Prix de Pro dans une devise (conditions tarifaires), mensuel et annuel. */
@@ -107,14 +105,13 @@ export async function proPrices(currency: string) {
 
 /**
  * Première période payée quand une période court encore (essai, Pro offert) : rien n'est encaissé avant cette date, où a
- * lieu le premier prélèvement. Null : la première période commence tout de suite et se paie sur la page de Mollie (un
- * ancien abonnement Stripe se paie aussi tout de suite, jusqu'au retrait de Stripe).
+ * lieu le premier prélèvement. Null : la première période commence tout de suite et se paie sur la page de Mollie.
  */
 export function deferredStart(
   sub: Subscription | null,
   now: Date,
 ): Date | null {
-  if (!sub || sub.stripeSubscriptionId) return null;
+  if (!sub) return null;
   const start = firstPeriodStart(sub, now);
   return start.getTime() > now.getTime() + DEFER_MARGIN_MS ? start : null;
 }
@@ -200,7 +197,6 @@ export async function startProTrial(
     cancelAtPeriodEnd: false,
     canceledAt: null,
     pastDueSince: null,
-    stripeSubscriptionId: null,
   };
   const saved = await db.subscription.upsert({
     where: { organizationId },
@@ -404,13 +400,7 @@ export async function startProCheckout(
     plan === "pro"
   )
     throw new CoreError("ALREADY_SUBSCRIBED");
-  if (
-    sub &&
-    plan === "pro" &&
-    sub.status === "ACTIVE" &&
-    !sub.currentPeriodEnd &&
-    !sub.stripeSubscriptionId
-  )
+  if (sub && plan === "pro" && sub.status === "ACTIVE" && !sub.currentPeriodEnd)
     throw new CoreError("ALREADY_SUBSCRIBED");
   const start = firstPeriodStart(sub, now);
   // période en cours (essai, Pro offert) : rien à payer avant sa fin, le moyen de paiement est seulement enregistré
@@ -641,30 +631,6 @@ async function mandateOf(
   }
 }
 
-/**
- * Ancien abonnement Stripe d'une organisation passée à Mollie : arrêté à la fin de sa période payée (ou de son essai),
- * sans nouveau prélèvement ; impayé chez Stripe, arrêté tout de suite, pour que Stripe ne relance plus la facture.
- */
-async function endStripeSubscription(
-  id: string,
-  organizationId: string,
-  now: boolean,
-) {
-  const s = stripe();
-  if (!s) return;
-  await (
-    now
-      ? s.subscriptions.cancel(id)
-      : s.subscriptions.update(id, { cancel_at_period_end: true })
-  ).catch((err) =>
-    console.error(
-      "abonnement Stripe à arrêter",
-      organizationId,
-      safeError(err),
-    ),
-  );
-}
-
 type Tx = Prisma.TransactionClient;
 type AfterCommit = () => Promise<void>;
 
@@ -681,11 +647,7 @@ async function paidChanges(
     ? { mollieMandateId: mandate.id, paymentMethodLabel: mandate.label }
     : {};
   let paid = row;
-  let movedFromStripe: string | null = null;
   let scheduled: Date | null = null;
-  const stripeUnpaid = ["PAST_DUE", "UNPAID", "INCOMPLETE"].includes(
-    sub.status,
-  );
   if (row.kind === "MANDATE") {
     await tx.subscription.update({ where: { id: sub.id }, data: mandateData });
   } else if (row.kind === "SETUP") {
@@ -757,32 +719,15 @@ async function paidChanges(
         cancelAtPeriodEnd: false,
         canceledAt: null,
         pastDueSince: null,
-        stripeSubscriptionId: null,
         renewalNoticeFor: null,
       },
     });
-    movedFromStripe = sub.stripeSubscriptionId;
   }
   const saved = await tx.subscription.findUniqueOrThrow({
     where: { id: sub.id },
   });
   const upgraded = before !== "pro" && effectivePlan(saved, now) === "pro";
   return async () => {
-    if (movedFromStripe) {
-      await endStripeSubscription(
-        movedFromStripe,
-        sub.organizationId,
-        stripeUnpaid,
-      );
-      await audit({
-        action: "billing.moved_to_mollie",
-        organizationId: sub.organizationId,
-        actorType: "SYSTEM",
-        targetType: "Subscription",
-        targetId: sub.id,
-        metadata: { stripeSubscriptionId: movedFromStripe },
-      });
-    }
     await audit({
       action: "billing.payment_paid",
       organizationId: sub.organizationId,

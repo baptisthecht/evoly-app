@@ -21,11 +21,11 @@ Toute nouvelle exclusion se déclare dans `package.json` (`pnpm.auditConfig.igno
 
 ## Journaux sans données personnelles (RG-RGPD-03)
 
-Les erreurs sont journalisées par `safeError()` (`apps/app/src/lib/redact.ts`) : message seul, jamais l'objet complet, adresses e-mail et numéros masqués. L'erreur enregistrée avec chaque webhook Stripe en échec est masquée de la même façon.
+Les erreurs sont journalisées par `safeError()` (`apps/app/src/lib/redact.ts`) : message seul, jamais l'objet complet, adresses e-mail et numéros masqués. Les erreurs des webhooks de Mollie sont journalisées de la même façon.
 
 ## Mesures en place
 
-Authentification par Better Auth (mots de passe hachés en scrypt, vérification d'e-mail, limitation des tentatives, double authentification), fonction d'autorisation unique `can()`, politique de sécurité du contenu et en-têtes de sécurité, cookies `HttpOnly`, `Secure` et `SameSite`, limitation de débit, jetons aléatoires stockés hachés, webhooks signés et idempotents, journal d'audit.
+Authentification par Better Auth (mots de passe hachés en scrypt, vérification d'e-mail, limitation des tentatives, double authentification), fonction d'autorisation unique `can()`, politique de sécurité du contenu et en-têtes de sécurité, cookies `HttpOnly`, `Secure` et `SameSite`, limitation de débit, jetons aléatoires stockés hachés, webhooks idempotents (Resend : signés ; Mollie : identifiant seul, paiement toujours relu chez Mollie), jetons OAuth des comptes Mollie chiffrés en base, journal d'audit.
 
 ## Avant le lancement : test d'intrusion externe
 
@@ -34,6 +34,6 @@ Authentification par Better Auth (mots de passe hachés en scrypt, vérification
 - **Application organisateur** (`app.evoly.me`) : authentification et double authentification, cloisonnement entre organisations, rôles et permissions, actions serveur, exports, imports de contacts.
 - **Billetterie publique** (sous-domaines et domaines personnalisés) : réservation et paiement, codes promo et de prévente, revente, « retrouver mes billets », liens magiques, protection anti-robots.
 - **Scanner** (`scanner.evoly.me`) : liens bénévoles, validation des billets, fonctionnement hors ligne.
-- **Points d'entrée techniques** : webhooks Stripe et e-mails, tâches planifiées, téléversement de fichiers.
+- **Points d'entrée techniques** : webhooks de Mollie et des e-mails, retour de l'autorisation Mollie (OAuth), tâches planifiées, téléversement de fichiers.
 
-Hors périmètre : Stripe, Resend et l'hébergeur, testés par leurs propres soins.
+Hors périmètre : Mollie, Resend et l'hébergeur, testés par leurs propres soins.

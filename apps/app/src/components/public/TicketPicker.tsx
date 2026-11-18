@@ -58,7 +58,6 @@ export function TicketPicker({
     eventId: string;
     organizationName: string;
     requirePhone: boolean;
-    publishableKey: string | null;
   };
   seatMap?: PublicSeatMap | null;
   options?: Array<{
@@ -279,7 +278,6 @@ export function TicketPicker({
         friendName={friend?.firstName ?? null}
         organizationName={checkout.organizationName}
         requirePhone={checkout.requirePhone}
-        publishableKey={checkout.publishableKey}
         onCancel={() => {
           setReservation(null);
           setQty({});

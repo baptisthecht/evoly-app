@@ -75,7 +75,6 @@ const draw = (props: Props = {}) =>
           eventId: "e1",
           organizationName: "Club",
           requirePhone: false,
-          publishableKey: null,
         }}
         {...props}
       />

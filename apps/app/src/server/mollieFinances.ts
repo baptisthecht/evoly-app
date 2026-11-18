@@ -18,7 +18,7 @@ import { notify } from "./notifications";
  * déclenchés par Evoly (RG-FIN-01) ; rétrofacturations copiées comme litiges ; versement échoué signalé.
  */
 
-/** Statut d'un versement Mollie, exprimé comme ceux de Stripe pour l'affichage. */
+/** Statut d'un versement Mollie, tel qu'affiché dans Finances. */
 const SETTLEMENT_STATUS: Record<MollieSettlement["status"], string> = {
   open: "pending",
   pending: "pending",

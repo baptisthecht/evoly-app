@@ -15,7 +15,7 @@ test("inscription, confirmation, onboarding et tableau de bord", async ({
   await page.getByRole("link", { name: "Plus tard" }).click();
   await page.waitForURL(`/o/${slug}`);
   await expect(
-    page.getByText("Connectez Stripe pour vendre des billets payants"),
+    page.getByText("Reliez Mollie pour vendre des billets payants"),
   ).toBeVisible();
   await expect(
     page.getByText("Votre premier événement vous attend."),

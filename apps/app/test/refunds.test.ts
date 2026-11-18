@@ -93,11 +93,10 @@ async function setup(opts: {
       },
     });
     await finalizeOrder(r.orderId, {
-      paymentIntentId: `pi_${id}`,
+      molliePaymentId: `tr_${id}`,
       amountMinor: price * (opts.quantity ?? 2),
-      currency: "eur",
-      chargeId: `ch_${id}`,
-      paymentMethodType: "card",
+      currency: "EUR",
+      paymentMethodType: "creditcard",
     });
   }
   const tickets = await db.ticket.findMany({
@@ -220,7 +219,7 @@ describe("demandes de remboursement (RG-REF-01 à 05)", () => {
     ).toBe("EVENT_CHANGED");
   });
 
-  it("remboursement payant sans Stripe : billets désactivés, échec signalé, relance possible (RG-REF-03)", async () => {
+  it("remboursement payant sans compte Mollie relié : billets désactivés, échec signalé, relance possible (RG-REF-03)", async () => {
     const s = await setup({ policy: "ALWAYS", priceMinor: 2400 });
     expect(
       await refundTickets(s.ctx, s.orderId, [s.tickets[0]!.id], "OTHER", null),
@@ -228,8 +227,11 @@ describe("demandes de remboursement (RG-REF-01 à 05)", () => {
     const refund = await db.refund.findFirstOrThrow({
       where: { orderId: s.orderId },
     });
-    expect(refund).toMatchObject({ status: "FAILED", amountMinor: 2400 });
-    expect(refund.failureReason).toContain("Stripe");
+    expect(refund).toMatchObject({
+      status: "FAILED",
+      amountMinor: 2400,
+      failureReason: "PAYMENTS_UNAVAILABLE",
+    });
     expect((await ticket(s.tickets[0]!.id)).status).toBe("REFUNDED");
     expect(await retryRefund(s.ctx, refund.id)).toBe("FAILED");
   });
