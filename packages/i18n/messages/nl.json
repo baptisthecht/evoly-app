@@ -2273,7 +2273,19 @@
     "state_CANCELLED": "geannuleerd",
     "state_ARCHIVED": "gearchiveerd",
     "state_DRAFT": "concept",
-    "state_free": "gratis"
+    "state_free": "gratis",
+    "mollieNotConnected": "Koppel je Mollie-account om betaalde tickets te verkopen en je uitbetalingen te ontvangen",
+    "mollieRestricted": "Je Mollie-account is geblokkeerd: betalingen of uitbetalingen zijn stopgezet. Neem contact op met Mollie",
+    "mollieActionRequired": "Mollie heeft informatie over je account nodig. Vul die aan om betaalde tickets te verkopen",
+    "mollieTitle": "Mollie-account",
+    "mollieUnavailable": "Saldo en uitbetalingen zijn nu niet beschikbaar.",
+    "mollieNotConnectedShort": "Geen Mollie-account gekoppeld.",
+    "noInternalBalanceMollie": "Evoly houdt geen geld bij: je verkopen komen op je Mollie-account, dat je volgens zijn eigen schema uitbetaalt.",
+    "answerDisputesMollie": "Reageren in Mollie",
+    "mollieActiveLead": "Mollie-account actief.",
+    "mollieActiveHint": "Betalingen en uitbetalingen geactiveerd.",
+    "openMollieShort": "Mollie openen",
+    "footnoteMollie": "De bankkosten van Mollie zijn geschat op basis van de publieke tarieven. De commissies van Evoly worden bij een terugbetaling niet teruggegeven."
   },
   "settings": {
     "title": "Instellingen",

@@ -2273,7 +2273,19 @@
     "state_CANCELLED": "cancelado",
     "state_ARCHIVED": "arquivado",
     "state_DRAFT": "rascunho",
-    "state_free": "gratuito"
+    "state_free": "gratuito",
+    "mollieNotConnected": "Ligue a sua conta Mollie para vender bilhetes pagos e receber as suas transferências",
+    "mollieRestricted": "A sua conta Mollie está bloqueada: pagamentos ou transferências parados. Fale com a Mollie",
+    "mollieActionRequired": "A Mollie precisa de informações sobre a sua conta. Complete-as para vender bilhetes pagos",
+    "mollieTitle": "Conta Mollie",
+    "mollieUnavailable": "Saldo e transferências indisponíveis de momento.",
+    "mollieNotConnectedShort": "Nenhuma conta Mollie ligada.",
+    "noInternalBalanceMollie": "A Evoly não guarda dinheiro: as suas vendas chegam à sua conta Mollie, que lhe paga segundo o seu calendário.",
+    "answerDisputesMollie": "Responder na Mollie",
+    "mollieActiveLead": "Conta Mollie ativa.",
+    "mollieActiveHint": "Pagamentos e transferências ativados.",
+    "openMollieShort": "Abrir a Mollie",
+    "footnoteMollie": "As taxas bancárias da Mollie são estimadas a partir das suas tarifas públicas. As comissões da Evoly não são devolvidas num reembolso."
   },
   "settings": {
     "title": "Definições",

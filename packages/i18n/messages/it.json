@@ -2273,7 +2273,19 @@
     "state_CANCELLED": "annullato",
     "state_ARCHIVED": "archiviato",
     "state_DRAFT": "bozza",
-    "state_free": "gratuito"
+    "state_free": "gratuito",
+    "mollieNotConnected": "Collega il tuo account Mollie per vendere biglietti a pagamento e ricevere i tuoi bonifici",
+    "mollieRestricted": "Il tuo account Mollie è bloccato: pagamenti o bonifici fermi. Contatta Mollie",
+    "mollieActionRequired": "Mollie ha bisogno di informazioni sul tuo account. Completale per vendere biglietti a pagamento",
+    "mollieTitle": "Account Mollie",
+    "mollieUnavailable": "Saldo e bonifici non disponibili per ora.",
+    "mollieNotConnectedShort": "Nessun account Mollie collegato.",
+    "noInternalBalanceMollie": "Evoly non trattiene denaro: le tue vendite arrivano sul tuo account Mollie, che ti versa secondo il suo calendario.",
+    "answerDisputesMollie": "Rispondi su Mollie",
+    "mollieActiveLead": "Account Mollie attivo.",
+    "mollieActiveHint": "Pagamenti e bonifici attivati.",
+    "openMollieShort": "Apri Mollie",
+    "footnoteMollie": "Le commissioni bancarie di Mollie sono stimate in base alle sue tariffe pubbliche. Le commissioni di Evoly non vengono restituite in caso di rimborso."
   },
   "settings": {
     "title": "Impostazioni",

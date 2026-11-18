@@ -12,7 +12,7 @@ import { FinanceEventsTable } from "./FinanceTables";
 import {
   financeOverview,
   statementMonths,
-  stripeOverview,
+  paymentsOverview,
   type Period,
 } from "@/server/finances";
 import { ArrowRightIcon } from "@/components/ui/icons";
@@ -51,9 +51,9 @@ export default async function FinancesPage({
     ? (sp.period as Period)
     : "LAST_30_DAYS";
   const eventId = sp.event || undefined;
-  const [overview, stripeInfo, months] = await Promise.all([
+  const [overview, pay, months] = await Promise.all([
     financeOverview(ctx, { period, eventId }),
-    stripeOverview(ctx),
+    paymentsOverview(ctx),
     statementMonths(ctx),
   ]);
   const t = await getTranslations("finances");
@@ -80,27 +80,28 @@ export default async function FinancesPage({
     signDisplay: "exceptZero",
   });
   const minus = (v: number) => (v ? `\u2212${money(v)}` : money(0));
+  // docs/MOLLIE.md : textes de Mollie sans compte (nouvelles liaisons) ou avec un compte Mollie, de Stripe sinon
+  const viaMollie = pay.provider !== "STRIPE";
+  const tp = (stripeKey: string, mollieKey: string) =>
+    t(viaMollie ? mollieKey : stripeKey);
   return (
     <div className="grid gap-6">
-      {!stripeInfo.connected ? (
+      {!pay.connected ? (
         <Link
           href={`/o/${orgSlug}/settings/payments`}
           className="flex items-center justify-between gap-3 rounded-[10px] bg-info-soft px-3.5 py-2.5 text-[13.5px] font-medium text-info"
         >
-          {t("stripeNotConnected")}
+          {t("mollieNotConnected")}
           <ArrowRightIcon className="size-4 shrink-0" />
         </Link>
-      ) : stripeInfo.status !== "ACTIVE" || stripeInfo.requirementsDue > 0 ? (
+      ) : pay.actionRequired ? (
         <Link
           href={`/o/${orgSlug}/settings/payments`}
           className="flex items-center justify-between gap-3 rounded-[10px] bg-warning-soft px-3.5 py-2.5 text-[13.5px] font-medium text-warning"
         >
-          {t(
-            stripeInfo.status === "RESTRICTED" ||
-              stripeInfo.status === "DISABLED"
-              ? "stripeRestricted"
-              : "stripeActionRequired",
-          )}
+          {pay.restricted
+            ? tp("stripeRestricted", "mollieRestricted")
+            : tp("stripeActionRequired", "mollieActionRequired")}
           <ArrowRightIcon className="size-4 shrink-0" />
         </Link>
       ) : null}
@@ -153,9 +154,7 @@ export default async function FinancesPage({
         </StatCell>
       </StatRow>
 
-      {stripeInfo.connected &&
-      stripeInfo.status === "ACTIVE" &&
-      stripeInfo.requirementsDue === 0 ? (
+      {pay.connected && pay.ready ? (
         // l'état du compte Stripe (« .status ») : la coche verte, la phrase, « Ouvrir Stripe » à droite
         <p className="flex items-center gap-2 text-[13.5px]">
           <svg
@@ -168,15 +167,19 @@ export default async function FinancesPage({
           >
             <path d="m5 12 5 5 9-10" />
           </svg>
-          <b className="font-semibold">{t("stripeActiveLead")}</b>
-          <span className="text-ink-muted">{t("stripeActiveHint")}</span>
+          <b className="font-semibold">
+            {tp("stripeActiveLead", "mollieActiveLead")}
+          </b>
+          <span className="text-ink-muted">
+            {tp("stripeActiveHint", "mollieActiveHint")}
+          </span>
           <a
-            href="https://dashboard.stripe.com/"
+            href={pay.dashboardUrl}
             target="_blank"
             rel="noreferrer"
             className="ml-auto text-[13px] font-medium whitespace-nowrap underline underline-offset-[3px]"
           >
-            {t("openStripeShort")}
+            {tp("openStripeShort", "openMollieShort")}
           </a>
         </p>
       ) : null}
@@ -243,7 +246,9 @@ export default async function FinancesPage({
             }}
           />
         )}
-        <p className="mt-2.5 text-[12.5px] text-ink-muted">{t("footnote")}</p>
+        <p className="mt-2.5 text-[12.5px] text-ink-muted">
+          {tp("footnote", "footnoteMollie")}
+        </p>
       </section>
 
       {/* hors maquette, dans le même style : les options vendues, le compte Stripe, les relevés, les litiges */}
@@ -329,12 +334,15 @@ export default async function FinancesPage({
 
       <div className="grid gap-8 lg:grid-cols-2 lg:gap-9">
         <section aria-labelledby="stripe-title" className="min-w-0">
-          <SectionTitle id="stripe-title" title={t("stripeTitle")} />
-          {stripeInfo.connected && stripeInfo.balance ? (
+          <SectionTitle
+            id="stripe-title"
+            title={tp("stripeTitle", "mollieTitle")}
+          />
+          {pay.connected && pay.balance ? (
             <dl className="grid grid-cols-2 border-b border-line pb-3">
               {[
-                ["available", stripeInfo.balance.available],
-                ["pending", stripeInfo.balance.pending],
+                ["available", pay.balance.available],
+                ["pending", pay.balance.pending],
               ].map(([k, list]) => (
                 <div key={k as string}>
                   <dt className="text-[13px] text-ink-muted">
@@ -350,16 +358,14 @@ export default async function FinancesPage({
             </dl>
           ) : (
             <p className="border-b border-line py-[9px] text-ink-muted">
-              {stripeInfo.connected
-                ? t("stripeUnavailable")
-                : t("stripeNotConnectedShort")}
+              {pay.connected
+                ? tp("stripeUnavailable", "mollieUnavailable")
+                : t("mollieNotConnectedShort")}
             </p>
           )}
-          {stripeInfo.connected &&
-          stripeInfo.payouts &&
-          stripeInfo.payouts.length > 0 ? (
+          {pay.connected && pay.payouts && pay.payouts.length > 0 ? (
             <ul role="list">
-              {stripeInfo.payouts.map((p) => (
+              {pay.payouts.map((p) => (
                 <li
                   key={p.id}
                   className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-line py-[9px]"
@@ -382,7 +388,7 @@ export default async function FinancesPage({
             </ul>
           ) : null}
           <p className="mt-2.5 text-[12.5px] text-ink-muted">
-            {t("noInternalBalance")}
+            {tp("noInternalBalance", "noInternalBalanceMollie")}
           </p>
         </section>
 
@@ -429,18 +435,21 @@ export default async function FinancesPage({
         </section>
       </div>
 
-      {stripeInfo.connected && stripeInfo.disputes.length > 0 ? (
+      {pay.connected && pay.disputes.length > 0 ? (
         <section aria-labelledby="disputes-title">
           <SectionTitle
             id="disputes-title"
             title={t("disputesTitle")}
             link={{
-              href: "https://dashboard.stripe.com/disputes",
-              label: t("answerDisputes"),
+              href:
+                pay.provider === "STRIPE"
+                  ? "https://dashboard.stripe.com/disputes"
+                  : pay.dashboardUrl,
+              label: tp("answerDisputes", "answerDisputesMollie"),
             }}
           />
           <ul role="list">
-            {stripeInfo.disputes.map((d) => (
+            {pay.disputes.map((d) => (
               <li
                 key={d.id}
                 className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-line py-[9px]"

@@ -1,4 +1,4 @@
-import { estimateBankFee } from "./bankFees";
+import { estimateBankFee, type FeeProvider } from "./bankFees";
 import { applyBps, assertNonNegative, type Bps, type Minor } from "./money";
 
 /** Conditions de commission d'une offre dans une devise (PlanCurrencyTerms + Plan.feeRateBps). */
@@ -8,6 +8,8 @@ export interface FeeTerms {
   fixedMinor: Minor;
   rateBps: Bps;
   capMinor: Minor;
+  /** Prestataire de l'organisateur, pour estimer ses frais bancaires (docs/MOLLIE.md) ; Stripe à défaut. */
+  bankFeeProvider?: FeeProvider;
 }
 
 /**
@@ -102,7 +104,7 @@ export function netForGross(grossMinor: Minor, terms: FeeTerms): Minor {
   return (
     grossMinor -
     ticketCommission(grossMinor, terms) -
-    estimateBankFee(grossMinor)
+    estimateBankFee(grossMinor, "card_eea_standard", terms.bankFeeProvider)
   );
 }
 

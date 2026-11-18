@@ -367,25 +367,26 @@ enum MollieOnboardingStatus {
 // Compte Mollie de l'organisateur, relié à Evoly par OAuth (Mollie Connect pour plateformes, docs/MOLLIE.md). Les
 // paiements sont créés sur ce compte, avec la commission d'Evoly en frais d'application ; Mollie y prélève ses frais.
 model MollieAccount {
-  id                    String                 @id @default(cuid())
-  organizationId        String                 @unique
-  mollieOrganizationId  String                 @unique // org_… : un compte Mollie ne sert qu'une organisation
-  testmode              Boolean                @default(false) // relié en mode test : chaque appel porte testmode
-  profileId             String? // pfl_… : profil (site) qui reçoit les paiements
-  profileStatus         String? // unverified, verified, blocked
-  methods               String[] // moyens de paiement activés sur le profil (bancontact, creditcard, applepay…)
-  onboardingStatus      MollieOnboardingStatus @default(NEEDS_DATA)
-  canReceivePayments    Boolean                @default(false)
-  canReceiveSettlements Boolean                @default(false)
-  onboardingUrl         String? // page Mollie où l'organisateur complète son inscription
-  syncedAt              DateTime? // dernière relecture de l'état chez Mollie
-  refreshToken          String // chiffré (lib/seal.ts) ; n'expire pas
-  accessToken           String? // chiffré ; valable une heure
-  accessTokenExpiresAt  DateTime?
-  scopes                String[]
-  disconnectedAt        DateTime? // autorisation retirée : à relier de nouveau
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  id                         String                 @id @default(cuid())
+  organizationId             String                 @unique
+  mollieOrganizationId       String                 @unique // org_… : un compte Mollie ne sert qu'une organisation
+  testmode                   Boolean                @default(false) // relié en mode test : chaque appel porte testmode
+  profileId                  String? // pfl_… : profil (site) qui reçoit les paiements
+  profileStatus              String? // unverified, verified, blocked
+  methods                    String[] // moyens de paiement activés sur le profil (bancontact, creditcard, applepay…)
+  onboardingStatus           MollieOnboardingStatus @default(NEEDS_DATA)
+  canReceivePayments         Boolean                @default(false)
+  canReceiveSettlements      Boolean                @default(false)
+  onboardingUrl              String? // page Mollie où l'organisateur complète son inscription
+  syncedAt                   DateTime? // dernière relecture de l'état chez Mollie
+  failedSettlementNotifiedId String? // dernier versement échoué signalé à l'organisateur
+  refreshToken               String // chiffré (lib/seal.ts) ; n'expire pas
+  accessToken                String? // chiffré ; valable une heure
+  accessTokenExpiresAt       DateTime?
+  scopes                     String[]
+  disconnectedAt             DateTime? // autorisation retirée : à relier de nouveau
+  createdAt                  DateTime               @default(now())
+  updatedAt                  DateTime               @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -1492,18 +1493,19 @@ enum DisputeStatus {
 
 // Contestations de paiement, copiées depuis Stripe pour l'affichage et le suivi des risques
 model Dispute {
-  id              String        @id @default(cuid())
-  orderId         String?
-  stripeDisputeId String        @unique
-  stripeChargeId  String
-  accountId       String // compte connecté concerné
-  amountMinor     Int
-  currency        String        @db.Char(3)
-  reason          String
-  status          DisputeStatus
-  evidenceDueBy   DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                 String        @id @default(cuid())
+  orderId            String?
+  stripeDisputeId    String?       @unique
+  stripeChargeId     String?
+  mollieChargebackId String?       @unique // chb_… : rétrofacturation Mollie (docs/MOLLIE.md)
+  accountId          String // compte connecté concerné (acct_… chez Stripe, org_… chez Mollie)
+  amountMinor        Int
+  currency           String        @db.Char(3)
+  reason             String
+  status             DisputeStatus
+  evidenceDueBy      DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
 

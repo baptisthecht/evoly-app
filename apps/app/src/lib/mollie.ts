@@ -377,3 +377,26 @@ export interface MollieChargeback {
   createdAt: string;
   reversedAt?: string | null;
 }
+
+export interface MollieBalance {
+  id: string; // bal_…
+  currency: string;
+  availableAmount: MollieAmount;
+  pendingAmount: MollieAmount;
+}
+
+export interface MollieSettlement {
+  id: string; // stl_…
+  reference?: string | null;
+  status:
+    | "open"
+    | "pending"
+    | "processing"
+    | "processing-at-bank"
+    | "paidout"
+    | "failed"
+    | "canceled";
+  amount: MollieAmount;
+  settledAt?: string | null;
+  createdAt: string;
+}

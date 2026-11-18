@@ -18,6 +18,7 @@ import {
   mollieForOrganization,
   mollieReady,
 } from "./mollieAccounts";
+import { syncMollieChargebacks } from "./mollieFinances";
 
 /**
  * Paiement des billets par Mollie (docs/MOLLIE.md, lot 3) : paiement créé sur le compte Mollie de l'organisateur, avec
@@ -161,6 +162,18 @@ export async function syncPaymentFromMollie(
   // remboursement d'une commande déjà payée : Mollie appelle le même webhook quand son état change (lot 4)
   if (["PAID", "PARTIALLY_REFUNDED", "REFUNDED"].includes(order.status)) {
     await syncMollieRefunds(orderId, order.molliePaymentId, mollie.api);
+    // rétrofacturation reçue sur le paiement : Mollie appelle aussi ce webhook (lot 5)
+    if (
+      payment.amountChargedBack &&
+      fromMollieAmount(payment.amountChargedBack) !== 0
+    )
+      await syncMollieChargebacks({
+        organizationId: order.organizationId,
+        mollieOrganizationId: mollie.account.mollieOrganizationId,
+        orderId,
+        molliePaymentId: order.molliePaymentId,
+        api: mollie.api,
+      });
     return payment.status;
   }
   if (

@@ -29,7 +29,12 @@ plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Bran
   d'une revente remboursé sur son paiement d'origine moins la commission et les frais (paiement de l'acheteur,
   remboursement chez Mollie), frais estimés selon le prestataire. Au déploiement : migration
   `20261118150000_mollie_remboursements`.
-- Lots 5 à 7 : finances, offre Pro, bascule ; puis la boutique.
+- Lot 5, finances : fait. Solde et versements lus chez Mollie, rétrofacturations copiées comme litiges, versement
+  échoué signalé, frais estimés d'après la grille Mollie. Au déploiement : migration `20261118160000_mollie_finances`.
+  Restent : frais réels de chaque paiement (transactions du solde Mollie) ; reversements aux lieux partenaires, à
+  trancher (virement par Evoly, ou transferts entre soldes Connect à faire activer par Mollie).
+- Lots 6 et 7 : offre Pro, bascule (textes encore « Stripe » de l'accueil et de la liste de contrôle d'un événement,
+  textes légaux, retrait de Stripe) ; puis la boutique.
 - À faire par le porteur : application Connect « Evoly » (adresse de retour `https://app.evoly.me/api/mollie/oauth`),
   clés `MOLLIE_API_KEY`, `MOLLIE_CLIENT_ID` et `MOLLIE_CLIENT_SECRET` dans le `.env`, un deuxième compte Mollie de test
   pour jouer l'organisateur.

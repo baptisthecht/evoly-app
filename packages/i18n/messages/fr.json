@@ -2036,7 +2036,19 @@
     "state_CANCELLED": "annulé",
     "state_ARCHIVED": "archivé",
     "state_DRAFT": "brouillon",
-    "state_free": "gratuit"
+    "state_free": "gratuit",
+    "mollieNotConnected": "Reliez votre compte Mollie pour vendre des billets payants et recevoir vos virements",
+    "mollieRestricted": "Votre compte Mollie est bloqué : paiements ou virements arrêtés. Voyez avec Mollie",
+    "mollieActionRequired": "Mollie demande des informations sur votre compte. Complétez-les pour vendre des billets payants",
+    "mollieTitle": "Compte Mollie",
+    "mollieUnavailable": "Solde et virements indisponibles pour le moment.",
+    "mollieNotConnectedShort": "Aucun compte Mollie relié.",
+    "noInternalBalanceMollie": "Evoly ne garde aucun argent : vos ventes arrivent sur votre compte Mollie, qui vous verse selon son calendrier.",
+    "answerDisputesMollie": "Répondre dans Mollie",
+    "mollieActiveLead": "Compte Mollie actif.",
+    "mollieActiveHint": "Paiements et virements activés.",
+    "openMollieShort": "Ouvrir Mollie",
+    "footnoteMollie": "Les frais bancaires de Mollie sont estimés d’après ses tarifs publics. Les commissions Evoly ne sont pas restituées lors d’un remboursement."
   },
   "billing": {
     "title": "Abonnement",

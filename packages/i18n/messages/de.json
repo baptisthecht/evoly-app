@@ -2273,7 +2273,19 @@
     "state_CANCELLED": "abgesagt",
     "state_ARCHIVED": "archiviert",
     "state_DRAFT": "Entwurf",
-    "state_free": "kostenlos"
+    "state_free": "kostenlos",
+    "mollieNotConnected": "Verbinden Sie Ihr Mollie-Konto, um kostenpflichtige Tickets zu verkaufen und Ihre Auszahlungen zu erhalten",
+    "mollieRestricted": "Ihr Mollie-Konto ist gesperrt: Zahlungen oder Auszahlungen sind gestoppt. Wenden Sie sich an Mollie",
+    "mollieActionRequired": "Mollie benötigt Angaben zu Ihrem Konto. Vervollständigen Sie sie, um kostenpflichtige Tickets zu verkaufen",
+    "mollieTitle": "Mollie-Konto",
+    "mollieUnavailable": "Saldo und Auszahlungen sind gerade nicht verfügbar.",
+    "mollieNotConnectedShort": "Kein Mollie-Konto verbunden.",
+    "noInternalBalanceMollie": "Evoly behält kein Geld: Ihre Verkäufe gehen auf Ihr Mollie-Konto, das Ihnen nach seinem eigenen Zeitplan auszahlt.",
+    "answerDisputesMollie": "In Mollie antworten",
+    "mollieActiveLead": "Mollie-Konto aktiv.",
+    "mollieActiveHint": "Zahlungen und Auszahlungen aktiviert.",
+    "openMollieShort": "Mollie öffnen",
+    "footnoteMollie": "Die Bankgebühren von Mollie sind anhand der öffentlichen Preise geschätzt. Die Provisionen von Evoly werden bei einer Erstattung nicht zurückgegeben."
   },
   "settings": {
     "title": "Einstellungen",

@@ -2036,7 +2036,19 @@
     "state_CANCELLED": "cancelled",
     "state_ARCHIVED": "archived",
     "state_DRAFT": "draft",
-    "state_free": "free"
+    "state_free": "free",
+    "mollieNotConnected": "Link your Mollie account to sell paid tickets and receive your payouts",
+    "mollieRestricted": "Your Mollie account is blocked: payments or payouts are stopped. Check with Mollie",
+    "mollieActionRequired": "Mollie needs information about your account. Complete it to sell paid tickets",
+    "mollieTitle": "Mollie account",
+    "mollieUnavailable": "Balance and payouts unavailable for now.",
+    "mollieNotConnectedShort": "No Mollie account linked.",
+    "noInternalBalanceMollie": "Evoly keeps no money: your sales go to your Mollie account, which pays you out on its own schedule.",
+    "answerDisputesMollie": "Respond in Mollie",
+    "mollieActiveLead": "Mollie account active.",
+    "mollieActiveHint": "Payments and payouts enabled.",
+    "openMollieShort": "Open Mollie",
+    "footnoteMollie": "Mollie bank fees are estimated from its public prices. Evoly commissions are not returned on a refund."
   },
   "billing": {
     "title": "Billing",

@@ -52,3 +52,34 @@ describe("frais bancaires selon le prestataire (docs/MOLLIE.md)", () => {
     ).toBe(true);
   });
 });
+
+describe("estimations affichées selon le prestataire (docs/MOLLIE.md)", () => {
+  it("aide au prix et totaux des finances : grille Mollie pour un organisateur ou une commande Mollie", async () => {
+    const { EUR_TERMS, netForGross, ticketCommission } =
+      await import("../src/fees");
+    const { financeTotals } = await import("../src/finance");
+    const terms = EUR_TERMS.free;
+    const mollie = { ...terms, bankFeeProvider: "MOLLIE" as const };
+    expect(netForGross(2000, mollie)).toBe(
+      2000 -
+        ticketCommission(2000, terms) -
+        estimateBankFee(2000, "card_eea_standard", "MOLLIE"),
+    );
+    expect(netForGross(2000, terms)).toBe(
+      2000 - ticketCommission(2000, terms) - estimateBankFee(2000),
+    );
+    const order = {
+      eventId: "e",
+      status: "PAID",
+      totalMinor: 2000,
+      refundedMinor: 0,
+      applicationFeeMinor: 0,
+      paymentFeeMinor: null,
+      tickets: 1,
+    };
+    expect(
+      financeTotals([{ ...order, paymentProvider: "MOLLIE" }]).bankFeeMinor,
+    ).toBe(61);
+    expect(financeTotals([order]).bankFeeMinor).toBe(55);
+  });
+});

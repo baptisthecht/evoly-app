@@ -73,9 +73,11 @@ test("création, aperçu, publication et page publique d'un événement gratuit"
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Nom du tarif").fill("VIP");
   await dialog.getByLabel("Prix").fill("45");
-  await expect(dialog.getByText(/Vous percevez environ 42,88/)).toBeVisible();
+  // sans compte de paiement, frais estimés d'après la grille Mollie (docs/MOLLIE.md) : 45 € moins 1,19 € de commission
+  // et 1,06 € de frais (1,8 % + 0,25 €)
+  await expect(dialog.getByText(/Vous percevez environ 42,75/)).toBeVisible();
   await dialog.getByRole("button", { name: "Plus d’options" }).click();
-  await expect(dialog.getByText(/Vous percevez environ 42,88/)).toHaveCount(1);
+  await expect(dialog.getByText(/Vous percevez environ 42,75/)).toHaveCount(1);
   await dialog.getByRole("button", { name: "Créer le tarif" }).click();
   await expect(
     page.getByText(

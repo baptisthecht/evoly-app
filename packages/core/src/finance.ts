@@ -1,4 +1,4 @@
-import { estimateBankFee } from "./bankFees";
+import { estimateBankFee, type FeeProvider } from "./bankFees";
 import type { Minor } from "./money";
 
 export interface FinanceOrder {
@@ -7,8 +7,10 @@ export interface FinanceOrder {
   totalMinor: Minor;
   refundedMinor: Minor;
   applicationFeeMinor: Minor;
-  /** Frais Stripe réels, connus après le paiement (RG-FEE-12). */
+  /** Frais réels du prestataire, connus après le paiement (RG-FEE-12). */
   paymentFeeMinor: Minor | null;
+  /** Prestataire du paiement (docs/MOLLIE.md) : la grille d'estimation en dépend. */
+  paymentProvider?: FeeProvider | null;
   tickets: number;
 }
 
@@ -50,7 +52,13 @@ export function financeTotals(orders: readonly FinanceOrder[]): FinanceTotals {
     t.commissionMinor += o.applicationFeeMinor;
     if (o.totalMinor > 0) {
       if (o.paymentFeeMinor == null) t.bankFeeEstimated = true;
-      t.bankFeeMinor += o.paymentFeeMinor ?? estimateBankFee(o.totalMinor);
+      t.bankFeeMinor +=
+        o.paymentFeeMinor ??
+        estimateBankFee(
+          o.totalMinor,
+          "card_eea_standard",
+          o.paymentProvider ?? "STRIPE",
+        );
     }
   }
   t.netMinor =

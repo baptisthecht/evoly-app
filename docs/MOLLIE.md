@@ -79,6 +79,20 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
   frais réels manquent (lot 5).
 - **Moyens non remboursables** : cartes cadeaux, bons et paysafecard ; une place payée ainsi ne se revend pas.
 
+## Finances avec Mollie (lot 5)
+
+- **Solde et versements** lus chez Mollie (solde disponible et en attente, dix derniers versements), jamais déclenchés
+  par Evoly (RG-FIN-01). Mollie indisponible ou compte à relier : la page le dit, sans rien inventer.
+- **Rétrofacturations** : signalées par le webhook du paiement, copiées comme litiges et rattachées à la commande ;
+  chaque nouvelle prévient l'organisateur (et par e-mail) ; annulée par Mollie, elle passe « gagnée ». La réponse se
+  fait dans Mollie.
+- **Versement échoué** vers la banque de l'organisateur : signalé une seule fois par la tâche horaire.
+- **Frais estimés** d'après la grille Mollie (aide au prix des tarifs, totaux des Finances) pour un organisateur relié à
+  Mollie, ou sans compte ; les frais réels de chaque paiement (transactions du solde Mollie) restent à brancher.
+- **Reversements aux lieux partenaires** : à trancher par le porteur (virement bancaire par Evoly, ou transferts entre
+  soldes Connect, à faire activer par Mollie, avec l'accord de chaque lieu et 1 000 € par mois au plus). D'ici là, ils
+  restent sur Stripe pour les lieux qui y ont un compte.
+
 ## Lots
 
 1. **Fondations** : client Mollie, chiffrement des jetons, compte Mollie de l'organisateur en base, variables

@@ -20,6 +20,8 @@ import { stripe } from "@/lib/stripe";
 import type { OrgContext } from "./context";
 import { sendEmail } from "./email/send";
 import { notify } from "./notifications";
+import { mollieReady } from "./mollieAccounts";
+import { mollieOverview } from "./mollieFinances";
 import { safeError } from "@/lib/redact";
 import { csvSafe } from "@/lib/csv";
 
@@ -188,6 +190,7 @@ async function periodOrders(
       refundedMinor: true,
       applicationFeeMinor: true,
       paymentFeeMinor: true,
+      paymentProvider: true,
       netMinor: true,
       paidAt: true,
       buyerFirstName: true,
@@ -369,6 +372,52 @@ export async function stripeOverview(ctx: OrgContext) {
     payouts,
     unavailable,
     disputes,
+  };
+}
+
+/**
+ * Compte qui encaisse, vu des Finances (docs/MOLLIE.md, lot 5) : le compte Mollie dès qu'il est relié, sinon l'ancien
+ * compte Stripe. Même forme pour les deux, avec le tableau de bord du prestataire.
+ */
+export async function paymentsOverview(ctx: OrgContext) {
+  const mollie = await db.mollieAccount.findUnique({
+    where: { organizationId: ctx.organization.id },
+  });
+  if (mollie && !mollie.disconnectedAt) {
+    const { balance, payouts, unavailable } = await mollieOverview(
+      ctx.organization.id,
+    );
+    const disputes = await db.dispute.findMany({
+      where: {
+        accountId: mollie.mollieOrganizationId,
+        status: { in: ["NEEDS_RESPONSE", "UNDER_REVIEW"] },
+      },
+      include: { order: { select: { id: true, reference: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return {
+      connected: true as const,
+      provider: "MOLLIE" as const,
+      ready: mollieReady(mollie),
+      restricted: mollie.profileStatus === "blocked",
+      actionRequired:
+        !mollieReady(mollie) || mollie.onboardingStatus === "NEEDS_DATA",
+      balance,
+      payouts,
+      unavailable,
+      disputes,
+      dashboardUrl: "https://my.mollie.com/dashboard",
+    };
+  }
+  const s = await stripeOverview(ctx);
+  if (!s.connected) return { connected: false as const, provider: null };
+  return {
+    ...s,
+    provider: "STRIPE" as const,
+    ready: s.status === "ACTIVE" && s.requirementsDue === 0,
+    restricted: s.status === "RESTRICTED" || s.status === "DISABLED",
+    actionRequired: s.status !== "ACTIVE" || s.requirementsDue > 0,
+    dashboardUrl: "https://dashboard.stripe.com/",
   };
 }
 

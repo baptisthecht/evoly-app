@@ -2,6 +2,7 @@ import { env } from "@/lib/env";
 import { notifyGrantedProEnding } from "@/server/billing";
 import { aggregateDailyStats, purgeExpiredTokens } from "@/server/maintenance";
 import { syncMollieAccounts } from "@/server/mollieConnect";
+import { notifyFailedSettlements } from "@/server/mollieFinances";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,5 +20,6 @@ export async function GET(req: Request) {
     dailyStats: await aggregateDailyStats(),
     grantedProEnding: await notifyGrantedProEnding(),
     mollieAccounts: await syncMollieAccounts(),
+    mollieFailedSettlements: await notifyFailedSettlements(),
   });
 }
