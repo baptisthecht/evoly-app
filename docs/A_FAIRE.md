@@ -63,6 +63,8 @@ Décidé le 27 octobre 2026 (les lots 1 à 3 sont en ligne : limites par acheteu
   un mois avant, puis `ops/deploy.sh`.
 - 18 novembre 2026 : installer node-forge 1.4.3 (14 jours après sa publication) et retirer les 4 exclusions de
   `pnpm audit` (`package.json`, `docs/SECURITE.md`).
+- picomatch : dès qu'une version corrige l'avis GHSA-fc5q-39xc-vjpf et a 14 jours, l'installer (dépendance indirecte,
+  `pnpm-lock.yaml`) et retirer son exclusion de `pnpm audit` (`package.json`, `docs/SECURITE.md`).
 - Arrêter les tâches planifiées de l'ancienne installation (adresse 51.75.16.245), qui appellent toutes les 5 minutes des adresses qui n'existent plus et exposent un secret dans les journaux de Caddy.
 - Vérifier que ce secret n'est plus celui d'Evoly (`grep -c 'o5pwJ' .env` doit afficher 0), sinon le changer.
 - Libérer de la place sur le disque du serveur (79 % le 26 octobre 2026) : `docker image prune -f` et `docker builder prune -f --filter until=72h`.

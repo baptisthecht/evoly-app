@@ -9,6 +9,12 @@ Complément de la section 13 du cahier des charges : ce qui est en place, les ex
 
 ### Exclusions justifiées
 
+Depuis le 18 novembre 2026, sur décision du propriétaire, un avis de picomatch qui vise toutes les versions jusqu'à la dernière, 4.0.7 (publiée le 24 août 2026) : aucune version corrigée n'existe. La faille demande un motif choisi par l'attaquant (extglob répété à une seule branche, comme `+(*)`). picomatch ne sert qu'aux outils de construction, de test et de développement, avec des motifs écrits dans leur configuration : lint-staged, Vite et Vitest (par fdir et tinyglobby). next-intl le tire par @parcel/watcher, qui ne sert qu'à son extracteur de messages, qu'Evoly n'active pas (`apps/app/next.config.ts`), et better-auth par Vitest, une dépendance facultative ; ces deux chemins passent par les dépendances de production, la tâche `audit` de l'intégration continue l'exclut donc aussi. Le code d'Evoly n'importe aucune bibliothèque de motifs. À retirer quand une version corrigée aura 14 jours.
+
+| Avis                        | Paquet            | Pourquoi il ne s'applique pas                                                                                                                           | Retrait                                  |
+| --------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| GHSA-fc5q-39xc-vjpf (élevé) | picomatch ≤ 4.0.7 | expression régulière lente avec un motif piégé (extglob répété comme `+(*)`) : les motifs viennent de la configuration des outils, jamais d'un visiteur | quand une version corrigée aura 14 jours |
+
 Depuis le 16 novembre 2026, quatre avis de node-forge, corrigés en 1.4.3 (publiée le 4 novembre 2026), qui ne peut être installée qu'à partir du 18 novembre (14 jours, `docs/MAINTENANCE.md`). Evoly n'utilise node-forge que pour signer les pass Apple Wallet (`apps/app/src/server/wallet/apple.ts` : lecture de son propre certificat et de sa propre clé, signature PKCS#7) ; aucun de ces avis ne touche ce code. À retirer en installant 1.4.3 le 18 novembre.
 
 | Avis                         | Paquet             | Pourquoi il ne s'applique pas                                                                                                     | Retrait          |
