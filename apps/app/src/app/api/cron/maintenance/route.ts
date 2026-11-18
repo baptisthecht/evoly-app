@@ -1,11 +1,15 @@
 import { env } from "@/lib/env";
 import { notifyGrantedProEnding } from "@/server/billing";
 import { aggregateDailyStats, purgeExpiredTokens } from "@/server/maintenance";
+import { syncMollieAccounts } from "@/server/mollieConnect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Toutes les heures (section 11) : jetons, invitations et redirections expirés ; agrégats quotidiens des événements. */
+/**
+ * Toutes les heures (section 11) : jetons, invitations et redirections expirés ; agrégats quotidiens des événements ;
+ * comptes Mollie relus (docs/MOLLIE.md : Mollie n'envoie pas d'événement pour l'inscription).
+ */
 export async function GET(req: Request) {
   const secret = env().CRON_SECRET;
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`)
@@ -14,5 +18,6 @@ export async function GET(req: Request) {
     purged: await purgeExpiredTokens(),
     dailyStats: await aggregateDailyStats(),
     grantedProEnding: await notifyGrantedProEnding(),
+    mollieAccounts: await syncMollieAccounts(),
   });
 }

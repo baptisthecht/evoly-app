@@ -23,10 +23,12 @@ const PERMISSION: Record<NotificationType, Permission> = {
   EVENT_PUBLISHED: "EVENTS_PUBLISH",
   PAYOUT_FAILED: "FINANCE_VIEW",
   BUYER_FLAGGED: "ORDERS_MANAGE",
+  MOLLIE_ACTION_REQUIRED: "PAYMENTS_MANAGE",
 };
 /** RG-NTF-02 : notifications importantes, aussi envoyées par e-mail au propriétaire et aux administrateurs. */
 const IMPORTANT = new Set<NotificationType>([
   "STRIPE_ACTION_REQUIRED",
+  "MOLLIE_ACTION_REQUIRED",
   "SUBSCRIPTION_PAYMENT_FAILED",
   "DISPUTE_OPENED",
   "REFUND_REQUESTED",

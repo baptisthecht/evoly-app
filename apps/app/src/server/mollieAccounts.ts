@@ -120,18 +120,48 @@ export async function mollieAccessToken(
   return t.access_token;
 }
 
-/** API Mollie pour le compte relié d'une organisation (mode test compris) ; null sans compte Mollie. */
-export async function mollieForOrganization(
-  organizationId: string,
-): Promise<{ account: MollieAccount; api: MollieApi } | null> {
+/**
+ * API Mollie pour le compte relié d'une organisation ; null sans compte Mollie. `api` porte le mode test du compte
+ * (paiements, remboursements, moyens de paiement) ; `plain` sert aux ressources communes aux deux modes (organisation,
+ * inscription, profils).
+ */
+export async function mollieForOrganization(organizationId: string): Promise<{
+  account: MollieAccount;
+  api: MollieApi;
+  plain: MollieApi;
+} | null> {
   const account = await db.mollieAccount.findUnique({
     where: { organizationId },
   });
   if (!account) return null;
+  const token = await mollieAccessToken(account);
   return {
     account,
-    api: mollieApi(await mollieAccessToken(account), account.testmode),
+    api: mollieApi(token, account.testmode),
+    plain: mollieApi(token),
   };
+}
+
+/**
+ * Le compte peut recevoir des paiements de billets : relié, profil non bloqué et au moins un moyen de paiement actif ;
+ * en mode réel, inscription acceptée par Mollie et profil vérifié (en mode test, Mollie accepte les paiements de test
+ * avant).
+ */
+export function mollieReady(
+  a: Pick<
+    MollieAccount,
+    | "disconnectedAt"
+    | "testmode"
+    | "canReceivePayments"
+    | "profileId"
+    | "profileStatus"
+    | "methods"
+  >,
+): boolean {
+  if (a.disconnectedAt || !a.profileId || a.profileStatus === "blocked")
+    return false;
+  if (a.methods.length === 0) return false;
+  return a.testmode || (a.canReceivePayments && a.profileStatus === "verified");
 }
 
 /**
@@ -144,7 +174,11 @@ export async function revokeMollieAuthorization(
   try {
     await oauthRevoke(tokens.open(account.refreshToken), "refresh_token");
   } catch (e) {
-    if (!(e instanceof MollieError)) throw e;
+    // déjà retirée chez Mollie, ou application Connect plus configurée : la déconnexion se fait côté Evoly
+    const local =
+      e instanceof MollieError ||
+      (e instanceof CoreError && e.code === "MOLLIE_NOT_CONFIGURED");
+    if (!local) throw e;
   }
   await db.mollieAccount.update({
     where: { id: account.id },

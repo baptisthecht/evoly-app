@@ -498,7 +498,8 @@
     "SUBDOMAIN_TAKEN": "Este endereço já está ocupado.",
     "textLength": "Texto demasiado longo ou demasiado curto.",
     "datetime": "Data e hora inválidas.",
-    "number": "Número inválido."
+    "number": "Número inválido.",
+    "MOLLIE_PHONE_INVALID": "Número ilegível: indique-o com o indicativo do país, por exemplo +32 470 12 34 56."
   },
   "orders": {
     "confirmationTitle": "Está reservado!",
@@ -781,7 +782,7 @@
     "typeCompany": "Uma empresa",
     "typePublicBody": "Um organismo público",
     "paymentsTitle": "Receber as suas vendas",
-    "paymentsBody": "Ligue a sua conta Stripe para receber o dinheiro dos seus bilhetes diretamente na sua conta bancária.",
+    "paymentsBody": "Ligue a sua conta Mollie para receber o dinheiro dos seus bilhetes diretamente na sua conta bancária.",
     "connectStripe": "Ligar a minha conta Stripe",
     "firstEventTitle": "O seu primeiro evento",
     "createFirstEvent": "Criar o meu primeiro evento",
@@ -799,9 +800,9 @@
     "type_PUBLIC_BODY": "Organismo público",
     "terms": "Aceito as <cgu>condições de utilização</cgu> da Evoly e o <dpa>acordo de subcontratação de dados</dpa>.",
     "createOrganization": "Criar a minha organização",
-    "paymentsPoint1": "O dinheiro dos seus bilhetes chega diretamente à sua conta bancária, segundo o calendário da Stripe.",
-    "paymentsPoint2": "As taxas bancárias são faturadas pela Stripe ao preço de custo. A Evoly não fica com nenhuma margem.",
-    "paymentsPoint3": "Já pode criar eventos gratuitos. A conta Stripe é necessária para vender bilhetes pagos.",
+    "paymentsPoint1": "O dinheiro dos seus bilhetes chega diretamente à sua conta bancária, segundo o calendário da Mollie.",
+    "paymentsPoint2": "As taxas bancárias são faturadas pela Mollie ao preço de custo. A Evoly não fica com nenhuma margem.",
+    "paymentsPoint3": "Já pode criar eventos gratuitos. A conta Mollie é necessária para vender bilhetes pagos.",
     "paymentsLater": "Mais tarde",
     "paymentsLaterHint": "Vai encontrar esta definição em Definições, depois Recebimentos."
   },
@@ -1387,7 +1388,12 @@
     "BUYER_TYPE_LIMIT_REACHED": "Atingiu o número máximo de bilhetes por pessoa para esta tarifa.",
     "PRESALE_BUYER_LIMIT_REACHED": "Atingiu o número máximo de bilhetes por pessoa durante a pré-venda.",
     "BLOCK_NEEDS_EMAIL_OR_NAME": "Indique um endereço de e-mail, ou um nome e apelido.",
-    "BUYER_BLOCKED": "Esta encomenda não pode ser concluída. Contacte o organizador."
+    "BUYER_BLOCKED": "Esta encomenda não pode ser concluída. Contacte o organizador.",
+    "MOLLIE_NOT_CONFIGURED": "A Mollie ainda não está configurada na Evoly: tente novamente mais tarde.",
+    "MOLLIE_RECONNECT_REQUIRED": "A sua conta Mollie já não está ligada à Evoly: ligue-a novamente para continuar.",
+    "MOLLIE_UNAVAILABLE": "A Mollie não está a responder de momento: tente novamente daqui a alguns minutos.",
+    "MOLLIE_ACCOUNT_IN_USE": "Esta conta Mollie já está ligada a outra organização na Evoly.",
+    "MOLLIE_STATE_INVALID": "A ligação com a Mollie expirou: comece de novo."
   },
   "eventSettings": {
     "unsaved": "Alterações em curso…",
@@ -2274,8 +2280,8 @@
     "currency": "Moeda",
     "timezone": "Fuso horário",
     "payments": "Recebimentos",
-    "paymentsSummary": "A sua conta Stripe, para onde vai o dinheiro das suas vendas.",
-    "paymentsIntro": "Os pagamentos dos seus participantes chegam à sua própria conta Stripe e depois à sua conta bancária.",
+    "paymentsSummary": "A sua conta Mollie, para onde vai o dinheiro das suas vendas.",
+    "paymentsIntro": "Os pagamentos dos seus participantes chegam à sua própria conta Mollie e depois à sua conta bancária.",
     "stripeStatus_NONE": "Não ligada",
     "stripeStatus_PENDING": "Configuração em curso",
     "stripeStatus_ACTIVE": "Ativa",
@@ -2762,7 +2768,9 @@
     "pref_PAYOUT_FAILED": "Transferência falhada",
     "pref_EVENT_PUBLISHED": "Evento publicado",
     "type_BUYER_FLAGGED": "Encomenda sinalizada",
-    "pref_BUYER_FLAGGED": "Encomenda em nome de uma pessoa bloqueada"
+    "pref_BUYER_FLAGGED": "Encomenda em nome de uma pessoa bloqueada",
+    "type_MOLLIE_ACTION_REQUIRED": "Mollie",
+    "pref_MOLLIE_ACTION_REQUIRED": "Ação necessária na Mollie"
   },
   "entries": {
     "result_VALID": "Entrada validada",
@@ -3737,5 +3745,43 @@
     "soldOutAt": "A este ritmo, esgotado por volta de {date}",
     "label": "{sold} de {capacity} lugares vendidos, {pace}",
     "notStartedOn": "à venda a {date}"
+  },
+  "mollie": {
+    "explain_none": "Os pagamentos dos seus bilhetes chegam à sua própria conta Mollie, verificada pela Mollie. Crie-a em poucos minutos ou ligue a que já tem.",
+    "explain_disconnected": "A sua conta Mollie já não está ligada à Evoly. Ligue-a novamente para vender bilhetes pagos.",
+    "explain_needsData": "A Mollie ainda precisa de informações sobre a sua organização antes de ativar os pagamentos.",
+    "explain_inReview": "A Mollie está a verificar as informações da sua organização. Receberá um e-mail da Mollie assim que terminar.",
+    "explain_pending": "A Mollie aprovou a sua conta e ainda está a ativar o seu site ou os seus métodos de pagamento.",
+    "explain_ready": "A sua conta Mollie está pronta: os pagamentos chegam à sua conta e a Mollie transfere-lhe o seu dinheiro.",
+    "status_none": "Não ligada",
+    "status_disconnected": "Desligada",
+    "status_needsData": "Informações em falta",
+    "status_inReview": "Em verificação",
+    "status_pending": "Em ativação",
+    "status_ready": "Pronta",
+    "testmode": "Modo de teste",
+    "methods": "Métodos de pagamento: {list}",
+    "methodsNone": "Ainda não há nenhum método de pagamento ativo.",
+    "method_creditcard": "cartões",
+    "method_bancontact": "Bancontact",
+    "method_applepay": "Apple Pay",
+    "method_ideal": "iDEAL",
+    "method_paypal": "PayPal",
+    "settlementsOn": "Transferências para o seu banco: ativadas",
+    "settlementsOff": "Transferências para o seu banco: ainda não ativadas",
+    "phoneLabel": "Telefone da organização",
+    "phoneHint": "A Mollie exige-o para a sua conta e pode mostrá-lo aos seus compradores.",
+    "createAccount": "Criar a minha conta Mollie",
+    "linkAccount": "Já tenho uma conta Mollie",
+    "complete": "Completar na Mollie",
+    "open": "Abrir a Mollie",
+    "disconnect": "Desligar",
+    "disconnectTitle": "Desligar a sua conta Mollie?",
+    "disconnectBody": "A Evoly deixará de poder criar pagamentos na sua conta Mollie: os seus bilhetes pagos deixarão de estar à venda até a ligar novamente. A sua conta e o seu dinheiro ficam na Mollie.",
+    "disclosure": "Os serviços de pagamento são prestados pela Mollie B.V., Keizersgracht 126, 1015 CW Amesterdão, Países Baixos (KvK 30204462), instituição de moeda eletrónica e de pagamento autorizada e supervisionada pelo De Nederlandsche Bank (número F0038).",
+    "notConfiguredTitle": "A Mollie ainda não está configurada",
+    "notConfiguredBody": "A aplicação Mollie da Evoly não está configurada neste servidor (MOLLIE_CLIENT_ID e MOLLIE_CLIENT_SECRET).",
+    "result_connected": "A sua conta Mollie está ligada à Evoly.",
+    "result_denied": "Cancelou a ligação com a Mollie: nada mudou."
   }
 }

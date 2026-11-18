@@ -11,7 +11,9 @@ import {
 } from "@evoly/core";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import type { MollieOnboardingStatus } from "@evoly/db";
 import { db } from "@/lib/db";
+import { mollieReady } from "./mollieAccounts";
 import { getPlans } from "./plans";
 import { requireUser } from "./session";
 
@@ -42,6 +44,18 @@ export interface OrgContext {
     payoutsEnabled: boolean;
     requirementsDue: string[];
   } | null;
+  /** Compte Mollie de l'organisateur (docs/MOLLIE.md) ; `ready` : il peut recevoir des paiements de billets. */
+  mollie: {
+    ready: boolean;
+    disconnected: boolean;
+    onboardingStatus: MollieOnboardingStatus;
+    canReceivePayments: boolean;
+    canReceiveSettlements: boolean;
+    profileStatus: string | null;
+    methods: string[];
+    onboardingUrl: string | null;
+    testmode: boolean;
+  } | null;
 }
 
 /** Charge l'organisation par son identifiant d'URL, uniquement si l'utilisateur en est membre actif (RG-ARC-07). */
@@ -66,14 +80,22 @@ export async function findOrgContext(
         include: {
           role: true,
           organization: {
-            include: { subscription: true, stripeAccount: true },
+            include: {
+              subscription: true,
+              stripeAccount: true,
+              mollieAccount: true,
+            },
           },
         },
       });
   const supportOrg = opts.supportView
     ? await db.organization.findFirst({
         where: { slug: orgSlug, deletedAt: null },
-        include: { subscription: true, stripeAccount: true },
+        include: {
+          subscription: true,
+          stripeAccount: true,
+          mollieAccount: true,
+        },
       })
     : null;
   if (!found && !supportOrg) return null;
@@ -125,6 +147,7 @@ export async function findOrgContext(
     }
   }
   const sa = o.stripeAccount;
+  const ma = o.mollieAccount;
   // RG-SUB-08 : en Free, seuls les propriétaires accèdent ; les autres membres sont suspendus sans perdre leur rôle
   if (
     !opts.supportView &&
@@ -164,6 +187,19 @@ export async function findOrgContext(
           requirementsDue: Array.isArray(sa.requirementsDue)
             ? (sa.requirementsDue as string[])
             : [],
+        }
+      : null,
+    mollie: ma
+      ? {
+          ready: mollieReady(ma),
+          disconnected: !!ma.disconnectedAt,
+          onboardingStatus: ma.onboardingStatus,
+          canReceivePayments: ma.canReceivePayments,
+          canReceiveSettlements: ma.canReceiveSettlements,
+          profileStatus: ma.profileStatus,
+          methods: ma.methods,
+          onboardingUrl: ma.onboardingUrl,
+          testmode: ma.testmode,
         }
       : null,
   };

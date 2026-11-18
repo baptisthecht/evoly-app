@@ -22,7 +22,9 @@ export function useActionForm<S>(
   const [state, dispatch, pending] = useActionState(action, initial);
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
+    // le bouton cliqué compte, comme dans un envoi natif (deux boutons, deux choix : name et value du bouton)
+    const submitter = (e.nativeEvent as SubmitEvent).submitter;
+    const data = new FormData(e.currentTarget, submitter);
     startTransition(() => dispatch(data));
   };
   return { state, pending, formProps: { action: dispatch, onSubmit } };
@@ -35,12 +37,17 @@ export function SubmitButton({
   variant = "dark",
   className,
   pending: forced,
+  name,
+  value,
 }: {
   children: ReactNode;
   pendingLabel?: string;
   variant?: "primary" | "dark" | "secondary" | "ghost" | "danger";
   className?: string;
   pending?: boolean;
+  /** Choix porté par ce bouton quand le formulaire en a plusieurs. */
+  name?: string;
+  value?: string;
 }) {
   const status = useFormStatus();
   const pending = forced ?? status.pending;
@@ -49,6 +56,8 @@ export function SubmitButton({
     <Button
       type="submit"
       size="lg"
+      name={name}
+      value={value}
       variant={variant}
       disabled={pending}
       aria-busy={pending}

@@ -371,6 +371,8 @@ model MollieAccount {
   onboardingStatus      MollieOnboardingStatus @default(NEEDS_DATA)
   canReceivePayments    Boolean                @default(false)
   canReceiveSettlements Boolean                @default(false)
+  onboardingUrl         String? // page Mollie où l'organisateur complète son inscription
+  syncedAt              DateTime? // dernière relecture de l'état chez Mollie
   refreshToken          String // chiffré (lib/seal.ts) ; n'expire pas
   accessToken           String? // chiffré ; valable une heure
   accessTokenExpiresAt  DateTime?
@@ -1827,6 +1829,7 @@ enum NotificationType {
   EVENT_PUBLISHED // événement programmé devenu public
   PAYOUT_FAILED // virement Stripe vers la banque de l'organisateur échoué
   BUYER_FLAGGED // commande passée sous le nom d'une personne bloquée
+  MOLLIE_ACTION_REQUIRED // Mollie attend des informations, ou le compte Mollie n'est plus relié
 }
 
 model Notification {

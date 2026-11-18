@@ -46,6 +46,9 @@ jobs:
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       ORDER_TOKEN_SECRET: ci-order-token-secret-0123456789abcdef
       CRON_SECRET: ci-cron-secret-0123456789abcdef
+      # Mollie Connect : application factice (le test vérifie la redirection vers Mollie, docs/MOLLIE.md)
+      MOLLIE_CLIENT_ID: app_e2e_evoly
+      MOLLIE_CLIENT_SECRET: secret-de-test
       # connexion Google : identifiants factices (le test vérifie seulement la redirection vers Google)
       AUTH_GOOGLE_ID: evoly-test.apps.googleusercontent.com
       AUTH_GOOGLE_SECRET: secret-de-test

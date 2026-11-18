@@ -498,7 +498,8 @@
     "SUBDOMAIN_TAKEN": "Dit adres is al in gebruik.",
     "textLength": "Tekst te lang of te kort.",
     "datetime": "Ongeldige datum of tijd.",
-    "number": "Ongeldig getal."
+    "number": "Ongeldig getal.",
+    "MOLLIE_PHONE_INVALID": "Onleesbaar nummer: vul het in met de landcode, bijvoorbeeld +32 470 12 34 56."
   },
   "orders": {
     "confirmationTitle": "Gereserveerd!",
@@ -781,7 +782,7 @@
     "typeCompany": "Een bedrijf",
     "typePublicBody": "Een openbare instelling",
     "paymentsTitle": "Je verkoop innen",
-    "paymentsBody": "Koppel je Stripe-account om het geld van je tickets rechtstreeks op je bankrekening te ontvangen.",
+    "paymentsBody": "Koppel je Mollie-account om het geld van je tickets rechtstreeks op je bankrekening te ontvangen.",
     "connectStripe": "Mijn Stripe-account koppelen",
     "firstEventTitle": "Je eerste evenement",
     "createFirstEvent": "Mijn eerste evenement maken",
@@ -799,9 +800,9 @@
     "type_PUBLIC_BODY": "Openbare instelling",
     "terms": "Ik aanvaard de <cgu>gebruiksvoorwaarden</cgu> van Evoly en de <dpa>verwerkersovereenkomst</dpa>.",
     "createOrganization": "Mijn organisatie aanmaken",
-    "paymentsPoint1": "Het geld van je tickets komt rechtstreeks op je bankrekening, volgens het uitbetalingsschema van Stripe.",
-    "paymentsPoint2": "De bankkosten worden door Stripe tegen kostprijs aangerekend. Evoly neemt er geen marge op.",
-    "paymentsPoint3": "Je kunt al gratis evenementen maken. Voor betaalde tickets heb je een Stripe-account nodig.",
+    "paymentsPoint1": "Het geld van je tickets komt rechtstreeks op je bankrekening, volgens het uitbetalingsschema van Mollie.",
+    "paymentsPoint2": "De bankkosten worden door Mollie tegen kostprijs aangerekend. Evoly neemt er geen marge op.",
+    "paymentsPoint3": "Je kunt al gratis evenementen maken. Voor betaalde tickets heb je een Mollie-account nodig.",
     "paymentsLater": "Later",
     "paymentsLaterHint": "Je vindt deze instelling terug onder Instellingen, daarna Inning."
   },
@@ -1387,7 +1388,12 @@
     "BUYER_TYPE_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon voor dit tarief bereikt.",
     "PRESALE_BUYER_LIMIT_REACHED": "Je hebt het maximumaantal tickets per persoon tijdens de voorverkoop bereikt.",
     "BLOCK_NEEDS_EMAIL_OR_NAME": "Vul een e-mailadres in, of een voor- en achternaam.",
-    "BUYER_BLOCKED": "Deze bestelling kan niet worden afgerond. Neem contact op met de organisator."
+    "BUYER_BLOCKED": "Deze bestelling kan niet worden afgerond. Neem contact op met de organisator.",
+    "MOLLIE_NOT_CONFIGURED": "Mollie is nog niet ingesteld op Evoly: probeer het later opnieuw.",
+    "MOLLIE_RECONNECT_REQUIRED": "Je Mollie-account is niet meer gekoppeld aan Evoly: koppel het opnieuw om verder te gaan.",
+    "MOLLIE_UNAVAILABLE": "Mollie reageert nu niet: probeer het over een paar minuten opnieuw.",
+    "MOLLIE_ACCOUNT_IN_USE": "Dit Mollie-account is al gekoppeld aan een andere organisatie op Evoly.",
+    "MOLLIE_STATE_INVALID": "Het koppelen met Mollie is verlopen: begin opnieuw."
   },
   "eventSettings": {
     "unsaved": "Wijzigingen bezig…",
@@ -2274,8 +2280,8 @@
     "currency": "Munteenheid",
     "timezone": "Tijdzone",
     "payments": "Inning",
-    "paymentsSummary": "Je Stripe-account, waar het geld van je verkoop binnenkomt.",
-    "paymentsIntro": "De betalingen van je bezoekers komen op je eigen Stripe-account en daarna op je bankrekening.",
+    "paymentsSummary": "Je Mollie-account, waar het geld van je verkoop binnenkomt.",
+    "paymentsIntro": "De betalingen van je bezoekers komen op je eigen Mollie-account en daarna op je bankrekening.",
     "stripeStatus_NONE": "Niet gekoppeld",
     "stripeStatus_PENDING": "Instelling bezig",
     "stripeStatus_ACTIVE": "Actief",
@@ -2762,7 +2768,9 @@
     "pref_PAYOUT_FAILED": "Uitbetaling mislukt",
     "pref_EVENT_PUBLISHED": "Evenement gepubliceerd",
     "type_BUYER_FLAGGED": "Bestelling gemarkeerd",
-    "pref_BUYER_FLAGGED": "Bestelling op naam van een geblokkeerde persoon"
+    "pref_BUYER_FLAGGED": "Bestelling op naam van een geblokkeerde persoon",
+    "type_MOLLIE_ACTION_REQUIRED": "Mollie",
+    "pref_MOLLIE_ACTION_REQUIRED": "Actie vereist bij Mollie"
   },
   "entries": {
     "result_VALID": "Toegang bevestigd",
@@ -3737,5 +3745,43 @@
     "soldOutAt": "In dit tempo uitverkocht rond {date}",
     "label": "{sold} van {capacity} plaatsen verkocht, {pace}",
     "notStartedOn": "verkoop vanaf {date}"
+  },
+  "mollie": {
+    "explain_none": "Betalingen voor je tickets komen op je eigen Mollie-account, gecontroleerd door Mollie. Maak er in een paar minuten een aan, of koppel het account dat je al hebt.",
+    "explain_disconnected": "Je Mollie-account is niet meer gekoppeld aan Evoly. Koppel het opnieuw om betaalde tickets te verkopen.",
+    "explain_needsData": "Mollie heeft nog informatie over je organisatie nodig voordat de betalingen worden geactiveerd.",
+    "explain_inReview": "Mollie controleert de gegevens van je organisatie. Je krijgt een e-mail van Mollie zodra dat klaar is.",
+    "explain_pending": "Mollie heeft je account goedgekeurd en activeert nog je website of je betaalmethoden.",
+    "explain_ready": "Je Mollie-account is klaar: de betalingen komen op je account en Mollie betaalt je geld aan je uit.",
+    "status_none": "Niet gekoppeld",
+    "status_disconnected": "Ontkoppeld",
+    "status_needsData": "Gegevens nodig",
+    "status_inReview": "In controle",
+    "status_pending": "Wordt geactiveerd",
+    "status_ready": "Klaar",
+    "testmode": "Testmodus",
+    "methods": "Betaalmethoden: {list}",
+    "methodsNone": "Nog geen actieve betaalmethode.",
+    "method_creditcard": "kaarten",
+    "method_bancontact": "Bancontact",
+    "method_applepay": "Apple Pay",
+    "method_ideal": "iDEAL",
+    "method_paypal": "PayPal",
+    "settlementsOn": "Uitbetalingen naar je bank: geactiveerd",
+    "settlementsOff": "Uitbetalingen naar je bank: nog niet geactiveerd",
+    "phoneLabel": "Telefoonnummer van de organisatie",
+    "phoneHint": "Mollie heeft het nodig voor je account en kan het aan je kopers tonen.",
+    "createAccount": "Mijn Mollie-account aanmaken",
+    "linkAccount": "Ik heb al een Mollie-account",
+    "complete": "Aanvullen bij Mollie",
+    "open": "Mollie openen",
+    "disconnect": "Ontkoppelen",
+    "disconnectTitle": "Je Mollie-account ontkoppelen?",
+    "disconnectBody": "Evoly kan dan geen betalingen meer aanmaken op je Mollie-account: je betaalde tickets zijn niet meer te koop tot je het opnieuw koppelt. Je account en je geld blijven bij Mollie.",
+    "disclosure": "De betaaldiensten worden geleverd door Mollie B.V., Keizersgracht 126, 1015 CW Amsterdam (KvK 30204462), een elektronischgeldinstelling en betaalinstelling met een vergunning van en onder toezicht van De Nederlandsche Bank (nummer F0038).",
+    "notConfiguredTitle": "Mollie is nog niet ingesteld",
+    "notConfiguredBody": "De Mollie-app van Evoly is niet ingesteld op deze server (MOLLIE_CLIENT_ID en MOLLIE_CLIENT_SECRET).",
+    "result_connected": "Je Mollie-account is gekoppeld aan Evoly.",
+    "result_denied": "Je hebt het koppelen met Mollie geannuleerd: er is niets veranderd."
   }
 }

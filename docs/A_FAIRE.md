@@ -16,8 +16,12 @@ plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Bran
 
 - Lot 1, fondations : fait (client Mollie, chiffrement des jetons, compte Mollie de l'organisateur en base). Au
   déploiement : migration `20261118120000_mollie_comptes`.
-- Lots 2 à 7 : organisateurs, paiement des billets, remboursements et revente, finances, offre Pro, bascule ; puis la
-  boutique.
+- Lot 2, organisateurs : fait. Relier son compte Mollie dans Paramètres, Encaissement et à l'inscription (téléphone au
+  format international, création du compte chez Mollie ou connexion), profil de site avec cartes, Bancontact et Apple
+  Pay créé pour Evoly, état relu à l'ouverture de la page et chaque heure, notification « action requise chez Mollie »,
+  déconnexion. Au déploiement : migration `20261118130000_mollie_organisateurs`. Les billets payants par Mollie
+  arrivent au lot 3.
+- Lots 3 à 7 : paiement des billets, remboursements et revente, finances, offre Pro, bascule ; puis la boutique.
 - À faire par le porteur : application Connect « Evoly » (adresse de retour `https://app.evoly.me/api/mollie/oauth`),
   clés `MOLLIE_API_KEY`, `MOLLIE_CLIENT_ID` et `MOLLIE_CLIENT_SECRET` dans le `.env`, un deuxième compte Mollie de test
   pour jouer l'organisateur.

@@ -13,6 +13,7 @@ const REDIRECTS = [
   "https://checkout.stripe.com",
   "https://billing.stripe.com",
   "https://connect.stripe.com",
+  "https://my.mollie.com", // autorisation Mollie Connect (docs/MOLLIE.md)
   "https://accounts.google.com",
   "https://appleid.apple.com",
 ];

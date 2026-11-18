@@ -162,7 +162,7 @@
     "typeCompany": "Une entreprise",
     "typePublicBody": "Un organisme public",
     "paymentsTitle": "Encaisser vos ventes",
-    "paymentsBody": "Connectez votre compte Stripe pour recevoir l’argent de vos billets directement sur votre compte bancaire.",
+    "paymentsBody": "Connectez votre compte Mollie pour recevoir l’argent de vos billets directement sur votre compte bancaire.",
     "connectStripe": "Connecter mon compte Stripe",
     "firstEventTitle": "Votre premier événement",
     "createFirstEvent": "Créer mon premier événement",
@@ -180,9 +180,9 @@
     "type_PUBLIC_BODY": "Organisme public",
     "terms": "J’accepte les <cgu>conditions d’utilisation</cgu> d’Evoly et l’<dpa>accord de sous-traitance des données</dpa>.",
     "createOrganization": "Créer mon organisation",
-    "paymentsPoint1": "L’argent de vos billets arrive directement sur votre compte bancaire, selon le calendrier de Stripe.",
-    "paymentsPoint2": "Les frais bancaires sont facturés par Stripe au coût réel. Evoly n’y prend aucune marge.",
-    "paymentsPoint3": "Vous pouvez déjà créer des événements gratuits. Le compte Stripe est nécessaire pour vendre des billets payants.",
+    "paymentsPoint1": "L’argent de vos billets arrive directement sur votre compte bancaire, selon le calendrier de Mollie.",
+    "paymentsPoint2": "Les frais bancaires sont facturés par Mollie au coût réel. Evoly n’y prend aucune marge.",
+    "paymentsPoint3": "Vous pouvez déjà créer des événements gratuits. Le compte Mollie est nécessaire pour vendre des billets payants.",
     "paymentsLater": "Plus tard",
     "paymentsLaterHint": "Vous retrouverez ce réglage dans Paramètres, puis Encaissement."
   },
@@ -1178,7 +1178,12 @@
     "BUYER_TYPE_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pour ce tarif.",
     "PRESALE_BUYER_LIMIT_REACHED": "Vous avez atteint le nombre maximum de billets par personne pendant la prévente.",
     "BLOCK_NEEDS_EMAIL_OR_NAME": "Indiquez une adresse e-mail, ou un prénom et un nom.",
-    "BUYER_BLOCKED": "Cette commande ne peut pas aboutir. Contactez l’organisateur."
+    "BUYER_BLOCKED": "Cette commande ne peut pas aboutir. Contactez l’organisateur.",
+    "MOLLIE_NOT_CONFIGURED": "Mollie n’est pas encore configuré sur Evoly : réessayez plus tard.",
+    "MOLLIE_RECONNECT_REQUIRED": "Votre compte Mollie n’est plus relié à Evoly : reliez-le de nouveau pour continuer.",
+    "MOLLIE_UNAVAILABLE": "Mollie ne répond pas pour le moment : réessayez dans quelques minutes.",
+    "MOLLIE_ACCOUNT_IN_USE": "Ce compte Mollie est déjà relié à une autre organisation sur Evoly.",
+    "MOLLIE_STATE_INVALID": "La liaison avec Mollie a expiré : recommencez."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",
@@ -1194,7 +1199,8 @@
     "SUBDOMAIN_TAKEN": "Cette adresse est déjà prise.",
     "textLength": "Texte trop long ou trop court.",
     "datetime": "Date et heure invalides.",
-    "number": "Nombre invalide."
+    "number": "Nombre invalide.",
+    "MOLLIE_PHONE_INVALID": "Numéro illisible : indiquez-le avec l’indicatif du pays, par exemple +32 470 12 34 56."
   },
   "dashboard": {
     "greeting": "bonjour {name},",
@@ -1275,8 +1281,8 @@
     "currency": "Devise",
     "timezone": "Fuseau horaire",
     "payments": "Encaissement",
-    "paymentsSummary": "Votre compte Stripe, où arrive l’argent de vos ventes.",
-    "paymentsIntro": "Les paiements de vos participants arrivent sur votre propre compte Stripe, puis sur votre compte bancaire.",
+    "paymentsSummary": "Votre compte Mollie, où arrive l’argent de vos ventes.",
+    "paymentsIntro": "Les paiements de vos participants arrivent sur votre propre compte Mollie, puis sur votre compte bancaire.",
     "stripeStatus_NONE": "Non connecté",
     "stripeStatus_PENDING": "Configuration en cours",
     "stripeStatus_ACTIVE": "Actif",
@@ -2591,7 +2597,9 @@
     "pref_PAYOUT_FAILED": "Virement échoué",
     "pref_EVENT_PUBLISHED": "Événement publié",
     "type_BUYER_FLAGGED": "Commande signalée",
-    "pref_BUYER_FLAGGED": "Commande au nom d’une personne bloquée"
+    "pref_BUYER_FLAGGED": "Commande au nom d’une personne bloquée",
+    "type_MOLLIE_ACTION_REQUIRED": "Mollie",
+    "pref_MOLLIE_ACTION_REQUIRED": "Action requise chez Mollie"
   },
   "scannerAccess": {
     "title": "Scanner les billets",
@@ -3737,5 +3745,43 @@
     "soldOutAt": "À ce train, complet vers le {date}",
     "label": "{sold} places vendues sur {capacity}, {pace}",
     "notStartedOn": "ventes le {date}"
+  },
+  "mollie": {
+    "explain_none": "Les paiements de vos billets arrivent sur votre propre compte Mollie, vérifié par Mollie. Créez-le en quelques minutes, ou reliez celui que vous avez déjà.",
+    "explain_disconnected": "Votre compte Mollie n’est plus relié à Evoly. Reliez-le de nouveau pour vendre des billets payants.",
+    "explain_needsData": "Mollie attend encore des informations sur votre organisation avant d’activer les paiements.",
+    "explain_inReview": "Mollie vérifie les informations de votre organisation. Vous recevrez un e-mail de Mollie dès que c’est fait.",
+    "explain_pending": "Mollie a validé votre compte et active encore votre site ou vos moyens de paiement.",
+    "explain_ready": "Votre compte Mollie est prêt : les paiements arrivent sur votre compte, et Mollie vous verse votre argent.",
+    "status_none": "Non relié",
+    "status_disconnected": "Déconnecté",
+    "status_needsData": "Informations à donner",
+    "status_inReview": "Vérification en cours",
+    "status_pending": "Activation en cours",
+    "status_ready": "Prêt",
+    "testmode": "Mode test",
+    "methods": "Moyens de paiement : {list}",
+    "methodsNone": "Aucun moyen de paiement actif pour l’instant.",
+    "method_creditcard": "cartes",
+    "method_bancontact": "Bancontact",
+    "method_applepay": "Apple Pay",
+    "method_ideal": "iDEAL",
+    "method_paypal": "PayPal",
+    "settlementsOn": "Virements vers votre banque : activés",
+    "settlementsOff": "Virements vers votre banque : pas encore activés",
+    "phoneLabel": "Téléphone de l’organisation",
+    "phoneHint": "Mollie l’exige pour votre compte et peut l’afficher à vos acheteurs.",
+    "createAccount": "Créer mon compte Mollie",
+    "linkAccount": "J’ai déjà un compte Mollie",
+    "complete": "Compléter chez Mollie",
+    "open": "Ouvrir Mollie",
+    "disconnect": "Déconnecter",
+    "disconnectTitle": "Déconnecter votre compte Mollie ?",
+    "disconnectBody": "Evoly ne pourra plus créer de paiement sur votre compte Mollie : vos billets payants ne seront plus en vente tant que vous ne l’aurez pas relié de nouveau. Votre compte et votre argent restent chez Mollie.",
+    "disclosure": "Les services de paiement sont fournis par Mollie B.V., Keizersgracht 126, 1015 CW Amsterdam, Pays-Bas (KvK 30204462), établissement de monnaie électronique et de paiement agréé et contrôlé par De Nederlandsche Bank (numéro F0038).",
+    "notConfiguredTitle": "Mollie n’est pas encore configuré",
+    "notConfiguredBody": "L’application Mollie d’Evoly n’est pas configurée sur ce serveur (MOLLIE_CLIENT_ID et MOLLIE_CLIENT_SECRET).",
+    "result_connected": "Votre compte Mollie est relié à Evoly.",
+    "result_denied": "Vous avez annulé la liaison avec Mollie : rien n’a changé."
   }
 }

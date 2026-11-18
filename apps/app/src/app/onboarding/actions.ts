@@ -14,6 +14,7 @@ import { createOrganization } from "@/server/onboarding";
 import { hit } from "@/server/rateLimit";
 import { getSession } from "@/server/session";
 import { stripeOnboardingUrl } from "@/server/stripeConnect";
+import { startMollieConnection } from "@/server/mollieConnect";
 import {
   subdomainAvailability,
   type SubdomainAvailability,
@@ -103,5 +104,41 @@ export async function connectStripeAction(
     (_data, ctx) => stripeOnboardingUrl(ctx),
   );
   if (result?.ok) redirect(result.data);
+  return result;
+}
+
+const connectMollieSchema = z.object({
+  phone: z.string().trim().min(1, { message: "validation.required" }).max(40),
+  signup: z.enum(["0", "1"]),
+  from: z.enum(["onboarding", "settings"]),
+});
+
+/**
+ * Relier le compte Mollie de l'organisation (docs/MOLLIE.md), réservé aux membres qui gèrent l'encaissement : création
+ * du compte chez Mollie ou connexion à un compte existant, après le téléphone que Mollie exige pour le profil.
+ */
+export async function connectMollieAction(
+  orgSlug: string,
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const result = await runOrgAction(
+    orgSlug,
+    formToObject(form),
+    { schema: connectMollieSchema, permission: "PAYMENTS_MANAGE" },
+    (data, ctx) =>
+      startMollieConnection(ctx, {
+        phone: data.phone,
+        signup: data.signup === "1",
+        from: data.from,
+      }),
+  );
+  if (result?.ok) redirect(result.data);
+  if (result && !result.ok && result.error === "MOLLIE_PHONE_INVALID")
+    return {
+      ok: false,
+      error: "INVALID_INPUT",
+      fields: { phone: "validation.MOLLIE_PHONE_INVALID" },
+    };
   return result;
 }

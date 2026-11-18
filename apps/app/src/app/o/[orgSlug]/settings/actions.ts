@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { formToObject, runOrgAction, type ActionState } from "@/server/guard";
+import { disconnectMollie } from "@/server/mollieConnect";
 import { saveFeatured } from "@/server/orgPage";
 import {
   deleteOrganization,
@@ -128,6 +129,24 @@ export async function refundDefaultAction(
     },
     async (d, ctx) => {
       await setRefundFeeDefault(ctx, d.refundFeeMode);
+      return null;
+    },
+  );
+  if (r?.ok) revalidatePath(`/o/${orgSlug}/settings/payments`);
+  return r;
+}
+
+/** Déconnecter le compte Mollie (docs/MOLLIE.md) : autorisation révoquée chez Mollie, plus de vente payante. */
+export async function disconnectMollieAction(
+  orgSlug: string,
+  _: ActionState,
+): Promise<ActionState> {
+  const r = await runOrgAction(
+    orgSlug,
+    {},
+    { schema: z.object({}), permission: "PAYMENTS_MANAGE" },
+    async (_d, ctx) => {
+      await disconnectMollie(ctx);
       return null;
     },
   );
