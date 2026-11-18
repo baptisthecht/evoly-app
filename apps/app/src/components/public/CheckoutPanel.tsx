@@ -250,6 +250,9 @@ export function CheckoutPanel({
       return setBusy(false);
     }
     if (res.data.kind === "PAID") return done();
+    // l'organisateur encaisse désormais par Mollie : sa page de paiement prend le relais
+    if (res.data.kind === "REDIRECT")
+      return window.location.assign(res.data.url);
     // jeton de confirmation : rien n'est débité ; le serveur lit l'empreinte de la carte (limites par
     // acheteur), puis confirme le paiement ; validation bancaire (3D Secure, Bancontact) présentée ensuite
     const created = await stripe.createConfirmationToken({
@@ -290,6 +293,23 @@ export function CheckoutPanel({
     done();
   };
 
+  // docs/MOLLIE.md : paiement sur la page de Mollie, retour sur la page des billets, validée au retour ou par le webhook
+  const payWithMollie = async () => {
+    if (!validate()) return;
+    setBusy(true);
+    setMessage(null);
+    const res = await submitBuyerAction(reservation.token, payload());
+    if (!res.ok) {
+      setMessage(explain(res.error));
+      return setBusy(false);
+    }
+    if (res.data.kind === "PAID") return done();
+    if (res.data.kind === "REDIRECT")
+      return window.location.assign(res.data.url);
+    setMessage(t("error_UNKNOWN"));
+    setBusy(false);
+  };
+
   if (left <= 0) {
     return (
       <div className="grid gap-4">
@@ -307,8 +327,12 @@ export function CheckoutPanel({
   }
   const minutes = Math.floor(left / 60_000);
   const seconds = Math.floor((left % 60_000) / 1000);
+  const viaMollie = !reservation.isFree && !!reservation.mollie;
   const canPay =
-    !reservation.isFree && publishableKey && reservation.stripeAccountId;
+    !reservation.isFree &&
+    !reservation.mollie &&
+    publishableKey &&
+    reservation.stripeAccountId;
   const form = (
     <div className="grid gap-4">
       <div className="grid grid-cols-2 gap-3">
@@ -560,6 +584,24 @@ export function CheckoutPanel({
         >
           {busy ? t("processing") : t("confirmFree")}
         </Button>
+      ) : viaMollie ? (
+        <div className="grid gap-2">
+          <Button
+            type="button"
+            size="lg"
+            className="w-full"
+            disabled={busy}
+            aria-busy={busy}
+            onClick={payWithMollie}
+          >
+            {busy
+              ? t("processing")
+              : t("pay", { amount: money(reservation.totalMinor) })}
+          </Button>
+          <p className="text-center text-xs text-ink-muted">
+            {t("mollieNotice")}
+          </p>
+        </div>
       ) : canPay ? (
         <PayButton
           label={

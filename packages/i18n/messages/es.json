@@ -288,7 +288,8 @@
     "error_CARD_EXPIRED": "Tu tarjeta ha caducado. Prueba con otra tarjeta.",
     "error_CARD_INCORRECT_CVC": "El código de seguridad de tu tarjeta es incorrecto. Revísalo y vuelve a intentarlo.",
     "error_PAYMENT_INVALID": "Este pago ya no se puede confirmar. Vuelve a empezar tu reserva.",
-    "error_BUYER_BLOCKED": "Este pedido no puede completarse. Contacta con el organizador."
+    "error_BUYER_BLOCKED": "Este pedido no puede completarse. Contacta con el organizador.",
+    "mollieNotice": "Completas el pago en la página segura de Mollie: tarjetas, Bancontact, Apple Pay."
   },
   "seatPicker": {
     "title": "Elige tus plazas",
@@ -600,7 +601,10 @@
     "optionsLeft": "Quedan {left} de {quantity} por canjear",
     "optionsPass": "Tu código QR de recogida: muéstralo en la barra o el guardarropa.",
     "refundAmount": "Importe reembolsado: {amount}",
-    "refundFeesWithheld": "Gastos de pago y de servicio retenidos: {amount}"
+    "refundFeesWithheld": "Gastos de pago y de servicio retenidos: {amount}",
+    "paymentFailedTitle": "Pago no completado",
+    "paymentFailedBody": "El pago se ha cancelado o rechazado. Tus plazas siguen reservadas unos minutos más: puedes volver a intentarlo.",
+    "paymentRetry": "Reintentar el pago"
   },
   "scanner": {
     "valid": "Entrada válida",

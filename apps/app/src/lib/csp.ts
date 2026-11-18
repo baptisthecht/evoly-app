@@ -12,16 +12,17 @@ function scannerOrigin(): string | null {
 
 /**
  * Destinations des formulaires : l'app elle-même et les sites vers lesquels une action serveur redirige (scanner, Stripe
- * Checkout, portail de facturation et inscription Connect, autorisation Mollie Connect, Google, Apple). Un formulaire
- * envoyé avant le chargement du JavaScript (téléphone lent) part comme un formulaire classique : le navigateur soumet
- * alors sa redirection à form-action, et la bloque sans rien afficher si la destination n'y figure pas.
+ * Checkout, portail de facturation et inscription Connect, autorisation Mollie Connect et page de paiement de Mollie,
+ * Google, Apple). Un formulaire envoyé avant le chargement du JavaScript (téléphone lent) part comme un formulaire
+ * classique : le navigateur soumet alors sa redirection à form-action, et la bloque sans rien afficher si la
+ * destination n'y figure pas.
  */
 function formAction(): string {
   return [
     "form-action 'self'",
     scannerOrigin(),
     "https://checkout.stripe.com https://billing.stripe.com https://connect.stripe.com",
-    "https://my.mollie.com",
+    "https://my.mollie.com https://www.mollie.com",
     "https://accounts.google.com https://appleid.apple.com",
   ]
     .filter(Boolean)

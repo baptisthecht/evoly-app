@@ -557,10 +557,18 @@ export async function completeOrder(
   orderId: string,
   payment?: Parameters<typeof finalizeOrder>[1],
 ): Promise<FinalizeOutcome> {
-  // RG-BLK-02 : carte bloquée passée outre la vérification avant le débit : remboursée, commande non validée
+  // RG-BLK-02 : carte bloquée passée outre la vérification avant le débit : remboursée, commande non validée ; par
+  // Mollie, l'empreinte n'est connue qu'au paiement, la vérification se fait donc toujours ici
   if (
     payment?.chargeId &&
     (await refundBlockedCardPayment(orderId, payment.chargeId))
+  )
+    return "IGNORED";
+  if (
+    payment?.molliePaymentId &&
+    (await refundBlockedCardPayment(orderId, {
+      cardFingerprint: payment.cardFingerprint ?? null,
+    }))
   )
     return "IGNORED";
   const outcome = await finalizeOrder(orderId, payment);

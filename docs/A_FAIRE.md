@@ -21,7 +21,11 @@ plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Bran
   Pay créé pour Evoly, état relu à l'ouverture de la page et chaque heure, notification « action requise chez Mollie »,
   déconnexion. Au déploiement : migration `20261118130000_mollie_organisateurs`. Les billets payants par Mollie
   arrivent au lot 3.
-- Lots 3 à 7 : paiement des billets, remboursements et revente, finances, offre Pro, bascule ; puis la boutique.
+- Lot 3, paiement des billets : fait. Page de paiement de Mollie, commission en frais d'application, validation au
+  retour et par le webhook, réservation prolongée à 15 minutes, carte bloquée et paiement tardif remboursés chez Mollie,
+  ventes payantes ouvertes avec un compte Mollie prêt (publication, tarifs, revente). Règles : `docs/MOLLIE.md`. Au
+  déploiement : migration `20261118140000_mollie_paiements`.
+- Lots 4 à 7 : remboursements et revente, finances, offre Pro, bascule ; puis la boutique.
 - À faire par le porteur : application Connect « Evoly » (adresse de retour `https://app.evoly.me/api/mollie/oauth`),
   clés `MOLLIE_API_KEY`, `MOLLIE_CLIENT_ID` et `MOLLIE_CLIENT_SECRET` dans le `.env`, un deuxième compte Mollie de test
   pour jouer l'organisateur.

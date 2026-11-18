@@ -23,6 +23,7 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
 import { audit } from "./audit";
+import { paymentAccountFor } from "./molliePayments";
 import {
   findOrderIdByToken,
   orderAccessToken,
@@ -129,14 +130,12 @@ export async function createListing(
   if (priceMinor == null) throw new CoreError("INVALID_PRICE");
   const check = checkResalePrice(priceMinor, q.faceValueMinor);
   if (check !== "OK") throw new CoreError(`RESALE_${check}`);
-  if (priceMinor > 0) {
-    const account = await db.stripeAccount.findUnique({
-      where: { organizationId: q.ticket.event.organizationId },
-      select: { chargesEnabled: true },
-    });
-    if (!account?.chargesEnabled)
-      throw new CoreError("RESALE_PAYMENTS_UNAVAILABLE");
-  }
+  // compte qui encaisse : Mollie s'il est prêt, sinon l'ancien compte Stripe (docs/MOLLIE.md)
+  if (
+    priceMinor > 0 &&
+    !(await paymentAccountFor(q.ticket.event.organizationId))
+  )
+    throw new CoreError("RESALE_PAYMENTS_UNAVAILABLE");
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const listing = await db.resaleListing.create({
@@ -468,12 +467,9 @@ export async function reserveResale(
     },
     { timeout: 15_000, maxWait: 10_000 },
   );
-  const account =
+  const pay =
     result.order.totalMinor > 0
-      ? await db.stripeAccount.findUnique({
-          where: { organizationId: result.order.organizationId },
-          select: { stripeAccountId: true, chargesEnabled: true },
-        })
+      ? await paymentAccountFor(result.order.organizationId)
       : null;
   return {
     orderId,
@@ -495,7 +491,8 @@ export async function reserveResale(
       unitPriceMinor: i.unitPriceMinor,
       nominative: false,
     })),
-    stripeAccountId: account?.chargesEnabled ? account.stripeAccountId : null,
+    stripeAccountId: pay?.provider === "STRIPE" ? pay.stripeAccountId : null,
+    mollie: pay?.provider === "MOLLIE",
     questions: { order: [], perLine: {} }, // revente : pas de questions (réponses d'origine conservées sur la commande du vendeur)
     refund: refundRuleOf(result.listing.event, result.order.refundFeeMode),
   };

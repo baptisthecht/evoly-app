@@ -288,7 +288,8 @@
     "error_CARD_EXPIRED": "Ihre Karte ist abgelaufen. Versuchen Sie eine andere Karte.",
     "error_CARD_INCORRECT_CVC": "Die Prüfnummer Ihrer Karte ist falsch. Prüfen Sie sie und versuchen Sie es erneut.",
     "error_PAYMENT_INVALID": "Diese Zahlung kann nicht mehr bestätigt werden. Bitte beginnen Sie Ihre Reservierung erneut.",
-    "error_BUYER_BLOCKED": "Diese Bestellung kann nicht abgeschlossen werden. Wenden Sie sich an den Veranstalter."
+    "error_BUYER_BLOCKED": "Diese Bestellung kann nicht abgeschlossen werden. Wenden Sie sich an den Veranstalter.",
+    "mollieNotice": "Sie schließen die Zahlung auf der sicheren Seite von Mollie ab: Karten, Bancontact, Apple Pay."
   },
   "seatPicker": {
     "title": "Wählen Sie Ihre Plätze",
@@ -600,7 +601,10 @@
     "optionsLeft": "Noch {left} von {quantity} einzulösen",
     "optionsPass": "Ihr Abhol-QR-Code: Zeigen Sie ihn an der Bar oder Garderobe.",
     "refundAmount": "Erstatteter Betrag: {amount}",
-    "refundFeesWithheld": "Einbehaltene Zahlungs- und Servicegebühren: {amount}"
+    "refundFeesWithheld": "Einbehaltene Zahlungs- und Servicegebühren: {amount}",
+    "paymentFailedTitle": "Zahlung nicht abgeschlossen",
+    "paymentFailedBody": "Die Zahlung wurde abgebrochen oder abgelehnt. Ihre Plätze bleiben noch einige Minuten reserviert: Sie können es erneut versuchen.",
+    "paymentRetry": "Zahlung erneut versuchen"
   },
   "scanner": {
     "valid": "Gültiges Ticket",

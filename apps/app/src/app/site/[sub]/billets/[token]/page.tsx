@@ -26,6 +26,7 @@ import { db } from "@/lib/db";
 import { PublicShell } from "@/components/public/PublicShell";
 import { buttonClass } from "@/components/ui/Button";
 import { findOrderIdByToken } from "@/server/checkout";
+import { syncPaymentFromMollie } from "@/server/molliePayments";
 import { getBuyerOrder, syncPaymentFromStripe } from "@/server/orders";
 import { getPublicOrganization } from "@/server/publicEvents";
 import { withEventTheme } from "@/server/brand";
@@ -62,6 +63,21 @@ export default async function BuyerTicketsPage({
     await syncPaymentFromStripe(orderId).catch(() => null);
     order = await getBuyerOrder(orderId);
   }
+  // retour de la page de paiement de Mollie (docs/MOLLIE.md) : paiement relu, commande validée s'il est payé
+  let mollieStatus: string | null = null;
+  if (order.status === "PENDING" && order.molliePaymentId) {
+    mollieStatus = await syncPaymentFromMollie(orderId).catch(() => null);
+    order = await getBuyerOrder(orderId);
+  }
+  // abandonné, refusé ou expiré chez Mollie : l'acheteur peut réessayer tant que ses places sont réservées
+  const mollieFailed =
+    order.status === "PENDING" &&
+    !!order.molliePaymentId &&
+    ["canceled", "expired", "failed"].includes(mollieStatus ?? "");
+  const confirming =
+    order.status === "PENDING" &&
+    (!!order.stripePaymentIntentId ||
+      (!!order.molliePaymentId && !mollieFailed));
   // billets d'un événement : son style propre (Pro), comme sa page et ses billets en PDF
   const org = withEventTheme(site, order.event);
   const t = await getTranslations("orders");
@@ -521,11 +537,13 @@ export default async function BuyerTicketsPage({
             <h1 className="font-display text-2xl tracking-[-0.03em]">
               {t(
                 order.status === "PENDING"
-                  ? order.stripePaymentIntentId
+                  ? confirming
                     ? "confirmingTitle"
-                    : holdActive
-                      ? "heldTitle"
-                      : "expiredTitle"
+                    : mollieFailed && holdActive
+                      ? "paymentFailedTitle"
+                      : holdActive
+                        ? "heldTitle"
+                        : "expiredTitle"
                   : e.status === "CANCELLED"
                     ? "status_EVENT_CANCELLED"
                     : `status_${order.status}`,
@@ -534,18 +552,26 @@ export default async function BuyerTicketsPage({
             <p className="text-ink-muted">
               {t(
                 order.status === "PENDING"
-                  ? order.stripePaymentIntentId
+                  ? confirming
                     ? "confirmingBody"
-                    : holdActive
-                      ? "heldBody"
-                      : "expiredBody"
+                    : mollieFailed && holdActive
+                      ? "paymentFailedBody"
+                      : holdActive
+                        ? "heldBody"
+                        : "expiredBody"
                   : e.status === "CANCELLED"
                     ? "statusBody_EVENT_CANCELLED"
                     : `statusBody_${order.status}`,
               )}
             </p>
-            {order.status === "PENDING" && order.stripePaymentIntentId ? (
-              <AutoRefresh />
+            {confirming ? <AutoRefresh /> : null}
+            {mollieFailed && holdActive ? (
+              <Link
+                href={`/payer/${token}`}
+                className={buttonClass("primary", "lg", "justify-self-start")}
+              >
+                {t("paymentRetry")}
+              </Link>
             ) : null}
             <Link
               href={eventHref}

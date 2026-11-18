@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { CoreError, normalizePromoCode, validatePromo } from "@evoly/core";
 import { friendSeats } from "@/server/seating";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import {
@@ -79,6 +80,8 @@ export interface ReservationView {
     holderEmail?: boolean;
   }>;
   stripeAccountId: string | null;
+  /** Paiement sur la page de Mollie (docs/MOLLIE.md) plutôt que par le formulaire de Stripe. */
+  mollie?: boolean;
   /** US-QST-01 : questions de la commande et de chaque ligne. */
   questions: {
     order: Array<PublicQuestion>;
@@ -232,6 +235,7 @@ export async function reserveAction(
         options: r.options ?? [],
         questions: r.questions,
         stripeAccountId: r.stripeAccountId,
+        mollie: r.mollie,
         seats: held,
       },
     };
@@ -248,11 +252,37 @@ export async function submitBuyerAction(
   if (!parsed.success) return { ok: false, error: "INVALID_BUYER" };
   if ((await hit(`checkout:submit:${token.slice(0, 16)}`, 600)) > 15)
     return { ok: false, error: "RATE_LIMITED" };
+  // retour de Mollie sur la page des billets du site visité (docs/MOLLIE.md)
+  const origin = await siteOrigin();
+  if (!origin) return { ok: false, error: "PAYMENT_INVALID" };
   try {
-    return { ok: true, data: await submitBuyer(token, parsed.data) };
+    return {
+      ok: true,
+      data: await submitBuyer(token, parsed.data, undefined, {
+        returnUrl: `${origin}/billets/${token}`,
+      }),
+    };
   } catch (err) {
     return failure(err);
   }
+}
+
+/**
+ * Site visité (sous-domaine ou domaine personnalisé), construit d'après la requête, jamais reçu tel quel du
+ * navigateur : retour après la banque (Stripe) ou après la page de paiement de Mollie.
+ */
+async function siteOrigin(): Promise<string | null> {
+  const h = await headers();
+  const host = (h.get("x-forwarded-host") ?? h.get("host") ?? "")
+    .split(",")[0]!
+    .trim();
+  if (!/^[a-z0-9.-]+(:\d+)?$/i.test(host)) return null;
+  const forwarded = h.get("x-forwarded-proto");
+  const proto =
+    forwarded === "http" || forwarded === "https"
+      ? forwarded
+      : new URL(env().NEXT_PUBLIC_APP_URL).protocol.replace(":", "");
+  return `${proto}://${host}`;
 }
 
 /**
@@ -271,20 +301,15 @@ export async function confirmPaymentAction(
     return { ok: false, error: "RATE_LIMITED" };
   if (!/^\/[A-Za-z0-9/_\-.?=&%]*$/.test(path) || path.startsWith("//"))
     return { ok: false, error: "PAYMENT_INVALID" };
-  const h = await headers();
-  const host = (h.get("x-forwarded-host") ?? h.get("host") ?? "")
-    .split(",")[0]!
-    .trim();
-  if (!/^[a-z0-9.-]+(:\d+)?$/i.test(host))
-    return { ok: false, error: "PAYMENT_INVALID" };
-  const proto = h.get("x-forwarded-proto") === "http" ? "http" : "https";
+  const origin = await siteOrigin();
+  if (!origin) return { ok: false, error: "PAYMENT_INVALID" };
   try {
     return {
       ok: true,
       data: await confirmOrderPayment(
         token,
         confirmationTokenId,
-        `${proto}://${host}${path}`,
+        `${origin}${path}`,
       ),
     };
   } catch (err) {
@@ -434,6 +459,7 @@ export async function reserveResaleAction(
         options: [], // achat d'une place en revente : pas d'options
         questions: r.questions,
         stripeAccountId: r.stripeAccountId,
+        mollie: r.mollie,
       },
     };
   } catch (err) {

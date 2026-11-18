@@ -131,3 +131,16 @@ export function roundedPriceOptions(grossMinor: Minor): Minor[] {
     up = Math.ceil(grossMinor / step) * step;
   return [...new Set([down, up])].filter((v) => v > 0 && v !== grossMinor);
 }
+
+/**
+ * Commission transmise à Mollie en frais d'application (docs/MOLLIE.md) : Mollie n'accepte pas plus que le montant du
+ * paiement moins 0,35 et 6 % de ce montant. Sur une très petite commande, la commission est ramenée à ce plafond ;
+ * nulle, elle n'est pas transmise.
+ */
+export function mollieApplicationFee(
+  totalMinor: Minor,
+  feeMinor: Minor,
+): Minor {
+  const cap = totalMinor - 35 - Math.ceil((totalMinor * 6) / 100);
+  return Math.max(0, Math.min(feeMinor, cap));
+}

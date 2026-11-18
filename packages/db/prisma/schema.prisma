@@ -352,6 +352,12 @@ model StripeAccount {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
+// Prestataire d'un paiement en ligne : Stripe jusqu'au 18 novembre 2026, puis Mollie (docs/MOLLIE.md)
+enum PaymentProvider {
+  STRIPE
+  MOLLIE
+}
+
 enum MollieOnboardingStatus {
   NEEDS_DATA // informations à donner à Mollie
   IN_REVIEW // vérification en cours chez Mollie
@@ -1045,61 +1051,63 @@ model Order {
   boxOfficeMode         BoxOfficeMode? // vente sur place : espèces ou QR code (section 9.27)
   soldByLinkId          String? // lien de scanner qui a vendu, pour le rapport de caisse
   soldByDeviceId        String? // appareil de la vente sur place (RG-POS-07)
-  soldBy                ScannerLink?   @relation("BoxOfficeSales", fields: [soldByLinkId], references: [id], onDelete: SetNull)
+  soldBy                ScannerLink?     @relation("BoxOfficeSales", fields: [soldByLinkId], references: [id], onDelete: SetNull)
   ambassadorId          String? // ambassadeur dont le lien a amené la commande (section 9.28)
   venuePartnerId        String? // part du lieu partenaire, figée au paiement (RG-LIEU-03)
-  venueShareMinor       Int            @default(0)
-  venuePartner          VenuePartner?  @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
-  optionsCode           String?        @unique // QR code de retrait d'options achetées sans billet (RG-OPT-03)
-  optionsShortCode      String?        @unique // son code court
-  ambassador            Ambassador?    @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
+  venueShareMinor       Int              @default(0)
+  venuePartner          VenuePartner?    @relation(fields: [venuePartnerId], references: [id], onDelete: SetNull)
+  optionsCode           String?          @unique // QR code de retrait d'options achetées sans billet (RG-OPT-03)
+  optionsShortCode      String?          @unique // son code court
+  ambassador            Ambassador?      @relation(fields: [ambassadorId], references: [id], onDelete: SetNull)
   options               OrderOption[]
-  friendCode            String?        @unique // « Réserver à côté de mes amis » : lien partagé par l'acheteur
-  id                    String         @id @default(cuid())
-  reference             String         @unique // lisible : EVO-7KQ2-4821
+  friendCode            String?          @unique // « Réserver à côté de mes amis » : lien partagé par l'acheteur
+  id                    String           @id @default(cuid())
+  reference             String           @unique // lisible : EVO-7KQ2-4821
   organizationId        String
   eventId               String
-  source                OrderSource    @default(ONLINE)
-  status                OrderStatus    @default(PENDING)
+  source                OrderSource      @default(ONLINE)
+  status                OrderStatus      @default(PENDING)
   buyerEmail            String
   buyerEmailKey         String? // adresse normalisée (casse, points et suffixes « + » des messageries courantes) : limites par acheteur
   cardFingerprint       String? // empreinte de la carte (Stripe), lue avant le paiement : limites par acheteur même avec plusieurs adresses ; jamais un numéro de carte
   buyerFirstName        String
   buyerLastName         String
   buyerPhone            String?
-  buyerLocale           String         @default("fr")
-  buyerCountry          String?        @db.Char(2)
+  buyerLocale           String           @default("fr")
+  buyerCountry          String?          @db.Char(2)
   buyerUserId           String?
   contactId             String?
-  marketingOptIn        Boolean        @default(false) // case non cochée par défaut
-  currency              String         @db.Char(3)
+  marketingOptIn        Boolean          @default(false) // case non cochée par défaut
+  currency              String           @db.Char(3)
   subtotalMinor         Int // somme des prix unitaires avant réduction
-  discountMinor         Int            @default(0)
+  discountMinor         Int              @default(0)
   totalMinor            Int // payé par l'acheteur, frais inclus
-  applicationFeeMinor   Int            @default(0) // commission Evoly
+  applicationFeeMinor   Int              @default(0) // commission Evoly
   paymentFeeMinor       Int? // frais Stripe réels, connus après paiement
   netMinor              Int? // totalMinor − commission − frais Stripe
-  refundedMinor         Int            @default(0)
+  refundedMinor         Int              @default(0)
   feeSnapshot           Json // offre, taux, fixe, plafond appliqués
   promoCodeId           String?
   presaleCodeId         String? // prévente privée (RG-PRV-02)
-  presaleCode           PresaleCode?   @relation(fields: [presaleCodeId], references: [id], onDelete: SetNull)
-  resaleListingId       String?        @unique // commande issue d'une revente
-  stripePaymentIntentId String?        @unique
-  stripeChargeId        String?        @unique
+  presaleCode           PresaleCode?     @relation(fields: [presaleCodeId], references: [id], onDelete: SetNull)
+  resaleListingId       String?          @unique // commande issue d'une revente
+  stripePaymentIntentId String?          @unique
+  stripeChargeId        String?          @unique
+  paymentProvider       PaymentProvider? // prestataire du paiement en ligne (docs/MOLLIE.md) ; vide : gratuit ou espèces
+  molliePaymentId       String?          @unique // tr_… : paiement Mollie sur le compte de l'organisateur
   paymentMethodType     String? // card, bancontact, ideal…
   holdExpiresAt         DateTime?
   paidAt                DateTime?
   cancelledAt           DateTime?
-  accessTokenHash       String         @unique // lien magique « mes billets »
-  accessTokenVersion    Int            @default(1) // jeton dérivé (HMAC) : changer la version invalide l’ancien lien (RG-ORD-02)
+  accessTokenHash       String           @unique // lien magique « mes billets »
+  accessTokenVersion    Int              @default(1) // jeton dérivé (HMAC) : changer la version invalide l’ancien lien (RG-ORD-02)
   termsVersion          String? // conditions acceptées au paiement
-  refundFeeMode         RefundFeeMode  @default(FULL) // règle de remboursement affichée avant l'achat, figée à la réservation
+  refundFeeMode         RefundFeeMode    @default(FULL) // règle de remboursement affichée avant l'achat, figée à la réservation
   flaggedAt             DateTime? // « Signalé » : nom et prénom identiques à ceux d'une personne bloquée (alerte, pas de blocage)
   flaggedBlockedBuyerId String?
-  flaggedBlockedBuyer   BlockedBuyer?  @relation("FlaggedOrders", fields: [flaggedBlockedBuyerId], references: [id], onDelete: SetNull)
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  flaggedBlockedBuyer   BlockedBuyer?    @relation("FlaggedOrders", fields: [flaggedBlockedBuyerId], references: [id], onDelete: SetNull)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 
   organization  Organization     @relation(fields: [organizationId], references: [id])
   event         Event            @relation(fields: [eventId], references: [id])

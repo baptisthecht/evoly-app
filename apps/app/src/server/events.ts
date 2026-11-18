@@ -393,7 +393,8 @@ async function blockersFor(ctx: OrgContext, eventId: string, startsAt: Date) {
     hasPaidTicketTypes: active.some(
       (t) => t.priceMinor > 0 || t.priceTiers.some((p) => p.priceMinor > 0),
     ),
-    stripeChargesEnabled: !!ctx.stripe?.chargesEnabled,
+    // compte qui encaisse : Mollie prêt, ou l'ancien compte Stripe (docs/MOLLIE.md)
+    stripeChargesEnabled: !!ctx.mollie?.ready || !!ctx.stripe?.chargesEnabled,
     startsAt,
     now: new Date(),
   });

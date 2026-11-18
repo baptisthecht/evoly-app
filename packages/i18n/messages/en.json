@@ -528,7 +528,8 @@
     "error_CARD_EXPIRED": "Your card has expired. Try another card.",
     "error_CARD_INCORRECT_CVC": "Your card's security code is incorrect. Check it and try again.",
     "error_PAYMENT_INVALID": "This payment can no longer be confirmed. Please start your booking again.",
-    "error_BUYER_BLOCKED": "This order cannot be completed. Contact the organiser."
+    "error_BUYER_BLOCKED": "This order cannot be completed. Contact the organiser.",
+    "mollieNotice": "You complete the payment on the secure Mollie page: cards, Bancontact, Apple Pay."
   },
   "orders": {
     "confirmationTitle": "You’re in!",
@@ -629,7 +630,10 @@
     "optionsLeft": "{left} of {quantity} left to redeem",
     "optionsPass": "Your pickup QR code: show it at the bar or cloakroom.",
     "refundAmount": "Amount refunded: {amount}",
-    "refundFeesWithheld": "Payment and service fees kept: {amount}"
+    "refundFeesWithheld": "Payment and service fees kept: {amount}",
+    "paymentFailedTitle": "Payment not completed",
+    "paymentFailedBody": "The payment was cancelled or declined. Your places stay reserved for a few more minutes: you can try again.",
+    "paymentRetry": "Try the payment again"
   },
   "resale": {
     "sell": "Resell my ticket",

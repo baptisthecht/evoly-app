@@ -84,6 +84,8 @@ y crée les paiements avec sa commission en frais d'application.
   `https://app.evoly.me/api/mollie/oauth`. Renseigner `MOLLIE_CLIENT_ID` (`app_…`) et `MOLLIE_CLIENT_SECRET`.
 - **Compte d'Evoly** (offre Pro) : `MOLLIE_API_KEY`, `live_…` en production, `test_…` en recette.
 - **Mode test** : `MOLLIE_TESTMODE=true` en recette seulement (organisateurs reliés en mode test), jamais en production.
+- **Webhook** : `https://app.evoly.me/api/webhooks/mollie`, donné par Evoly à chaque paiement, rien à configurer chez
+  Mollie. Mollie n'envoie que l'identifiant du paiement, relu chez Mollie avant tout changement.
 - **État des comptes** : Mollie n'envoie pas d'événement pour l'inscription d'un organisateur ; la tâche horaire
   `maintenance` relit les comptes pas encore prêts, et les autres une fois par jour.
 - **Jetons OAuth** chiffrés en base avec une clé dérivée de `BETTER_AUTH_SECRET` : changer ce secret oblige chaque

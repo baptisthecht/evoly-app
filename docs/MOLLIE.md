@@ -48,6 +48,25 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
 - **Mode test** : `MOLLIE_TESTMODE=true` relie les organisateurs en mode test ; chaque appel fait pour eux porte alors
   `testmode`. Le compte d'Evoly suit sa clé (`test_…` ou `live_…`).
 
+## Paiement des billets par Mollie (lot 3)
+
+- **Compte qui encaisse** : le compte Mollie de l'organisateur dès qu'il est prêt (`mollieReady`), sinon son ancien
+  compte Stripe tant qu'il encaisse ; chaque commande garde son prestataire (`Order.paymentProvider`).
+- **Parcours** : coordonnées de l'acheteur, puis la page de paiement de Mollie (cartes, Bancontact, Apple Pay), retour
+  sur la page des billets du site visité. Un paiement encore ouvert est repris ; annulé, expiré ou refusé, un nouveau
+  est créé, et la page des billets propose de réessayer tant que les places sont réservées.
+- **Réservation** : prolongée à 15 minutes au départ vers Mollie (durée d'un paiement par carte chez Mollie). Un
+  paiement arrivé plus tard est honoré s'il reste des places, sinon remboursé en entier.
+- **Validation** : au retour de l'acheteur et par le webhook (`/api/webhooks/mollie`, adresse donnée à chaque paiement,
+  rien à configurer chez Mollie ; absente en local, où seul le retour de l'acheteur valide la commande), toujours après
+  relecture du paiement chez Mollie, montant et devise vérifiés.
+- **Commission** : transmise en frais d'application, ramenée au plafond de Mollie (montant moins 0,35 et 6 %) sur une
+  très petite commande. Mollie ne la rend jamais : pour un paiement tardif sans place ou une carte bloquée, elle revient
+  à l'organisateur sur son relevé mensuel (lot 5).
+- **Carte de l'acheteur** : son empreinte n'est connue qu'après le paiement. Une carte bloquée par l'organisation est
+  donc remboursée aussitôt après, sans billet ; les limites par acheteur se vérifient par l'adresse e-mail avant le
+  paiement, et l'empreinte est gardée pour les commandes suivantes.
+
 ## Lots
 
 1. **Fondations** : client Mollie, chiffrement des jetons, compte Mollie de l'organisateur en base, variables

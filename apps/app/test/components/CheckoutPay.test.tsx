@@ -266,3 +266,62 @@ describe("paiement par carte (RG-BUY-04 à 06)", () => {
     expect((payButton() as HTMLButtonElement).disabled).toBe(false);
   });
 });
+
+describe("paiement par Mollie (docs/MOLLIE.md)", () => {
+  const drawMollie = () =>
+    render(
+      <Fr>
+        <CheckoutPanel
+          reservation={{ ...reservation, stripeAccountId: null, mollie: true }}
+          organizationName="Club"
+          requirePhone={false}
+          publishableKey="pk_test_123"
+          onCancel={vi.fn()}
+        />
+      </Fr>,
+    );
+
+  it("coordonnées envoyées, puis la page de paiement de Mollie ; ni formulaire ni appel de Stripe", async () => {
+    actions.submitBuyerAction.mockResolvedValue({
+      ok: true,
+      data: {
+        kind: "REDIRECT",
+        url: "https://www.mollie.com/checkout/select-method/abc",
+      },
+    });
+    drawMollie();
+    expect(screen.getByText(c.mollieNotice!)).toBeTruthy();
+    await fill();
+    await pay();
+    await waitFor(() =>
+      expect(assign).toHaveBeenCalledWith(
+        "https://www.mollie.com/checkout/select-method/abc",
+      ),
+    );
+    expect(actions.submitBuyerAction).toHaveBeenCalledWith(
+      "jeton",
+      expect.objectContaining({ email: "lea@exemple.be" }),
+    );
+    expect(stripe.elements.submit).not.toHaveBeenCalled();
+    expect(stripe.client.createConfirmationToken).not.toHaveBeenCalled();
+  });
+
+  it("coordonnées refusées : expliqué, l'acheteur reste sur la page ; déjà payée : les billets", async () => {
+    actions.submitBuyerAction.mockResolvedValue({
+      ok: false,
+      error: "HOLD_EXPIRED",
+    });
+    drawMollie();
+    await fill();
+    await pay();
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(assign).not.toHaveBeenCalled();
+    expect((payButton() as HTMLButtonElement).disabled).toBe(false);
+    actions.submitBuyerAction.mockResolvedValue({
+      ok: true,
+      data: { kind: "PAID" },
+    });
+    await pay();
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("/billets/jeton"));
+  });
+});

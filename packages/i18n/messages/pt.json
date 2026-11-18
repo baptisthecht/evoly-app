@@ -288,7 +288,8 @@
     "error_CARD_EXPIRED": "O seu cartão expirou. Experimente outro cartão.",
     "error_CARD_INCORRECT_CVC": "O código de segurança do seu cartão está incorreto. Verifique-o e tente novamente.",
     "error_PAYMENT_INVALID": "Este pagamento já não pode ser confirmado. Recomece a sua reserva.",
-    "error_BUYER_BLOCKED": "Esta encomenda não pode ser concluída. Contacte o organizador."
+    "error_BUYER_BLOCKED": "Esta encomenda não pode ser concluída. Contacte o organizador.",
+    "mollieNotice": "Conclui o pagamento na página segura da Mollie: cartões, Bancontact, Apple Pay."
   },
   "seatPicker": {
     "title": "Escolha os seus lugares",
@@ -600,7 +601,10 @@
     "optionsLeft": "Restam {left} de {quantity} por levantar",
     "optionsPass": "O seu código QR de levantamento: mostre-o no bar ou no bengaleiro.",
     "refundAmount": "Montante reembolsado: {amount}",
-    "refundFeesWithheld": "Taxas de pagamento e de serviço retidas: {amount}"
+    "refundFeesWithheld": "Taxas de pagamento e de serviço retidas: {amount}",
+    "paymentFailedTitle": "Pagamento não concluído",
+    "paymentFailedBody": "O pagamento foi cancelado ou recusado. Os seus lugares continuam reservados durante mais alguns minutos: pode tentar novamente.",
+    "paymentRetry": "Tentar o pagamento novamente"
   },
   "scanner": {
     "valid": "Bilhete válido",

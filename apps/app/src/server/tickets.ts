@@ -48,14 +48,19 @@ async function editableEvent(ctx: OrgContext, eventId: string) {
   return event;
 }
 
-/** RG-EVT-02 : un tarif payant ne peut pas être mis en vente sur un événement publié sans compte Stripe actif. */
+/** RG-EVT-02 : un tarif payant ne peut pas être mis en vente sur un événement publié sans compte qui encaisse (Mollie, ou l'ancien compte Stripe). */
 function assertCanSell(
   ctx: OrgContext,
   event: { status: string },
   priceMinor: number,
 ) {
   const live = event.status === "PUBLISHED" || event.status === "SALES_PAUSED";
-  if (live && priceMinor > 0 && !ctx.stripe?.chargesEnabled)
+  if (
+    live &&
+    priceMinor > 0 &&
+    !ctx.mollie?.ready &&
+    !ctx.stripe?.chargesEnabled
+  )
     throw new CoreError("PUBLISH_STRIPE_REQUIRED");
 }
 

@@ -55,6 +55,7 @@ export default async function PayPage({
                 options: r.options ?? [],
                 questions: r.questions,
                 stripeAccountId: r.stripeAccountId,
+                mollie: r.mollie,
                 seats: await reservationSeats(r.orderId),
               }}
               organizationName={org.brand?.displayName ?? org.name}

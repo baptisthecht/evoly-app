@@ -268,7 +268,7 @@ describe("relier son compte Mollie : retour de Mollie", () => {
     )!;
     expect(JSON.parse(profile.body)).toMatchObject({
       name: org.name,
-      website: `https://${org.subdomain}.${process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "evoly.me"}`,
+      website: `${new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001").protocol}//${org.subdomain}.${process.env.NEXT_PUBLIC_BASE_DOMAIN ?? "evoly.me"}`,
       phone: "+32470123456",
       countriesOfActivity: ["BE"],
     });

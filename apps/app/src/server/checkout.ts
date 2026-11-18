@@ -33,6 +33,13 @@ import type { Prisma } from "@evoly/db";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { stripe } from "@/lib/stripe";
+import {
+  MOLLIE_HOLD_MS,
+  paymentAccountFor,
+  refundMollieInFull,
+  startMolliePayment,
+  syncPaymentFromMollie,
+} from "./molliePayments";
 import { getPlans } from "./plans";
 import {
   buyerEmailKey,
@@ -222,6 +229,8 @@ export interface Reservation {
     perLine: Record<string, PublicQuestion[]>;
   };
   stripeAccountId: string | null;
+  /** Paiement sur la page de Mollie (compte Mollie prêt) plutôt que par le formulaire de Stripe (docs/MOLLIE.md). */
+  mollie: boolean;
   /** Règle de remboursement affichée avant l'achat (RG-REF-11), avec le mode figé sur la commande. */
   refund: RefundRule;
 }
@@ -597,13 +606,8 @@ export async function reserveOrder(
     TX_OPTIONS,
   );
   await cancelPaymentIntents(event.organizationId, released);
-  const account =
-    order.totalMinor > 0
-      ? await db.stripeAccount.findUnique({
-          where: { organizationId: event.organizationId },
-          select: { stripeAccountId: true, chargesEnabled: true },
-        })
-      : null;
+  const pay =
+    order.totalMinor > 0 ? await paymentAccountFor(event.organizationId) : null;
   return {
     orderId,
     token,
@@ -639,7 +643,8 @@ export async function reserveOrder(
         ticketTypeId: i.ticketTypeId,
       })),
     ),
-    stripeAccountId: account?.chargesEnabled ? account.stripeAccountId : null,
+    stripeAccountId: pay?.provider === "STRIPE" ? pay.stripeAccountId : null,
+    mollie: pay?.provider === "MOLLIE",
     refund: refundRuleOf(event, order.refundFeeMode),
   };
 }
@@ -680,13 +685,8 @@ export async function reservationByToken(
     order.holdExpiresAt <= now
   )
     return null;
-  const account =
-    order.totalMinor > 0
-      ? await db.stripeAccount.findUnique({
-          where: { organizationId: order.organizationId },
-          select: { stripeAccountId: true, chargesEnabled: true },
-        })
-      : null;
+  const pay =
+    order.totalMinor > 0 ? await paymentAccountFor(order.organizationId) : null;
   return {
     orderId,
     token,
@@ -720,7 +720,8 @@ export async function reservationByToken(
         ticketTypeId: i.ticketTypeId,
       })),
     ),
-    stripeAccountId: account?.chargesEnabled ? account.stripeAccountId : null,
+    stripeAccountId: pay?.provider === "STRIPE" ? pay.stripeAccountId : null,
+    mollie: pay?.provider === "MOLLIE",
     refund: refundRuleOf(order.event, order.refundFeeMode),
   };
 }
@@ -799,13 +800,15 @@ export interface BuyerInput {
 
 export type SubmitResult =
   | { kind: "PAID" }
-  | { kind: "PAYMENT"; clientSecret: string; stripeAccountId: string };
+  | { kind: "PAYMENT"; clientSecret: string; stripeAccountId: string }
+  | { kind: "REDIRECT"; url: string }; // page de paiement de Mollie
 
 /** Étape 3 et 4 du déroulé (section 9.11) : coordonnées, puis paiement ou validation immédiate si gratuit. */
 export async function submitBuyer(
   token: string,
   buyer: BuyerInput,
   now = new Date(),
+  opts: { returnUrl?: string } = {},
 ): Promise<SubmitResult> {
   const orderId = await findOrderIdByToken(token);
   if (!orderId) throw new CoreError("ORDER_NOT_FOUND");
@@ -914,13 +917,44 @@ export async function submitBuyer(
     }
     return { kind: "PAID" };
   }
+  const pay = await paymentAccountFor(order.organizationId);
+  if (pay?.provider === "MOLLIE") {
+    // page de paiement de Mollie (docs/MOLLIE.md), retour sur la page des billets de ce site
+    if (!opts.returnUrl) throw new CoreError("PAYMENTS_UNAVAILABLE");
+    // un paiement par carte vaut 15 minutes chez Mollie : la réservation, et l'annonce revendue, tiennent jusque-là
+    const until = new Date(now.getTime() + MOLLIE_HOLD_MS);
+    if (order.holdExpiresAt < until) {
+      await db.order.update({
+        where: { id: orderId },
+        data: { holdExpiresAt: until },
+      });
+      if (order.resaleListingId)
+        await db.resaleListing.updateMany({
+          where: { id: order.resaleListingId, status: "RESERVED" },
+          data: { reservedUntil: until },
+        });
+    }
+    const org = await db.organization.findUniqueOrThrow({
+      where: { id: order.organizationId },
+      select: { country: true },
+    });
+    const started = await startMolliePayment({
+      account: pay.account,
+      order,
+      title: order.event.title,
+      country: org.country,
+      returnUrl: opts.returnUrl,
+    });
+    if (started.kind === "PAID") {
+      await syncPaymentFromMollie(orderId);
+      return { kind: "PAID" };
+    }
+    return started;
+  }
   const s = stripe();
-  const account = await db.stripeAccount.findUnique({
-    where: { organizationId: order.organizationId },
-    select: { stripeAccountId: true, chargesEnabled: true },
-  });
-  if (!s || !account?.chargesEnabled)
+  if (!s || pay?.provider !== "STRIPE")
     throw new CoreError("PAYMENTS_UNAVAILABLE");
+  const account = { stripeAccountId: pay.stripeAccountId };
   const options = { stripeAccount: account.stripeAccountId };
   if (order.stripePaymentIntentId) {
     const existing = await s.paymentIntents.retrieve(
@@ -1123,10 +1157,14 @@ export async function moveIncludedOptions(
 export async function finalizeOrder(
   orderId: string,
   payment?: {
-    paymentIntentId: string;
+    /** Stripe (ancien prestataire) */
+    paymentIntentId?: string;
+    chargeId?: string | null;
+    /** Mollie (docs/MOLLIE.md) : empreinte de la carte connue au paiement */
+    molliePaymentId?: string;
+    cardFingerprint?: string | null;
     amountMinor: number;
     currency: string;
-    chargeId?: string | null;
     paymentMethodType?: string | null;
   },
   now = new Date(),
@@ -1372,13 +1410,23 @@ export async function finalizeOrder(
           paidAt: now,
           holdExpiresAt: null,
           contactId: contact.id,
-          ...(payment
+          ...(payment?.molliePaymentId
             ? {
-                stripePaymentIntentId: payment.paymentIntentId,
-                stripeChargeId: payment.chargeId ?? null,
+                molliePaymentId: payment.molliePaymentId,
+                paymentProvider: "MOLLIE" as const,
                 paymentMethodType: payment.paymentMethodType ?? null,
+                ...(payment.cardFingerprint
+                  ? { cardFingerprint: payment.cardFingerprint }
+                  : {}),
               }
-            : {}),
+            : payment
+              ? {
+                  stripePaymentIntentId: payment.paymentIntentId,
+                  stripeChargeId: payment.chargeId ?? null,
+                  paymentMethodType: payment.paymentMethodType ?? null,
+                  paymentProvider: "STRIPE" as const,
+                }
+              : {}),
         },
       });
       return "PAID" as const;
@@ -1395,13 +1443,17 @@ export async function finalizeOrder(
   }
 }
 
-/** Paiement tardif sans place disponible : remboursement intégral, commission comprise (Evoly n'a rien vendu). */
+/**
+ * Paiement tardif sans place disponible : remboursement intégral, commission comprise (Evoly n'a rien vendu). Par
+ * Mollie, la commission n'est pas rendue au remboursement : elle revient à l'organisateur sur son relevé mensuel.
+ */
 export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
   const s = stripe();
   const order = await db.order.findUnique({
     where: { id: orderId },
     select: {
       stripePaymentIntentId: true,
+      molliePaymentId: true,
       organizationId: true,
       totalMinor: true,
       currency: true,
@@ -1411,25 +1463,27 @@ export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
       organization: { select: { name: true } },
     },
   });
-  const account = order
-    ? await db.stripeAccount.findUnique({
-        where: { organizationId: order.organizationId },
-        select: { stripeAccountId: true },
-      })
-    : null;
-  if (!s || !order?.stripePaymentIntentId || !account) return;
-  await s.refunds.create(
-    {
-      payment_intent: order.stripePaymentIntentId,
-      refund_application_fee: true,
-      reason: "requested_by_customer",
-      metadata: { orderId, cause: "SOLD_OUT_AFTER_HOLD_EXPIRY" },
-    },
-    {
-      stripeAccount: account.stripeAccountId,
-      idempotencyKey: `order:${orderId}:unfulfilled-refund`,
-    },
-  );
+  if (!order) return;
+  if (order.molliePaymentId) await refundMollieInFull(orderId, "unfulfilled");
+  else {
+    const account = await db.stripeAccount.findUnique({
+      where: { organizationId: order.organizationId },
+      select: { stripeAccountId: true },
+    });
+    if (!s || !order.stripePaymentIntentId || !account) return;
+    await s.refunds.create(
+      {
+        payment_intent: order.stripePaymentIntentId,
+        refund_application_fee: true,
+        reason: "requested_by_customer",
+        metadata: { orderId, cause: "SOLD_OUT_AFTER_HOLD_EXPIRY" },
+      },
+      {
+        stripeAccount: account.stripeAccountId,
+        idempotencyKey: `order:${orderId}:unfulfilled-refund`,
+      },
+    );
+  }
   await db.order.update({
     where: { id: orderId },
     data: { status: "REFUNDED", refundedMinor: order.totalMinor },
@@ -1466,7 +1520,8 @@ export async function refundUnfulfilledPayment(orderId: string): Promise<void> {
  */
 export async function refundBlockedCardPayment(
   orderId: string,
-  chargeId: string,
+  /** Stripe : la charge, dont l'empreinte est lue ; Mollie : l'empreinte, connue au paiement. */
+  proof: string | { cardFingerprint: string | null },
 ): Promise<boolean> {
   const order = await db.order.findUnique({
     where: { id: orderId },
@@ -1477,10 +1532,12 @@ export async function refundBlockedCardPayment(
       organizationId: true,
       totalMinor: true,
       stripePaymentIntentId: true,
+      molliePaymentId: true,
     },
   });
   if (
-    !order?.stripePaymentIntentId ||
+    !order ||
+    (!order.stripePaymentIntentId && !order.molliePaymentId) ||
     !["PENDING", "EXPIRED", "FAILED"].includes(order.status) ||
     !(await db.blockedCard.findFirst({
       where: { organizationId: order.organizationId },
@@ -1488,25 +1545,32 @@ export async function refundBlockedCardPayment(
     }))
   )
     return false;
-  const s = stripe();
-  const account = await db.stripeAccount.findUnique({
-    where: { organizationId: order.organizationId },
-    select: { stripeAccountId: true },
-  });
-  if (!s || !account) return false;
-  const options = { stripeAccount: account.stripeAccountId };
-  const charge = await s.charges.retrieve(chargeId, {}, options);
-  const fingerprint = charge.payment_method_details?.card?.fingerprint ?? null;
-  if (!(await isCardBlocked(order.organizationId, fingerprint))) return false;
-  await s.refunds.create(
-    {
-      payment_intent: order.stripePaymentIntentId,
-      refund_application_fee: true,
-      reason: "requested_by_customer",
-      metadata: { orderId, cause: "BUYER_BLOCKED" },
-    },
-    { ...options, idempotencyKey: `order:${orderId}:blocked-refund` },
-  );
+  let fingerprint: string | null;
+  if (typeof proof === "string") {
+    const s = stripe();
+    const account = await db.stripeAccount.findUnique({
+      where: { organizationId: order.organizationId },
+      select: { stripeAccountId: true },
+    });
+    if (!s || !account || !order.stripePaymentIntentId) return false;
+    const options = { stripeAccount: account.stripeAccountId };
+    const charge = await s.charges.retrieve(proof, {}, options);
+    fingerprint = charge.payment_method_details?.card?.fingerprint ?? null;
+    if (!(await isCardBlocked(order.organizationId, fingerprint))) return false;
+    await s.refunds.create(
+      {
+        payment_intent: order.stripePaymentIntentId,
+        refund_application_fee: true,
+        reason: "requested_by_customer",
+        metadata: { orderId, cause: "BUYER_BLOCKED" },
+      },
+      { ...options, idempotencyKey: `order:${orderId}:blocked-refund` },
+    );
+  } else {
+    fingerprint = proof.cardFingerprint;
+    if (!(await isCardBlocked(order.organizationId, fingerprint))) return false;
+    await refundMollieInFull(orderId, "blocked");
+  }
   await db.$transaction(async (tx) => {
     await lockEvent(tx, order.eventId);
     const o = await tx.order.findUniqueOrThrow({

@@ -14,6 +14,7 @@ const REDIRECTS = [
   "https://billing.stripe.com",
   "https://connect.stripe.com",
   "https://my.mollie.com", // autorisation Mollie Connect (docs/MOLLIE.md)
+  "https://www.mollie.com", // page de paiement de Mollie
   "https://accounts.google.com",
   "https://appleid.apple.com",
 ];

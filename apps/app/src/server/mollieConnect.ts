@@ -33,6 +33,7 @@ import {
   saveMollieAuthorization,
 } from "./mollieAccounts";
 import { notify } from "./notifications";
+import { organizationPublicUrl } from "./urls";
 import { getSession } from "./session";
 
 /**
@@ -202,10 +203,9 @@ export async function completeMollieConnection(
 
 /** Page publique de l'organisation, déclarée comme site du profil Mollie. */
 function publicSite(subdomain: string | null): string {
-  const e = env();
   return subdomain
-    ? `https://${subdomain}.${e.NEXT_PUBLIC_BASE_DOMAIN}`
-    : e.NEXT_PUBLIC_SITE_URL;
+    ? organizationPublicUrl(subdomain)
+    : env().NEXT_PUBLIC_SITE_URL;
 }
 
 /**
