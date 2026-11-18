@@ -1,11 +1,11 @@
-import { can, firstPeriodStart, type PlanFeature } from "@evoly/core";
+import { can, SETUP_AMOUNT_MINOR, type PlanFeature } from "@evoly/core";
 import { formatDate, formatMoney, type Locale } from "@evoly/i18n";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Badge, Card } from "@/components/ui/Card";
 import { billingState } from "@/server/billing";
 import { requireOrgContext } from "@/server/context";
-import { proPaymentReturn } from "@/server/proBilling";
+import { deferredStart, proPaymentReturn } from "@/server/proBilling";
 import {
   CancelSubscription,
   ChangePaymentMethod,
@@ -102,20 +102,26 @@ export default async function BillingPage({
                 date: formatDate(sub.currentPeriodEnd, tz, locale),
               })
             : t("statusGrantedUnlimited")
-          : status === "ACTIVE" && sub?.currentPeriodEnd
-            ? t("statusActive", {
-                date: formatDate(sub.currentPeriodEnd, tz, locale),
+          : status === "ACTIVE" && state.firstCharge
+            ? t("statusScheduled", {
+                date: formatDate(state.firstCharge, tz, locale),
                 price: money(state.prices[upcoming]),
                 interval: t(`per_${upcoming}`),
               })
-            : (status === "PAST_DUE" || status === "UNPAID") &&
-                state.daysBeforeDowngrade != null
-              ? t("statusPastDue", { count: state.daysBeforeDowngrade })
-              : status === "ENDING" && sub?.currentPeriodEnd
-                ? t("statusEnding", {
-                    date: formatDate(sub.currentPeriodEnd, tz, locale),
-                  })
-                : t("statusFree", { cap: money(state.caps.free) });
+            : status === "ACTIVE" && sub?.currentPeriodEnd
+              ? t("statusActive", {
+                  date: formatDate(sub.currentPeriodEnd, tz, locale),
+                  price: money(state.prices[upcoming]),
+                  interval: t(`per_${upcoming}`),
+                })
+              : (status === "PAST_DUE" || status === "UNPAID") &&
+                  state.daysBeforeDowngrade != null
+                ? t("statusPastDue", { count: state.daysBeforeDowngrade })
+                : status === "ENDING" && sub?.currentPeriodEnd
+                  ? t("statusEnding", {
+                      date: formatDate(sub.currentPeriodEnd, tz, locale),
+                    })
+                  : t("statusFree", { cap: money(state.caps.free) });
   const fmt = (d: Date) => formatDate(d, tz, locale);
   const now = new Date();
   const downgradeInfo = (
@@ -131,8 +137,8 @@ export default async function BillingPage({
       <p className="mt-2 text-ink-muted">{t("downgradeKept")}</p>
     </div>
   );
-  // première période payée : à la fin de ce qui court encore (essai, Pro offert, ancien abonnement Stripe)
-  const startsAt = firstPeriodStart(sub, now);
+  // pendant une période en cours (essai, Pro offert) : rien à payer avant sa fin, date du premier prélèvement
+  const startsAt = deferredStart(sub, now);
   const current = sub?.interval ?? "MONTH";
   // offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)
   const mollieOffer =
@@ -227,9 +233,7 @@ export default async function BillingPage({
           currency={state.currency}
           trial={state.trialEligible && !isPro}
           provider="MOLLIE"
-          startsOn={
-            startsAt.getTime() > now.getTime() + 60_000 ? fmt(startsAt) : null
-          }
+          startsOn={startsAt ? fmt(startsAt) : null}
           cta={isPro ? t("subscribe") : t("upgrade")}
         />
       </div>
@@ -270,13 +274,18 @@ export default async function BillingPage({
           role="status"
         >
           {back.status === "PAID"
-            ? t(
-                back.kind === "MANDATE"
-                  ? "returnMandate"
-                  : back.kind === "SETTLE"
-                    ? "returnSettled"
-                    : "returnPaid",
-              )
+            ? back.kind === "SETUP"
+              ? t("returnScheduled", {
+                  date: fmt(back.periodStart ?? now),
+                  amount: money(SETUP_AMOUNT_MINOR),
+                })
+              : t(
+                  back.kind === "MANDATE"
+                    ? "returnMandate"
+                    : back.kind === "SETTLE"
+                      ? "returnSettled"
+                      : "returnPaid",
+                )
             : back.status === "PENDING"
               ? t("returnPending")
               : t("returnFailed")}

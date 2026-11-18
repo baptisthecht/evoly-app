@@ -2076,14 +2076,16 @@
     "subscribe": "Abbonati",
     "subscribeNow": "Oppure abbonati subito",
     "subscribeTerms": "Pagamento sulla pagina sicura di Mollie, con carta o Bancontact, poi rinnovo automatico: con carta, o con addebito diretto SEPA dopo Bancontact. Puoi disdire in qualsiasi momento, con effetto alla fine del periodo.",
-    "subscribeFrom": "Il tuo primo periodo inizierà il {date}, alla fine di quello in corso.",
     "trialTermsNoCard": "14 giorni gratis, senza carta. Alla fine della prova, abbonati per restare in Pro; altrimenti torni a Free senza perdere nulla.",
     "legacyStripe": "Evoly ora incassa l’abbonamento Pro con Mollie. Il tuo abbonamento attuale resta attivo fino al {date}: abbonati qui sotto per restare in Pro dopo. Il tuo primo periodo inizierà in quella data e il vecchio abbonamento terminerà senza altri pagamenti.",
     "invoices": "Fatture",
     "invoiceDownload": "Scarica la fattura {number}",
     "switchScheduled": "Fatto: il cambio si applicherà al prossimo rinnovo, il {date}.",
     "keepInterval_MONTH": "Resta al mensile",
-    "keepInterval_YEAR": "Resta all’annuale"
+    "keepInterval_YEAR": "Resta all’annuale",
+    "subscribeDeferred": "Nulla da pagare prima del {date}, alla fine del periodo in corso: il primo addebito avverrà quel giorno, poi a ogni rinnovo. Sulla pagina sicura di Mollie, registra la tua carta o il tuo conto (Bancontact) con un pagamento di verifica di {amount}, rimborsato subito. Disdicibile in qualsiasi momento, con effetto a fine periodo.",
+    "statusScheduled": "Abbonamento registrato: nulla da pagare prima del {date}, alla fine del periodo in corso. Poi {price} {interval}.",
+    "returnScheduled": "Fatto: nulla da pagare prima del {date}, data del primo addebito. I {amount} di verifica ti vengono rimborsati."
   },
   "brand": {
     "sloganStart": "il tuo prossimo",

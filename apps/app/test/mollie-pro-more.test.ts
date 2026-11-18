@@ -36,12 +36,12 @@ const {
   startProCheckout,
 } = await import("@/server/proBilling");
 const { issueProInvoice, proInvoicePdf } = await import("@/server/proInvoices");
-const { changeInterval, notifyGrantedProEnding } =
+const { billingState, changeInterval, notifyGrantedProEnding } =
   await import("@/server/billing");
 const { assignPlan, extendTrial } = await import("@/server/platform");
 const { qualifyReferral } = await import("@/server/referrals");
 const { deletionBlockers } = await import("@/server/organization");
-const { effectivePlan } = await import("@evoly/core");
+const { addBillingInterval, effectivePlan } = await import("@evoly/core");
 type Staff = Parameters<typeof assignPlan>[0];
 
 type Route = { method: string; path: string; status?: number; body?: unknown };
@@ -892,5 +892,240 @@ describe("offre Pro payée par Mollie : cas particuliers (docs/MOLLIE.md, lot 6)
         },
       }),
     ).toBeGreaterThan(0);
+  });
+  it("abonnement pendant un Pro offert : vérification remboursée plus tard si Mollie ne répond pas, jamais facturée ; contestée : rien ne change ; résilié avant le premier prélèvement : rien n'est prélevé", async () => {
+    await alone();
+    const o = await organizer();
+    const now = new Date();
+    const grantEnd = new Date(now.getTime() + 30 * DAY);
+    await db.subscription.update({
+      where: { organizationId: o.org.id },
+      data: { planId: "pro", status: "ACTIVE", currentPeriodEnd: grantEnd },
+    });
+    mollie(
+      {
+        method: "POST",
+        path: "/v2/customers",
+        status: 201,
+        body: { id: `cst_${o.id}` },
+      },
+      {
+        method: "POST",
+        path: "/v2/payments",
+        status: 201,
+        body: {
+          id: `tr_offert${o.id}`,
+          status: "open",
+          amount: eur("0.02"),
+          _links: { checkout: { href: "https://www.mollie.com/checkout/x" } },
+        },
+      },
+    );
+    await startProCheckout(o.ctx, "MONTH", now);
+    const row = await db.subscriptionPayment.findFirstOrThrow({
+      where: { organizationId: o.org.id, kind: "SETUP" },
+    });
+    expect(row).toMatchObject({ amountMinor: 2, periodStart: grantEnd });
+
+    // payée par carte ; Mollie ne répond pas au remboursement : rien n'est perdu
+    const paid = (extra: Record<string, unknown> = {}) => ({
+      method: "GET",
+      path: `/v2/payments/tr_offert${o.id}`,
+      body: {
+        id: `tr_offert${o.id}`,
+        status: "paid",
+        amount: eur("0.02"),
+        method: "creditcard",
+        sequenceType: "first",
+        customerId: `cst_${o.id}`,
+        mandateId: `mdt_${o.id}`,
+        paidAt: now.toISOString(),
+        _links: {},
+        ...extra,
+      },
+    });
+    vi.unstubAllGlobals();
+    mollie(paid(), {
+      method: "GET",
+      path: `/v2/customers/cst_${o.id}/mandates/mdt_${o.id}`,
+      body: {
+        id: `mdt_${o.id}`,
+        method: "creditcard",
+        status: "valid",
+        details: { cardLabel: "Visa", cardNumber: "4242" },
+      },
+    });
+    await handleProWebhook(`tr_offert${o.id}`, now);
+    let sub = await subOf(o);
+    expect(sub).toMatchObject({
+      status: "ACTIVE",
+      billingProvider: "MOLLIE",
+      mollieMandateId: `mdt_${o.id}`,
+      paymentMethodLabel: "Visa •••• 4242",
+    });
+    expect(sub.currentPeriodEnd).toEqual(grantEnd);
+    expect(
+      (
+        await db.subscriptionPayment.findUniqueOrThrow({
+          where: { id: row.id },
+        })
+      ).refundedAt,
+    ).toBeNull();
+    expect((await billingState(o.ctx)).firstCharge).toEqual(grantEnd);
+
+    // tâche horaire : remboursement fait, une seule fois ; la vérification n'est jamais facturée
+    const later = new Date(now.getTime() + 10 * 60_000);
+    vi.unstubAllGlobals();
+    mollie({
+      method: "POST",
+      path: `/v2/payments/tr_offert${o.id}/refunds`,
+      status: 201,
+      body: { id: `re_${o.id}`, status: "queued" },
+    });
+    expect(await runProBilling(later)).toMatchObject({
+      refunded: 1,
+      renewed: 0,
+    });
+    expect(await runProBilling(later)).toMatchObject({ refunded: 0 });
+    expect(
+      (
+        await db.subscriptionPayment.findUniqueOrThrow({
+          where: { id: row.id },
+        })
+      ).refundedAt,
+    ).not.toBeNull();
+    expect(
+      await db.proInvoice.count({ where: { organizationId: o.org.id } }),
+    ).toBe(0);
+
+    // vérification contestée auprès de la banque : l'abonnement n'est pas en impayé
+    vi.unstubAllGlobals();
+    mollie(paid({ amountChargedBack: eur("0.02") }));
+    await handleProWebhook(`tr_offert${o.id}`, later);
+    expect(
+      (
+        await db.subscriptionPayment.findUniqueOrThrow({
+          where: { id: row.id },
+        })
+      ).status,
+    ).toBe("CHARGED_BACK");
+    expect((await subOf(o)).status).toBe("ACTIVE");
+
+    // résilié avant le premier prélèvement : rien n'est prélevé, fin à la date prévue
+    await cancelProSubscription(o.ctx, later);
+    expect((await billingState(o.ctx)).firstCharge).toBeNull();
+    vi.unstubAllGlobals();
+    mollie();
+    const sent = calls.length;
+    expect(
+      await runProBilling(new Date(grantEnd.getTime() - 12 * 3_600_000)),
+    ).toMatchObject({ renewed: 0 });
+    await runProBilling(new Date(grantEnd.getTime() + 60_000));
+    sub = await subOf(o);
+    expect(sub.status).toBe("CANCELED");
+    expect(effectivePlan(sub, new Date(grantEnd.getTime() + 60_000))).toBe(
+      "free",
+    );
+    expect(calls.slice(sent).filter((c) => c.method === "POST")).toHaveLength(
+      0,
+    );
+  });
+
+  it("vérification payée après la fin de la période offerte : premier prélèvement tout de suite, sans trou dans l'offre", async () => {
+    await alone();
+    const o = await organizer();
+    const now = new Date();
+    const grantEnd = new Date(now.getTime() + 2 * DAY);
+    await db.subscription.update({
+      where: { organizationId: o.org.id },
+      data: { planId: "pro", status: "ACTIVE", currentPeriodEnd: grantEnd },
+    });
+    mollie(
+      {
+        method: "POST",
+        path: "/v2/customers",
+        status: 201,
+        body: { id: `cst_${o.id}` },
+      },
+      {
+        method: "POST",
+        path: "/v2/payments",
+        status: 201,
+        body: {
+          id: `tr_tard${o.id}`,
+          status: "open",
+          amount: eur("0.02"),
+          _links: { checkout: { href: "https://www.mollie.com/checkout/y" } },
+        },
+      },
+    );
+    await startProCheckout(o.ctx, "MONTH", now);
+
+    const late = new Date(grantEnd.getTime() + 3_600_000);
+    vi.unstubAllGlobals();
+    mollie(
+      {
+        method: "GET",
+        path: `/v2/payments/tr_tard${o.id}`,
+        body: {
+          id: `tr_tard${o.id}`,
+          status: "paid",
+          amount: eur("0.02"),
+          method: "bancontact",
+          sequenceType: "first",
+          customerId: `cst_${o.id}`,
+          mandateId: `mdt_${o.id}`,
+          paidAt: late.toISOString(),
+          _links: {},
+        },
+      },
+      {
+        method: "GET",
+        path: `/v2/customers/cst_${o.id}/mandates/mdt_${o.id}`,
+        body: {
+          id: `mdt_${o.id}`,
+          method: "directdebit",
+          status: "valid",
+          details: { consumerAccount: "BE68539007547034" },
+        },
+      },
+      {
+        method: "POST",
+        path: `/v2/payments/tr_tard${o.id}/refunds`,
+        status: 201,
+        body: { id: `re_${o.id}`, status: "pending" },
+      },
+      {
+        method: "POST",
+        path: "/v2/payments",
+        status: 201,
+        body: {
+          id: `tr_mois${o.id}`,
+          status: "pending",
+          amount: eur("29.00"),
+          method: "directdebit",
+          sequenceType: "recurring",
+          _links: {},
+        },
+      },
+    );
+    await handleProWebhook(`tr_tard${o.id}`, late);
+    const sub = await subOf(o);
+    expect(sub.currentPeriodStart).toEqual(late);
+    expect(sub.currentPeriodEnd).toEqual(addBillingInterval(late, "MONTH"));
+    expect(effectivePlan(sub, late)).toBe("pro");
+    expect(
+      await db.subscriptionPayment.findFirstOrThrow({
+        where: { organizationId: o.org.id, kind: "RENEWAL" },
+      }),
+    ).toMatchObject({ status: "PENDING", amountMinor: 2900 });
+    const charge = calls
+      .filter((c) => c.method === "POST" && c.url.pathname === "/v2/payments")
+      .at(-1)!;
+    expect(JSON.parse(charge.body)).toMatchObject({
+      amount: eur("29.00"),
+      sequenceType: "recurring",
+      mandateId: `mdt_${o.id}`,
+    });
   });
 });

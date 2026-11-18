@@ -2076,14 +2076,16 @@
     "subscribe": "Subscrever",
     "subscribeNow": "Ou subscrever já",
     "subscribeTerms": "Pagamento na página segura da Mollie, com cartão ou Bancontact, e depois renovação automática: com cartão, ou por débito direto SEPA após Bancontact. Pode cancelar a qualquer momento, com efeito no fim do período.",
-    "subscribeFrom": "O seu primeiro período começará a {date}, quando terminar o atual.",
     "trialTermsNoCard": "14 dias grátis, sem cartão. No fim do teste, subscreva para manter o Pro; caso contrário, regressa ao Free sem perder nada.",
     "legacyStripe": "A Evoly passa a cobrar a subscrição Pro com a Mollie. A sua subscrição atual continua ativa até {date}: subscreva abaixo para manter o Pro depois. O seu primeiro período começará nessa data, e a subscrição antiga termina sem mais pagamentos.",
     "invoices": "Faturas",
     "invoiceDownload": "Descarregar a fatura {number}",
     "switchScheduled": "Registado: a alteração aplica-se na próxima renovação, a {date}.",
     "keepInterval_MONTH": "Manter o mensal",
-    "keepInterval_YEAR": "Manter o anual"
+    "keepInterval_YEAR": "Manter o anual",
+    "subscribeDeferred": "Nada a pagar antes de {date}, no fim do seu período atual: a primeira cobrança é feita nesse dia e depois em cada renovação. Na página segura da Mollie, registe o seu cartão ou a sua conta (Bancontact) com um pagamento de verificação de {amount}, reembolsado de imediato. Pode cancelar a qualquer momento, com efeito no fim do período.",
+    "statusScheduled": "Subscrição registada: nada a pagar antes de {date}, no fim do seu período atual. Depois, {price} {interval}.",
+    "returnScheduled": "Está registado: nada a pagar antes de {date}, data da primeira cobrança. Os {amount} de verificação são-lhe reembolsados."
   },
   "brand": {
     "sloganStart": "a sua próxima",

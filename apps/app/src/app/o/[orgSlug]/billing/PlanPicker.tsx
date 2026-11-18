@@ -1,5 +1,6 @@
 "use client";
 
+import { SETUP_AMOUNT_MINOR } from "@evoly/core";
 import { formatMoney, type Locale } from "@evoly/i18n";
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
@@ -9,7 +10,7 @@ import { checkoutAction, portalAction } from "./actions";
 
 /**
  * Passer en Pro : choix mensuel ou annuel. Avec Mollie (docs/MOLLIE.md, lot 6) : essai de 14 jours sans carte, ou
- * abonnement payé sur la page de Mollie, dont la première période commence à la fin de ce qui court encore (startsOn).
+ * abonnement payé sur la page de Mollie ; pendant une période en cours (startsOn), rien à payer avant sa fin.
  * Avant Mollie : Stripe Checkout, essai compris (RG-SUB-02).
  */
 export function PlanPicker({
@@ -27,7 +28,7 @@ export function PlanPicker({
   trial: boolean;
   /** prestataire de l'offre Pro ; sans lui, le parcours d'avant Mollie (Stripe Checkout) */
   provider?: "MOLLIE" | "STRIPE" | null;
-  /** date (mise en forme) du début de la première période payée, si elle ne commence pas tout de suite */
+  /** date (mise en forme) du premier prélèvement, à la fin de la période en cours : rien n'est payé avant */
   startsOn?: string | null;
   /** libellé du bouton d'abonnement (« Passer en Pro », « S'abonner ») */
   cta?: string;
@@ -129,8 +130,12 @@ export function PlanPicker({
             {cta ?? t("upgrade")}
           </SubmitButton>
           <p className="text-xs text-ink-muted">
-            {startsOn ? `${t("subscribeFrom", { date: startsOn })} ` : ""}
-            {t("subscribeTerms")}
+            {startsOn
+              ? t("subscribeDeferred", {
+                  date: startsOn,
+                  amount: money(SETUP_AMOUNT_MINOR),
+                })
+              : t("subscribeTerms")}
           </p>
         </>
       ) : (

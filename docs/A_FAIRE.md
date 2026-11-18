@@ -42,11 +42,18 @@ plateformes. Plan, correspondances et points à valider : `docs/MOLLIE.md`. Bran
   alors sans renouvellement). Corrigé au passage : l'e-mail « repassée en Free » partait chaque minute pendant une
   heure. Au déploiement : migration `20261118170000_mollie_offre_pro`, clé `MOLLIE_API_KEY` du compte d'Evoly. Restent :
   avoirs pour un paiement Pro remboursé ou contesté (à faire dans Mollie et à la main en attendant).
+- Lot 6, suite (décidé le 18 novembre 2026, après l'essai en mode test) : abonnement pris pendant une période en cours
+  (essai, Pro offert, offre de lancement) sans paiement immédiat. Le moyen de paiement est enregistré par un paiement
+  de vérification de 0,02 € remboursé aussitôt ; le premier prélèvement a lieu à la fin de la période, avec un e-mail
+  de confirmation et un rappel 7 jours avant. Au déploiement : migration
+  `20261119090000_mollie_pro_sans_paiement_immediat`.
 - Lot 7 : bascule (textes encore « Stripe » de l'accueil et de la liste de contrôle d'un événement, textes légaux,
   retrait de Stripe) ; puis la boutique.
-- À faire par le porteur : application Connect « Evoly » (adresse de retour `https://app.evoly.me/api/mollie/oauth`),
-  clés `MOLLIE_API_KEY`, `MOLLIE_CLIENT_ID` et `MOLLIE_CLIENT_SECRET` dans le `.env`, un deuxième compte Mollie de test
-  pour jouer l'organisateur.
+- Fait par le porteur le 18 novembre 2026 : applications Connect de production et de développement, clés dans le
+  `.env` local, prélèvement SEPA activé, deuxième organisation Mollie de test reliée, achat de billet et offre Pro
+  essayés en mode test. Connect pour plateformes en cours d'activation à la demande du support de Mollie. Reste avant
+  la mise en ligne : clés de production dans le `.env` du serveur, adresse complète et numéro de TVA d'Evoly
+  (`EVOLY_LEGAL_ADDRESS`, `EVOLY_VAT_NUMBER`) pour les factures et les relevés.
 - Questions à Mollie : responsabilité des remboursements (art. 7 des conditions Connect), modèle de la mention
   obligatoire (art. 8), réserve sur les comptes des organisateurs, associations de fait, frais de remboursement, de
   litige et de Connect.

@@ -156,7 +156,8 @@ const subOf = (o: { org: { id: string } }) =>
   db.subscription.findUniqueOrThrow({ where: { organizationId: o.org.id } });
 
 describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
-  it("essai de 14 jours sans carte, une seule fois ; abonnement pendant l'essai : première période à la fin de l'essai, mandat, facture numérotée et envoyée", async () => {
+  it("essai de 14 jours sans carte, une seule fois ; abonnement pendant l'essai : vérification remboursée, rien à payer avant la fin de l'essai, rappel 7 jours avant, puis premier prélèvement, facture numérotée et envoyée", async () => {
+    await alone();
     const o = await organizer();
     const now = new Date();
     mollie();
@@ -176,6 +177,7 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
       code: "ALREADY_SUBSCRIBED",
     });
 
+    // abonnement pendant l'essai : seulement un paiement de vérification de 0,02 €, qui crée le mandat
     vi.unstubAllGlobals();
     mollie(
       {
@@ -189,9 +191,9 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
         path: "/v2/payments",
         status: 201,
         body: {
-          id: `tr_premier${o.id}`,
+          id: `tr_verif${o.id}`,
           status: "open",
-          amount: eur("295.80"),
+          amount: eur("0.02"),
           _links: { checkout: { href: "https://www.mollie.com/checkout/abc" } },
         },
       },
@@ -200,29 +202,35 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
       "https://www.mollie.com/checkout/abc",
     );
     const row = await db.subscriptionPayment.findFirstOrThrow({
-      where: { organizationId: o.org.id, kind: "FIRST" },
+      where: { organizationId: o.org.id, kind: "SETUP" },
     });
+    expect(row).toMatchObject({ amountMinor: 2, interval: "YEAR" });
     const create = calls.find((c) => c.url.pathname === "/v2/payments")!;
     expect(JSON.parse(create.body)).toMatchObject({
-      amount: eur("295.80"),
+      amount: eur("0.02"),
       sequenceType: "first",
       customerId: `cst_${o.id}`,
-      metadata: { organizationId: o.org.id, subscriptionPaymentId: row.id },
+      metadata: {
+        organizationId: o.org.id,
+        subscriptionPaymentId: row.id,
+        kind: "SETUP",
+      },
     });
+    expect(JSON.parse(create.body).method).toBeUndefined(); // carte, Bancontact… au choix
     expect(JSON.parse(create.body).redirectUrl).toContain(
       `/o/${o.org.slug}/billing?mollie=${row.id}`,
     );
     expect(create.headers.get("idempotency-key")).toBe(`pro-payment:${row.id}`);
     expect(create.headers.get("authorization")).toBe("Bearer test_essai_evoly");
 
-    // payé par Bancontact : mandat de prélèvement SEPA pour les renouvellements
-    const paid = {
+    // vérification payée par Bancontact : mandat de prélèvement SEPA, vérification remboursée, aucune facture
+    const verified = {
       method: "GET",
-      path: `/v2/payments/tr_premier${o.id}`,
+      path: `/v2/payments/tr_verif${o.id}`,
       body: {
-        id: `tr_premier${o.id}`,
+        id: `tr_verif${o.id}`,
         status: "paid",
-        amount: eur("295.80"),
+        amount: eur("0.02"),
         method: "bancontact",
         sequenceType: "first",
         customerId: `cst_${o.id}`,
@@ -232,19 +240,32 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
       },
     };
     vi.unstubAllGlobals();
-    mollie(paid, {
-      method: "GET",
-      path: `/v2/customers/cst_${o.id}/mandates/mdt_${o.id}`,
-      body: {
-        id: `mdt_${o.id}`,
-        method: "directdebit",
-        status: "valid",
-        details: { consumerName: "Nora", consumerAccount: "BE68539007547034" },
+    mollie(
+      verified,
+      {
+        method: "GET",
+        path: `/v2/customers/cst_${o.id}/mandates/mdt_${o.id}`,
+        body: {
+          id: `mdt_${o.id}`,
+          method: "directdebit",
+          status: "valid",
+          details: {
+            consumerName: "Nora",
+            consumerAccount: "BE68539007547034",
+          },
+        },
       },
-    });
-    await handleProWebhook(`tr_premier${o.id}`, now);
+      {
+        method: "POST",
+        path: `/v2/payments/tr_verif${o.id}/refunds`,
+        status: 201,
+        body: { id: `re_${o.id}`, status: "pending" },
+      },
+    );
+    await handleProWebhook(`tr_verif${o.id}`, now);
     sub = await subOf(o);
     expect(sub).toMatchObject({
+      planId: "pro",
       status: "ACTIVE",
       billingProvider: "MOLLIE",
       interval: "YEAR",
@@ -252,9 +273,110 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
       paymentMethodLabel: "BE68 •••• 7034",
       cancelAtPeriodEnd: false,
     });
+    expect(sub.currentPeriodEnd).toEqual(trialEnd); // l'essai court jusqu'au premier prélèvement
+    expect(effectivePlan(sub, now)).toBe("pro");
+    const refund = calls.find((c) => c.url.pathname.endsWith("/refunds"))!;
+    expect(JSON.parse(refund.body)).toMatchObject({ amount: eur("0.02") });
+    expect(refund.headers.get("idempotency-key")).toBe(
+      `pro-setup-refund:${row.id}`,
+    );
+    expect(
+      await db.subscriptionPayment.findUniqueOrThrow({ where: { id: row.id } }),
+    ).toMatchObject({ status: "PAID", periodStart: trialEnd });
+    expect(
+      (
+        await db.subscriptionPayment.findUniqueOrThrow({
+          where: { id: row.id },
+        })
+      ).refundedAt,
+    ).not.toBeNull();
+    expect(
+      await db.proInvoice.count({ where: { organizationId: o.org.id } }),
+    ).toBe(0);
+    const scheduledMail = await db.emailMessage.findFirstOrThrow({
+      where: { organizationId: o.org.id, template: "subscription.scheduled" },
+    });
+    expect(scheduledMail.subject).toBe(
+      "Votre abonnement Evoly Pro est enregistré",
+    );
+    let view = await billingState(o.ctx);
+    expect(view).toMatchObject({
+      provider: "MOLLIE",
+      mollieBilled: true,
+      trialEligible: false,
+    });
+    expect(view.firstCharge).toEqual(trialEnd);
+
+    // le même webhook une seconde fois : rien de plus, aucun second remboursement
+    vi.unstubAllGlobals();
+    mollie(verified);
+    await handleProWebhook(`tr_verif${o.id}`, now);
+    expect(
+      calls.filter((c) => c.url.pathname.endsWith("/refunds")),
+    ).toHaveLength(1);
+
+    // 7 jours avant la fin de l'essai : rappel du premier prélèvement, une seule fois
+    vi.unstubAllGlobals();
+    mollie();
+    const week = new Date(trialEnd.getTime() - 6 * DAY);
+    expect((await runProBilling(week)).notices).toBe(1);
+    expect((await runProBilling(week)).notices).toBe(0);
+    const notice = await db.emailMessage.findFirstOrThrow({
+      where: {
+        organizationId: o.org.id,
+        template: "subscription.first_charge",
+      },
+    });
+    expect(notice.subject).toMatch(/^Premier prélèvement Evoly Pro le /);
+
+    // la veille de la fin de l'essai : premier prélèvement sur le mandat (prélèvement SEPA, quelques jours)
+    vi.unstubAllGlobals();
+    mollie({
+      method: "POST",
+      path: "/v2/payments",
+      status: 201,
+      body: {
+        id: `tr_premier${o.id}`,
+        status: "pending",
+        amount: eur("295.80"),
+        method: "directdebit",
+        sequenceType: "recurring",
+        _links: {},
+      },
+    });
+    const eve = new Date(trialEnd.getTime() - 12 * 3_600_000);
+    expect((await runProBilling(eve)).renewed).toBe(1);
+    const charge = calls
+      .filter((c) => c.method === "POST" && c.url.pathname === "/v2/payments")
+      .at(-1)!;
+    expect(JSON.parse(charge.body)).toMatchObject({
+      amount: eur("295.80"),
+      sequenceType: "recurring",
+      mandateId: `mdt_${o.id}`,
+    });
+    sub = await subOf(o);
     expect(sub.currentPeriodStart).toEqual(trialEnd);
     expect(sub.currentPeriodEnd).toEqual(addBillingInterval(trialEnd, "YEAR"));
+    view = await billingState(o.ctx);
+    expect(view.firstCharge).toBeNull();
+    expect(view.renewalPending).toBe(true);
 
+    vi.unstubAllGlobals();
+    mollie({
+      method: "GET",
+      path: `/v2/payments/tr_premier${o.id}`,
+      body: {
+        id: `tr_premier${o.id}`,
+        status: "paid",
+        amount: eur("295.80"),
+        method: "directdebit",
+        sequenceType: "recurring",
+        mandateId: `mdt_${o.id}`,
+        paidAt: trialEnd.toISOString(),
+        _links: {},
+      },
+    });
+    await handleProWebhook(`tr_premier${o.id}`, trialEnd);
     const invoice = await db.proInvoice.findFirstOrThrow({
       where: { organizationId: o.org.id },
     });
@@ -264,7 +386,7 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
       vatRateBps: 2100,
       vatMinor: 5134, // 21 % compris dans 295,80 €
       vatMention: "BE_VAT",
-      method: "bancontact",
+      method: "directdebit",
       interval: "YEAR",
     });
     const mail = await db.emailMessage.findFirstOrThrow({
@@ -278,23 +400,11 @@ describe("offre Pro payée par Mollie (docs/MOLLIE.md, lot 6)", () => {
       "Abonnement Evoly Pro, annuel",
       "295,80",
       "TVA belge 21 % comprise",
+      "prélèvement SEPA",
       "via Mollie",
     ])
       expect(text).toContain(part);
-
-    // le même webhook une seconde fois : rien de plus
-    vi.unstubAllGlobals();
-    mollie(paid);
-    await handleProWebhook(`tr_premier${o.id}`, now);
-    expect(
-      await db.proInvoice.count({ where: { organizationId: o.org.id } }),
-    ).toBe(1);
-    const view = await billingState(o.ctx);
-    expect(view).toMatchObject({
-      provider: "MOLLIE",
-      mollieBilled: true,
-      trialEligible: false,
-    });
+    view = await billingState(o.ctx);
     expect(view.invoices.map((i) => i.number)).toEqual([invoice.number]);
   });
 

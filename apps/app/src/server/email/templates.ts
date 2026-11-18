@@ -991,7 +991,7 @@ export function refundEmail(o: {
   };
 }
 
-/** Valeurs des e-mails d'abonnement (facture, rappel de renouvellement), déjà mises en forme dans la langue de l'organisation. */
+/** Valeurs des e-mails d'abonnement (facture, rappel de prélèvement, abonnement enregistré), déjà mises en forme dans la langue de l'organisation. */
 export interface SubVars {
   number?: string;
   amount?: string;
@@ -1034,6 +1034,16 @@ const SUB_COPY = {
       body: (v: SubVars) =>
         `${v.nextAmount} seront prélevés le ${v.nextDate}${v.method ? ` (${v.method})` : ""}. Pour changer de périodicité ou résilier, rendez-vous sur la page Abonnement avant cette date.`,
     },
+    SCHEDULED: {
+      subject: "Votre abonnement Evoly Pro est enregistré",
+      body: (v: SubVars) =>
+        `Votre moyen de paiement est enregistré${v.method ? ` (${v.method})` : ""}. Rien à payer avant le ${v.nextDate} : ${v.nextAmount} seront prélevés ce jour-là, puis à chaque échéance. Les ${v.amount} de vérification vous sont remboursés. Vous pouvez changer de périodicité ou résilier à tout moment depuis la page Abonnement.`,
+    },
+    FIRST_CHARGE: {
+      subject: (v: SubVars) => `Premier prélèvement Evoly Pro le ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Votre période en cours se termine le ${v.nextDate} : ${v.nextAmount} seront alors prélevés${v.method ? ` (${v.method})` : ""}, puis à chaque échéance. Pour changer de périodicité ou résilier, rendez-vous sur la page Abonnement avant cette date.`,
+    },
     cta: "Gérer mon abonnement",
     hello: (n: string) => `Bonjour ${n},`,
   },
@@ -1067,6 +1077,16 @@ const SUB_COPY = {
       subject: (v: SubVars) => `Your Pro subscription renews on ${v.nextDate}`,
       body: (v: SubVars) =>
         `${v.nextAmount} will be charged on ${v.nextDate}${v.method ? ` (${v.method})` : ""}. To switch billing period or cancel, go to the Billing page before that date.`,
+    },
+    SCHEDULED: {
+      subject: "Your Evoly Pro subscription is set up",
+      body: (v: SubVars) =>
+        `Your payment method is saved${v.method ? ` (${v.method})` : ""}. Nothing to pay before ${v.nextDate}: ${v.nextAmount} will be charged on that day, then at each renewal. The ${v.amount} verification payment is refunded to you. You can switch billing period or cancel at any time from the Billing page.`,
+    },
+    FIRST_CHARGE: {
+      subject: (v: SubVars) => `First Evoly Pro charge on ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Your current period ends on ${v.nextDate}: ${v.nextAmount} will then be charged${v.method ? ` (${v.method})` : ""}, then at each renewal. To switch billing period or cancel, go to the Billing page before that date.`,
     },
     cta: "Manage my subscription",
     hello: (n: string) => `Hi ${n},`,
@@ -1102,6 +1122,16 @@ const SUB_COPY = {
       body: (v: SubVars) =>
         `Se cobrarán ${v.nextAmount} el ${v.nextDate}${v.method ? ` (${v.method})` : ""}. Para cambiar de periodicidad o cancelar, ve a la página Suscripción antes de esa fecha.`,
     },
+    SCHEDULED: {
+      subject: "Tu suscripción a Evoly Pro está registrada",
+      body: (v: SubVars) =>
+        `Tu medio de pago está registrado${v.method ? ` (${v.method})` : ""}. No tienes nada que pagar antes del ${v.nextDate}: ese día se cobrarán ${v.nextAmount}, y después en cada renovación. Te devolvemos los ${v.amount} de verificación. Puedes cambiar de periodicidad o cancelar en cualquier momento desde la página Suscripción.`,
+    },
+    FIRST_CHARGE: {
+      subject: (v: SubVars) => `Primer cobro de Evoly Pro el ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Tu periodo actual termina el ${v.nextDate}: ese día se cobrarán ${v.nextAmount}${v.method ? ` (${v.method})` : ""}, y después en cada renovación. Para cambiar de periodicidad o cancelar, ve a la página Suscripción antes de esa fecha.`,
+    },
     cta: "Gestionar mi suscripción",
     hello: (n: string) => `Hola, ${n}:`,
   },
@@ -1135,6 +1165,16 @@ const SUB_COPY = {
       subject: (v: SubVars) => `Ihr Pro-Abo verlängert sich am ${v.nextDate}`,
       body: (v: SubVars) =>
         `Am ${v.nextDate} werden ${v.nextAmount} eingezogen${v.method ? ` (${v.method})` : ""}. Um den Abrechnungszeitraum zu wechseln oder zu kündigen, besuchen Sie vor diesem Datum die Seite Abo.`,
+    },
+    SCHEDULED: {
+      subject: "Ihr Evoly-Pro-Abo ist eingerichtet",
+      body: (v: SubVars) =>
+        `Ihre Zahlungsmethode ist gespeichert${v.method ? ` (${v.method})` : ""}. Vor dem ${v.nextDate} zahlen Sie nichts: An diesem Tag werden ${v.nextAmount} eingezogen, danach bei jeder Verlängerung. Die ${v.amount} der Überprüfung erhalten Sie zurück. Den Abrechnungszeitraum wechseln oder kündigen können Sie jederzeit auf der Seite Abo.`,
+    },
+    FIRST_CHARGE: {
+      subject: (v: SubVars) => `Erste Abbuchung für Evoly Pro am ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Ihr laufender Zeitraum endet am ${v.nextDate}: Dann werden ${v.nextAmount} eingezogen${v.method ? ` (${v.method})` : ""}, danach bei jeder Verlängerung. Um den Abrechnungszeitraum zu wechseln oder zu kündigen, besuchen Sie vor diesem Datum die Seite Abo.`,
     },
     cta: "Mein Abo verwalten",
     hello: (n: string) => `Hallo ${n},`,
@@ -1171,6 +1211,16 @@ const SUB_COPY = {
       body: (v: SubVars) =>
         `Il ${v.nextDate} verranno addebitati ${v.nextAmount}${v.method ? ` (${v.method})` : ""}. Per cambiare periodicità o disdire, vai alla pagina Abbonamento prima di quella data.`,
     },
+    SCHEDULED: {
+      subject: "Il tuo abbonamento Evoly Pro è registrato",
+      body: (v: SubVars) =>
+        `Il tuo metodo di pagamento è registrato${v.method ? ` (${v.method})` : ""}. Nulla da pagare prima del ${v.nextDate}: quel giorno verranno addebitati ${v.nextAmount}, poi a ogni rinnovo. I ${v.amount} di verifica ti vengono rimborsati. Puoi cambiare periodicità o disdire in qualsiasi momento dalla pagina Abbonamento.`,
+    },
+    FIRST_CHARGE: {
+      subject: (v: SubVars) => `Primo addebito Evoly Pro il ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Il tuo periodo in corso termina il ${v.nextDate}: verranno allora addebitati ${v.nextAmount}${v.method ? ` (${v.method})` : ""}, poi a ogni rinnovo. Per cambiare periodicità o disdire, vai alla pagina Abbonamento prima di quella data.`,
+    },
     cta: "Gestisci il mio abbonamento",
     hello: (n: string) => `Ciao ${n},`,
   },
@@ -1204,6 +1254,16 @@ const SUB_COPY = {
       subject: (v: SubVars) => `A sua subscrição Pro renova-se a ${v.nextDate}`,
       body: (v: SubVars) =>
         `Serão cobrados ${v.nextAmount} a ${v.nextDate}${v.method ? ` (${v.method})` : ""}. Para mudar a periodicidade ou cancelar, vá à página Subscrição antes dessa data.`,
+    },
+    SCHEDULED: {
+      subject: "A sua subscrição Evoly Pro está registada",
+      body: (v: SubVars) =>
+        `O seu meio de pagamento está registado${v.method ? ` (${v.method})` : ""}. Nada a pagar antes de ${v.nextDate}: nesse dia serão cobrados ${v.nextAmount}, e depois em cada renovação. Os ${v.amount} de verificação são-lhe reembolsados. Pode mudar a periodicidade ou cancelar a qualquer momento na página Subscrição.`,
+    },
+    FIRST_CHARGE: {
+      subject: (v: SubVars) => `Primeira cobrança Evoly Pro a ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `O seu período atual termina a ${v.nextDate}: serão então cobrados ${v.nextAmount}${v.method ? ` (${v.method})` : ""}, e depois em cada renovação. Para mudar a periodicidade ou cancelar, vá à página Subscrição antes dessa data.`,
     },
     cta: "Gerir a minha subscrição",
     hello: (n: string) => `Olá ${n},`,
@@ -1240,6 +1300,16 @@ const SUB_COPY = {
       body: (v: SubVars) =>
         `Op ${v.nextDate} wordt ${v.nextAmount} afgeschreven${v.method ? ` (${v.method})` : ""}. Wil je van periode wisselen of opzeggen, ga dan vóór die datum naar de pagina Abonnement.`,
     },
+    SCHEDULED: {
+      subject: "Je Evoly Pro-abonnement is geregistreerd",
+      body: (v: SubVars) =>
+        `Je betaalmethode is opgeslagen${v.method ? ` (${v.method})` : ""}. Vóór ${v.nextDate} betaal je niets: op die dag wordt ${v.nextAmount} afgeschreven, daarna bij elke verlenging. De ${v.amount} van de controle krijg je terug. Je kunt op elk moment van periode wisselen of opzeggen via de pagina Abonnement.`,
+    },
+    FIRST_CHARGE: {
+      subject: (v: SubVars) => `Eerste afschrijving Evoly Pro op ${v.nextDate}`,
+      body: (v: SubVars) =>
+        `Je huidige periode eindigt op ${v.nextDate}: dan wordt ${v.nextAmount} afgeschreven${v.method ? ` (${v.method})` : ""}, daarna bij elke verlenging. Wil je van periode wisselen of opzeggen, ga dan vóór die datum naar de pagina Abonnement.`,
+    },
     cta: "Mijn abonnement beheren",
     hello: (n: string) => `Hallo ${n},`,
   },
@@ -1253,7 +1323,9 @@ export type SubscriptionEmailKind =
   | "PAYMENT_FAILED"
   | "ENDED"
   | "INVOICE"
-  | "RENEWAL_NOTICE";
+  | "RENEWAL_NOTICE"
+  | "SCHEDULED"
+  | "FIRST_CHARGE";
 
 export function subscriptionEmail(o: {
   kind: SubscriptionEmailKind;

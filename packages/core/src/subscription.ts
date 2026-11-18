@@ -76,6 +76,12 @@ export const RENEWAL_LEAD_MS = 86_400_000;
 export const RENEWAL_RETRY_DAYS = 3;
 export const RENEWAL_MAX_ATTEMPTS = 3;
 
+/**
+ * Paiement de vérification d'un abonnement pris pendant une période en cours (essai, Pro offert) : 0,02 €, le minimum de
+ * Bancontact chez Mollie (carte 0 €, Belfius et Pay by Bank 0,01 €), pour proposer tous les moyens ; remboursé aussitôt.
+ */
+export const SETUP_AMOUNT_MINOR = 2;
+
 /** Date de la prochaine tentative après l'échec de la tentative n, ou null s'il n'y en a plus. */
 export function nextRenewalAttempt(
   failedAt: Date,

@@ -2152,14 +2152,16 @@
     "subscribe": "Subscribe",
     "subscribeNow": "Or subscribe right away",
     "subscribeTerms": "Payment on Mollie’s secure page, by card or Bancontact, then automatic renewal: by card, or by SEPA Direct Debit after Bancontact. Cancel any time, effective at the end of the period.",
-    "subscribeFrom": "Your first period will start on {date}, when the current one ends.",
     "trialTermsNoCard": "14 days free, no card needed. When the trial ends, subscribe to keep Pro; otherwise you return to Free without losing anything.",
     "legacyStripe": "Evoly now collects the Pro subscription with Mollie. Your current subscription stays active until {date}: subscribe below to keep Pro afterwards. Your first period will start on that date, and the old subscription will stop with no further payment.",
     "invoices": "Invoices",
     "invoiceDownload": "Download invoice {number}",
     "switchScheduled": "Noted: the change will apply at the next renewal, on {date}.",
     "keepInterval_MONTH": "Stay on monthly",
-    "keepInterval_YEAR": "Stay on yearly"
+    "keepInterval_YEAR": "Stay on yearly",
+    "subscribeDeferred": "Nothing to pay before {date}, when your current period ends: the first charge happens that day, then at each renewal. On Mollie’s secure page, save your card or bank account (Bancontact) with a {amount} verification payment, refunded right away. Cancel anytime, effective at the end of the period.",
+    "statusScheduled": "Subscription set up: nothing to pay before {date}, when your current period ends. Then {price} {interval}.",
+    "returnScheduled": "All set: nothing to pay before {date}, the date of the first charge. The {amount} verification payment is refunded to you."
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Edit organisation settings",

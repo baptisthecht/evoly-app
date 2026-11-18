@@ -8,6 +8,7 @@ import {
   PAST_DUE_GRACE_DAYS,
   RENEWAL_LEAD_MS,
   renewsWithMollie,
+  SETUP_AMOUNT_MINOR,
   trialEligible,
   type BillingInterval,
 } from "@evoly/core";
@@ -36,8 +37,11 @@ import { billingUrl, notifyOwner, subscriptionOwner } from "./subscriptionMail";
 /**
  * Offre Pro payée par Mollie (docs/MOLLIE.md, lot 6), sur le compte Mollie d'Evoly : essai de 14 jours sans carte,
  * premier paiement sur la page de Mollie (carte, Bancontact…) qui crée le mandat, puis chaque renouvellement prélevé par
- * Evoly sur ce mandat (carte, ou prélèvement SEPA après Bancontact). Evoly tient les périodes : passage au mensuel ou à
- * l'annuel au renouvellement, sans prorata ; résiliation en fin de période ; facture numérotée à chaque paiement reçu.
+ * Evoly sur ce mandat (carte, ou prélèvement SEPA après Bancontact). Pris pendant une période en cours (essai, Pro
+ * offert), l'abonnement ne coûte rien avant sa fin : le moyen de paiement est enregistré par un paiement de vérification
+ * remboursé aussitôt, et le premier prélèvement a lieu à la fin de cette période. Evoly tient les périodes : passage au
+ * mensuel ou à l'annuel au renouvellement, sans prorata ; résiliation en fin de période ; facture numérotée à chaque
+ * paiement reçu.
  */
 
 /** Paiement Mollie avec les champs des paiements récurrents. */
@@ -70,6 +74,18 @@ const OPEN_REUSE_MS = 15 * 60_000;
 /** Réponse de Mollie perdue : le paiement est cherché chez Mollie avant d'en créer un autre. */
 const STUCK_MS = 5 * 60_000;
 const DAY = 86_400_000;
+/** En deçà, la période en cours est considérée comme finie : le premier paiement se fait tout de suite. */
+const DEFER_MARGIN_MS = 60_000;
+/** Paiements qui paient une période (pas la vérification ni le changement de moyen de paiement), encaissés ou en cours. */
+const CHARGED: Prisma.SubscriptionPaymentWhereInput = {
+  kind: { in: ["FIRST", "RENEWAL", "SETTLE"] },
+  status: { in: ["PAID", "PENDING"] },
+};
+/** Moyen de paiement enregistré pendant une période en cours : avec aucun paiement de période, le premier prélèvement est à venir. */
+const SETUP_PAID: Prisma.SubscriptionPaymentWhereInput = {
+  kind: "SETUP",
+  status: "PAID",
+};
 
 /** Prestataire de l'offre Pro : Mollie dès que la clé d'Evoly est configurée, Stripe avant (jusqu'au lot 7). */
 export function proBillingProvider(): "MOLLIE" | "STRIPE" | null {
@@ -87,6 +103,20 @@ export async function proPrices(currency: string) {
     MONTH: t?.monthlyPriceMinor ?? 2900,
     YEAR: t?.yearlyPriceMinor ?? 29580,
   };
+}
+
+/**
+ * Première période payée quand une période court encore (essai, Pro offert) : rien n'est encaissé avant cette date, où a
+ * lieu le premier prélèvement. Null : la première période commence tout de suite et se paie sur la page de Mollie (un
+ * ancien abonnement Stripe se paie aussi tout de suite, jusqu'au retrait de Stripe).
+ */
+export function deferredStart(
+  sub: Subscription | null,
+  now: Date,
+): Date | null {
+  if (!sub || sub.stripeSubscriptionId) return null;
+  const start = firstPeriodStart(sub, now);
+  return start.getTime() > now.getTime() + DEFER_MARGIN_MS ? start : null;
 }
 
 /** Webhook des paiements Pro (compte d'Evoly) ; aucun en local, où le retour sur la page Abonnement suffit. */
@@ -224,12 +254,13 @@ async function ensureCustomer(
 }
 
 /**
- * Page de paiement Mollie (premier paiement, règlement d'une période impayée, ou carte enregistrée à 0 €) : celle encore
- * ouverte est reprise, sinon un paiement est créé. Rend l'adresse vers laquelle envoyer l'organisateur.
+ * Page de paiement Mollie (premier paiement, règlement d'une période impayée, carte enregistrée à 0 € ou paiement de
+ * vérification) : celle encore ouverte est reprise, sinon un paiement est créé. Rend l'adresse vers laquelle envoyer
+ * l'organisateur.
  */
 async function openCheckout(input: {
   ctx: OrgContext;
-  kind: "FIRST" | "SETTLE" | "MANDATE";
+  kind: "FIRST" | "SETTLE" | "MANDATE" | "SETUP";
   interval: BillingInterval | null;
   amountMinor: number;
   period: { start: Date; end: Date } | null;
@@ -331,9 +362,9 @@ async function openCheckout(input: {
 }
 
 /**
- * S'abonner à Pro (ou régler une période impayée) : paiement sur la page de Mollie, qui crée le mandat des
- * renouvellements. La première période commence à la fin de ce qui court encore (essai, Pro offert, ancien abonnement
- * Stripe), calculée au paiement.
+ * S'abonner à Pro (ou régler une période impayée) sur la page de Mollie, qui crée le mandat des renouvellements. Sans
+ * période en cours, la première période commence et se paie tout de suite ; pendant un essai ou un Pro offert, seul un
+ * paiement de vérification remboursé est demandé, et la première période sera prélevée à la fin de celle en cours.
  */
 export async function startProCheckout(
   ctx: OrgContext,
@@ -382,11 +413,13 @@ export async function startProCheckout(
   )
     throw new CoreError("ALREADY_SUBSCRIBED");
   const start = firstPeriodStart(sub, now);
+  // période en cours (essai, Pro offert) : rien à payer avant sa fin, le moyen de paiement est seulement enregistré
+  const deferred = !!deferredStart(sub, now);
   const url = await openCheckout({
     ctx,
-    kind: "FIRST",
+    kind: deferred ? "SETUP" : "FIRST",
     interval,
-    amountMinor: prices[interval],
+    amountMinor: deferred ? SETUP_AMOUNT_MINOR : prices[interval],
     period: { start, end: addBillingInterval(start, interval) },
     now,
   });
@@ -396,7 +429,7 @@ export async function startProCheckout(
     actorUserId: ctx.user.id,
     targetType: "Subscription",
     targetId: ctx.organization.id,
-    metadata: { interval, provider: "MOLLIE" },
+    metadata: { interval, provider: "MOLLIE", deferred },
   });
   return url;
 }
@@ -649,11 +682,40 @@ async function paidChanges(
     : {};
   let paid = row;
   let movedFromStripe: string | null = null;
+  let scheduled: Date | null = null;
   const stripeUnpaid = ["PAST_DUE", "UNPAID", "INCOMPLETE"].includes(
     sub.status,
   );
   if (row.kind === "MANDATE") {
     await tx.subscription.update({ where: { id: sub.id }, data: mandateData });
+  } else if (row.kind === "SETUP") {
+    // moyen de paiement enregistré pendant une période en cours : rien n'est encaissé (la vérification est remboursée),
+    // la période en cours va jusqu'au premier prélèvement, fait comme un renouvellement
+    const interval = row.interval ?? sub.interval ?? "MONTH";
+    scheduled = firstPeriodStart(sub, now);
+    paid = await tx.subscriptionPayment.update({
+      where: { id: row.id },
+      data: {
+        periodStart: scheduled,
+        periodEnd: addBillingInterval(scheduled, interval),
+      },
+    });
+    await tx.subscription.update({
+      where: { id: sub.id },
+      data: {
+        planId: "pro",
+        status: "ACTIVE",
+        interval,
+        nextInterval: null,
+        billingProvider: "MOLLIE",
+        ...mandateData,
+        currentPeriodEnd: scheduled,
+        cancelAtPeriodEnd: false,
+        canceledAt: null,
+        pastDueSince: null,
+        renewalNoticeFor: null,
+      },
+    });
   } else if (row.kind === "RENEWAL") {
     if (
       sub.status === "PAST_DUE" &&
@@ -729,6 +791,38 @@ async function paidChanges(
       targetId: row.id,
       metadata: { kind: row.kind, amountMinor: row.amountMinor },
     });
+    if (scheduled) {
+      const at = scheduled;
+      await audit({
+        action: "billing.scheduled",
+        organizationId: sub.organizationId,
+        actorType: "SYSTEM",
+        targetType: "Subscription",
+        targetId: sub.id,
+        metadata: { firstChargeAt: at.toISOString() },
+      });
+      await refundSetup(paid, now);
+      const fresh = await db.subscription.findUniqueOrThrow({
+        where: { id: sub.id },
+      });
+      const price = (await proPrices(fresh.currency))[
+        fresh.interval ?? "MONTH"
+      ];
+      await notifyOwner(sub.organizationId, "SCHEDULED", {
+        vars: ({ locale, timezone }) => ({
+          amount: formatMoney(paid.amountMinor, paid.currency, locale),
+          nextDate: formatDate(at, timezone, locale),
+          nextAmount: formatMoney(price, fresh.currency, locale),
+          method: fresh.paymentMethodLabel,
+        }),
+      });
+      // période finie entre-temps, ou presque : premier prélèvement tout de suite, comme la tâche horaire l'aurait fait
+      if (
+        renewsWithMollie(fresh) &&
+        at.getTime() <= now.getTime() + RENEWAL_LEAD_MS
+      )
+        await renew(requireMollie(), fresh, now);
+    }
     if (upgraded) {
       await audit({
         action: "billing.upgraded",
@@ -740,7 +834,8 @@ async function paidChanges(
       });
       await notifyOwner(sub.organizationId, "STARTED");
     }
-    if (paid.amountMinor > 0) await issueInvoiceFor(paid.id, now);
+    if (paid.amountMinor > 0 && paid.kind !== "SETUP")
+      await issueInvoiceFor(paid.id, now);
   };
 }
 
@@ -763,6 +858,27 @@ async function issueInvoiceFor(paymentId: string, now: Date) {
       : null,
     now,
   );
+}
+
+/** Remboursement du paiement de vérification, une seule fois ; Mollie injoignable : repris par la tâche horaire. */
+async function refundSetup(row: SubscriptionPayment, now: Date) {
+  if (row.kind !== "SETUP" || row.refundedAt || !row.molliePaymentId) return;
+  try {
+    await requireMollie()(`/payments/${row.molliePaymentId}/refunds`, {
+      body: {
+        amount: toMollieAmount(row.amountMinor, row.currency),
+        description: "Evoly Pro",
+        metadata: { subscriptionPaymentId: row.id },
+      },
+      idempotencyKey: `pro-setup-refund:${row.id}`,
+    });
+    await db.subscriptionPayment.update({
+      where: { id: row.id },
+      data: { refundedAt: now },
+    });
+  } catch (err) {
+    console.error("vérification Pro à rembourser", row.id, safeError(err));
+  }
 }
 
 /** Prélèvement échoué : la période en cours devient impayée (7 jours avant le retour en Free), le propriétaire est prévenu. */
@@ -820,6 +936,7 @@ async function chargedBackChanges(
 ): Promise<AfterCommit> {
   const due =
     row.kind !== "MANDATE" &&
+    row.kind !== "SETUP" &&
     sub.billingProvider === "MOLLIE" &&
     sub.status === "ACTIVE" &&
     !!row.periodEnd &&
@@ -1118,7 +1235,14 @@ async function recoverStuckRenewals(api: MollieApi, now: Date) {
  * ou résiliés à leur échéance, rappel avant un renouvellement annuel ou un changement de périodicité.
  */
 export async function runProBilling(now = new Date()) {
-  const out = { renewed: 0, retried: 0, recovered: 0, ended: 0, notices: 0 };
+  const out = {
+    renewed: 0,
+    retried: 0,
+    recovered: 0,
+    ended: 0,
+    notices: 0,
+    refunded: 0,
+  };
   const api = evolyMollie();
   if (!api) return out;
   out.recovered = await recoverStuckRenewals(api, now);
@@ -1127,6 +1251,7 @@ export async function runProBilling(now = new Date()) {
   const unbilled = await db.subscriptionPayment.findMany({
     where: {
       status: "PAID",
+      kind: { not: "SETUP" },
       amountMinor: { gt: 0 },
       invoice: null,
       paidAt: { gt: new Date(now.getTime() - 60 * DAY) },
@@ -1139,6 +1264,26 @@ export async function runProBilling(now = new Date()) {
     await issueInvoiceFor(u.id, now).catch((err) =>
       console.error("facture Pro à émettre", u.id, safeError(err)),
     );
+
+  // vérification payée mais pas encore remboursée (Mollie injoignable au moment du paiement) : remboursée maintenant
+  const toRefund = await db.subscriptionPayment.findMany({
+    where: {
+      kind: "SETUP",
+      status: "PAID",
+      refundedAt: null,
+      paidAt: { gt: new Date(now.getTime() - 30 * DAY) },
+      updatedAt: { lt: new Date(now.getTime() - STUCK_MS) },
+    },
+    take: 50,
+  });
+  for (const r of toRefund) {
+    await refundSetup(r, now);
+    if (
+      (await db.subscriptionPayment.findUnique({ where: { id: r.id } }))
+        ?.refundedAt
+    )
+      out.refunded += 1;
+  }
 
   const due = await db.subscription.findMany({
     where: {
@@ -1256,8 +1401,8 @@ export async function runProBilling(now = new Date()) {
   });
   out.ended += closing.count;
 
-  // préavis du prélèvement : 7 jours avant un renouvellement annuel ou un changement de périodicité (le mensuel est
-  // annoncé par la facture précédente)
+  // préavis du prélèvement, 7 jours avant : renouvellement annuel, changement de périodicité, ou premier prélèvement à la
+  // fin d'une période en cours (le renouvellement mensuel est annoncé par la facture précédente)
   const soon = await db.subscription.findMany({
     where: {
       billingProvider: "MOLLIE",
@@ -1268,7 +1413,20 @@ export async function runProBilling(now = new Date()) {
         gt: new Date(now.getTime() + RENEWAL_LEAD_MS),
         lte: new Date(now.getTime() + 7 * DAY),
       },
-      OR: [{ interval: "YEAR" }, { nextInterval: { not: null } }],
+      OR: [
+        { interval: "YEAR" },
+        { nextInterval: { not: null } },
+        {
+          AND: [
+            { payments: { none: CHARGED } },
+            { payments: { some: SETUP_PAID } },
+          ],
+        },
+      ],
+    },
+    include: {
+      _count: { select: { payments: { where: CHARGED } } },
+      payments: { where: SETUP_PAID, select: { id: true }, take: 1 },
     },
     take: 200,
   });
@@ -1289,13 +1447,18 @@ export async function runProBilling(now = new Date()) {
     if (claimed.count === 0) continue;
     const interval = sub.nextInterval ?? sub.interval ?? "MONTH";
     const amount = (await proPrices(sub.currency))[interval];
-    await notifyOwner(sub.organizationId, "RENEWAL_NOTICE", {
-      vars: ({ locale, timezone }) => ({
-        nextDate: formatDate(sub.currentPeriodEnd!, timezone, locale),
-        nextAmount: formatMoney(amount, sub.currency, locale),
-        method: sub.paymentMethodLabel,
-      }),
-    });
+    const first = sub._count.payments === 0 && sub.payments.length > 0;
+    await notifyOwner(
+      sub.organizationId,
+      first ? "FIRST_CHARGE" : "RENEWAL_NOTICE",
+      {
+        vars: ({ locale, timezone }) => ({
+          nextDate: formatDate(sub.currentPeriodEnd!, timezone, locale),
+          nextAmount: formatMoney(amount, sub.currency, locale),
+          method: sub.paymentMethodLabel,
+        }),
+      },
+    );
     out.notices += 1;
   }
   return out;
@@ -1304,7 +1467,7 @@ export async function runProBilling(now = new Date()) {
 /** Paiements et factures de l'organisation pour la page Abonnement. */
 export async function proBillingView(organizationId: string, now = new Date()) {
   const sub = await db.subscription.findUnique({ where: { organizationId } });
-  const [invoices, last, inProgress] = await Promise.all([
+  const [invoices, last, inProgress, charged, setups] = await Promise.all([
     db.proInvoice.findMany({
       where: { organizationId },
       orderBy: { issuedAt: "desc" },
@@ -1324,6 +1487,16 @@ export async function proBillingView(organizationId: string, now = new Date()) {
         })
       : null,
     sub ? paymentInProgress(sub.id, now) : false,
+    sub
+      ? db.subscriptionPayment.count({
+          where: { subscriptionId: sub.id, ...CHARGED },
+        })
+      : 0,
+    sub
+      ? db.subscriptionPayment.count({
+          where: { subscriptionId: sub.id, ...SETUP_PAID },
+        })
+      : 0,
   ]);
   const nextAttempt =
     sub?.status === "PAST_DUE" && last?.status === "FAILED" && last.failedAt
@@ -1331,6 +1504,16 @@ export async function proBillingView(organizationId: string, now = new Date()) {
       : null;
   return {
     invoices,
+    /** premier prélèvement à venir, à la fin de la période en cours (abonnement pris pendant un essai ou un Pro offert) */
+    firstCharge:
+      sub &&
+      renewsWithMollie(sub) &&
+      sub.status === "ACTIVE" &&
+      sub.currentPeriodEnd &&
+      charged === 0 &&
+      setups > 0
+        ? sub.currentPeriodEnd
+        : null,
     renewalPending: last?.status === "PENDING",
     paymentInProgress: inProgress,
     nextAttempt:

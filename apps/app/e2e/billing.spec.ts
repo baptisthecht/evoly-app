@@ -33,16 +33,37 @@ test("abonnement : Free, essai sans carte, abonné par Mollie, impayé (section 
   await expect(
     page.getByText(/Essai gratuit jusqu’au .*, sans carte bancaire\./),
   ).toBeVisible();
+  // s'abonner pendant l'essai : rien à payer avant sa fin, vérification remboursée
   await expect(
-    page.getByText(/Votre première période commencera le /),
+    page.getByText(
+      /Rien à payer avant le .*, à la fin de votre période en cours/,
+    ),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "S’abonner" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Essayer Pro 14 jours" }),
   ).toHaveCount(0);
 
-  // abonné par Mollie (simulé en base, comme après le premier paiement), avec sa facture
   const orgId = sql(`select id from "Organization" where slug = '${slug}'`);
+  // abonnement pris pendant l'essai (simulé en base, comme après la vérification remboursée) : premier prélèvement à
+  // la fin de l'essai
+  sql(
+    `update "Subscription" set status = 'ACTIVE', interval = 'MONTH', "billingProvider" = 'MOLLIE', "mollieCustomerId" = 'cst_${orgId}', "mollieMandateId" = 'mdt_${orgId}', "paymentMethodLabel" = 'BE68 •••• 7034', "currentPeriodEnd" = "trialEndsAt" where "organizationId" = '${orgId}'`,
+  );
+  sql(
+    `insert into "SubscriptionPayment" (id, "organizationId", "subscriptionId", "molliePaymentId", kind, status, interval, "amountMinor", currency, "periodStart", "periodEnd", "paidAt", "refundedAt", method, "updatedAt") select 'sv_${orgId}', '${orgId}', s.id, 'tr_v${orgId}', 'SETUP', 'PAID', 'MONTH', 2, 'EUR', s."trialEndsAt", s."trialEndsAt" + interval '1 month', now(), now(), 'bancontact', now() from "Subscription" s where s."organizationId" = '${orgId}'`,
+  );
+  await page.reload();
+  await expect(
+    page.getByText(
+      /Abonnement enregistré\s:\srien à payer avant le .*\. Ensuite, 29\s€ par mois\./,
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Moyen de paiement : BE68 •••• 7034."),
+  ).toBeVisible();
+
+  // abonné par Mollie (simulé en base, comme après le premier paiement), avec sa facture
   sql(
     `update "Subscription" set status = 'ACTIVE', interval = 'MONTH', "billingProvider" = 'MOLLIE', "mollieCustomerId" = 'cst_${orgId}', "mollieMandateId" = 'mdt_${orgId}', "paymentMethodLabel" = 'BE68 •••• 7034', "currentPeriodStart" = now(), "currentPeriodEnd" = now() + interval '20 days' where "organizationId" = '${orgId}'`,
   );

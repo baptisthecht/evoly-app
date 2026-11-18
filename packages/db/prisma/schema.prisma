@@ -246,6 +246,8 @@ enum SubscriptionPaymentKind {
   SETTLE // règlement d’une période impayée sur la page de Mollie, avec un nouveau mandat
   RENEWAL // renouvellement prélevé par Evoly sur le mandat, sans le client
   MANDATE // changement de moyen de paiement : carte enregistrée sans paiement (0 €), aucune période
+  SETUP // abonnement pris pendant une période en cours : paiement de vérification (0,02 €) qui crée le mandat, remboursé
+  //        aussitôt ; la période indiquée est la première qui sera prélevée, à la fin de celle en cours
 }
 
 enum SubscriptionPaymentStatus {
@@ -276,6 +278,7 @@ model SubscriptionPayment {
   failureReason   String?
   paidAt          DateTime?
   failedAt        DateTime?
+  refundedAt      DateTime? // paiement de vérification (SETUP) remboursé
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
 

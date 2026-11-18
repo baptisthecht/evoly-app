@@ -101,16 +101,23 @@ Le portage se fait sur la branche `mollie`, partie de `main` (sans la boutique, 
   Evoly, sans écart avec Mollie.
 - **Essai** de 14 jours sans carte, une fois par organisation (ni après un abonnement payé). À sa fin, sans abonnement,
   retour en Free sans rien perdre ; prévenu 3 jours avant, comme un Pro offert.
-- **Premier paiement** sur la page de Mollie (carte, Bancontact, et les autres moyens qui créent un mandat) : il paie
-  la première période, qui commence à la fin de ce qui court encore (essai, Pro offert, ancien abonnement Stripe), et
-  crée le mandat des renouvellements (carte, ou prélèvement SEPA après Bancontact). Validé au retour sur la page
-  Abonnement et par le webhook `/api/webhooks/mollie/pro`.
+- **Premier paiement** sur la page de Mollie (carte, Bancontact, et les autres moyens qui créent un mandat) : sans
+  période en cours, il paie la première période, qui commence tout de suite, et crée le mandat des renouvellements
+  (carte, ou prélèvement SEPA après Bancontact). Validé au retour sur la page Abonnement et par le webhook
+  `/api/webhooks/mollie/pro`.
+- **Abonnement pris pendant une période en cours** (essai, Pro offert, offre de lancement) : rien à payer avant sa fin.
+  La page de Mollie demande seulement un paiement de vérification de 0,02 € (le minimum de Bancontact chez Mollie ;
+  carte 0 €, Belfius et Pay by Bank 0,01 €), qui crée le mandat et est remboursé aussitôt (repris par la tâche horaire
+  si Mollie ne répond pas). Il n'est jamais facturé. La période en cours va jusqu'au premier prélèvement, fait la
+  veille de sa fin comme un renouvellement ; un e-mail confirme la date et le montant, un rappel part 7 jours avant.
+  Payée après la fin de la période, la vérification déclenche le premier prélèvement tout de suite.
 - **Renouvellement** prélevé au plus tôt la veille de l'échéance par la tâche horaire, à la périodicité choisie pour la
   suite (sans prorata). Échec : impayé, propriétaire prévenu à chaque échec, nouvelle tentative 3 jours puis 6 jours
   après ; au bout de 7 jours sans paiement, l'abonnement prend fin (retour en Free, rien n'est supprimé).
   L'organisateur peut régler la période impayée sur la page de Mollie, avec un nouveau moyen de paiement.
 - **Préavis du prélèvement** : la facture de chaque paiement annonce la date et le montant du suivant ; un rappel part
-  7 jours avant un renouvellement annuel ou un changement de périodicité.
+  7 jours avant un renouvellement annuel, un changement de périodicité ou le premier prélèvement à la fin d'une
+  période en cours.
 - **Changer de moyen de paiement** : carte enregistrée sur la page de Mollie sans paiement (0 €, seulement pour une
   carte chez Mollie). **Résilier** : plus aucun prélèvement, Pro jusqu'à l'échéance ; reprise possible d'ici là.
 - **Factures** émises par Evoly à chaque paiement reçu : numéro de la série sans trou des relevés de commissions

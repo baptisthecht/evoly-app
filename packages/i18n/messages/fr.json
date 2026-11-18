@@ -2152,14 +2152,16 @@
     "subscribe": "S’abonner",
     "subscribeNow": "Ou s’abonner tout de suite",
     "subscribeTerms": "Paiement sur la page sécurisée de Mollie, par carte ou Bancontact, puis renouvellement automatique : par carte, ou par prélèvement SEPA après Bancontact. Résiliable à tout moment, avec effet en fin de période.",
-    "subscribeFrom": "Votre première période commencera le {date}, à la fin de celle en cours.",
     "trialTermsNoCard": "14 jours gratuits, sans carte bancaire. À la fin de l’essai, abonnez-vous pour garder Pro ; sinon, vous repassez en Free sans rien perdre.",
     "legacyStripe": "Evoly encaisse désormais l’abonnement Pro avec Mollie. Votre abonnement actuel reste actif jusqu’au {date} : abonnez-vous ci-dessous pour garder Pro ensuite. Votre première période commencera à cette date, et l’ancien abonnement s’arrêtera sans nouveau paiement.",
     "invoices": "Factures",
     "invoiceDownload": "Télécharger la facture {number}",
     "switchScheduled": "C’est noté : le changement s’appliquera au prochain renouvellement, le {date}.",
     "keepInterval_MONTH": "Rester au mensuel",
-    "keepInterval_YEAR": "Rester à l’annuel"
+    "keepInterval_YEAR": "Rester à l’annuel",
+    "subscribeDeferred": "Rien à payer avant le {date}, à la fin de votre période en cours : le premier prélèvement aura lieu ce jour-là, puis à chaque échéance. Sur la page sécurisée de Mollie, enregistrez votre carte ou votre compte (Bancontact) avec un paiement de vérification de {amount}, remboursé aussitôt. Résiliable à tout moment, avec effet en fin de période.",
+    "statusScheduled": "Abonnement enregistré : rien à payer avant le {date}, à la fin de votre période en cours. Ensuite, {price} {interval}.",
+    "returnScheduled": "C’est enregistré : rien à payer avant le {date}, date du premier prélèvement. Les {amount} de vérification vous sont remboursés."
   },
   "permissions": {
     "ORG_SETTINGS_EDIT": "Modifier les paramètres de l’organisation",

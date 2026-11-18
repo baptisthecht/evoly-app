@@ -223,7 +223,7 @@ describe("passage à l'offre Pro (RG-SUB-02)", () => {
     expect(await screen.findByRole("alert")).toBeTruthy();
   });
 
-  it("avec Mollie, sans essai : un seul bouton, et la date où commencera la première période", () => {
+  it("avec Mollie, pendant une période en cours : un seul bouton, rien à payer avant le premier prélèvement, vérification remboursée", () => {
     const { container } = render(
       <Fr>
         <PlanPicker
@@ -239,8 +239,10 @@ describe("passage à l'offre Pro (RG-SUB-02)", () => {
     );
     expect(screen.queryByRole("button", { name: b.startTrial })).toBeNull();
     expect(screen.getByRole("button", { name: b.subscribe })).toBeTruthy();
-    expect(norm(container.textContent ?? "")).toContain(
-      "Votre première période commencera le 2 décembre 2026",
+    const text = norm(container.textContent ?? "");
+    expect(text).toContain("Rien à payer avant le 2 décembre 2026");
+    expect(text).toContain(
+      "paiement de vérification de 0,02 €, remboursé aussitôt",
     );
   });
 

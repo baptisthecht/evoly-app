@@ -2076,14 +2076,16 @@
     "subscribe": "Abonneren",
     "subscribeNow": "Of meteen abonneren",
     "subscribeTerms": "Betaling op de beveiligde pagina van Mollie, met kaart of Bancontact, daarna automatische verlenging: met kaart, of via SEPA-incasso na Bancontact. Op elk moment opzegbaar, met ingang aan het einde van de periode.",
-    "subscribeFrom": "Je eerste periode begint op {date}, wanneer de huidige eindigt.",
     "trialTermsNoCard": "14 dagen gratis, zonder kaart. Neem aan het einde van de proefperiode een abonnement om Pro te houden; anders val je terug naar Free zonder iets te verliezen.",
     "legacyStripe": "Evoly int het Pro-abonnement voortaan via Mollie. Je huidige abonnement blijft actief tot {date}: neem hieronder een abonnement om daarna Pro te houden. Je eerste periode begint op die datum en het oude abonnement stopt zonder nieuwe betaling.",
     "invoices": "Facturen",
     "invoiceDownload": "Factuur {number} downloaden",
     "switchScheduled": "Genoteerd: de wijziging gaat in bij de volgende verlenging, op {date}.",
     "keepInterval_MONTH": "Maandelijks blijven betalen",
-    "keepInterval_YEAR": "Jaarlijks blijven betalen"
+    "keepInterval_YEAR": "Jaarlijks blijven betalen",
+    "subscribeDeferred": "Niets te betalen vóór {date}, wanneer je huidige periode eindigt: de eerste afschrijving gebeurt die dag, daarna bij elke verlenging. Registreer op de beveiligde pagina van Mollie je kaart of rekening (Bancontact) met een controlebetaling van {amount}, die meteen wordt terugbetaald. Altijd opzegbaar, met ingang aan het einde van de periode.",
+    "statusScheduled": "Abonnement geregistreerd: niets te betalen vóór {date}, wanneer je huidige periode eindigt. Daarna {price} {interval}.",
+    "returnScheduled": "Geregistreerd: niets te betalen vóór {date}, de datum van de eerste afschrijving. De {amount} van de controle krijg je terug."
   },
   "brand": {
     "sloganStart": "je volgende",

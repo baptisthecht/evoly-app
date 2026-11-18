@@ -108,6 +108,8 @@ function all(locale: (typeof LOCALES)[number]) {
         "ENDED",
         "INVOICE",
         "RENEWAL_NOTICE",
+        "SCHEDULED",
+        "FIRST_CHARGE",
       ] as const
     ).map(
       (kind) =>
@@ -119,7 +121,7 @@ function all(locale: (typeof LOCALES)[number]) {
             organizationName: "Club de Mouscron",
             firstName: "Camille",
             url: URL,
-            // facture et préavis du prélèvement (docs/MOLLIE.md, lot 6)
+            // facture, préavis du prélèvement, abonnement enregistré (docs/MOLLIE.md, lot 6)
             vars: {
               number: "EVO-2026-000042",
               amount: "295,80 €",
