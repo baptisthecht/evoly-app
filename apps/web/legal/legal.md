@@ -3,7 +3,9 @@
 - Baptist Hecht, entrepreneur indépendant (personne physique), sous le nom commercial Evoly Solutions
 - Rue du Bilemont 376, 7700 Mouscron, Belgique
 - Numéro d'entreprise (BCE) : 1043.315.766
+- Numéro de TVA : BE 1043.315.766
 - Contact : hello@evoly.me
+- Téléphone : +32 455 11 79 49
 
 Responsable de la publication : Baptist Hecht.
 
