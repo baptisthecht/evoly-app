@@ -5,7 +5,7 @@ import { orgContextFromSession } from "@/server/context";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Import d'un logo, d'un favicon (Pro) ou d'une image de couverture d'événement. */
+/** Import d'un logo, d'un favicon (Pro), d'une image de couverture d'événement ou d'une photo de produit (boutique, Pro). */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ orgSlug: string }> },
@@ -18,17 +18,19 @@ export async function POST(
   const kind = String(form?.get("kind") ?? "") as UploadKind;
   if (
     !(file instanceof File) ||
-    !["logo", "favicon", "cover", "campaign"].includes(kind)
+    !["logo", "favicon", "cover", "campaign", "product"].includes(kind)
   )
     return Response.json({ error: "UPLOAD_INVALID" }, { status: 400 });
   const allowed =
     kind === "cover"
       ? can(ctx.membership, "EVENTS_EDIT")
-      : kind === "campaign"
-        ? can(ctx.membership, "MARKETING_MANAGE") &&
-          hasFeature(ctx.features, "EMAIL_MARKETING")
-        : can(ctx.membership, "BRAND_EDIT") &&
-          hasFeature(ctx.features, "BRANDING");
+      : kind === "product"
+        ? can(ctx.membership, "SHOP_MANAGE") && hasFeature(ctx.features, "SHOP")
+        : kind === "campaign"
+          ? can(ctx.membership, "MARKETING_MANAGE") &&
+            hasFeature(ctx.features, "EMAIL_MARKETING")
+          : can(ctx.membership, "BRAND_EDIT") &&
+            hasFeature(ctx.features, "BRANDING");
   if (!allowed || ctx.readOnly)
     return Response.json({ error: "FORBIDDEN" }, { status: 403 });
   try {
@@ -36,7 +38,7 @@ export async function POST(
       ctx,
       kind,
       new Uint8Array(await file.arrayBuffer()),
-      String(form?.get("eventId") ?? "") || null,
+      String(form?.get("eventId") ?? form?.get("productId") ?? "") || null,
     );
     return Response.json({ url });
   } catch (err) {

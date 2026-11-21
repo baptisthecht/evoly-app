@@ -112,9 +112,31 @@ la branche `mollie`, partie de `main`, un commit par lot ; la boutique (branche 
   offre exige de cocher la résiliation (Evoly cesse de prélever). Un parrainage recule aussi le prochain prélèvement
   d'un mois.
 
+## Boutique payée par Mollie (lot 8)
+
+- **Compte de l'organisateur** : les commandes de la boutique (section 9.35 du CDC) sont payées sur son compte Mollie,
+  comme les billets, mais sans frais d'application : aucune commission Evoly (RG-SHOP-08). Le paiement porte la
+  commande dans ses métadonnées (`ShopOrder.molliePaymentId`).
+- **Parcours** : coordonnées et mode de remise, puis la page de paiement de Mollie, retour sur la page de la commande
+  du site visité ; un paiement encore ouvert au même montant est repris, sinon un nouveau est créé (Mollie ne change
+  pas le montant d'un paiement : changer de mode de remise en crée un autre). Annulé, expiré ou refusé : la page
+  propose de réessayer tant que les produits sont réservés ; en cours de traitement, elle se met à jour toute seule.
+- **Réservation** : prolongée à 15 minutes au départ vers Mollie ; un paiement arrivé plus tard est servi si le stock le
+  permet, sinon remboursé en entier.
+- **Validation** : au retour de l'acheteur et par le webhook `/api/webhooks/mollie/boutique?commande=…` (adresse
+  donnée à chaque paiement, absente en local), toujours après relecture du paiement chez Mollie avec le jeton de
+  l'organisateur, montant, devise et commande vérifiés.
+- **Paiement sans commande à servir** : réservation annulée pendant le paiement, ou paiement remplacé par un autre et
+  payé malgré tout (autre onglet) : remboursé en entier, une seule fois (montant déjà remboursé relu chez Mollie, clé
+  d'idempotence par paiement). Une carte bloquée, connue au paiement seulement, est aussi remboursée.
+- **Remboursements** : par l'organisateur, ligne par ligne, sur le paiement Mollie, pris sur son solde ; l'état final
+  (remboursé, échoué) est relu sur le paiement quand Mollie appelle le webhook.
+- **Frais** : Mollie ne les donne pas paiement par paiement ; la fiche d'une commande montre les frais estimés d'après
+  la grille de Mollie (carte ou Bancontact), les frais réels figurent sur les relevés Mollie de l'organisateur.
+
 ## Lots
 
-Tous faits (19 novembre 2026) :
+Tous faits (19 novembre 2026, boutique le 21 novembre) :
 
 1. **Fondations** : client Mollie, chiffrement des jetons, compte Mollie de l'organisateur en base, variables
    d'environnement.
@@ -130,8 +152,9 @@ Tous faits (19 novembre 2026) :
    une période en cours sans paiement immédiat.
 7. **Bascule** : Mollie seul prestataire, textes légaux, site vitrine, documentation, tests ; retrait de l'ancien
    prestataire, sans rétrocompatibilité (voir « Historique »).
-
-Puis la boutique (branche `boutique`) passe à Mollie.
+8. **Boutique** : paiement des commandes de la boutique sur le compte Mollie de l'organisateur, sans commission,
+   webhook dédié, remboursements ; migrations de la boutique regroupées après celles de Mollie
+   (`20261121120000_boutique`, `20261121120100_boutique_offres`).
 
 ## Points à valider par le porteur
 

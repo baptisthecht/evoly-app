@@ -4,6 +4,8 @@ import { orgOgImageUrl } from "@/server/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { ProductGrid } from "@/components/public/shop/ProductGrid";
+import { productGridItems, publicShopProducts } from "@/server/shopPublic";
 import { PublicShell } from "@/components/public/PublicShell";
 import { DisabledSite } from "@/components/public/DisabledSite";
 import { PublicEventPage, eventMetadata } from "@/components/public/EventPage";
@@ -98,6 +100,8 @@ export default async function OrganizationPublicPage({
   const org = site.org;
   const { upcoming, past } = await listPublicEvents(org.id);
   const t = await getTranslations("public");
+  const ts = await getTranslations("shopPublic");
+  const shop = await publicShopProducts(org.id);
   const locale = (await getLocale()) as Locale;
   const cards = await publicEventCards(upcoming);
   const name = org.brand?.displayName ?? org.name;
@@ -422,6 +426,35 @@ export default async function OrganizationPublicPage({
                 </li>
               ))}
             </ul>
+          </section>
+        ) : null}
+
+        {shop?.length ? (
+          // boutique (Pro, section 9.35) : quelques produits, mis en avant d'abord, et le lien vers toute la boutique
+          <section
+            aria-labelledby="shop"
+            className="grid gap-4 px-5 pt-10 sm:px-8"
+          >
+            <div className="flex items-baseline justify-between gap-3 sm:px-4">
+              <h2
+                id="shop"
+                className="font-display text-2xl tracking-[-0.03em]"
+              >
+                {ts("title")}
+              </h2>
+              <Link
+                href="/boutique"
+                className="text-sm font-semibold underline underline-offset-4"
+              >
+                {ts("seeAll")}
+              </Link>
+            </div>
+            <ProductGrid
+              products={productGridItems(shop.slice(0, 4), locale, (price) =>
+                ts("from", { price }),
+              )}
+              soldOutLabel={ts("soldOut")}
+            />
           </section>
         ) : null}
 

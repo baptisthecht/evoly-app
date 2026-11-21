@@ -1,4 +1,4 @@
-import { can, hasFeature, PERMISSIONS } from "@evoly/core";
+import { can, hasFeature, PERMISSIONS, vatRateInput } from "@evoly/core";
 import { getTranslations } from "next-intl/server";
 import { ButtonLink } from "@/components/ui/Button";
 import { requireOrgContext } from "@/server/context";
@@ -8,6 +8,9 @@ import { teamOverview } from "@/server/team";
 import { InviteDialog } from "@/app/o/[orgSlug]/members/MembersTable";
 import { RoleEditor } from "@/app/o/[orgSlug]/members/TeamClient";
 import { BlockBuyerDialog } from "@/app/o/[orgSlug]/orders/BlockedBuyers";
+import { NewProductDialog } from "@/app/o/[orgSlug]/shop/ProductsTable";
+import { currencySymbol } from "@/app/o/[orgSlug]/shop/money";
+import { defaultVatRateBps } from "@/server/shop";
 
 import { PageHeader } from "./PageHeader";
 import { DownloadIcon, PlusIcon } from "@/components/ui/icons";
@@ -193,6 +196,63 @@ export async function SectionHeader({
     }
     case "resale":
       return <PageHeader title={nav(section)} />;
+    case "shop": {
+      // boutique (lot 3, Pro) : Produits, Commandes, Retrait et livraison selon les droits ; « Nouveau produit » sur
+      // l'onglet Produits, « Scanner un retrait » sur l'onglet Commandes
+      const shop = hasFeature(ctx.features, "SHOP");
+      const catalog = can(ctx.membership, "SHOP_MANAGE");
+      const orders = can(ctx.membership, "ORDERS_VIEW");
+      const manage = shop && catalog && !ctx.readOnly;
+      const onOrders = query.tab === "orders" || !catalog;
+      const list = [
+        ...(catalog
+          ? [[s("tab_products"), `${base}/shop`] as [string, string]]
+          : []),
+        ...(orders
+          ? [
+              [
+                s("tab_shopOrders"),
+                `${base}/shop?tab=orders`,
+                `${base}/shop/orders`,
+              ] as [string, string, string],
+            ]
+          : []),
+        ...(catalog
+          ? [
+              [s("tab_delivery"), `${base}/shop?tab=delivery`] as [
+                string,
+                string,
+              ],
+            ]
+          : []),
+      ];
+      const tso = await getTranslations("shopOrders");
+      return (
+        <PageHeader
+          title={nav("shop")}
+          tabsLabel={shop ? s("tabs") : undefined}
+          tabs={shop && list.length > 1 ? tabs(list) : undefined}
+          actions={
+            shop &&
+            onOrders &&
+            (can(ctx.membership, "ORDERS_MANAGE") ||
+              can(ctx.membership, "CHECKIN_SCAN")) ? (
+              <ButtonLink href={`${base}/shop/pickup`} variant="secondary">
+                {tso("scanPickup")}
+              </ButtonLink>
+            ) : manage && query.tab !== "delivery" ? (
+              <NewProductDialog
+                orgSlug={ctx.organization.slug}
+                symbol={currencySymbol(ctx.organization.currency)}
+                defaultVat={vatRateInput(
+                  defaultVatRateBps(ctx.organization.country),
+                )}
+              />
+            ) : null
+          }
+        />
+      );
+    }
     case "billing":
       return (
         <PageHeader

@@ -101,6 +101,12 @@ async function organizer() {
     country: "BE",
     type: "ASSOCIATION",
   } as never);
+  // une offre commerciale d'un autre fichier (promotions.test.ts), active au même instant, ferait naître
+  // l'organisation en Pro : elle part toujours de l'offre Free
+  await db.subscription.update({
+    where: { organizationId: org.id },
+    data: { planId: "free", status: "NONE", currentPeriodEnd: null },
+  });
   const ctx = {
     organization: {
       id: org.id,

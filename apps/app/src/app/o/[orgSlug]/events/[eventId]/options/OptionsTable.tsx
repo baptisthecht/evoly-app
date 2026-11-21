@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Card";
 import { DataTable, type TableColumn } from "@/components/ui/DataTable";
 import { Dialog } from "@/components/ui/Dialog";
-import { type Initial, OptionCommand, OptionForm } from "./OptionForm";
+import {
+  type Initial,
+  OptionCommand,
+  OptionForm,
+  type ShopProductChoice,
+} from "./OptionForm";
 import { OptionsRefundPolicy } from "./OptionsRefundPolicy";
 import { PlusIcon } from "@/components/ui/icons";
 
@@ -23,6 +28,9 @@ export interface OptionRow {
   maxPerOrder: number;
   active: boolean;
   initial: Initial;
+  /** produit de la boutique repris : stock de la boutique (null : sans limite), partagé (RG-SHOP-13) */
+  fromShop?: boolean;
+  shopStock?: number | null;
 }
 
 /** Billetterie, options : le tableau, « Ajouter » et « Réglages » dans des fenêtres, la modification aussi. */
@@ -34,6 +42,7 @@ export function OptionsTable({
   symbol,
   refundAfterStart,
   intro,
+  products = [],
 }: {
   rows: OptionRow[];
   manage: boolean;
@@ -43,6 +52,8 @@ export function OptionsTable({
   refundAfterStart: boolean;
   /** La phrase d'explication, au-dessus du tableau. */
   intro: string;
+  /** Produits de la boutique proposables en option (Pro). */
+  products?: ShopProductChoice[];
 }) {
   const t = useTranslations("options");
   const [dialog, setDialog] = useState<"new" | "settings" | string | null>(
@@ -60,7 +71,10 @@ export function OptionsTable({
       mobile: "title",
       cell: (o) => (
         <span className="grid min-w-0">
-          <span className="font-semibold">{o.name}</span>
+          <span className="inline-flex flex-wrap items-center gap-1.5 font-semibold">
+            {o.name}
+            {o.fromShop ? <Badge tone="info">{t("fromShop")}</Badge> : null}
+          </span>
           {o.description ? (
             <span className="truncate text-sm text-ink-muted">
               {o.description}
@@ -88,6 +102,13 @@ export function OptionsTable({
           <span className="tabular-nums">
             {o.stock != null ? `${o.sold} / ${o.stock}` : o.sold}
           </span>
+          {o.fromShop ? (
+            <small className="text-[12px] text-ink-muted">
+              {o.shopStock == null
+                ? t("sharedStock")
+                : `${o.shopStock} · ${t("sharedStock")}`}
+            </small>
+          ) : null}
           {o.stock ? (
             <span
               aria-hidden="true"
@@ -193,6 +214,7 @@ export function OptionsTable({
             orgSlug={orgSlug}
             eventId={eventId}
             symbol={symbol}
+            products={products}
             onDone={() => setDialog(null)}
           />
         </Dialog>
@@ -219,6 +241,7 @@ export function OptionsTable({
               eventId={eventId}
               symbol={symbol}
               option={editing.initial}
+              products={products}
               onDone={() => setDialog(null)}
             />
           ) : null}

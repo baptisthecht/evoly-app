@@ -258,6 +258,7 @@ Le simulateur du site compare les frais d'Evoly (commission + frais d'une carte 
 | Options et consommations prépayées                                    | Non       | Oui | P1       |
 | Liste d'attente                                                       | Oui       | Oui | P1       |
 | Tables et forfaits                                                    | Non       | Oui | P1       |
+| Boutique en ligne sans commission (produits, stock, retrait, envoi)   | Non       | Oui | P1       |
 
 Le contrôle d'accès aux fonctionnalités passe par une fonction unique `hasFeature(organisation, fonctionnalité)` qui lit `Plan.features` et l'état de l'abonnement (voir section 6.4).
 
@@ -397,7 +398,7 @@ evoly/
 - **RG-PAY-04** : les virements vers la banque de l'organisateur sont faits par Mollie (règlements), selon les réglages de son compte Mollie. Evoly affiche le solde et les derniers versements en lecture, sans jamais les déclencher.
 - **RG-PAY-05** : les remboursements sont pris sur le solde Mollie de l'organisateur ; les rétrofacturations (contestations) arrivent sur son compte Mollie, où il y répond. Evoly les apprend par le webhook du paiement et les affiche.
 - **RG-PAY-06** : l'abonnement Pro est encaissé sur le compte Mollie d'Evoly : premier paiement sur la page de Mollie, renouvellements prélevés par Evoly sur le mandat ; changement de périodicité, de moyen de paiement, résiliation et factures se gèrent dans Evoly (RG-SUB-01 à 06).
-- **RG-PAY-07** : Mollie appelle deux points d'entrée, dont l'adresse est donnée à chaque paiement (rien à configurer chez Mollie) : un pour les paiements des billets (comptes des organisateurs), un pour ceux de l'offre Pro (compte d'Evoly). Ils ne reçoivent que l'identifiant du paiement, toujours relu chez Mollie avant tout changement (section 12).
+- **RG-PAY-07** : Mollie appelle trois points d'entrée, dont l'adresse est donnée à chaque paiement (rien à configurer chez Mollie) : un pour les paiements des billets et un pour ceux de la boutique (comptes des organisateurs), un pour ceux de l'offre Pro (compte d'Evoly). Ils ne reçoivent que l'identifiant du paiement, toujours relu chez Mollie avant tout changement (section 12).
 
 ### 6.7 Tâches de fond
 
@@ -1437,6 +1438,41 @@ Décidé le 16 novembre 2026. Un organisateur empêche une personne malveillante
 - RG-BLK-04 : la personne bloquée lit un message neutre, sans motif : « Cette commande ne peut pas aboutir. Contactez l'organisateur. »
 - RG-BLK-05 : le blocage vaut aussi pour l'achat d'une place en revente et pour l'inscription à la liste d'attente. RGPD : motif, auteur et date visibles par l'organisation seule ; déblocage à tout moment ; blocages et déblocages au journal d'audit, sans adresse ni motif.
 
+### 9.35 Boutique (P1, Pro)
+
+Décidé le 16 novembre 2026. Evoly devient billetterie et boutique en ligne : un établissement vend ses produits (merchandising, objets) seuls, depuis la page de son organisation, et en option avec chaque billet. Aucune commission Evoly sur les produits : seuls les frais de paiement s'appliquent. Livrée en quatre sous-lots : catalogue et écrans d'administration (3a), boutique publique avec retrait en main propre (3b), produits en option des événements (3c), livraison avec suivi (3d).
+
+Modèle : produits de l'organisation (`Product`), photos (`ProductImage`), options libres (`ProductOptionGroup`, `ProductOptionValue`) et variantes (`ProductVariant`, une par combinaison de valeurs, avec son stock et son supplément) ; lieux de retrait (`PickupPoint`) et modes de livraison (`ShippingMethod`). Les commandes de la boutique sont séparées des commandes de billets, qui exigent toutes un événement.
+
+**User stories**
+
+- US-SHOP-01 : en tant qu'organisateur Pro (droit « Gérer la boutique »), je crée un produit (nom, description, photos, prix toutes taxes comprises, taux de TVA propre, mise en avant), je le mets en vente, je le retire de la vente ou je l'archive.
+- US-SHOP-02 : en tant qu'organisateur, je définis les options libres d'un produit (taille, couleur…) et leurs valeurs ; je règle le stock (vide : illimité) et le supplément de prix de chaque combinaison, et je retire une combinaison de la vente.
+- US-SHOP-03 : en tant qu'organisateur, je configure mes lieux de retrait en main propre (nom, adresse, instructions) et mes modes de livraison à prix fixe ; chaque produit choisit les modes de remise qu'il accepte.
+- US-SHOP-04 : en tant qu'acheteur, je découvre la boutique depuis la page de l'organisation (section « Boutique »), j'ouvre la page d'un produit (galerie, description, choix des options, prix de la variante, disponibilité) et je remplis un panier de plusieurs produits.
+- US-SHOP-05 : en tant qu'acheteur, je commande sans billet : mes coordonnées, le lieu de retrait, le paiement ; je reçois un e-mail avec mon reçu et le lien de ma commande, qui montre son état et le code QR à présenter au retrait.
+- US-SHOP-06 : en tant qu'organisateur (droits des commandes), je suis les commandes de la boutique (à préparer, prêtes, remises), je préviens l'acheteur que sa commande est prête, je la remets en scannant son code QR (ou en saisissant son code) et je la rembourse, ligne par ligne.
+- US-SHOP-07 : en tant qu'organisateur, je propose un produit de la boutique en option d'un événement ; l'acheteur choisit la variante (taille, couleur) pendant l'achat de ses billets et retire le produit à l'événement, comme les autres options.
+- US-SHOP-08 : en tant qu'acheteur, je me fais livrer : je choisis un mode de livraison et je saisis mon adresse, les frais s'ajoutent au total ; l'organisateur marque ma commande expédiée avec le transporteur, le numéro et le lien de suivi, et je reçois un e-mail pour suivre mon colis.
+
+**Règles de gestion**
+
+- RG-SHOP-01 : réservée aux offres Pro et Partenaire (fonctionnalité `SHOP`) ; en offre gratuite, l'entrée « Boutique » de la barre latérale porte la pastille Pro et la page montre l'encart Pro. Droit « Gérer la boutique » (`SHOP_MANAGE`) : propriétaire, administrateur, gestion des événements (annexe B).
+- RG-SHOP-02 : prix toutes taxes comprises, 1,00 au moins dans la devise de l'organisation ; taux de TVA propre au produit, de 0 à 30 % (deux décimales au plus), proposé d'après le pays de l'organisation, détaillé sur les reçus.
+- RG-SHOP-03 : 3 options au plus par produit, 20 valeurs par option, 100 combinaisons au plus ; noms uniques, casse ignorée. Chaque combinaison est une variante ; une combinaison qui existait garde son stock et son supplément ; une combinaison disparue est supprimée, ou mise de côté si elle a déjà été vendue ou réservée (ses commandes la gardent). Sans option : une variante unique.
+- RG-SHOP-04 : le stock d'une variante compte les unités disponibles (vide : illimité) ; il diminue à chaque vente, ne descend jamais sous zéro ni sous les paniers en cours de paiement (réservation atomique, contraintes de la base). Le supplément de prix est positif ou nul.
+- RG-SHOP-05 : un produit se met en vente avec au moins une variante active et un mode de remise réellement proposé : le retrait avec au moins un lieu actif, ou la livraison avec au moins un mode actif. Un produit en vente garde au moins une variante active et un mode de remise.
+- RG-SHOP-06 : seul un produit jamais vendu se supprime, photos comprises ; sinon il s'archive : il n'est plus en vente et ses commandes restent. Photos : 10 au plus par produit, PNG, JPEG ou WebP, réduites à 1 600 px ; la première est la photo principale.
+- RG-SHOP-07 : le panier vit dans le navigateur et ne fixe rien ; « Commander » relit les prix et la disponibilité, puis retient chaque variante de façon atomique (jamais au-delà du stock), pour 15 minutes. Prix, noms, options et taux de TVA sont figés sur la commande. Au passage sur la page de paiement de Mollie, la réservation tient au moins la durée d'un paiement par carte (15 minutes). Expirée, elle est libérée ; un paiement arrivé ensuite est servi si le stock le permet, sinon remboursé en entier. Le paiement est validé une seule fois (webhook ou retour de l'acheteur) : le stock diminue, les ventes augmentent. Un paiement reçu sans commande à servir (réservation annulée pendant le paiement, ou paiement remplacé par un autre après un changement du mode de remise) est remboursé en entier, une seule fois.
+- RG-SHOP-08 : paiement créé sur le compte Mollie de l'organisation, sans frais d'application : aucune commission Evoly, seuls les frais de paiement de Mollie, pris sur son solde Mollie (estimés d'après la grille de Mollie sur la fiche de la commande ; les frais réels figurent sur ses relevés Mollie). L'acheteur paie sur la page de Mollie et revient sur la page de sa commande. Le blocage des personnes (section 9.34) s'applique : adresse refusée à la saisie ; carte bloquée, connue au paiement seulement, remboursée en entier.
+- RG-SHOP-09 : remise en main propre : l'acheteur choisit un lieu de retrait actif ; sa commande porte un code de retrait (QR et 10 caractères) ; l'organisation la marque prête (e-mail à l'acheteur), puis remise, une seule fois, depuis la fiche de la commande ou en scannant le code.
+- RG-SHOP-10 : reçu (page de la commande et e-mail) : chaque ligne avec son taux de TVA, le total toutes taxes comprises et la TVA comprise de chaque taux, calculée sur la somme du taux et arrondie au centime ; le vendeur est l'organisation.
+- RG-SHOP-11 : droit de rétractation de 14 jours (vente à distance), pour le retrait en main propre comme pour la livraison : ouvert tant que les produits ne sont pas reçus et jusqu'à 14 jours après leur réception ; « Je me rétracte » sur la page de la commande, une seule demande, l'organisation est prévenue (notification et e-mail) et rembourse au retour des produits. Rappelé avant le paiement et dans l'e-mail de confirmation, détaillé dans les conditions de vente.
+- RG-SHOP-12 : remboursement par l'organisation (droit de rembourser), ligne par ligne, sur le paiement Mollie de l'acheteur, pris sur le solde Mollie de l'organisation (état final suivi par le webhook du paiement) ; les articles rendus reviennent au stock si l'organisation le choisit ; l'acheteur reçoit un e-mail ; une commande entièrement remboursée ne peut plus être remise.
+- RG-SHOP-13 : un seul stock pour les deux canaux. Une option d'événement peut reprendre un produit non archivé (offres Pro et Partenaire) : nom, prix et description viennent du produit, l'option n'a pas de stock propre. Sur la page de l'événement, elle est proposée variante par variante, au prix de la boutique (supplément compris) et avec sa disponibilité ; la variante choisie est retenue sur le stock de la boutique pendant la réservation (jamais au-delà), libérée à l'expiration ou à l'annulation, vendue au paiement. Aucune commission Evoly sur le produit. Le retrait se fait à l'événement, par le flux des options (scanner, bar). Un produit proposé en option ne se supprime pas.
+- RG-SHOP-14 : mode de remise d'une commande : le retrait ou la livraison, parmi ceux que tous ses produits acceptent (un mode commun est exigé dès le panier). Livraison : un mode actif de l'organisation (prix fixe, éventuellement offert) et une adresse complète (destinataire, adresse, code postal, ville, pays de l'Union européenne, Suisse, Royaume-Uni ou Norvège). Les frais s'ajoutent au total et au reçu, avec la TVA du taux le plus élevé des produits de la commande (règle simple, à valider avec l'expert-comptable). Changer de mode avant le paiement recalcule le total ; un nouveau paiement Mollie est créé au nouveau montant (Mollie ne modifie pas le montant d'un paiement).
+- RG-SHOP-15 : expédition : l'organisation (droits des commandes) marque une commande livrée « expédiée », une seule fois, avec le transporteur, le numéro de suivi et le lien de suivi (https) ; l'acheteur reçoit un e-mail avec le lien, que la page de sa commande affiche aussi. La réception est estimée à l'expédition plus 7 jours : le bouton « Je me rétracte » reste ouvert 14 jours après (au-delà, l'acheteur écrit à l'organisateur). Les frais de livraison se remboursent une seule fois, proposés d'office pour une rétractation.
+
 ## 10. Catalogue des e-mails
 
 Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la file de tâches. Catégories : **T** transactionnel (toujours envoyé), **S** service (respecte la désinscription de l'événement), **M** marketing (consentement requis).
@@ -1467,6 +1503,11 @@ Tous les e-mails sont traduits, journalisés (`EmailMessage`) et envoyés par la
 | `event.cancelled`                        | Acheteurs                       | Annulation de l'événement                              | T    |
 | `refund.requested`                       | Organisateur                    | Demande d'un acheteur                                  | T    |
 | `refund.succeeded`                       | Acheteur                        | Remboursement effectué                                 | T    |
+| `shop.order_confirmed`                   | Acheteur                        | Commande de la boutique payée (reçu, retrait, adresse) | T    |
+| `shop.order_ready`                       | Acheteur                        | Commande de la boutique prête à retirer                | T    |
+| `shop.order_shipped`                     | Acheteur                        | Commande de la boutique expédiée (lien de suivi)       | T    |
+| `shop.withdrawal`                        | Acheteur                        | Rétractation enregistrée                               | T    |
+| `shop.order_refunded`                    | Acheteur                        | Remboursement d'une commande de la boutique            | T    |
 | `refund.rejected`                        | Acheteur                        | Demande refusée                                        | T    |
 | `resale.listed`                          | Vendeur                         | Annonce créée (avec le lien)                           | T    |
 | `resale.sold`                            | Vendeur                         | Place vendue, montant remboursé                        | T    |
@@ -1508,7 +1549,7 @@ Les factures de l'abonnement Pro sont émises par Evoly à chaque paiement reçu
 
 ## 12. Webhooks Mollie
 
-Mollie n'envoie que l'identifiant du paiement : Evoly relit toujours le paiement chez Mollie avant tout changement. L'adresse du webhook est donnée par Evoly à chaque paiement, rien n'est à configurer chez Mollie ; en local, sans adresse publique, il n'y en a pas, et seul le retour sur Evoly (page des billets, page Abonnement) relit le paiement.
+Mollie n'envoie que l'identifiant du paiement : Evoly relit toujours le paiement chez Mollie avant tout changement. L'adresse du webhook est donnée par Evoly à chaque paiement, rien n'est à configurer chez Mollie ; en local, sans adresse publique, il n'y en a pas, et seul le retour sur Evoly (page des billets, page de la commande de la boutique, page Abonnement) relit le paiement.
 
 **Paiements des billets** (`/api/webhooks/mollie`, comptes des organisateurs ; paiement relu avec le jeton de l'organisateur)
 
@@ -1518,6 +1559,14 @@ Mollie n'envoie que l'identifiant du paiement : Evoly relit toujours le paiement
 | Annulé, expiré, refusé                     | Rien n'est validé ; la page des billets propose de réessayer tant que la réservation tient (RG-BUY-06)                                                               |
 | Remboursement changé (commande déjà payée) | Synchronisation de `Refund` (RG-REF-03, RG-REF-06)                                                                                                                   |
 | Rétrofacturation reçue                     | Copie dans `Dispute`, notification, affichage dans Finances ; annulée par Mollie : gagnée (RG-FIN-03)                                                                |
+
+**Paiements de la boutique** (`/api/webhooks/mollie/boutique?commande=…`, comptes des organisateurs ; la commande dans l'adresse, le paiement relu avec le jeton de l'organisateur et rattaché à cette commande par ses métadonnées)
+
+| État relu chez Mollie                      | Traitement                                                                                                                                                                                                                  |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Payé                                       | Validation de la commande (RG-SHOP-07) ; carte bloquée (RG-SHOP-08) ou stock repris : remboursement intégral ; réservation annulée pendant le paiement ou paiement remplacé par un autre : remboursement intégral, une fois |
+| Annulé, expiré, refusé                     | Rien n'est validé ; la page de la commande propose de réessayer tant que les produits sont réservés                                                                                                                         |
+| Remboursement changé (commande déjà payée) | Synchronisation de `ShopRefund` (RG-SHOP-12)                                                                                                                                                                                |
 
 **Paiements de l'offre Pro** (`/api/webhooks/mollie/pro`, compte d'Evoly)
 
@@ -1741,6 +1790,7 @@ Tant qu'une décision n'est pas prise, la valeur par défaut indiquée est celle
 | `STATS_VIEW`        | oui          | oui            | oui                    | oui         |                      | oui           |
 | `MARKETING_MANAGE`  | oui          | oui            | oui                    |             |                      |               |
 | `CONTACTS_EXPORT`   | oui          | oui            |                        |             |                      |               |
+| `SHOP_MANAGE`       | oui          | oui            | oui                    |             |                      |               |
 
 Actions réservées au propriétaire, en plus de ses permissions : transférer la propriété, supprimer l'organisation.
 

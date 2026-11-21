@@ -1,12 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { FormError, useActionForm, useFieldError } from "@/components/forms";
 import { Button } from "@/components/ui/Button";
 import { SavedNote, SwitchRow } from "@/components/ui/Controls";
 import { DialogFooter } from "@/components/ui/Dialog";
-import { Field, Input } from "@/components/ui/Field";
+import { Field, Input, Select } from "@/components/ui/Field";
 import {
   createOptionAction,
   optionCommandAction,
@@ -21,7 +21,16 @@ export type Initial = {
   stock: string;
   maxPerOrder: string;
   standalone: boolean;
+  /** produit de la boutique repris (section 9.35) */
+  productId?: string | null;
 };
+
+/** Produit de la boutique proposable en option : son nom et son prix de base (« 25 € », « à partir de 25 € »). */
+export interface ShopProductChoice {
+  id: string;
+  name: string;
+  price: string;
+}
 
 /** Ajout ou modification d'une option (section 9.29), dans une fenêtre : les boutons dans son pied. */
 export function OptionForm({
@@ -30,6 +39,7 @@ export function OptionForm({
   symbol,
   option,
   onDone,
+  products = [],
 }: {
   orgSlug: string;
   eventId: string;
@@ -37,6 +47,8 @@ export function OptionForm({
   option?: Initial;
   /** Fermer la fenêtre (« Annuler »). */
   onDone?: () => void;
+  /** Produits de la boutique (Pro) : l'option peut en reprendre un, sur le stock partagé (RG-SHOP-13). */
+  products?: ShopProductChoice[];
 }) {
   const t = useTranslations("options");
   const tc = useTranslations("common");
@@ -47,46 +59,85 @@ export function OptionForm({
   const error = useFieldError(state);
   const p = option ? `option-${option.id}` : "option-new";
   const formId = `${p}-form`;
+  const [productId, setProductId] = useState(option?.productId ?? "");
+  const product = products.find((x) => x.id === productId) ?? null;
   return (
     <form id={formId} {...formProps} className="grid gap-4" noValidate>
       <FormError state={state} />
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label={t("name")} htmlFor={`${p}-name`} error={error("name")}>
-          <Input
-            id={`${p}-name`}
-            name="name"
-            maxLength={80}
-            defaultValue={option?.name}
-            placeholder={t("namePlaceholder")}
-            required
-          />
-        </Field>
+      {products.length || option?.productId ? (
         <Field
-          label={`${t("price")} (${symbol})`}
-          htmlFor={`${p}-price`}
-          error={error("price")}
+          label={t("productLabel")}
+          htmlFor={`${p}-product`}
+          hint={product ? t("productHint") : undefined}
         >
-          <Input
-            id={`${p}-price`}
-            name="price"
-            inputMode="decimal"
-            defaultValue={option?.price}
-            required
-          />
+          <Select
+            id={`${p}-product`}
+            name="productId"
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+          >
+            <option value="">{t("productNone")}</option>
+            {products.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.name} · {x.price}
+              </option>
+            ))}
+          </Select>
         </Field>
-        <Field
-          label={t("stock")}
-          htmlFor={`${p}-stock`}
-          hint={t("stockHint")}
-          error={error("stock")}
-        >
-          <Input
-            id={`${p}-stock`}
-            name="stock"
-            inputMode="numeric"
-            defaultValue={option?.stock}
-          />
-        </Field>
+      ) : null}
+      {product ? null : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label={t("name")} htmlFor={`${p}-name`} error={error("name")}>
+            <Input
+              id={`${p}-name`}
+              name="name"
+              maxLength={80}
+              defaultValue={option?.name}
+              placeholder={t("namePlaceholder")}
+              required
+            />
+          </Field>
+          <Field
+            label={`${t("price")} (${symbol})`}
+            htmlFor={`${p}-price`}
+            error={error("price")}
+          >
+            <Input
+              id={`${p}-price`}
+              name="price"
+              inputMode="decimal"
+              defaultValue={option?.price}
+              required
+            />
+          </Field>
+          <Field
+            label={t("stock")}
+            htmlFor={`${p}-stock`}
+            hint={t("stockHint")}
+            error={error("stock")}
+          >
+            <Input
+              id={`${p}-stock`}
+              name="stock"
+              inputMode="numeric"
+              defaultValue={option?.stock}
+            />
+          </Field>
+          <Field
+            label={t("maxPerOrder")}
+            htmlFor={`${p}-max`}
+            error={error("maxPerOrder")}
+          >
+            <Input
+              id={`${p}-max`}
+              name="maxPerOrder"
+              inputMode="numeric"
+              defaultValue={option?.maxPerOrder ?? "10"}
+            />
+          </Field>
+        </div>
+      )}
+      {product ? (
         <Field
           label={t("maxPerOrder")}
           htmlFor={`${p}-max`}
@@ -99,19 +150,20 @@ export function OptionForm({
             defaultValue={option?.maxPerOrder ?? "10"}
           />
         </Field>
-      </div>
-      <Field
-        label={t("description")}
-        htmlFor={`${p}-desc`}
-        error={error("description")}
-      >
-        <Input
-          id={`${p}-desc`}
-          name="description"
-          maxLength={300}
-          defaultValue={option?.description}
-        />
-      </Field>
+      ) : (
+        <Field
+          label={t("description")}
+          htmlFor={`${p}-desc`}
+          error={error("description")}
+        >
+          <Input
+            id={`${p}-desc`}
+            name="description"
+            maxLength={300}
+            defaultValue={option?.description}
+          />
+        </Field>
+      )}
       <SwitchRow
         name="standalone"
         defaultChecked={option?.standalone ?? false}

@@ -21,6 +21,7 @@ export const PLAN_FEATURES = [
   "EMBED_WIDGET",
   "AMBASSADORS",
   "DISTRIBUTION", // compatibilité avec les réseaux de billetterie (Ticketmaster, Fnac, BilletReduc…)
+  "SHOP", // boutique en ligne : produits, retrait et livraison, sans commission Evoly
 ] as const;
 
 export type PlanFeature = (typeof PLAN_FEATURES)[number];

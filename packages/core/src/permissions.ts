@@ -23,6 +23,7 @@ export const PERMISSIONS = [
   "STATS_VIEW",
   "MARKETING_MANAGE",
   "CONTACTS_EXPORT",
+  "SHOP_MANAGE",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -50,6 +51,7 @@ export const SYSTEM_ROLE_PERMISSIONS: Readonly<
     "CHECKIN_MANAGE",
     "STATS_VIEW",
     "MARKETING_MANAGE",
+    "SHOP_MANAGE",
   ],
   BOX_OFFICE: [
     "ORDERS_VIEW",

@@ -3,7 +3,7 @@ import { renderEventBlock } from "./email/eventBlock";
 import { createHash } from "node:crypto";
 import { notifyNewOrder, notifySalesMilestone } from "./notifications";
 import { qualifyReferral } from "./referrals";
-import { effectiveEnd } from "@evoly/core";
+import { effectiveEnd, optionLineName } from "@evoly/core";
 import { pick, toLocale } from "@evoly/i18n";
 import {
   formatDate,
@@ -97,7 +97,7 @@ export async function sendOrderConfirmation(
         quantity: i.quantity,
       })),
       ...order.options.map((o) => ({
-        name: o.option.name,
+        name: optionLineName(o.option.name, o.variantLabel),
         quantity: o.quantity,
       })),
     ],
@@ -250,7 +250,11 @@ export async function ticketsPdfFor(
     optionsShortCode?: string | null;
     buyerFirstName?: string | null;
     buyerLastName?: string | null;
-    options?: Array<{ quantity: number; option: { name: string } }>;
+    options?: Array<{
+      quantity: number;
+      variantLabel?: string | null;
+      option: { name: string };
+    }>;
   },
   locale: Locale,
 ): Promise<Uint8Array> {
@@ -329,7 +333,10 @@ export async function ticketsPdfFor(
                 typeName: [
                   OPTIONS_PASS[locale],
                   (order.options ?? [])
-                    .map((o) => `${o.quantity} × ${o.option.name}`)
+                    .map(
+                      (o) =>
+                        `${o.quantity} × ${optionLineName(o.option.name, o.variantLabel)}`,
+                    )
                     .join(", "),
                 ]
                   .filter(Boolean)

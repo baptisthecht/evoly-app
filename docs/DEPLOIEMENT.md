@@ -62,8 +62,9 @@ y crée les paiements avec sa commission en frais d'application. Le compte Molli
 - **Mode test** : `MOLLIE_TESTMODE=true` en recette seulement (organisateurs reliés en mode test), jamais en production.
   Pour jouer l'organisateur, un deuxième compte Mollie : Mollie refuse les frais d'application sur l'organisation
   propriétaire de l'application.
-- **Webhook** : `https://app.evoly.me/api/webhooks/mollie`, donné par Evoly à chaque paiement, rien à configurer chez
-  Mollie. Mollie n'envoie que l'identifiant du paiement, relu chez Mollie avant tout changement ; Mollie relance tant
+- **Webhooks** : `https://app.evoly.me/api/webhooks/mollie` (billets) et
+  `https://app.evoly.me/api/webhooks/mollie/boutique` (boutique), donnés par Evoly à chaque paiement, rien à configurer
+  chez Mollie. Mollie n'envoie que l'identifiant du paiement, relu chez Mollie avant tout changement ; Mollie relance tant
   qu'Evoly ne répond pas 200 (10 fois en 26 heures).
 - **Moyens de paiement des organisateurs** : à la liaison, Evoly crée le profil de site de l'organisateur et y demande
   les cartes, Bancontact et Apple Pay. Aucun domaine à déclarer pour Apple Pay : le paiement se fait sur la page de

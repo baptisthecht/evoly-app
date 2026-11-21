@@ -6,6 +6,7 @@ export interface NavItem {
     | "events"
     | "orders"
     | "resale"
+    | "shop"
     | "marketing"
     | "finances"
     | "members"
@@ -23,6 +24,7 @@ export interface NavItem {
     | "calendar"
     | "receipt"
     | "repeat"
+    | "bag"
     | "coins"
     | "send"
     | "palette"
@@ -54,6 +56,14 @@ export const NAV: readonly NavItem[] = [
     anyOf: ["RESALE_MANAGE", "ORDERS_VIEW"],
     group: "pilot",
     icon: "repeat",
+  },
+  {
+    key: "shop",
+    href: "/shop",
+    anyOf: ["SHOP_MANAGE", "ORDERS_VIEW"], // catalogue, ou commandes de la boutique (billetterie)
+    feature: "SHOP",
+    group: "pilot",
+    icon: "bag",
   },
   {
     key: "finances",

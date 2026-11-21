@@ -27,6 +27,7 @@ import {
   type TicketTypeForSale,
   validatePromo,
   answerFor,
+  optionLineName,
   questionsForOrder,
 } from "@evoly/core";
 import type { Prisma } from "@evoly/db";
@@ -56,14 +57,21 @@ import { emailBrandFor } from "./email/brand";
 import { sendEmail } from "./email/send";
 import { safeError } from "@/lib/redact";
 import { formatMoney, toLocale } from "@evoly/i18n";
-import { NO_OPTIONS, priceOptionsInTx, type RequestedOption } from "./options";
+import {
+  NO_OPTIONS,
+  priceOptionsInTx,
+  releaseProductOptions,
+  sellProductOptions,
+  type RequestedOption,
+} from "./options";
 import { blockedForPublic, validOffer } from "./waitlist";
 import { resolveAmbassadorInTx } from "./ambassadors";
 import { PLAN_SUBSCRIPTION_SELECT } from "@/server/planSelect";
 
 type Tx = Prisma.TransactionClient;
 
-export const BUYER_TERMS_VERSION = "2026-09";
+/** Version des conditions de vente acceptées par l'acheteur (paiement par Mollie, produits de la boutique : novembre 2026). */
+export const BUYER_TERMS_VERSION = "2026-11";
 export const ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
 const TX_OPTIONS = { timeout: 15_000, maxWait: 10_000 } as const;
 
@@ -141,6 +149,7 @@ async function releaseExpiredInTx(tx: Tx, eventId: string, now: Date) {
     } else {
       await releaseItems(tx, o.items);
       await releaseSeats(tx, o.id);
+      await releaseProductOptions(tx, o.id); // produits de la boutique retenus (RG-SHOP-13)
     }
     await tx.order.update({ where: { id: o.id }, data: { status: "EXPIRED" } });
   }
@@ -532,12 +541,23 @@ export async function reserveOrder(
           ),
           accessTokenHash,
           options: {
-            create: [...opts.lines, ...includedLines].map((l) => ({
-              optionId: l.optionId,
-              quantity: l.quantity,
-              unitPriceMinor: l.unitPriceMinor,
-              unitFeeMinor: l.unitFeeMinor,
-            })),
+            create: [
+              ...opts.lines.map((l) => ({
+                optionId: l.optionId,
+                quantity: l.quantity,
+                unitPriceMinor: l.unitPriceMinor,
+                unitFeeMinor: l.unitFeeMinor,
+                // produit de la boutique : la variante retenue (RG-SHOP-13)
+                productVariantId: l.productVariantId ?? null,
+                variantLabel: l.variantLabel ?? null,
+              })),
+              ...includedLines.map((l) => ({
+                optionId: l.optionId,
+                quantity: l.quantity,
+                unitPriceMinor: l.unitPriceMinor,
+                unitFeeMinor: l.unitFeeMinor,
+              })),
+            ],
           },
           items: {
             create: priced.lines.map((l) => ({
@@ -589,7 +609,7 @@ export async function reserveOrder(
     promoCode: input.promoCode ? normalizePromoCode(input.promoCode) : null,
     options: order.options.map((o) => ({
       optionId: o.optionId,
-      name: o.option.name,
+      name: optionLineName(o.option.name, o.variantLabel),
       quantity: o.quantity,
       unitPriceMinor: o.unitPriceMinor,
     })),
@@ -667,7 +687,7 @@ export async function reservationByToken(
     promoCode: null,
     options: order.options.map((o) => ({
       optionId: o.optionId,
-      name: o.option.name,
+      name: optionLineName(o.option.name, o.variantLabel),
       quantity: o.quantity,
       unitPriceMinor: o.unitPriceMinor,
     })),
@@ -726,6 +746,7 @@ export async function cancelReservation(token: string): Promise<void> {
     }
     await releaseItems(tx, o.items);
     await releaseSeats(tx, orderId);
+    await releaseProductOptions(tx, orderId);
     await tx.order.update({
       where: { id: orderId },
       data: { status: "CANCELLED", cancelledAt: new Date() },
@@ -1127,6 +1148,11 @@ export async function finalizeOrder(
             }
           }
         }
+        // RG-SHOP-13 : produits de la boutique pris en option, vendus sur le stock partagé
+        if (
+          !(await sellProductOptions(tx, order.id, order.status === "PENDING"))
+        )
+          throw new NoStockLeft();
         if (order.promoCodeId) {
           // RG-PRM-03 : compteur incrémenté au paiement, sans jamais dépasser la limite
           const counted =

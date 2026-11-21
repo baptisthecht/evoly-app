@@ -1,10 +1,8 @@
 "use server";
 
-import { headers } from "next/headers";
 import { CoreError, normalizePromoCode, validatePromo } from "@evoly/core";
 import { friendSeats } from "@/server/seating";
 import { db } from "@/lib/db";
-import { env } from "@/lib/env";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import {
@@ -37,7 +35,7 @@ import {
   verifyProof,
   type BotChallenge,
 } from "@/server/botProtection";
-import { clientIp } from "@/server/requestInfo";
+import { clientIp, siteOrigin } from "@/server/requestInfo";
 import { safeError } from "@/lib/redact";
 import { joinWaitlist } from "@/server/waitlist";
 import { toLocale } from "@evoly/i18n";
@@ -47,7 +45,7 @@ import type { RefundRule } from "@evoly/core";
 const optionsSchema = z
   .array(
     z.object({
-      optionId: z.string().max(40),
+      optionId: z.string().max(81), // produit de la boutique : « option:variante »
       quantity: z.number().int().min(0).max(100),
     }),
   )
@@ -262,24 +260,6 @@ export async function submitBuyerAction(
   } catch (err) {
     return failure(err);
   }
-}
-
-/**
- * Site visité (sous-domaine ou domaine personnalisé), construit d'après la requête, jamais reçu tel quel du
- * navigateur : retour après la page de paiement de Mollie.
- */
-async function siteOrigin(): Promise<string | null> {
-  const h = await headers();
-  const host = (h.get("x-forwarded-host") ?? h.get("host") ?? "")
-    .split(",")[0]!
-    .trim();
-  if (!/^[a-z0-9.-]+(:\d+)?$/i.test(host)) return null;
-  const forwarded = h.get("x-forwarded-proto");
-  const proto =
-    forwarded === "http" || forwarded === "https"
-      ? forwarded
-      : new URL(env().NEXT_PUBLIC_APP_URL).protocol.replace(":", "");
-  return `${proto}://${host}`;
 }
 
 export async function cancelReservationAction(token: string): Promise<void> {

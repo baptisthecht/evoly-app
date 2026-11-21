@@ -159,6 +159,7 @@ enum PlanFeature {
   EMBED_WIDGET
   AMBASSADORS // prévente privée par codes (Pro)
   DISTRIBUTION // compatibilité avec les réseaux de billetterie (Ticketmaster, Fnac, BilletReduc…)
+  SHOP // boutique en ligne : produits, retrait et livraison, sans commission Evoly
 }
 
 model Plan {
@@ -393,6 +394,10 @@ model Organization {
   promotionRedemption PromotionRedemption? // offre commerciale dont elle a profité à sa création
   distributors        Distributor[]
   blockedBuyers       BlockedBuyer[] // personnes bloquées : propres à l'organisation, jamais partagées
+  products            Product[] // boutique (Pro)
+  pickupPoints        PickupPoint[]
+  shippingMethods     ShippingMethod[]
+  shopOrders          ShopOrder[]
 
   featuredMode    FeaturedMode @default(NEXT) // vitrine : événement mis en avant (aucun, le prochain, un choisi)
   featuredEventId String? // événement choisi ; la vitrine reprend le prochain s'il n'est plus à venir ou public
@@ -491,6 +496,7 @@ enum Permission {
   STATS_VIEW
   MARKETING_MANAGE
   CONTACTS_EXPORT
+  SHOP_MANAGE // boutique : produits, retrait et livraison
 }
 
 enum SystemRole {
@@ -1858,6 +1864,8 @@ enum NotificationType {
   PAYOUT_FAILED // versement de Mollie vers la banque de l'organisateur échoué
   BUYER_FLAGGED // commande passée sous le nom d'une personne bloquée
   MOLLIE_ACTION_REQUIRED // Mollie attend des informations, ou le compte Mollie n'est plus relié
+  SHOP_ORDER_PAID // commande payée dans la boutique
+  SHOP_WITHDRAWAL // rétractation demandée sur une commande de la boutique
 }
 
 model Notification {
@@ -2118,31 +2126,38 @@ model EventOption {
   sortOrder   Int              @default(0)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  productId   String? // option reprise d'un produit de la boutique : nom et prix du produit, stock partagé (section 9.35)
   event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  product     Product?         @relation(fields: [productId], references: [id], onDelete: Restrict)
   lines       OrderOption[]
 
   @@index([eventId])
+  @@index([productId])
 }
 
 /// Option achetée dans une commande : prix et commission figés à l'achat, quantité déjà retirée au bar
 model OrderOption {
-  id             String                     @id @default(cuid())
-  orderId        String
-  optionId       String
-  quantity       Int
-  unitPriceMinor Int
-  unitFeeMinor   Int                        @default(0)
-  redeemed       Int                        @default(0)
-  refunded       Int                        @default(0) // quantité remboursée (RG-OPT-07)
-  createdAt      DateTime                   @default(now())
-  order          Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  option         EventOption                @relation(fields: [optionId], references: [id])
-  redemptions    OptionRedemption[]
-  refundItems    RefundOptionItem[]
-  conflicts      OptionRedemptionConflict[]
+  id               String                     @id @default(cuid())
+  orderId          String
+  optionId         String
+  quantity         Int
+  unitPriceMinor   Int
+  unitFeeMinor     Int                        @default(0)
+  redeemed         Int                        @default(0)
+  refunded         Int                        @default(0) // quantité remboursée (RG-OPT-07)
+  productVariantId String? // produit de la boutique : la variante choisie, sur le stock partagé
+  variantLabel     String? // « M · Noir », figé à l'achat
+  createdAt        DateTime                   @default(now())
+  order            Order                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  option           EventOption                @relation(fields: [optionId], references: [id])
+  productVariant   ProductVariant?            @relation(fields: [productVariantId], references: [id], onDelete: SetNull)
+  redemptions      OptionRedemption[]
+  refundItems      RefundOptionItem[]
+  conflicts        OptionRedemptionConflict[]
 
   @@index([orderId])
   @@index([optionId])
+  @@index([productVariantId])
 }
 
 /// Retrait d'une option au bar (RG-OPT-04) : qui, quand, combien
@@ -2535,4 +2550,290 @@ model BlockedCard {
 
   @@unique([blockedBuyerId, fingerprint])
   @@index([organizationId, fingerprint])
+}
+
+// Boutique (lot 3, Pro) : produits de l'organisation, vendus seuls sur sa page ou en option de ses événements, sans
+// commission Evoly. Retrait en main propre (code QR) ou livraison simple (transporteur et numéro de suivi).
+
+enum ProductStatus {
+  DRAFT // brouillon : invisible du public
+  ON_SALE // en vente
+  ARCHIVED // archivé : plus en vente, gardé pour l'historique des commandes
+}
+
+/// Produit de la boutique : prix TTC et taux de TVA propres, une ou plusieurs variantes (combinaisons d'options)
+model Product {
+  id              String        @id @default(cuid())
+  organizationId  String
+  name            String
+  slug            String // adresse de la page du produit, unique dans l'organisation
+  description     String?
+  priceMinor      Int // prix TTC de base (la variante peut ajouter un supplément)
+  currency        String        @db.Char(3)
+  vatRateBps      Int // taux de TVA du produit, pour les reçus : 2100 = 21 %
+  status          ProductStatus @default(DRAFT)
+  featured        Boolean       @default(false) // mis en avant dans la boutique
+  pickupEnabled   Boolean       @default(true) // retrait en main propre accepté
+  shippingEnabled Boolean       @default(false) // livraison acceptée
+  sortOrder       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  images       ProductImage[]
+  optionGroups ProductOptionGroup[]
+  variants     ProductVariant[]
+  orderLines   ShopOrderLine[]
+  eventOptions EventOption[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, status, sortOrder])
+  @@index([organizationId, name])
+}
+
+/// Photo d'un produit (stockage des fichiers publics), dans l'ordre de la galerie
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+}
+
+/// Option libre d'un produit (« Taille », « Couleur »)
+model ProductOptionGroup {
+  id        String @id @default(cuid())
+  productId String
+  name      String
+  sortOrder Int    @default(0)
+
+  product Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+  values  ProductOptionValue[]
+
+  @@unique([productId, name])
+  @@index([productId, sortOrder])
+}
+
+/// Valeur d'une option (« M », « Noir »)
+model ProductOptionValue {
+  id        String @id @default(cuid())
+  groupId   String
+  name      String
+  sortOrder Int    @default(0)
+
+  group ProductOptionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, name])
+  @@index([groupId, sortOrder])
+}
+
+/// Variante vendable : une combinaison de valeurs (variante unique, clé vide, pour un produit sans option), son
+/// supplément de prix et son stock. Stock : unités disponibles (vide : illimité), diminué à chaque vente ; réservé :
+/// paniers en cours de paiement ; jamais de survente (réservation atomique, contraintes de la base).
+model ProductVariant {
+  id              String   @id @default(cuid())
+  productId       String
+  key             String // identifiants des valeurs, triés et joints par « . » ; vide : produit sans option
+  label           String // « M · Noir », pour l'affichage et les commandes
+  priceDeltaMinor Int      @default(0)
+  stock           Int?
+  held            Int      @default(0)
+  sold            Int      @default(0)
+  active          Boolean  @default(true) // combinaison retirée ou mise de côté : plus en vente
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product      Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderLines   ShopOrderLine[]
+  orderOptions OrderOption[]
+
+  @@unique([productId, key])
+  @@index([productId, sortOrder])
+}
+
+/// Lieu de retrait en main propre : l'acheteur y montre le code QR de sa commande
+model PickupPoint {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  address        String
+  instructions   String? // horaires, consignes
+  active         Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders       ShopOrder[]
+
+  @@index([organizationId, sortOrder])
+}
+
+/// Mode de livraison simple, à prix fixe ; l'organisateur expédie lui-même et saisit le numéro de suivi
+model ShippingMethod {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  priceMinor     Int
+  active         Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders       ShopOrder[]
+
+  @@index([organizationId, sortOrder])
+}
+
+// Commandes de la boutique (lot 3b) : séparées des commandes de billets, qui exigent toutes un événement
+
+enum ShopOrderStatus {
+  PENDING // produits réservés, paiement en cours
+  PAID
+  CANCELLED // abandonnée avant le paiement (acheteur bloqué, annulation)
+  EXPIRED // réservation expirée sans paiement
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum FulfillmentMode {
+  PICKUP // retrait en main propre, sur présentation du code QR
+  SHIPPING // livraison (lot 3d)
+}
+
+enum FulfillmentStatus {
+  TO_PREPARE // à préparer
+  READY // prête à retirer
+  PICKED_UP // retirée
+  SHIPPED // expédiée (lot 3d)
+}
+
+enum ShopRefundReason {
+  WITHDRAWAL // rétractation de l'acheteur (14 jours)
+  ORGANIZER // remboursement décidé par l'organisation
+}
+
+enum ShopRefundStatus {
+  PROCESSING // envoyé à Mollie, en attente de son état final (webhook)
+  SUCCEEDED
+  FAILED
+}
+
+/// Commande de la boutique : produits seuls, sans billet ; payée sur le compte Mollie de l'organisation, sans commission
+/// Evoly (seuls les frais de Mollie)
+model ShopOrder {
+  id                    String            @id @default(cuid())
+  organizationId        String
+  reference             String            @unique // EVS-7KQ2-4X9M
+  status                ShopOrderStatus   @default(PENDING)
+  fulfillmentMode       FulfillmentMode   @default(PICKUP)
+  fulfillmentStatus     FulfillmentStatus @default(TO_PREPARE)
+  pickupPointId         String?
+  pickupName            String? // lieu figé à la commande
+  pickupAddress         String?
+  pickupInstructions    String?
+  shippingMethodId      String? // livraison (lot 3d) : mode choisi, nom et taux de TVA figés
+  shippingName          String?
+  shippingVatBps        Int               @default(0)
+  shippingRefunded      Boolean           @default(false) // la livraison ne se rembourse qu'une fois
+  shipName              String? // adresse de livraison
+  shipAddress1          String?
+  shipAddress2          String?
+  shipPostalCode        String?
+  shipCity              String?
+  shipCountry           String?           @db.Char(2)
+  carrier               String? // expédition : transporteur, numéro et lien de suivi
+  trackingNumber        String?
+  trackingUrl           String?
+  buyerFirstName        String?
+  buyerLastName         String?
+  buyerEmail            String?
+  buyerEmailKey         String? // adresse normalisée (buyerEmailKey) : personnes bloquées
+  buyerPhone            String?
+  locale                String            @default("fr")
+  currency              String            @db.Char(3)
+  subtotalMinor         Int // produits, toutes taxes comprises
+  shippingMinor         Int               @default(0)
+  totalMinor            Int
+  vatMinor              Int               @default(0) // TVA comprise dans le total, tous taux confondus
+  refundedMinor         Int               @default(0)
+  molliePaymentId       String?           @unique // paiement Mollie en cours (tr_…), sur le compte de l'organisation
+  paymentMethodType     String? // moyen de paiement chez Mollie (creditcard, bancontact, applepay…)
+  cardFingerprint       String? // empreinte de la carte (personnes bloquées), jamais un numéro de carte
+  holdExpiresAt         DateTime?
+  accessTokenHash       String?           @unique // lien magique de la commande (hachage seulement)
+  accessTokenVersion    Int               @default(1)
+  pickupCode            String            @unique // code du QR de retrait, aussi saisissable à la main
+  termsVersion          String?
+  marketingOptIn        Boolean           @default(false)
+  withdrawalRequestedAt DateTime? // rétractation demandée par l'acheteur
+  paidAt                DateTime?
+  readyAt               DateTime?
+  pickedUpAt            DateTime?
+  shippedAt             DateTime?
+  cancelledAt           DateTime?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  pickupPoint    PickupPoint?    @relation(fields: [pickupPointId], references: [id], onDelete: SetNull)
+  shippingMethod ShippingMethod? @relation(fields: [shippingMethodId], references: [id], onDelete: SetNull)
+  lines          ShopOrderLine[]
+  refunds        ShopRefund[]
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, status, fulfillmentStatus])
+  @@index([organizationId, buyerEmailKey])
+  @@index([organizationId, buyerLastName])
+  @@index([status, holdExpiresAt])
+  @@index([pickupPointId])
+  @@index([shippingMethodId])
+}
+
+/// Ligne d'une commande de la boutique : nom, options, prix et TVA figés à l'achat
+model ShopOrderLine {
+  id               String  @id @default(cuid())
+  orderId          String
+  productId        String?
+  variantId        String?
+  productName      String
+  variantLabel     String  @default("")
+  imageUrl         String?
+  quantity         Int
+  unitPriceMinor   Int
+  vatRateBps       Int
+  refundedQuantity Int     @default(0)
+
+  order   ShopOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variantId])
+}
+
+/// Remboursement d'une commande de la boutique (rétractation ou décision de l'organisation)
+model ShopRefund {
+  id             String           @id @default(cuid())
+  orderId        String
+  amountMinor    Int
+  reason         ShopRefundReason
+  status         ShopRefundStatus @default(PROCESSING)
+  mollieRefundId String?          @unique // re_…
+  failureReason  String?
+  createdById    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  order ShopOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
 }

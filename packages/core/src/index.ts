@@ -38,3 +38,4 @@ export * from "./promotions";
 export * from "./buyerKey";
 export * from "./pace";
 export * from "./phone";
+export * from "./shop";

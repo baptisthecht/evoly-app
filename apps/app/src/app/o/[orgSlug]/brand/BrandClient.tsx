@@ -29,13 +29,15 @@ import { ThemeFields, ThemePreview, type SocialKey } from "./BrandTheme";
 export async function uploadFile(
   orgSlug: string,
   file: File,
-  kind: "logo" | "favicon" | "cover" | "campaign",
-  eventId?: string,
+  kind: "logo" | "favicon" | "cover" | "campaign" | "product",
+  targetId?: string,
 ): Promise<{ url?: string; error?: string }> {
   const body = new FormData();
   body.set("file", file);
   body.set("kind", kind);
-  if (eventId) body.set("eventId", eventId);
+  // l'événement d'une couverture, le produit d'une photo de la boutique
+  if (targetId)
+    body.set(kind === "product" ? "productId" : "eventId", targetId);
   const res = await fetch(`/o/${orgSlug}/brand/upload`, {
     method: "POST",
     body,

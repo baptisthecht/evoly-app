@@ -5,7 +5,9 @@ import {
   hasFeature,
   normalizeShortCode,
   optionCommission,
+  optionLineName,
   parseMajorToMinor,
+  variantAvailable,
   type FeeTerms,
 } from "@evoly/core";
 import type { Prisma } from "@evoly/db";
@@ -27,8 +29,18 @@ export type OptionFormInput = {
   stock?: string;
   maxPerOrder?: string;
   standalone?: boolean;
+  /** produit de la boutique repris (section 9.35) : nom, prix et stock viennent du produit */
+  productId?: string | null;
 };
-export type RequestedOption = { optionId: string; quantity: number };
+/**
+ * Option demandée ; produit de la boutique : la variante choisie (`variantId`, ou l'identifiant composé
+ * « option:variante » des lignes proposées par publicOptions).
+ */
+export type RequestedOption = {
+  optionId: string;
+  quantity: number;
+  variantId?: string | null;
+};
 export type PricedOptions = {
   lines: Array<{
     optionId: string;
@@ -36,6 +48,8 @@ export type PricedOptions = {
     quantity: number;
     unitPriceMinor: number;
     unitFeeMinor: number;
+    productVariantId?: string;
+    variantLabel?: string;
   }>;
   subtotalMinor: number;
   feeMinor: number;
@@ -53,6 +67,48 @@ const counting = (now: Date): Prisma.OrderWhereInput => ({
     { status: "PENDING", holdExpiresAt: { gt: now } },
   ],
 });
+
+/**
+ * RG-SHOP-13 : option reprise d'un produit de la boutique (Pro, produit non archivé de l'organisation) : nom, prix de
+ * base et description du produit ; aucun stock propre, celui des variantes est partagé avec la boutique.
+ */
+async function productData(
+  ctx: OrgContext,
+  input: OptionFormInput,
+  base: { maxPerOrder: number; standalone: boolean },
+) {
+  if (!hasFeature(ctx.features, "SHOP")) throw new CoreError("PRO_REQUIRED");
+  const product = await db.product.findFirst({
+    where: {
+      id: input.productId!,
+      organizationId: ctx.organization.id,
+      status: { not: "ARCHIVED" },
+    },
+  });
+  if (!product) throw new CoreError("NOT_FOUND");
+  return {
+    name: product.name.slice(0, 80),
+    description: product.description?.slice(0, 300) || null,
+    priceMinor: product.priceMinor,
+    stock: null,
+    productId: product.id,
+    ...base,
+  };
+}
+
+/** Données d'une option : libre (saisie contrôlée), ou reprise d'un produit de la boutique. */
+async function optionData(
+  ctx: OrgContext,
+  input: OptionFormInput,
+  currency: string,
+) {
+  if (!input.productId) return { ...parse(input, currency), productId: null };
+  const { maxPerOrder, standalone } = parse(
+    { ...input, name: "x", price: "0", stock: "" },
+    currency,
+  );
+  return productData(ctx, input, { maxPerOrder, standalone });
+}
 
 function parse(input: OptionFormInput, currency: string) {
   const name = input.name.trim().slice(0, 80);
@@ -89,7 +145,7 @@ export async function createOption(
   if (!hasFeature(ctx.features, "PREPAID_OPTIONS"))
     throw new CoreError("FEATURE_UNAVAILABLE");
   const event = await findEvent(ctx, eventId);
-  const data = parse(input, event.currency);
+  const data = await optionData(ctx, input, event.currency);
   const sortOrder = await db.eventOption.count({ where: { eventId } });
   const option = await db.eventOption.create({
     data: { eventId, ...data, sortOrder },
@@ -113,7 +169,7 @@ export async function updateOption(
   if (!hasFeature(ctx.features, "PREPAID_OPTIONS"))
     throw new CoreError("FEATURE_UNAVAILABLE");
   const event = await findEvent(ctx, eventId);
-  const data = parse(input, event.currency);
+  const data = await optionData(ctx, input, event.currency);
   const res = await db.eventOption.updateMany({
     where: { id: optionId, eventId },
     data,
@@ -156,6 +212,16 @@ export async function listOptions(ctx: OrgContext, eventId: string) {
   const options = await db.eventOption.findMany({
     where: { eventId },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+    include: {
+      product: {
+        select: {
+          variants: {
+            where: { active: true },
+            select: { stock: true, held: true },
+          },
+        },
+      },
+    },
   });
   const sums = await db.orderOption.groupBy({
     by: ["optionId"],
@@ -165,9 +231,20 @@ export async function listOptions(ctx: OrgContext, eventId: string) {
     },
     _sum: { quantity: true, redeemed: true },
   });
-  return options.map((o) => {
+  return options.map(({ product, ...o }) => {
     const s = sums.find((x) => x.optionId === o.id)?._sum;
-    return { ...o, sold: s?.quantity ?? 0, redeemed: s?.redeemed ?? 0 };
+    // produit de la boutique : unités encore disponibles de ses variantes actives (null : au moins une sans limite)
+    const shopStock = product
+      ? product.variants.some((v) => v.stock == null)
+        ? null
+        : product.variants.reduce((n, v) => n + (variantAvailable(v) ?? 0), 0)
+      : null;
+    return {
+      ...o,
+      sold: s?.quantity ?? 0,
+      redeemed: s?.redeemed ?? 0,
+      shopStock,
+    };
   });
 }
 
@@ -181,13 +258,36 @@ export async function publicOptions(
   const options = await db.eventOption.findMany({
     where: { eventId, active: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+    include: {
+      product: {
+        include: {
+          variants: { where: { active: true }, orderBy: { sortOrder: "asc" } },
+        },
+      },
+    },
   });
   const used = await db.orderOption.groupBy({
     by: ["optionId"],
     where: { optionId: { in: options.map((o) => o.id) }, order: counting(now) },
     _sum: { quantity: true },
   });
-  return options.map((o) => {
+  return options.flatMap((o) => {
+    // RG-SHOP-13 : produit de la boutique, proposé variante par variante (« option:variante »), au prix et au stock
+    // de la boutique ; boutique fermée (offre gratuite) ou produit archivé : rien
+    if (o.product) {
+      if (!features.includes("SHOP") || o.product.status === "ARCHIVED")
+        return [];
+      const product = o.product;
+      return product.variants.map((v) => ({
+        id: `${o.id}:${v.id}`,
+        name: optionLineName(product.name, v.label),
+        description: o.description,
+        priceMinor: product.priceMinor + v.priceDeltaMinor,
+        maxPerOrder: o.maxPerOrder,
+        left: variantAvailable(v),
+        standalone: o.standalone,
+      }));
+    }
     const left =
       o.stock == null
         ? null
@@ -196,15 +296,17 @@ export async function publicOptions(
             o.stock -
               (used.find((u) => u.optionId === o.id)?._sum.quantity ?? 0),
           );
-    return {
-      id: o.id,
-      name: o.name,
-      description: o.description,
-      priceMinor: o.priceMinor,
-      maxPerOrder: o.maxPerOrder,
-      left,
-      standalone: o.standalone,
-    };
+    return [
+      {
+        id: o.id,
+        name: o.name,
+        description: o.description,
+        priceMinor: o.priceMinor,
+        maxPerOrder: o.maxPerOrder,
+        left,
+        standalone: o.standalone,
+      },
+    ];
   });
 }
 
@@ -228,6 +330,90 @@ export async function saleOptions(eventId: string, now = new Date()) {
 }
 
 /**
+ * RG-SHOP-13 : produit de la boutique pris en option : chaque variante choisie est retenue sur le stock de la boutique,
+ * de façon atomique (jamais au-delà) ; prix de la boutique, aucune commission Evoly (RG-SHOP-08).
+ */
+async function holdProductVariants(
+  tx: Prisma.TransactionClient,
+  option: {
+    id: string;
+    product: { id: string; name: string; priceMinor: number; status: string };
+  },
+  byVariant: Map<string, number> | undefined,
+  quantity: number,
+): Promise<PricedOptions["lines"]> {
+  const chosen = [...(byVariant ?? new Map<string, number>())];
+  if (!chosen.length || chosen.reduce((n, [, q]) => n + q, 0) !== quantity)
+    throw new CoreError("OPTION_VARIANT_REQUIRED");
+  if (option.product.status === "ARCHIVED")
+    throw new CoreError("OPTION_UNAVAILABLE");
+  const lines: PricedOptions["lines"] = [];
+  for (const [variantId, q] of chosen) {
+    const variant = await tx.productVariant.findFirst({
+      where: { id: variantId, productId: option.product.id, active: true },
+    });
+    if (!variant) throw new CoreError("OPTION_UNAVAILABLE");
+    const held = await tx.$executeRaw`
+      UPDATE "ProductVariant" SET "held" = "held" + ${q}
+      WHERE id = ${variant.id} AND "active" AND ("stock" IS NULL OR "stock" - "held" >= ${q})`;
+    if (held !== 1) throw new CoreError("OPTION_SOLD_OUT");
+    lines.push({
+      optionId: option.id,
+      name: optionLineName(option.product.name, variant.label),
+      quantity: q,
+      unitPriceMinor: option.product.priceMinor + variant.priceDeltaMinor,
+      unitFeeMinor: 0,
+      productVariantId: variant.id,
+      variantLabel: variant.label,
+    });
+  }
+  return lines;
+}
+
+/** Libère les variantes de la boutique retenues par les options d'une commande (expirée, annulée). */
+export async function releaseProductOptions(
+  tx: Prisma.TransactionClient,
+  orderId: string,
+) {
+  const lines = await tx.orderOption.findMany({
+    where: { orderId, productVariantId: { not: null } },
+    select: { productVariantId: true, quantity: true },
+  });
+  for (const l of lines)
+    await tx.$executeRaw`UPDATE "ProductVariant" SET "held" = GREATEST("held" - ${l.quantity}, 0) WHERE id = ${l.productVariantId}`;
+}
+
+/**
+ * Paiement validé : les variantes retenues deviennent vendues (stock diminué) ; libérées entre-temps (réservation
+ * expirée), elles sont reprises seulement si le stock le permet. Faux : plus assez de stock.
+ */
+export async function sellProductOptions(
+  tx: Prisma.TransactionClient,
+  orderId: string,
+  stillHeld: boolean,
+): Promise<boolean> {
+  const lines = await tx.orderOption.findMany({
+    where: { orderId, productVariantId: { not: null } },
+    select: { productVariantId: true, quantity: true },
+  });
+  for (const l of lines) {
+    const done = stillHeld
+      ? await tx.$executeRaw`
+          UPDATE "ProductVariant" SET "held" = GREATEST("held" - ${l.quantity}, 0),
+            "stock" = CASE WHEN "stock" IS NULL THEN NULL ELSE "stock" - ${l.quantity} END,
+            "sold" = "sold" + ${l.quantity}
+          WHERE id = ${l.productVariantId} AND ("stock" IS NULL OR "stock" >= ${l.quantity})`
+      : await tx.$executeRaw`
+          UPDATE "ProductVariant" SET
+            "stock" = CASE WHEN "stock" IS NULL THEN NULL ELSE "stock" - ${l.quantity} END,
+            "sold" = "sold" + ${l.quantity}
+          WHERE id = ${l.productVariantId} AND ("stock" IS NULL OR "stock" - "held" >= ${l.quantity})`;
+    if (done !== 1) return false;
+  }
+  return true;
+}
+
+/**
  * Dans la transaction de réservation, l'événement verrouillé : options demandées, prix, commission et stock.
  * Le stock compte les commandes payées et les réservations en cours : une réservation abandonnée libère ses options d'elle-même.
  */
@@ -240,17 +426,27 @@ export async function priceOptionsInTx(
   allowed: boolean,
   withoutTicket = false, // panier sans billet : seules les options vendables sans billet (RG-OPT-03)
 ): Promise<PricedOptions> {
+  // quantités par option, et par variante pour un produit de la boutique (« option:variante » accepté)
   const wanted = new Map<string, number>();
+  const variants = new Map<string, Map<string, number>>();
   for (const r of requested) {
     if (!Number.isInteger(r.quantity) || r.quantity < 0 || r.quantity > 100)
       throw new CoreError("OPTION_QUANTITY_INVALID");
-    if (r.quantity > 0)
-      wanted.set(r.optionId, (wanted.get(r.optionId) ?? 0) + r.quantity);
+    if (r.quantity <= 0) continue;
+    const [optionId, composed] = r.optionId.split(":") as [string, string?];
+    const variantId = r.variantId ?? composed ?? null;
+    wanted.set(optionId, (wanted.get(optionId) ?? 0) + r.quantity);
+    if (variantId) {
+      const byVariant = variants.get(optionId) ?? new Map<string, number>();
+      byVariant.set(variantId, (byVariant.get(variantId) ?? 0) + r.quantity);
+      variants.set(optionId, byVariant);
+    }
   }
   if (wanted.size === 0) return NO_OPTIONS;
   if (!allowed) throw new CoreError("FEATURE_UNAVAILABLE");
   const options = await tx.eventOption.findMany({
     where: { id: { in: [...wanted.keys()] }, eventId, active: true },
+    include: { product: true },
   });
   if (options.length !== wanted.size) throw new CoreError("OPTION_UNAVAILABLE");
   if (withoutTicket && options.some((o) => !o.standalone))
@@ -259,6 +455,17 @@ export async function priceOptionsInTx(
   for (const o of options) {
     const quantity = wanted.get(o.id)!;
     if (quantity > o.maxPerOrder) throw new CoreError("OPTION_MAX_EXCEEDED");
+    if (o.product) {
+      lines.push(
+        ...(await holdProductVariants(
+          tx,
+          { id: o.id, product: o.product },
+          variants.get(o.id),
+          quantity,
+        )),
+      );
+      continue;
+    }
     if (o.stock != null) {
       const used = await tx.orderOption.aggregate({
         where: { optionId: o.id, order: counting(now) },
@@ -303,7 +510,7 @@ async function optionsOfOrder(orderId: string) {
   });
   return lines.map((l) => ({
     id: l.id,
-    name: l.option.name,
+    name: optionLineName(l.option.name, l.variantLabel),
     quantity: l.quantity,
     redeemed: l.redeemed,
     refunded: l.refunded,

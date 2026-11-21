@@ -52,7 +52,13 @@ valider : `docs/MOLLIE.md`. Branche `mollie`, un commit par lot.
   déploiement du lot 7 » de `docs/DEPLOIEMENT.md` (noms exacts) : retirer du `.env` du serveur les variables de
   l'ancien prestataire ; réinstaller la crontab (`crontab ops/crontab`, la tâche `webhooks` n'existe plus) ; supprimer
   la sonde « webhooks » dans Healthchecks.io ; supprimer les destinations de webhooks chez l'ancien prestataire si le
-  compte existe encore ; supprimer ses trois secrets GitHub des parcours complets. Ensuite, la boutique passe à Mollie.
+  compte existe encore ; supprimer ses trois secrets GitHub des parcours complets.
+- Lot 8, boutique sur Mollie : fait (21 novembre 2026). Commandes de la boutique payées sur le compte Mollie de
+  l'organisateur, sans commission Evoly, page de paiement de Mollie avec retour sur la page de la commande, webhook
+  `/api/webhooks/mollie/boutique`, remboursements sur le paiement Mollie ; un paiement reçu sans commande à servir
+  (réservation annulée, paiement remplacé après un changement du mode de remise) est remboursé en entier. Frais de la
+  fiche d'une commande estimés d'après la grille de Mollie. Au déploiement : migrations `20261121120000_boutique` et
+  `20261121120100_boutique_offres` (les cinq migrations de la branche `boutique` sont regroupées dans ces deux-là).
 - Reversements aux lieux partenaires (décision ouverte) : en pause depuis le 18 novembre 2026 ; la part de chaque lieu
   reste due. À trancher quand Mollie aura répondu sur les transferts entre soldes Connect (activation par Mollie,
   accord de chaque lieu, 1 000 € par mois au plus), sinon virement bancaire par Evoly.
@@ -74,7 +80,23 @@ valider : `docs/MOLLIE.md`. Branche `mollie`, un commit par lot.
   frais »), valeur par défaut dans Paramètres, Paiements, figé sur la commande ; règle affichée sur la page de
   l'événement, dans le tunnel d'achat et l'e-mail de confirmation ; montant exact dans la demande. Au prochain
   déploiement : migration `20261116130000_remboursement_cout_neutre`.
-- Lot 3, la boutique (sous-lots 3a à 3d) : à faire ; le modèle de données est présenté au fondateur avant 3a.
+- Lot 3, la boutique (sous-lots 3a à 3d), décidée le 17 novembre 2026, modèle de données validé par le fondateur le
+  17 novembre 2026, validée par le porteur le 20 novembre 2026 et portée sur Mollie (lot 8 du passage à Mollie) ; au
+  déploiement, migrations `20261121120000_boutique` et `20261121120100_boutique_offres` pour toute la boutique :
+  - 3a, catalogue et écrans d'administration : fait. Entrée « Boutique » (Pro) avec les onglets Produits et Retrait et
+    livraison ; fiche d'un produit (statut, informations, photos, options, stock et supplément de chaque variante) ;
+    droit « Gérer la boutique ».
+  - 3b, boutique publique avec retrait en main propre, paiement, e-mails, code QR de retrait : fait. Section
+    « Boutique » sur la page de l'organisation, page produit, panier, paiement sans commission Evoly, page de la commande
+    (code QR, reçu avec la TVA, rétractation de 14 jours, ouverte aussi au retrait sur place), onglet Commandes, fiche
+    d'une commande (prête, remise, remboursement), scan des retraits ; conditions de vente complétées. Plus tard : les
+    commandes de la boutique dans Finances (recette, exports), qui ne comptent aujourd'hui que les billets.
+  - 3c, produits en option des événements, stock partagé : fait. Billetterie, Options : « Produit de la boutique » ;
+    l'acheteur choisit la variante avec ses billets, retenue sur le stock de la boutique, retirée à l'événement.
+  - 3d, livraison avec numéro de suivi : fait. Au paiement, retrait ou livraison (mode, adresse, frais ajoutés au total
+    avec leur TVA) ; fiche d'une commande livrée : adresse, « Marquer expédiée » avec le transporteur, le numéro et le
+    lien de suivi (e-mail à l'acheteur), livraison remboursable une fois ; rétractation ouverte jusqu'à 14 jours après
+    la livraison estimée (expédition plus 7 jours).
 - Lot 4, connexion avec Apple : fait côté code (origine de confiance `https://appleid.apple.com`, script du secret,
   procédure dans `docs/DEPLOIEMENT.md`) ; reste la configuration chez Apple et sur le serveur (ci-dessous).
 

@@ -39,6 +39,7 @@ const PRO_FEATURES: PlanFeature[] = [
   "EMBED_WIDGET",
   "AMBASSADORS",
   "DISTRIBUTION",
+  "SHOP",
 ];
 
 const ALL: Permission[] = [
@@ -66,6 +67,7 @@ const ALL: Permission[] = [
   "STATS_VIEW",
   "MARKETING_MANAGE",
   "CONTACTS_EXPORT",
+  "SHOP_MANAGE",
 ];
 
 const SYSTEM_ROLES: {
@@ -107,6 +109,7 @@ const SYSTEM_ROLES: {
       "CHECKIN_MANAGE",
       "STATS_VIEW",
       "MARKETING_MANAGE",
+      "SHOP_MANAGE",
     ],
   },
   {

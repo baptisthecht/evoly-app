@@ -10,7 +10,7 @@ import re
 ROOT = pathlib.Path(__file__).parent
 LEGAL_DESC = {
     "cgu": "Conditions d’utilisation d’Evoly pour les organisateurs : compte, commission, paiements, revente et responsabilités.",
-    "conditions-de-vente": "Conditions de vente des billets achetés sur Evoly : paiement, envoi des billets, annulation, remboursement et revente entre participants.",
+    "conditions-de-vente": "Conditions de vente des billets et des produits achetés sur Evoly : paiement, annulation, remboursement, revente et rétractation.",
     "sous-traitance": "Accord de sous-traitance des données entre Evoly et les organisateurs, au sens de l’article 28 du RGPD.",
     "privacy": "Politique de confidentialité d’Evoly : données collectées, finalités, hébergement dans l’Union européenne, durées de conservation et droits.",
     "cookies": "Les cookies utilisés sur Evoly, à quoi ils servent et comment les gérer.",
@@ -99,7 +99,7 @@ footer{{border-top:1px solid #e8dcd5;margin-top:48px;padding-top:18px;font-size:
 
 VERSION = "2026-09"
 # version propre à une page, quand elle change seule
-VERSIONS = {"privacy": "2026-10", "cgu": "2026-10", "legal": "2026-11"}
+VERSIONS = {"privacy": "2026-10", "cgu": "2026-10", "legal": "2026-11", "conditions-de-vente": "2026-11"}
 
 
 def build(out_dir: pathlib.Path | None = None) -> list[pathlib.Path]:

@@ -1,6 +1,6 @@
 ## 1. Qui vend ?
 
-Les billets sont vendus par l'organisateur de l'événement, dont le nom figure sur la page de vente et sur vos billets. Evoly (Baptist Hecht, entrepreneur indépendant exerçant sous le nom commercial Evoly Solutions, rue du Bilemont 376, 7700 Mouscron, Belgique, numéro d'entreprise BCE 1043.315.766) fournit la plateforme technique de billetterie : Evoly n'est pas l'organisateur de l'événement et n'est pas partie au contrat de vente, sauf pour le service de revente décrit ci-dessous.
+Les billets sont vendus par l'organisateur de l'événement, dont le nom figure sur la page de vente et sur vos billets. Les produits de la boutique d'un organisateur (vêtements, objets, affiches…) sont vendus par cet organisateur, dont le nom figure sur la boutique et sur votre reçu. Evoly (Baptist Hecht, entrepreneur indépendant exerçant sous le nom commercial Evoly Solutions, rue du Bilemont 376, 7700 Mouscron, Belgique, numéro d'entreprise BCE 1043.315.766) fournit la plateforme technique de billetterie : Evoly n'est pas l'organisateur de l'événement et n'est pas partie au contrat de vente, sauf pour le service de revente décrit ci-dessous.
 
 ## 2. Prix et paiement
 
@@ -16,6 +16,8 @@ Après la commande, vous recevez vos billets par e-mail et pouvez les retrouver 
 
 Conformément à l'article VI.53, 12° du Code de droit économique, les billets pour des activités de loisirs à une date ou une période déterminée ne bénéficient pas du droit de rétractation de 14 jours.
 
+Les produits de la boutique, eux, en bénéficient (section 7).
+
 ## 5. Remboursements
 
 - **Selon la politique de l'organisateur**, affichée sur la page de vente : non remboursable, remboursable jusqu'à une date limite, sur demande ou jusqu'au début de l'événement. La demande se fait depuis la page de vos billets.
@@ -28,15 +30,24 @@ Le remboursement porte sur le montant de votre achat et revient sur le moyen de 
 
 Si l'organisateur l'autorise, vous pouvez revendre votre billet sur la plateforme, à un prix qui ne dépasse pas le prix d'achat. Une fois la place revendue, votre billet est désactivé et vous êtes remboursé du prix de revente, diminué de la commission Evoly et des frais bancaires de la revente. L'acheteur reçoit un nouveau billet.
 
-## 7. Données personnelles
+## 7. Produits de la boutique
+
+- **Prix** : toutes taxes comprises ; votre reçu détaille la TVA de chaque taux. Evoly ne prélève aucune commission sur les produits.
+- **Commande** : les produits de votre panier vous sont réservés pendant 15 minutes, le temps du paiement. Après le paiement, vous recevez par e-mail votre reçu et le lien de votre commande.
+- **Retrait en main propre** : vous retirez votre commande au lieu choisi, en présentant le code QR de votre commande (ou son code de 10 caractères). Un e-mail vous prévient quand elle est prête.
+- **Livraison** : quand l'organisateur la propose, au prix indiqué avant le paiement ; il expédie lui-même et vous envoie le lien de suivi.
+- **Droit de rétractation** : vous pouvez vous rétracter, sans avoir à donner de motif, dans les 14 jours qui suivent la réception de vos produits (retrait ou livraison), et à tout moment avant. Utilisez le bouton « Je me rétracte » de la page de votre commande, ou écrivez à l'organisateur. Rapportez ou renvoyez les produits dans leur état d'origine dans les 14 jours qui suivent ; les frais de renvoi sont à votre charge. L'organisateur vous rembourse le prix payé, livraison comprise, dans les 14 jours suivant votre rétractation ; il peut attendre d'avoir reçu les produits. Sont exclus les produits fabriqués selon vos spécifications ou nettement personnalisés.
+- **Garantie** : les produits bénéficient de la garantie légale de conformité de deux ans ; contactez l'organisateur.
+
+## 8. Données personnelles
 
 L'organisateur est responsable du traitement des données de votre commande ; Evoly les traite pour son compte. Si vous l'avez accepté, l'organisateur peut vous envoyer ses actualités ; chaque e-mail permet de vous désinscrire en un clic. Voir la [politique de confidentialité](/privacy/).
 
-## 8. Réclamations
+## 9. Réclamations
 
 Pour toute question sur l'événement, contactez d'abord l'organisateur, via l'adresse indiquée dans l'e-mail de confirmation. Pour une question sur la plateforme : hello@evoly.me. Si aucune solution n'est trouvée, vous pouvez saisir le Service de médiation pour le consommateur (mediationconsommateur.be).
 
-## 9. Droit applicable
+## 10. Droit applicable
 
 Les présentes conditions sont soumises au droit belge, sans préjudice des règles impératives du pays de résidence du consommateur.
 
